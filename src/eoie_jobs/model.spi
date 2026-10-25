@@ -14,6 +14,10 @@ union job_command =
     | JobList
     | JobTail
     | JobStop
+    | JobAfter
+    | JobChain
+    | JobAmend
+    | JobDoctor
     | JobUnknown
 
 inl job_command_of (~word : string) : job_command =
@@ -26,9 +30,13 @@ inl job_command_of (~word : string) : job_command =
     elif word = "list" then JobList
     elif word = "tail" then JobTail
     elif word = "stop" then JobStop
+    elif word = "after" then JobAfter
+    elif word = "chain" then JobChain
+    elif word = "amend" then JobAmend
+    elif word = "doctor" then JobDoctor
     else JobUnknown
 
-inl job_usage () : string = "job start [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (the cap covers the whole job tree; reaching it stops the job as memory-capped, exit 137) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for long runs from an agent shell that can be reaped, use job start plus a background job wait) | job status <id> | job wait <id> [max-ms, default until it settles] | job list [count] | job tail <id> [lines] | job stop <id>"
+inl job_usage () : string = "job doctor [--env] (audits eoie processes, job files and after-chains; --env also compares a detached job's environment with this shell's; exit 1 on a finding) | job after <queued-id> <predecessor-id> [--ok] (re-points a job still waiting on --after/--after-ok; label, timeout, gate and command are kept) | job chain [--ok] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one and prints every id) | job start [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] [--settle-ms <n>] <label> <timeout-ms> <program> [args...] (the cap covers the whole job tree; reaching it stops the job as memory-capped, exit 137; a plain start without --after watches the job for --settle-ms, default 2000, 0 skips, and a job that already failed prints 'job start failed' with its exit and first stderr line and exits with its code) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for long runs from an agent shell that can be reaped, use job start plus a background job wait) | job status <id> | job wait <id> [max-ms, default until it settles] | job list [count] | job tail <id> [lines] | job stop <id> | job amend <id> --timeout <ms> (a queued job only; the limit is read when its child starts)"
 
 union job_live =
     | JobPending
@@ -92,6 +100,26 @@ let state_settled (state : job_state) : bool =
     | Live _ => false
     | Settled _ => true
 
+let state_detail (state : job_state) : string =
+    match state with
+    | Live _ => ""
+    | Settled settled =>
+        match settled with
+        | JobSpawnFailed detail => detail
+        | JobSkipped detail => detail
+        | _ => ""
+
+let state_of_parts (~word : string) (code : i32) (~detail : string) : job_state =
+    if word = "pending" then Live JobPending
+    elif word = "running" then Live JobRunning
+    elif word = "finished" then Settled (JobFinished code)
+    elif word = "timed-out" then Settled JobTimedOut
+    elif word = "stopped" then Settled JobStopped
+    elif word = "lost" then Settled JobLost
+    elif word = "memory-capped" then Settled JobMemoryCapped
+    elif word = "expired-in-queue" then Settled JobExpiredInQueue
+    elif word = "skipped" then Settled (JobSkipped detail)
+    else Settled (JobSpawnFailed detail)
 inl state_shown (state : job_state) (gate_wait : bool) : string = if gate_wait && state_settled state = false then "queued" else state_word state
 
 inl exit_shown (state : job_state) : string =
@@ -220,6 +248,7 @@ test labels_become_safe_directory_names =
     expect (label_safe "eoie regen: batch 1/7" = "eoie_regen__batch_1_7") "unsafe characters"
     expect (job_command_of "wait" <> JobUnknown) "known verb"
     expect (job_command_of "stop" = JobStop) "stop verb"
+    expect (job_command_of "amend" = JobAmend) "amend verb"
     expect (job_command_of "run" = JobRun) "run verb"
 
 ///> rust
@@ -255,3 +284,10 @@ test only_unsettled_jobs_accept_a_stop =
     expect (stop_reason (stop_verdict_of (Live JobPending)) = "") "pending"
     expect (stop_reason (stop_verdict_of (Settled (JobFinished 0i32))) = "is already finished; nothing to stop") "finished"
     expect (stop_reason (stop_verdict_of (Settled JobLost)) = "is already lost; nothing to stop") "lost"
+
+///> rust
+test a_state_survives_its_parts =
+    inl round (state : job_state) : bool = state_of_parts (state_word state) (state_exit state) (state_detail state) = state
+    expect (round (Live JobRunning) && round (Live JobPending)) "live states"
+    expect (round (Settled (JobFinished 3i32)) && round (Settled JobTimedOut) && round (Settled JobLost)) "settled states"
+    expect (round (Settled (JobSkipped "after failed")) && round (Settled (JobSpawnFailed "no such program"))) "states with a detail"

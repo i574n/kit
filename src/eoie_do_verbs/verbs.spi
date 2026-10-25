@@ -29,6 +29,7 @@ union write_verb =
     | AppendVerb
     | CopyVerb
     | MoveVerb
+    | WriteFileVerb
 
 union program_verb =
     | ReadVerb : query_verb
@@ -65,6 +66,7 @@ inl write_word (verb : write_verb) : string =
     | AppendVerb => "append"
     | CopyVerb => "copy"
     | MoveVerb => "move"
+    | WriteFileVerb => "write"
 
 inl program_verb_family (verb : program_verb) : program_family =
     match verb with

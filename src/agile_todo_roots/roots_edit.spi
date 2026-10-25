@@ -53,7 +53,7 @@ let roots_entry () : i32 =
     match probe (unchecked state) with
     | FileMissing _ => roots_failure "state/agile.spi is missing"
     | FileReadable file =>
-        inl text = loaded_string (read_text file)
+        inl text = records_text (loaded_string (read_text file))
         inl action = argument_owned 2i32
         if action = "" then roots_receipt "list" text (" elapsed_ms=" ++# (u64_text (ms_since started)))
         elif action = "add" || action = "drop" then roots_edited state action text started

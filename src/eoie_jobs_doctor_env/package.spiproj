@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    eoie_jobs
+    eoie_jobs_doctor_model
+modules:
+    environment
+    entry

@@ -56,6 +56,7 @@ let rec slot_loop (~id : string) (~queue : string) (~ticket : string) (since : u
     if file_exists (job_file id "stop") then
         inl _ = file_removed (joined queue ticket)
         inl _ = text_written (job_file id "exit") (halt_line HaltOnRequest now (tree_stop_of 0u64))
+        inl _ = text_written (job_file id "slot") ("settled ticket=" ++# ticket ++# " state=stopped")
         143i32
     elif slot_deadline_passed id now then
         inl _ = file_removed (joined queue ticket)
@@ -63,6 +64,7 @@ let rec slot_loop (~id : string) (~queue : string) (~ticket : string) (since : u
             text_written
                 (job_file id "exit")
                 (exit_line 75i32 now JobExpiredInQueue "no heavy slot within --slot-within; the job never started")
+        inl _ = text_written (job_file id "slot") ("settled ticket=" ++# ticket ++# " state=expired-in-queue")
         75i32
     elif first_live_ticket (tickets_sorted queue) = ticket && slot_free (free_mb ()) then
         ticket_adopted ticket
@@ -74,7 +76,7 @@ let rec slot_loop (~id : string) (~queue : string) (~ticket : string) (since : u
         inl _ =
             text_written (job_file id "slot") ("waiting ticket=" ++# ticket ++# " first=" ++# (first_live_ticket (
                 tickets_sorted queue)))
-        sleep_ms 5000u64
+        sleep_ms 500u64
         slot_loop id queue ticket since
 
 let slot_gate (~id : string) : i32 =

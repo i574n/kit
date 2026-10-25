@@ -79,15 +79,16 @@ fn decimal_u64_13(mut v0: Rc<str>) -> u64 {
     let mut v2: Option<u64> = method14(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US1> = closure1();
     let mut v4: Option<US1> = v2.map(|x| v3(x));
-    let mut v5: US1 = US1::US1_None;
-    let mut v6: US1 = v4.unwrap_or(v5);
-    match &v6 {
+    let mut v6: US1 = US1::US1_None;
+    let mut v7: US1 = v6.clone();
+    let mut v8: US1 = v4.unwrap_or(v7);
+    match &v8 {
         US1::US1_None => {
             0u64
         }
-        US1::US1_Some(v7) => {
-            let mut v7: u64 = *v7;
-            v7
+        US1::US1_Some(v9) => {
+            let mut v9: u64 = *v9;
+            v9
         }
     }
 }
@@ -245,62 +246,76 @@ fn slot_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -
             let mut v38: Rc<str> = std::rc::Rc::<str>::from([&*v21, &*v36, &*v33, &*v37, &*v32].concat());
             let mut v39: Rc<str> = std::rc::Rc::<str>::from([&*v34, &*v36, &*v35, &*v36, &*v38].concat());
             let mut v40: Rc<str> = text_written_8(v15.clone(), v39.clone());
+            let mut v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
+            let mut v42: Rc<str> = job_file_3(v0.clone(), v41.clone());
+            let mut v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("settled ticket="); } LIT.with(|lit| lit.clone()) };
+            let mut v44: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v2));
+            let mut v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" state=stopped"); } LIT.with(|lit| lit.clone()) };
+            let mut v46: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v45));
+            let mut v47: Rc<str> = text_written_8(v42.clone(), v46.clone());
             return 143i32;
         } else {
-            let mut v41: bool = slot_deadline_passed_11(v0.clone(), v4);
-            if v41 {
-                let mut v42: Rc<str> = joined_4(v1.clone(), v2.clone());
-                let mut v43: bool = file_removed_10(v42.clone());
-                let mut v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
-                let mut v45: Rc<str> = job_file_3(v0.clone(), v44.clone());
-                let mut v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no heavy slot within --slot-within; the job never started"); } LIT.with(|lit| lit.clone()) };
-                let mut v47: US2 = US2::US2_JobExpiredInQueue;
-                let mut v48: Rc<str> = settled_word_15(v47.clone());
-                let mut v49: Rc<str> = std::rc::Rc::<str>::from((75i32).to_string());
-                let mut v50: Rc<str> = std::rc::Rc::<str>::from((v4).to_string());
-                let mut v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                let mut v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                let mut v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let mut v54: Rc<str> = std::rc::Rc::<str>::from([&*v48, &*v51, &*v46, &*v52, &*v53].concat());
-                let mut v55: Rc<str> = std::rc::Rc::<str>::from([&*v49, &*v51, &*v50, &*v51, &*v54].concat());
-                let mut v56: Rc<str> = text_written_8(v45.clone(), v55.clone());
+            let mut v48: bool = slot_deadline_passed_11(v0.clone(), v4);
+            if v48 {
+                let mut v49: Rc<str> = joined_4(v1.clone(), v2.clone());
+                let mut v50: bool = file_removed_10(v49.clone());
+                let mut v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
+                let mut v52: Rc<str> = job_file_3(v0.clone(), v51.clone());
+                let mut v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no heavy slot within --slot-within; the job never started"); } LIT.with(|lit| lit.clone()) };
+                let mut v54: US2 = US2::US2_JobExpiredInQueue;
+                let mut v55: Rc<str> = settled_word_15(v54.clone());
+                let mut v56: Rc<str> = std::rc::Rc::<str>::from((75i32).to_string());
+                let mut v57: Rc<str> = std::rc::Rc::<str>::from((v4).to_string());
+                let mut v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+                let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                let mut v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let mut v61: Rc<str> = std::rc::Rc::<str>::from([&*v55, &*v58, &*v53, &*v59, &*v60].concat());
+                let mut v62: Rc<str> = std::rc::Rc::<str>::from([&*v56, &*v58, &*v57, &*v58, &*v61].concat());
+                let mut v63: Rc<str> = text_written_8(v52.clone(), v62.clone());
+                let mut v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
+                let mut v65: Rc<str> = job_file_3(v0.clone(), v64.clone());
+                let mut v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("settled ticket="); } LIT.with(|lit| lit.clone()) };
+                let mut v67: Rc<str> = Rc::<str>::from(format!("{}{}", v66, v2));
+                let mut v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" state=expired-in-queue"); } LIT.with(|lit| lit.clone()) };
+                let mut v69: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v68));
+                let mut v70: Rc<str> = text_written_8(v65.clone(), v69.clone());
                 return 75i32;
             } else {
-                let mut v57: Rc<str> = tickets_sorted_16(v1.clone());
-                let mut v58: Rc<str> = first_live_ticket_17(v57.clone());
-                let mut v59: bool = v58.clone() == v2.clone();
-                let mut v62: bool = if v59 {
-                    let mut v60: u64 = free_mb_22();
-                    slot_free_23(v60)
+                let mut v71: Rc<str> = tickets_sorted_16(v1.clone());
+                let mut v72: Rc<str> = first_live_ticket_17(v71.clone());
+                let mut v73: bool = v72.clone() == v2.clone();
+                let mut v76: bool = if v73 {
+                    let mut v74: u64 = free_mb_22();
+                    slot_free_23(v74)
                 } else {
                     false
                 };
-                if v62 {
+                if v76 {
                     ticket_adopted_24(v2.clone());
-                    let mut v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
-                    let mut v64: Rc<str> = job_file_3(v0.clone(), v63.clone());
-                    let mut v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ready ticket="); } LIT.with(|lit| lit.clone()) };
-                    let mut v66: Rc<str> = Rc::<str>::from(format!("{}{}", v65, v2));
-                    let mut v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" waited_ms="); } LIT.with(|lit| lit.clone()) };
-                    let mut v68: Rc<str> = Rc::<str>::from(format!("{}{}", v66, v67));
-                    let mut v69: u64 = v4.wrapping_sub(v3);
-                    let mut v70: Rc<str> = decimal_text_7(v69);
-                    let mut v71: Rc<str> = Rc::<str>::from(format!("{}{}", v68, v70));
-                    let mut v72: Rc<str> = text_written_8(v64.clone(), v71.clone());
+                    let mut v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
+                    let mut v78: Rc<str> = job_file_3(v0.clone(), v77.clone());
+                    let mut v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ready ticket="); } LIT.with(|lit| lit.clone()) };
+                    let mut v80: Rc<str> = Rc::<str>::from(format!("{}{}", v79, v2));
+                    let mut v81: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" waited_ms="); } LIT.with(|lit| lit.clone()) };
+                    let mut v82: Rc<str> = Rc::<str>::from(format!("{}{}", v80, v81));
+                    let mut v83: u64 = v4.wrapping_sub(v3);
+                    let mut v84: Rc<str> = decimal_text_7(v83);
+                    let mut v85: Rc<str> = Rc::<str>::from(format!("{}{}", v82, v84));
+                    let mut v86: Rc<str> = text_written_8(v78.clone(), v85.clone());
                     return 0i32;
                 } else {
-                    let mut v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
-                    let mut v74: Rc<str> = job_file_3(v0.clone(), v73.clone());
-                    let mut v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("waiting ticket="); } LIT.with(|lit| lit.clone()) };
-                    let mut v76: Rc<str> = Rc::<str>::from(format!("{}{}", v75, v2));
-                    let mut v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" first="); } LIT.with(|lit| lit.clone()) };
-                    let mut v78: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v77));
-                    let mut v79: Rc<str> = tickets_sorted_16(v1.clone());
-                    let mut v80: Rc<str> = first_live_ticket_17(v79.clone());
-                    let mut v81: Rc<str> = Rc::<str>::from(format!("{}{}", v78, v80));
-                    let mut v82: Rc<str> = text_written_8(v74.clone(), v81.clone());
-                    let mut v83: u64 = 5000u64;
-                    std::thread::sleep(std::time::Duration::from_millis(v83));
+                    let mut v87: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
+                    let mut v88: Rc<str> = job_file_3(v0.clone(), v87.clone());
+                    let mut v89: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("waiting ticket="); } LIT.with(|lit| lit.clone()) };
+                    let mut v90: Rc<str> = Rc::<str>::from(format!("{}{}", v89, v2));
+                    let mut v91: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" first="); } LIT.with(|lit| lit.clone()) };
+                    let mut v92: Rc<str> = Rc::<str>::from(format!("{}{}", v90, v91));
+                    let mut v93: Rc<str> = tickets_sorted_16(v1.clone());
+                    let mut v94: Rc<str> = first_live_ticket_17(v93.clone());
+                    let mut v95: Rc<str> = Rc::<str>::from(format!("{}{}", v92, v94));
+                    let mut v96: Rc<str> = text_written_8(v88.clone(), v95.clone());
+                    let mut v97: u64 = 500u64;
+                    std::thread::sleep(std::time::Duration::from_millis(v97));
                     (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v2.clone(), v3);
                     continue;
                 }

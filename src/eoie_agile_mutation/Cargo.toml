@@ -35,3 +35,5 @@ agile-todo-roots = { path = "../agile_todo_roots" }
 agile-todo-record = { path = "../agile_todo_record" }
 agile-memory-links = { path = "../agile_memory_links" }
 agile-task-views = { path = "../agile_task_views" }
+eoie-agile-routes = { path = "../eoie_agile_routes" }
+eoie-command-help = { path = "../eoie_command_help" }

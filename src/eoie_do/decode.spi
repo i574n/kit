@@ -15,6 +15,7 @@ let program_family_of (~encoded : string) : program_family =
 union compiled_program =
     | CompileRejected : string
     | Delegated : program_family * string
+    | Split : string * string
 
 let program_decoded (~text : string) : compiled_program =
     inl encoded = compiled_text text
@@ -22,5 +23,12 @@ let program_decoded (~text : string) : compiled_program =
     if field_at records 0i32 0i32 = "ok" then
         match program_family_of encoded with
         | Runs => Delegated ((if has_edit records then Edits else Runs), encoded)
+        | Writes =>
+            if has_edit records then
+                Split (
+                    records_by_kinds records "edit|except|replace|pattern|show" true,
+                    records_by_kinds records "edit|except|replace|pattern|show" false
+                )
+            else Delegated (Writes, encoded)
         | family => Delegated (family, encoded)
     else CompileRejected (field_at records 1i32 0i32)

@@ -1,11 +1,11 @@
 ///- --package .
 test grammar static =
     open rust_std_string.model
-    open host
+    open eoie_do_git_host.host
     open eoie_do_records.records
 
 open rust_std_string.model
-open host
+open eoie_do_git_host.host
 open eoie_do_records.records
 
 union git_step =

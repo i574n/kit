@@ -16,3 +16,22 @@ test ps_lists_cores_and_mine_scopes_to_the_calling_session =
     expect (bad.code = 2i32) (run_text bad)
     shows bad.stdout "ps: invalid pattern"
     fixture_root_remove root
+
+///> rust
+test kill_with_mine_refuses_another_authors_job_unless_it_is_named =
+    inl root = fixture_root_create "kill mine"
+    inl home = cat "EOIE_JOBS_HOME=" (fixture_path root "jobs")
+    inl sleepy = rustc_program root "sleepy" "fn main() { std::thread::sleep(std::time::Duration::from_secs(120)); }"
+    inl started = succeeded (eoie_run (fixture_text_of root) (Arg (home, Arg ("EOIE_AUTHOR=alpha", NoArgs))) (Arg ("EOIE_JOB_RELAUNCHED", Arg ("EOIE_JOB_WATCH", NoArgs))) (Arg ("job", Arg ("start", Arg ("owned", Arg ("120000", Arg (sleepy, NoArgs)))))))
+    inl job = word_after started "id="
+    expect (path_appears (fixture_path root (cat (cat "jobs/" job) "/pid")) 20000u64) (cat "the job child never started: " started)
+    same (trimmed (fixture_read root (cat (cat "jobs/" job) "/author"))) "alpha"
+    inl child = trimmed (fixture_read root (cat (cat "jobs/" job) "/pid"))
+    inl refused = eoie_run (fixture_text_of root) (Arg (home, Arg ("EOIE_AUTHOR=beta", NoArgs))) NoArgs (Arg ("kill", Arg ("--mine", Arg (child, NoArgs))))
+    expect (refused.code = 1i32) (run_text refused)
+    shows refused.stdout (cat (cat "it belongs to job " job) " by alpha; pass --theirs ")
+    inl stopped = eoie_run (fixture_text_of root) (Arg (home, Arg ("EOIE_AUTHOR=beta", NoArgs))) NoArgs (Arg ("kill", Arg ("--mine", Arg ("--theirs", Arg (job, Arg (child, NoArgs))))))
+    expect (stopped.code = 0i32) (run_text stopped)
+    shows stopped.stdout "stopped 1  failed 0"
+    inl _ = eoie_run (fixture_text_of root) (Arg (home, NoArgs)) NoArgs (Arg ("job", Arg ("wait", Arg (job, Arg ("30000", NoArgs)))))
+    fixture_root_remove root

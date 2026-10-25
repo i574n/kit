@@ -1,0 +1,9 @@
+packages:
+    |core-
+    rust_std_string
+    agile_subcommand_domain
+    union_reflection
+    spiral-
+    command_spec_domain
+modules:
+    help

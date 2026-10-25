@@ -27,8 +27,8 @@ inl host_text (~read : state_host) : string = $'!read.1.clone()' : string
 inl i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
 inl without_prefix (~text : string) (bytes : i32) : string = $'std::rc::Rc::<str>::from(&(&*!text)[!bytes as usize..])' : string
 inl sorted_lines (~text : string) : string = $'{ let mut items = (&*!text).lines().filter(|line| \!line.is_empty()).collect::<Vec<_>>(); items.sort(); std::rc::Rc::<str>::from(items.join("\n")) }' : string
-inl line_count (~text : string) : i32 = $'(&*!text).lines().count() as i32' : i32
-inl line_at (~text : string) (index : i32) : string = $'std::rc::Rc::<str>::from((&*!text).lines().nth(!index as usize).unwrap_or(""))' : string
+inl line_count (~text : string) : i32 = sm'.line_count text
+inl line_at (~text : string) (index : i32) : string = sm'.line_at index text
 
 let state_read_of (~root : string) (~relative : string) : state_read =
     inl read = state_host_of root relative
@@ -106,7 +106,7 @@ let active_block (~root : string) : rendered =
     | StateMissing => Rendered ""
     | StateUnreadable problem => Refused problem
     | StateText agile =>
-        match projected "active work" ($'handoff_active_work_projection_domain::eoie_handoff_active_work_projection(&*!agile)' : string) with
+        match projected "active work" ($'handoff_active_work_projection_domain::eoie_handoff_active_work_projection(&*eoie_agile_records::eoie_agile_records_as_lines(&*!agile))' : string) with
         | Refused problem => Refused problem
         | Rendered raw =>
             if raw = "ok" then Rendered ""

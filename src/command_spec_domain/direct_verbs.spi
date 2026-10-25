@@ -1,0 +1,94 @@
+///- --package .
+test direct_verbs static =
+    open sm'_operators
+
+open sm'_operators
+
+union direct_verb =
+    | VerbJob
+    | VerbRepo
+    | VerbTable
+    | VerbRead
+    | VerbLines
+    | VerbGrep
+    | VerbDo
+    | VerbPs
+    | VerbKill
+    | VerbStandards
+    | VerbWindow
+    | VerbExperiment
+    | VerbGuide
+    | VerbMachine
+    | VerbAdoption
+    | VerbMemory
+    | VerbResume
+    | VerbCi
+    | VerbProcess
+    | VerbCrate
+    | VerbEnv
+    | VerbMirror
+
+type verb_help =
+    {
+        word : string
+        line : string
+    }
+
+inl verb_help_of (verb : direct_verb) : verb_help =
+    match verb with
+    | VerbJob => { word = "job"; line = "job: start [--heavy] <label> <timeout-ms> <program> [args...] | run [--heavy] <label> <timeout-ms> <program> [args...] (attached: supervises in this process, ends with its caller, exits with the job's code; long runs from reapable agent shells use start + a background wait) | status <id> | wait <id> [max-ms] (default: until the job settles; a queued --heavy job's timeout starts when it is admitted) | list [count] | tail <id> [lines] | stop <id> (stops the job's own process tree)" }
+    | VerbRepo => { word = "repo"; line = "repo: state <root> [<root>...] | affected <src> <package>... (Cargo crates whose package.spiproj graph reaches a changed package) | accept-review <before> <after> (passes when every changed line differs in numeric literals only)" }
+    | VerbTable => { word = "table"; line = "table: query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n] | logs <file|dir>... [--glob *.log] [--since regex] (--count name=regex | --count-by name=regex | --sum name=regex | --last name=regex | --field name=regex-on-the-file-path)... | --values name=regex alone (one row per match) [--out file.tsv] [--quiet] | test <file.tsv> --test welch|one-sample|binomial|wilson|median|binomial-band --metric <column> [--arms a[,b] [--group <column>]] [--prediction x] [--confidence 0.95] [--where ...]... | sequences <file|dir>... --time <regex (?<ms>-?\\d+)> (--interval name=A [--between B] [--modulo ms] | --window name=A --from M --ms lo..hi | --order name=A,B | --latency name=A --to B | [--section-on <regex>] [--carry <regex>] (--first|--last) name=<regex (?<id>)(?<value>)>...) [--out file.tsv]" }
+    | VerbRead => { word = "read"; line = "read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]" }
+    | VerbLines => { word = "lines"; line = "read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]" }
+    | VerbGrep => { word = "grep"; line = "read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]" }
+    | VerbDo => { word = "do"; line = "do <root> '<program>' | do <root> - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>" }
+    | VerbPs => { word = "ps"; line = "ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]] (never this eoie or its calling shells)" }
+    | VerbKill => { word = "kill"; line = "ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]] (never this eoie or its calling shells)" }
+    | VerbStandards => { word = "standards"; line = "standards: <package-dir>... [--json] (rules from the package's standards.spi rows, else no-comment-lines, line-width 120, lf-only, test-targets; exit 1 on findings) | --census <dir>... | --baseline <file.spi> <dir>... | --ratchet <file.spi> <dir>... (typefeatureset and drift counts per package; the ratchet fails when a package gets worse than its baseline or a new package misses the floor)" }
+    | VerbWindow => { word = "window"; line = "window: request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] [--min-free-mb <n>] | release <id> | list | check <class> | claim <path> | wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | run <class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...] (machine windows shared by every session; live-gui and compiler-install exclude all other classes; exit 1 when blocked)" }
+    | VerbExperiment => { word = "experiment"; line = "experiment: register <ledger> <ID> --test welch|one-sample|binomial|wilson|median|binomial-band --metric <col> --runs <n> --decision <rule> [--group <col> --arms a[,b]] [--prediction <x>] [--confidence 0.95] [--question <text>] [--time <col>] | analyze <ledger> <ID> <table.tsv> [--where col=value]... [--interim <reason>] | amend <ledger> <ID> --field <name> --value <v> --reason <text> | addendum <ledger> <ID> <text> | show <ledger> <ID> (pre-registered; one analysis at the planned count)" }
+    | VerbGuide => { word = "guide"; line = "guide <spec/one-call.md> [--out <file.md>]" }
+    | VerbMachine => { word = "machine"; line = "machine watch [--sample-seconds n]" }
+    | VerbAdoption => { word = "adoption"; line = "adoption [--days n] [--out <file.tsv>] [--habits]" }
+    | VerbMemory => { word = "memory"; line = "memory import <memory-dir> <data.spi> | render <data.spi> <out-dir> | check <data.spi> | list <data.spi> [--kind user|feedback|project|reference] | recall <data.spi> <words> [--limit n]" }
+    | VerbResume => { word = "resume"; line = "resume <backlog-root> [--team <team>] [--as <author>]" }
+    | VerbCi => { word = "ci"; line = "ci parity <repo> (setup-rust/setup-zig/setup-beam pins in <repo>/.github/workflows against the local toolchain; exit 1 on a difference)" }
+    | VerbProcess => { word = "process"; line = "process start-under-shell <program> [args...] (detached, the user shell as its live parent, no inherited handles, no caller job; prints pid and parent)" }
+    | VerbCrate => { word = "crate"; line = "crate gate <root> [--enforce] [--limit n] (generated output lines of every [package.metadata.spiral] crate under root; --enforce fails on a crate over the limit or on finding none)" }
+    | VerbEnv => { word = "env"; line = "env check <tool>=<pinned-path>... (each tool is looked up on PATH in order; the first copy found must be the pinned one)" }
+    | VerbMirror => { word = "mirror"; line = "mirror check <left-root> <right-root> <path>... (paths relative to both roots; a directory stands for every file under it)" }
+
+inl help_line_for (~target : string) : string =
+    union_reflection.cases.union_case_where (fun (verb : direct_verb) => (verb_help_of verb).word = target) (fun verb => (verb_help_of verb).line) ""
+
+type help_text =
+    {
+        text : string
+        previous : string
+    }
+
+inl help_step (done : help_text) (verb : direct_verb) : help_text =
+    inl line = (verb_help_of verb).line
+    if line = done.previous then done
+    elif done.text = "" then { text = line; previous = line }
+    else { text = done.text ++# "\n" ++# line; previous = line }
+
+inl help_lines () : string = (union_reflection.cases.union_cases_fold help_step { text = ""; previous = "" }).text
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
+///> rust
+test every_verb_word_finds_its_own_line =
+    inl wrong = union_reflection.cases.union_cases_fold (fun count (verb : direct_verb) => if help_line_for (verb_help_of verb).word = (verb_help_of verb).line then count else count + 1i32) 0i32
+    expect (wrong = 0i32) "a verb word must answer with its own help line, never with a fragment of another verb's grammar"
+    expect (help_line_for "env" <> help_line_for "do") "env has its own line"
+    expect (help_line_for "kill" = help_line_for "ps") "ps and kill share one line"
+    expect (help_line_for "nope" = "") "an unknown word has no line"
+
+///> rust
+test shared_lines_print_once =
+    inl text = help_lines ()
+    expect (sm'.starts_with "job: " text) "help lines follow the union order"
+    expect (am'.length (sm'.split "\n" text |> array) = 19i32) "22 verbs print 19 lines: read, lines and grep share one, ps and kill share one"
+    expect (sm'.index_of "mirror check " text >= 0i32) "mirror has a help line"

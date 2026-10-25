@@ -14,4 +14,5 @@ name = "agile_title_notes"
 path = "title_notes.rs"
 
 [dependencies]
+eoie-agile-records = { path = "../eoie_agile_records" }
 agile-title-tails = { path = "../agile_title_tails" }

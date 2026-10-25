@@ -74,6 +74,12 @@ inl exe_suffix () : string = $'std::rc::Rc::<str>::from(std::env::consts::EXE_SU
 inl native_name () : string = $'std::rc::Rc::<str>::from(format\!("eoie{}", std::env::consts::EXE_SUFFIX).as_str())' : string
 inl u64_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
 inl fixture_root_remove (fixture_root root) : () = $'{ let _ = std::fs::remove_dir_all(&*!root); }' : ()
+inl fixture_slashed (fixture_root root) : string = $'std::rc::Rc::<str>::from((!root).replace(char::from(92u8), "/").as_str())' : string
+inl fixture_binary (root : fixture_root) (~relative : string) : () =
+    inl path = fixture_path root relative
+    $'std::fs::write(&*!path, [0u8, 1u8, 2u8]).unwrap()' : ()
+inl fixture_git_init (fixture_root root) : () =
+    $'{ let status = std::process::Command::new("git").arg("-C").arg(&*!root).args(["init", "-q"]).status().unwrap(); assert\!(status.success()); }' : ()
 
 inl eoie_run (~cwd : string) (sets : cli_args) (drops : cli_args) (args : cli_args) : cli_run =
     inl set_text = joined sets

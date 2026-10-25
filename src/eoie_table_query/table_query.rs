@@ -50,12 +50,16 @@ fn query_rows_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
     v6
 }
 fn command_line_argument_count_4() -> i32 {
-    let mut v0: i32 = (std::env::args().count() as i32) - 1;
-    v0
+    let mut v0: usize = std::env::args().count();
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    v2
 }
 fn command_line_argument_5(mut v0: i32) -> Rc<str> {
-    let mut v1: Rc<str> = Rc::<str>::from(std::env::args().nth((v0 + 1) as usize).unwrap_or_default());
-    v1.clone()
+    let mut v1: i32 = v0.wrapping_add(1i32);
+    let mut v2: usize = ((v1) as usize);
+    let mut v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
+    v3.clone()
 }
 fn argument_3(mut v0: i32) -> Rc<str> {
     let mut v1: i32 = v0.wrapping_sub(1i32);
@@ -111,15 +115,16 @@ fn decimal_u64_11(mut v0: Rc<str>) -> u64 {
     let mut v2: Option<u64> = method12(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
     let mut v4: Option<US3> = v2.map(|x| v3(x));
-    let mut v5: US3 = US3::US3_None;
-    let mut v6: US3 = v4.unwrap_or(v5);
-    match &v6 {
+    let mut v6: US3 = US3::US3_None;
+    let mut v7: US3 = v6.clone();
+    let mut v8: US3 = v4.unwrap_or(v7);
+    match &v8 {
         US3::US3_None => {
             0u64
         }
-        US3::US3_Some(v7) => {
-            let mut v7: u64 = *v7;
-            v7
+        US3::US3_Some(v9) => {
+            let mut v9: u64 = *v9;
+            v9
         }
     }
 }
@@ -570,11 +575,13 @@ fn kept_mask_15(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>
     }
 }
 fn rows_kept_13(mut v0: Rc<str>, mut v1: Rc<str>) -> (bool, Rc<str>) {
-    let (mut v2, mut v3, mut v4): (bool, std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, Rc<str>) = { let path = &*v0; match std::fs::read_to_string(path) { Ok(text) => { let separator = if path.ends_with(".csv") { char::from(44u8) } else { char::from(9u8) }; (true, std::rc::Rc::new(text.lines().map(|line| line.split(separator).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>()), { thread_local!{ static LIT: std::rc::Rc<str> = std::rc::Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }) } Err(error) => (false, std::rc::Rc::new(Vec::new()), std::rc::Rc::<str>::from(format!("{path}: {error}").as_str())) } };
-    let mut v7: US4 = if v2 {
-        US4::US4_TableLoaded(v3.clone())
+    let mut v2: Rc<str> = eoie_table_text::eoie_table_problem(&*v0);
+    let mut v3: bool = v2.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v7: US4 = if v3 {
+        US4::US4_TableUnreadable(v2.clone())
     } else {
-        US4::US4_TableUnreadable(v4.clone())
+        let mut v5: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = std::rc::Rc::new(eoie_table_text::eoie_table_tsv(&*v0).lines().map(|line| line.split(char::from(9u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>());
+        US4::US4_TableLoaded(v5.clone())
     };
     match &v7 {
         US4::US4_TableLoaded(v9) => {

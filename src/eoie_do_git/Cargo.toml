@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "eoie_do_git"
 path = "do_git.rs"
+
+[dependencies]
+eoie-do-git-reports = { path = "../eoie_do_git_reports" }

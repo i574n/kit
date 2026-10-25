@@ -93,3 +93,14 @@ test a_regex_needle_alternates_and_a_bad_pattern_is_refused =
     expect (bad.code = 2i32) (run_text bad)
     shows bad.stderr "grep: invalid --regex pattern"
     fixture_root_remove root
+
+///> rust
+test a_literal_needle_with_regex_syntax_that_matches_nothing_hints_at_regex =
+    inl root = grep_fixture ()
+    inl literal = succeeded (eoie_run (fixture_text_of root) NoArgs NoArgs (Arg ("grep", Arg (fixture_text_of root, Arg ("needle|three", NoArgs)))))
+    shows literal "matches 0  hint: the needle is literal; pass --regex to use it as a pattern"
+    inl pattern = succeeded (eoie_run (fixture_text_of root) NoArgs NoArgs (Arg ("grep", Arg (fixture_text_of root, Arg ("needle|three", Arg ("--regex", NoArgs))))))
+    shows pattern "matches 3"
+    hides pattern "hint:"
+    hides (succeeded (grep_run root NoArgs)) "hint:"
+    fixture_root_remove root

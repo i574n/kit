@@ -3,7 +3,10 @@ packages:
     spiral-
     eoie_receipt
     eoie_machine_watch
+    eoie_machine_watch_model
+    eoie_jobs
 modules:
+    ownership
     model
     host
     listing

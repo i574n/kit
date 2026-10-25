@@ -23,6 +23,7 @@ let rec settling_total (~rows : string) (now : u64) (total : u64) : u64 =
 
 let verdict_terms
     (~wanted_word : string) (~mine : string) (since : u64) (minutes : u64) (~rows : string) (free : u64) (now : u64)
+    (min_free : u64)
     : string
     =
     match class_of wanted_word with
@@ -30,7 +31,8 @@ let verdict_terms
     | ClassKnown wanted =>
         inl backfills = minutes > 0u64 && now + minutes * 60000u64 <= held_until_latest rows 0u64
         inl verdict =
-            admission_of wanted
+            admission_needing
+                (floor_of wanted min_free)
                 (first_blocker wanted mine since backfills rows)
                 (free_after_settling free (settling_total rows now 0u64))
                 now
@@ -40,9 +42,9 @@ inl main () : i32 =
     !!!!Export(
         "eoie_window_verdict",
         (
-            fun (wanted_word, mine, since, minutes, rows, free, now) =>
-                verdict_terms wanted_word mine since minutes rows free now
-            : string * string * u64 * u64 * string * u64 * u64 -> string
+            fun (wanted_word, mine, since, minutes, rows, free, now, min_free) =>
+                verdict_terms wanted_word mine since minutes rows free now min_free
+            : string * string * u64 * u64 * string * u64 * u64 * u64 -> string
         )
     )
     0i32

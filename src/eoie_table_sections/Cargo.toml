@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "sections.spi"
+output = "sections.rs"
+
+[package]
+name = "eoie-table-sections"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "eoie_table_sections"
+path = "sections.rs"
+
+[dependencies]
+eoie-log-sections = { path = "../eoie_log_sections" }

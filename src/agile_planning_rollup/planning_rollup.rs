@@ -389,13 +389,16 @@ fn planning_rollup_1(mut v0: Rc<str>, mut v1: US0) -> i32 {
         US2::US2_FileReadable(v15) => {
             let mut v15: Rc<str> = v15.clone();
             let mut v16: Rc<str> = std::fs::read_to_string(&*v15).unwrap_or_default().into();
-            print_rollup_2(v16.clone(), v1.clone(), v2)
+            let mut v17: Rc<str> = eoie_agile_records::eoie_agile_records_as_lines(&*v16);
+            print_rollup_2(v17.clone(), v1.clone(), v2)
         }
     }
 }
 fn command_line_argument_count_14() -> i32 {
-    let mut v0: i32 = (std::env::args().count() as i32) - 1;
-    v0
+    let mut v0: usize = std::env::args().count();
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    v2
 }
 fn argument_count_13() -> i32 {
     let mut v0: i32 = command_line_argument_count_14();

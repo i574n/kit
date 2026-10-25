@@ -14,6 +14,9 @@ name = "eoie_job_launch"
 path = "launch.rs"
 
 [dependencies]
+eoie-job-state = { path = "../eoie_job_state" }
+eoie-job-create = { path = "../eoie_job_create" }
+eoie-job-start-args = { path = "../eoie_job_start_args" }
 eoie-machine-windows = { path = "../eoie_machine_windows" }
 eoie-job-supervise = { path = "../eoie_job_supervise" }
 eoie-job-host = { path = "../eoie_job_host" }

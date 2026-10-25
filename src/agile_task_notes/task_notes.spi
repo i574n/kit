@@ -30,15 +30,20 @@ inl unnamed_choice () : note_author_choice =
     elif variable_set "AI_AGENT" || variable_set "CLAUDECODE" then AuthorUnnamedAgent
     else AuthorDefault
 
-inl author_choice () : note_author_choice =
+type note_request =
+    {
+        body : string
+        author : note_author_choice
+    }
+
+inl named_author (~named : string) : note_author_choice = if sm'.trim named = "" then AuthorMalformed else AuthorNamed (sm'.trim named)
+
+inl note_request_of () : note_request =
     inl count = argument_count ()
-    if count = 4i32 then unnamed_choice ()
-    elif count = 6i32 then
-        if ((argument_owned 4i32) = "--as") then
-            inl named = sm'.trim (argument_owned 5i32)
-            if (named = "") then AuthorMalformed else AuthorNamed named
-        else AuthorMalformed
-    else AuthorMalformed
+    if count = 4i32 then { body = sm'.trim (argument_owned 3i32); author = unnamed_choice () }
+    elif count = 6i32 && argument_owned 4i32 = "--as" then { body = sm'.trim (argument_owned 3i32); author = named_author (argument_owned 5i32) }
+    elif count = 6i32 && argument_owned 3i32 = "--as" then { body = sm'.trim (argument_owned 5i32); author = named_author (argument_owned 4i32) }
+    else { body = sm'.trim (argument_owned 3i32); author = AuthorMalformed }
 
 inl note_failure (~reason : string) (~id : string) : i32 = stderr_failure ("agile note " ++# id ++# " rejected: " ++# reason)
 
@@ -53,23 +58,25 @@ let note_added (~root : string) (~id : string) (~author : string) (~body : strin
     match probe (unchecked state) with
     | FileMissing _ => note_failure "state/agile.spi is missing" id
     | FileReadable file =>
-        inl original = loaded_string (read_text file)
+        inl raw = loaded_string (read_text file)
+        inl original = records_text raw
         if task_declared original id then
             inl schema_ready = note_schema_ensured original
             inl seq = note_count schema_ready id + 1i32
             inl note = { at = utc_stamp started; author = author; text = body }
             inl updated = notes_appended schema_ready id (note_row id seq note)
-            match state_written state original updated with
+            match state_written state raw updated with
             | StateWritten => note_success id seq note (text_bytes original) (text_bytes updated) (ms_since started)
             | problem => note_failure (state_write_problem problem) id
         else note_failure "no task with this id" id
 
 let note_entry () : i32 =
     inl id = argument_owned 2i32
-    inl body = sm'.trim (argument_owned 3i32)
+    inl request = note_request_of ()
+    inl body = request.body
     if (body = "") then note_failure "the note text is empty" id
     else
-        match author_choice () with
+        match request.author with
         | AuthorDefault => note_added (argument_owned 1i32) id (default_author ()) body
         | AuthorNamed author => note_added (argument_owned 1i32) id author body
         | AuthorUnnamedAgent => note_failure "an agent session must name the note's author: agile note <root> <id> <text> --as <author> (or set EOIE_AUTHOR)" id

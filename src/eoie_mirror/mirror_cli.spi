@@ -1,0 +1,38 @@
+///- --package ../eoie_cli_harness --timeout 900000
+open cli
+
+inl mirror_call (root : fixture_root) (args : cli_args) : cli_run = eoie_run (fixture_text_of root) NoArgs NoArgs (Arg ("mirror", Arg ("check", Arg ("left", Arg ("right", args)))))
+
+inl mirror_fixture () : fixture_root =
+    inl root = fixture_root_create "mirror check"
+    fixture_write root "right/ci.yml" "on: push\n"
+    fixture_write root "right/scripts/build.ps1" "old\n"
+    pause_ms 1100u64
+    fixture_write root "left/ci.yml" "on: push\n"
+    fixture_write root "left/scripts/build.ps1" "new\n"
+    fixture_write root "left/extra.txt" "\n"
+    root
+
+///> rust
+test a_one_sided_change_names_the_side_and_fails =
+    inl root = mirror_fixture ()
+    inl steady = mirror_call root (Arg ("ci.yml", NoArgs))
+    expect (steady.code = 0i32) (run_text steady)
+    shows steady.stderr "eoie mirror check in-step files=1 differing=0"
+    inl moved = mirror_call root (Arg ("scripts", Arg ("ci.yml", NoArgs)))
+    expect (moved.code = 1i32) (run_text moved)
+    same moved.stdout "left-newer\tscripts/build.ps1\n"
+    shows moved.stderr "eoie mirror check left-ahead files=2 differing=1"
+    inl extra = mirror_call root (Arg ("extra.txt", NoArgs))
+    same extra.stdout "left-only\textra.txt\n"
+    fixture_write root "right/ci.yml" "on: pull_request\n"
+    inl both = mirror_call root (Arg ("scripts", Arg ("ci.yml", NoArgs)))
+    shows both.stderr "eoie mirror check diverged files=2 differing=2"
+    fixture_root_remove root
+
+///> rust
+test missing_roots_and_paths_are_refused =
+    inl root = mirror_fixture ()
+    rejected_with (eoie_run (fixture_text_of root) NoArgs NoArgs (Arg ("mirror", Arg ("check", Arg ("left", Arg ("nowhere", Arg ("ci.yml", NoArgs))))))) 2i32 "needs two existing roots"
+    rejected_with (eoie_run (fixture_text_of root) NoArgs NoArgs (Arg ("mirror", Arg ("check", Arg ("left", Arg ("right", NoArgs)))))) 2i32 "usage: mirror check"
+    fixture_root_remove root

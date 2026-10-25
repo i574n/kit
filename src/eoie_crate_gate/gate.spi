@@ -1,0 +1,124 @@
+open sm'_operators
+open file_system_operators
+open model
+
+inl skipped_dir (name : string) : bool =
+    sm'.starts_with "." name
+    || name = "target"
+    || name = "node_modules"
+    || name = "_build"
+    || name = "deps"
+    || name = "lab"
+
+let leaf_name (path : string) : string =
+    inl slashed = sm'.replace "\\" "/" path
+    inl at = sm'.last_index_of "/" slashed
+    if at < 0i32 then slashed else sm'.substring (at + 1i32) ((sm'.length slashed : i32) - at - 1i32) slashed
+
+let dir_names (path : string) : list string =
+    file_system.read_dir_names path
+    |> resultm.unwrap'
+    |> am'.vec_fold' (fun names name => Cons (sm'.from_std_string name, names)) Nil
+    |> listm.rev
+
+let measured (dir : string) : option crate_measure =
+    inl manifest = dir </> "Cargo.toml"
+    if file_system.file_exists manifest |> not then None
+    else
+        match manifest_of (file_system.read_all_text manifest) with
+        | NotSpiralCrate => None
+        | SpiralCrate found =>
+            inl output = dir </> found.output
+            inl lines = if file_system.file_exists output then line_count (file_system.read_all_text output) else -1i32
+            Some { crate = leaf_name dir; output = found.output; lines = lines }
+
+let rec walked (todo : list string) (found : list crate_measure) : list crate_measure =
+    match todo with
+    | Nil => listm.rev found
+    | Cons (dir, rest) =>
+        inl found = match measured dir with | Some m => Cons (m, found) | None => found
+        inl deeper =
+            dir_names dir
+            |> listm.fold fun acc (name : string) =>
+                    if not (skipped_dir name) && file_system.directory_exists (dir </> name)
+                    then Cons (dir </> name, acc)
+                    else acc
+                rest
+        walked deeper found
+
+let rec digits_value (text : string) (at : i32) (value : i32) : i32 =
+    if (sm'.length text : i32) <= at then value
+    else
+        inl c = xml.code_point_at text at
+        if 48u32 <= c && c <= 57u32 then digits_value text (at + 1i32) (value * 10i32 + convert.i32 (c - 48u32))
+        else -1i32
+
+let argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+let rec flag_given (flag : string) (index : i32) (count : i32) : bool =
+    if count <= index then false elif argument index = flag then true else flag_given flag (index + 1i32) count
+
+let rec value_after (flag : string) (index : i32) (count : i32) : string =
+    if count <= index + 1i32 then ""
+    elif argument index = flag then argument (index + 1i32)
+    else value_after flag (index + 1i32) count
+
+let rec lines_printed (limit : i32) (measures : list crate_measure) : () =
+    match measures with
+    | Nil => ()
+    | Cons (m, rest) =>
+        console.write_line (measure_line limit m)
+        lines_printed limit rest
+
+let gate_run () : i32 =
+    inl count = env.command_line_argument_count ()
+    inl root = argument 2i32
+    inl given = value_after "--limit" 3i32 count
+    inl limit = if given = "" then 1000i32 else digits_value given 0i32 0i32
+    if root = "" || file_system.directory_exists root |> not then
+        console.write_line (
+            "eoie error: crate usage: crate gate <root> [--enforce] [--limit n] (generated output of every "
+            ^^ "Cargo.toml with [package.metadata.spiral] under root)"
+        )
+        2i32
+    elif limit <= 0i32 then
+        console.write_line ("eoie error: crate gate: --limit expects a positive whole number, got " ++# given)
+        2i32
+    else
+        inl measures = walked [ root ] Nil
+        lines_printed limit measures
+        inl over = over_count limit measures
+        inl summary =
+            " crates="
+            ++# sm'.format (listm.length measures : i32)
+            ++# " over="
+            ++# sm'.format over
+            ++# " limit="
+            ++# sm'.format limit
+            ++# " root="
+            ++# root
+        match gate_outcome_of (flag_given "--enforce" 3i32 count) limit measures with
+        | GatePassed =>
+            console.write_line ("eoie crate gate ok" ++# summary)
+            0i32
+        | GateFailedOver n =>
+            console.write_line (
+                "eoie crate gate refused: " ++# sm'.format n ++# " crate(s) over the limit;" ++# summary
+            )
+            1i32
+        | GateFailedMissing n =>
+            console.write_line ("eoie crate gate refused: " ++# sm'.format n ++# " crate(s) have no generated output, so generation did not run or failed;" ++# summary)
+            1i32
+        | GateFailedVacuous =>
+            console.write_line (
+                (
+                    "eoie crate gate refused: no crate with [package.metadata.spiral] under the root, so nothing "
+                    ^^ "was measured;"
+                )
+                ++# summary
+            )
+            1i32
+
+inl main () : i32 =
+    !!!!Export("eoie_crate_gate_run", ((fun () => gate_run ()) : () -> i32))
+    0i32

@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "eoie_resume"
 path = "resume.rs"
+
+[dependencies]
+eoie-agile-records = { path = "../eoie_agile_records" }

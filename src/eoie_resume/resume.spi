@@ -53,7 +53,7 @@ let rec authored_rows_from (text : string) (~needle : string) (~author : string)
         authored_rows_from text needle author (found + 1i32) kept
 
 let author_notes (scope : resume_scope) : string =
-    inl rows = newest_first (authored_rows_from (state_text scope.root) (note_needle ()) scope.author 0i32 "") 8i32
+    inl rows = newest_first (authored_rows_from (agile_task_text.model.records_text (state_text scope.root)) (note_needle ()) scope.author 0i32 "") 8i32
     if rows = "" then "no notes by " ++# scope.author else rows
 
 inl section_wanted (scope : resume_scope) (section : resume_section) : bool =

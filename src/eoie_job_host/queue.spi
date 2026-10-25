@@ -1,0 +1,127 @@
+///- --package .
+test queue static =
+    open sm'_operators
+    open eoie_jobs.host
+    open eoie_jobs.jobs
+    open eoie_jobs.model
+
+open sm'_operators
+open eoie_jobs.host
+open eoie_jobs.jobs
+open eoie_jobs.model
+
+union after_mode =
+    | AfterAny
+    | AfterOk
+
+union predecessor_state =
+    | PredecessorLive
+    | PredecessorSettled : string * i32
+
+union queued_wait =
+    | NoChain
+    | Chained : string * after_mode * predecessor_state
+
+type queued_job =
+    {
+        id : string
+        stop_requested : bool
+        wait : queued_wait
+    }
+
+union queue_step =
+    | KeepWaiting
+    | StartSupervisor
+    | SettleStopped : string
+    | SettleSkipped : string
+
+inl waited_for (wait : queued_wait) : string =
+    match wait with
+    | NoChain => ""
+    | Chained (predecessor, _, _) => predecessor
+
+inl step_of (job : queued_job) : queue_step =
+    if job.stop_requested then SettleStopped ("stopped on request while waiting for " ++# waited_for job.wait)
+    else
+        match job.wait with
+        | NoChain => StartSupervisor
+        | Chained (_, _, PredecessorLive) => KeepWaiting
+        | Chained (_, AfterAny, _) => StartSupervisor
+        | Chained (predecessor, AfterOk, PredecessorSettled (word, code)) =>
+            if code = 0i32 then StartSupervisor
+            else SettleSkipped ("--after-ok: " ++# predecessor ++# " ended " ++# word ++# " exit " ++# sm'.format code)
+
+inl after_part (~text : string) (index : i32) : string =
+    inl fields = sm'.split "\t" text |> array
+    if index < am'.length fields then sm'.trim (am'.index index fields) else ""
+
+inl predecessor_state_of (state : job_state) : predecessor_state =
+    if state_settled state then PredecessorSettled (state_word state, state_exit state) else PredecessorLive
+
+let queued_of (~id : string) : queued_job =
+    inl after_text = text_or_empty (job_file id "after")
+    inl stop_requested = file_exists (job_file id "stop")
+    if after_text = "" then { id = id; stop_requested = stop_requested; wait = NoChain }
+    else
+        inl predecessor = after_part after_text 0i32
+        inl mode = if after_part after_text 1i32 = "ok" then AfterOk else AfterAny
+        { id = id; stop_requested = stop_requested; wait = Chained (predecessor, mode, predecessor_state_of (shared_state predecessor)) }
+
+let held_directory () : string = joined (jobs_root ()) "held"
+
+let held_file (~id : string) : string = joined (held_directory ()) id
+
+let held_names () : array string =
+    if file_system.directory_exists (held_directory ()) then
+        file_system.read_dir_names (held_directory ()) |> resultm.unwrap' |> am'.from_vec_base |> am'.map_base sm'.from_std_string |> array |> am'.sort_by id
+    else ;[]
+
+let held_beat (~id : string) : () =
+    inl _ = text_written (job_file id "heartbeat_ms") (decimal_text (now_ms ()))
+    ()
+
+let held_recorded (~id : string) (~executable : string) : () =
+    inl _ = directory_created (held_directory ())
+    inl _ = text_written (held_file id) executable
+    held_beat id
+
+let held_released (~id : string) : () = file_system.file_delete (held_file id)
+
+let settled_in_queue (~id : string) (step : queue_step) : () =
+    match step with
+    | SettleStopped detail =>
+        inl _ = text_written (job_file id "exit") (exit_line 143i32 (now_ms ()) JobStopped detail)
+        ()
+    | SettleSkipped detail =>
+        inl _ = text_written (job_file id "exit") (exit_line 125i32 (now_ms ()) (JobSkipped "") detail)
+        ()
+    | _ => ()
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
+inl chained (~predecessor : string) (mode : after_mode) (state : predecessor_state) : queued_job =
+    { id = "job-2-next"; stop_requested = false; wait = Chained (predecessor, mode, state) }
+
+///> rust
+test a_queued_job_starts_its_supervisor_only_when_its_chain_clears =
+    expect (step_of (chained "job-1-a" AfterAny PredecessorLive) = KeepWaiting) "a live predecessor holds the job without a process"
+    expect (step_of (chained "job-1-a" AfterAny (PredecessorSettled ("finished", 3i32))) = StartSupervisor) "--after runs after any end"
+    expect (step_of (chained "job-1-a" AfterOk (PredecessorSettled ("finished", 0i32))) = StartSupervisor) "--after-ok runs after success"
+    expect (step_of { id = "job-3-plain"; stop_requested = false; wait = NoChain } = StartSupervisor) "an unchained job starts at once"
+
+///> rust
+test held_jobs_settle_with_the_after_waiters_exit_details =
+    expect (step_of (chained "job-1-a" AfterOk (PredecessorSettled ("finished", 3i32))) = SettleSkipped "--after-ok: job-1-a ended finished exit 3") "same detail as eoie_job_after's skip"
+    expect (step_of (chained "job-1-a" AfterOk (PredecessorSettled ("lost", 125i32))) = SettleSkipped "--after-ok: job-1-a ended lost exit 125") "a missing predecessor reads as lost, as in eoie_job_after"
+    expect (step_of { (chained "job-1-a" AfterAny PredecessorLive) with stop_requested = true } = SettleStopped "stopped on request while waiting for job-1-a") "same detail as eoie_job_after's stop"
+
+///> rust
+test a_serial_chain_behind_a_running_job_holds_no_process =
+    inl serial = [ chained "job-review" AfterAny PredecessorLive; chained "job-5f" AfterOk PredecessorLive; chained "job-gate" AfterAny PredecessorLive ]
+    inl spawned = serial |> listm.fold (fun count (job : queued_job) => if step_of job = StartSupervisor then count + 1i32 else count) 0i32
+    expect (spawned = 0i32) "nothing spawns until the chain head settles"
+
+///> rust
+test after_files_read_as_predecessor_and_mode =
+    expect (after_part "job-1-a\tok" 0i32 = "job-1-a" && after_part "job-1-a\tok" 1i32 = "ok") "the after file is predecessor TAB mode"
+    expect (after_part "job-1-a" 1i32 = "") "a plain --after has no mode field"

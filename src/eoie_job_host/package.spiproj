@@ -4,4 +4,5 @@ packages:
     eoie_jobs
 modules:
     host_model
+    queue
     host_run

@@ -14,5 +14,6 @@ name = "eoie_do_write"
 path = "do_write.rs"
 
 [dependencies]
+eoie-do-file-steps = { path = "../eoie_do_file_steps" }
 eoie-do-read = { path = "../eoie_do_read" }
 regex = "1.13.1"

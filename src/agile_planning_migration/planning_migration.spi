@@ -167,7 +167,7 @@ let tags_migration (~root : string) (mode : migration_mode) : i32 =
     match probe (unchecked path) with
     | FileMissing _ => migration_failure "state/agile.spi is missing"
     | FileReadable file =>
-        inl original = loaded_string (read_text file)
+        inl original = records_text (loaded_string (read_text file))
         if first_malformed_task original 0i32 (byte_len original) < 0i32 then
             inl migration = migrated_from (fresh_migration original) 0i32
             match mode with

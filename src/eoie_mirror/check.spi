@@ -1,0 +1,79 @@
+open sm'_operators
+open mirror
+
+inl argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+inl under (~root : string) (~relative : string) : string = if relative = "" then root else root ++# "/" ++# relative
+
+inl child (~relative : string) (~name : string) : string = if relative = "" then name else relative ++# "/" ++# name
+
+let sorted_names (~path : string) : array string =
+    file_system.read_dir_names path |> resultm.unwrap' |> am'.from_vec_base |> am'.map_base sm'.from_std_string |> array |> am'.sort_by id
+
+let rec children_pushed (~relative : string) (names : array string) (index : i32) (pending : list string) : list string =
+    if index < 0i32 then pending
+    else children_pushed relative names (index - 1i32) (Cons (child relative (am'.index index names), pending))
+
+let rec files_under (~root : string) (pending : list string) (acc : list string) : list string =
+    match pending with
+    | Nil => acc
+    | Cons (relative, rest) =>
+        inl full = under root relative
+        if file_system.directory_exists full then
+            inl names = sorted_names full
+            files_under root (children_pushed relative names (am'.length names - 1i32) rest) acc
+        elif file_system.file_exists full then files_under root rest (Cons (relative, acc))
+        else files_under root rest acc
+
+let rec merged (extra : list string) (acc : list string) : list string =
+    match extra with
+    | Nil => acc
+    | Cons (path, rest) => merged rest (if listm'.contains path acc then acc else Cons (path, acc))
+
+inl side_of (~path : string) : file_side =
+    if file_system.file_exists path then Present (file_system.read_all_text path, file_system.last_write_ms path) else Missing
+
+let rec mirrored (~left : string) (~right : string) (paths : list string) (acc : list mirrored_file) : list mirrored_file =
+    match paths with
+    | Nil => listm.rev acc
+    | Cons (path, rest) => mirrored left right rest (Cons ({ path = path; left = side_of (under left path); right = side_of (under right path) }, acc))
+
+let rec drift_lines (files : list mirrored_file) (~text : string) (count : u64) : string * u64 =
+    match files with
+    | Nil => text, count
+    | Cons (file, rest) =>
+        match drift_of file with
+        | SameOnBoth => drift_lines rest text count
+        | drift => drift_lines rest (text ++# drift_word drift ++# "\t" ++# file.path ++# "\n") (count + 1u64)
+
+let rec paths_from (index : i32) (count : i32) (~left : string) (~right : string) (acc : list string) : list string =
+    if index >= count then acc
+    else
+        inl path = argument index
+        inl on_left = listm.rev (files_under left (Cons (path, Nil)) Nil)
+        inl on_right = listm.rev (files_under right (Cons (path, Nil)) Nil)
+        paths_from (index + 1i32) count left right (merged on_right (merged on_left acc))
+
+inl usage () : string = "usage: mirror check <left-root> <right-root> <path>... (paths relative to both roots; a directory stands for every file under it)"
+
+let mirror_run () : i32 =
+    inl count = env.command_line_argument_count ()
+    inl left = argument 2i32
+    inl right = argument 3i32
+    if argument 1i32 <> "check" || count < 5i32 then
+        console.write_error_line ("eoie error: mirror " ++# usage ())
+        2i32
+    elif file_system.directory_exists left = false || file_system.directory_exists right = false then
+        console.write_error_line ("eoie error: mirror check needs two existing roots, received " ++# left ++# " and " ++# right)
+        2i32
+    else
+        inl files = mirrored left right (listm.rev (paths_from 4i32 count left right Nil)) Nil
+        inl lines, differing = drift_lines files "" 0u64
+        inl state = mirror_state_of files "" ""
+        if lines <> "" then console.write_line (sm'.trim_end_suffix "\n" lines)
+        console.write_error_line ("eoie mirror check " ++# state_word state ++# " files=" ++# sm'.format (listm.length files : i32) ++# " differing=" ++# sm'.format differing)
+        if refuses_commit state then 1i32 else 0i32
+
+inl main () : i32 =
+    !!!!Export("eoie_mirror_run", ((fun () => mirror_run ()) : () -> i32))
+    0i32

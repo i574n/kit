@@ -1,0 +1,164 @@
+///- --package .
+test review static =
+    open sm'_operators
+
+open sm'_operators
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
+union token_kind =
+    | WordToken
+    | NumberToken
+    | OperatorToken
+    | MarkToken
+
+type token =
+    {
+        kind : token_kind
+        text : string
+    }
+
+union change_kind =
+    | LiteralChange
+    | BooleanChange
+    | ComparisonChange
+    | ShapeChange
+
+inl change_rank (kind : change_kind) : i32 =
+    match kind with
+    | LiteralChange => 1i32
+    | BooleanChange => 2i32
+    | ComparisonChange => 3i32
+    | ShapeChange => 4i32
+
+inl change_word (kind : change_kind) : string =
+    match kind with
+    | LiteralChange => "literal"
+    | BooleanChange => "BOOLEAN"
+    | ComparisonChange => "COMPARISON"
+    | ShapeChange => "SHAPE"
+
+inl worse (a : change_kind) (b : change_kind) : change_kind = if change_rank b > change_rank a then b else a
+
+inl code_at (line : string) (at : i32) : u32 = xml.code_point_at line at
+inl width_at (line : string) (at : i32) : i32 = xml.code_point_width line at
+inl is_digit (c : u32) : bool = 48u32 <= c && c <= 57u32
+inl is_letter (c : u32) : bool = (65u32 <= c && c <= 90u32) || (97u32 <= c && c <= 122u32) || c = 95u32 || c > 127u32
+inl is_word_char (c : u32) : bool = is_letter c || is_digit c || c = 39u32
+inl is_operator_char (c : u32) : bool = c = 60u32 || c = 62u32 || c = 61u32 || c = 33u32
+inl is_space (c : u32) : bool = c = 32u32 || c = 9u32 || c = 13u32
+
+let rec run_end (line : string) (at : i32) (count : i32) (inside : u32 -> bool) : i32 =
+    if at < count && inside (code_at line at) then run_end line (at + width_at line at) count inside else at
+
+let number_end (line : string) (at : i32) (count : i32) : i32 =
+    inl digits = run_end line at count is_digit
+    inl fraction =
+        if digits + 1i32 < count && code_at line digits = 46u32 && is_digit (code_at line (digits + 1i32)) then
+            run_end line (digits + 1i32) count is_digit
+        else digits
+    run_end line (run_end line fraction count is_letter) count is_digit
+
+let rec tokens_from (line : string) (at : i32) (count : i32) (found : list token) : list token =
+    if count <= at then listm.rev found
+    else
+        inl c = code_at line at
+        if is_space c then tokens_from line (at + 1i32) count found
+        else
+            inl kind, stop =
+                if is_digit c then NumberToken, number_end line at count
+                elif is_letter c then WordToken, run_end line at count is_word_char
+                elif is_operator_char c then OperatorToken, run_end line at count is_operator_char
+                else MarkToken, at + width_at line at
+            tokens_from line stop count (Cons ({ kind = kind; text = sm'.substring at (stop - at) line }, found))
+
+let tokens_of (line : string) : list token = tokens_from line 0i32 (sm'.length line : i32) Nil
+
+inl boolean_word (text : string) : bool = text = "true" || text = "false"
+inl comparison_run (text : string) : bool =
+    text = "<" || text = ">" || text = "<=" || text = ">=" || text = "=" || text = "<>" || text = "!=" || text = "=="
+
+let token_change (before : token) (after : token) : change_kind =
+    match before.kind, after.kind with
+    | NumberToken, NumberToken => LiteralChange
+    | WordToken, WordToken => if boolean_word before.text && boolean_word after.text then BooleanChange else ShapeChange
+    | OperatorToken, OperatorToken =>
+        if comparison_run before.text || comparison_run after.text then ComparisonChange else ShapeChange
+    | _ => ShapeChange
+
+let rec tokens_change (before : list token) (after : list token) (seen : change_kind) : change_kind =
+    match before, after with
+    | Nil, Nil => seen
+    | Cons (b, before_rest), Cons (a, after_rest) =>
+        tokens_change before_rest after_rest (if b.text = a.text then seen else worse seen (token_change b a))
+    | _ => ShapeChange
+
+let line_change (before : string) (after : string) : change_kind =
+    tokens_change (tokens_of before) (tokens_of after) LiteralChange
+
+type review =
+    {
+        passed : bool
+        report : string
+    }
+
+let rec reviewed_lines
+    (before : array string) (after : array string) (at : i32) (passed : bool) (report : string)
+    : review
+    =
+    if am'.length before <= at then { passed = passed; report = report }
+    else
+        inl b = am'.index at before
+        inl a = am'.index at after
+        if b = a then reviewed_lines before after (at + 1i32) passed report
+        else
+            inl kind = line_change b a
+            inl line = "line " ++# sm'.format (at + 1i32) ++# " " ++# change_word kind ++# ": " ++# sm'.trim a
+            reviewed_lines before after
+                (at + 1i32)
+                (passed && change_rank kind = 1i32)
+                (if report = "" then line else report ++# "\n" ++# line)
+
+let accept_review (before_text : string) (after_text : string) : review =
+    inl before = sm'.split "\n" before_text |> array
+    inl after = sm'.split "\n" after_text |> array
+    if am'.length before <> am'.length after then
+        {
+            passed = false
+            report =
+                "SHAPE: line count " ++# sm'.format (am'.length before) ++# " -> " ++# sm'.format (am'.length after)
+        }
+    else reviewed_lines before after 0i32 true ""
+
+///> rust
+test numbers_words_operators_and_marks_tokenize_apart =
+    inl kinds =
+        tokens_of "pin (42i32 + 1.5f64) <= x1"
+        |> listm.map (fun t => t.text)
+        |> listm.fold (fun acc text => acc ++# "|" ++# text) ""
+    expect (kinds = "|pin|(|42i32|+|1.5f64|)|<=|x1") "token texts"
+
+///> rust
+test each_changed_line_gets_the_worst_kind_it_contains =
+    expect
+        (line_change "expect (cost = 120i32) \"pin\"" "expect (cost = 118i32) \"pin\"" = LiteralChange)
+        "a pinned number"
+    expect (line_change "expect (ok = true) \"p\"" "expect (ok = false) \"p\"" = BooleanChange) "a flipped boolean"
+    expect
+        (line_change "expect (n <= 3i32) \"p\"" "expect (n < 4i32) \"p\"" = ComparisonChange)
+        "a touched comparison outranks the literal"
+    expect
+        (line_change "expect (x1 = 2i32) \"p\"" "expect (x2 = 2i32) \"p\"" = ShapeChange)
+        "an identifier with digits is not a literal"
+    expect (line_change "f a b" "f a b c" = ShapeChange) "an added token"
+
+///> rust
+test a_review_passes_only_on_literal_changes =
+    inl before = "a\nexpect (cost = 120i32) \"pin\"\nexpect (ok = true) \"p\""
+    inl literal = accept_review before "a\nexpect (cost = 118i32) \"pin\"\nexpect (ok = true) \"p\""
+    expect (literal.passed && literal.report = "line 2 literal: expect (cost = 118i32) \"pin\"") "literal only"
+    inl flipped = accept_review before "a\nexpect (cost = 118i32) \"pin\"\nexpect (ok = false) \"p\""
+    expect
+        (flipped.passed = false && sm'.contains "line 3 BOOLEAN: expect (ok = false)" flipped.report)
+        "boolean flip refused"
+    expect ((accept_review before "a").passed = false) "line count change refused"

@@ -1,6 +1,15 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
+fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
+    let bytes = value.as_bytes();
+    let length = bytes.len() as i64;
+    if from < 0 || from > length || to < from - 1 || to >= length { std::process::abort(); }
+    if to < from { return { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }; }
+    if (bytes[from as usize] & 0xC0) == 0x80 || (to + 1 < length && (bytes[(to + 1) as usize] & 0xC0) == 0x80) { std::process::exit(3); }
+    let slice = &bytes[from as usize..(to + 1) as usize];
+    match std::str::from_utf8(slice) { Ok(text) => Rc::<str>::from(text), Err(error) => Rc::<str>::from(std::str::from_utf8(&slice[..error.valid_up_to()]).unwrap_or("")) }
+}
 #[derive(Clone)]
 enum US0 {
     US0_Rendered(Rc<str>),
@@ -271,17 +280,79 @@ fn recorded_block_5(mut v0: Rc<str>) -> US0 {
 }
 fn bulleted_8(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
     loop {
-        let mut v3: i32 = (&*v0).lines().count() as i32;
-        let mut v4: bool = v1 < v3;
-        if v4 {
-            let mut v5: i32 = v1.wrapping_add(1i32);
-            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n- "); } LIT.with(|lit| lit.clone()) };
-            let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v6));
-            let mut v8: Rc<str> = std::rc::Rc::<str>::from((&*v0).lines().nth(v1 as usize).unwrap_or(""));
-            let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-            let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
-            (v0, v1, v2) = (v0.clone(), v5, v11.clone());
+        let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v4: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v3).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+        let mut v5: i32 = (v4.clone().borrow().len() as i32);
+        let mut v6: bool = v5 > 0i32;
+        let mut v10: bool = if v6 {
+            let mut v7: i32 = v5.wrapping_sub(1i32);
+            let mut v8: Rc<str> = v4.clone().borrow()[v7 as usize].clone();
+            let mut v9: bool = v8.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            v9
+        } else {
+            false
+        };
+        let mut v12: i32 = if v10 {
+            let mut v11: i32 = v5.wrapping_sub(1i32);
+            v11
+        } else {
+            v5
+        };
+        let mut v13: bool = v1 < v12;
+        if v13 {
+            let mut v14: i32 = v1.wrapping_add(1i32);
+            let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n- "); } LIT.with(|lit| lit.clone()) };
+            let mut v16: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v15));
+            let mut v17: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v3).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+            let mut v18: bool = v1 >= 0i32;
+            let mut v28: bool = if v18 {
+                let mut v19: i32 = (v17.clone().borrow().len() as i32);
+                let mut v20: bool = v19 > 0i32;
+                let mut v24: bool = if v20 {
+                    let mut v21: i32 = v19.wrapping_sub(1i32);
+                    let mut v22: Rc<str> = v17.clone().borrow()[v21 as usize].clone();
+                    let mut v23: bool = v22.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    v23
+                } else {
+                    false
+                };
+                let mut v26: i32 = if v24 {
+                    let mut v25: i32 = v19.wrapping_sub(1i32);
+                    v25
+                } else {
+                    v19
+                };
+                let mut v27: bool = v1 < v26;
+                v27
+            } else {
+                false
+            };
+            let mut v41: Rc<str> = if v28 {
+                let mut v29: Rc<str> = v17.clone().borrow()[v1 as usize].clone();
+                let mut v30: i32 = (v29.clone().len() as i32);
+                let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
+                let mut v32: bool = v29.ends_with(&*v31);
+                let mut v33: bool = v32 == false;
+                if v33 {
+                    v29.clone()
+                } else {
+                    let mut v34: bool = v30 == 1i32;
+                    if v34 {
+                        let mut v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                        v35.clone()
+                    } else {
+                        let mut v36: i32 = v30.wrapping_sub(2i32);
+                        let mut v37: Rc<str> = string_slice(&v29.clone(), 0i32 as i64, v36 as i64);
+                        v37.clone()
+                    }
+                }
+            } else {
+                let mut v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                v40.clone()
+            };
+            let mut v42: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v41));
+            let mut v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v3));
+            (v0, v1, v2) = (v0.clone(), v14, v43.clone());
             continue;
         } else {
             return v2.clone();
@@ -299,7 +370,7 @@ fn active_block_7(mut v0: Rc<str>) -> US0 {
         US1::US1_StateText(v7) => {
             let mut v7: Rc<str> = v7.clone();
             let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("active work"); } LIT.with(|lit| lit.clone()) };
-            let mut v9: Rc<str> = handoff_active_work_projection_domain::eoie_handoff_active_work_projection(&*v7);
+            let mut v9: Rc<str> = handoff_active_work_projection_domain::eoie_handoff_active_work_projection(&*eoie_agile_records::eoie_agile_records_as_lines(&*v7));
             let mut v10: bool = v9.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let mut v15: US0 = if v10 {
                 let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" projection rejected typed state"); } LIT.with(|lit| lit.clone()) };

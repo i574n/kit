@@ -76,8 +76,8 @@ union lcov_reading =
     | LcovRecords : string
     | LcovRejected : lcov_rejection
 
-inl line_at (~text : string) (~index : u64) : string = $'std::rc::Rc::<str>::from(!text.lines().nth(!index as usize).unwrap_or(""))' : string
-inl line_count (~text : string) : u64 = $'!text.lines().count() as u64' : u64
+inl line_at (~text : string) (~index : u64) : string = sm'.line_at (convert.i32 index) text
+inl line_count (~text : string) : u64 = convert.u64 (sm'.line_count text)
 inl slashes_normalized (~source : string) : string = $'std::rc::Rc::<str>::from(!source.replace(char::from(92u8), "/"))' : string
 inl appended (~rows : string) (~row : string) : string = if rows = "" then row else rows ++# "\n" ++# row
 

@@ -18,8 +18,9 @@ union stop_refusal =
     | OwnProcess
     | OwnAncestor
     | NotAProcessId
+    | NotYours : string
 
-inl process_usage () : string = "ps [regex] [--tree] [--mine] | kill <pid>... [--tree]"
+inl process_usage () : string = "ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"
 
 inl process_command_of (~word : string) : process_command =
     if word = "ps" then ListProcesses elif word = "kill" then StopProcesses else ProcessUnknown
@@ -41,6 +42,7 @@ inl refusal_text (~pid_text : string) (refusal : stop_refusal) : string =
     | OwnProcess => "stop " ++# pid_text ++# "  refused: that is this eoie process"
     | OwnAncestor => "stop " ++# pid_text ++# "  refused: that is a parent of this eoie (the calling shell)"
     | NotAProcessId => "stop " ++# pid_text ++# "  refused: not a process id"
+    | NotYours reason => "stop " ++# pid_text ++# "  refused: " ++# reason
 
 union stop_result =
     | NoSuchProcess

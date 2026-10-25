@@ -113,7 +113,8 @@ let links_run () : i32 =
         stderr_line "eoie error: agile links rejected: --memory <dir> must name a memory directory"
         2i32
     else
-        inl state = text_of (joined (joined root "state") "agile.spi")
+        inl state_raw = text_of (joined (joined root "state") "agile.spi")
+        inl state = $'eoie_agile_records::eoie_agile_records_as_lines(&*!state_raw)' : string
         inl files = memory_files directory
         inl names = names_from directory files ""
         inl tally = notes_checked names state 0i32 (memories_checked state (backlog_prefixes state) names directory files (links_start ()))

@@ -1,0 +1,46 @@
+///- --package .
+test environment static =
+    open sm'_operators
+
+open sm'_operators
+open eoie_jobs_doctor_model.model
+
+let rec names_from (lines : array string) (at : i32) (found : list string) : list string =
+    if at >= (am'.length lines : i32) then found
+    else
+        inl name = sm'.trim (sm'.split "=" (am'.index at lines) |> array |> am'.index 0i32)
+        names_from lines (at + 1i32) (if name = "" then found else name :: found)
+
+let names_of_listing (~listing : string) : list string = names_from (sm'.nonempty_lines listing) 0i32 []
+
+let listing_command () : list string = if platform.is_windows () then [ "cmd"; "/c"; "set" ] else [ "env" ]
+
+let attached_names () : option (list string) =
+    match listing_command () with
+    | program :: args => process.try_capture_combined_list program args |> optionm.map fun (listing : string) => names_of_listing listing
+    | [] => None
+
+let detached_names () : option (list string) =
+    inl program = env.current_executable ()
+    inl start = if platform.is_windows () then [ "job"; "start"; "doctor-env"; "30000"; "cmd"; "/c"; "set" ] else [ "job"; "start"; "doctor-env"; "30000"; "env" ]
+    match process.try_capture_combined_list program start with
+    | None => None
+    | Some started =>
+        inl at = sm'.index_of "id=job-" started
+        if at < 0i32 then None
+        else
+            inl id = sm'.substring (at + 3i32) ((sm'.length started : i32) - at - 3i32) started |> sm'.split " " |> array |> am'.index 0i32 |> sm'.trim
+            match process.try_capture_combined_list program [ "job"; "wait"; id; "30000" ] with
+            | None => None
+            | Some _ => Some (names_of_listing (file_system.read_all_text (eoie_jobs.jobs.job_file id "stdout.log")))
+
+let env_drift () : bool * string =
+    match attached_names (), detached_names () with
+    | Some caller, Some detached => true, sm'.concat_list " " (drift caller detached)
+    | _, _ => false, ""
+
+///> rust
+test a_set_listing_reads_as_variable_names =
+    inl names = names_of_listing "PATH=C:\\x;C:\\y\nEOIE_WINDOWS_HOME=C:\\t\n\nCARGO_BUILD_JOBS=2\n"
+    expect ((listm.length names : i32) = 3i32) "three variables, blank line skipped"
+    expect (drift [ "PATH" ] names = [ "+EOIE_WINDOWS_HOME"; "+CARGO_BUILD_JOBS" ] || drift [ "PATH" ] names = [ "+CARGO_BUILD_JOBS"; "+EOIE_WINDOWS_HOME" ]) "steering additions found"

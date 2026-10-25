@@ -6,14 +6,17 @@ open workspace_primitives.clock
 open workspace_primitives.console
 open workspace_primitives.files
 open ranking
+open sm'_operators
 
-inl query_flag_width (~argument : string) (~value : string) : i32 = $'agile_task_query::eoie_query_flag_width(&*!argument, &*!value)' : i32
-inl query_flag_refusal (~argument : string) (~value : string) : string = $'agile_task_query::eoie_query_flag_refusal(&*!argument, &*!value)' : string
-inl query_usage () : string = $'agile_task_query::eoie_query_usage()' : string
-inl query_appended (~query : string) (~argument : string) (~value : string) : string = rust_std_string.model.concat5 query (if query = "" then "" else " ") argument (if value = "" then "" else " ") value
+inl planned_load_selected (~text : string) (~id : string) (~load : string) : bool = $'agile_planning_filters::eoie_agile_planning_selected(&*!text, &*!id, &*!load, "all")' : bool
 
+let load_words (~loads : string) : array string = sm'.split "," loads |> array
+
+let rec loads_pass (~text : string) (~id : string) (words : array string) (at : i32) : bool =
+    if am'.length words <= at then false
+    elif planned_load_selected text id (am'.index at words) then true
+    else loads_pass text id words (at + 1i32)
 inl argument_owned index : string = rust_std_env.model.argument_owned index
-inl argument_count () : i32 = $'std::env::args().skip(2).count() as i32' : i32
 inl unquoted (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
 inl padded (~text : string) (width : i32) : string =
     $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); std::rc::Rc::<str>::from(text.to_string() + &" ".repeat(filler)) }' : string
@@ -80,33 +83,9 @@ type next_request =
         role : rank_role
         limit : i32
         filters : string
+        load : string
         format : next_format
     }
-
-union next_parse =
-    | NextParsed : next_request
-    | NextRejected : string
-
-inl next_usage () : string = rust_std_string.model.concat5 "expected --as main|subagent, " (query_usage ()) ", --json or a positive count" "" ""
-
-let rec next_request_from (index : i32) (count : i32) (request : next_request) : next_parse =
-    if count <= index then NextParsed request
-    else
-        inl argument = argument_owned index
-        inl value = argument_owned (index + 1i32)
-        if argument = "--as" then
-            if value = "main" then next_request_from (index + 2i32) count { request with role = MainAgent }
-            elif value = "subagent" then next_request_from (index + 2i32) count { request with role = Subagent }
-            else NextRejected (rust_std_string.model.concat5 "--as expects main or subagent, got " value "" "" "")
-        elif argument = "--json" then next_request_from (index + 1i32) count { request with format = NextJson }
-        else
-            inl width = query_flag_width argument value
-            if width > 0i32 then next_request_from (index + width) count { request with filters = query_appended request.filters argument (if width = 2i32 then value else "") }
-            elif width < 0i32 then NextRejected (query_flag_refusal argument value)
-            else
-                inl parsed = $'(!argument).parse::<i32>().ok().filter(|value| *value > 0).unwrap_or(0)' : i32
-                if 0i32 < parsed then next_request_from (index + 1i32) count { request with limit = parsed }
-                else NextRejected (rust_std_string.model.concat5 "unexpected argument " argument " (" (next_usage ()) ")")
 
 let ranked_json (rank : i32) (item : ranked_task) : string =
     inl head = rust_std_string.model.concat5 "{\"rank\":" (i32_text rank) ",\"id\":\"" item.id "\""
@@ -129,26 +108,28 @@ let agile_next (~root : string) (request : next_request) : i32 =
     match probe (unchecked (backlog_state_path root)) with
     | FileMissing _ => next_failure "state/agile.spi is missing"
     | FileReadable file =>
-        inl text = loaded_string (read_text file)
+        inl text = records_text (loaded_string (read_text file))
         inl length = byte_len text
         inl malformed = first_malformed_task text 0i32 length
         if malformed < 0i32 then
-            inl list = ranking_filtered role request.filters (tasks_from text 0i32 length NoTasks)
+            inl list = ranking_where role (fun task => task_passes request.filters task && loads_pass text task.id (load_words request.load) 0i32) (tasks_from text 0i32 length NoTasks)
             match request.format with
             | NextJson =>
                 inl items, shown = json_items list 1i32 limit ""
                 stdout_line (rust_std_string.model.concat5 "{\"role\":\"" (rank_role_word role) "\",\"ready\":" (i32_text (ranked_count list 0i32)) (rust_std_string.model.concat5 ",\"shown\":" (i32_text shown) ",\"items\":[" items "]}"))
             | NextText =>
                 inl shown = printed role list 1i32 limit
-                inl ready = rust_std_string.model.concat5 " ready=" (i32_text (ranked_count list 0i32)) " shown=" (i32_text shown) ""
+                inl ready = rust_std_string.model.concat5 " ready=" (i32_text (ranked_count list 0i32)) " shown=" (i32_text shown) "" ++# (if request.load = "all" then "" else " load=" ++# request.load)
                 stdout_line (rust_std_string.model.concat5 "eoie agile next ok role=" (rank_role_word role) ready " elapsed_ms=" (u64_text (ms_since started)))
         else next_failure (rust_std_string.model.concat5 "malformed Task fields at byte " (i32_text malformed) "" "" "")
 
 let agile_next_entry () : i32 =
-    match next_request_from 2i32 (argument_count ()) { role = MainAgent; limit = 10i32; filters = ""; format = NextText } with
-    | NextParsed request => agile_next (argument_owned 1i32) request
-    | NextRejected reason => next_failure reason
-
+    inl parsed, reason, role, limit, filters, load, json =
+        $'eoie_agile_next_args::eoie_agile_next_request()' : bool * string * string * i32 * string * string * bool
+    if parsed then
+        inl request = { role = (if role = "subagent" then Subagent else MainAgent); limit = limit; filters = filters; load = load; format = (if json then NextJson else NextText) }
+        agile_next (argument_owned 1i32) request
+    else next_failure reason
 inl main () : i32 =
     !!!!Export("eoie_agile_next_run", ((fun () => agile_next_entry ()) : () -> i32))
     inl _ = agile_next_entry ()

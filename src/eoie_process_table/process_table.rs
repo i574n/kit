@@ -24,30 +24,15 @@ enum US2 {
 }
 #[derive(Clone)]
 enum US3 {
-    US3_Allowed(u64),
-    US3_OwnProcess,
-    US3_OwnAncestor,
-    US3_NotAProcessId,
-}
-#[derive(Clone)]
-enum US4 {
-    US4_Some(u64),
-    US4_None,
-}
-#[derive(Clone)]
-enum US5 {
-    US5_NoSuchProcess,
-    US5_StoppedOf(u64, u64),
-}
-#[derive(Clone)]
-enum US6 {
-    US6_ListProcesses,
-    US6_StopProcesses,
-    US6_ProcessUnknown,
+    US3_ListProcesses,
+    US3_StopProcesses,
+    US3_ProcessUnknown,
 }
 fn command_line_argument_count_3() -> i32 {
-    let mut v0: i32 = (std::env::args().count() as i32) - 1;
-    v0
+    let mut v0: usize = std::env::args().count();
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    v2
 }
 fn argument_count_2() -> i32 {
     let mut v0: i32 = command_line_argument_count_3();
@@ -55,8 +40,10 @@ fn argument_count_2() -> i32 {
     v1
 }
 fn command_line_argument_6(mut v0: i32) -> Rc<str> {
-    let mut v1: Rc<str> = Rc::<str>::from(std::env::args().nth((v0 + 1) as usize).unwrap_or_default());
-    v1.clone()
+    let mut v1: i32 = v0.wrapping_add(1i32);
+    let mut v2: usize = ((v1) as usize);
+    let mut v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
+    v3.clone()
 }
 fn argument_5(mut v0: i32) -> Rc<str> {
     let mut v1: i32 = v0.wrapping_sub(1i32);
@@ -568,12 +555,15 @@ fn receipt_line_20(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
         }
     };
     let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
-    let mut v8: Rc<str> = elapsed_text_21(v2);
-    let mut v9: Rc<str> = clock_text_22();
-    let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v11: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v7, &*v9, &*v10, &*v10].concat());
-    let mut v12: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v7, &*v1, &*v7, &*v11].concat());
-    println!("{}", &*v12);
+    let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
+    let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v1));
+    let mut v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v7));
+    let mut v11: Rc<str> = elapsed_text_21(v2);
+    let mut v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
+    let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v7));
+    let mut v14: Rc<str> = clock_text_22();
+    let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
+    println!("{}", v15);
     ()
 }
 fn list_run_1(mut v0: u64) -> i32 {
@@ -650,271 +640,39 @@ fn list_run_1(mut v0: u64) -> i32 {
         }
     }
 }
-fn ancestor_pids_24() -> Rc<str> {
-    let mut v0: Rc<str> = { let system = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_processes(sysinfo::ProcessRefreshKind::nothing())); let mut chain: Vec<u32> = Vec::new(); let mut current = sysinfo::Pid::from_u32(std::process::id()); while let Some(parent) = system.process(current).and_then(|process| process.parent()) { if chain.contains(&parent.as_u32()) { break; } chain.push(parent.as_u32()); current = parent; } std::rc::Rc::<str>::from(chain.iter().map(|pid| pid.to_string()).collect::<Vec<_>>().join(",")) };
-    v0.clone()
-}
-fn method28(mut v0: Option<u64>) -> Option<u64> {
-    v0.clone()
-}
-fn closure1() -> Rc<dyn Fn((u64)) -> US4> {
-    thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US4> = Rc::new(move |mut v0: (u64)| -> US4 {
-        let mut v1: u64 = (v0);
-        US4::US4_Some(v1)
-    }); } CLOSURE.with(|closure| closure.clone())
-}
-fn decimal_of_27(mut v0: Rc<str>) -> u64 {
-    let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
-    let mut v2: Option<u64> = method28(v1.clone());
-    let mut v3: Rc<dyn Fn((u64)) -> US4> = closure1();
-    let mut v4: Option<US4> = v2.map(|x| v3(x));
-    let mut v5: US4 = US4::US4_None;
-    let mut v6: US4 = v4.unwrap_or(v5);
-    match &v6 {
-        US4::US4_None => {
-            0u64
-        }
-        US4::US4_Some(v7) => {
-            let mut v7: u64 = *v7;
-            v7
-        }
-    }
-}
-fn stop_refusal_of_26(mut v0: Rc<str>, mut v1: u64, mut v2: Rc<str>) -> US3 {
-    let mut v3: bool = !v0.is_empty() && v0.bytes().all(|byte| byte.is_ascii_digit());
-    if v3 {
-        let mut v4: u64 = decimal_of_27(v0.clone());
-        let mut v5: bool = v4 == v1;
-        if v5 {
-            US3::US3_OwnProcess
-        } else {
-            let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-            let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v0));
-            let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v7));
-            let mut v10: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v2));
-            let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v7));
-            let mut v12: bool = v11.contains(&*v9);
-            if v12 {
-                US3::US3_OwnAncestor
-            } else {
-                US3::US3_Allowed(v4)
-            }
-        }
-    } else {
-        US3::US3_NotAProcessId
-    }
-}
-fn process_stopped_30(mut v0: u64, mut v1: bool) -> (u64, u64) {
-    let mut v2: (u64, u64) = { let system = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_processes(sysinfo::ProcessRefreshKind::nothing())); let root = sysinfo::Pid::from_u32(v0 as u32); match system.process(root) { None => (0u64, 0u64), Some(_) => { let mut order = vec![root]; if v1 { let mut index = 0; while index < order.len() { let parent = order[index]; for (pid, process) in system.processes() { if process.parent() == Some(parent) && !order.contains(pid) { order.push(*pid); } } index += 1; } } for pid in order.iter().rev() { #[cfg(windows)] { unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn TerminateProcess(process: *mut std::ffi::c_void, code: u32) -> i32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; } unsafe { let handle = OpenProcess(1, 0, pid.as_u32()); if !handle.is_null() { TerminateProcess(handle, 1); CloseHandle(handle); } } } #[cfg(not(windows))] { if let Some(process) = system.process(*pid) { process.kill(); } } } std::thread::sleep(std::time::Duration::from_millis(200)); let after = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_processes(sysinfo::ProcessRefreshKind::nothing())); let survivors = order.iter().filter(|pid| { #[cfg(windows)] { let _ = &after; unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid.as_u32()); if handle.is_null() { false } else { let running = WaitForSingleObject(handle, 2000) == 258; CloseHandle(handle); running } } } #[cfg(not(windows))] { after.process(**pid).is_some() } }).count(); ((order.len() - survivors) as u64, order.len() as u64) } } };
-    v2.clone()
-}
-fn stop_once_29(mut v0: Rc<str>, mut v1: u64, mut v2: bool) -> bool {
-    let mut v3: (u64, u64) = process_stopped_30(v1, v2);
-    let mut v4: u64 = v3.clone().0;
-    let mut v5: u64 = v3.1;
-    let mut v6: bool = v5 == 0u64;
-    let mut v9: US5 = if v6 {
-        US5::US5_NoSuchProcess
-    } else {
-        US5::US5_StoppedOf(v4, v5)
-    };
-    let mut v45: Rc<str> = match &v9 {
-        US5::US5_NoSuchProcess => {
-            let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
-            let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v0));
-            let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  not found"); } LIT.with(|lit| lit.clone()) };
-            let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v12));
-            v13.clone()
-        }
-        US5::US5_StoppedOf(v14, v15) => {
-            let mut v14: u64 = *v14;
-            let mut v15: u64 = *v15;
-            let mut v16: bool = v14 != v15;
-            if v16 {
-                let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
-                let mut v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v0));
-                let mut v19: Rc<str> = std::rc::Rc::<str>::from((v14).to_string());
-                let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped "); } LIT.with(|lit| lit.clone()) };
-                let mut v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v19));
-                let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of "); } LIT.with(|lit| lit.clone()) };
-                let mut v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
-                let mut v24: Rc<str> = std::rc::Rc::<str>::from((v15).to_string());
-                let mut v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-                let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" processes"); } LIT.with(|lit| lit.clone()) };
-                let mut v27: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v26));
-                let mut v28: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v27));
-                v28.clone()
-            } else {
-                let mut v29: bool = v15 == 1u64;
-                if v29 {
-                    let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
-                    let mut v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v0));
-                    let mut v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped"); } LIT.with(|lit| lit.clone()) };
-                    let mut v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));
-                    v33.clone()
-                } else {
-                    let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
-                    let mut v35: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v0));
-                    let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped (tree: "); } LIT.with(|lit| lit.clone()) };
-                    let mut v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
-                    let mut v38: Rc<str> = std::rc::Rc::<str>::from((v15).to_string());
-                    let mut v39: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v38));
-                    let mut v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" processes)"); } LIT.with(|lit| lit.clone()) };
-                    let mut v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
-                    v41.clone()
-                }
-            }
-        }
-    };
-    println!("{}", &*v45);
-    match &v9 {
-        US5::US5_NoSuchProcess => {
-            false
-        }
-        US5::US5_StoppedOf(v46, v47) => {
-            let mut v46: u64 = *v46;
-            let mut v47: u64 = *v47;
-            let mut v48: bool = v46 == v47;
-            v48
-        }
-    }
-}
-fn stops_from_25(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: u64, mut v4: Rc<str>, mut v5: u64, mut v6: u64) -> (u64, u64) {
-    loop {
-        let mut v7: bool = v0 < v1;
-        if v7 {
-            let mut v8: Rc<str> = argument_5(v0);
-            let mut v9: bool = v8.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--tree"); } LIT.with(|lit| lit.clone()) };
-            if v9 {
-                let mut v10: i32 = v0.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4, v5, v6) = (v10, v1, v2, v3, v4.clone(), v5, v6);
-                continue;
-            } else {
-                let mut v13: US3 = stop_refusal_of_26(v8.clone(), v3, v4.clone());
-                match &v13 {
-                    US3::US3_Allowed(v14) => {
-                        let mut v14: u64 = *v14;
-                        let mut v15: bool = stop_once_29(v8.clone(), v14, v2);
-                        if v15 {
-                            let mut v16: i32 = v0.wrapping_add(1i32);
-                            let mut v17: u64 = v5.wrapping_add(1u64);
-                            (v0, v1, v2, v3, v4, v5, v6) = (v16, v1, v2, v3, v4.clone(), v17, v6);
-                            continue;
-                        } else {
-                            let mut v20: i32 = v0.wrapping_add(1i32);
-                            let mut v21: u64 = v6.wrapping_add(1u64);
-                            (v0, v1, v2, v3, v4, v5, v6) = (v20, v1, v2, v3, v4.clone(), v5, v21);
-                            continue;
-                        }
-                    }
-                    _ => {
-                        let mut v40: Rc<str> = match &v13 {
-                            US3::US3_NotAProcessId => {
-                                let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
-                                let mut v35: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v8));
-                                let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  refused: not a process id"); } LIT.with(|lit| lit.clone()) };
-                                let mut v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
-                                v37.clone()
-                            }
-                            US3::US3_OwnAncestor => {
-                                let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
-                                let mut v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v8));
-                                let mut v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  refused: that is a parent of this eoie (the calling shell)"); } LIT.with(|lit| lit.clone()) };
-                                let mut v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));
-                                v33.clone()
-                            }
-                            US3::US3_OwnProcess => {
-                                let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
-                                let mut v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v8));
-                                let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  refused: that is this eoie process"); } LIT.with(|lit| lit.clone()) };
-                                let mut v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
-                                v29.clone()
-                            }
-                            _ => unreachable!(),
-                        };
-                        println!("{}", &*v40);
-                        let mut v41: i32 = v0.wrapping_add(1i32);
-                        let mut v42: u64 = v6.wrapping_add(1u64);
-                        (v0, v1, v2, v3, v4, v5, v6) = (v41, v1, v2, v3, v4.clone(), v5, v42);
-                        continue;
-                    }
-                }
-            }
-        } else {
-            return (v5, v6);
-        }
-    }
-}
-fn stop_run_23(mut v0: u64) -> i32 {
-    let mut v1: i32 = argument_count_2();
-    let mut v2: bool = v1 < 3i32;
-    if v2 {
-        let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: eoie "); } LIT.with(|lit| lit.clone()) };
-        let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps [regex] [--tree] [--mine] | kill <pid>... [--tree]"); } LIT.with(|lit| lit.clone()) };
-        let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: eoie ps [regex] [--tree] [--mine] | kill <pid>... [--tree]"); } LIT.with(|lit| lit.clone()) };
-        println!("{}", &*v5);
-        2i32
-    } else {
-        let mut v6: i32 = 2i32;
-        let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--tree"); } LIT.with(|lit| lit.clone()) };
-        let mut v8: i32 = 2i32;
-        let mut v9: bool = flag_present_9(v7.clone(), v8, v1);
-        let mut v10: u64 = std::process::id() as u64;
-        let mut v11: Rc<str> = ancestor_pids_24();
-        let mut v12: u64 = 0u64;
-        let mut v13: u64 = 0u64;
-        let (mut v14, mut v15): (u64, u64) = stops_from_25(v6, v1, v9, v10, v11.clone(), v12, v13);
-        let mut v16: Rc<str> = decimal_text_19(v14);
-        let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped "); } LIT.with(|lit| lit.clone()) };
-        let mut v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v16));
-        let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  failed "); } LIT.with(|lit| lit.clone()) };
-        let mut v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
-        let mut v21: Rc<str> = decimal_text_19(v15);
-        let mut v22: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v21));
-        let mut v23: bool = v15 == 0u64;
-        if v23 {
-            let mut v24: US2 = US2::US2_Succeeded;
-            receipt_line_20(v24.clone(), v22.clone(), v0);
-            0i32
-        } else {
-            let mut v25: US2 = US2::US2_Failed;
-            receipt_line_20(v25.clone(), v22.clone(), v0);
-            1i32
-        }
-    }
-}
-fn now_ms_31() -> u64 {
+fn now_ms_23() -> u64 {
     let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
 }
 fn process_run_0() -> i32 {
-    let mut v0: u64 = now_ms_31();
+    let mut v0: u64 = now_ms_23();
     let mut v1: i32 = 1i32;
     let mut v2: Rc<str> = argument_5(v1);
     let mut v3: bool = v2.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps"); } LIT.with(|lit| lit.clone()) };
-    let mut v9: US6 = if v3 {
-        US6::US6_ListProcesses
+    let mut v9: US3 = if v3 {
+        US3::US3_ListProcesses
     } else {
         let mut v5: bool = v2.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kill"); } LIT.with(|lit| lit.clone()) };
         if v5 {
-            US6::US6_StopProcesses
+            US3::US3_StopProcesses
         } else {
-            US6::US6_ProcessUnknown
+            US3::US3_ProcessUnknown
         }
     };
     match &v9 {
-        US6::US6_ListProcesses => {
+        US3::US3_ListProcesses => {
             list_run_1(v0)
         }
-        US6::US6_ProcessUnknown => {
+        US3::US3_ProcessUnknown => {
             let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: eoie "); } LIT.with(|lit| lit.clone()) };
-            let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps [regex] [--tree] [--mine] | kill <pid>... [--tree]"); } LIT.with(|lit| lit.clone()) };
-            let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: eoie ps [regex] [--tree] [--mine] | kill <pid>... [--tree]"); } LIT.with(|lit| lit.clone()) };
+            let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"); } LIT.with(|lit| lit.clone()) };
+            let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: eoie ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"); } LIT.with(|lit| lit.clone()) };
             println!("{}", &*v14);
             2i32
         }
-        US6::US6_StopProcesses => {
-            stop_run_23(v0)
+        US3::US3_StopProcesses => {
+            let mut v11: i32 = eoie_process_kill::eoie_process_kill_run();
+            v11
         }
     }
 }

@@ -57,6 +57,7 @@ enum US7 {
     US7_AppendVerb,
     US7_CopyVerb,
     US7_MoveVerb,
+    US7_WriteFileVerb,
 }
 #[derive(Clone)]
 enum US3 {
@@ -193,7 +194,13 @@ fn write_named_10(mut v0: Rc<str>) -> US9 {
                 let mut v8: US7 = US7::US7_MoveVerb;
                 US9::US9_Some(v8.clone())
             } else {
-                US9::US9_None
+                let mut v10: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
+                if v10 {
+                    let mut v11: US7 = US7::US7_WriteFileVerb;
+                    US9::US9_Some(v11.clone())
+                } else {
+                    US9::US9_None
+                }
             }
         }
     }

@@ -1,0 +1,87 @@
+///- --package .
+test check static =
+    open sm'_operators
+
+open sm'_operators
+open file_system_operators
+open eoie_jobs_doctor_model.model
+
+let rec facts_from (rows : eoie_machine_watch.host.process_rows) (at : i32) (count : i32) (found : list process_fact) : list process_fact =
+    if count <= at then listm.rev found
+    else
+        inl name = eoie_machine_watch.host.row_name rows at
+        if sm'.starts_with "eoie" name |> not then facts_from rows (at + 1i32) count found
+        else
+            inl fact =
+                {
+                    pid = eoie_machine_watch.host.row_pid rows at
+                    parent_alive = eoie_machine_watch.host.row_of_pid rows (eoie_machine_watch.host.row_parent rows at) >= 0i32
+                    role = role_of (eoie_machine_watch.host.row_command rows at)
+                }
+            facts_from rows (at + 1i32) count (fact :: found)
+
+let process_facts () : list process_fact =
+    inl rows = eoie_machine_watch.host.process_rows_sampled 50u64
+    facts_from rows 0i32 (eoie_machine_watch.host.row_count rows) []
+
+let standing_of (job : string) : job_standing =
+    if eoie_jobs.jobs.known_job job |> not then JobMissing
+    elif file_system.file_exists (eoie_jobs.jobs.job_file job "exit") then JobSettled
+    else JobLive
+
+let job_names () : list string =
+    inl root = eoie_jobs.host.jobs_root ()
+    if file_system.directory_exists root |> not then []
+    else
+        file_system.read_dir_names root
+        |> resultm.unwrap'
+        |> am'.vec_fold' (fun names name => Cons (sm'.from_std_string name, names)) Nil
+        |> listm'.filter (sm'.starts_with "job-")
+
+let chain_facts () : list chain_fact =
+    job_names ()
+    |> listm.fold
+        fun found (job : string) =>
+            inl after = eoie_jobs.jobs.job_file job "after"
+            inl waiting =
+                file_system.file_exists after
+                && not (file_system.file_exists (eoie_jobs.jobs.job_file job "after-done"))
+                && not (file_system.file_exists (eoie_jobs.jobs.job_file job "exit"))
+            if waiting then
+                inl predecessor = sm'.split "\t" (file_system.read_all_text after) |> array |> am'.index 0i32 |> sm'.trim
+                { job = job; predecessor = predecessor; standing = standing_of predecessor } :: found
+            else found
+        []
+
+let environment_finding (env_drift : () -> bool * string) : option finding =
+    inl ran, changes = env_drift ()
+    if ran |> not then Some (HostEnvironmentDiffers "(an environment listing did not run)")
+    elif changes = "" then None
+    else Some (HostEnvironmentDiffers changes)
+
+let doctor_run (env_drift : () -> bool * string) : i32 =
+    inl with_environment = optionm'.default_value "" (env.try_command_line_argument 2i32) = "--env"
+    inl processes = process_facts ()
+    inl findings = process_findings processes standing_of
+    inl findings = listm.rev (listm.fold (fun (all : list finding) (item : finding) => item :: all) (listm.rev findings) (chain_findings (chain_facts ())))
+    inl findings =
+        if with_environment |> not then findings
+        else
+            match environment_finding env_drift with
+            | Some item => listm.rev (item :: listm.rev findings)
+            | None => findings
+    findings |> listm.iter fun (item : finding) => console.write_line (finding_line item)
+    inl summary = " processes=" ++# sm'.format (listm.length processes : i32) ++# " findings=" ++# sm'.format (listm.length findings : i32)
+    match findings with
+    | [] =>
+        console.write_line ("eoie job doctor ok" ++# summary)
+        0i32
+    | _ =>
+        console.write_line ("eoie job doctor refused:" ++# summary)
+        1i32
+
+///> rust
+test an_environment_listing_reads_as_one_finding =
+    expect (environment_finding (fun () => false, "") = Some (HostEnvironmentDiffers "(an environment listing did not run)")) "listing failed"
+    expect (environment_finding (fun () => true, "") = None) "no drift"
+    expect (environment_finding (fun () => true, "+CARGO_BUILD_JOBS") = Some (HostEnvironmentDiffers "+CARGO_BUILD_JOBS")) "drift"

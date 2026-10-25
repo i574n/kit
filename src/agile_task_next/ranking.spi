@@ -74,9 +74,9 @@ let task_open (task : backlog_task) : bool =
 
 inl listed_in (~items : string) (~item : string) : bool = rust_std_string.model.pipe_member (rust_std_string.model.replace (rust_std_string.model.replace items ", " "|") "," "|") item
 
-inl query_passes (~query : string) (~id : string) (~tags : string) (~status : string) : bool = if query = "" then true else $'agile_task_query::eoie_query_passes(&*!query, &*!id, &*!tags, &*!status, true)' : bool
+inl query_passes (~query : string) (~id : string) (~title : string) (~tags : string) (~status : string) : bool = if query = "" then true else $'agile_task_query::eoie_query_passes(&*!query, &*!id, &*!title, &*!tags, &*!status, true)' : bool
 
-inl task_passes (query : string) (task : backlog_task) : bool = query_passes query task.id task.tags task.status
+inl task_passes (query : string) (task : backlog_task) : bool = query_passes query task.id task.title task.tags task.status
 
 let rec status_of (tasks : task_list) (~id : string) : string =
     match tasks with

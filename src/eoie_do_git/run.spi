@@ -1,6 +1,6 @@
 open rust_std_string.model
 open eoie_receipt.receipt
-open host
+open eoie_do_git_host.host
 open grammar
 open eoie_do_records.records
 
@@ -50,27 +50,11 @@ let commit_run (~root : string) (~repo : string) (~message : string) (~date : st
         else reported state (failure_row head outcome) true
     else reported state (failure_row head added) true
 
-let rec history_rows (~root : string) (~repo : string) (~needle : string) (~path : string) (~log : string) (~index : u64) (~rows : string) : string =
-    if index < line_count log then
-        inl entry = line_at log index
-        inl hash = tab_part entry 0i32
-        inl after = occurrences (part_at (git_run root repo (concat5 "show\n" hash ":" path "") "") 1i32) needle
-        inl before = occurrences (part_at (git_run root repo (concat5 "show\n" hash "^:" path "") "") 1i32) needle
-        inl change = if after < before then "removed" else "added"
-        inl next = row hash (row (tab_part entry 1i32) (row change (tab_part entry 2i32)))
-        history_rows root repo needle path log (index + 1u64) (lines_joined rows next)
-    else rows
-
 let history_run (~root : string) (~repo : string) (~needle : string) (~path : string) (~state : git_tally) : git_tally =
-    inl outcome = git_run root repo (concat5 "log\n--abbrev=8\n--format=%h%x09%ad%x09%s\n--date=short\n-S" needle "\n--\n" path "") ""
-    if succeeded outcome then
-        inl log = part_at outcome 1i32
-        inl table = history_rows root repo needle path log 0u64 (row "commit" (row "date" (row "change" "subject")))
-        inl found = matching_lines root (concat5 repo "/" path "" "") needle
-        inl counted = { state with commits = state.commits + line_count log; matches = state.matches + line_count found; histories = state.histories + 1u64 }
-        reported counted (lines_joined (aligned table) found) false
-    else reported state (failure_row (concat5 "git history " repo "" "" "") outcome) true
-
+    inl report, failed, commits, matches =
+        $'eoie_do_git_reports::eoie_do_git_history(&*!root, &*!repo, &*!needle, &*!path)' : string * bool * u64 * u64
+    if failed then reported state report true
+    else reported ({ state with commits = state.commits + commits; matches = state.matches + matches; histories = state.histories + 1u64 }) report false
 let state_row (~repo : string) (~label : string) (~paths : string) : string =
     if paths = "" then "" else row repo (row label (row (decimal_text (line_count paths)) (replace paths "\n" ", ")))
 
@@ -89,16 +73,10 @@ let rec repos_status (~root : string) (~repos : string) (~index : u64) (~rows : 
     else reported ({ state with statuses = state.statuses + 1u64 }) (aligned rows) false
 
 let days_run (~root : string) (~repo : string) (~since : string) (~state : git_tally) : git_tally =
-    inl bare_date = $'(!since).len() == 10' : bool
-    inl window = if since = "" then "" else concat5 "\n--since=" since (if bare_date then " 00:00:00" else "") "" ""
-    inl outcome = git_run root repo (concat5 "log\n--format=%ad\n--date=short" window "" "" "") ""
-    if succeeded outcome then
-        inl dates = part_at outcome 1i32
-        inl counted = days_counted dates
-        inl tallied = { state with commits = state.commits + line_count dates; days = state.days + line_count counted; day_steps = state.day_steps + 1u64 }
-        reported tallied (aligned (lines_joined (row "day" "commits") counted)) false
-    else reported state (failure_row (concat5 "git log " repo "" "" "") outcome) true
-
+    inl report, failed, commits, days =
+        $'eoie_do_git_reports::eoie_do_git_days(&*!root, &*!repo, &*!since)' : string * bool * u64 * u64
+    if failed then reported state report true
+    else reported ({ state with commits = state.commits + commits; days = state.days + days; day_steps = state.day_steps + 1u64 }) report false
 let step_run (~root : string) (step : git_step) (~state : git_tally) : git_tally =
     match step with
     | GitInit repo => init_run root repo state

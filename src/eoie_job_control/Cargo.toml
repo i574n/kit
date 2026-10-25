@@ -13,5 +13,6 @@ publish.workspace = true
 name = "eoie_job_control"
 path = "control.rs"
 [dependencies]
+eoie-job-state = { path = "../eoie_job_state" }
 eoie-machine-windows = { path = "../eoie_machine_windows" }
 eoie-job-launch = { path = "../eoie_job_launch" }

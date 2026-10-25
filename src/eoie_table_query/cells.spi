@@ -6,10 +6,12 @@ union table_load =
     | TableLoaded : table_cells
     | TableUnreadable : string
 
+inl table_problem (~path : string) : string = $'eoie_table_text::eoie_table_problem(&*!path)' : string
+inl cells_of_tsv (~path : string) : table_cells = $'std::rc::Rc::new(eoie_table_text::eoie_table_tsv(&*!path).lines().map(|line| line.split(char::from(9u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>())' : table_cells
+
 inl table_read (~path : string) : table_load =
-    inl loaded, cells, problem =
-        $'{ let path = &*!path; match std::fs::read_to_string(path) { Ok(text) => { let separator = if path.ends_with(".csv") { char::from(44u8) } else { char::from(9u8) }; (true, std::rc::Rc::new(text.lines().map(|line| line.split(separator).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>()), std::rc::Rc::<str>::from("")) } Err(error) => (false, std::rc::Rc::new(Vec::new()), std::rc::Rc::<str>::from(format\!("{path}: {error}").as_str())) } }' : bool * table_cells * string
-    if loaded then TableLoaded cells else TableUnreadable problem
+    inl problem = table_problem path
+    if problem <> "" then TableUnreadable problem else TableLoaded (cells_of_tsv path)
 
 inl row_total (cells : table_cells) : i32 = $'((!cells).len().max(1) - 1) as i32' : i32
 

@@ -27,9 +27,9 @@ let git_output (~root : string) (~arguments : string) : string =
 inl header_value (~status : string) (~key : string) : string =
     $'std::rc::Rc::<str>::from(!status.lines().find_map(|line| line.strip_prefix(&*!key)).unwrap_or("").trim())' : string
 
-inl line_at (~text : string) (~index : u64) : string = $'std::rc::Rc::<str>::from(!text.lines().nth(!index as usize).unwrap_or(""))' : string
+inl line_at (~text : string) (~index : u64) : string = sm'.line_at (convert.i32 index) text
 
-inl line_count (~text : string) : u64 = $'!text.lines().count() as u64' : u64
+inl line_count (~text : string) : u64 = convert.u64 (sm'.line_count text)
 
 let rec tally_status (tally : area_tally) (~status : string) (index : u64) (count : u64) (depth : u64) : () =
     if index < count then

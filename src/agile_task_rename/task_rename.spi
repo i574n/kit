@@ -72,14 +72,15 @@ let renamed (~root : string) (~old : string) (~new : string) : i32 =
     match probe (unchecked state) with
     | FileMissing _ => rename_failure "state/agile.spi is missing" old
     | FileReadable file =>
-        inl original = loaded_string (read_text file)
+        inl raw = loaded_string (read_text file)
+        inl original = records_text raw
         if negated (task_declared original old) then rename_failure "no task with this id" old
         elif task_declared original new then rename_failure ("the id " ++# new ++# " is already taken") old
         elif binding_declared original (item_binding new) then rename_failure ("the name inl " ++# (item_binding new) ++# " is already declared") old
         elif binding_declared original (planning_binding new) then rename_failure ("the name inl " ++# (planning_binding new) ++# " is already declared") old
         else
             inl updated, tally = renamed_text original old new
-            match state_written state original updated with
+            match state_written state raw updated with
             | StateWritten => rename_success old new tally (text_bytes original) (text_bytes updated) (ms_since started)
             | problem => rename_failure (state_write_problem problem) old
 

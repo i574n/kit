@@ -365,15 +365,16 @@ fn decimal_of_30(mut v0: Rc<str>) -> u64 {
     let mut v2: Option<u64> = method31(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US2> = closure1();
     let mut v4: Option<US2> = v2.map(|x| v3(x));
-    let mut v5: US2 = US2::US2_None;
-    let mut v6: US2 = v4.unwrap_or(v5);
-    match &v6 {
+    let mut v6: US2 = US2::US2_None;
+    let mut v7: US2 = v6.clone();
+    let mut v8: US2 = v4.unwrap_or(v7);
+    match &v8 {
         US2::US2_None => {
             0u64
         }
-        US2::US2_Some(v7) => {
-            let mut v7: u64 = *v7;
-            v7
+        US2::US2_Some(v9) => {
+            let mut v9: u64 = *v9;
+            v9
         }
     }
 }
@@ -474,11 +475,69 @@ fn loop_35(mut v0: Rc<str>) -> Rc<str> {
         }
     }
 }
-fn line_count_36(mut v0: Rc<str>) -> u64 {
-    let mut v1: u64 = (v0).lines().filter(|line| !line.is_empty()).count() as u64;
-    v1
+fn go_37(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
+    loop {
+        let mut v4: bool = v2 >= v1;
+        if v4 {
+            return v3;
+        } else {
+            let mut v5: Rc<str> = v0.clone().borrow()[v2 as usize].clone();
+            let mut v6: i32 = (v5.clone().len() as i32);
+            let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
+            let mut v8: bool = v5.ends_with(&*v7);
+            let mut v9: bool = v8 == false;
+            let mut v15: Rc<str> = if v9 {
+                v5.clone()
+            } else {
+                let mut v10: bool = v6 == 1i32;
+                if v10 {
+                    let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    v11.clone()
+                } else {
+                    let mut v12: i32 = v6.wrapping_sub(2i32);
+                    let mut v13: Rc<str> = string_slice(&v5.clone(), 0i32 as i64, v12 as i64);
+                    v13.clone()
+                }
+            };
+            let mut v16: i32 = v2.wrapping_add(1i32);
+            let mut v17: bool = v15.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let mut v19: i32 = if v17 {
+                v3
+            } else {
+                let mut v18: i32 = v3.wrapping_add(1i32);
+                v18
+            };
+            (v0, v1, v2, v3) = (v0.clone(), v1, v16, v19);
+            continue;
+        }
+    }
 }
-fn decimal_text_37(mut v0: u64) -> Rc<str> {
+fn line_count_36(mut v0: Rc<str>) -> u64 {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v1).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+    let mut v3: i32 = (v2.clone().borrow().len() as i32);
+    let mut v4: bool = v3 > 0i32;
+    let mut v8: bool = if v4 {
+        let mut v5: i32 = v3.wrapping_sub(1i32);
+        let mut v6: Rc<str> = v2.clone().borrow()[v5 as usize].clone();
+        let mut v7: bool = v6.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v7
+    } else {
+        false
+    };
+    let mut v10: i32 = if v8 {
+        let mut v9: i32 = v3.wrapping_sub(1i32);
+        v9
+    } else {
+        v3
+    };
+    let mut v11: i32 = 0i32;
+    let mut v12: i32 = 0i32;
+    let mut v13: i32 = go_37(v2.clone(), v10, v11, v12);
+    let mut v14: u64 = (v13 as u64);
+    v14
+}
+fn decimal_text_38(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1.clone()
 }
@@ -495,7 +554,7 @@ fn output_block_33(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     } else {
         let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" output (last "); } LIT.with(|lit| lit.clone()) };
         let mut v10: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v9));
-        let mut v11: Rc<str> = decimal_text_37(v5);
+        let mut v11: Rc<str> = decimal_text_38(v5);
         let mut v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
         let mut v13: bool = v5 == 1u64;
         let mut v16: Rc<str> = if v13 {
@@ -613,11 +672,11 @@ fn wait_run_23(mut v0: Rc<str>, mut v1: u64, mut v2: Rc<str>, mut v3: bool, mut 
     };
     (v57.clone(), v58, v59, v60, v61, v62, v63.clone(), v64.clone(), v65)
 }
-fn stopped_text_39(mut v0: Rc<str>) -> Rc<str> {
+fn stopped_text_40(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = eoie_job_control::eoie_job_stop_text(&*v0);
     v1.clone()
 }
-fn stop_run_38(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: Rc<str>, mut v8: Rc<str>, mut v9: i32) -> (Rc<str>, bool, u64, u64, u64, u64, Rc<str>, Rc<str>, i32) {
+fn stop_run_39(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: Rc<str>, mut v8: Rc<str>, mut v9: i32) -> (Rc<str>, bool, u64, u64, u64, u64, Rc<str>, Rc<str>, i32) {
     let mut v10: Rc<str> = labeled_24(v0.clone());
     let mut v11: bool = v10.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let (mut v43, mut v44, mut v45, mut v46, mut v47, mut v48, mut v49, mut v50, mut v51): (Rc<str>, bool, u64, u64, u64, u64, Rc<str>, Rc<str>, i32) = if v11 {
@@ -626,7 +685,7 @@ fn stop_run_38(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool, mut v3: u64, mut 
         let mut v14: Rc<str> = lines_joined_20(v1.clone(), v13.clone());
         (v14.clone(), true, v3, v4, v5, v6, v7.clone(), v8.clone(), 1i32)
     } else {
-        let mut v15: Rc<str> = stopped_text_39(v10.clone());
+        let mut v15: Rc<str> = stopped_text_40(v10.clone());
         let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("error: "); } LIT.with(|lit| lit.clone()) };
         let mut v17: bool = v15.starts_with(&*v16);
         let (mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40, mut v41, mut v42): (Rc<str>, bool, u64, u64, u64, u64, Rc<str>, Rc<str>, i32) = if v17 {
@@ -674,7 +733,7 @@ fn step_run_15(mut v0: Rc<str>, mut v1: US1, mut v2: Rc<str>, mut v3: bool, mut 
                     let (mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62): (Rc<str>, bool, u64, u64, u64, u64, Rc<str>, Rc<str>, i32) = match &v1 {
                         US1::US1_JobStop(v35) => {
                             let mut v35: Rc<str> = v35.clone();
-                            stop_run_38(v35.clone(), v2.clone(), v3, v4, v5, v6, v7, v8.clone(), v9.clone(), v10)
+                            stop_run_39(v35.clone(), v2.clone(), v3, v4, v5, v6, v7, v8.clone(), v9.clone(), v10)
                         }
                         _ => {
                             let (mut v45, mut v46, mut v47, mut v48, mut v49, mut v50, mut v51, mut v52, mut v53): (Rc<str>, bool, u64, u64, u64, u64, Rc<str>, Rc<str>, i32) = match &v1 {
@@ -724,19 +783,19 @@ fn jobs_run_14(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>,
     };
     (v64.clone(), v65, v66, v67, v68, v69, v70.clone(), v71.clone(), v72)
 }
-fn code_text_41(mut v0: i32) -> Rc<str> {
+fn code_text_42(mut v0: i32) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1.clone()
 }
-fn receipt_counts_40(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: i32) -> Rc<str> {
-    let mut v9: Rc<str> = decimal_text_37(v2);
+fn receipt_counts_41(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: i32) -> Rc<str> {
+    let mut v9: Rc<str> = decimal_text_38(v2);
     let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("jobs "); } LIT.with(|lit| lit.clone()) };
     let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v9));
     let mut v12: bool = v3 > 0u64;
     let mut v17: Rc<str> = if v12 {
         let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  finished "); } LIT.with(|lit| lit.clone()) };
         let mut v14: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v13));
-        let mut v15: Rc<str> = decimal_text_37(v3);
+        let mut v15: Rc<str> = decimal_text_38(v3);
         let mut v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
         v16.clone()
     } else {
@@ -746,7 +805,7 @@ fn receipt_counts_40(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
     let mut v23: Rc<str> = if v18 {
         let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  timed out "); } LIT.with(|lit| lit.clone()) };
         let mut v20: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v19));
-        let mut v21: Rc<str> = decimal_text_37(v4);
+        let mut v21: Rc<str> = decimal_text_38(v4);
         let mut v22: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v21));
         v22.clone()
     } else {
@@ -756,7 +815,7 @@ fn receipt_counts_40(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
     let mut v29: Rc<str> = if v24 {
         let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  notifications "); } LIT.with(|lit| lit.clone()) };
         let mut v26: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v25));
-        let mut v27: Rc<str> = decimal_text_37(v5);
+        let mut v27: Rc<str> = decimal_text_38(v5);
         let mut v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
         v28.clone()
     } else {
@@ -768,25 +827,25 @@ fn receipt_counts_40(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
     } else {
         let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  exit "); } LIT.with(|lit| lit.clone()) };
         let mut v32: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v31));
-        let mut v33: Rc<str> = code_text_41(v8);
+        let mut v33: Rc<str> = code_text_42(v8);
         let mut v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v33));
         v34.clone()
     }
 }
-fn elapsed_text_43(mut v0: u64) -> Rc<str> {
+fn elapsed_text_44(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
-fn local_offset_minutes_45() -> i64 {
+fn local_offset_minutes_46() -> i64 {
     let mut v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
     v0
 }
-fn clock_text_44() -> Rc<str> {
-    let mut v0: i64 = local_offset_minutes_45();
+fn clock_text_45() -> Rc<str> {
+    let mut v0: i64 = local_offset_minutes_46();
     let mut v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_42(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_43(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
     let mut v6: Rc<str> = match &v0 {
         US3::US3_Failed => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
@@ -798,12 +857,15 @@ fn receipt_line_42(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
         }
     };
     let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
-    let mut v8: Rc<str> = elapsed_text_43(v2);
-    let mut v9: Rc<str> = clock_text_44();
-    let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v11: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v7, &*v9, &*v10, &*v10].concat());
-    let mut v12: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v7, &*v1, &*v7, &*v11].concat());
-    println!("{}", &*v12);
+    let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
+    let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v1));
+    let mut v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v7));
+    let mut v11: Rc<str> = elapsed_text_44(v2);
+    let mut v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
+    let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v7));
+    let mut v14: Rc<str> = clock_text_45();
+    let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
+    println!("{}", v15);
     ()
 }
 fn job_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
@@ -825,13 +887,13 @@ fn job_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         };
         if v18 {
             let mut v27: US3 = US3::US3_Failed;
-            let mut v28: Rc<str> = receipt_counts_40(v17.clone(), v18, v19, v20, v21, v22, v23.clone(), v24.clone(), v25);
-            receipt_line_42(v27.clone(), v28.clone(), v2);
+            let mut v28: Rc<str> = receipt_counts_41(v17.clone(), v18, v19, v20, v21, v22, v23.clone(), v24.clone(), v25);
+            receipt_line_43(v27.clone(), v28.clone(), v2);
             v25
         } else {
             let mut v29: US3 = US3::US3_Succeeded;
-            let mut v30: Rc<str> = receipt_counts_40(v17.clone(), v18, v19, v20, v21, v22, v23.clone(), v24.clone(), v25);
-            receipt_line_42(v29.clone(), v30.clone(), v2);
+            let mut v30: Rc<str> = receipt_counts_41(v17.clone(), v18, v19, v20, v21, v22, v23.clone(), v24.clone(), v25);
+            receipt_line_43(v29.clone(), v30.clone(), v2);
             0i32
         }
     } else {
@@ -840,7 +902,7 @@ fn job_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         println!("{}", &*v33);
         let mut v34: US3 = US3::US3_Failed;
         let mut v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("jobs 0"); } LIT.with(|lit| lit.clone()) };
-        receipt_line_42(v34.clone(), v35.clone(), v2);
+        receipt_line_43(v34.clone(), v35.clone(), v2);
         2i32
     }
 }

@@ -1,0 +1,59 @@
+///- --package .
+test rechain static =
+    open sm'_operators
+
+open sm'_operators
+open eoie_job_after_model.model
+
+inl argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+inl after_path (~id : string) : string = eoie_jobs.jobs.job_file id "after"
+
+inl text_at (~path : string) : string = if file_system.file_exists path then file_system.read_all_text path else ""
+
+inl waits_on_after (~id : string) : bool =
+    file_system.file_exists (after_path id) && file_system.file_exists (eoie_jobs.jobs.job_file id "after-done") |> not
+
+let rec chain_reaches (~from : string) (~target : string) (steps : i32) : bool =
+    if from = target then true
+    elif steps <= 0i32 || waits_on_after from |> not then false
+    else chain_reaches (after_file_predecessor (text_at (after_path from))) target (steps - 1i32)
+
+let facts_of (~id : string) (~predecessor : string) : rechain_facts =
+    inl state = eoie_jobs.jobs.job_state_now id
+    inl known = eoie_jobs.jobs.known_job id
+    {
+        job_known = known
+        predecessor_known = eoie_jobs.jobs.known_job predecessor
+        same_job = id = predecessor
+        chained = known && file_system.file_exists (after_path id)
+        waiting = waits_on_after id && eoie_jobs.model.state_settled state |> not
+        state = eoie_jobs.model.state_word state
+        previous = after_file_predecessor (text_at (after_path id))
+        cycle = chain_reaches predecessor id 64i32
+    }
+
+let rechain_run () : i32 =
+    inl id = argument 2i32
+    inl predecessor = argument 3i32
+    match if id = "" || predecessor = "" then None else mode_of_flag (argument 4i32) with
+    | None =>
+        console.write_error_line ("eoie error: job usage: " ++# usage ())
+        2i32
+    | Some mode =>
+        match rechain_of (facts_of id predecessor) with
+        | Refused refusal =>
+            console.write_error_line ("eoie error: job after refused: " ++# refusal_text refusal id predecessor)
+            2i32
+        | Repointed previous =>
+            file_system.write_all_text (after_path id) (after_file_text predecessor mode)
+            console.write_line (
+                "eoie job after ok id=" ++# id ++# " after=" ++# predecessor ++# " after_mode=" ++# mode_word mode
+                ++# " previous=" ++# previous
+            )
+            0i32
+
+///> rust
+test a_job_reaches_itself_without_reading_a_file =
+    expect (chain_reaches "job-1-a" "job-1-a" 3i32) "the walk starts at the target"
+    expect (after_file_predecessor "job-2-b\tok" = "job-2-b") "predecessor field"

@@ -1,0 +1,110 @@
+open sm'_operators
+open eoie_table_sequence_args.args
+
+union measure_request =
+    | IntervalOf : string * string * u64
+    | WindowOf : string * string * u64 * u64
+    | OrderOf : string * string
+    | LatencyOf : string * string
+
+type sequence_request =
+    {
+        name : string
+        time : string
+        measure : measure_request
+    }
+
+inl roles_of (measure : measure_request) : string * string =
+    match measure with
+    | IntervalOf (marked, between, _) => marked, between
+    | WindowOf (counted, marker, _, _) => counted, marker
+    | OrderOf (first, second) => first, second
+    | LatencyOf (starting, ending) => starting, ending
+
+inl measured_text (~file : string) (~events : string) (measure : measure_request) : string =
+    match measure with
+    | IntervalOf (_, between, modulo) =>
+        inl second = if between = "" then "" else "second"
+        $'eoie_log_sequences::eoie_sequence_interval(&*!file, &*!events, "first", &*!second, !modulo)' : string
+    | WindowOf (_, _, low, high) => $'eoie_log_sequences::eoie_sequence_window(&*!file, &*!events, "first", "second", !low, !high)' : string
+    | OrderOf _ => $'eoie_log_sequences::eoie_sequence_order(&*!file, &*!events, "first", "second")' : string
+    | LatencyOf _ => $'eoie_log_sequences::eoie_sequence_latency(&*!file, &*!events, "first", "second")' : string
+
+let file_table_of (~path : string) (request : sequence_request) : file_table =
+    inl first, second = roles_of request.measure
+    inl log = file_system.read_all_text path
+    inl time = request.time
+    inl events = $'eoie_log_sequences::eoie_sequence_events(&*!log, &*!time, &*!first, &*!second)' : string
+    data_rows (sm'.split "\n" (measured_text path events request.measure) |> array) 0i32 { text = ""; rows = 0u64 }
+
+let measure_from (count : i32) : string * option measure_request =
+    inl interval = value_after "--interval" 2i32 count
+    inl window = value_after "--window" 2i32 count
+    inl order = value_after "--order" 2i32 count
+    inl latency = value_after "--latency" 2i32 count
+    if interval <> "" then
+        inl name, pattern = split_pair interval "="
+        name, Some (IntervalOf (pattern, value_after "--between" 2i32 count, decimal (value_after "--modulo" 2i32 count)))
+    elif window <> "" then
+        inl name, pattern = split_pair window "="
+        inl marker = value_after "--from" 2i32 count
+        inl low, high = split_pair (value_after "--ms" 2i32 count) ".."
+        name, (if marker = "" then None else Some (WindowOf (pattern, marker, decimal low, decimal high)))
+    elif order <> "" then
+        inl name, pattern = split_pair order "="
+        inl first, second = split_pair pattern ","
+        name, (if second = "" then None else Some (OrderOf (first, second)))
+    elif latency <> "" then
+        inl name, pattern = split_pair latency "="
+        inl ending = value_after "--to" 2i32 count
+        name, (if ending = "" then None else Some (LatencyOf (pattern, ending)))
+    else "", None
+
+let rec tables_of (files : list string) (request : sequence_request) (acc : file_table) : file_table =
+    match files with
+    | Nil => acc
+    | Cons (path, rest) =>
+        inl found = file_table_of path request
+        tables_of rest request { text = acc.text ++# found.text; rows = acc.rows + found.rows }
+
+let table_written (~name : string) (~out : string) (files : list string) (found : file_table) : i32 =
+    inl table = "file\tline\t" ++# name ++# "\n" ++# found.text
+    inl receipt = "eoie table sequences ok files=" ++# sm'.format (listm.length files : i32) ++# " rows=" ++# sm'.format found.rows
+    if out = "" then
+        console.write_line (sm'.trim_end_suffix "\n" table)
+        console.write_error_line receipt
+    else
+        file_system.write_all_text out table
+        console.write_error_line (receipt ++# " out=" ++# out)
+    0i32
+
+let measures_run (count : i32) : i32 =
+    inl paths, refusal = paths_from 2i32 count Nil ""
+    inl name, measure = measure_from count
+    inl time = value_after "--time" 2i32 count
+    if refusal <> "" then refused refusal
+    else
+        match measure with
+        | None => refused "needs one measure with both its patterns"
+        | Some measure =>
+            if time = "" || name = "" then refused "needs --time and a measure name"
+            else
+                match paths with
+                | Nil => refused "needs at least one file or directory"
+                | Cons _ =>
+                    inl missing = missing_path paths
+                    if missing <> "" then refused ("no such file or directory: " ++# missing)
+                    else
+                        inl files = files_in paths Nil
+                        inl request = { name = name; time = time; measure = measure }
+                        table_written name (value_after "--out" 2i32 count) files (tables_of files request { text = ""; rows = 0u64 })
+
+let sections_run () : i32 = $'eoie_table_sections::eoie_table_sections_run()' : i32
+
+let sequences_run () : i32 =
+    inl count = env.command_line_argument_count ()
+    if has_columns 2i32 count then sections_run () else measures_run count
+
+inl main () : i32 =
+    !!!!Export("eoie_table_sequences_run", ((fun () => sequences_run ()) : () -> i32))
+    0i32

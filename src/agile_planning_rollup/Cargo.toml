@@ -17,4 +17,5 @@ name = "agile_planning_rollup"
 path = "planning_rollup.rs"
 
 [dependencies]
+eoie-agile-records = { path = "../eoie_agile_records" }
 agile-planning-tally = { path = "../agile_planning_tally" }

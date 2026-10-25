@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    eoie_jobs
+    eoie_job_after_model
+modules:
+    rechain
+    entry

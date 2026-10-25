@@ -1,0 +1,128 @@
+open sm'_operators
+open eoie_jobs.model
+open eoie_jobs.host
+open eoie_jobs.jobs
+open eoie_job_launch_model.shapes
+
+union start_flag =
+    | MaxPrivateMb
+    | SlotWithin
+    | DoneWithin
+    | QuietStart
+    | QuietHold
+    | QuietWait
+    | MinFreeMb
+    | SettleMs
+
+inl start_flag_word (flag : start_flag) : string =
+    match flag with
+    | MaxPrivateMb => "--max-private-mb"
+    | SlotWithin => "--slot-within"
+    | DoneWithin => "--done-within"
+    | QuietStart => "--quiet"
+    | QuietHold => "--quiet-hold"
+    | QuietWait => "--quiet-wait"
+    | MinFreeMb => "--min-free-mb"
+    | SettleMs => "--settle-ms"
+
+inl start_flag_width (flag : start_flag) : i32 =
+    match flag with
+    | QuietStart => 1i32
+    | _ => 2i32
+
+union start_flag_parse =
+    | StartFlagKnown : start_flag
+    | StartFlagUnknown
+
+let start_flag_of (~text : string) : start_flag_parse =
+    union_reflection.cases.union_case_where (fun (flag : start_flag) => text = start_flag_word flag) (fun flag => StartFlagKnown flag) StartFlagUnknown
+
+type start_options =
+    {
+        capped : bool
+        cap_mb : u64
+        slot_limited : bool
+        slot_minutes : u64
+        done_limited : bool
+        done_minutes : u64
+        quiet : bool
+        held_given : bool
+        hold : u64
+        wait_given : bool
+        quiet_wait : u64
+        floored : bool
+        min_free : u64
+        settle_given : bool
+        settle_ms : u64
+    }
+
+inl start_options_none () : start_options =
+    { capped = false; cap_mb = 0u64; slot_limited = false; slot_minutes = 0u64; done_limited = false; done_minutes = 0u64; quiet = false; held_given = false; hold = 0u64; wait_given = false; quiet_wait = 0u64; floored = false; min_free = 0u64; settle_given = false; settle_ms = 0u64 }
+
+inl start_option_set (options : start_options) (flag : start_flag) (value : u64) : start_options =
+    match flag with
+    | MaxPrivateMb => { options with capped = true; cap_mb = value }
+    | SlotWithin => { options with slot_limited = true; slot_minutes = value }
+    | DoneWithin => { options with done_limited = true; done_minutes = value }
+    | QuietStart => { options with quiet = true }
+    | QuietHold => { options with held_given = true; hold = value }
+    | QuietWait => { options with wait_given = true; quiet_wait = value }
+    | MinFreeMb => { options with floored = true; min_free = value }
+    | SettleMs => { options with settle_given = true; settle_ms = value }
+
+let rec start_options_read (at : i32) (options : start_options) : i32 * start_options =
+    match start_flag_of (argument at) with
+    | StartFlagUnknown => at, options
+    | StartFlagKnown flag =>
+        inl width = start_flag_width flag
+        inl value = if width = 2i32 then decimal_u64 (argument (at + 1i32)) else 0u64
+        start_options_read (at + width) (start_option_set options flag value)
+
+inl after_mode_of (~flag : string) : string = if flag = "--after" then "any" elif flag = "--after-ok" then "ok" else ""
+
+inl refusal (~problem : string) : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64 =
+    false, problem, "", "", "", 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0i32, 0u64
+
+let start_args () : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64 =
+    inl after_mode = after_mode_of (argument 3i32)
+    inl after_job = if after_mode = "" then "" else argument 4i32
+    inl base = if after_mode = "" then 3i32 else 5i32
+    inl shape = start_shape_of (argument base)
+    inl shaped = base + shape_offset shape
+    inl first, options = start_options_read shaped (start_options_none ())
+    inl capped = options.capped
+    inl cap_mb = options.cap_mb
+    inl slot_limited = options.slot_limited
+    inl slot_minutes = options.slot_minutes
+    inl done_limited = options.done_limited
+    inl done_minutes = options.done_minutes
+    inl quiet = options.quiet
+    inl held_given = options.held_given
+    inl hold_minutes = if held_given then options.hold elif quiet then 30u64 else 0u64
+    inl wait_given = options.wait_given
+    inl quiet_wait = if wait_given then options.quiet_wait elif quiet then 10u64 else 0u64
+    inl min_free = options.min_free
+    inl missing_after = if after_mode = "" || (sm'.starts_with "job-" after_job && directory_exists (job_directory after_job)) then "" else after_job
+    if argument_count () < first + 3i32 then refusal (job_usage ())
+    elif missing_after <> "" then refusal ("--after names no job: " ++# missing_after)
+    elif capped && cap_mb = 0u64 then refusal "--max-private-mb needs a positive number of MB"
+    elif slot_limited && slot_minutes = 0u64 then refusal "--slot-within needs a positive number of minutes"
+    elif done_limited && done_minutes = 0u64 then refusal "--done-within needs a positive number of minutes"
+    elif (held_given || wait_given) && quiet = false then refusal "--quiet-hold and --quiet-wait follow --quiet"
+    elif quiet && shape <> HeavyStart then refusal "--quiet applies to --heavy jobs: it holds compiles off while the heavy work starts"
+    elif quiet && (hold_minutes = 0u64 || hold_minutes > 60u64) then refusal "--quiet-hold takes 1 to 60 minutes (compiles wait at most that long)"
+    elif slot_limited && shape = PlainStart then refusal "--slot-within applies to --heavy or --compile jobs, which wait for a slot or window"
+    elif options.floored && min_free = 0u64 then refusal "--min-free-mb needs a positive number of MB"
+    elif options.floored && shape = PlainStart then refusal "--min-free-mb applies to --heavy or --compile jobs, which wait for a window"
+    elif sm'.starts_with "--" (argument first) then refusal ("unknown option " ++# argument first ++# "; " ++# job_usage ())
+    elif sm'.starts_with "--" (argument (first + 2i32)) then refusal ("the program cannot start with --, got " ++# argument (first + 2i32) ++# "; options go before the label")
+    else
+        inl timeout = decimal_u64 (argument (first + 1i32))
+        if timeout = 0u64 then refusal "timeout-ms must be a positive integer"
+        else
+            inl settle_ms = if options.settle_given then options.settle_ms else 2000u64
+            true, "", shape_word shape, after_mode, after_job, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait, min_free, settle_ms, first, timeout
+
+inl main () : i32 =
+    !!!!Export("eoie_job_start_args", ((fun () => start_args ()) : () -> bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64))
+    0i32

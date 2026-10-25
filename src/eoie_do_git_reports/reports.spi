@@ -1,0 +1,46 @@
+open rust_std_string.model
+open eoie_do_git_host.host
+
+let joined (~left : string) (~right : string) : string =
+    if right = "" then left elif left = "" then right else concat5 left "\n" right "" ""
+
+let row (~cells : string) (~next : string) : string = concat5 cells (column ()) next "" ""
+
+let succeeded (~outcome : string) : bool = part_at outcome 0i32 = "0"
+
+let failure_row (~head : string) (~outcome : string) : string = concat5 head "  failed: " (part_at outcome 2i32) "" ""
+
+let rec history_rows (~root : string) (~repo : string) (~needle : string) (~path : string) (~log : string) (~index : u64) (~rows : string) : string =
+    if index < line_count log then
+        inl entry = line_at log index
+        inl hash = tab_part entry 0i32
+        inl after = occurrences (part_at (git_run root repo (concat5 "show\n" hash ":" path "") "") 1i32) needle
+        inl before = occurrences (part_at (git_run root repo (concat5 "show\n" hash "^:" path "") "") 1i32) needle
+        inl change = if after < before then "removed" else "added"
+        inl next = row hash (row (tab_part entry 1i32) (row change (tab_part entry 2i32)))
+        history_rows root repo needle path log (index + 1u64) (joined rows next)
+    else rows
+
+let history_report (~root : string) (~repo : string) (~needle : string) (~path : string) : string * bool * u64 * u64 =
+    inl outcome = git_run root repo (concat5 "log\n--abbrev=8\n--format=%h%x09%ad%x09%s\n--date=short\n-S" needle "\n--\n" path "") ""
+    if succeeded outcome then
+        inl log = part_at outcome 1i32
+        inl table = history_rows root repo needle path log 0u64 (row "commit" (row "date" (row "change" "subject")))
+        inl found = matching_lines root (concat5 repo "/" path "" "") needle
+        joined (aligned table) found, false, line_count log, line_count found
+    else failure_row (concat5 "git history " repo "" "" "") outcome, true, 0u64, 0u64
+
+let days_report (~root : string) (~repo : string) (~since : string) : string * bool * u64 * u64 =
+    inl bare_date = $'(!since).len() == 10' : bool
+    inl window = if since = "" then "" else concat5 "\n--since=" since (if bare_date then " 00:00:00" else "") "" ""
+    inl outcome = git_run root repo (concat5 "log\n--format=%ad\n--date=short" window "" "" "") ""
+    if succeeded outcome then
+        inl dates = part_at outcome 1i32
+        inl counted = days_counted dates
+        aligned (joined (row "day" "commits") counted), false, line_count dates, line_count counted
+    else failure_row (concat5 "git log " repo "" "" "") outcome, true, 0u64, 0u64
+
+inl main () : i32 =
+    !!!!Export("eoie_do_git_history", ((fun (root, repo, needle, path) => history_report root repo needle path) : string * string * string * string -> string * bool * u64 * u64))
+    !!!!Export("eoie_do_git_days", ((fun (root, repo, since) => days_report root repo since) : string * string * string -> string * bool * u64 * u64))
+    0i32

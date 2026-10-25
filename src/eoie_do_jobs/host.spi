@@ -35,6 +35,6 @@ let summary_field (~summary : string) (~key : string) : string =
 let started_pid (~id : string) : string =
     $'{ let mut pid = String::new(); for _ in 0..40 { let summary = eoie_job_control::eoie_job_settled(&*!id, 0); if let Some(at) = summary.find(" pid=") { pid = summary[at + 5..].split(char::from(32u8)).next().unwrap_or("").to_owned(); } if \!pid.is_empty() { break; } std::thread::sleep(std::time::Duration::from_millis(50)); } std::rc::Rc::<str>::from(pid) }' : string
 
-let line_count (~text : string) : u64 = $'(!text).lines().filter(|line| \!line.is_empty()).count() as u64' : u64
+let line_count (~text : string) : u64 = convert.u64 (sm'.nonempty_line_count text)
 
 let name_listed (~names : string) (~name : string) : bool = $'(!names).lines().any(|item| item == &*!name)' : bool

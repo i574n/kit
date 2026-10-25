@@ -1,0 +1,7 @@
+open check
+
+let env_drift () : bool * string = $'eoie_jobs_doctor_env::eoie_job_doctor_env_drift()' : bool * string
+
+inl main () : i32 =
+    !!!!Export("eoie_job_doctor_run", ((fun () => doctor_run env_drift) : () -> i32))
+    0i32

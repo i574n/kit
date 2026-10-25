@@ -30,7 +30,7 @@ let window_ran () : i32 =
             inl since = now_ms ()
             inl id = "win-" ++# (number_text since) ++# "-" ++# (number_text (process_number ())) ++# ("-" ++# (class_word wanted) ++# "-run")
             inl label = if own_option "--label" = "" then command_head argv else own_option "--label"
-            inl granted = requested { wanted = wanted; minutes = minutes; label = label; id = id; since = since; deadline = since + decimal_of (own_option "--wait") * 60000u64 } false
+            inl granted = requested { wanted = wanted; minutes = minutes; label = label; id = id; since = since; deadline = since + decimal_of (own_option "--wait") * 60000u64; min_free = decimal_of (own_option "--min-free-mb") } false
             if granted <> 0i32 then granted
             else
                 inl code = child_status argv ((class_word wanted) ++# ":" ++# id)

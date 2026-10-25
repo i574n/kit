@@ -58,12 +58,15 @@ fn receipt_line_3(mut v0: US0, mut v1: Rc<str>, mut v2: u64) -> () {
         }
     };
     let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
-    let mut v8: Rc<str> = elapsed_text_4(v2);
-    let mut v9: Rc<str> = clock_text_5();
-    let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v11: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v7, &*v9, &*v10, &*v10].concat());
-    let mut v12: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v7, &*v1, &*v7, &*v11].concat());
-    println!("{}", &*v12);
+    let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
+    let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v1));
+    let mut v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v7));
+    let mut v11: Rc<str> = elapsed_text_4(v2);
+    let mut v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
+    let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v7));
+    let mut v14: Rc<str> = clock_text_5();
+    let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
+    println!("{}", v15);
     ()
 }
 fn lines_receipt_1(mut v0: [u64; 4], mut v1: u64) -> i32 {
@@ -155,12 +158,16 @@ fn now_ms_8() -> u64 {
     v0
 }
 fn command_line_argument_count_10() -> i32 {
-    let mut v0: i32 = (std::env::args().count() as i32) - 1;
-    v0
+    let mut v0: usize = std::env::args().count();
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    v2
 }
 fn command_line_argument_11(mut v0: i32) -> Rc<str> {
-    let mut v1: Rc<str> = Rc::<str>::from(std::env::args().nth((v0 + 1) as usize).unwrap_or_default());
-    v1.clone()
+    let mut v1: i32 = v0.wrapping_add(1i32);
+    let mut v2: usize = ((v1) as usize);
+    let mut v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
+    v3.clone()
 }
 fn argument_9(mut v0: i32) -> Rc<str> {
     let mut v1: i32 = v0.wrapping_sub(1i32);
@@ -278,15 +285,16 @@ fn decimal_u64_17(mut v0: Rc<str>) -> u64 {
     let mut v2: Option<u64> = method18(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
     let mut v4: Option<US3> = v2.map(|x| v3(x));
-    let mut v5: US3 = US3::US3_None;
-    let mut v6: US3 = v4.unwrap_or(v5);
-    match &v6 {
+    let mut v6: US3 = US3::US3_None;
+    let mut v7: US3 = v6.clone();
+    let mut v8: US3 = v4.unwrap_or(v7);
+    match &v8 {
         US3::US3_None => {
             0u64
         }
-        US3::US3_Some(v7) => {
-            let mut v7: u64 = *v7;
-            v7
+        US3::US3_Some(v9) => {
+            let mut v9: u64 = *v9;
+            v9
         }
     }
 }
@@ -318,15 +326,16 @@ fn decimal_or_zero_22(mut v0: Rc<str>) -> u64 {
     let mut v2: Option<u64> = method18(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
     let mut v4: Option<US3> = v2.map(|x| v3(x));
-    let mut v5: US3 = US3::US3_None;
-    let mut v6: US3 = v4.unwrap_or(v5);
-    match &v6 {
+    let mut v6: US3 = US3::US3_None;
+    let mut v7: US3 = v6.clone();
+    let mut v8: US3 = v4.unwrap_or(v7);
+    match &v8 {
         US3::US3_None => {
             0u64
         }
-        US3::US3_Some(v7) => {
-            let mut v7: u64 = *v7;
-            v7
+        US3::US3_Some(v9) => {
+            let mut v9: u64 = *v9;
+            v9
         }
     }
 }

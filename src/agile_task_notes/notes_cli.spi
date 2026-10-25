@@ -185,3 +185,40 @@ test a_root_fresh_from_init_takes_a_groomed_add_without_a_hand_written_lease =
     shows (accepted root "add" (Arg ("PR-1", Arg ("TaskKind", Arg ("P1", Arg ("D2", Arg ("First item", Arg ("ops", Arg ("--estimate", Arg ("1h", NoArgs)))))))))) "eoie agile add ok id=PR-1"
     failed_with (agile root "init" NoArgs) "already exists"
     fixture_root_remove root
+
+///> rust
+test show_reads_the_newest_or_matching_notes_with_their_numbers =
+    inl root = backlog_new "show filters"
+    inl _ = accepted root "note" (Arg ("ID-A", Arg ("first finding", NoArgs)))
+    inl _ = accepted root "note" (Arg ("ID-A", Arg ("second clue", NoArgs)))
+    inl _ = accepted root "note" (Arg ("ID-A", Arg ("third finding", NoArgs)))
+    inl newest = accepted root "show" (Arg ("ID-A", Arg ("--last", Arg ("1", NoArgs))))
+    shows newest "notes (1/3)"
+    shows newest "#3 "
+    hides newest "first finding"
+    inl matching = accepted root "show" (Arg ("ID-A", Arg ("--grep", Arg ("CLUE", NoArgs))))
+    shows matching "notes (1/3)"
+    shows matching "#2 "
+    hides matching "third finding"
+    unchanged_after root (agile root "show" (Arg ("ID-A", Arg ("--bogus", Arg ("x", NoArgs))))) "options are --json, --last <n> or --grep <word>" (state_text root)
+    fixture_root_remove root
+
+///> rust
+test note_edit_append_adds_a_sentence_to_the_stored_note =
+    inl root = backlog_new "note append"
+    inl _ = accepted root "note" (Arg ("ID-A", Arg ("first finding.", Arg ("--as", Arg ("lane 2", NoArgs)))))
+    inl _ = accepted root "note-edit" (Arg ("ID-A", Arg ("1", Arg ("second sentence.", Arg ("--append", Arg ("--as", Arg ("lane 2", NoArgs)))))))
+    shows (accepted root "show" (Arg ("ID-A", NoArgs))) "  lane 2  first finding. second sentence."
+    unchanged_after root (agile root "note-edit" (Arg ("ID-A", Arg ("1", Arg ("x", Arg ("--bogus", NoArgs)))))) "usage: agile note-edit <root> <id> <note-number> <text> [--as <author>] [--append]" (state_text root)
+    fixture_root_remove root
+
+///> rust
+test note_takes_as_before_or_after_the_text =
+    inl root = backlog_new "note as first"
+    inl _ = accepted root "note" (Arg ("ID-A", Arg ("--as", Arg ("lane 2", Arg ("flag first", NoArgs)))))
+    inl _ = accepted root "note" (Arg ("ID-A", Arg ("flag last", Arg ("--as", Arg ("lane 2", NoArgs)))))
+    inl show = accepted root "show" (Arg ("ID-A", NoArgs))
+    shows show "  lane 2  flag first"
+    shows show "  lane 2  flag last"
+    unchanged_after root (agile root "note" (Arg ("ID-A", Arg ("--as", Arg ("lane 2", Arg ("", NoArgs)))))) "the note text is empty" (state_text root)
+    fixture_root_remove root

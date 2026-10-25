@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    eoie_ci_model
+modules:
+    probe
+    entry

@@ -28,11 +28,15 @@ name = "agile-memory-links"
 version = "0.0.0"
 dependencies = [
  "agile-task-census",
+ "eoie-agile-records",
 ]
 
 [[package]]
 name = "agile-note-edit"
 version = "0.0.0"
+dependencies = [
+ "eoie-agile-records",
+]
 
 [[package]]
 name = "agile-note-listing"
@@ -53,6 +57,7 @@ dependencies = [
  "agile-planning-fields",
  "agile-planning-rewrite",
  "agile-planning-values",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -62,6 +67,7 @@ dependencies = [
  "agile-planning-fields",
  "agile-planning-rewrite",
  "agile-planning-values",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -73,6 +79,7 @@ name = "agile-planning-rollup"
 version = "0.0.0"
 dependencies = [
  "agile-planning-tally",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -112,6 +119,7 @@ name = "agile-task-creation"
 version = "0.0.0"
 dependencies = [
  "agile-task-notes",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -120,6 +128,7 @@ version = "0.0.0"
 dependencies = [
  "agile-note-listing",
  "agile-planning-fields",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -130,6 +139,7 @@ dependencies = [
  "agile-planning-filters",
  "agile-task-census",
  "agile-task-query",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -137,7 +147,11 @@ name = "agile-task-next"
 version = "0.0.0"
 dependencies = [
  "agile-planning-fields",
+ "agile-planning-filters",
  "agile-task-query",
+ "eoie-agile-next-args",
+ "eoie-agile-records",
+ "eoie-window-query",
 ]
 
 [[package]]
@@ -146,6 +160,7 @@ version = "0.0.0"
 dependencies = [
  "agile-planning-rewrite",
  "agile-planning-values",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -157,6 +172,7 @@ name = "agile-task-rename"
 version = "0.0.0"
 dependencies = [
  "agile-rename-rewrite",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -164,6 +180,7 @@ name = "agile-task-revision"
 version = "0.0.0"
 dependencies = [
  "agile-field-rendering",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -175,6 +192,7 @@ name = "agile-title-notes"
 version = "0.0.0"
 dependencies = [
  "agile-title-tails",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -195,11 +213,15 @@ version = "0.0.0"
 dependencies = [
  "agile-todo-lines",
  "agile-todo-scan",
+ "eoie-agile-records",
 ]
 
 [[package]]
 name = "agile-todo-roots"
 version = "0.0.0"
+dependencies = [
+ "eoie-agile-records",
+]
 
 [[package]]
 name = "agile-todo-scan"
@@ -209,6 +231,7 @@ dependencies = [
  "agile-todo-lines",
  "agile-todo-paths",
  "agile-todo-sources",
+ "eoie-agile-records",
 ]
 
 [[package]]
@@ -393,8 +416,13 @@ checksum = "91622ff5e7162018101f2fea40d6ebf4a78bbe5a49736a2020649edf9693679e"
 name = "eoie-adoption"
 version = "0.0.0"
 dependencies = [
+ "eoie-adoption-habits",
  "regex",
 ]
+
+[[package]]
+name = "eoie-adoption-habits"
+version = "0.0.0"
 
 [[package]]
 name = "eoie-agile-contracts"
@@ -435,13 +463,39 @@ dependencies = [
  "agile-todo-roots",
  "agile-todo-scan",
  "eoie-agile-lease",
+ "eoie-agile-routes",
  "eoie-agile-state",
+ "eoie-command-help",
  "eoie-handoff-render",
+]
+
+[[package]]
+name = "eoie-agile-next-args"
+version = "0.0.0"
+dependencies = [
+ "agile-planning-filters",
+ "agile-task-query",
+ "eoie-window-query",
 ]
 
 [[package]]
 name = "eoie-agile-policy"
 version = "0.0.0"
+
+[[package]]
+name = "eoie-agile-records"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-agile-routes"
+version = "0.0.0"
+dependencies = [
+ "agile-planning-revision",
+ "agile-task-revision",
+ "agile-todo-scan",
+ "eoie-agile-lease",
+ "eoie-agile-state",
+]
 
 [[package]]
 name = "eoie-agile-state"
@@ -547,6 +601,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "eoie-ci-parity"
+version = "0.0.0"
+dependencies = [
+ "eoie-ci-verdict",
+]
+
+[[package]]
+name = "eoie-ci-probe"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-ci-verdict"
+version = "0.0.0"
+dependencies = [
+ "eoie-ci-probe",
+]
+
+[[package]]
 name = "eoie-cli"
 version = "0.0.0"
 dependencies = [
@@ -564,9 +636,13 @@ dependencies = [
  "eoie-batch-write",
  "eoie-bundle-manifest",
  "eoie-bundle-retention",
+ "eoie-ci-parity",
+ "eoie-command-help",
  "eoie-compiler-discovery",
  "eoie-coverage-prune",
+ "eoie-crate-gate",
  "eoie-do",
+ "eoie-env-pins",
  "eoie-experiments",
  "eoie-fs-actions",
  "eoie-grep-query",
@@ -577,6 +653,8 @@ dependencies = [
  "eoie-machine-watch",
  "eoie-machine-windows",
  "eoie-memory",
+ "eoie-mirror",
+ "eoie-os-launch",
  "eoie-patch-driver-domain",
  "eoie-patch-mutation",
  "eoie-patch-rehearsal",
@@ -586,12 +664,14 @@ dependencies = [
  "eoie-proxy-search",
  "eoie-read-query",
  "eoie-release-hygiene",
+ "eoie-repo-accept-review",
  "eoie-repo-affected",
  "eoie-repo-state",
  "eoie-resume",
  "eoie-standards",
  "eoie-table-logs",
  "eoie-table-query",
+ "eoie-table-sequences",
  "eoie-table-test",
  "eoie-toolchain-proxy",
  "evidence-currentness-domain",
@@ -611,6 +691,10 @@ dependencies = [
  "process-batch-plan-domain",
  "serde_json",
 ]
+
+[[package]]
+name = "eoie-command-help"
+version = "0.0.0"
 
 [[package]]
 name = "eoie-command-line"
@@ -647,6 +731,10 @@ version = "0.0.0"
 dependencies = [
  "eoie-process-observation",
 ]
+
+[[package]]
+name = "eoie-crate-gate"
+version = "0.0.0"
 
 [[package]]
 name = "eoie-dev"
@@ -705,7 +793,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "eoie-do-file-steps"
+version = "0.0.0"
+dependencies = [
+ "eoie-do-read",
+ "regex",
+]
+
+[[package]]
 name = "eoie-do-git"
+version = "0.0.0"
+dependencies = [
+ "eoie-do-git-reports",
+]
+
+[[package]]
+name = "eoie-do-git-reports"
 version = "0.0.0"
 
 [[package]]
@@ -761,12 +864,17 @@ version = "0.0.0"
 name = "eoie-do-write"
 version = "0.0.0"
 dependencies = [
+ "eoie-do-file-steps",
  "eoie-do-read",
  "regex",
 ]
 
 [[package]]
 name = "eoie-domain-probe"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-env-pins"
 version = "0.0.0"
 
 [[package]]
@@ -780,6 +888,7 @@ dependencies = [
  "agile-task-notes",
  "eoie-experiment-stats",
  "eoie-table-query",
+ "eoie-table-text",
 ]
 
 [[package]]
@@ -846,6 +955,7 @@ name = "eoie-handoff-render"
 version = "0.0.0"
 dependencies = [
  "authority-state-domain",
+ "eoie-agile-records",
  "handoff-active-work-projection-domain",
  "handoff-evidence-projection-domain",
  "handoff-sections-projection-domain",
@@ -861,10 +971,23 @@ name = "eoie-job-after"
 version = "0.0.0"
 
 [[package]]
+name = "eoie-job-chain"
+version = "0.0.0"
+
+[[package]]
 name = "eoie-job-control"
 version = "0.0.0"
 dependencies = [
  "eoie-job-launch",
+ "eoie-job-state",
+ "eoie-machine-windows",
+]
+
+[[package]]
+name = "eoie-job-create"
+version = "0.0.0"
+dependencies = [
+ "eoie-job-host",
  "eoie-machine-windows",
 ]
 
@@ -883,18 +1006,37 @@ dependencies = [
 [[package]]
 name = "eoie-job-host"
 version = "0.0.0"
+dependencies = [
+ "eoie-job-state",
+ "eoie-os-launch",
+]
 
 [[package]]
 name = "eoie-job-launch"
 version = "0.0.0"
 dependencies = [
+ "eoie-job-create",
  "eoie-job-host",
+ "eoie-job-start-args",
+ "eoie-job-state",
  "eoie-job-supervise",
  "eoie-machine-windows",
 ]
 
 [[package]]
+name = "eoie-job-rechain"
+version = "0.0.0"
+
+[[package]]
 name = "eoie-job-slot"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-job-start-args"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-job-state"
 version = "0.0.0"
 
 [[package]]
@@ -911,13 +1053,29 @@ dependencies = [
 name = "eoie-jobs"
 version = "0.0.0"
 dependencies = [
+ "eoie-job-chain",
  "eoie-job-control",
  "eoie-job-gate",
  "eoie-job-host",
  "eoie-job-launch",
+ "eoie-job-rechain",
+ "eoie-job-state",
  "eoie-job-supervise",
+ "eoie-jobs-doctor",
  "eoie-machine-windows",
 ]
+
+[[package]]
+name = "eoie-jobs-doctor"
+version = "0.0.0"
+dependencies = [
+ "eoie-jobs-doctor-env",
+ "sysinfo",
+]
+
+[[package]]
+name = "eoie-jobs-doctor-env"
+version = "0.0.0"
 
 [[package]]
 name = "eoie-lcov"
@@ -952,6 +1110,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "eoie-log-sections"
+version = "0.0.0"
+dependencies = [
+ "regex",
+]
+
+[[package]]
+name = "eoie-log-sequences"
+version = "0.0.0"
+dependencies = [
+ "regex",
+]
+
+[[package]]
 name = "eoie-machine-crowding"
 version = "0.0.0"
 
@@ -961,7 +1133,16 @@ version = "0.0.0"
 dependencies = [
  "eoie-job-control",
  "eoie-machine-crowding",
+ "eoie-machine-window-watch",
+ "eoie-notebook-progress",
  "sysinfo",
+]
+
+[[package]]
+name = "eoie-machine-window-watch"
+version = "0.0.0"
+dependencies = [
+ "eoie-job-control",
 ]
 
 [[package]]
@@ -972,6 +1153,7 @@ dependencies = [
  "eoie-window-claim",
  "eoie-window-query",
  "eoie-window-run",
+ "eoie-window-wait",
 ]
 
 [[package]]
@@ -988,6 +1170,18 @@ version = "0.0.0"
 
 [[package]]
 name = "eoie-memory-query"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-mirror"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-notebook-progress"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-os-launch"
 version = "0.0.0"
 
 [[package]]
@@ -1111,6 +1305,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "eoie-process-kill"
+version = "0.0.0"
+dependencies = [
+ "regex",
+ "sysinfo",
+]
+
+[[package]]
 name = "eoie-process-observation"
 version = "0.0.0"
 dependencies = [
@@ -1125,6 +1327,7 @@ version = "0.0.0"
 name = "eoie-process-table"
 version = "0.0.0"
 dependencies = [
+ "eoie-process-kill",
  "regex",
  "sysinfo",
 ]
@@ -1176,6 +1379,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "eoie-repo-accept-review"
+version = "0.0.0"
+
+[[package]]
 name = "eoie-repo-affected"
 version = "0.0.0"
 
@@ -1186,6 +1393,9 @@ version = "0.0.0"
 [[package]]
 name = "eoie-resume"
 version = "0.0.0"
+dependencies = [
+ "eoie-agile-records",
+]
 
 [[package]]
 name = "eoie-rust-std-env"
@@ -1235,6 +1445,9 @@ dependencies = [
 [[package]]
 name = "eoie-table-diff"
 version = "0.0.0"
+dependencies = [
+ "eoie-table-text",
+]
 
 [[package]]
 name = "eoie-table-logs"
@@ -1246,6 +1459,9 @@ dependencies = [
 [[package]]
 name = "eoie-table-measures"
 version = "0.0.0"
+dependencies = [
+ "eoie-table-text",
+]
 
 [[package]]
 name = "eoie-table-query"
@@ -1253,6 +1469,22 @@ version = "0.0.0"
 dependencies = [
  "eoie-table-diff",
  "eoie-table-measures",
+ "eoie-table-text",
+]
+
+[[package]]
+name = "eoie-table-sections"
+version = "0.0.0"
+dependencies = [
+ "eoie-log-sections",
+]
+
+[[package]]
+name = "eoie-table-sequences"
+version = "0.0.0"
+dependencies = [
+ "eoie-log-sequences",
+ "eoie-table-sections",
 ]
 
 [[package]]
@@ -1261,7 +1493,12 @@ version = "0.0.0"
 dependencies = [
  "eoie-experiment-stats",
  "eoie-table-query",
+ "eoie-table-text",
 ]
+
+[[package]]
+name = "eoie-table-text"
+version = "0.0.0"
 
 [[package]]
 name = "eoie-toolchain-argument-agile-probe"
@@ -1322,6 +1559,13 @@ dependencies = [
 
 [[package]]
 name = "eoie-window-run"
+version = "0.0.0"
+dependencies = [
+ "eoie-window-admission",
+]
+
+[[package]]
+name = "eoie-window-wait"
 version = "0.0.0"
 dependencies = [
  "eoie-window-admission",

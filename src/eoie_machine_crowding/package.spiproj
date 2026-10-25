@@ -1,7 +1,7 @@
 packages:
     |core-
     spiral-
-    rust_std_string
+    spiral-
     union_reflection
     eoie_jobs
     eoie_machine_windows

@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "rechain.rs"
+
+[package]
+name = "eoie-job-rechain"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "eoie_job_rechain"
+path = "rechain.rs"

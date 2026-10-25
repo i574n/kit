@@ -65,14 +65,6 @@ let eoie_named (~command : string) : bool =
         char::from(39u8) || c == char::from(34u8)) { rest = stripped; } let trimmed = rest.trim_start(); before && \
         trimmed.len() < rest.len() && trimmed.chars().next().is_some_and(|c| c.is_ascii_lowercase()) }) }' : bool
 
-let habit_named (~command : string) : bool =
-    $'{ let lower = (&*!command).to_ascii_lowercase(); let bytes = lower.as_bytes(); let word_byte = |byte: u8| \
-        byte.is_ascii_alphanumeric() || byte == 95u8; let words = ["get-content", "select-string", "get-childitem", \
-        "set-content", "add-content", "out-file", "foreach-object", "measure-object", "copy-item", "remove-item", \
-        "move-item", "test-path", "start-sleep", "robocopy", "findstr", "python", "python3", "py.exe"]; \
-        lower.contains("[io.file]") || words.iter().any(|word| lower.match_indices(word).any(|(at, _)| { let end = at \
-        + word.len(); (at == 0 || \!word_byte(bytes[at - 1])) && (end >= bytes.len() || \!word_byte(bytes[end])) })) \
-        }' : bool
 inl text_length (~text : string) : u64 = $'(&*!text).len() as u64' : u64
 inl line_end (~text : string) (start : u64) : u64 = $'(&*!text)[!start as usize..].find(char::from(10u8)).map(|found| \
     !start + found as u64).unwrap_or((&*!text).len() as u64)' : u64

@@ -158,7 +158,7 @@ test after_waits_for_the_named_job_and_after_ok_skips_when_it_failed =
     inl first = started_id (job_call root (Arg ("start", Arg ("first", Arg ("60000", Arg (exiter, Arg ("8000", Arg ("3", NoArgs))))))))
     inl second = started_id (job_call root (Arg ("start", Arg ("--after", Arg (first, Arg ("second", Arg ("60000", Arg (exiter, Arg ("0", Arg ("0", NoArgs))))))))))
     inl third = started_id (job_call root (Arg ("start", Arg ("--after-ok", Arg (first, Arg ("third", Arg ("60000", Arg (exiter, Arg ("0", Arg ("0", NoArgs))))))))))
-    shows (succeeded (job_call root (Arg ("status", Arg (second, NoArgs))))) "state=queued"
+    shows (succeeded (job_call root (Arg ("status", Arg (second, NoArgs))))) (cat "state=queued waiting_for=after:" first)
     shows (succeeded (job_call root (Arg ("wait", Arg (second, Arg ("30000", NoArgs)))))) "state=finished exit=0"
     shows (succeeded (job_call root (Arg ("status", Arg (first, NoArgs))))) "state=finished exit=3"
     inl skipped = job_call root (Arg ("wait", Arg (third, Arg ("30000", NoArgs))))
@@ -166,6 +166,40 @@ test after_waits_for_the_named_job_and_after_ok_skips_when_it_failed =
     shows skipped.stdout "state=skipped exit=125"
     shows skipped.stdout (cat (cat "--after-ok: " first) " ended finished exit 3")
     rejected_with (job_call root (Arg ("start", Arg ("--after", Arg ("job-0-missing", Arg ("x", Arg ("1000", Arg (exiter, Arg ("0", Arg ("0", NoArgs)))))))))) 2i32 "--after names no job: job-0-missing"
+    fixture_root_remove root
+
+///> rust
+test after_repoints_a_waiting_job_and_refuses_cycles_and_settled_jobs =
+    inl root = fixture_root_create "job after repoint"
+    inl exiter = rustc_program root "exiter" (exiter_source ())
+    inl slow = started_id (job_call root (Arg ("start", Arg ("slow", Arg ("60000", Arg (exiter, Arg ("20000", Arg ("0", NoArgs))))))))
+    inl quick = started_id (job_call root (Arg ("start", Arg ("quick", Arg ("60000", Arg (exiter, Arg ("500", Arg ("0", NoArgs))))))))
+    inl waiting = started_id (job_call root (Arg ("start", Arg ("--after", Arg (slow, Arg ("waiting", Arg ("60000", Arg (exiter, Arg ("0", Arg ("0", NoArgs))))))))))
+    inl tail = started_id (job_call root (Arg ("start", Arg ("--after", Arg (waiting, Arg ("tail", Arg ("60000", Arg (exiter, Arg ("0", Arg ("0", NoArgs))))))))))
+    rejected_with (job_call root (Arg ("after", Arg (slow, Arg (waiting, NoArgs))))) 2i32 "was not started with --after"
+    rejected_with (job_call root (Arg ("after", Arg (waiting, Arg (tail, NoArgs))))) 2i32 "already waits, directly or down its chain, for"
+    rejected_with (job_call root (Arg ("after", Arg (waiting, Arg ("job-0-missing", NoArgs))))) 2i32 "unknown predecessor id job-0-missing"
+    inl repointed = succeeded (job_call root (Arg ("after", Arg (waiting, Arg (quick, Arg ("--ok", NoArgs))))))
+    shows repointed (cat "after=" quick)
+    shows repointed (cat "previous=" slow)
+    shows repointed "after_mode=ok"
+    shows (succeeded (job_call root (Arg ("wait", Arg (waiting, Arg ("15000", NoArgs)))))) "state=finished exit=0"
+    shows (succeeded (job_call root (Arg ("status", Arg (slow, NoArgs))))) "state=running"
+    rejected_with (job_call root (Arg ("after", Arg (waiting, Arg (quick, NoArgs))))) 2i32 "no longer waiting for its predecessor"
+    inl _ = succeeded (job_call root (Arg ("stop", Arg (slow, NoArgs))))
+    fixture_root_remove root
+
+///> rust
+test chain_starts_each_job_after_the_previous_one =
+    inl root = fixture_root_create "job chain"
+    inl exiter = rustc_program root "exiter" (exiter_source ())
+    inl second_link = Arg ("--", Arg ("two", Arg ("60000", Arg (exiter, Arg ("0", Arg ("0", NoArgs))))))
+    inl chained = succeeded (job_call root (Arg ("chain", Arg ("--ok", Arg ("--", Arg ("one", Arg ("60000", Arg (exiter, Arg ("300", Arg ("0", second_link))))))))))
+    shows chained "eoie job chain ok jobs=2"
+    shows chained "after_mode=ok"
+    inl second = word_after chained ","
+    shows (succeeded (job_call root (Arg ("wait", Arg (second, Arg ("30000", NoArgs)))))) "state=finished exit=0"
+    rejected_with (job_call root (Arg ("chain", Arg ("--", Arg ("short", Arg ("60000", NoArgs)))))) 2i32 "link 1 needs <label> <timeout-ms> <program>"
     fixture_root_remove root
 
 inl allocator_source () : string = "fn main() { let mut held: Vec<Vec<u8>> = Vec::new(); loop { held.push(vec![7u8; 16 << 20]); std::thread::sleep(std::time::Duration::from_millis(20)); } }"
@@ -208,3 +242,18 @@ test a_fixture_home_whose_job_host_ran_can_be_removed =
     inl home = fixture_path root "jobs"
     fixture_root_remove root
     expect (path_exists home = false) "the job host no longer holds its caller's working directory, so the fixture home goes"
+
+///> rust
+test a_queued_job_takes_a_new_limit_until_its_child_starts =
+    inl root = fixture_root_create "job amend"
+    inl running = started_tree root
+    inl quick = rustc_program root "quick" "fn main() {}"
+    inl queued = word_after (succeeded (job_call root (Arg ("start", Arg ("--after", Arg (running, Arg ("after-it", Arg ("60000", Arg (quick, NoArgs))))))))) "id="
+    shows (succeeded (job_call root (Arg ("amend", Arg (queued, Arg ("--timeout", Arg ("120000", NoArgs))))))) "timeout_ms=120000 was=60000"
+    same (fixture_read root (cat "jobs/" (cat queued "/timeout_ms"))) "120000"
+    rejected_with (job_call root (Arg ("amend", Arg (running, Arg ("--timeout", Arg ("120000", NoArgs)))))) 2i32 "has started"
+    rejected_with (job_call root (Arg ("amend", Arg ("job-0-missing", Arg ("--timeout", Arg ("1", NoArgs)))))) 2i32 "amend: unknown job id job-0-missing"
+    rejected_with (job_call root (Arg ("amend", Arg (queued, Arg ("--limit", Arg ("1", NoArgs)))))) 2i32 "expects --timeout <ms>"
+    inl _ = succeeded (job_call root (Arg ("stop", Arg (running, NoArgs))))
+    shows (succeeded (job_call root (Arg ("wait", Arg (queued, Arg ("60000", NoArgs)))))) "state=finished exit=0"
+    fixture_root_remove root

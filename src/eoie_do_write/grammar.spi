@@ -1,15 +1,20 @@
 ///- --package .
 test grammar static =
     open sm'_operators
-    open host
+    open eoie_do_write_host.host
     open eoie_do_records.records
 
 open sm'_operators
-open host
+open eoie_do_write_host.host
 open eoie_do_records.records
+
+union write_mode =
+    | CreateOnly
+    | Overwrite
 
 union write_step =
     | AppendLine : string * string
+    | WriteFile : string * string * write_mode
     | CopyTree : string * string * string
     | MovePath : string * string
     | ReadAfter
@@ -48,6 +53,14 @@ let move_parsed (~records : record_list) (~record : i32) : write_parse =
         if destination = "" then WriteRejected "to: expected a path after it"
         else WriteParsed (MovePath (source, destination))
 
+let file_write_parsed (~records : record_list) (~record : i32) : write_parse =
+    inl path = body_at records record 2i32
+    inl overwrite = quoted_at records record 3i32 = false && body_at records record 3i32 = "overwrite"
+    inl text_at = if overwrite then 4i32 else 3i32
+    if path = "" || quoted_at records record 2i32 then WriteRejected "write: expected a file, then a <<< block"
+    elif quoted_at records record text_at = false then WriteRejected "write: expected the <<< block after the file"
+    else WriteParsed (WriteFile (path, body_at records record text_at, if overwrite then Overwrite else CreateOnly))
+
 let write_parsed (~records : record_list) (~record : i32) : write_parse =
     inl kind = field_at records record 0i32
     inl verb = field_at records record 1i32
@@ -57,6 +70,7 @@ let write_parsed (~records : record_list) (~record : i32) : write_parse =
     elif verb = "append" then append_parsed records record
     elif verb = "copy" then copy_parsed records record
     elif verb = "move" then move_parsed records record
+    elif verb = "write" then file_write_parsed records record
     else
         match eoie_do_model.model.query_verb_named verb with
         | Some _ => WriteParsed ReadAfter
@@ -121,3 +135,20 @@ test move_statements_name_both_paths =
     | _ => expect false "move"
     expect (rejection_at records 2i32 = "move: expected to <path>") "move without to"
     expect (rejection_at records 3i32 = "move: expected move <path> to <path>") "move without a source"
+
+///> rust
+test write_statements_name_the_file_its_text_and_whether_it_may_overwrite =
+    inl records =
+        records_from_bars (
+            "ok\nquery|write|wnotes/a.md|qhello\nquery|write|wa.md|woverwrite|q\nquery|write|wa.md\n"
+            ^^ "query|write|qa.md|qx"
+        )
+    match write_parsed records 1i32 with
+    | WriteParsed (WriteFile (path, text, CreateOnly)) => expect (path = "notes/a.md" && text = "hello") "create parts"
+    | _ => expect false "create"
+    match write_parsed records 2i32 with
+    | WriteParsed (WriteFile (path, text, Overwrite)) =>
+        expect (path = "a.md" && text = "") "overwrite with an empty block"
+    | _ => expect false "overwrite"
+    expect (rejection_at records 3i32 = "write: expected the <<< block after the file") "write without text"
+    expect (rejection_at records 4i32 = "write: expected a file, then a <<< block") "write without a file"

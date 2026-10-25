@@ -32,6 +32,7 @@ type file_scan =
         count : i32
         in_todo : bool
         last_code : string
+        header_targets : bool
     }
 
 inl todo_marker () : string = "TO" ++# "DO"
@@ -116,7 +117,7 @@ let line_findings (rule : standard) (~path : string) (~module : string) (number 
         | CodeLine => if name = module && floating line then finding path number rule "floating point in an integer-only module" else ""
         | _ => ""
     | TestTargets =>
-        if sm'.starts_with "test " line && sm'.contains " static =" line = false && sm'.starts_with "///> " scan.last_code = false then finding path number rule "test block without a ///> target line above it"
+        if sm'.starts_with "test " line && sm'.contains " static =" line = false && sm'.starts_with "///> " scan.last_code = false && scan.header_targets = false then finding path number rule "test block without a ///> target line above it or in the file header"
         else ""
     | HostFree =>
         match kind with
@@ -146,10 +147,11 @@ let rec lines_scanned (list : standards) (~path : string) (~module : string) (~t
             match kind with
             | BlankLine => scan.last_code
             | _ => trimmed_start line
-        inl next = { findings = scan.findings ++# found; count = scan.count + findings_count found; in_todo = in_todo; last_code = last_code }
+        inl header_targets = scan.header_targets || (number = 2i32 && sm'.starts_with "///-" scan.last_code && sm'.starts_with "///> " (trimmed_start line))
+        inl next = { findings = scan.findings ++# found; count = scan.count + findings_count found; in_todo = in_todo; last_code = last_code; header_targets = header_targets }
         lines_scanned list path module (line_rest text) (number + 1i32) next
 
-let file_scan_start () : file_scan = { findings = ""; count = 0i32; in_todo = false; last_code = "" }
+let file_scan_start () : file_scan = { findings = ""; count = 0i32; in_todo = false; last_code = ""; header_targets = false }
 
 inl expect (condition : bool) (~detail : string) : () = if condition then () else $'panic\!("{}", &*!detail)' : ()
 
@@ -194,3 +196,11 @@ test a_declared_rule_this_eoie_does_not_know_is_a_finding =
     expect (unknown_rules text "p/standards.spi" 1i32 "" = "p/standards.spi:2  unknown-rule  ShinyRule is not a rule this eoie knows, so it never runs\n") (unknown_rules text "p/standards.spi" 1i32 "")
     expect (unknown_rules "inl host () = HostFree\ninl lib () = LibReferenced\n" "s" 1i32 "" = "") "known rules are no finding"
     expect (unknown_rules "inl stdout_line (~text : string) : () = $'println'\n" "s" 1i32 "" = "") "a typed unit function in a module named standards.spi is no declaration"
+
+///> rust
+test targets_declared_in_the_file_header_cover_every_test =
+    inl list = StandardThen (TestTargets, NoStandards)
+    inl headed = "///- --package .\n///> rust\n///> gleam\ntest m static =\n    open sm'_operators\n\ntest bare =\n    inl a = 1\n"
+    expect (scanned_text list "m" headed = "") (scanned_text list "m" headed)
+    inl plain = "///- --package .\ntest m static =\n    open sm'_operators\n\ntest bare =\n"
+    expect (sm'.contains "m.spi:5  test-targets" (scanned_text list "m" plain)) (scanned_text list "m" plain)

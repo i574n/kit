@@ -1,0 +1,5 @@
+open model
+
+inl main () : i32 =
+    !!!!Export("eoie_agile_records_as_lines", ((fun text => records_as_lines text) : string -> string))
+    0i32

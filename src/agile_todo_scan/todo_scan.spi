@@ -63,7 +63,7 @@ union todo_standing =
 
 inl state_text (~root : string) : string =
     inl _, text = read_content (rust_std_string.model.concat5 root "/state/agile.spi" "" "" "")
-    text
+    $'eoie_agile_records::eoie_agile_records_as_lines(&*!text)' : string
 
 inl standing_of (~text : string) (~id : string) : todo_standing =
     inl status = $'agile_task_census::eoie_agile_task_status(&*!text, &*!id)' : string

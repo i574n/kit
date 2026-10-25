@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "ci_parity.rs"
+
+[package]
+name = "eoie-ci-parity"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "eoie_ci_parity"
+path = "ci_parity.rs"
+
+[dependencies]
+eoie-ci-verdict = { path = "../eoie_ci_verdict" }

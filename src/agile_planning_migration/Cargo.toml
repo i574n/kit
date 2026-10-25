@@ -14,6 +14,7 @@ name = "agile_planning_migration"
 path = "planning_migration.rs"
 
 [dependencies]
+eoie-agile-records = { path = "../eoie_agile_records" }
 agile-planning-values = { path = "../agile_planning_values" }
 agile-planning-rewrite = { path = "../agile_planning_rewrite" }
 agile-planning-fields = { path = "../agile_planning_fields" }

@@ -12,3 +12,7 @@ publish.workspace = true
 [lib]
 name = "eoie_job_host"
 path = "host_run.rs"
+
+[dependencies]
+eoie-job-state = { path = "../eoie_job_state" }
+eoie-os-launch = { path = "../eoie_os_launch" }

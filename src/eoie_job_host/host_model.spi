@@ -22,6 +22,7 @@ union host_state =
 
 union supervisor_wait =
     | SupervisorUp : u64
+    | SupervisorHeld : string
     | SupervisorLate
 
 inl idle_limit_ms () : u64 = 600000u64

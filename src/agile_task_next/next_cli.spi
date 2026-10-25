@@ -61,3 +61,34 @@ test teams_and_prefixes_filter_the_ranking_and_json_carries_the_ranks =
     shows prefixed "ready=1 shown=1"
     rejected_with (next_run root (Arg ("--team", Arg ("Ops", NoArgs)))) 2i32 "agile next rejected: --team expects a lower-case team word, got Ops"
     fixture_root_remove root
+
+///> rust
+test a_flag_in_the_root_slot_is_refused_with_the_verbs_usage =
+    inl root = backlog_root ()
+    inl run = eoie_run (fixture_text_of root) NoArgs NoArgs (Arg ("agile", Arg ("next", Arg ("--team", Arg ("ops", NoArgs)))))
+    rejected_with run 2i32 "agile next takes <root> before any flag, got --team; usage: agile next <root>"
+    fixture_root_remove root
+
+///> rust
+test load_keeps_only_items_whose_planned_load_matches =
+    inl root = fixture_root_create "agile next load"
+    inl tasks = cat (task_row "LIGHT" "P1" "D2" "Active" "" "") (task_row "HEAVYONE" "P0" "D2" "Active" "" "")
+    inl light_plan = cat (cat "inl planning_of_light () = Planning (" (quoted "LIGHT")) ", Minutes 60u32, LoadLight, Unassigned)\n"
+    inl heavy_plan = cat (cat "inl planning_of_heavyone () = Planning (" (quoted "HEAVYONE")) ", Minutes 60u32, LoadHeavy, Unassigned)\n"
+    fixture_write root "state/agile.spi" (cat tasks (cat light_plan heavy_plan))
+    inl light = succeeded (next_run root (Arg ("--load", Arg ("light", NoArgs))))
+    shows light "LIGHT"
+    hides light "HEAVYONE"
+    shows light "ready=1 shown=1"
+    inl both = succeeded (next_run root (Arg ("--load", Arg ("light,heavy", NoArgs))))
+    shows both "HEAVYONE"
+    shows both "ready=2"
+    rejected_with (next_run root (Arg ("--load", Arg ("huge", NoArgs)))) 2i32 "agile next rejected: --load expects light, medium, heavy or none"
+    fixture_root_remove root
+
+///> rust
+test fits_ranks_what_the_machine_admits_now_and_names_it =
+    inl root = backlog_root ()
+    inl out = succeeded (next_run root (Arg ("--fits", NoArgs)))
+    shows out " load=light,none"
+    fixture_root_remove root

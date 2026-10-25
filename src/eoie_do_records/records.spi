@@ -25,3 +25,6 @@ let items_span (~records : record_list) (~record : i32) (~from : i32) (~until : 
 
 let words_span (~records : record_list) (~record : i32) (~from : i32) (~until : i32) : string =
     $'{ let fields = !records.get(!record as usize).cloned().unwrap_or_default(); let until = if !until < 0 { fields.len() } else { (!until as usize).min(fields.len()) }; std::rc::Rc::<str>::from(fields.iter().take(until).skip(!from as usize).filter(|raw| raw.len() > 1).flat_map(|raw| raw[1..].split(|c: char| c == char::from(44u8) || c.is_whitespace()).filter(|item| \!item.is_empty()).map(str::to_owned).collect::<Vec<_>>()).collect::<Vec<_>>().join("\n")) }' : string
+
+let records_by_kinds (~records : record_list) (~kinds : string) (keep : bool) : string =
+    $'std::rc::Rc::<str>::from(!records.iter().enumerate().filter(|(index, fields)| *index == 0 || fields.first().map(|first| (&*!kinds).split(char::from(124u8)).any(|kind| kind == &**first)).unwrap_or(false) == !keep).map(|(_, fields)| fields.iter().map(|field| field.to_string()).collect::<Vec<_>>().join(&char::from(31u8).to_string())).collect::<Vec<_>>().join(&char::from(30u8).to_string()).as_str())' : string

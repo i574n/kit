@@ -1,0 +1,22 @@
+///- --package ../eoie_cli_harness --timeout 900000
+open cli
+
+inl wait_call (root : fixture_root) (args : cli_args) : cli_run =
+    eoie_run (fixture_text_of root) (Arg (cat "EOIE_WINDOWS_HOME=" (fixture_path root "windows"), Arg ("EOIE_WINDOWS_FREE_MB=8000", NoArgs))) NoArgs (Arg ("window", Arg ("wait-clear", args)))
+
+inl ending_row (~until : u64) : string = cat "win-1-live\tlive-gui\theld\tplanted block\t1\t" (decimal until)
+
+///> rust
+test wait_clear_returns_once_the_watched_classes_stay_clear =
+    inl root = fixture_root_create "window wait clear"
+    fixture_write root "windows/win-1-live.window" (ending_row (now_ms () + 1500u64))
+    inl waited = succeeded (wait_call root (Arg ("live-gui,compiler-install", Arg ("--settle", Arg ("2", Arg ("--every", Arg ("1", Arg ("--max", Arg ("1", NoArgs)))))))))
+    shows waited "eoie window wait-clear ok classes=live-gui,compiler-install"
+    shows waited "contended busy_samples="
+    fixture_root_remove root
+
+///> rust
+test wait_clear_refuses_unknown_classes =
+    inl root = fixture_root_create "window wait refuse"
+    rejected_with (wait_call root (Arg ("live-gui,gui", NoArgs))) 2i32 "wait-clear: give known window classes"
+    fixture_root_remove root

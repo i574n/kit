@@ -27,7 +27,7 @@ let window_checked () : i32 =
     | ClassKnown wanted =>
         inl root = windows_root ()
         inl now = now_ms ()
-        inl terms = verdict_text wanted "" now 0u64 (live_rows root (stored_rows root) now "") (free_mb ()) now
+        inl terms = verdict_text wanted "" now 0u64 (live_rows root (stored_rows root) now "") (free_mb ()) now 0u64
         if terms = "" then
             stdout_line ("eoie window check ok class=" ++# (class_word wanted) ++# " free")
             0i32
@@ -35,7 +35,24 @@ let window_checked () : i32 =
             stdout_line ("eoie window check blocked class=" ++# (class_word wanted) ++# " " ++# terms)
             1i32
 
+let class_admitted (~word : string) : bool =
+    match class_of word with
+    | ClassUnknown => false
+    | ClassKnown wanted =>
+        inl root = windows_root ()
+        inl moment = now_ms ()
+        inl rows = live_rows root (stored_rows root) moment ""
+        verdict_text wanted "" moment 0u64 rows (free_mb ()) moment 0u64 = ""
+
+let fitting_loads () : string =
+    inl holders = $'eoie_window_run::eoie_heavy_holders_text()' : string
+    inl slots = $'(!holders).lines().count() as u64' : u64
+    inl medium = if class_admitted "compile" then ",medium" else ""
+    inl heavy = if slots < 2u64 && class_admitted "heavy-build" then ",heavy" else ""
+    "light,none" ++# medium ++# heavy
+
 inl main () : i32 =
+    !!!!Export("eoie_fitting_loads", ((fun () => fitting_loads ()) : () -> string))
     !!!!Export("eoie_window_list_run", ((fun () => window_listed ()) : () -> i32))
     !!!!Export("eoie_window_check_run", ((fun () => window_checked ()) : () -> i32))
     0i32

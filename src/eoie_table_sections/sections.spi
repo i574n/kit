@@ -1,0 +1,73 @@
+open sm'_operators
+open eoie_table_sequence_args.args
+
+type sections_table =
+    {
+        table : file_table
+        sections : u64
+    }
+
+let rec columns_from (index : i32) (count : i32) (~text : string) : string =
+    if index + 1i32 >= count then text
+    else
+        inl word = argument index
+        inl pick = if word = "--first" then "first" elif word = "--last" then "last" else ""
+        if pick = "" then columns_from (index + 1i32) count text
+        else
+            inl name, pattern = split_pair (argument (index + 1i32)) "="
+            columns_from (index + 2i32) count (text ++# pick ++# "\t" ++# name ++# "\t" ++# pattern ++# "\n")
+
+let rec sections_counted (lines : array string) (index : i32) (count : u64) : u64 =
+    if index >= am'.length lines then count
+    else
+        inl line = am'.index index lines
+        sections_counted lines (index + 1i32) (if sm'.starts_with "#sections\t" line then count + decimal (sm'.replace "#sections\t" "" line) else count)
+
+let sections_of_file (~path : string) (~time : string) (~section_on : string) (~carry : string) (~columns : string) : sections_table =
+    inl log = file_system.read_all_text path
+    inl text = $'eoie_log_sections::eoie_sequence_sections(&*!log, &*!time, &*!section_on, &*!carry, &*!columns)' : string
+    inl lines = sm'.split "\n" text |> array
+    { table = data_rows lines 0i32 { text = ""; rows = 0u64 }; sections = sections_counted lines 0i32 0u64 }
+
+let rec sections_of_files (files : list string) (~time : string) (~section_on : string) (~carry : string) (~columns : string) (acc : sections_table) : sections_table =
+    match files with
+    | Nil => acc
+    | Cons (path, rest) =>
+        inl found = sections_of_file path time section_on carry columns
+        sections_of_files rest time section_on carry columns { table = { text = acc.table.text ++# found.table.text; rows = acc.table.rows + found.table.rows }; sections = acc.sections + found.sections }
+
+let sections_written (~columns : string) (~out : string) (files : list string) (found : sections_table) : i32 =
+    inl header = $'eoie_log_sections::eoie_sequence_sections_header(&*!columns)' : string
+    inl table = header ++# "\n" ++# found.table.text
+    inl receipt = "eoie table sequences ok files=" ++# sm'.format (listm.length files : i32) ++# " sections=" ++# sm'.format found.sections ++# " rows=" ++# sm'.format found.table.rows
+    if out = "" then
+        console.write_line (sm'.trim_end_suffix "\n" table)
+        console.write_error_line receipt
+    else
+        file_system.write_all_text out table
+        console.write_error_line (receipt ++# " out=" ++# out)
+    0i32
+
+let sections_run () : i32 =
+    inl count = env.command_line_argument_count ()
+    inl paths, refusal = paths_from 2i32 count Nil ""
+    inl time = value_after "--time" 2i32 count
+    inl columns = columns_from 2i32 count ""
+    if refusal <> "" then refused refusal
+    elif time = "" then refused "needs --time and a measure name"
+    else
+        match paths with
+        | Nil => refused "needs at least one file or directory"
+        | Cons _ =>
+            inl missing = missing_path paths
+            if missing <> "" then refused ("no such file or directory: " ++# missing)
+            else
+                inl files = files_in paths Nil
+                inl section_on = value_after "--section-on" 2i32 count
+                inl carry = value_after "--carry" 2i32 count
+                inl empty = { table = { text = ""; rows = 0u64 }; sections = 0u64 }
+                sections_written columns (value_after "--out" 2i32 count) files (sections_of_files files time section_on carry columns empty)
+
+inl main () : i32 =
+    !!!!Export("eoie_table_sections_run", ((fun () => sections_run ()) : () -> i32))
+    0i32

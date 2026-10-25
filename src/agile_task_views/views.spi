@@ -40,6 +40,10 @@ type views_file =
     }
 
 inl views_path (~root : string) : string = concat5 root "/state/views.spi" "" "" ""
+inl package_path (~root : string) : string = concat5 root "/state/package.spiproj" "" "" ""
+inl modules_header () : string = "modules:\n"
+inl views_module () : string = "    views\n"
+inl views_module_listed (~text : string) : bool = sm'.contains (concat5 "\n" (views_module ()) "" "" "") text || sm'.ends_with "\n    views" text
 inl view_schema () : string = "union agile_view =\n    | View :: string * string * string -> agile_view\n"
 inl view_constructor () : string = "View ("
 inl view_needle () : string = concat5 (view_constructor ()) "\"" "" "" ""
@@ -68,6 +72,19 @@ let views_written (~path : string) (loaded : views_file) (~updated : string) : s
         | Replaced => StateWritten
         | problem => StateWriteFailed (file_replacement_problem problem)
     else StateChangedSinceRead
+
+let views_module_registered (~root : string) : state_write =
+    inl path = package_path root
+    match probe (unchecked path) with
+    | FileMissing _ => StateWritten
+    | FileReadable file =>
+        inl text = loaded_string (read_text file)
+        if views_module_listed text then StateWritten
+        elif sm'.contains (modules_header ()) text then
+            match replace_file_checked path (sm'.replace (modules_header ()) (concat5 (modules_header ()) (views_module ()) "" "" "") text) with
+            | Replaced => StateWritten
+            | problem => StateWriteFailed (file_replacement_problem problem)
+        else StateWriteFailed "state/package.spiproj has no modules section to list views in"
 
 inl view_name_valid (~name : string) : bool =
     $'\!(!name).is_empty() && (!name).bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == 45u8)' : bool
@@ -118,7 +135,11 @@ let view_stored (~root : string) (view : saved_view) : i32 =
     inl found = declared_from loaded.text (view_anchor view.name) 0i32
     inl replaced = if found < 0i32 then false else true
     inl updated = if replaced then line_replaced loaded.text found (view_row view) else view_appended loaded.text (view_row view)
-    match views_written (views_path root) loaded updated with
+    inl written =
+        match views_written (views_path root) loaded updated with
+        | StateWritten => views_module_registered root
+        | problem => problem
+    match written with
     | StateWritten =>
         inl detail = concat5 " verb=" view.verb " flags='" view.flags "'"
         stdout_line (concat5 "eoie agile view-add ok name=" view.name detail (if replaced then " replaced=yes" else " replaced=no") "")

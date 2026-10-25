@@ -14,5 +14,6 @@ name = "eoie_table_test"
 path = "table_test.rs"
 
 [dependencies]
+eoie-table-text = { path = "../eoie_table_text" }
 eoie-experiment-stats = { path = "../eoie_experiment_stats" }
 eoie-table-query = { path = "../eoie_table_query" }

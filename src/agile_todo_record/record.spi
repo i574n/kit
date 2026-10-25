@@ -65,7 +65,8 @@ let record_entry () : i32 =
     match probe (unchecked state) with
     | FileMissing _ => record_failure "state/agile.spi is missing"
     | FileReadable file =>
-        inl original = loaded_string (read_text file)
+        inl raw = loaded_string (read_text file)
+        inl original = records_text raw
         inl sites = $'agile_todo_scan::eoie_agile_todo_sites(&*!root, "*")' : string
         inl after = harvested_ledger original sites ""
         inl before = ledger_from_rows original 0i32 ""
@@ -75,7 +76,7 @@ let record_entry () : i32 =
         inl counts = " appeared=" ++# (i32_text tally.appeared) ++# " moved=" ++# (i32_text tally.moved) ++# (" vanished=" ++# (i32_text tally.vanished) ++# " notes=" ++# (i32_text tally.notes))
         if updated = original then stdout_line ("eoie agile todos record ok sites=" ++# (i32_text ($'(!after).lines().count() as i32' : i32)) ++# counts ++# " unchanged=true elapsed_ms=" ++# (u64_text (ms_since started)))
         else
-            match state_written state original updated with
+            match state_written state raw updated with
             | StateWritten => stdout_line ("eoie agile todos record ok sites=" ++# (i32_text ($'(!after).lines().count() as i32' : i32)) ++# counts ++# (measured_sizes (text_bytes original) (text_bytes updated) (ms_since started)))
             | problem => record_failure (state_write_problem problem)
 

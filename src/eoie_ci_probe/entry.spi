@@ -1,0 +1,6 @@
+open probe
+
+inl main () : i32 =
+    !!!!Export("eoie_ci_local_version", ((fun (name, repo) => local_version name repo) : string * string -> bool * string))
+    !!!!Export("eoie_ci_rust_installed", ((fun channel => rust_channel_installed channel) : string -> bool))
+    0i32

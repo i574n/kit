@@ -1,0 +1,29 @@
+open sm'_operators
+open launch
+
+let argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+let rec joined_args (index : i32) (count : i32) (acc : string) : string =
+    if count <= index then acc else joined_args (index + 1i32) count (acc ++# argument index ++# "\t")
+
+let process_run () : i32 =
+    inl count = env.command_line_argument_count ()
+    inl program = argument 2i32
+    if argument 1i32 <> "start-under-shell" || program = "" then
+        console.write_line (
+            "eoie error: process usage: process start-under-shell <program> [args...] (detached, with the user "
+            ^^ "shell as its live parent, no inherited handles, no caller job)"
+        )
+        2i32
+    else
+        inl started = shell_parented_started program (joined_args 3i32 count "")
+        if sm'.starts_with "pid=0 " started then
+            console.write_line ("eoie error: process start-under-shell: could not start " ++# program)
+            1i32
+        else
+            console.write_line ("eoie process start-under-shell ok " ++# started ++# " program=" ++# program)
+            0i32
+
+inl main () : i32 =
+    !!!!Export("eoie_process_launch_run", ((fun () => process_run ()) : () -> i32))
+    0i32

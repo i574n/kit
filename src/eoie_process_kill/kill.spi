@@ -1,0 +1,58 @@
+open sm'_operators
+open eoie_receipt.receipt
+open eoie_process_table.model
+open eoie_process_table.host
+open eoie_process_table.listing
+
+let rec value_after (~flag : string) (~index : i32) (~count : i32) : string =
+    if index + 1i32 < count then (if argument index = flag then argument (index + 1i32) else value_after flag (index + 1i32) count) else ""
+
+let stop_once (~word : string) (~pid : u64) (~tree : bool) : bool =
+    inl tally = process_stopped pid tree
+    inl result = stop_result_of (tally_stopped tally) (tally_total tally)
+    stdout_line (stop_text word result)
+    stop_complete result
+
+let rec stops_from (~index : i32) (~count : i32) (~tree : bool) (guard : stop_guard) (~own : u64) (~ancestors : string) (~stopped : u64) (~failed : u64) : u64 * u64 =
+    if index < count then
+        inl word = argument index
+        if word = "--tree" || word = "--mine" then stops_from (index + 1i32) count tree guard own ancestors stopped failed
+        elif word = "--theirs" then stops_from (index + 2i32) count tree guard own ancestors stopped failed
+        else
+            match stop_refusal_of word own ancestors with
+            | Allowed pid =>
+                match guard_refusal guard pid with
+                | Some reason =>
+                    stdout_line (refusal_text word (NotYours reason))
+                    stops_from (index + 1i32) count tree guard own ancestors stopped (failed + 1u64)
+                | None =>
+                    if stop_once word pid tree then stops_from (index + 1i32) count tree guard own ancestors (stopped + 1u64) failed
+                    else stops_from (index + 1i32) count tree guard own ancestors stopped (failed + 1u64)
+            | refusal =>
+                stdout_line (refusal_text word refusal)
+                stops_from (index + 1i32) count tree guard own ancestors stopped (failed + 1u64)
+    else (stopped, failed)
+
+let stop_run (~started : u64) : i32 =
+    inl count = argument_count ()
+    if count < 3i32 then
+        stdout_line ("usage: eoie " ++# (process_usage ()))
+        2i32
+    else
+        inl own = own_pid ()
+        inl guard =
+            if flag_present "--mine" 2i32 count then
+                MineOnly { rows = eoie_machine_watch.host.process_rows_sampled 100u64; own = own; author = env.get_environment_variable "EOIE_AUTHOR"; theirs = value_after "--theirs" 2i32 count }
+            else AnyProcess
+        inl stopped, failed = stops_from 2i32 count (flag_present "--tree" 2i32 count) guard own (ancestor_pids ()) 0u64 0u64
+        inl counts = "stopped " ++# (decimal_text stopped) ++# "  failed " ++# (decimal_text failed)
+        if failed = 0u64 then
+            receipt_line Succeeded counts started
+            0i32
+        else
+            receipt_line Failed counts started
+            1i32
+
+inl main () : i32 =
+    !!!!Export("eoie_process_kill_run", ((fun () => stop_run (now_ms ())) : () -> i32))
+    0i32

@@ -1,0 +1,46 @@
+///- --package ../eoie_cli_harness --timeout 900000
+open cli
+
+inl sequences_run (root : fixture_root) (args : cli_args) : cli_run = eoie_run (fixture_text_of root) NoArgs NoArgs (Arg ("table", Arg ("sequences", args)))
+
+inl sequences_fixture () : fixture_root =
+    inl root = fixture_root_create "table sequences"
+    fixture_write root "runs/a.log" "t=1000 request\nt=1250 reply\nt=2000 request\nt=2100 flush\nt=3500 request\nt=3900 reply\nt=4000 request\n"
+    fixture_write root "runs/b.log" "t=500 request\nt=900 reply\n"
+    root
+
+///> rust
+test each_measure_makes_one_row_per_measured_event_across_files =
+    inl root = sequences_fixture ()
+    inl latency = sequences_run root (Arg ("runs", Arg ("--time", Arg ("t=(?<ms>\\d+)", Arg ("--latency", Arg ("lat=request", Arg ("--to", Arg ("reply", NoArgs))))))))
+    expect (latency.code = 0i32) (run_text latency)
+    same latency.stdout "file\tline\tlat\nruns/a.log\t1\t250\nruns/a.log\t3\t1900\nruns/a.log\t5\t400\nruns/b.log\t1\t400\n"
+    shows latency.stderr "eoie table sequences ok files=2 rows=4"
+    inl gaps = sequences_run root (Arg ("runs/a.log", Arg ("--time", Arg ("t=(?<ms>\\d+)", Arg ("--interval", Arg ("gap=request", NoArgs))))))
+    same gaps.stdout "file\tline\tgap\nruns/a.log\t3\t1000\nruns/a.log\t5\t1500\nruns/a.log\t7\t500\n"
+    inl order = sequences_run root (Arg ("runs", Arg ("--time", Arg ("t=(?<ms>\\d+)", Arg ("--order", Arg ("seq=flush,reply", NoArgs))))))
+    same order.stdout "file\tline\tseq\nruns/a.log\t4\tafter\nruns/b.log\t0\tmissing\n"
+    inl written = sequences_run root (Arg ("runs", Arg ("--time", Arg ("t=(?<ms>\\d+)", Arg ("--latency", Arg ("lat=request", Arg ("--to", Arg ("reply", Arg ("--out", Arg ("lat.tsv", NoArgs))))))))))
+    shows written.stderr "eoie table sequences ok files=2 rows=4 out=lat.tsv"
+    same (fixture_read root "lat.tsv") "file\tline\tlat\nruns/a.log\t1\t250\nruns/a.log\t3\t1900\nruns/a.log\t5\t400\nruns/b.log\t1\t400\n"
+    fixture_root_remove root
+
+///> rust
+test incomplete_measures_and_missing_paths_are_refused =
+    inl root = sequences_fixture ()
+    rejected_with (sequences_run root (Arg ("runs", Arg ("--latency", Arg ("lat=request", Arg ("--to", Arg ("reply", NoArgs))))))) 2i32 "needs --time and a measure name"
+    rejected_with (sequences_run root (Arg ("runs", Arg ("--time", Arg ("t=(?<ms>\\d+)", Arg ("--latency", Arg ("lat=request", NoArgs))))))) 2i32 "needs one measure with both its patterns"
+    rejected_with (sequences_run root (Arg ("nowhere", Arg ("--time", Arg ("t=(?<ms>\\d+)", Arg ("--interval", Arg ("gap=request", NoArgs))))))) 2i32 "no such file or directory: nowhere"
+    rejected_with (sequences_run root (Arg ("runs", Arg ("--shiny", Arg ("x", NoArgs))))) 2i32 "unknown option --shiny"
+    fixture_root_remove root
+
+///> rust
+test sections_keep_the_first_and_last_match_per_run_and_id =
+    inl root = fixture_root_create "table sequences sections"
+    fixture_write root "trace.log" "monster 81 starts at 1931,1352 @k+-1\nrun A seen @k+0\nthink 81 at 1931,1352 @k+600\nthink 81 at 1930,1352 @k+900\nmonster 71 starts at 1931,1352 @k+-1\nrun B seen @k+0\n"
+    inl run = sequences_run root (Arg ("trace.log", Arg ("--section-on", Arg ("run (?<section>\\S+)", Arg ("--carry", Arg ("@k\\+-1", Arg ("--time", Arg ("@k\\+(?<ms>-?\\d+)", Arg ("--first", Arg ("appear=monster (?<id>\\d+) starts at (?<value>\\S+)", Arg ("--last", Arg ("think=think (?<id>\\d+) at (?<value>\\S+)", NoArgs))))))))))))
+    expect (run.code = 0i32) (run_text run)
+    same run.stdout "section\tid\tappear_time\tappear_value\tthink_time\tthink_value\nA\t81\t-1\t1931,1352\t900\t1930,1352\nB\t71\t-1\t1931,1352\t-\t-\n"
+    shows run.stderr "eoie table sequences ok files=1 sections=2 rows=2"
+    rejected_with (sequences_run root (Arg ("trace.log", Arg ("--first", Arg ("appear=monster (?<id>\\d+)", NoArgs))))) 2i32 "needs --time and a measure name"
+    fixture_root_remove root

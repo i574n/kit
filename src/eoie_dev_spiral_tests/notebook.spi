@@ -11,5 +11,5 @@ let run_batch (root : string) (target : string) (relatives : string) (timeout : 
 
 inl batch_code (outcome : batch_outcome) : i32 = $'!outcome.0' : i32
 inl batch_failed (outcome : batch_outcome) : string = $'!outcome.1.clone()' : string
-inl line_count (text : string) : i32 = $'(&*!text).lines().count() as i32' : i32
-inl line_at (text : string) (index : i32) : string = $'std::rc::Rc::<str>::from((&*!text).lines().nth(!index as usize).unwrap_or(""))' : string
+inl line_count (text : string) : i32 = sm'.line_count text
+inl line_at (text : string) (index : i32) : string = sm'.line_at index text

@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "doctor.rs"
+
+[package]
+name = "eoie-jobs-doctor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "eoie_jobs_doctor"
+path = "doctor.rs"
+
+[dependencies]
+sysinfo = "0.38.4"
+eoie-jobs-doctor-env = { path = "../eoie_jobs_doctor_env" }

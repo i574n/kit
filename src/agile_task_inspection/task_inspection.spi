@@ -71,13 +71,16 @@ let task_json_record_at (text : string) (arguments : i32) (length : i32) : task_
 union show_format =
     | ShowText
     | ShowJson
+    | ShowFiltered : string * string
 
 let argument_count () : i32 =
     inl user = env.command_line_argument_count ()
     if user > 0i32 then user - 1i32 else 0i32
 
-inl show_format_of (~flag : string) : validation_result show_format =
-    if (flag = "--json") then Valid ShowJson else Invalid
+inl show_format_of (~flag : string) (~value : string) : validation_result show_format =
+    if flag = "--json" && value = "" then Valid ShowJson
+    elif (flag = "--last" || flag = "--grep") && value <> "" then Valid (ShowFiltered (sm'.replace "--" "" flag, value))
+    else Invalid
 
 inl json_string (~text : string) : string = "\"" ++# text ++# "\""
 inl json_field (~name : string) (~value : string) : string = "\"" ++# name ++# "\":" ++# value
@@ -92,6 +95,8 @@ let task_json (record : task_record) (~planning : string) (started : u64) : stri
 inl planning_summary (~text : string) (~id : string) : string = $'agile_planning_fields::eoie_agile_planning_summary(&*!text, &*!id)' : string
 inl planning_json (~text : string) (~id : string) : string = $'agile_planning_fields::eoie_agile_planning_json(&*!text, &*!id)' : string
 inl notes_text (~text : string) (~id : string) : string = $'agile_note_listing::eoie_agile_notes_text(&*!text, &*!id)' : string
+inl notes_filtered (~text : string) (~id : string) (~mode : string) (~value : string) : string =
+    $'agile_note_listing::eoie_agile_notes_filtered_text(&*!text, &*!id, &*!mode, &*!value)' : string
 inl notes_json (~text : string) (~id : string) : string = $'agile_note_listing::eoie_agile_notes_json(&*!text, &*!id)' : string
 
 inl task_anchor (~id : string) : string = "Task (\"" ++# id ++# "\","
@@ -123,21 +128,23 @@ let agile_show (~root : string) (~id : string) (format : show_format) : i32 =
     match probe (unchecked (backlog_state_path root)) with
     | FileMissing _ => agile_show_failure "state/agile.spi is missing" id
     | FileReadable file =>
-        inl text = loaded_string (read_text file)
+        inl text = records_text (loaded_string (read_text file))
         inl found = byte_find text (task_anchor id)
         if found < 0i32 then agile_show_failure "no task with this id" id
         else
             inl arguments = $"!found + !(task_arguments_offset ())" : i32
             match format with
             | ShowText => show_task (task_record_at text arguments (byte_len text)) (planning_summary text id) (notes_text text id) started
+            | ShowFiltered (mode, value) => show_task (task_record_at text arguments (byte_len text)) (planning_summary text id) (notes_filtered text id mode value) started
             | ShowJson => stdout_line (task_json (task_json_record_at text arguments (byte_len text)) ((planning_json text id) ++# "," ++# (notes_json text id)) started)
 
 let agile_show_entry () : i32 =
     if argument_count () = 3i32 then agile_show (argument_owned 1i32) (argument_owned 2i32) ShowText
     else
-        match show_format_of (argument_owned 3i32) with
+        inl value = if argument_count () = 5i32 then argument_owned 4i32 else ""
+        match (if argument_count () > 5i32 then Invalid else show_format_of (argument_owned 3i32) value) with
         | Valid format => agile_show (argument_owned 1i32) (argument_owned 2i32) format
-        | Invalid => agile_show_failure "the only option is --json" (argument_owned 2i32)
+        | Invalid => agile_show_failure "options are --json, --last <n> or --grep <word>" (argument_owned 2i32)
 
 inl main () : i32 =
     !!!!Export("eoie_agile_show_run", ((fun () => agile_show_entry ()) : () -> i32))

@@ -38,358 +38,98 @@ enum US4 {
     US4_JobList,
     US4_JobTail,
     US4_JobStop,
+    US4_JobAfter,
+    US4_JobChain,
+    US4_JobAmend,
+    US4_JobDoctor,
     US4_JobUnknown,
 }
-fn joined_6(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn shared_summary_2(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+    let mut v2: Rc<str> = eoie_job_state::eoie_job_summary(&*v0, &*v1);
+    v2.clone()
+}
+fn stdout_line_3(mut v0: Rc<str>) -> () {
+    println!("{}", &*v0);
+    ()
+}
+fn started_code_1(mut v0: bool) -> i32 {
+    let mut v3: Rc<str> = if v0 {
+        let mut v1: Rc<str> = eoie_job_launch::eoie_job_start(true);
+        v1.clone()
+    } else {
+        let mut v2: Rc<str> = eoie_job_launch::eoie_job_start(false);
+        v2.clone()
+    };
+    let mut v4: i32 = (v3).split(char::from(9u8)).next().and_then(|code| code.trim().parse::<i32>().ok()).unwrap_or(2);
+    let mut v5: Rc<str> = std::rc::Rc::<str>::from((v3).split(char::from(9u8)).nth(1).unwrap_or("").trim());
+    let mut v7: bool = if v0 {
+        let mut v6: bool = v5.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v6
+    } else {
+        false
+    };
+    if v7 {
+        let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run"); } LIT.with(|lit| lit.clone()) };
+        let mut v9: Rc<str> = shared_summary_2(v8.clone(), v5.clone());
+        stdout_line_3(v9.clone())
+    };
+    v4
+}
+fn stderr_line_6(mut v0: Rc<str>) -> () {
+    eprintln!("{}", &*v0);
+    ()
+}
+fn rejected_5(mut v0: Rc<str>) -> i32 {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("eoie error: job "); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v3: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v0, &*v2, &*v2, &*v2].concat());
+    stderr_line_6(v3.clone());
+    2i32
+}
+fn joined_8(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(&*v1).to_string_lossy().as_ref());
     v2.clone()
 }
-fn jobs_root_8() -> Rc<str> {
+fn jobs_root_9() -> Rc<str> {
     let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("EOIE_JOBS_HOME").map(std::path::PathBuf::from).or_else(|| std::env::var_os("LOCALAPPDATA").map(|base| std::path::PathBuf::from(base).join("eoie").join("jobs"))).or_else(|| std::env::var_os("HOME").map(|base| std::path::PathBuf::from(base).join(".cache").join("eoie").join("jobs"))).unwrap_or_else(|| std::path::PathBuf::from(".eoie-jobs")).to_string_lossy().as_ref());
     v0.clone()
 }
 fn job_directory_7(mut v0: Rc<str>) -> Rc<str> {
-    let mut v1: Rc<str> = jobs_root_8();
-    joined_6(v1.clone(), v0.clone())
+    let mut v1: Rc<str> = jobs_root_9();
+    joined_8(v1.clone(), v0.clone())
 }
-fn job_file_5(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let mut v2: Rc<str> = job_directory_7(v0.clone());
-    joined_6(v2.clone(), v1.clone())
-}
-fn text_or_empty_9(mut v0: Rc<str>) -> Rc<str> {
-    let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v0).unwrap_or_default());
-    v1.clone()
-}
-fn method11(mut v0: Option<u64>) -> Option<u64> {
-    v0.clone()
-}
-fn closure1() -> Rc<dyn Fn((u64)) -> US3> {
-    thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US3> = Rc::new(move |mut v0: (u64)| -> US3 {
-        let mut v1: u64 = (v0);
-        US3::US3_Some(v1)
-    }); } CLOSURE.with(|closure| closure.clone())
-}
-fn decimal_u64_10(mut v0: Rc<str>) -> u64 {
-    let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
-    let mut v2: Option<u64> = method11(v1.clone());
-    let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
-    let mut v4: Option<US3> = v2.map(|x| v3(x));
-    let mut v5: US3 = US3::US3_None;
-    let mut v6: US3 = v4.unwrap_or(v5);
-    match &v6 {
-        US3::US3_None => {
-            0u64
-        }
-        US3::US3_Some(v7) => {
-            let mut v7: u64 = *v7;
-            v7
-        }
-    }
-}
-fn now_ms_12() -> u64 {
-    let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
-    v0
-}
-fn job_record_of_4(mut v0: Rc<str>) -> (Rc<str>, u64, u64, u64) {
-    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = job_file_5(v0.clone(), v1.clone());
-    let mut v3: Rc<str> = text_or_empty_9(v2.clone());
-    let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("heartbeat_ms"); } LIT.with(|lit| lit.clone()) };
-    let mut v5: Rc<str> = job_file_5(v0.clone(), v4.clone());
-    let mut v6: Rc<str> = text_or_empty_9(v5.clone());
-    let mut v7: u64 = decimal_u64_10(v6.clone());
-    let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("started_ms"); } LIT.with(|lit| lit.clone()) };
-    let mut v9: Rc<str> = job_file_5(v0.clone(), v8.clone());
-    let mut v10: Rc<str> = text_or_empty_9(v9.clone());
-    let mut v11: u64 = decimal_u64_10(v10.clone());
-    let mut v12: u64 = now_ms_12();
-    (v3.clone(), v7, v11, v12)
-}
-fn job_state_of_13(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: u64) -> US0 {
-    let mut v4: bool = v0.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    if v4 {
-        let mut v5: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(9u8)).nth(2).unwrap_or("").trim());
-        let mut v6: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
-        if v6 {
-            let mut v7: i32 = v0.split(char::from(9u8)).next().and_then(|code| code.trim().parse::<i32>().ok()).unwrap_or(1);
-            let mut v8: US2 = US2::US2_JobFinished(v7);
-            US0::US0_Settled(v8.clone())
-        } else {
-            let mut v10: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timed-out"); } LIT.with(|lit| lit.clone()) };
-            if v10 {
-                let mut v11: US2 = US2::US2_JobTimedOut;
-                US0::US0_Settled(v11.clone())
-            } else {
-                let mut v13: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
-                if v13 {
-                    let mut v14: US2 = US2::US2_JobStopped;
-                    US0::US0_Settled(v14.clone())
-                } else {
-                    let mut v16: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lost"); } LIT.with(|lit| lit.clone()) };
-                    if v16 {
-                        let mut v17: US2 = US2::US2_JobLost;
-                        US0::US0_Settled(v17.clone())
-                    } else {
-                        let mut v19: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memory-capped"); } LIT.with(|lit| lit.clone()) };
-                        if v19 {
-                            let mut v20: US2 = US2::US2_JobMemoryCapped;
-                            US0::US0_Settled(v20.clone())
-                        } else {
-                            let mut v22: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expired-in-queue"); } LIT.with(|lit| lit.clone()) };
-                            if v22 {
-                                let mut v23: US2 = US2::US2_JobExpiredInQueue;
-                                US0::US0_Settled(v23.clone())
-                            } else {
-                                let mut v25: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
-                                if v25 {
-                                    let mut v26: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(9u8)).nth(3).unwrap_or("").trim());
-                                    let mut v27: US2 = US2::US2_JobSkipped(v26.clone());
-                                    US0::US0_Settled(v27.clone())
-                                } else {
-                                    let mut v29: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(9u8)).nth(3).unwrap_or("").trim());
-                                    let mut v30: US2 = US2::US2_JobSpawnFailed(v29.clone());
-                                    US0::US0_Settled(v30.clone())
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        let mut v39: bool = v1 > 0u64;
-        if v39 {
-            let mut v40: u64 = v1.wrapping_add(15000u64);
-            let mut v41: bool = v40 < v3;
-            if v41 {
-                let mut v42: US2 = US2::US2_JobLost;
-                US0::US0_Settled(v42.clone())
-            } else {
-                let mut v44: US1 = US1::US1_JobRunning;
-                US0::US0_Live(v44.clone())
-            }
-        } else {
-            let mut v47: u64 = v2.wrapping_add(15000u64);
-            let mut v48: bool = v47 < v3;
-            if v48 {
-                let mut v49: US2 = US2::US2_JobLost;
-                US0::US0_Settled(v49.clone())
-            } else {
-                let mut v51: US1 = US1::US1_JobPending;
-                US0::US0_Live(v51.clone())
-            }
-        }
-    }
-}
-fn process_alive_14(mut v0: u64) -> bool {
-    let mut v1: bool = { #[cfg(windows)] fn alive(pid: u64) -> bool { unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; fn GetLastError() -> u32; } if pid == 0 { return true; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid as u32); if handle.is_null() { return GetLastError() == 5; } let running = WaitForSingleObject(handle, 0) == 258; CloseHandle(handle); running } } #[cfg(not(windows))] fn alive(pid: u64) -> bool { pid == 0 || std::os::unix::process::parent_id() as u64 == pid } alive(v0) };
-    v1
-}
-fn settled_word_15(mut v0: US2) -> Rc<str> {
-    match &v0 {
-        US2::US2_JobExpiredInQueue => {
-            let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expired-in-queue"); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
-        }
-        US2::US2_JobFinished(v1) => {
-            let mut v1: i32 = *v1;
-            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
-            v2.clone()
-        }
-        US2::US2_JobLost => {
-            let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lost"); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
-        }
-        US2::US2_JobMemoryCapped => {
-            let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memory-capped"); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
-        }
-        US2::US2_JobSkipped(v7) => {
-            let mut v7: Rc<str> = v7.clone();
-            let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
-        }
-        US2::US2_JobSpawnFailed(v5) => {
-            let mut v5: Rc<str> = v5.clone();
-            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spawn-failed"); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
-        }
-        US2::US2_JobStopped => {
-            let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
-        }
-        US2::US2_JobTimedOut => {
-            let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timed-out"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
-        }
-    }
-}
-fn text_written_16(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let mut v2: Rc<str> = { let temporary = format!("{}.tmp", &*v0); std::rc::Rc::<str>::from(std::fs::write(&temporary, v1.as_bytes()).and_then(|_| std::fs::rename(&temporary, &*v0)).err().map(|error| format!("write {}: {error}", &*v0)).unwrap_or_default()) };
-    v2.clone()
-}
-fn job_state_now_3(mut v0: Rc<str>) -> US0 {
-    let (mut v1, mut v2, mut v3, mut v4): (Rc<str>, u64, u64, u64) = job_record_of_4(v0.clone());
-    let mut v5: US0 = job_state_of_13(v1.clone(), v2, v3, v4);
-    match &v5 {
-        US0::US0_Settled(v6) => {
-            let mut v6: US2 = v6.clone();
-            match &v6 {
-                US2::US2_JobLost => {
-                    let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("supervisor"); } LIT.with(|lit| lit.clone()) };
-                    let mut v8: Rc<str> = job_file_5(v0.clone(), v7.clone());
-                    let mut v9: Rc<str> = text_or_empty_9(v8.clone());
-                    let mut v10: u64 = decimal_u64_10(v9.clone());
-                    let mut v11: bool = v10 != 0u64;
-                    let mut v13: bool = if v11 {
-                        process_alive_14(v10)
-                    } else {
-                        false
-                    };
-                    if v13 {
-                        let mut v14: US1 = US1::US1_JobRunning;
-                        US0::US0_Live(v14.clone())
-                    } else {
-                        let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pid"); } LIT.with(|lit| lit.clone()) };
-                        let mut v17: Rc<str> = job_file_5(v0.clone(), v16.clone());
-                        let mut v18: Rc<str> = text_or_empty_9(v17.clone());
-                        let mut v19: u64 = decimal_u64_10(v18.clone());
-                        let mut v20: bool = v19 == 0u64;
-                        let mut v23: bool = if v20 {
-                            true
-                        } else {
-                            let mut v21: bool = process_alive_14(v19);
-                            let mut v22: bool = v21 == false;
-                            v22
-                        };
-                        let mut v24: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let mut v25: bool = v24 && v23;
-                        let mut v42: Rc<str> = if v25 {
-                            let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
-                            let mut v27: Rc<str> = job_file_5(v0.clone(), v26.clone());
-                            let mut v28: bool = v2 > 0u64;
-                            let mut v29: u64 = if v28 {
-                                v2
-                            } else {
-                                v3
-                            };
-                            let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the supervisor stopped beating: it was killed (with its caller, by the memory reaper) or crashed, and its job tree ended with it"); } LIT.with(|lit| lit.clone()) };
-                            let mut v31: US2 = US2::US2_JobLost;
-                            let mut v32: Rc<str> = settled_word_15(v31.clone());
-                            let mut v33: Rc<str> = std::rc::Rc::<str>::from((125i32).to_string());
-                            let mut v34: Rc<str> = std::rc::Rc::<str>::from((v29).to_string());
-                            let mut v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                            let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                            let mut v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                            let mut v38: Rc<str> = std::rc::Rc::<str>::from([&*v32, &*v35, &*v30, &*v36, &*v37].concat());
-                            let mut v39: Rc<str> = std::rc::Rc::<str>::from([&*v33, &*v35, &*v34, &*v35, &*v38].concat());
-                            text_written_16(v27.clone(), v39.clone())
-                        } else {
-                            let mut v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                            v41.clone()
-                        };
-                        v5.clone()
-                    }
-                }
-                _ => {
-                    v5.clone()
-                }
-            }
-        }
-        _ => {
-            v5.clone()
-        }
-    }
-}
-fn file_exists_18(mut v0: Rc<str>) -> bool {
+fn directory_exists_10(mut v0: Rc<str>) -> bool {
     let mut v2: &str = &*v0;
     let mut v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
-    let mut v8: bool = v6.is_file();
+    let mut v8: bool = v6.is_dir();
     v8
 }
-fn gate_queued_17(mut v0: Rc<str>) -> bool {
-    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after"); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = job_file_5(v0.clone(), v1.clone());
-    let mut v3: bool = file_exists_18(v2.clone());
-    let mut v8: bool = if v3 {
-        let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after-done"); } LIT.with(|lit| lit.clone()) };
-        let mut v5: Rc<str> = job_file_5(v0.clone(), v4.clone());
-        let mut v6: bool = file_exists_18(v5.clone());
-        let mut v7: bool = v6 == false;
-        v7
+fn job_status_4() -> i32 {
+    let mut v0: i32 = 3i32;
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job-"); } LIT.with(|lit| lit.clone()) };
+    let mut v3: bool = v1.starts_with(&*v2);
+    let mut v6: bool = if v3 {
+        let mut v4: Rc<str> = job_directory_7(v1.clone());
+        directory_exists_10(v4.clone())
     } else {
         false
     };
-    if v8 {
-        true
+    if v6 {
+        let mut v7: Rc<str> = eoie_job_host::eoie_job_host_revive();
+        let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status"); } LIT.with(|lit| lit.clone()) };
+        let mut v9: Rc<str> = shared_summary_2(v8.clone(), v1.clone());
+        stdout_line_3(v9.clone());
+        0i32
     } else {
-        let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("window-class"); } LIT.with(|lit| lit.clone()) };
-        let mut v10: Rc<str> = job_file_5(v0.clone(), v9.clone());
-        let mut v11: bool = file_exists_18(v10.clone());
-        if v11 {
-            let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("window"); } LIT.with(|lit| lit.clone()) };
-            let mut v13: Rc<str> = job_file_5(v0.clone(), v12.clone());
-            let mut v14: Rc<str> = text_or_empty_9(v13.clone());
-            let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("granted"); } LIT.with(|lit| lit.clone()) };
-            let mut v16: bool = v14.starts_with(&*v15);
-            let mut v17: bool = v16 == false;
-            v17
-        } else {
-            let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("heavy-wrapper.ps1"); } LIT.with(|lit| lit.clone()) };
-            let mut v19: Rc<str> = job_file_5(v0.clone(), v18.clone());
-            let mut v20: bool = file_exists_18(v19.clone());
-            if v20 {
-                let mut v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stdout.log"); } LIT.with(|lit| lit.clone()) };
-                let mut v22: Rc<str> = job_file_5(v0.clone(), v21.clone());
-                let mut v23: Rc<str> = text_or_empty_9(v22.clone());
-                let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Invoke-Heavy: acquired slot"); } LIT.with(|lit| lit.clone()) };
-                let mut v25: bool = v23.contains(&*v24);
-                let mut v26: bool = v25 == false;
-                v26
-            } else {
-                false
-            }
-        }
+        let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status: unknown job id "); } LIT.with(|lit| lit.clone()) };
+        let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v12: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v1, &*v11, &*v11, &*v11].concat());
+        rejected_5(v12.clone())
     }
 }
-fn state_settled_19(mut v0: US0) -> bool {
-    match &v0 {
-        US0::US0_Live(v1) => {
-            let mut v1: US1 = v1.clone();
-            false
-        }
-        US0::US0_Settled(v2) => {
-            let mut v2: US2 = v2.clone();
-            true
-        }
-    }
-}
-fn live_word_21(mut v0: US1) -> Rc<str> {
-    match &v0 {
-        US1::US1_JobPending => {
-            let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pending"); } LIT.with(|lit| lit.clone()) };
-            v1.clone()
-        }
-        US1::US1_JobRunning => {
-            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("running"); } LIT.with(|lit| lit.clone()) };
-            v2.clone()
-        }
-    }
-}
-fn state_word_20(mut v0: US0) -> Rc<str> {
-    match &v0 {
-        US0::US0_Live(v1) => {
-            let mut v1: US1 = v1.clone();
-            live_word_21(v1.clone())
-        }
-        US0::US0_Settled(v3) => {
-            let mut v3: US2 = v3.clone();
-            settled_word_15(v3.clone())
-        }
-    }
-}
-fn settled_exit_22(mut v0: US2) -> i32 {
+fn settled_exit_13(mut v0: US2) -> i32 {
     match &v0 {
         US2::US2_JobExpiredInQueue => {
             75i32
@@ -420,194 +160,7 @@ fn settled_exit_22(mut v0: US2) -> i32 {
         }
     }
 }
-fn elapsed_of_23(mut v0: Rc<str>) -> u64 {
-    let (mut v1, mut v2, mut v3, mut v4): (Rc<str>, u64, u64, u64) = job_record_of_4(v0.clone());
-    let mut v5: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v8: u64 = if v5 {
-        v4
-    } else {
-        let mut v6: Rc<str> = std::rc::Rc::<str>::from(v1.split(char::from(9u8)).nth(1).unwrap_or("0"));
-        decimal_u64_10(v6.clone())
-    };
-    let mut v9: bool = v8 > v3;
-    if v9 {
-        let mut v10: u64 = v8.wrapping_sub(v3);
-        v10
-    } else {
-        0u64
-    }
-}
-fn decimal_text_24(mut v0: u64) -> Rc<str> {
-    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
-    v1.clone()
-}
-fn file_bytes_25(mut v0: Rc<str>) -> u64 {
-    let mut v1: u64 = std::fs::metadata(&*v0).map(|metadata| metadata.len()).unwrap_or(0);
-    v1
-}
-fn job_summary_2(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let mut v2: US0 = job_state_now_3(v1.clone());
-    let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("eoie job "); } LIT.with(|lit| lit.clone()) };
-    let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ok id="); } LIT.with(|lit| lit.clone()) };
-    let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" state="); } LIT.with(|lit| lit.clone()) };
-    let mut v6: Rc<str> = std::rc::Rc::<str>::from([&*v3, &*v0, &*v4, &*v1, &*v5].concat());
-    let mut v7: bool = gate_queued_17(v1.clone());
-    let mut v10: bool = if v7 {
-        let mut v8: bool = state_settled_19(v2.clone());
-        let mut v9: bool = v8 == false;
-        v9
-    } else {
-        false
-    };
-    let mut v13: Rc<str> = if v10 {
-        let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("queued"); } LIT.with(|lit| lit.clone()) };
-        v11.clone()
-    } else {
-        state_word_20(v2.clone())
-    };
-    let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" exit="); } LIT.with(|lit| lit.clone()) };
-    let mut v21: Rc<str> = match &v2 {
-        US0::US0_Live(v15) => {
-            let mut v15: US1 = v15.clone();
-            let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
-            v16.clone()
-        }
-        US0::US0_Settled(v17) => {
-            let mut v17: US2 = v17.clone();
-            let mut v18: i32 = settled_exit_22(v17.clone());
-            let mut v19: Rc<str> = std::rc::Rc::<str>::from((v18).to_string());
-            v19.clone()
-        }
-    };
-    let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
-    let mut v23: u64 = elapsed_of_23(v1.clone());
-    let mut v24: Rc<str> = decimal_text_24(v23);
-    let mut v25: Rc<str> = std::rc::Rc::<str>::from([&*v13, &*v14, &*v21, &*v22, &*v24].concat());
-    let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" stdout_bytes="); } LIT.with(|lit| lit.clone()) };
-    let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stdout.log"); } LIT.with(|lit| lit.clone()) };
-    let mut v28: Rc<str> = job_file_5(v1.clone(), v27.clone());
-    let mut v29: u64 = file_bytes_25(v28.clone());
-    let mut v30: Rc<str> = decimal_text_24(v29);
-    let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" stderr_bytes="); } LIT.with(|lit| lit.clone()) };
-    let mut v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stderr.log"); } LIT.with(|lit| lit.clone()) };
-    let mut v33: Rc<str> = job_file_5(v1.clone(), v32.clone());
-    let mut v34: u64 = file_bytes_25(v33.clone());
-    let mut v35: Rc<str> = decimal_text_24(v34);
-    let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v37: Rc<str> = std::rc::Rc::<str>::from([&*v26, &*v30, &*v31, &*v35, &*v36].concat());
-    let mut v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
-    let mut v39: Rc<str> = job_file_5(v1.clone(), v38.clone());
-    let mut v40: Rc<str> = text_or_empty_9(v39.clone());
-    let mut v41: Rc<str> = std::rc::Rc::<str>::from(v40.split(char::from(9u8)).nth(3).unwrap_or("").trim());
-    let mut v42: bool = v41.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v46: Rc<str> = if v42 {
-        v36.clone()
-    } else {
-        let mut v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" detail=\""); } LIT.with(|lit| lit.clone()) };
-        let mut v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-        let mut v45: Rc<str> = std::rc::Rc::<str>::from([&*v43, &*v41, &*v44, &*v36, &*v36].concat());
-        v45.clone()
-    };
-    let mut v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" label="); } LIT.with(|lit| lit.clone()) };
-    let mut v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("label"); } LIT.with(|lit| lit.clone()) };
-    let mut v49: Rc<str> = job_file_5(v1.clone(), v48.clone());
-    let mut v50: Rc<str> = text_or_empty_9(v49.clone());
-    let mut v51: Rc<str> = std::rc::Rc::<str>::from([&*v47, &*v50, &*v36, &*v36, &*v36].concat());
-    let mut v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memory_cap_mb"); } LIT.with(|lit| lit.clone()) };
-    let mut v53: Rc<str> = job_file_5(v1.clone(), v52.clone());
-    let mut v54: Rc<str> = text_or_empty_9(v53.clone());
-    let mut v55: bool = v54.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v66: Rc<str> = if v55 {
-        v36.clone()
-    } else {
-        let mut v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" max_private_mb="); } LIT.with(|lit| lit.clone()) };
-        let mut v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" peak_private_mb="); } LIT.with(|lit| lit.clone()) };
-        let mut v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("peak_private_mb"); } LIT.with(|lit| lit.clone()) };
-        let mut v59: Rc<str> = job_file_5(v1.clone(), v58.clone());
-        let mut v60: bool = file_exists_18(v59.clone());
-        let mut v64: Rc<str> = if v60 {
-            let mut v61: Rc<str> = job_file_5(v1.clone(), v58.clone());
-            text_or_empty_9(v61.clone())
-        } else {
-            let mut v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0"); } LIT.with(|lit| lit.clone()) };
-            v63.clone()
-        };
-        let mut v65: Rc<str> = std::rc::Rc::<str>::from([&*v56, &*v54, &*v57, &*v64, &*v36].concat());
-        v65.clone()
-    };
-    let mut v67: Rc<str> = std::rc::Rc::<str>::from([&*v66, &*v51, &*v36, &*v36, &*v36].concat());
-    let mut v68: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v25, &*v37, &*v46, &*v67].concat());
-    v68.clone()
-}
-fn stdout_line_26(mut v0: Rc<str>) -> () {
-    println!("{}", &*v0);
-    ()
-}
-fn started_code_1(mut v0: bool) -> i32 {
-    let mut v3: Rc<str> = if v0 {
-        let mut v1: Rc<str> = eoie_job_launch::eoie_job_start(true);
-        v1.clone()
-    } else {
-        let mut v2: Rc<str> = eoie_job_launch::eoie_job_start(false);
-        v2.clone()
-    };
-    let mut v4: i32 = (v3).split(char::from(9u8)).next().and_then(|code| code.trim().parse::<i32>().ok()).unwrap_or(2);
-    let mut v5: Rc<str> = std::rc::Rc::<str>::from((v3).split(char::from(9u8)).nth(1).unwrap_or("").trim());
-    let mut v7: bool = if v0 {
-        let mut v6: bool = v5.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v6
-    } else {
-        false
-    };
-    if v7 {
-        let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run"); } LIT.with(|lit| lit.clone()) };
-        let mut v9: Rc<str> = job_summary_2(v8.clone(), v5.clone());
-        stdout_line_26(v9.clone())
-    };
-    v4
-}
-fn stderr_line_29(mut v0: Rc<str>) -> () {
-    eprintln!("{}", &*v0);
-    ()
-}
-fn rejected_28(mut v0: Rc<str>) -> i32 {
-    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("eoie error: job "); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v3: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v0, &*v2, &*v2, &*v2].concat());
-    stderr_line_29(v3.clone());
-    2i32
-}
-fn directory_exists_30(mut v0: Rc<str>) -> bool {
-    let mut v2: &str = &*v0;
-    let mut v4: std::string::String = String::from(v2);
-    let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
-    let mut v8: bool = v6.is_dir();
-    v8
-}
-fn job_status_27() -> i32 {
-    let mut v0: i32 = 3i32;
-    let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
-    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job-"); } LIT.with(|lit| lit.clone()) };
-    let mut v3: bool = v1.starts_with(&*v2);
-    let mut v6: bool = if v3 {
-        let mut v4: Rc<str> = job_directory_7(v1.clone());
-        directory_exists_30(v4.clone())
-    } else {
-        false
-    };
-    if v6 {
-        let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status"); } LIT.with(|lit| lit.clone()) };
-        let mut v8: Rc<str> = job_summary_2(v7.clone(), v1.clone());
-        stdout_line_26(v8.clone());
-        0i32
-    } else {
-        let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status: unknown job id "); } LIT.with(|lit| lit.clone()) };
-        let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let mut v11: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v1, &*v10, &*v10, &*v10].concat());
-        rejected_28(v11.clone())
-    }
-}
-fn state_exit_32(mut v0: US0) -> i32 {
+fn state_exit_12(mut v0: US0) -> i32 {
     match &v0 {
         US0::US0_Live(v1) => {
             let mut v1: US1 = v1.clone();
@@ -615,47 +168,158 @@ fn state_exit_32(mut v0: US0) -> i32 {
         }
         US0::US0_Settled(v2) => {
             let mut v2: US2 = v2.clone();
-            settled_exit_22(v2.clone())
+            settled_exit_13(v2.clone())
         }
     }
 }
-fn command_line_argument_count_34() -> i32 {
-    let mut v0: i32 = (std::env::args().count() as i32) - 1;
+fn now_ms_14() -> u64 {
+    let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
 }
-fn argument_count_33() -> i32 {
-    let mut v0: i32 = command_line_argument_count_34();
+fn command_line_argument_count_16() -> i32 {
+    let mut v0: usize = std::env::args().count();
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    v2
+}
+fn argument_count_15() -> i32 {
+    let mut v0: i32 = command_line_argument_count_16();
     let mut v1: i32 = v0.wrapping_add(1i32);
     v1
 }
-fn parent_pid_36() -> u64 {
+fn method18(mut v0: Option<u64>) -> Option<u64> {
+    v0.clone()
+}
+fn closure1() -> Rc<dyn Fn((u64)) -> US3> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US3> = Rc::new(move |mut v0: (u64)| -> US3 {
+        let mut v1: u64 = (v0);
+        US3::US3_Some(v1)
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn decimal_u64_17(mut v0: Rc<str>) -> u64 {
+    let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
+    let mut v2: Option<u64> = method18(v1.clone());
+    let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
+    let mut v4: Option<US3> = v2.map(|x| v3(x));
+    let mut v6: US3 = US3::US3_None;
+    let mut v7: US3 = v6.clone();
+    let mut v8: US3 = v4.unwrap_or(v7);
+    match &v8 {
+        US3::US3_None => {
+            0u64
+        }
+        US3::US3_Some(v9) => {
+            let mut v9: u64 = *v9;
+            v9
+        }
+    }
+}
+fn parent_pid_20() -> u64 {
     let mut v0: u64 = { #[cfg(windows)] fn parent() -> u64 { #[repr(C)] struct Entry { size: u32, usage: u32, pid: u32, heap: usize, module: u32, threads: u32, parent: u32, base: i32, flags: u32, exe: [u16; 260] } unsafe extern "system" { fn CreateToolhelp32Snapshot(flags: u32, pid: u32) -> *mut std::ffi::c_void; fn Process32FirstW(snapshot: *mut std::ffi::c_void, entry: *mut Entry) -> i32; fn Process32NextW(snapshot: *mut std::ffi::c_void, entry: *mut Entry) -> i32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; } let me = std::process::id(); unsafe { let snapshot = CreateToolhelp32Snapshot(2, 0); if snapshot as isize == -1 { return 0; } let mut entry: Entry = std::mem::zeroed(); entry.size = std::mem::size_of::<Entry>() as u32; let mut found = 0u64; let mut more = Process32FirstW(snapshot, &mut entry) != 0; while more { if entry.pid == me { found = entry.parent as u64; break; } more = Process32NextW(snapshot, &mut entry) != 0; } CloseHandle(snapshot); found } } #[cfg(not(windows))] fn parent() -> u64 { std::os::unix::process::parent_id() as u64 } parent() };
     v0
 }
-fn watched_caller_35() -> u64 {
+fn watched_caller_19() -> u64 {
     let mut v0: u64 = std::env::var("EOIE_JOB_WATCH").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(0);
     let mut v1: bool = v0 == 0u64;
     if v1 {
-        parent_pid_36()
+        parent_pid_20()
     } else {
         v0
     }
 }
-fn waited_37(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> US0 {
+fn state_of_parts_23(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
+    let mut v3: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pending"); } LIT.with(|lit| lit.clone()) };
+    if v3 {
+        let mut v4: US1 = US1::US1_JobPending;
+        US0::US0_Live(v4.clone())
+    } else {
+        let mut v6: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("running"); } LIT.with(|lit| lit.clone()) };
+        if v6 {
+            let mut v7: US1 = US1::US1_JobRunning;
+            US0::US0_Live(v7.clone())
+        } else {
+            let mut v9: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
+            if v9 {
+                let mut v10: US2 = US2::US2_JobFinished(v1);
+                US0::US0_Settled(v10.clone())
+            } else {
+                let mut v12: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timed-out"); } LIT.with(|lit| lit.clone()) };
+                if v12 {
+                    let mut v13: US2 = US2::US2_JobTimedOut;
+                    US0::US0_Settled(v13.clone())
+                } else {
+                    let mut v15: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
+                    if v15 {
+                        let mut v16: US2 = US2::US2_JobStopped;
+                        US0::US0_Settled(v16.clone())
+                    } else {
+                        let mut v18: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lost"); } LIT.with(|lit| lit.clone()) };
+                        if v18 {
+                            let mut v19: US2 = US2::US2_JobLost;
+                            US0::US0_Settled(v19.clone())
+                        } else {
+                            let mut v21: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memory-capped"); } LIT.with(|lit| lit.clone()) };
+                            if v21 {
+                                let mut v22: US2 = US2::US2_JobMemoryCapped;
+                                US0::US0_Settled(v22.clone())
+                            } else {
+                                let mut v24: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expired-in-queue"); } LIT.with(|lit| lit.clone()) };
+                                if v24 {
+                                    let mut v25: US2 = US2::US2_JobExpiredInQueue;
+                                    US0::US0_Settled(v25.clone())
+                                } else {
+                                    let mut v27: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
+                                    if v27 {
+                                        let mut v28: US2 = US2::US2_JobSkipped(v2.clone());
+                                        US0::US0_Settled(v28.clone())
+                                    } else {
+                                        let mut v30: US2 = US2::US2_JobSpawnFailed(v2.clone());
+                                        US0::US0_Settled(v30.clone())
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+fn shared_state_22(mut v0: Rc<str>) -> US0 {
+    let (mut v1, mut v2, mut v3): (Rc<str>, i32, Rc<str>) = eoie_job_state::eoie_job_state_parts(&*v0);
+    state_of_parts_23(v1.clone(), v2, v3.clone())
+}
+fn state_settled_24(mut v0: US0) -> bool {
+    match &v0 {
+        US0::US0_Live(v1) => {
+            let mut v1: US1 = v1.clone();
+            false
+        }
+        US0::US0_Settled(v2) => {
+            let mut v2: US2 = v2.clone();
+            true
+        }
+    }
+}
+fn process_alive_25(mut v0: u64) -> bool {
+    let mut v1: bool = { #[cfg(windows)] fn alive(pid: u64) -> bool { unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; fn GetLastError() -> u32; } if pid == 0 { return true; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid as u32); if handle.is_null() { return GetLastError() == 5; } let running = WaitForSingleObject(handle, 0) == 258; CloseHandle(handle); running } } #[cfg(not(windows))] fn alive(pid: u64) -> bool { pid == 0 || std::os::unix::process::parent_id() as u64 == pid } alive(v0) };
+    v1
+}
+fn waited_21(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> US0 {
     loop {
-        let mut v3: US0 = job_state_now_3(v0.clone());
-        let mut v4: bool = state_settled_19(v3.clone());
+        let mut v3: US0 = shared_state_22(v0.clone());
+        let mut v4: bool = state_settled_24(v3.clone());
         let mut v7: bool = if v4 {
             true
         } else {
-            let mut v5: u64 = now_ms_12();
+            let mut v5: u64 = now_ms_14();
             let mut v6: bool = v5 > v1;
             v6
         };
         let mut v10: bool = if v7 {
             true
         } else {
-            let mut v8: bool = process_alive_14(v2);
+            let mut v8: bool = process_alive_25(v2);
             let mut v9: bool = v8 == false;
             v9
         };
@@ -669,47 +333,48 @@ fn waited_37(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> US0 {
         }
     }
 }
-fn job_waited_31() -> i32 {
+fn job_waited_11() -> i32 {
     let mut v0: i32 = 3i32;
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job-"); } LIT.with(|lit| lit.clone()) };
     let mut v3: bool = v1.starts_with(&*v2);
     let mut v6: bool = if v3 {
         let mut v4: Rc<str> = job_directory_7(v1.clone());
-        directory_exists_30(v4.clone())
+        directory_exists_10(v4.clone())
     } else {
         false
     };
     if v6 {
-        let mut v7: u64 = now_ms_12();
-        let mut v8: i32 = argument_count_33();
-        let mut v9: bool = v8 > 4i32;
-        let mut v13: u64 = if v9 {
-            let mut v10: i32 = 4i32;
-            let mut v11: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v10 as usize).unwrap_or_default());
-            decimal_u64_10(v11.clone())
+        let mut v7: Rc<str> = eoie_job_host::eoie_job_host_revive();
+        let mut v8: u64 = now_ms_14();
+        let mut v9: i32 = argument_count_15();
+        let mut v10: bool = v9 > 4i32;
+        let mut v14: u64 = if v10 {
+            let mut v11: i32 = 4i32;
+            let mut v12: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v11 as usize).unwrap_or_default());
+            decimal_u64_17(v12.clone())
         } else {
             864000000u64
         };
-        let mut v14: u64 = v7.wrapping_add(v13);
-        let mut v15: u64 = watched_caller_35();
-        let mut v16: US0 = waited_37(v1.clone(), v14, v15);
-        let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait"); } LIT.with(|lit| lit.clone()) };
-        let mut v18: Rc<str> = job_summary_2(v17.clone(), v1.clone());
-        stdout_line_26(v18.clone());
-        state_exit_32(v16.clone())
+        let mut v15: u64 = v8.wrapping_add(v14);
+        let mut v16: u64 = watched_caller_19();
+        let mut v17: US0 = waited_21(v1.clone(), v15, v16);
+        let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait"); } LIT.with(|lit| lit.clone()) };
+        let mut v19: Rc<str> = shared_summary_2(v18.clone(), v1.clone());
+        stdout_line_3(v19.clone());
+        state_exit_12(v17.clone())
     } else {
-        let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait: unknown job id "); } LIT.with(|lit| lit.clone()) };
-        let mut v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let mut v22: Rc<str> = std::rc::Rc::<str>::from([&*v20, &*v1, &*v21, &*v21, &*v21].concat());
-        rejected_28(v22.clone())
+        let mut v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait: unknown job id "); } LIT.with(|lit| lit.clone()) };
+        let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v23: Rc<str> = std::rc::Rc::<str>::from([&*v21, &*v1, &*v22, &*v22, &*v22].concat());
+        rejected_5(v23.clone())
     }
 }
 fn job_run_0() -> i32 {
     let mut v0: i32 = 2i32;
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
     let mut v2: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("start"); } LIT.with(|lit| lit.clone()) };
-    let mut v29: US4 = if v2 {
+    let mut v41: US4 = if v2 {
         US4::US4_JobStart
     } else {
         let mut v4: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run"); } LIT.with(|lit| lit.clone()) };
@@ -744,7 +409,27 @@ fn job_run_0() -> i32 {
                                     if v18 {
                                         US4::US4_JobStop
                                     } else {
-                                        US4::US4_JobUnknown
+                                        let mut v20: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after"); } LIT.with(|lit| lit.clone()) };
+                                        if v20 {
+                                            US4::US4_JobAfter
+                                        } else {
+                                            let mut v22: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("chain"); } LIT.with(|lit| lit.clone()) };
+                                            if v22 {
+                                                US4::US4_JobChain
+                                            } else {
+                                                let mut v24: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("amend"); } LIT.with(|lit| lit.clone()) };
+                                                if v24 {
+                                                    US4::US4_JobAmend
+                                                } else {
+                                                    let mut v26: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("doctor"); } LIT.with(|lit| lit.clone()) };
+                                                    if v26 {
+                                                        US4::US4_JobDoctor
+                                                    } else {
+                                                        US4::US4_JobUnknown
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -754,46 +439,62 @@ fn job_run_0() -> i32 {
             }
         }
     };
-    match &v29 {
+    match &v41 {
+        US4::US4_JobAfter => {
+            let mut v55: i32 = eoie_job_rechain::eoie_job_rechain_run();
+            v55
+        }
+        US4::US4_JobAmend => {
+            let mut v57: i32 = eoie_job_control::eoie_job_amend_run();
+            v57
+        }
+        US4::US4_JobChain => {
+            let mut v56: i32 = eoie_job_chain::eoie_job_chain_run();
+            v56
+        }
+        US4::US4_JobDoctor => {
+            let mut v58: i32 = eoie_jobs_doctor::eoie_job_doctor_run();
+            v58
+        }
         US4::US4_JobHost => {
-            let mut v37: i32 = eoie_job_host::eoie_job_host_run();
-            v37
+            let mut v49: i32 = eoie_job_host::eoie_job_host_run();
+            v49
         }
         US4::US4_JobList => {
-            let mut v40: i32 = eoie_job_control::eoie_job_list_run();
-            v40
+            let mut v52: i32 = eoie_job_control::eoie_job_list_run();
+            v52
         }
         US4::US4_JobRun => {
-            let mut v32: bool = true;
-            started_code_1(v32)
+            let mut v44: bool = true;
+            started_code_1(v44)
         }
         US4::US4_JobStart => {
-            let mut v30: bool = false;
-            started_code_1(v30)
+            let mut v42: bool = false;
+            started_code_1(v42)
         }
         US4::US4_JobStatus => {
-            job_status_27()
+            job_status_4()
         }
         US4::US4_JobStop => {
-            let mut v42: i32 = eoie_job_control::eoie_job_stop_run();
-            v42
+            let mut v54: i32 = eoie_job_control::eoie_job_stop_run();
+            v54
         }
         US4::US4_JobSupervise => {
-            let mut v34: i32 = 3i32;
-            let mut v35: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v34 as usize).unwrap_or_default());
-            let mut v36: i32 = eoie_job_supervise::eoie_job_supervise(&*v35);
-            v36
+            let mut v46: i32 = 3i32;
+            let mut v47: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v46 as usize).unwrap_or_default());
+            let mut v48: i32 = eoie_job_supervise::eoie_job_supervise(&*v47);
+            v48
         }
         US4::US4_JobTail => {
-            let mut v41: i32 = eoie_job_control::eoie_job_tail_run();
-            v41
+            let mut v53: i32 = eoie_job_control::eoie_job_tail_run();
+            v53
         }
         US4::US4_JobUnknown => {
-            let mut v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job start [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (the cap covers the whole job tree; reaching it stops the job as memory-capped, exit 137) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for long runs from an agent shell that can be reaped, use job start plus a background job wait) | job status <id> | job wait <id> [max-ms, default until it settles] | job list [count] | job tail <id> [lines] | job stop <id>"); } LIT.with(|lit| lit.clone()) };
-            rejected_28(v43.clone())
+            let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job doctor [--env] (audits eoie processes, job files and after-chains; --env also compares a detached job's environment with this shell's; exit 1 on a finding) | job after <queued-id> <predecessor-id> [--ok] (re-points a job still waiting on --after/--after-ok; label, timeout, gate and command are kept) | job chain [--ok] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one and prints every id) | job start [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] [--settle-ms <n>] <label> <timeout-ms> <program> [args...] (the cap covers the whole job tree; reaching it stops the job as memory-capped, exit 137; a plain start without --after watches the job for --settle-ms, default 2000, 0 skips, and a job that already failed prints 'job start failed' with its exit and first stderr line and exits with its code) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for long runs from an agent shell that can be reaped, use job start plus a background job wait) | job status <id> | job wait <id> [max-ms, default until it settles] | job list [count] | job tail <id> [lines] | job stop <id> | job amend <id> --timeout <ms> (a queued job only; the limit is read when its child starts)"); } LIT.with(|lit| lit.clone()) };
+            rejected_5(v59.clone())
         }
         US4::US4_JobWait => {
-            job_waited_31()
+            job_waited_11()
         }
     }
 }

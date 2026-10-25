@@ -1,0 +1,4 @@
+inl main () : i32 =
+    !!!!Export("eoie_sequence_sections", ((fun (log, time, section_on, carry, columns) => section_scan.sections_text log time section_on carry columns) : string * string * string * string * string -> string))
+    !!!!Export("eoie_sequence_sections_header", ((fun columns => section_scan.sections_header columns) : string -> string))
+    0i32

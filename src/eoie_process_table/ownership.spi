@@ -1,0 +1,34 @@
+///- --package .
+test ownership static =
+    open sm'_operators
+
+open sm'_operators
+
+union job_owner =
+    | YourJob : string
+    | TheirJob : string * string
+    | NoOwningJob
+
+let job_owner_of (~job : string) (~job_author : string) (~author : string) : job_owner =
+    if job = "" then NoOwningJob
+    elif author <> "" && job_author = author then YourJob job
+    else TheirJob (job, job_author)
+
+let mine_verdict (in_session : bool) (owner : job_owner) (~theirs : string) : option string =
+    if in_session then None
+    else
+        match owner with
+        | YourJob _ => None
+        | TheirJob (job, by) => if theirs = job then None else Some ("it belongs to job " ++# job ++# " by " ++# (if by = "" then "no author" else by) ++# "; pass --theirs " ++# job ++# " to stop it anyway")
+        | NoOwningJob => Some "no eoie job started it and it is outside this agent session"
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
+///> rust
+test a_kill_with_mine_stops_only_my_session_or_my_jobs =
+    expect (mine_verdict true NoOwningJob "" = None) "a process under my agent session"
+    expect (mine_verdict false (job_owner_of "job-1-a" "alpha" "alpha") "" = None) "my own job's tree"
+    expect (mine_verdict false (job_owner_of "job-2-b" "beta" "alpha") "" = Some "it belongs to job job-2-b by beta; pass --theirs job-2-b to stop it anyway") "another author's job"
+    expect (mine_verdict false (job_owner_of "job-2-b" "beta" "alpha") "job-2-b" = None) "named with --theirs"
+    expect (mine_verdict false (job_owner_of "job-3-c" "" "") "" = Some "it belongs to job job-3-c by no author; pass --theirs job-3-c to stop it anyway") "without EOIE_AUTHOR no job is mine by default"
+    expect (mine_verdict false (job_owner_of "" "" "alpha") "" = Some "no eoie job started it and it is outside this agent session") "untraced"

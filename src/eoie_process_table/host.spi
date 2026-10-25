@@ -36,3 +36,6 @@ let process_stopped (~pid : u64) (~tree : bool) : stop_tally =
 
 inl tally_stopped (~tally : stop_tally) : u64 = $'!tally.0' : u64
 inl tally_total (~tally : stop_tally) : u64 = $'!tally.1' : u64
+
+let rec flag_present (~flag : string) (~index : i32) (~count : i32) : bool =
+    if index < count then (if argument index = flag then true else flag_present flag (index + 1i32) count) else false

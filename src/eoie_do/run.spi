@@ -23,6 +23,9 @@ let program_run (~root : string) (~text : string) : i32 =
         receipt_line Failed "files 0  replacements 0" started
         2i32
     | Delegated (family, encoded) => delegated_run family root encoded
+    | Split (edits, writes) =>
+        inl edited = delegated_run Edits root edits
+        if edited <> 0i32 then edited else delegated_run Writes root writes
 
 inl usage () : string = "do <root> <program>... | do <root> - (program on stdin); statements: edit <path|glob> [dry-run] [expect files <n> replacements <n>], replace [pattern] once|all|<n> times \"<old>\" with \"<new>\" (pattern: a regex, $1 groups in the replacement; either takes raw lines between <<< and a >>> line), patch <<< apply_patch hunks (@@, then lines starting with space, - or +) >>>, show <path>"
 

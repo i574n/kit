@@ -6,9 +6,9 @@ open sm'_operators
 open model
 open host
 
-let call_of_command (~command : string) : shell_call =
+let call_of_command (habit_any : string -> bool) (~command : string) : shell_call =
     if eoie_named command then EoieCall
-    elif habit_named command then HabitCall
+    elif habit_any command then HabitCall
     else OtherCall
 
 inl call_word (call : shell_call) : string =
@@ -19,7 +19,8 @@ inl call_word (call : shell_call) : string =
 
 inl expect (condition : bool) (~detail : string) : () = if condition then () else $'panic\!("{}", &*!detail)' : ()
 inl expect_call (~command : string) (wanted : shell_call) : () =
-    expect (call_word (call_of_command command) = call_word wanted) ("call kind of: " ++# command)
+    inl stand_in (text : string) : bool = sm'.contains "Get-Content" text || sm'.contains "python3" text
+    expect (call_word (call_of_command stand_in command) = call_word wanted) ("call kind of: " ++# command)
 
 ///> rust
 test tallies_count_every_shell_call_and_split_eoie_from_habits =

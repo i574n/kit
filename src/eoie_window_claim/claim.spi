@@ -27,7 +27,9 @@ let window_claim_run () : i32 =
         2i32
     else
         inl now = now_ms ()
-        inl verdict = edit_verdict_of (claim_of (leases_of_rows (stored_rows (windows_root ())) NoLeases) path now)
+        inl root = windows_root ()
+        inl verdict =
+            edit_verdict_of (claim_of (leases_of_rows (live_rows root (stored_rows root) now "") NoLeases) path now)
         match verdict with
         | EditAllowed =>
             stdout_line ("eoie window claim ok path=" ++# path ++# " " ++# verdict_text verdict now)

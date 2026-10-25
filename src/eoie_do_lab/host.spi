@@ -2,9 +2,9 @@ inl stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
 
 inl column () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
 
-let line_count (~text : string) : u64 = $'(!text).lines().filter(|line| \!line.is_empty()).count() as u64' : u64
+let line_count (~text : string) : u64 = convert.u64 (sm'.nonempty_line_count text)
 
-let line_at (~text : string) (~index : u64) : string = $'std::rc::Rc::<str>::from((!text).lines().filter(|line| \!line.is_empty()).nth(!index as usize).unwrap_or(""))' : string
+let line_at (~text : string) (~index : u64) : string = sm'.nonempty_line_at (convert.i32 index) text
 
 let tab_part (~text : string) (~index : i32) : string = $'std::rc::Rc::<str>::from((!text).split(char::from(9u8)).nth(!index as usize).unwrap_or(""))' : string
 

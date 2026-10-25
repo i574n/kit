@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "chain.rs"
+
+[package]
+name = "eoie-job-chain"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "eoie_job_chain"
+path = "chain.rs"

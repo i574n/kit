@@ -38,12 +38,16 @@ enum US3 {
     US3_UnknownMemory(Rc<str>, Rc<str>),
 }
 fn command_line_argument_count_2() -> i32 {
-    let mut v0: i32 = (std::env::args().count() as i32) - 1;
-    v0
+    let mut v0: usize = std::env::args().count();
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    v2
 }
 fn command_line_argument_3(mut v0: i32) -> Rc<str> {
-    let mut v1: Rc<str> = Rc::<str>::from(std::env::args().nth((v0 + 1) as usize).unwrap_or_default());
-    v1.clone()
+    let mut v1: i32 = v0.wrapping_add(1i32);
+    let mut v2: usize = ((v1) as usize);
+    let mut v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
+    v3.clone()
 }
 fn argument_1(mut v0: i32) -> Rc<str> {
     let mut v1: i32 = v0.wrapping_sub(1i32);
@@ -654,66 +658,67 @@ fn links_run_0() -> i32 {
         let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile.spi"); } LIT.with(|lit| lit.clone()) };
         let mut v12: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v10).join(&*v11).to_string_lossy().as_ref());
         let mut v13: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v12).unwrap_or_default().as_str());
-        let mut v14: Rc<str> = std::rc::Rc::<str>::from({ let mut names = std::fs::read_dir(&*v3).into_iter().flatten().flatten().map(|entry| entry.file_name().to_string_lossy().into_owned()).filter(|name| name.ends_with(".md") && name != "MEMORY.md").collect::<Vec<_>>(); names.sort(); names.join("
+        let mut v14: Rc<str> = eoie_agile_records::eoie_agile_records_as_lines(&*v13);
+        let mut v15: Rc<str> = std::rc::Rc::<str>::from({ let mut names = std::fs::read_dir(&*v3).into_iter().flatten().flatten().map(|entry| entry.file_name().to_string_lossy().into_owned()).filter(|name| name.ends_with(".md") && name != "MEMORY.md").collect::<Vec<_>>(); names.sort(); names.join("
 ") }.as_str());
-        let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let mut v16: Rc<str> = names_from_5(v3.clone(), v14.clone(), v15.clone());
-        let mut v17: i32 = 0i32;
-        let mut v18: Rc<str> = std::rc::Rc::<str>::from({ let mut prefixes = (v13).match_indices("= Task (").filter_map(|(at, marker)| (v13)[at + marker.len()..].strip_prefix(char::from(34u8)).and_then(|rest| rest.split(char::from(45u8)).next()).map(str::to_owned)).collect::<Vec<_>>(); prefixes.sort(); prefixes.dedup(); prefixes.join("|") }.as_str());
-        let (mut v19, mut v20, mut v21, mut v22, mut v23, mut v24, mut v25): (i32, i32, i32, i32, i32, i32, Rc<str>) = links_start_6();
-        let (mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32): (i32, i32, i32, i32, i32, i32, Rc<str>) = memories_checked_7(v13.clone(), v18.clone(), v16.clone(), v3.clone(), v14.clone(), v19, v20, v21, v22, v23, v24, v25.clone());
-        let (mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39): (i32, i32, i32, i32, i32, i32, Rc<str>) = notes_checked_13(v16.clone(), v13.clone(), v17, v26, v27, v28, v29, v30, v31, v32.clone());
-        let mut v40: Rc<str> = std::rc::Rc::<str>::from((v33).to_string().as_str());
-        let mut v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memories="); } LIT.with(|lit| lit.clone()) };
-        let mut v42: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v40));
-        let mut v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cited="); } LIT.with(|lit| lit.clone()) };
-        let mut v44: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v43));
-        let mut v45: Rc<str> = std::rc::Rc::<str>::from((v34).to_string().as_str());
-        let mut v46: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v45));
-        let mut v47: Rc<str> = std::rc::Rc::<str>::from((v35).to_string().as_str());
-        let mut v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" dangling="); } LIT.with(|lit| lit.clone()) };
-        let mut v49: Rc<str> = Rc::<str>::from(format!("{}{}", v48, v47));
-        let mut v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" done="); } LIT.with(|lit| lit.clone()) };
-        let mut v51: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v50));
-        let mut v52: Rc<str> = std::rc::Rc::<str>::from((v36).to_string().as_str());
-        let mut v53: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v52));
-        let mut v54: Rc<str> = std::rc::Rc::<str>::from((v37).to_string().as_str());
-        let mut v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" unwritten_links="); } LIT.with(|lit| lit.clone()) };
-        let mut v56: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v54));
-        let mut v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" unknown_memories="); } LIT.with(|lit| lit.clone()) };
-        let mut v58: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v57));
-        let mut v59: Rc<str> = std::rc::Rc::<str>::from((v38).to_string().as_str());
-        let mut v60: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v59));
-        let mut v61: Rc<str> = Rc::<str>::from(format!("{}{}", v53, v60));
-        let mut v62: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v61));
-        let mut v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--json"); } LIT.with(|lit| lit.clone()) };
-        let mut v64: bool = std::env::args().any(|argument| argument == &*v63);
-        if v64 {
-            let mut v65: Rc<str> = std::rc::Rc::<str>::from({ let q = char::from(34u8); (v39).lines().filter_map(|line| { let mut parts = line.splitn(4, "  "); Some(format!("{{{q}kind{q}:{q}{}{q},{q}memory{q}:{q}{}{q},{q}target{q}:{q}{}{q}}}", parts.next()?, parts.next()?, parts.next()?.trim_start_matches("[[").trim_end_matches("]]"))) }).collect::<Vec<_>>().join(",") }.as_str());
-            let mut v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"findings\":["); } LIT.with(|lit| lit.clone()) };
-            let mut v67: Rc<str> = Rc::<str>::from(format!("{}{}", v66, v65));
-            let mut v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("],\"dangling\":"); } LIT.with(|lit| lit.clone()) };
-            let mut v69: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v68));
-            let mut v70: Rc<str> = std::rc::Rc::<str>::from((v35).to_string().as_str());
-            let mut v71: Rc<str> = Rc::<str>::from(format!("{}{}", v69, v70));
-            let mut v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
-            let mut v73: Rc<str> = Rc::<str>::from(format!("{}{}", v71, v72));
-            println!("{}", &*v73);
+        let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v17: Rc<str> = names_from_5(v3.clone(), v15.clone(), v16.clone());
+        let mut v18: i32 = 0i32;
+        let mut v19: Rc<str> = std::rc::Rc::<str>::from({ let mut prefixes = (v14).match_indices("= Task (").filter_map(|(at, marker)| (v14)[at + marker.len()..].strip_prefix(char::from(34u8)).and_then(|rest| rest.split(char::from(45u8)).next()).map(str::to_owned)).collect::<Vec<_>>(); prefixes.sort(); prefixes.dedup(); prefixes.join("|") }.as_str());
+        let (mut v20, mut v21, mut v22, mut v23, mut v24, mut v25, mut v26): (i32, i32, i32, i32, i32, i32, Rc<str>) = links_start_6();
+        let (mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33): (i32, i32, i32, i32, i32, i32, Rc<str>) = memories_checked_7(v14.clone(), v19.clone(), v17.clone(), v3.clone(), v15.clone(), v20, v21, v22, v23, v24, v25, v26.clone());
+        let (mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40): (i32, i32, i32, i32, i32, i32, Rc<str>) = notes_checked_13(v17.clone(), v14.clone(), v18, v27, v28, v29, v30, v31, v32, v33.clone());
+        let mut v41: Rc<str> = std::rc::Rc::<str>::from((v34).to_string().as_str());
+        let mut v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memories="); } LIT.with(|lit| lit.clone()) };
+        let mut v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v41));
+        let mut v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cited="); } LIT.with(|lit| lit.clone()) };
+        let mut v45: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v44));
+        let mut v46: Rc<str> = std::rc::Rc::<str>::from((v35).to_string().as_str());
+        let mut v47: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v46));
+        let mut v48: Rc<str> = std::rc::Rc::<str>::from((v36).to_string().as_str());
+        let mut v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" dangling="); } LIT.with(|lit| lit.clone()) };
+        let mut v50: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v48));
+        let mut v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" done="); } LIT.with(|lit| lit.clone()) };
+        let mut v52: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v51));
+        let mut v53: Rc<str> = std::rc::Rc::<str>::from((v37).to_string().as_str());
+        let mut v54: Rc<str> = Rc::<str>::from(format!("{}{}", v52, v53));
+        let mut v55: Rc<str> = std::rc::Rc::<str>::from((v38).to_string().as_str());
+        let mut v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" unwritten_links="); } LIT.with(|lit| lit.clone()) };
+        let mut v57: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v55));
+        let mut v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" unknown_memories="); } LIT.with(|lit| lit.clone()) };
+        let mut v59: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v58));
+        let mut v60: Rc<str> = std::rc::Rc::<str>::from((v39).to_string().as_str());
+        let mut v61: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v60));
+        let mut v62: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v61));
+        let mut v63: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v62));
+        let mut v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--json"); } LIT.with(|lit| lit.clone()) };
+        let mut v65: bool = std::env::args().any(|argument| argument == &*v64);
+        if v65 {
+            let mut v66: Rc<str> = std::rc::Rc::<str>::from({ let q = char::from(34u8); (v40).lines().filter_map(|line| { let mut parts = line.splitn(4, "  "); Some(format!("{{{q}kind{q}:{q}{}{q},{q}memory{q}:{q}{}{q},{q}target{q}:{q}{}{q}}}", parts.next()?, parts.next()?, parts.next()?.trim_start_matches("[[").trim_end_matches("]]"))) }).collect::<Vec<_>>().join(",") }.as_str());
+            let mut v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"findings\":["); } LIT.with(|lit| lit.clone()) };
+            let mut v68: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v66));
+            let mut v69: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("],\"dangling\":"); } LIT.with(|lit| lit.clone()) };
+            let mut v70: Rc<str> = Rc::<str>::from(format!("{}{}", v68, v69));
+            let mut v71: Rc<str> = std::rc::Rc::<str>::from((v36).to_string().as_str());
+            let mut v72: Rc<str> = Rc::<str>::from(format!("{}{}", v70, v71));
+            let mut v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
+            let mut v74: Rc<str> = Rc::<str>::from(format!("{}{}", v72, v73));
+            println!("{}", &*v74);
             ()
         } else {
-            let mut v74: bool = v39.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            if v74 {
-                let mut v75: Rc<str> = std::rc::Rc::<str>::from((v39).trim_end());
-                println!("{}", &*v75);
+            let mut v75: bool = v40.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            if v75 {
+                let mut v76: Rc<str> = std::rc::Rc::<str>::from((v40).trim_end());
+                println!("{}", &*v76);
                 ()
             };
-            let mut v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("eoie agile links ok "); } LIT.with(|lit| lit.clone()) };
-            let mut v77: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v62));
-            println!("{}", &*v77);
+            let mut v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("eoie agile links ok "); } LIT.with(|lit| lit.clone()) };
+            let mut v78: Rc<str> = Rc::<str>::from(format!("{}{}", v77, v63));
+            println!("{}", &*v78);
             ()
         };
-        let mut v78: bool = v35 == 0i32;
-        if v78 {
+        let mut v79: bool = v36 == 0i32;
+        if v79 {
             0i32
         } else {
             1i32

@@ -31,7 +31,7 @@ inl title_bounds (text : string) (found : i32) : i32 * i32 =
     inl start = field_start text ($"!found + !(item_arguments_offset TaskItem)" : i32) length 1i32
     start, field_end text start length ScanPlain
 
-let title_moved (~state : string) (~id : string) (~original : string) (started : u64) : i32 =
+let title_moved (~state : string) (~id : string) (~raw : string) (~original : string) (started : u64) : i32 =
     inl schema_ready = note_schema_ensured original
     inl found = item_offset schema_ready TaskItem id
     inl start, stop = title_bounds schema_ready found
@@ -43,7 +43,7 @@ let title_moved (~state : string) (~id : string) (~original : string) (started :
         inl moved, rows = tail_rows title id (note_count schema_ready id + 1i32) (utc_stamp started)
         inl retitled = spliced schema_ready start stop (spi_quoted kept)
         inl updated = notes_appended retitled id rows
-        match state_written state original updated with
+        match state_written state raw updated with
         | StateWritten => from_title_success id moved (byte_len title) (byte_len kept) (text_bytes original) (text_bytes updated) (ms_since started)
         | problem => from_title_failure (state_write_problem problem) id
 
@@ -56,8 +56,9 @@ let from_title_entry () : i32 =
             match probe (unchecked state) with
             | FileMissing _ => from_title_failure "state/agile.spi is missing" id
             | FileReadable file =>
-                inl original = loaded_string (read_text file)
-                if task_declared original id then title_moved state id original started
+                inl raw = loaded_string (read_text file)
+                inl original = records_text raw
+                if task_declared original id then title_moved state id raw original started
                 else from_title_failure "no task with this id" id
         else from_title_failure "usage: agile notes from-title <root> <id>" id
     else from_title_failure "usage: agile notes from-title <root> <id>" id

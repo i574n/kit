@@ -1276,3 +1276,19 @@ eoie table sequences ok files=1 sections=2 rows=4
 Rows are one per (section, id) seen by any --first or --last, in section order and then by first sighting; a column with no match in that section prints '-'. Ids repeat across sections (each run restarts the server), so the key is the pair. Negative times (@knight+-1, lines carried into the next run) are kept as written. (tibia, EOIE-LOG-SEQUENCES note 15.)
 
 ---
+
+## 47. The usage of one verb, not a fragment of another (help: help <verb> answered from a grammar line that merely contains the word, per-verb help lines)
+
+Habit (abbreviated): `eoie help env` printed the `do` grammar (its `env <A,B>` statement matched first), and `eoie help mirror` had no line at all, so the agent read the crate source to learn the flags.
+
+```command
+eoie help env
+```
+
+```expected
+usage: eoie env check <tool>=<pinned-path>... (each tool is looked up on PATH in order; the first copy found must be the pinned one)
+```
+
+Every direct verb has exactly one help line, chosen by its own case: a new verb does not compile without one, and verbs that share a grammar (read, lines and grep; ps and kill) share one line. (eoie, EOIE-UNION-REFLECTION note 34.)
+
+---

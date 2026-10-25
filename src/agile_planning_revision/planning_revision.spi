@@ -44,7 +44,7 @@ let planning_edit (~root : string) (~id : string) (~field_name : string) (~value
     | FileReadable file =>
         match value_token field_name value with
         | StepRejected reason => planning_edit_failure reason id
-        | StepText token => planning_revised state id field_name token (loaded_string (read_text file)) started
+        | StepText token => planning_revised state id field_name token (records_text (loaded_string (read_text file))) started
 
 let planning_edit_entry () : i32 = planning_edit (argument_owned 1i32) (argument_owned 2i32) (argument_owned 3i32) (argument_owned 4i32)
 

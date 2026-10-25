@@ -1,0 +1,147 @@
+///- --package .
+test model static =
+    open sm'_operators
+
+open sm'_operators
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
+
+union notebook_seen =
+    | SeenWritten : u64
+    | SeenPending
+    | SeenShared
+
+type batch_progress =
+    {
+        written : i32
+        pending : i32
+        shared : i32
+        last_name : string
+        last_ms : u64
+    }
+
+let file_name_of (path : string) : string =
+    inl slashed = sm'.replace "\\" "/" (sm'.replace "\"" "" path)
+    inl at = sm'.last_index_of "/" slashed
+    if at < 0i32 then slashed else sm'.substring (at + 1i32) ((sm'.length slashed : i32) - at - 1i32) slashed
+
+let report_name_of (path : string) : string = file_name_of path ++# ".ipynb"
+
+let flag_value_until_next_flag (chunk : string) : string =
+    inl cut = (sm'.index_of " --" chunk : i32)
+    sm'.trim (sm'.replace "\"" "" (if cut < 0i32 then chunk else sm'.substring 0i32 cut chunk))
+
+let batch_paths (command : string) : array string = sm'.split " --path " command |> array
+
+let batch_output_dir (command : string) : string =
+    inl at = (sm'.index_of " --output-dir " command : i32)
+    if at < 0i32 then ""
+    else
+        inl start = at + 14i32
+        flag_value_until_next_flag (sm'.substring start ((sm'.length command : i32) - start) command)
+
+
+type batch_scan =
+    {
+        chunks : array string
+        written_of : string -> u64
+        started_ms : u64
+    }
+
+let chunk_name (scan : batch_scan) (at : i32) : string =
+    report_name_of (flag_value_until_next_flag (am'.index at scan.chunks))
+
+let rec names_matching (scan : batch_scan) (name : string) (at : i32) (found : i32) : i32 =
+    if am'.length scan.chunks <= at then found
+    else names_matching scan name (at + 1i32) (if chunk_name scan at = name then found + 1i32 else found)
+
+
+let notebook_seen_of (scan : batch_scan) (name : string) : notebook_seen =
+    if names_matching scan name 1i32 0i32 > 1i32 then SeenShared
+    else
+        inl written = scan.written_of name
+        if written > 0u64 && scan.started_ms <= written then SeenWritten written else SeenPending
+
+let progress_counted (progress : batch_progress) (name : string) (seen : notebook_seen) : batch_progress =
+    match seen with
+    | SeenWritten ms =>
+        inl counted = { progress with written = progress.written + 1i32 }
+        if progress.last_ms <= ms then { counted with last_name = name; last_ms = ms } else counted
+    | SeenPending => { progress with pending = progress.pending + 1i32 }
+    | SeenShared => { progress with shared = progress.shared + 1i32 }
+
+let rec progress_from (scan : batch_scan) (at : i32) (progress : batch_progress) : batch_progress =
+    if am'.length scan.chunks <= at then progress
+    else
+        inl name = chunk_name scan at
+        progress_from scan (at + 1i32) (progress_counted progress name (notebook_seen_of scan name))
+
+let batch_progress_of (command : string) (written_of : string -> u64) (started_ms : u64) : batch_progress =
+    inl scan = { chunks = batch_paths command; written_of = written_of; started_ms = started_ms }
+    progress_from scan 1i32 { written = 0i32; pending = 0i32; shared = 0i32; last_name = ""; last_ms = 0u64 }
+
+let minutes_text (ms : u64) : string = sm'.format (ms / 60000u64)
+
+let shared_text (progress : batch_progress) : string =
+    if progress.shared > 0i32 then " (" ++# sm'.format progress.shared ++# " share a report name, not counted)" else ""
+
+let pace_text (progress : batch_progress) (started_ms : u64) : string =
+    sm'.format ((progress.last_ms - started_ms) / convert.u64 progress.written / 1000u64) ++# " s per notebook"
+
+let batch_progress_text (progress : batch_progress) (started_ms : u64) (now_ms : u64) : string =
+    inl total = progress.written + progress.pending + progress.shared
+    inl counted = "notebook batch: " ++# sm'.format progress.written ++# " of " ++# sm'.format total ++# " written"
+    inl head = counted ++# shared_text progress
+    if progress.written = 0i32 then head ++# ", none yet after " ++# minutes_text (now_ms - started_ms) ++# " min"
+    else
+        inl ago = minutes_text (now_ms - progress.last_ms)
+        head ++# ", last " ++# progress.last_name ++# " " ++# ago ++# " min ago, ~" ++# pace_text progress started_ms
+///> rust
+test report_names_come_from_the_path_file_name =
+    expect (report_name_of "C:\\work\\repo\\src\\pkg\\grep_cli.spi" = "grep_cli.spi.ipynb") "windows path"
+    expect (report_name_of "/work/repo/src/pkg/model.spi" = "model.spi.ipynb") "unix path"
+    expect (report_name_of "\"C:\\work\\a b\\x.spi\"" = "x.spi.ipynb") "quoted path"
+
+///> rust
+test a_batch_command_yields_its_paths_and_output_dir =
+    inl command =
+        "pwsh -NoProfile -File C:\\c\\run_notebook.ps1 --path C:\\r\\src\\a\\one.spi --path C:\\r\\src\\b\\two.spi "
+        ^^ "--output-dir C:\\r\\src\\target\\spiral-tests --no-html --gate"
+    expect (am'.length (batch_paths command) = 3i32) "a head chunk plus two paths"
+    expect (batch_output_dir command = "C:\\r\\src\\target\\spiral-tests") "output dir stops at the next flag"
+    expect (batch_output_dir "pwsh run.ps1 --path x.spi" = "") "no output dir"
+
+///> rust
+test progress_counts_reports_written_since_the_batch_started =
+    inl command =
+        "pwsh run.ps1 --path C:\\r\\a\\one.spi --path C:\\r\\b\\two.spi --path C:\\r\\c\\model.spi --path "
+        ^^ "C:\\r\\d\\model.spi --path C:\\r\\e\\three.spi --output-dir C:\\out --gate"
+    inl written_of name =
+        if name = "one.spi.ipynb" then 1060000u64
+        elif name = "two.spi.ipynb" then 1180000u64
+        elif name = "three.spi.ipynb" then 900000u64
+        elif name = "model.spi.ipynb" then 1100000u64
+        else 0u64
+    inl progress = batch_progress_of command written_of 1000000u64
+    expect
+        (progress.written = 2i32 && progress.pending = 1i32 && progress.shared = 2i32)
+        "a stale report is pending and a shared name is not counted"
+    expect
+        (progress.last_name = "two.spi.ipynb" && progress.last_ms = 1180000u64)
+        "the newest written report is the last"
+    expect
+        (
+            batch_progress_text progress 1000000u64 1300000u64
+            = (
+                "notebook batch: 2 of 5 written (2 share a report name, not counted), last two.spi.ipynb 2 min "
+                ^^ "ago, ~90 s per notebook"
+            )
+        )
+        "receipt"
+    expect
+        (
+            batch_progress_text (batch_progress_of command (fun _ => 0u64) 1000000u64) 1000000u64 1180000u64
+            = "notebook batch: 0 of 5 written (2 share a report name, not counted), none yet after 3 min"
+        )
+        "nothing written yet"

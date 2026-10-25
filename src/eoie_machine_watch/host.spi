@@ -1,5 +1,5 @@
 open rust_std_string.model
-open model
+open eoie_machine_watch_model.model
 
 nominal process_rows = $'std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>'
 

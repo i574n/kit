@@ -1,0 +1,136 @@
+///- --package .
+test model static =
+    open sm'_operators
+
+open sm'_operators
+
+union eoie_role =
+    | JobHost
+    | JobSupervisor : string
+    | JobWaiter : string
+    | WindowHolder
+    | OtherCall
+
+type process_fact =
+    {
+        pid : u64
+        parent_alive : bool
+        role : eoie_role
+    }
+
+union job_standing =
+    | JobLive
+    | JobSettled
+    | JobMissing
+
+type chain_fact =
+    {
+        job : string
+        predecessor : string
+        standing : job_standing
+    }
+
+union finding =
+    | IdleOrphanHost : u64
+    | SettledButSupervised : u64 * string
+    | WaitOnSettled : u64 * string
+    | WaitOnMissing : u64 * string
+    | ChainToMissing : string * string
+    | HostEnvironmentDiffers : string
+
+inl word_after (~marker : string) (~line : string) : string =
+    inl at = sm'.index_of marker line
+    if at < 0i32 then ""
+    else
+        inl rest = sm'.substring (at + (sm'.length marker : i32)) ((sm'.length line : i32) - at - (sm'.length marker : i32)) line
+        sm'.split " " (sm'.trim rest) |> array |> am'.index 0i32 |> sm'.replace "\"" ""
+
+inl role_of (~command : string) : eoie_role =
+    if sm'.contains " job host" command then JobHost
+    elif sm'.contains " job supervise " command then JobSupervisor (word_after " job supervise " command)
+    elif sm'.contains " job wait " command then JobWaiter (word_after " job wait " command)
+    elif sm'.contains " window run " command then WindowHolder
+    else OtherCall
+
+inl hosted_jobs (processes : list process_fact) : i32 =
+    processes
+    |> listm.fold
+        fun count (process : process_fact) =>
+            match process.role with
+            | JobSupervisor _ => count + 1i32
+            | _ => count
+        0i32
+
+inl process_findings (processes : list process_fact) (standing : string -> job_standing) : list finding =
+    inl busy = hosted_jobs processes > 0i32
+    processes
+    |> listm.fold
+        fun found (process : process_fact) =>
+            match process.role with
+            | JobHost => if process.parent_alive || busy then found else IdleOrphanHost process.pid :: found
+            | JobSupervisor job => if standing job = JobSettled then SettledButSupervised (process.pid, job) :: found else found
+            | JobWaiter job =>
+                match standing job with
+                | JobSettled => WaitOnSettled (process.pid, job) :: found
+                | JobMissing => WaitOnMissing (process.pid, job) :: found
+                | JobLive => found
+            | _ => found
+        []
+    |> listm.rev
+
+inl chain_findings (chains : list chain_fact) : list finding =
+    chains
+    |> listm.fold
+        fun found (chain : chain_fact) =>
+            match chain.standing with
+            | JobMissing => ChainToMissing (chain.job, chain.predecessor) :: found
+            | _ => found
+        []
+    |> listm.rev
+
+inl steering (~name : string) : bool =
+    sm'.starts_with "EOIE_" name || sm'.starts_with "SPIRAL_" name || sm'.starts_with "CARGO_" name
+    || sm'.starts_with "RUSTUP_" name
+
+inl drift (~caller : list string) (~detached : list string) : list string =
+    inl missing_from (names : list string) (name : string) = listm'.try_find_ (fun (known : string) => known = name) names = None
+    inl added = detached |> listm'.filter fun (name : string) => steering name && missing_from caller name && not (sm'.starts_with "EOIE_JOB_" name)
+    inl dropped = caller |> listm'.filter fun (name : string) => steering name && missing_from detached name
+    inl plus = added |> listm.map fun (name : string) => "+" ++# name
+    inl minus = dropped |> listm.map fun (name : string) => "-" ++# name
+    minus |> listm.fold (fun (joined : list string) (name : string) => name :: joined) (listm.rev plus) |> listm.rev
+
+inl finding_line (item : finding) : string =
+    match item with
+    | IdleOrphanHost pid => "idle-orphan-host pid=" ++# sm'.format pid ++# " (its parent is gone and it serves no job)"
+    | SettledButSupervised (pid, job) => "settled-but-supervised pid=" ++# sm'.format pid ++# " job=" ++# job
+    | WaitOnSettled (pid, job) => "wait-on-settled pid=" ++# sm'.format pid ++# " job=" ++# job
+    | WaitOnMissing (pid, job) => "wait-on-missing pid=" ++# sm'.format pid ++# " job=" ++# job
+    | ChainToMissing (job, predecessor) => "chain-to-missing job=" ++# job ++# " after=" ++# predecessor
+    | HostEnvironmentDiffers names => "host-environment-differs " ++# names
+
+inl usage () : string =
+    "job doctor [--env] (audits eoie processes, job files and after-chains; --env also compares a detached job's "
+    ^^ "environment with this shell's; exit 1 on a finding)"
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
+///> rust
+test todays_census_is_clean_while_the_old_host_drains =
+    inl standing (job : string) : job_standing = if job = "job-9-done" then JobSettled elif job = "job-0-gone" then JobMissing else JobLive
+    inl draining = [ { pid = 34888u64; parent_alive = false; role = JobHost }; { pid = 133960u64; parent_alive = true; role = JobSupervisor "job-1-review" } ]
+    expect (process_findings draining standing = []) "a dead-parent host that still serves a job is draining, not a finding"
+    inl idle = [ { pid = 34888u64; parent_alive = false; role = JobHost } ]
+    expect (process_findings idle standing = [ IdleOrphanHost 34888u64 ]) "an orphan host with no job is a finding"
+    inl stale = [ { pid = 7u64; parent_alive = true; role = JobWaiter "job-9-done" }; { pid = 8u64; parent_alive = true; role = JobWaiter "job-0-gone" }; { pid = 9u64; parent_alive = true; role = JobSupervisor "job-9-done" } ]
+    expect ((listm.length (process_findings stale standing) : i32) = 3i32) "two stale waiters and a supervisor of a settled job"
+
+///> rust
+test role_and_chain_and_environment_drift =
+    expect (role_of "\"C:\\x\\eoie-1.exe\" job supervise job-17-a" = JobSupervisor "job-17-a") "supervisor role"
+    expect (role_of "C:\\x\\eoie.exe job wait job-17-a 30000" = JobWaiter "job-17-a") "waiter role"
+    expect (role_of "C:\\x\\eoie-1.exe job host" = JobHost) "host role"
+    expect (chain_findings [ { job = "job-2-b"; predecessor = "job-1-a"; standing = JobMissing } ] = [ ChainToMissing ("job-2-b", "job-1-a") ]) "a chain to a missing job"
+    inl caller = [ "EOIE_LEASE_POLICY"; "PATH"; "SPIRAL_CC" ]
+    inl detached = [ "PATH"; "SPIRAL_CC"; "EOIE_WINDOWS_HOME"; "CARGO_BUILD_JOBS"; "EOIE_JOB_WATCH" ]
+    expect (drift caller detached = [ "+EOIE_WINDOWS_HOME"; "+CARGO_BUILD_JOBS"; "-EOIE_LEASE_POLICY" ]) "today's 10:4x leak, read as drift"

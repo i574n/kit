@@ -20,12 +20,16 @@ enum US2 {
     US2_ScanEscaped,
 }
 fn command_line_argument_count_2() -> i32 {
-    let mut v0: i32 = (std::env::args().count() as i32) - 1;
-    v0
+    let mut v0: usize = std::env::args().count();
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    v2
 }
 fn command_line_argument_3(mut v0: i32) -> Rc<str> {
-    let mut v1: Rc<str> = Rc::<str>::from(std::env::args().nth((v0 + 1) as usize).unwrap_or_default());
-    v1.clone()
+    let mut v1: i32 = v0.wrapping_add(1i32);
+    let mut v2: usize = ((v1) as usize);
+    let mut v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
+    v3.clone()
 }
 fn argument_1(mut v0: i32) -> Rc<str> {
     let mut v1: i32 = v0.wrapping_sub(1i32);
@@ -287,20 +291,21 @@ fn authored_rows_from_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v
 }
 fn author_notes_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     let mut v3: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(format!("{}/state/agile.spi", &*v0)).unwrap_or_default().as_str());
-    let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Note ("); } LIT.with(|lit| lit.clone()) };
-    let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-    let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Note (\""); } LIT.with(|lit| lit.clone()) };
-    let mut v7: i32 = 0i32;
-    let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v9: Rc<str> = authored_rows_from_6(v3.clone(), v6.clone(), v2.clone(), v7, v8.clone());
-    let mut v10: Rc<str> = std::rc::Rc::<str>::from({ let mut rows = (v9).split(char::from(10u8)).filter(|row| !row.is_empty()).collect::<Vec<_>>(); rows.sort_by(|a, b| b.cmp(a)); rows.truncate(8i32 as usize); rows.join(&char::from(10u8).to_string()) }.as_str());
-    let mut v11: bool = v10.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    if v11 {
-        let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no notes by "); } LIT.with(|lit| lit.clone()) };
-        let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v2));
-        v13.clone()
+    let mut v4: Rc<str> = eoie_agile_records::eoie_agile_records_as_lines(&*v3);
+    let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Note ("); } LIT.with(|lit| lit.clone()) };
+    let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
+    let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Note (\""); } LIT.with(|lit| lit.clone()) };
+    let mut v8: i32 = 0i32;
+    let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v10: Rc<str> = authored_rows_from_6(v4.clone(), v7.clone(), v2.clone(), v8, v9.clone());
+    let mut v11: Rc<str> = std::rc::Rc::<str>::from({ let mut rows = (v10).split(char::from(10u8)).filter(|row| !row.is_empty()).collect::<Vec<_>>(); rows.sort_by(|a, b| b.cmp(a)); rows.truncate(8i32 as usize); rows.join(&char::from(10u8).to_string()) }.as_str());
+    let mut v12: bool = v11.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    if v12 {
+        let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no notes by "); } LIT.with(|lit| lit.clone()) };
+        let mut v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v2));
+        v14.clone()
     } else {
-        v10.clone()
+        v11.clone()
     }
 }
 fn section_shown_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US1, mut v4: i32) -> i32 {

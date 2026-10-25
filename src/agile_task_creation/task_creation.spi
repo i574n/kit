@@ -120,16 +120,16 @@ inl agile_add_failure (~reason : string) (~id : string) : i32 = stderr_failure (
 inl agile_add_success (~id : string) (~binding : string) (extras : add_extras) (before : u64) (after : u64) (elapsed : u64) : i32 =
     inl head = rust_std_string.model.concat5 "eoie agile add ok id=" id " binding=" binding (rust_std_string.model.concat5 " status=Planned progress=0" (extras_receipt extras) "" "" "")
     stdout_line (rust_std_string.model.concat5 head (measured_sizes before after elapsed) "" "" "")
-inl task_exists (~id : string) (~state : string) : bool = text_contains (rust_std_string.model.concat5 "Task (\"" id "\"," "" "") state
+inl task_listed (~id : string) (~original : string) : bool = rust_std_string.model.contains original (rust_std_string.model.concat5 "Task (\"" id "\"," "" "")
 inl agile_add (~root : string) (~id : string) kind priority difficulty (~title : string) (~tags : string) (extras : add_extras) : i32 =
     inl started = unix_ms ()
     inl state = backlog_state_path root
     match probe (unchecked state) with
     | FileMissing _ => agile_add_failure "state/agile.spi is missing" id
     | FileReadable file =>
-        if task_exists id state then agile_add_failure "a task with this id already exists" id
+        inl original = records_text (loaded_string (read_text file))
+        if task_listed id original then agile_add_failure "a task with this id already exists" id
         else
-            inl original = loaded_string (read_text file)
             inl appended = rust_std_string.model.concat5 (rust_std_string.model.trim_end_matches original "\n") "\n" (task_line id kind priority difficulty title tags extras.deps) "\n" ""
             match extras_applied appended id extras with
             | AddedRefused reason => agile_add_failure reason id

@@ -1,0 +1,13 @@
+open verdict
+
+let probe_local (name : string) (repo : string) : bool * string =
+    $'eoie_ci_probe::eoie_ci_local_version(&*!name, &*!repo)' : bool * string
+
+let rust_installed (channel : string) : bool = $'eoie_ci_probe::eoie_ci_rust_installed(&*!channel)' : bool
+
+inl main () : i32 =
+    !!!!Export(
+        "eoie_ci_parity_row",
+        ((fun (name, ci, repo) => row_of probe_local rust_installed name ci repo) : string * string * string -> string * bool)
+    )
+    0i32

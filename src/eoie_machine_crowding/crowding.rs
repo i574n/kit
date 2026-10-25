@@ -172,15 +172,16 @@ fn decimal_of_10(mut v0: Rc<str>) -> u64 {
     let mut v2: Option<u64> = method11(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US4> = closure1();
     let mut v4: Option<US4> = v2.map(|x| v3(x));
-    let mut v5: US4 = US4::US4_None;
-    let mut v6: US4 = v4.unwrap_or(v5);
-    match &v6 {
+    let mut v6: US4 = US4::US4_None;
+    let mut v7: US4 = v6.clone();
+    let mut v8: US4 = v4.unwrap_or(v7);
+    match &v8 {
         US4::US4_None => {
             0u64
         }
-        US4::US4_Some(v7) => {
-            let mut v7: u64 = *v7;
-            v7
+        US4::US4_Some(v9) => {
+            let mut v9: u64 = *v9;
+            v9
         }
     }
 }

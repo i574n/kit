@@ -149,7 +149,7 @@ inl any_planning (~filter : string) : bool = rust_std_string.model.equals filter
 inl planning_selected (~text : string) (~id : string) (at : i32) (~load : string) (~assignee : string) : bool =
     $'agile_planning_filters::eoie_agile_planning_selected_near(&*!text, &*!id, !at, &*!load, &*!assignee)' : bool
 
-inl query_passes (~query : string) (~id : string) (~tags : string) (~status : string) (settled : bool) : bool = if query = "" then true else $'agile_task_query::eoie_query_passes(&*!query, &*!id, &*!tags, &*!status, !settled)' : bool
+inl query_passes (~query : string) (~id : string) (~title : string) (~tags : string) (~status : string) (settled : bool) : bool = if query = "" then true else $'agile_task_query::eoie_query_passes(&*!query, &*!id, &*!title, &*!tags, &*!status, !settled)' : bool
 inl query_reads_deps (~query : string) : bool = if query = "" then false else $'agile_task_query::eoie_query_reads_deps(&*!query)' : bool
 inl deps_settled (~unsettled : string) (~deps : string) : bool = $'(!deps).split(char::from(44u8)).map(|dep| dep.trim()).filter(|dep| (!unsettled).lines().any(|line| line == *dep)).next().is_none()' : bool
 inl query_shown (~query : string) : string = $'agile_task_query::eoie_query_shown(&*!query)' : string
@@ -162,7 +162,7 @@ inl planning_filters_valid (~load : string) (~assignee : string) : bool =
     $'agile_planning_filters::eoie_agile_planning_filters_valid(&*!load, &*!assignee)' : bool
 
 let row_selected (text : string) (request : list_request) (row : task_row) : bool =
-    if status_selected request.status row.status && query_passes request.query row.id row.tags row.status (deps_settled request.unsettled row.deps) then
+    if status_selected request.status row.status && query_passes request.query row.id row.title row.tags row.status (deps_settled request.unsettled row.deps) then
         if any_planning request.load then
             if any_planning request.assignee then true
             else planning_selected text row.id row.at request.load request.assignee
@@ -267,7 +267,7 @@ let agile_list (~root : string) (request : list_request) : i32 =
     match probe (unchecked (backlog_state_path root)) with
     | FileMissing _ => agile_list_failure "state/agile.spi is missing"
     | FileReadable file =>
-        inl text = loaded_string (read_text file)
+        inl text = records_text (loaded_string (read_text file))
         inl length = byte_len text
         inl malformed = $'agile_task_census::eoie_agile_first_malformed_task(&*!text)' : i32
         if malformed < 0i32 then

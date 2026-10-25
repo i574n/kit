@@ -37,7 +37,7 @@ inl agile_edit (~root : string) (~id : string) (position : i32) (~field_name : s
     match probe (unchecked state) with
     | FileMissing _ => agile_edit_failure "state/agile.spi is missing" id
     | FileReadable file =>
-        inl original = loaded_string (read_text file)
+        inl original = records_text (loaded_string (read_text file))
         inl anchor = byte_find original (task_anchor id)
         if anchor < 0i32 then agile_edit_failure "no task with this id" id
         else

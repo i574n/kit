@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "eoie_table_measures"
 path = "measures.rs"
+
+[dependencies]
+eoie-table-text = { path = "../eoie_table_text" }

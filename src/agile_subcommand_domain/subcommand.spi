@@ -1,3 +1,11 @@
+///- --package .
+test subcommand static =
+    open sm'_operators
+
+open sm'_operators
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
 union agile_subcommand =
     | AgileInit
     | AgileBegin
@@ -32,7 +40,7 @@ inl agile_subcommand_spec = function
     | AgileStatus => { name = "status"; shape = "<root>" }
     | AgileHandoff => { name = "handoff"; shape = "<root>" }
     | AgileList =>
-        { name = "list"; shape = "<root> [all|Planned|Active|Blocked|Paused|Done] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--open] [--ready] [--blocked] [--sort priority|difficulty|progress] [--load light|medium|heavy|none] [--assignee agent|pair|user|none] [--json]" }
+        { name = "list"; shape = "<root> [all|Planned|Active|Blocked|Paused|Done] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--sort priority|difficulty|progress] [--load light|medium|heavy|none] [--assignee agent|pair|user|none] [--json]" }
     | AgileCheck => { name = "check"; shape = "<root> [--compiler <absolute>]" }
     | AgileRecord => { name = "record"; shape = "<root>" }
     | AgileSet => { name = "set"; shape = "<root> <id> <progress> <Planned|Active|Blocked|Paused|Done>" }
@@ -43,11 +51,11 @@ inl agile_subcommand_spec = function
     | AgilePlan => { name = "plan"; shape = "<root> [--json]" }
     | AgileMigrateTags => { name = "migrate-tags"; shape = "preview|apply <root>" }
     | AgileNote => { name = "note"; shape = "<root> <id> <text> [--as <author>]" }
-    | AgileNoteEdit => { name = "note-edit"; shape = "<root> <id> <note-number> <text> [--as <author>]" }
+    | AgileNoteEdit => { name = "note-edit"; shape = "<root> <id> <note-number> <text> [--as <author>] [--append]" }
     | AgileNotes => { name = "notes"; shape = "from-title <root> <id>" }
     | AgileRename => { name = "rename"; shape = "<root> <old-id> <new-id>" }
     | AgileTodos => { name = "todos"; shape = "<root> [<path>...] [--json] [--tagged | --id <ID>] | <root> --record" }
-    | AgileNext => { name = "next"; shape = "<root> [--as main|subagent] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--open] [--ready] [--blocked] [count]" }
+    | AgileNext => { name = "next"; shape = "<root> [--as main|subagent] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--load <loads>] [--fits] [count]" }
     | AgileRoots => { name = "roots"; shape = "<root> [add|drop <path>...]" }
     | AgileLinks => { name = "links"; shape = "<root> --memory <dir> [--json]" }
     | AgileViews => { name = "views"; shape = "<root>" }
@@ -65,9 +73,11 @@ let agile_subcommand_of (~input : string) : agile_parsed =
         AgileUnknownName
 
 let agile_subcommand_shape (~input : string) : string =
-    inl names = union_reflection.cases.union_cases_joined (fun (subcommand : agile_subcommand) => (agile_subcommand_spec subcommand).name) "|"
-    inl shapes = union_reflection.cases.union_cases_joined (fun (subcommand : agile_subcommand) => (agile_subcommand_spec subcommand).shape) "\n"
-    rust_std_string.model.pipe_lookup names shapes input
+    union_reflection.cases.union_cases_fold
+        (fun found (subcommand : agile_subcommand) =>
+            inl spec = agile_subcommand_spec subcommand
+            if found = "" && rust_std_string.model.equals input spec.name then spec.shape else found)
+        ""
 
 inl agile_subcommand_usage (separator : string) : string =
     union_reflection.cases.union_cases_joined
@@ -80,3 +90,43 @@ let agile_subcommand_known (~input : string) : i32 =
     match agile_subcommand_of input with
     | AgileKnown _ => 1i32
     | AgileUnknownName => 0i32
+
+union root_place =
+    | RootLeads
+    | RootAfterMode
+
+inl agile_root_place = function
+    | AgileMigrateTags | AgileNotes => RootAfterMode
+    | _ => RootLeads
+
+inl agile_root_index (subcommand : agile_subcommand) : i32 =
+    match agile_root_place subcommand with
+    | RootLeads => 1i32
+    | RootAfterMode => 2i32
+
+union root_operand =
+    | RootNamed : string
+    | RootFlagged : string
+
+inl agile_root_operand (~argument : string) : root_operand = if sm'.starts_with "--" argument then RootFlagged argument else RootNamed argument
+
+inl root_operand_shown = function
+    | RootNamed root => "root " ++# root
+    | RootFlagged flag => "flag " ++# flag
+
+inl agile_root_flag_refusal (subcommand : agile_subcommand) (~flag : string) : string =
+    inl spec = agile_subcommand_spec subcommand
+    "agile " ++# spec.name ++# " takes <root> before any flag, got " ++# flag ++# "; usage: agile " ++# spec.name ++# " " ++# spec.shape
+
+///> rust
+test a_flag_in_the_root_slot_is_refused_by_its_own_name =
+    expect (root_operand_shown (agile_root_operand "--team") = "flag --team") "the flag is named, not the value after it"
+    expect (root_operand_shown (agile_root_operand ".") = "root .") "a root passes"
+    expect (root_operand_shown (agile_root_operand "-x") = "root -x") "a single dash is a path"
+    expect (agile_root_index AgileNext = 1i32 && agile_root_index AgileNotes = 2i32 && agile_root_index AgileMigrateTags = 2i32) "mode words come before the root"
+    expect (sm'.starts_with "agile next takes <root> before any flag, got --team; usage: agile next <root> [--as main|subagent]" (agile_root_flag_refusal AgileNext "--team")) "the refusal carries the verb's usage"
+
+///> rust
+test agile_shapes_come_from_the_union =
+    expect (agile_subcommand_shape "show" = "<root> <id> [--json]") "a known verb's shape"
+    expect (agile_subcommand_shape "nope" = "") "an unknown verb has no shape"

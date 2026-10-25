@@ -876,12 +876,15 @@ fn receipt_line_38(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
         }
     };
     let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
-    let mut v8: Rc<str> = elapsed_text_39(v2);
-    let mut v9: Rc<str> = clock_text_40();
-    let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v11: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v7, &*v9, &*v10, &*v10].concat());
-    let mut v12: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v7, &*v1, &*v7, &*v11].concat());
-    println!("{}", &*v12);
+    let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
+    let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v1));
+    let mut v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v7));
+    let mut v11: Rc<str> = elapsed_text_39(v2);
+    let mut v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
+    let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v7));
+    let mut v14: Rc<str> = clock_text_40();
+    let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
+    println!("{}", v15);
     ()
 }
 fn facts_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {

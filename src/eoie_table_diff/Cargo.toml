@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "eoie_table_diff"
 path = "diff.rs"
+
+[dependencies]
+eoie-table-text = { path = "../eoie_table_text" }

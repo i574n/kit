@@ -14,6 +14,7 @@ name = "eoie_handoff_render"
 path = "render.rs"
 
 [dependencies]
+eoie-agile-records = { path = "../eoie_agile_records" }
 authority-state-domain = { path = "../authority_state_domain" }
 handoff-active-work-projection-domain = { path = "../handoff_active_work_projection_domain" }
 handoff-evidence-projection-domain = { path = "../handoff_evidence_projection_domain" }

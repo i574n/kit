@@ -1,6 +1,7 @@
 open sm'_operators
 open eoie_machine_watch.host
 open model
+open ownership
 
 union ps_scope =
     | EveryProcess
@@ -33,6 +34,38 @@ inl in_scope (~rows : process_rows) (scope : ps_scope) (pid : u64) : bool =
     | EveryProcess => true
     | SessionTree root => descends_from rows pid root 0i32
     | NoSession => false
+
+inl job_of_pid (~rows : process_rows) (pid : u64) : string =
+    open eoie_machine_watch_model.model
+    inl at = row_of_pid rows pid
+    if at < 0i32 then ""
+    else
+        match owner_walk rows at 0i32 with
+        | EoieJob id => id
+        | _ => ""
+
+type mine_terms =
+    {
+        rows : process_rows
+        own : u64
+        author : string
+        theirs : string
+    }
+
+union stop_guard =
+    | AnyProcess
+    | MineOnly : mine_terms
+
+let guard_refusal (guard : stop_guard) (pid : u64) : option string =
+    match guard with
+    | AnyProcess => None
+    | MineOnly terms =>
+        inl job = job_of_pid terms.rows pid
+        inl job_author = if job = "" then "" else eoie_jobs.host.text_or_empty (eoie_jobs.jobs.job_file job "author")
+        mine_verdict
+            (in_scope terms.rows (scope_of terms.rows true terms.own) pid)
+            (job_owner_of job job_author terms.author)
+            terms.theirs
 
 inl count_word (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
 

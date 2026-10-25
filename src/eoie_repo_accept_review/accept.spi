@@ -1,0 +1,30 @@
+open sm'_operators
+open review
+
+inl usage () : string =
+    "eoie error: repo usage: repo accept-review <before> <after> (passes when every changed line differs in numeric literals only)"
+
+let reviewed_files (~before_path : string) (~after_path : string) : i32 =
+    inl review = accept_review (file_system.read_all_text before_path) (file_system.read_all_text after_path)
+    inl _ = if review.report = "" then () else console.write_line review.report
+    inl verdict = if review.passed then "ok" else "refused"
+    console.write_line ("eoie repo accept-review " ++# verdict ++# " before=" ++# before_path ++# " after=" ++# after_path)
+    if review.passed then 0i32 else 1i32
+
+let accept_review_run () : i32 =
+    inl before_path = optionm'.default_value "" (env.try_command_line_argument 2i32)
+    inl after_path = optionm'.default_value "" (env.try_command_line_argument 3i32)
+    if before_path = "" || after_path = "" then
+        console.write_line (usage ())
+        2i32
+    elif file_system.file_exists before_path |> not then
+        console.write_line ("eoie error: repo accept-review: no file at " ++# before_path)
+        2i32
+    elif file_system.file_exists after_path |> not then
+        console.write_line ("eoie error: repo accept-review: no file at " ++# after_path)
+        2i32
+    else reviewed_files before_path after_path
+
+inl main () : i32 =
+    !!!!Export("eoie_repo_accept_review_run", ((fun () => accept_review_run ()) : () -> i32))
+    0i32

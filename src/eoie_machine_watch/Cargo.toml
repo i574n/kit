@@ -16,4 +16,6 @@ path = "watch.rs"
 [dependencies]
 eoie-machine-crowding = { path = "../eoie_machine_crowding" }
 eoie-job-control = { path = "../eoie_job_control" }
+eoie-machine-window-watch = { path = "../eoie_machine_window_watch" }
+eoie-notebook-progress = { path = "../eoie_notebook_progress" }
 sysinfo = "0.38.4"

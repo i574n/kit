@@ -386,7 +386,7 @@ fn row_selected_14(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: Rc<str
         if v21 {
             true
         } else {
-            let mut v22: bool = agile_task_query::eoie_query_passes(&*v6, &*v9, &*v17, &*v15, v20);
+            let mut v22: bool = agile_task_query::eoie_query_passes(&*v6, &*v9, &*v10, &*v17, &*v15, v20);
             v22
         }
     } else {
@@ -703,37 +703,38 @@ fn agile_list_1(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: Rc<str>, 
         US5::US5_FileReadable(v22) => {
             let mut v22: Rc<str> = v22.clone();
             let mut v23: Rc<str> = std::fs::read_to_string(&*v22).unwrap_or_default().into();
-            let mut v24: i32 = (v23.clone().len() as i32);
-            let mut v25: i32 = agile_task_census::eoie_agile_first_malformed_task(&*v23);
-            let mut v26: bool = v25 < 0i32;
-            if v26 {
-                let mut v27: bool = v6.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let mut v29: bool = if v27 {
+            let mut v24: Rc<str> = eoie_agile_records::eoie_agile_records_as_lines(&*v23);
+            let mut v25: i32 = (v24.clone().len() as i32);
+            let mut v26: i32 = agile_task_census::eoie_agile_first_malformed_task(&*v24);
+            let mut v27: bool = v26 < 0i32;
+            if v27 {
+                let mut v28: bool = v6.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let mut v30: bool = if v28 {
                     false
                 } else {
-                    let mut v28: bool = agile_task_query::eoie_query_reads_deps(&*v6);
-                    v28
+                    let mut v29: bool = agile_task_query::eoie_query_reads_deps(&*v6);
+                    v29
                 };
-                let mut v31: Rc<str> = if v29 {
-                    let mut v30: Rc<str> = agile_task_census::eoie_agile_unsettled_ids(&v23);
-                    v30.clone()
+                let mut v32: Rc<str> = if v30 {
+                    let mut v31: Rc<str> = agile_task_census::eoie_agile_unsettled_ids(&v24);
+                    v31.clone()
                 } else {
                     v11.clone()
                 };
-                let mut v32: std::rc::Rc<std::collections::HashMap<String, (u32, String)>> = note_index_of_21(v23.clone());
-                print_listing_2(v23.clone(), v24, v1.clone(), v2.clone(), v3.clone(), v4.clone(), v32.clone(), v6.clone(), v7.clone(), v31.clone(), v9)
+                let mut v33: std::rc::Rc<std::collections::HashMap<String, (u32, String)>> = note_index_of_21(v24.clone());
+                print_listing_2(v24.clone(), v25, v1.clone(), v2.clone(), v3.clone(), v4.clone(), v33.clone(), v6.clone(), v7.clone(), v32.clone(), v9)
             } else {
-                let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("malformed Task fields at byte "); } LIT.with(|lit| lit.clone()) };
-                let mut v35: Rc<str> = std::rc::Rc::<str>::from((v25).to_string());
-                let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (expected "); } LIT.with(|lit| lit.clone()) };
-                let mut v37: Rc<str> = std::rc::Rc::<str>::from((11i32).to_string());
-                let mut v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" fields)"); } LIT.with(|lit| lit.clone()) };
-                let mut v39: Rc<str> = std::rc::Rc::<str>::from([&*v34, &*v35, &*v36, &*v37, &*v38].concat());
-                let mut v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile list rejected: "); } LIT.with(|lit| lit.clone()) };
-                let mut v41: Rc<str> = std::rc::Rc::<str>::from([&*v40, &*v39, &*v11, &*v11, &*v11].concat());
-                let mut v42: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("eoie error: ".to_string() + &*v41 + "
+                let mut v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("malformed Task fields at byte "); } LIT.with(|lit| lit.clone()) };
+                let mut v36: Rc<str> = std::rc::Rc::<str>::from((v26).to_string());
+                let mut v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (expected "); } LIT.with(|lit| lit.clone()) };
+                let mut v38: Rc<str> = std::rc::Rc::<str>::from((11i32).to_string());
+                let mut v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" fields)"); } LIT.with(|lit| lit.clone()) };
+                let mut v40: Rc<str> = std::rc::Rc::<str>::from([&*v35, &*v36, &*v37, &*v38, &*v39].concat());
+                let mut v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile list rejected: "); } LIT.with(|lit| lit.clone()) };
+                let mut v42: Rc<str> = std::rc::Rc::<str>::from([&*v41, &*v40, &*v11, &*v11, &*v11].concat());
+                let mut v43: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("eoie error: ".to_string() + &*v42 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-                v42
+                v43
             }
         }
     }

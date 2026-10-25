@@ -1,0 +1,5 @@
+open environment
+
+inl main () : i32 =
+    !!!!Export("eoie_job_doctor_env_drift", ((fun () => env_drift ()) : () -> bool * string))
+    0i32

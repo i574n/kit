@@ -1,4 +1,3 @@
-open rust_std_string.model
 open eoie_jobs.model
 open eoie_jobs.host
 open eoie_jobs.jobs

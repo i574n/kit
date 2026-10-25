@@ -73,7 +73,7 @@ test a_waiting_request_is_granted_when_the_holder_releases =
     shows (line_starting (succeeded (window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", Arg ("--wait", Arg ("until-granted", NoArgs)))))))) "eoie window request ok") "class=compile minutes=5"
     fixture_root_remove root
 
-inl fake_gate () : string = "function Invoke-Heavy { param([scriptblock] $Command, [string] $Label) Write-Host 'Invoke-Heavy: acquired slot 1 after 0 s'; & $Command }\n"
+inl fake_gate () : string = "function Invoke-Heavy { param([scriptblock] $Command, [string] $Label, [int] $MaxMinutes) Write-Host ('Invoke-Heavy: acquired slot 1 after 0 s (held at most ' + $MaxMinutes + ' min)'); & $Command }\n"
 
 inl heavy_call (root : fixture_root) (args : cli_args) : cli_run =
     inl sets = Arg (cat "EOIE_JOBS_HOME=" (fixture_path root "jobs"), Arg (cat "EOIE_WINDOWS_HOME=" (fixture_path root "windows"), Arg ("EOIE_WINDOWS_FREE_MB=8000", Arg (cat "EOIE_HEAVY_GATE=" (fixture_path root "gate.ps1"), Arg (cat "EOIE_HEAVY_QUEUE=" (fixture_path root "queue"), Arg ("EOIE_HEAVY_MUTEX=eoie-test-heavy-mutex", NoArgs))))))
@@ -95,6 +95,8 @@ test a_heavy_job_waits_for_a_live_window_and_releases_its_own =
     shows (succeeded (heavy_call root (Arg ("wait", Arg (job, Arg ("60000", NoArgs)))))) "state=finished exit=0"
     shows (fixture_read root (cat "jobs/" (cat job "/window"))) "granted id=win-"
     shows (fixture_read root (cat "jobs/" (cat job "/slot"))) "ready ticket="
+    shows (fixture_read root (cat "jobs/" (cat job "/heavy-wrapper.ps1"))) "-MaxMinutes 1 {"
+    shows (fixture_read root (cat "jobs/" (cat job "/stdout.log"))) "held at most 1 min"
     shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "eoie window list ok windows=0"
     fixture_root_remove root
 
@@ -196,6 +198,17 @@ test a_tree_read_window_refuses_edits_under_its_root_and_never_blocks_compiles =
     shows (succeeded (requested root "compile" "next build" NoArgs)) "eoie window request ok"
     fixture_root_remove root
 
+inl dead_reader_row (~tree : string) : string = cat "win-1-4294967290-run\ttree-read\theld\t" (cat tree "\t1\t9223372036854775807")
+
+///> rust
+test a_tree_read_window_whose_holder_died_refuses_nothing =
+    inl root = fixture_root_create "window claim orphan"
+    inl tree = fixture_path root "repo"
+    fixture_write root "windows/win-1-4294967290-run.window" (dead_reader_row tree)
+    shows (succeeded (window_call root "8000" (Arg ("claim", Arg (cat tree "/src/a.spi", NoArgs))))) "edit allowed"
+    expect (path_exists (fixture_path root "windows/win-1-4294967290-run.window") = false) "the claim pruned the dead reader's row"
+    fixture_root_remove root
+
 ///> rust
 test a_compile_job_gives_up_when_no_window_comes_within_its_slot_minutes =
     inl root = fixture_root_create "window slot within"
@@ -228,4 +241,39 @@ test a_compile_hold_window_keeps_new_compiles_waiting =
     inl quick = rustc_program root "quick" "fn main() {}"
     rejected_with (heavy_call root (Arg ("start", Arg ("--quiet", Arg ("plain", Arg ("3000", Arg (quick, NoArgs))))))) 2i32 "--quiet applies to --heavy jobs"
     rejected_with (heavy_call root (Arg ("start", Arg ("--heavy", Arg ("--quiet", Arg ("--quiet-hold", Arg ("90", Arg ("long", Arg ("3000", Arg (quick, NoArgs)))))))))) 2i32 "--quiet-hold takes 1 to 60 minutes"
+    fixture_root_remove root
+
+///> rust
+test a_request_waits_for_the_memory_floor_it_asks_for =
+    inl root = fixture_root_create "window floor"
+    inl raised = window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", Arg ("--label", Arg ("cells notebook", Arg ("--min-free-mb", Arg ("9000", NoArgs))))))))
+    expect (raised.code = 1i32) (run_text raised)
+    shows raised.stdout "reason=low-memory free_mb=8000 need_mb=9000"
+    shows (succeeded (window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", Arg ("--label", Arg ("small", Arg ("--min-free-mb", Arg ("500", NoArgs)))))))))) "eoie window request ok"
+    fixture_root_remove root
+
+///> rust
+test a_compile_job_waits_for_the_memory_floor_it_declares =
+    inl root = fixture_root_create "job floor"
+    fixture_write root "gate.ps1" (fake_gate ())
+    inl quick = rustc_program root "quick" "fn main() {}"
+    inl job = word_after (succeeded (heavy_call root (Arg ("start", Arg ("--compile", Arg ("--min-free-mb", Arg ("9000", Arg ("floored", Arg ("30000", Arg (quick, NoArgs)))))))))) "id="
+    pause_ms 3000u64
+    shows (succeeded (heavy_call root (Arg ("status", Arg (job, NoArgs))))) "state=queued"
+    shows (fixture_read root (cat "jobs/" (cat job "/window"))) "need_mb=9000"
+    inl _ = succeeded (heavy_call root (Arg ("stop", Arg (job, NoArgs))))
+    rejected_with (heavy_call root (Arg ("start", Arg ("--min-free-mb", Arg ("500", Arg ("plain", Arg ("3000", Arg (quick, NoArgs)))))))) 2i32 "--min-free-mb applies to --heavy or --compile jobs"
+    rejected_with (heavy_call root (Arg ("start", Arg ("--compile", Arg ("--min-free-mb", Arg ("0", Arg ("zero", Arg ("3000", Arg (quick, NoArgs))))))))) 2i32 "--min-free-mb needs a positive number of MB"
+    rejected_with (heavy_call root (Arg ("start", Arg ("--heavy", Arg ("--done-within-typo", Arg ("5", Arg ("label", Arg ("3000", Arg (quick, NoArgs))))))))) 2i32 "unknown option --done-within-typo"
+    rejected_with (heavy_call root (Arg ("start", Arg ("label", Arg ("3000", Arg ("--heavy", NoArgs)))))) 2i32 "the program cannot start with --"
+    fixture_root_remove root
+
+///> rust
+test every_grant_and_release_lands_in_the_window_event_log =
+    inl root = fixture_root_create "window events"
+    inl id = word_after (succeeded (requested root "compile" "logged" NoArgs)) "id="
+    inl _ = succeeded (window_call root "8000" (Arg ("release", Arg (id, NoArgs))))
+    inl log = fixture_read root "windows/events.log"
+    shows log (cat "\tgranted\t" id)
+    shows log (cat "\treleased\t" id)
     fixture_root_remove root

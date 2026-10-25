@@ -1,5 +1,5 @@
 open rust_std_string.model
-open model
+open eoie_machine_watch_model.model
 open host
 open jobs_watch
 
@@ -85,6 +85,18 @@ inl sorted_busy (~lines : string) : string = $'{ let mut rows = (&*!lines).lines
     "))).collect::<Vec<_>>().join("\n")) }' : string
 inl line_total (~lines : string) : u64 = $'(&*!lines).lines().filter(|line| \!line.is_empty()).count() as u64' : u64
 
+inl notebook_batch_line (~command : string) (age_minutes : u64) : string =
+    $'eoie_notebook_progress::eoie_notebook_batch_line(&*!command, !age_minutes)' : string
+
+let rec notebook_lines (~rows : process_rows) (at : i32) (~acc : string) : string =
+    if at >= row_count rows then acc
+    else
+        inl line = notebook_batch_line (row_command rows at) (row_age rows at)
+        inl shown = if line = "" then "" else concat5 "  pid " (u64_text (row_pid rows at)) " " line ""
+        notebook_lines rows
+            (at + 1i32)
+            (if shown = "" then acc elif acc = "" then shown else concat5 acc "\n" shown "" "")
+
 let watch_run () : i32 =
     inl limits = default_limits ()
     inl given = decimal_u64 (option_value "--sample-seconds" 2i32)
@@ -106,6 +118,8 @@ let watch_run () : i32 =
     inl _ = if rogues = "" then () else stdout_line rogues
     stdout_line (concat5 "== memory hogs (>= " (u64_text limits.hog_megabytes) " MB): " (u64_text (line_total hogs)) "")
     inl _ = if hogs = "" then () else stdout_line hogs
+    inl notebooks = notebook_lines rows 0i32 ""
+    inl _ = if notebooks = "" then () else stdout_line (concat5 "== notebook batches:\n" notebooks "" "" "")
     stdout_line (jobs_and_windows limits rows)
     stdout_line (
         concat5

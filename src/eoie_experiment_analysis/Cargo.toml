@@ -14,6 +14,7 @@ name = "eoie_experiment_analysis"
 path = "analysis.rs"
 
 [dependencies]
+eoie-table-text = { path = "../eoie_table_text" }
 agile-task-notes = { path = "../agile_task_notes" }
 eoie-experiment-stats = { path = "../eoie_experiment_stats" }
 eoie-table-query = { path = "../eoie_table_query" }

@@ -1,0 +1,18 @@
+union start_shape =
+    | PlainStart
+    | HeavyStart
+    | CompileStart
+
+inl start_shape_of (~flag : string) : start_shape = if flag = "--heavy" then HeavyStart elif flag = "--compile" then CompileStart else PlainStart
+
+inl shape_offset = function
+    | PlainStart => 0i32
+    | HeavyStart => 1i32
+    | CompileStart => 1i32
+
+inl shape_word = function
+    | PlainStart => "plain"
+    | HeavyStart => "heavy"
+    | CompileStart => "compile"
+
+let shape_of_word (~word : string) : start_shape = if word = "heavy" then HeavyStart elif word = "compile" then CompileStart else PlainStart

@@ -14,5 +14,6 @@ name = "agile_task_notes"
 path = "task_notes.rs"
 
 [dependencies]
+eoie-agile-records = { path = "../eoie_agile_records" }
 agile-planning-values = { path = "../agile_planning_values" }
 agile-planning-rewrite = { path = "../agile_planning_rewrite" }

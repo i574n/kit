@@ -2,6 +2,27 @@ open sm'_operators
 open eoie_receipt.receipt
 open search
 
+union needle_hint =
+    | NoNeedleHint
+    | LiteralLooksLikePattern
+
+inl regex_syntax_in (needle : string) : bool =
+    sm'.contains "|" needle
+    || sm'.contains ".*" needle
+    || sm'.contains "[" needle
+    || sm'.starts_with "^" needle
+    || sm'.ends_with "$" needle
+
+inl needle_hint_of (regex : bool) (needle : string) : needle_hint =
+    if regex |> not && regex_syntax_in needle then LiteralLooksLikePattern else NoNeedleHint
+
+inl hint_text (hint : needle_hint) (total : i32) : string =
+    if total <> 0i32 then ""
+    else
+        match hint with
+        | NoNeedleHint => ""
+        | LiteralLooksLikePattern => "  hint: the needle is literal; pass --regex to use it as a pattern"
+
 let argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 let argument_count () : i32 = env.command_line_argument_count () + 1i32
 inl stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
@@ -40,7 +61,10 @@ let rec search_options_from (index : i32) (count : i32) (options : search_option
         else options
     else options
 
-let search_receipt (hits : search_hits) (json : bool) (context : i32) (limit : i32) (~started : u64) : i32 =
+let search_receipt
+    (hits : search_hits) (json : bool) (context : i32) (limit : i32) (hint : needle_hint) (~started : u64)
+    : i32
+    =
     inl counts = files_rendered hits json context limit 0i32 (counts_start ())
     inl searched = decimal_text (searched_files hits)
     inl matched = i32_text (hit_files hits)
@@ -57,7 +81,10 @@ let search_receipt (hits : search_hits) (json : bool) (context : i32) (limit : i
         inl summary =
             "files " ++# searched ++# " searched  " ++# matched ++# (" matched  matches " ++# (i32_text counts.total))
         receipt_line Succeeded
-            (if counts.shown < counts.total then summary ++# "  shown " ++# (i32_text counts.shown) else summary)
+            (
+                (if counts.shown < counts.total then summary ++# "  shown " ++# (i32_text counts.shown) else summary)
+                ++# hint_text hint counts.total
+            )
             started
         0i32
 
@@ -89,6 +116,7 @@ let grep_run () : i32 =
                     options.json
                     ($'!context as i32' : i32)
                     ($'!limit as i32' : i32)
+                    (needle_hint_of options.regex needle)
                     started
 
 inl main () : i32 =

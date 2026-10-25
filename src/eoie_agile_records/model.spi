@@ -1,0 +1,83 @@
+///- --package .
+test model static =
+    open sm'_operators
+
+open sm'_operators
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
+let rec depth_after (line : string) (at : i32) (count : i32) (depth : i32) (quoted : bool) : i32 =
+    if count <= at then depth
+    else
+        inl c = xml.code_point_at line at
+        inl next = at + xml.code_point_width line at
+        if quoted then
+            if c = 92u32 then depth_after line (next + 1i32) count depth true
+            elif c = 34u32 then depth_after line next count depth false
+            else depth_after line next count depth true
+        elif c = 34u32 then depth_after line next count depth true
+        elif c = 40u32 then depth_after line next count (depth + 1i32) false
+        elif c = 41u32 then depth_after line next count (depth - 1i32) false
+        else depth_after line next count depth false
+
+let paren_depth (line : string) : i32 = depth_after line 0i32 (sm'.length line : i32) 0i32 false
+
+let joined (pending : string) (line : string) : string =
+    inl piece = sm'.trim line
+    if sm'.ends_with "(" pending || sm'.starts_with ")" piece then pending ++# piece else pending ++# " " ++# piece
+
+let literals_merged (record : string) : string = sm'.replace "\" ^^ \"" "" record
+
+let rec records_into (lines : array string) (at : i32) (pending : string) (depth : i32) (out : array string) : () =
+    if am'.length lines <= at then (if pending <> "" then am'.push_back (literals_merged pending) out)
+    else
+        inl line = am'.index at lines
+        if pending = "" then
+            inl opened = paren_depth line
+            inl binding_head = sm'.starts_with "inl " (sm'.trim line) && sm'.ends_with "=" (sm'.trim line)
+            if opened > 0i32 || binding_head then records_into lines (at + 1i32) line opened out
+            else
+                am'.push_back line out
+                records_into lines (at + 1i32) "" 0i32 out
+        else
+            inl merged = joined pending line
+            inl remaining = depth + paren_depth line
+            if remaining > 0i32 then records_into lines (at + 1i32) merged remaining out
+            else
+                am'.push_back (literals_merged merged) out
+                records_into lines (at + 1i32) "" 0i32 out
+
+let records_as_lines (text : string) : string =
+    inl out : array string = am'.growable ()
+    records_into (sm'.split "\n" text |> array) 0i32 "" 0i32 out
+    sm'.concat_array "\n" out
+
+///> rust
+test single_line_records_pass_through_byte_for_byte =
+    inl text = "inl task_a () = Task (\"A\", \"title (x\", Story, 1u32)\nunion ok =\n    | Yes\n"
+    expect
+        (records_as_lines text = text)
+        "a paren inside a string does not open a record, and the final newline stays single"
+    expect (records_as_lines "no final newline" = "no final newline") "a text without a final newline gains none"
+    expect (records_as_lines "" = "") "empty text"
+
+///> rust
+test a_formatted_record_joins_back_into_one_line =
+    inl text =
+        "inl task_a () =\n    Task (\n        \"A\",\n        \"first part \"\n        ^^ \"second part\",\n"
+        ^^ "        Story\n    )\nnext line\n"
+    expect
+        (records_as_lines text = "inl task_a () = Task (\"A\", \"first part second part\", Story)\nnext line\n")
+        "the binding head, fields and split literal join into one line, no space after ( or before )"
+
+///> rust
+test a_thousand_records_join_in_one_pass =
+    inl out : array string = am'.growable ()
+    let rec fill (n : i32) : () =
+        if n > 0i32 then
+            am'.push_back "inl task_x () =\n    Task (\n        \"X\"\n    )" out
+            fill (n - 1i32)
+    fill 1000i32
+    inl formatted = sm'.concat_array "\n" out
+    inl joined_back = records_as_lines formatted
+    expect ((sm'.length joined_back : i32) = 1000i32 * 27i32 - 1i32) "1000 joined records of 26 bytes plus 999 newlines"

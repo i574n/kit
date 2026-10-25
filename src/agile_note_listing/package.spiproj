@@ -7,4 +7,5 @@ packages:
     agile_task_text
     agile_note_model
 modules:
+    note_filter
     note_listing

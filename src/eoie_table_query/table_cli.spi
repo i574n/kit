@@ -72,3 +72,12 @@ test where_compares_numbers_and_keeps_equality_exact =
     shows (succeeded (table_run root (Arg ("query", Arg ("runs.tsv", Arg ("--where", Arg ("variant!=base", Arg ("--group", Arg ("variant", NoArgs))))))))) "matched=3"
     rejected_with (table_run root (Arg ("query", Arg ("runs.tsv", Arg ("--where", Arg ("retries", NoArgs)))))) 2i32 "--where expects col=value (or col!=value"
     fixture_root_remove root
+
+///> rust
+test csv_tables_keep_quoted_commas_inside_one_cell =
+    inl root = fixture_root_create "table csv"
+    fixture_write root "quoted.csv" "\"name\",\"note\"\n\"a, b\",1\nc,2\n"
+    inl out = succeeded (table_run root (Arg ("query", Arg ("quoted.csv", Arg ("--group", Arg ("name", NoArgs))))))
+    shows out "a, b"
+    shows out "eoie table query ok total=2"
+    fixture_root_remove root

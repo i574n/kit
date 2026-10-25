@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    eoie_receipt
+    eoie_machine_watch
+    eoie_jobs
+    eoie_process_table
+modules:
+    kill

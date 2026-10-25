@@ -490,7 +490,7 @@ fn job_environment_adopted_0(mut v0: Rc<str>) -> () {
                     v36
                 };
                 let mut v38: bool = v37 == false;
-                let mut v83: US3 = if v38 {
+                let mut v86: US3 = if v38 {
                     US3::US3_None
                 } else {
                     { let _ = spiral_trace_hold(&v19); };
@@ -523,20 +523,23 @@ fn job_environment_adopted_0(mut v0: Rc<str>) -> () {
                                 v70.clone()
                             }
                         };
-                        let mut v74: i32 = ((v72.chars().count() + 14999) / 15000) as i32;
-                        let mut v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let mut v76: bool = v50 != v75 ;
-                        let mut v78: bool = if v76 {
-                            let mut v77: bool = v74 <= 1i32;
-                            v77
+                        let mut v74: usize = v72.chars().count();
+                        let mut v75: i32 = ((v74) as i32);
+                        let mut v76: i32 = v75.wrapping_add(14999i32);
+                        let mut v77: i32 = v76.wrapping_div(15000i32);
+                        let mut v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                        let mut v79: bool = v50 != v78 ;
+                        let mut v81: bool = if v79 {
+                            let mut v80: bool = v77 <= 1i32;
+                            v80
                         } else {
                             false
                         };
-                        if v78 {
+                        if v81 {
                             v56.borrow_mut().l0 = v72.clone();
                             ()
                         } else {
-                            v56.borrow_mut().l0 = v75.clone();
+                            v56.borrow_mut().l0 = v78.clone();
                             { #[cfg(target_arch = "wasm32")] spiral_trace_near_log(&v72); };
                             ()
                         }
@@ -544,8 +547,8 @@ fn job_environment_adopted_0(mut v0: Rc<str>) -> () {
                         println!("{}", v50);
                         ()
                     };
-                    let mut v81: Rc<dyn Fn(Rc<str>) -> ()> = v54.borrow().l0.clone();
-                    v81(v50.clone());
+                    let mut v84: Rc<dyn Fn(Rc<str>) -> ()> = v54.borrow().l0.clone();
+                    v84(v50.clone());
                     US3::US3_Some(v53.clone(), v54.clone(), v55.clone(), v56.clone(), v57.clone(), v58.clone())
                 };
                 ()

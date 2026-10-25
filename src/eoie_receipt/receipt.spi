@@ -1,8 +1,8 @@
 ///- --package .
 test receipt static =
-    open rust_std_string.model
+    open sm'_operators
 
-open rust_std_string.model
+open sm'_operators
 
 union receipt_outcome =
     | Succeeded
@@ -28,15 +28,12 @@ inl outcome_word = function
     | Failed => "failed"
 
 let receipt_line (outcome : receipt_outcome) (~counts : string) (~started : u64) : () =
-    inl line = concat5 (outcome_word outcome) "  " counts "  " (concat5 (elapsed_text started) "  " (clock_text ()) "" "")
-    $'println\!("{}", &*!line)' : ()
-
-inl expect (condition : bool) (~detail : string) : () = if condition then () else $'panic\!("{}", &*!detail)' : ()
+    console.write_line (outcome_word outcome ++# "  " ++# counts ++# "  " ++# elapsed_text started ++# "  " ++# clock_text ())
 
 ///> rust
 test receipt_parts_carry_elapsed_and_clock =
-    expect (contains (elapsed_text (now_ms ())) "ms") "elapsed under ten seconds is in milliseconds"
-    expect (contains (clock_text ()) ":") "clock has hour and minute"
-    expect (outcome_word Failed = "failed") "failed word"
+    testing.expect (sm'.contains "ms" (elapsed_text (now_ms ()))) "elapsed under ten seconds is in milliseconds"
+    testing.expect (sm'.contains ":" (clock_text ())) "clock has hour and minute"
+    testing.expect (outcome_word Failed = "failed") "failed word"
     inl offset = local_offset_minutes ()
-    expect (offset > (-841i64) && offset < 841i64) "offset within fourteen hours"
+    testing.expect (offset > (-841i64) && offset < 841i64) "offset within fourteen hours"

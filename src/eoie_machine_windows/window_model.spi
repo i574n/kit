@@ -168,18 +168,62 @@ let blocker_terms (~text : string) (now : u64) : string =
 union admission =
     | Admitted
     | HeldBack : string
-    | LowMemory : u64
+    | LowMemory : u64 * u64
 
-let admission_of (wanted : window_class) (~blocker : string) (free : u64) (now : u64) : admission =
+let floor_of (wanted : window_class) (min_free : u64) : u64 = if min_free > needed_mb wanted then min_free else needed_mb wanted
+
+let admission_needing (need : u64) (~blocker : string) (free : u64) (now : u64) : admission =
     if blocker <> "" then HeldBack (blocker_terms blocker now)
-    elif free < needed_mb wanted then LowMemory free
+    elif free < need then LowMemory (free, need)
     else Admitted
+
+let admission_of (wanted : window_class) (~blocker : string) (free : u64) (now : u64) : admission = admission_needing (needed_mb wanted) blocker free now
 
 let admission_terms (wanted : window_class) (verdict : admission) : string =
     match verdict with
     | Admitted => ""
     | HeldBack terms => terms
-    | LowMemory free => concat5 "reason=low-memory free_mb=" (number_text free) " need_mb=" (number_text (needed_mb wanted)) ""
+    | LowMemory (free, need) => concat5 "reason=low-memory free_mb=" (number_text free) " need_mb=" (number_text need) ""
+
+union window_event =
+    | WindowQueued
+    | WindowGranted
+    | WindowReleased
+    | WindowReleasedWaiting
+    | WindowGaveUp
+    | WindowPruned
+    | WindowDropped
+
+inl window_event_word (event : window_event) : string =
+    match event with
+    | WindowQueued => "queued"
+    | WindowGranted => "granted"
+    | WindowReleased => "released"
+    | WindowReleasedWaiting => "released-waiting"
+    | WindowGaveUp => "gave-up"
+    | WindowPruned => "pruned"
+    | WindowDropped => "dropped"
+
+inl event_line (now : u64) (event : window_event) (~row : string) : string = concat5 (number_text now) "\t" (window_event_word event) "\t" (concat5 row "\n" "" "" "")
+
+union wait_step =
+    | Granted
+    | ReleasedWhileWaiting
+    | WaitExpired
+    | KeepWaiting
+
+let wait_step_of (admitted : bool) (released : bool) (now : u64) (deadline : u64) : wait_step =
+    if released then ReleasedWhileWaiting
+    elif admitted then Granted
+    elif now >= deadline then WaitExpired
+    else KeepWaiting
+
+inl wait_step_word (step : wait_step) : string =
+    match step with
+    | Granted => "ok"
+    | ReleasedWhileWaiting => "released"
+    | WaitExpired => "blocked"
+    | KeepWaiting => "queued"
 
 inl expect (condition : bool) (~detail : string) : () = if condition then () else $'panic\!("{}", &*!detail)' : ()
 
@@ -261,3 +305,24 @@ test a_compile_hold_keeps_compiles_out_and_nothing_else =
     expect (clashes CompileHold TestSuite = false) "suites share the box"
     expect (clashes LiveGui CompileHold) "a live block still excludes it"
     expect (needed_mb CompileHold = 0u64) "the job's heavy-build window already counts its memory"
+
+///> rust
+test a_released_request_stops_waiting_even_when_it_could_be_granted =
+    expect (wait_step_word (wait_step_of true true 1000u64 5000u64) = "released") "a release wins over a grant in the same pass"
+    expect (wait_step_word (wait_step_of false true 9000u64 5000u64) = "released") "and over the deadline"
+    expect (wait_step_word (wait_step_of true false 1000u64 5000u64) = "ok") "granted"
+    expect (wait_step_word (wait_step_of false false 6000u64 5000u64) = "blocked") "past the deadline"
+    expect (wait_step_word (wait_step_of false false 1000u64 5000u64) = "queued") "still waiting"
+
+///> rust
+test a_request_can_raise_its_memory_floor_but_never_lower_it =
+    expect (floor_of Compile 0u64 = 1024u64) "the class floor by default"
+    expect (floor_of Compile 3000u64 = 3000u64) "a request raises it"
+    expect (floor_of LiveGui 1000u64 = 4096u64) "a request cannot lower it"
+    expect (admission_terms Compile (admission_needing (floor_of Compile 3000u64) "" 2500u64 1000u64) = "reason=low-memory free_mb=2500 need_mb=3000") "the refusal names the floor that held it"
+    expect (admission_terms Compile (admission_needing (floor_of Compile 3000u64) "" 3500u64 1000u64) = "") "admitted above the raised floor"
+
+///> rust
+test window_events_have_one_word_each_and_log_as_tab_separated_lines =
+    expect (union_reflection.cases.union_cases_joined (fun (event : window_event) => window_event_word event) "|" = "queued|granted|released|released-waiting|gave-up|pruned|dropped") "event words"
+    expect (event_line 5u64 WindowGranted "win-1\tcompile\theld\tlabel\t1\t2" = "5\tgranted\twin-1\tcompile\theld\tlabel\t1\t2\n") "event line"

@@ -17,4 +17,5 @@ path = "windows.rs"
 eoie-window-run = { path = "../eoie_window_run" }
 eoie-window-query = { path = "../eoie_window_query" }
 eoie-window-claim = { path = "../eoie_window_claim" }
+eoie-window-wait = { path = "../eoie_window_wait" }
 eoie-window-admission = { path = "../eoie_window_admission" }

@@ -11,6 +11,7 @@ enum US1 {
     US1_Replaced,
     US1_TemporaryWriteFailed,
     US1_RenameFailed,
+    US1_RenameFailedTemporaryKept,
     US1_ReadbackMismatch,
 }
 #[derive(Clone)]
@@ -57,19 +58,21 @@ fn migration_receipt_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
     let mut v21: u64 = v5.len() as u64;
     let mut v22: u64 = v1.len() as u64;
     let mut v23: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v6);
-    let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_before="); } LIT.with(|lit| lit.clone()) };
-    let mut v25: Rc<str> = std::rc::Rc::<str>::from((v21).to_string());
-    let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_after="); } LIT.with(|lit| lit.clone()) };
-    let mut v27: Rc<str> = std::rc::Rc::<str>::from((v22).to_string());
-    let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v29: Rc<str> = std::rc::Rc::<str>::from([&*v24, &*v25, &*v26, &*v27, &*v28].concat());
-    let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
-    let mut v31: Rc<str> = std::rc::Rc::<str>::from((v23).to_string());
-    let mut v32: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v30, &*v31, &*v28, &*v28].concat());
-    let mut v33: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v32));
-    let mut v34: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v33.to_string() + "
+    let mut v24: Rc<str> = std::rc::Rc::<str>::from((v21).to_string());
+    let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_before="); } LIT.with(|lit| lit.clone()) };
+    let mut v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v24));
+    let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_after="); } LIT.with(|lit| lit.clone()) };
+    let mut v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
+    let mut v29: Rc<str> = std::rc::Rc::<str>::from((v22).to_string());
+    let mut v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
+    let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
+    let mut v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
+    let mut v33: Rc<str> = std::rc::Rc::<str>::from((v23).to_string());
+    let mut v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v33));
+    let mut v35: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v34));
+    let mut v36: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v35.to_string() + "
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
-    v34
+    v36
 }
 fn migration_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: Rc<str>, mut v6: u64) -> i32 {
     let mut v7: bool = v2 == 0i32;
@@ -83,7 +86,7 @@ fn migration_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
         let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let mut v14: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v10, &*v11, &*v12, &*v13].concat());
         let mut v15: bool = std::fs::write(&*v14, &*v1).is_ok();
-        let mut v24: US1 = if v15 {
+        let mut v27: US1 = if v15 {
             let mut v16: bool = std::fs::rename(&*v14, &*v0).is_ok();
             if v16 {
                 let mut v17: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v1);
@@ -93,37 +96,46 @@ fn migration_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
                     US1::US1_ReadbackMismatch
                 }
             } else {
-                US1::US1_RenameFailed
+                let mut v21: bool = std::fs::remove_file(&*v14).is_ok() || !std::path::Path::new(&*v14).exists();
+                if v21 {
+                    US1::US1_RenameFailed
+                } else {
+                    US1::US1_RenameFailedTemporaryKept
+                }
             }
         } else {
             US1::US1_TemporaryWriteFailed
         };
-        match &v24 {
+        match &v27 {
             US1::US1_Replaced => {
-                let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-                migration_receipt_3(v25.clone(), v1.clone(), v2, v3, v4, v5.clone(), v6)
+                let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
+                migration_receipt_3(v28.clone(), v1.clone(), v2, v3, v4, v5.clone(), v6)
             }
             _ => {
-                let mut v32: Rc<str> = match &v24 {
+                let mut v37: Rc<str> = match &v27 {
                     US1::US1_ReadbackMismatch => {
-                        let mut v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
-                        v29.clone()
+                        let mut v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
+                        v33.clone()
                     }
                     US1::US1_RenameFailed => {
-                        let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
-                        v28.clone()
+                        let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
+                        v31.clone()
+                    }
+                    US1::US1_RenameFailedTemporaryKept => {
+                        let mut v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                        v32.clone()
                     }
                     US1::US1_TemporaryWriteFailed => {
-                        let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
-                        v27.clone()
+                        let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
+                        v30.clone()
                     }
                     _ => unreachable!(),
                 };
-                let mut v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile migrate-tags rejected: "); } LIT.with(|lit| lit.clone()) };
-                let mut v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v32));
-                let mut v35: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("eoie error: ".to_string() + &*v34 + "
+                let mut v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile migrate-tags rejected: "); } LIT.with(|lit| lit.clone()) };
+                let mut v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v37));
+                let mut v40: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("eoie error: ".to_string() + &*v39 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-                v35
+                v40
             }
         }
     }
@@ -629,37 +641,40 @@ fn tags_migration_1(mut v0: Rc<str>, mut v1: US0) -> i32 {
         US2::US2_FileReadable(v15) => {
             let mut v15: Rc<str> = v15.clone();
             let mut v16: Rc<str> = std::fs::read_to_string(&*v15).unwrap_or_default().into();
-            let mut v17: i32 = 0i32;
-            let mut v18: i32 = (v16.clone().len() as i32);
-            let mut v19: i32 = first_malformed_task_4(v16.clone(), v17, v18);
-            let mut v20: bool = v19 < 0i32;
-            if v20 {
-                let (mut v21, mut v22, mut v23, mut v24): (Rc<str>, i32, i32, i32) = fresh_migration_8(v16.clone());
-                let mut v25: i32 = 0i32;
-                let (mut v26, mut v27, mut v28, mut v29): (Rc<str>, i32, i32, i32) = migrated_from_9(v21.clone(), v22, v23, v24, v25);
+            let mut v17: Rc<str> = eoie_agile_records::eoie_agile_records_as_lines(&*v16);
+            let mut v18: i32 = 0i32;
+            let mut v19: i32 = (v17.clone().len() as i32);
+            let mut v20: i32 = first_malformed_task_4(v17.clone(), v18, v19);
+            let mut v21: bool = v20 < 0i32;
+            if v21 {
+                let (mut v22, mut v23, mut v24, mut v25): (Rc<str>, i32, i32, i32) = fresh_migration_8(v17.clone());
+                let mut v26: i32 = 0i32;
+                let (mut v27, mut v28, mut v29, mut v30): (Rc<str>, i32, i32, i32) = migrated_from_9(v22.clone(), v23, v24, v25, v26);
                 match &v1 {
                     US0::US0_MigrationApply => {
-                        migration_written_2(v5.clone(), v26.clone(), v27, v28, v29, v16.clone(), v2)
+                        migration_written_2(v5.clone(), v27.clone(), v28, v29, v30, v17.clone(), v2)
                     }
                     US0::US0_MigrationDryRun => {
-                        let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("preview"); } LIT.with(|lit| lit.clone()) };
-                        migration_receipt_3(v30.clone(), v26.clone(), v27, v28, v29, v16.clone(), v2)
+                        let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("preview"); } LIT.with(|lit| lit.clone()) };
+                        migration_receipt_3(v31.clone(), v27.clone(), v28, v29, v30, v17.clone(), v2)
                     }
                 }
             } else {
-                let mut v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("malformed Task fields"); } LIT.with(|lit| lit.clone()) };
-                let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile migrate-tags rejected: "); } LIT.with(|lit| lit.clone()) };
-                let mut v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile migrate-tags rejected: malformed Task fields"); } LIT.with(|lit| lit.clone()) };
-                let mut v38: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("eoie error: ".to_string() + &*v37 + "
+                let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("malformed Task fields"); } LIT.with(|lit| lit.clone()) };
+                let mut v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile migrate-tags rejected: "); } LIT.with(|lit| lit.clone()) };
+                let mut v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile migrate-tags rejected: malformed Task fields"); } LIT.with(|lit| lit.clone()) };
+                let mut v39: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("eoie error: ".to_string() + &*v38 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-                v38
+                v39
             }
         }
     }
 }
 fn command_line_argument_count_23() -> i32 {
-    let mut v0: i32 = (std::env::args().count() as i32) - 1;
-    v0
+    let mut v0: usize = std::env::args().count();
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    v2
 }
 fn argument_count_22() -> i32 {
     let mut v0: i32 = command_line_argument_count_23();

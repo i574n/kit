@@ -14,5 +14,9 @@ name = "agile_task_next"
 path = "task_next.rs"
 
 [dependencies]
+eoie-agile-records = { path = "../eoie_agile_records" }
 agile-task-query = { path = "../agile_task_query" }
 agile-planning-fields = { path = "../agile_planning_fields" }
+agile-planning-filters = { path = "../agile_planning_filters" }
+eoie-window-query = { path = "../eoie_window_query" }
+eoie-agile-next-args = { path = "../eoie_agile_next_args" }

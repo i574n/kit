@@ -14,5 +14,6 @@ name = "eoie_process_table"
 path = "process_table.rs"
 
 [dependencies]
+eoie-process-kill = { path = "../eoie_process_kill" }
 regex = "1.13.1"
 sysinfo = "0.38.4"

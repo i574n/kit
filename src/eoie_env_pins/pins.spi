@@ -1,0 +1,57 @@
+///- --package .
+test pins static =
+    open sm'_operators
+
+open sm'_operators
+
+type tool_pin =
+    {
+        tool : string
+        path : string
+    }
+
+union pin_drift =
+    | Matches
+    | Shadowed : string
+    | Elsewhere : string
+    | Missing
+
+inl path_key (~path : string) : string = sm'.to_lower (sm'.replace "\\" "/" path)
+
+let rec listed (found : list string) (~path : string) : bool =
+    match found with
+    | Nil => false
+    | Cons (first, rest) => if path_key first = path_key path then true else listed rest path
+
+let drift_of (pin : tool_pin) (found : list string) : pin_drift =
+    match found with
+    | Nil => Missing
+    | Cons (first, _) =>
+        if path_key first = path_key pin.path then Matches
+        elif listed found pin.path then Shadowed first
+        else Elsewhere first
+
+inl drift_text (pin : tool_pin) (drift : pin_drift) : string =
+    match drift with
+    | Matches => pin.tool ++# " ok " ++# pin.path
+    | Shadowed first => pin.tool ++# " shadowed: " ++# first ++# " comes first on PATH, pinned " ++# pin.path
+    | Elsewhere first => pin.tool ++# " unpinned: PATH finds " ++# first ++# ", and the pinned " ++# pin.path ++# " is not on PATH"
+    | Missing => pin.tool ++# " missing: no " ++# pin.tool ++# " on PATH, pinned " ++# pin.path
+
+inl holds (drift : pin_drift) : bool =
+    match drift with
+    | Matches => true
+    | _ => false
+
+inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
+
+inl gcc () : tool_pin = { tool = "gcc"; path = "C:\\tools\\gcc-15.2\\bin\\gcc.exe" }
+
+///> rust
+test the_first_tool_on_path_decides_whether_a_pin_holds =
+    expect (drift_of (gcc ()) (Cons ("c:/tools/gcc-15.2/bin/gcc.exe", Nil)) = Matches) "the pinned copy comes first"
+    expect (drift_of (gcc ()) (Cons ("C:\\tools\\mingw-16.2\\bin\\gcc.exe", Cons ("C:\\tools\\gcc-15.2\\bin\\gcc.exe", Nil))) = Shadowed "C:\\tools\\mingw-16.2\\bin\\gcc.exe") "an earlier copy shadows the pin"
+    expect (drift_of (gcc ()) (Cons ("C:\\tools\\mingw-16.2\\bin\\gcc.exe", Nil)) = Elsewhere "C:\\tools\\mingw-16.2\\bin\\gcc.exe") "another copy, and the pinned one is not on PATH"
+    expect (drift_of (gcc ()) Nil = Missing) "no gcc anywhere"
+    expect (drift_text (gcc ()) (Shadowed "C:\\m\\gcc.exe") = "gcc shadowed: C:\\m\\gcc.exe comes first on PATH, pinned C:\\tools\\gcc-15.2\\bin\\gcc.exe") "text"
+    expect (holds Matches && holds Missing = false) "only a matching pin holds"

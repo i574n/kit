@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "table_text.rs"
+
+[package]
+name = "eoie-table-text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "eoie_table_text"
+path = "table_text.rs"

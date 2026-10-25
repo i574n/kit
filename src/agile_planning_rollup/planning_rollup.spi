@@ -125,7 +125,7 @@ let planning_rollup (~root : string) (format : rollup_format) : i32 =
     inl started = unix_ms ()
     match probe (unchecked (backlog_state_path root)) with
     | FileMissing _ => planning_rollup_failure "state/agile.spi is missing"
-    | FileReadable file => print_rollup (loaded_string (read_text file)) format started
+    | FileReadable file => print_rollup (records_text (loaded_string (read_text file))) format started
 
 inl rollup_format_of (~flag : string) : validation_result rollup_format =
     if (flag = "--json") then Valid RollupJson else Invalid
