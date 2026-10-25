@@ -5,9 +5,10 @@ test chain static =
 open sm'_operators
 open eoie_job_after_model.model
 
-let rec arguments_from (index : i32) (count : i32) (found : list string) : list string =
-    if count <= index then listm.rev found
-    else arguments_from (index + 1i32) count (optionm'.default_value "" (env.try_command_line_argument index) :: found)
+let captured (~program : string) (arguments : list string) : option string =
+    process.try_capture_combined_list program arguments
+
+let printed_trimmed (output : string) : () = console.write_line (sm'.trim output)
 
 let rec chain_started
     (~program : string) (mode : after_mode) (~previous : string) (links : list (list string)) (ids : list string)
@@ -23,8 +24,7 @@ let rec chain_started
         )
         0i32
     | link :: rest =>
-        inl output =
-            optionm'.default_value "" (process.try_capture_combined_list program (start_arguments mode previous link))
+        inl output = optionm'.default_value "" (captured program (start_arguments mode previous link))
         inl id = started_id output
         if id = "" then
             console.write_error_line (
@@ -37,16 +37,30 @@ let rec chain_started
             )
             2i32
         else
-            console.write_line (sm'.trim output)
+            printed_trimmed output
             chain_started program mode id rest (id :: ids)
+
+let serial_started (~program : string) (plan : chain_plan) : i32 =
+    match links_timeout plan.links 0u64 with
+    | None =>
+        console.write_error_line "eoie error: job chain refused: every --serial link needs a positive <timeout-ms>"
+        2i32
+    | Some total =>
+        inl arguments = serial_start_arguments plan.head program total plan.links
+        match captured program arguments with
+        | Some output =>
+            printed_trimmed output
+            0i32
+        | None =>
+            console.write_error_line "eoie error: job chain could not start its serial job"
+            2i32
 
 let chain_run () : i32 =
     match chain_of (arguments_from 2i32 (env.command_line_argument_count ()) []) with
     | ChainRefused reason =>
         console.write_error_line ("eoie error: job chain refused: " ++# reason)
         2i32
-    | ChainPlanned plan => chain_started (env.current_executable ()) plan.mode plan.first plan.links []
-
-///> rust
-test an_empty_argument_range_reads_as_no_arguments =
-    expect ((listm.length (arguments_from 99i32 0i32 []) : i32) = 0i32) "no arguments past the count"
+    | ChainPlanned plan =>
+        inl program = env.current_executable ()
+        if plan.head.serial then serial_started program plan
+        else chain_started program plan.head.mode plan.head.first plan.links []

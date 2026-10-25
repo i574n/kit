@@ -26,22 +26,14 @@ type task_row =
 
 union status_filter =
     | AllStatuses
-    | OnlyStatus : agile_mutation_policy.model.agile_status
+    | OnlyStatus : string
 
 let status_text (status : agile_mutation_policy.model.agile_status) : string = agile_mutation_policy.model.agile_case_text status
-
-let parse_status_filter (~text : string) : validation_result status_filter =
-    if text = "all" then Valid AllStatuses
-    else
-        union_reflection.cases.union_case_where
-            (fun (status : agile_mutation_policy.model.agile_status) => text = status_text status)
-            (fun status => Valid (OnlyStatus status))
-            Invalid
 
 let status_selected (filter : status_filter) (~status : string) : bool =
     match filter with
     | AllStatuses => true
-    | OnlyStatus wanted => status_text wanted = status
+    | OnlyStatus wanted => wanted = status
 
 inl unquoted (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
 inl progress_digits (~token : string) : string = rust_std_string.model.replace token "u32" ""
@@ -108,12 +100,8 @@ inl sort_word (sort : list_sort) : string =
     | SortDifficulty => "difficulty"
     | SortProgress => "progress"
 
-union sort_parse =
-    | SortKnown : list_sort
-    | SortUnknown
-
-inl sort_of_word (~word : string) : sort_parse =
-    union_reflection.cases.union_case_where (fun (sort : list_sort) => word = sort_word sort) (fun sort => SortKnown sort) SortUnknown
+inl sort_of_word (~word : string) : list_sort =
+    if word = "difficulty" then SortDifficulty elif word = "progress" then SortProgress else SortPriority
 
 type list_request =
     {
@@ -153,8 +141,6 @@ inl query_passes (~query : string) (~id : string) (~title : string) (~tags : str
 inl query_reads_deps (~query : string) : bool = if query = "" then false else $'agile_task_query::eoie_query_reads_deps(&*!query)' : bool
 inl deps_settled (~unsettled : string) (~deps : string) : bool = $'(!deps).split(char::from(44u8)).map(|dep| dep.trim()).filter(|dep| (!unsettled).lines().any(|line| line == *dep)).next().is_none()' : bool
 inl query_shown (~query : string) : string = $'agile_task_query::eoie_query_shown(&*!query)' : string
-inl query_flag_width (~argument : string) (~value : string) : i32 = $'agile_task_query::eoie_query_flag_width(&*!argument, &*!value)' : i32
-inl query_flag_refusal (~argument : string) (~value : string) : string = $'agile_task_query::eoie_query_flag_refusal(&*!argument, &*!value)' : string
 inl query_usage () : string = $'agile_task_query::eoie_query_usage()' : string
 inl query_appended (~query : string) (~argument : string) (~value : string) : string = rust_std_string.model.concat5 query (if query = "" then "" else " ") argument (if value = "" then "" else " ") value
 
@@ -211,7 +197,7 @@ inl i32_sum a b : i32 = $"!a + !b"
 let filter_text (filter : status_filter) : string =
     match filter with
     | AllStatuses => "all"
-    | OnlyStatus status => status_text status
+    | OnlyStatus status => status
 
 inl agile_list_failure (~reason : string) : i32 = stderr_failure (rust_std_string.model.concat5 "agile list rejected: " reason "" "" "")
 
@@ -275,48 +261,15 @@ let agile_list (~root : string) (request : list_request) : i32 =
             print_listing text length { request with notes = note_index_of text; unsettled = unsettled } started
         else malformed_task_failure malformed
 
-union list_parse =
-    | ListParsed : list_request
-    | ListRejected : string
-
-inl invalid_filter_reason (~argument : string) : string =
-    rust_std_string.model.concat5 "invalid agile status filter: " argument " (expected all, Planned, Active, Blocked, Paused or Done; or " (query_usage ()) ", --sort priority|difficulty|progress)"
-
-inl planning_filter_reason () : string = "invalid planning filter (expected --load light|medium|heavy|none and --assignee agent|pair|user|none)"
-
-let json_request (request : list_request) : list_request = { request with format = JsonFormat }
-
-let rec list_request_from (index : i32) (count : i32) (request : list_request) : list_parse =
-    if count <= index then
-        if planning_filters_valid request.load request.assignee then ListParsed request
-        else ListRejected (planning_filter_reason ())
-    else
-        inl argument = argument_owned index
-        if rust_std_string.model.equals argument "--json" then list_request_from (index + 1i32) count (json_request request)
-        elif rust_std_string.model.equals argument "--load" then list_request_from (index + 2i32) count { request with load = argument_owned (index + 1i32) }
-        elif rust_std_string.model.equals argument "--assignee" then list_request_from (index + 2i32) count { request with assignee = argument_owned (index + 1i32) }
-        elif rust_std_string.model.equals argument "--sort" then
-            inl word = argument_owned (index + 1i32)
-            match sort_of_word word with
-            | SortKnown sort => list_request_from (index + 2i32) count { request with sort = sort }
-            | SortUnknown => ListRejected (rust_std_string.model.concat5 "--sort expects " (union_reflection.cases.union_cases_joined sort_word "|") ", got " word "")
-        else
-            inl value = argument_owned (index + 1i32)
-            inl width = query_flag_width argument value
-            if width > 0i32 then list_request_from (index + width) count { request with query = query_appended request.query argument (if width = 2i32 then value else "") }
-            elif width < 0i32 then ListRejected (query_flag_refusal argument value)
-            else
-                match parse_status_filter argument with
-                | Valid filter => list_request_from (index + 1i32) count { request with status = filter }
-                | Invalid => ListRejected (invalid_filter_reason argument)
-
-let default_list_request () : list_request = { status = AllStatuses; load = "all"; assignee = "all"; format = TableFormat; notes = empty_note_index (); query = ""; sort = SortPriority; unsettled = "" }
-
 let agile_list_entry () : i32 =
-    match list_request_from 2i32 (argument_count ()) (default_list_request ()) with
-    | ListParsed request => agile_list (argument_owned 1i32) request
-    | ListRejected reason => agile_list_failure reason
-
+    inl ok, reason, status, load, assignee, json, query, sort =
+        $'eoie_agile_list_args::eoie_agile_list_request()' : bool * string * string * string * string * bool * string * string
+    if ok then
+        inl filter = if status = "all" then AllStatuses else OnlyStatus status
+        inl format = if json then JsonFormat else TableFormat
+        inl request = { status = filter; load = load; assignee = assignee; format = format; notes = empty_note_index (); query = query; sort = sort_of_word sort; unsettled = "" }
+        agile_list (argument_owned 1i32) request
+    else agile_list_failure reason
 inl main () : i32 =
     !!!!Export("eoie_agile_list_run", ((fun () => agile_list_entry ()) : () -> i32))
     inl _ = agile_list_entry ()

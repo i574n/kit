@@ -1,0 +1,69 @@
+inl argument_owned index : string = rust_std_env.model.argument_owned index
+inl argument_count () : i32 = $'std::env::args().skip(2).count() as i32' : i32
+
+inl query_flag_width (~argument : string) (~value : string) : i32 = $'agile_task_query::eoie_query_flag_width(&*!argument, &*!value)' : i32
+inl query_flag_refusal (~argument : string) (~value : string) : string = $'agile_task_query::eoie_query_flag_refusal(&*!argument, &*!value)' : string
+inl query_usage () : string = $'agile_task_query::eoie_query_usage()' : string
+inl query_appended (~query : string) (~argument : string) (~value : string) : string =
+    rust_std_string.model.concat5 query (if query = "" then "" else " ") argument (if value = "" then "" else " ") value
+
+inl planning_filters_valid (~load : string) (~assignee : string) : bool =
+    $'agile_planning_filters::eoie_agile_planning_filters_valid(&*!load, &*!assignee)' : bool
+
+let status_word_known (~text : string) : bool =
+    text = "all"
+    || union_reflection.cases.union_case_where
+        (fun (status : agile_mutation_policy.model.agile_status) => text = agile_mutation_policy.model.agile_case_text status)
+        (fun _ => true)
+        false
+
+inl sort_known (~word : string) : bool = word = "priority" || word = "difficulty" || word = "progress"
+
+type list_args =
+    {
+        status : string
+        load : string
+        assignee : string
+        json : bool
+        query : string
+        sort : string
+    }
+
+union list_parse =
+    | ListParsed : list_args
+    | ListRejected : string
+
+inl invalid_filter_reason (~argument : string) : string =
+    rust_std_string.model.concat5 "invalid agile status filter: " argument " (expected all, Planned, Active, Blocked, Paused or Done; or " (query_usage ()) ", --sort priority|difficulty|progress)"
+
+inl planning_filter_reason () : string = "invalid planning filter (expected --load light|medium|heavy|none and --assignee agent|pair|user|none)"
+
+let rec list_args_from (index : i32) (count : i32) (request : list_args) : list_parse =
+    if count <= index then
+        if planning_filters_valid request.load request.assignee then ListParsed request
+        else ListRejected (planning_filter_reason ())
+    else
+        inl argument = argument_owned index
+        if argument = "--json" then list_args_from (index + 1i32) count { request with json = true }
+        elif argument = "--load" then list_args_from (index + 2i32) count { request with load = argument_owned (index + 1i32) }
+        elif argument = "--assignee" then list_args_from (index + 2i32) count { request with assignee = argument_owned (index + 1i32) }
+        elif argument = "--sort" then
+            inl word = argument_owned (index + 1i32)
+            if sort_known word then list_args_from (index + 2i32) count { request with sort = word }
+            else ListRejected (rust_std_string.model.concat5 "--sort expects priority|difficulty|progress, got " word "" "" "")
+        else
+            inl value = argument_owned (index + 1i32)
+            inl width = query_flag_width argument value
+            if width > 0i32 then list_args_from (index + width) count { request with query = query_appended request.query argument (if width = 2i32 then value else "") }
+            elif width < 0i32 then ListRejected (query_flag_refusal argument value)
+            elif status_word_known argument then list_args_from (index + 1i32) count { request with status = argument }
+            else ListRejected (invalid_filter_reason argument)
+
+let list_request () : bool * string * string * string * string * bool * string * string =
+    match list_args_from 2i32 (argument_count ()) { status = "all"; load = "all"; assignee = "all"; json = false; query = ""; sort = "priority" } with
+    | ListParsed request => true, "", request.status, request.load, request.assignee, request.json, request.query, request.sort
+    | ListRejected reason => false, reason, "", "", "", false, "", ""
+
+inl main () : i32 =
+    !!!!Export("eoie_agile_list_request", ((fun () => list_request ()) : () -> bool * string * string * string * string * bool * string * string))
+    0i32

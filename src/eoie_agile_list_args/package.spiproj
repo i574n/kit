@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    rust_std_env
+    rust_std_string
+    agile_mutation_policy
+    union_reflection
+modules:
+    args

@@ -66,10 +66,17 @@ inl usage () : string =
     "job after <queued-id> <predecessor-id> [--ok] (re-points a job still waiting on --after/--after-ok; label, "
     ^^ "timeout, gate and command are kept)"
 
-type chain_plan =
+type chain_head =
     {
         mode : after_mode
         first : string
+        serial : bool
+        runner : bool
+    }
+
+type chain_plan =
+    {
+        head : chain_head
         links : list (list string)
     }
 
@@ -78,8 +85,9 @@ union chain_parse =
     | ChainRefused : string
 
 inl chain_usage () : string =
-    "job chain [--ok] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job "
-    ^^ "after the previous one, --after-ok with --ok, and prints every id)"
+    "job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each "
+    ^^ "job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside "
+    ^^ "one job, so a waiting link holds no process)"
 
 let rec segments (args : list string) (current : list string) (found : list (list string)) : list (list string) =
     match args with
@@ -87,15 +95,18 @@ let rec segments (args : list string) (current : list string) (found : list (lis
     | arg :: rest =>
         if arg = "--" then segments rest [] (listm.rev current :: found) else segments rest (arg :: current) found
 
-inl head_of (head : list string) : option (after_mode * string) =
-    match head with
-    | [] => Some (AfterAny, "")
-    | only :: [] =>
-        if only = "--ok" then Some (AfterOk, "")
-        elif sm'.starts_with "job-" only then Some (AfterAny, only)
+let rec head_from (words : list string) (head : chain_head) : option chain_head =
+    match words with
+    | [] => Some head
+    | word :: rest =>
+        if word = "--ok" then head_from rest { head with mode = AfterOk }
+        elif word = "--serial" then head_from rest { head with serial = true }
+        elif word = "--run-serial" then head_from rest { head with runner = true }
+        elif head.first = "" && sm'.starts_with "job-" word then head_from rest { head with first = word }
         else None
-    | flag :: id :: [] => if flag = "--ok" && sm'.starts_with "job-" id then Some (AfterOk, id) else None
-    | _ => None
+
+inl head_of (words : list string) : option chain_head =
+    head_from words { mode = AfterAny; first = ""; serial = false; runner = false }
 
 let rec short_link (links : list (list string)) (index : i32) : i32 =
     match links with
@@ -108,12 +119,13 @@ inl chain_of (args : list string) : chain_parse =
     | head :: links =>
         match head_of head with
         | None => ChainRefused (chain_usage ())
-        | Some (mode, first) =>
+        | Some parsed =>
             inl short = short_link links 1i32
             if (listm.length links : i32) = 0i32 then ChainRefused ("no job to start; " ++# chain_usage ())
             elif short > 0i32
             then ChainRefused ("link " ++# sm'.format short ++# " needs <label> <timeout-ms> <program> [args...]")
-            else ChainPlanned { mode = mode; first = first; links = links }
+            elif parsed.serial && parsed.runner then ChainRefused "--serial and --run-serial exclude each other"
+            else ChainPlanned { head = parsed; links = links }
 
 inl after_flag (mode : after_mode) : string =
     match mode with
@@ -129,6 +141,51 @@ inl started_id (~output : string) : string =
     else
         inl rest = sm'.substring (at + 3i32) ((sm'.length output : i32) - at - 3i32) output
         sm'.split " " rest |> array |> am'.index 0i32 |> sm'.trim
+
+let rec links_timeout (links : list (list string)) (total : u64) : option u64 =
+    match links with
+    | [] => Some total
+    | (_ :: timeout :: _) :: rest =>
+        match sm'.decimal_i32 timeout with
+        | Some ms => if ms > 0i32 then links_timeout rest (total + convert.u64 ms) else None
+        | None => None
+    | _ :: _ => None
+
+let rec list_joined (front : list string) (back : list string) : list string =
+    match front with
+    | [] => back
+    | word :: rest => word :: list_joined rest back
+
+let rec links_flattened (links : list (list string)) : list string =
+    match links with
+    | [] => []
+    | link :: rest => "--" :: list_joined link (links_flattened rest)
+
+inl serial_label (links : list (list string)) : string =
+    match links with
+    | (label :: _) :: _ => label ++# "-serial"
+    | _ => "chain-serial"
+
+inl ok_flags (mode : after_mode) : list string =
+    match mode with
+    | AfterOk => [ "--ok" ]
+    | AfterAny => []
+
+inl serial_start_arguments (head : chain_head) (~program : string) (total : u64) links : list string =
+    inl runner = "job" :: "chain" :: "--run-serial" :: ok_flags head.mode
+    inl link = serial_label links :: sm'.format total :: program :: list_joined runner (links_flattened links)
+    start_arguments head.mode head.first link
+
+inl run_arguments (link : list string) : list string = "job" :: "run" :: link
+
+inl continues_after (mode : after_mode) (succeeded : bool) : bool =
+    match mode with
+    | AfterAny => true
+    | AfterOk => succeeded
+
+let rec arguments_from (index : i32) (count : i32) (found : list string) : list string =
+    if count <= index then listm.rev found
+    else arguments_from (index + 1i32) count (optionm'.default_value "" (env.try_command_line_argument index) :: found)
 
 inl expect (condition : bool) (~detail : string) : () = if condition then () else failwith detail
 
@@ -167,13 +224,13 @@ test a_chain_reads_its_head_and_links =
     inl planned = chain_of [ "--ok"; "job-1-a"; "--"; "b"; "60000"; "pwsh"; "-c"; "1"; "--"; "c"; "60000"; "cmd" ]
     match planned with
     | ChainPlanned plan =>
-        expect (plan.mode = AfterOk && plan.first = "job-1-a") "head"
+        expect (plan.head.mode = AfterOk && plan.head.first = "job-1-a" && plan.head.serial = false) "head"
         expect ((listm.length plan.links : i32) = 2i32) "two links"
         match plan.links with
         | first_link :: _ =>
             expect
                 (
-                    start_arguments plan.mode plan.first first_link
+                    start_arguments plan.head.mode plan.head.first first_link
                     = [ "job"; "start"; "--after-ok"; "job-1-a"; "b"; "60000"; "pwsh"; "-c"; "1" ]
                 )
                 "first start"
@@ -188,3 +245,29 @@ test a_chain_reads_its_head_and_links =
         (started_id "eoie job start ok id=job-17-b supervisor_pid=9 timeout_ms=60000\n" = "job-17-b")
         "id from the start receipt"
     expect (started_id "eoie error: job --after names no job" = "") "no id"
+
+inl two_links () : list (list string) = [ [ "gate"; "60000"; "pwsh"; "-c"; "1" ]; [ "land"; "30000"; "cmd" ] ]
+
+///> rust
+test a_serial_chain_is_one_job_whose_links_run_in_order =
+    inl words = [ "--serial"; "--ok"; "--"; "gate"; "60000"; "pwsh"; "-c"; "1"; "--"; "land"; "30000"; "cmd" ]
+    match chain_of words with
+    | ChainPlanned plan =>
+        expect (plan.head.serial && plan.head.mode = AfterOk && plan.head.first = "") "serial head"
+        expect (links_timeout plan.links 0u64 = Some 90000u64) "the one job's limit is the sum of its links"
+        inl started = serial_start_arguments plan.head "eoie" 90000u64 plan.links
+        inl runner = [ "job"; "start"; "gate-serial"; "90000"; "eoie"; "job"; "chain"; "--run-serial"; "--ok"; "--" ]
+        inl flattened = [ "gate"; "60000"; "pwsh"; "-c"; "1"; "--"; "land"; "30000"; "cmd" ]
+        expect (started = list_joined runner flattened) "start"
+    | ChainRefused reason => failwith reason
+    expect (links_timeout [ [ "gate"; "soon"; "cmd" ] ] 0u64 = None) "a link limit must be a number"
+    inl land = [ "land"; "30000"; "cmd" ]
+    expect (run_arguments land = "job" :: "run" :: land) "each link is a job run"
+    expect (continues_after AfterOk false = false && continues_after AfterAny false) "--ok stops at the first failure"
+    inl both = chain_of [ "--serial"; "--run-serial"; "--"; "a"; "1"; "b" ]
+    expect (both = ChainRefused "--serial and --run-serial exclude each other") "modes"
+    expect (serial_label (two_links ()) = "gate-serial") "the job is named after its first link"
+
+///> rust
+test an_empty_argument_range_reads_as_no_arguments =
+    expect ((listm.length (arguments_from 99i32 0i32 []) : i32) = 0i32) "no arguments past the count"

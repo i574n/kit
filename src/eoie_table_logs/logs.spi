@@ -163,7 +163,7 @@ let values_run (~paths : string) (~glob : string) (~since : string) (~out : stri
     if missing <> "" then failed ("no such file or directory: " ++# missing)
     else table_written out quiet ("file\t" ++# name ++# "\n" ++# body) ("eoie table logs ok files=" ++# (count_text files) ++# " rows=" ++# (count_text rows) ++# " columns=1")
 
-inl logs_usage () : string = "usage: table logs <file|dir>... [--glob *.log] [--since regex] (--count name=regex | --count-by name=regex | --sum name=regex | --last name=regex | --field name=regex-on-the-file-path)... | --values name=regex alone (one row per match) [--out file.tsv] [--quiet]"
+inl logs_usage () : string = "usage: table logs <file|dir>... [--glob *.log] [--since regex] (--count name=regex | --count-by name=regex | --sum name=regex | --last name=regex | --field name=regex-on-the-file-path)... | --values name=regex alone (one row per match; to pair a per-file id with a value, use --field for the id and --last for the value) [--out file.tsv] [--quiet]"
 
 let logs_run () : i32 =
     match options_from 3i32 (argument_count ()) { paths = ""; glob = ""; out = ""; since = ""; quiet = false; list = NoMeasures } with

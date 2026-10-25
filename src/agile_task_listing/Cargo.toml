@@ -19,3 +19,4 @@ agile-task-query = { path = "../agile_task_query" }
 agile-task-census = { path = "../agile_task_census" }
 agile-planning-fields = { path = "../agile_planning_fields" }
 agile-planning-filters = { path = "../agile_planning_filters" }
+eoie-agile-list-args = { path = "../eoie_agile_list_args" }

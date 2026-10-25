@@ -1292,3 +1292,58 @@ usage: eoie env check <tool>=<pinned-path>... (each tool is looked up on PATH in
 Every direct verb has exactly one help line, chosen by its own case: a new verb does not compile without one, and verbs that share a grammar (read, lines and grep; ps and kill) share one line. (eoie, EOIE-UNION-REFLECTION note 34.)
 
 ---
+
+## 48. Host macros that carry logic Spiral should own (walk + classify: the macro-rule.ps1 census, new verb lint macros)
+
+Habit (abbreviated): a scratch classifier greps every .spi for `$'...'`, flags flow, casts and arithmetic by regex, misreads type text such as `Rc<dyn Fn()>` as flow, and counts only tracked files, so new untracked modules slip through.
+
+```fixture
+lib/sample.spi
+inl ok (x : i32) : i32 = $'!x'
+inl widen (x : i32) : i64 = $'!x as i64'
+inl pick (b : bool) : i32 = $'if !b { 1 } else { 0 }'
+inl sum (a : i32) (b : i32) : i32 = $'!a + !b'
+nominal callback = $'Rc<dyn Fn()>'
+```
+
+```command
+eoie lint macros . lib
+```
+
+```expected
+lib/sample.spi:2  widen  cast   $'!x as i64'
+lib/sample.spi:3  pick   flow   $'if !b { 1 } else { 0 }'
+lib/sample.spi:4  sum    arith  $'!a + !b'
+failed  files 1  macros 5  violations 3  new 3  <elapsed>  <clock>
+```
+
+Classes: long (macro text over 120 characters), flow (if, else, match, for, while, loop, let, return, fn, =>, -> or ; in a term macro), cast (`as T`), arith (an operator between splices or literals), block (a triple-quoted global). Line 5 is the positive control: `->` and `dyn` in a type-position macro (a nominal body) are not flow. Named one-expression boundary primitives that a package's standards.spi allows are exempt. (main, GRANULAR-LINT note 3.)
+
+---
+
+## 49. Only new macro violations fail (companion of 48: a per-repo baseline)
+
+```fixture
+lib/sample.spi
+inl ok (x : i32) : i32 = $'!x'
+inl widen (x : i32) : i64 = $'!x as i64'
+inl pick (b : bool) : i32 = $'if !b { 1 } else { 0 }'
+inl sum (a : i32) (b : i32) : i32 = $'!a + !b'
+nominal callback = $'Rc<dyn Fn()>'
+lint/macros.txt
+lib/sample.spi:2  widen  cast   $'!x as i64'
+lib/sample.spi:3  pick   flow   $'if !b { 1 } else { 0 }'
+```
+
+```command
+eoie lint macros . lib --baseline lint/macros.txt
+```
+
+```expected
+lib/sample.spi:4  sum    arith  $'!a + !b'
+failed  files 1  macros 5  violations 3  new 1  <elapsed>  <clock>
+```
+
+A named file counts whatever its extension, and a `.diff` or `.patch` contributes only its added lines (`+`, not the `+++` header), so `eoie lint macros . change.diff` checks just what a slice adds. The baseline is the verb's own output (`eoie lint macros . lib > lint/macros.txt`); a row is keyed by file, definition name and class, not by line number, so edits above a known violation keep it known, and the receipt line in a saved output is not a row. With all three rows listed the call prints no rows and ends `ok  files 1  macros 5  violations 3  new 0`.
+
+---

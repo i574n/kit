@@ -44,4 +44,5 @@ inl main () : i32 =
     !!!!Export("eoie_help_flag_code", ((fun value => help_flag_code value) : string -> u64))
     !!!!Export("eoie_help_flag_witness", ((fun () => help_flag_witness ()) : () -> i32))
     !!!!Export("eoie_help_request_text", ((fun () => help_request_text ()) : () -> string))
+    !!!!Export("eoie_direct_verb_usage", ((fun value => direct_verb_usage value) : string -> string))
     0i32

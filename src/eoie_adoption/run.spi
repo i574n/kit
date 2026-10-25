@@ -98,7 +98,7 @@ inl receipt_of (days_back : u64) (total : day_tally) (~out : string) : string =
     inl counts =
         " shell_calls=" ++# (u64_text total.shell) ++# " eoie_calls=" ++# (u64_text total.eoie) ++# (
             " habit_calls=" ++# (u64_text total.habit) ++# " eoie_share=" ++# (share_text (eoie_share total)))
-    "eoie adoption ok days=" ++# (u64_text days_back) ++# counts ++# (if out = "" then "" else " out=") ++# out
+    "eoie adoption ok days_back=" ++# (u64_text days_back) ++# counts ++# (if out = "" then "" else " out=") ++# out
 
 let rec flag_present (~name : string) (index : i32) : bool =
     if index >= argument_count () then false elif argument index = name then true else flag_present name (index + 1i32)

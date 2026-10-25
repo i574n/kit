@@ -1,0 +1,17 @@
+open sm'_operators
+open eoie_jobs.host
+open eoie_jobs.jobs
+open eoie_job_host.queue
+
+let queue_decide (~id : string) : i32 =
+    inl step = step_of (queued_of id)
+    match step with
+    | StartSupervisor => 0i32
+    | KeepWaiting => 1i32
+    | _ =>
+        settled_in_queue id step
+        2i32
+
+inl main () : i32 =
+    !!!!Export("eoie_job_queue_decide", ((fun id => queue_decide id) : string -> i32))
+    0i32

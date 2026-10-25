@@ -140,7 +140,10 @@ let job_run () : i32 =
     | JobTail => $'eoie_job_control::eoie_job_tail_run()' : i32
     | JobStop => $'eoie_job_control::eoie_job_stop_run()' : i32
     | JobAfter => $'eoie_job_rechain::eoie_job_rechain_run()' : i32
-    | JobChain => $'eoie_job_chain::eoie_job_chain_run()' : i32
+    | JobChain =>
+        if optionm'.default_value "" (env.try_command_line_argument 2i32) = "--run-serial"
+        then $'eoie_job_serial::eoie_job_serial_run()' : i32
+        else $'eoie_job_chain::eoie_job_chain_run()' : i32
     | JobAmend => $'eoie_job_control::eoie_job_amend_run()' : i32
     | JobDoctor => $'eoie_jobs_doctor::eoie_job_doctor_run()' : i32
     | JobUnknown => rejected (job_usage ())

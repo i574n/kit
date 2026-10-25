@@ -19,6 +19,7 @@ eoie-job-control = { path = "../eoie_job_control" }
 eoie-jobs-doctor = { path = "../eoie_jobs_doctor" }
 eoie-job-rechain = { path = "../eoie_job_rechain" }
 eoie-job-chain = { path = "../eoie_job_chain" }
+eoie-job-serial = { path = "../eoie_job_serial" }
 eoie-machine-windows = { path = "../eoie_machine_windows" }
 eoie-job-gate = { path = "../eoie_job_gate" }
 eoie-job-launch = { path = "../eoie_job_launch" }

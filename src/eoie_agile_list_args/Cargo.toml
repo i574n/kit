@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "args.spi"
+output = "args.rs"
+
+[package]
+name = "eoie-agile-list-args"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "eoie_agile_list_args"
+path = "args.rs"
+
+[dependencies]
+agile-task-query = { path = "../agile_task_query" }
+agile-planning-filters = { path = "../agile_planning_filters" }

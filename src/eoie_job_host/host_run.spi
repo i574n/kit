@@ -39,34 +39,32 @@ let detached_started (~executable : string) (~args : string) : u64 =
     $'eoie_os_launch::eoie_shell_parented_start(&*!executable, &(!args).split(char::from(31u8)).filter(|arg| \
         \!arg.is_empty()).collect::<Vec<_>>()).0' : u64
 
+let queue_decide (~id : string) : i32 = $'eoie_job_queue::eoie_job_queue_decide(&*!id)' : i32
+
 let request_served (~children : supervisor_children) (~executable : string) (~id : string) : () =
-    inl step = step_of (queued_of id)
-    match step with
-    | StartSupervisor =>
+    inl decided = queue_decide id
+    if decided = 0i32 then
         inl _ = supervisor_child_started children executable id
         ()
-    | KeepWaiting => held_recorded id executable
-    | _ => settled_in_queue id step
+    elif decided = 1i32 then held_recorded id executable
+    else ()
 
 let rec held_from (~children : supervisor_children) (names : array string) (index : i32) (held : u64) : u64 =
     if index >= am'.length names then held
     else
         inl id = am'.index index names
-        inl step = step_of (queued_of id)
-        match step with
-        | KeepWaiting =>
+        inl decided = queue_decide id
+        if decided = 1i32 then
             held_beat id
             held_from children names (index + 1i32) (held + 1u64)
-        | StartSupervisor =>
+        elif decided = 0i32 then
             inl executable = text_or_empty (held_file id)
             held_released id
             inl _ = supervisor_child_started children executable id
             held_from children names (index + 1i32) held
-        | _ =>
-            settled_in_queue id step
+        else
             held_released id
             held_from children names (index + 1i32) held
-
 let held_served (~children : supervisor_children) : u64 = held_from children (held_names ()) 0i32 0u64
 
 let home_of () : host_home = if directory_exists (requests_directory ()) then HomePresent else HomeGone

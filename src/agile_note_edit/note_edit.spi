@@ -17,10 +17,16 @@ union note_change =
     | ReplaceText
     | AppendText
 
+union note_guard =
+    | NoGuard
+    | ExpectedAt : string
+    | ExpectedPrefix : string
+
 type edit_options =
     {
         editor : string
         change : note_change
+        guard : note_guard
         valid : bool
     }
 
@@ -30,6 +36,10 @@ let rec options_from (index : i32) (options : edit_options) : edit_options =
     elif word = "--append" then options_from (index + 1i32) { options with change = AppendText }
     elif word = "--as" && sm'.trim (argument_owned (index + 1i32)) <> "" then
         options_from (index + 2i32) { options with editor = sm'.trim (argument_owned (index + 1i32)) }
+    elif word = "--expect-at" && sm'.trim (argument_owned (index + 1i32)) <> "" then
+        options_from (index + 2i32) { options with guard = ExpectedAt (sm'.trim (argument_owned (index + 1i32))) }
+    elif word = "--expect-prefix" && argument_owned (index + 1i32) <> "" then
+        options_from (index + 2i32) { options with guard = ExpectedPrefix (argument_owned (index + 1i32)) }
     else { options with valid = false }
 
 inl changed_text (change : note_change) (~previous : string) (~body : string) : string =
@@ -39,6 +49,13 @@ inl changed_text (change : note_change) (~previous : string) (~body : string) : 
 
 inl note_row_head (~id : string) (seq : i32) : string = "inl " ++# (note_binding id seq) ++# " () = "
 
+inl guard_problem (seq : i32) (guard : note_guard) (previous : task_note) : string =
+    match guard with
+    | NoGuard => ""
+    | ExpectedAt at => if previous.at = at then "" else "note " ++# i32_text seq ++# " was written at " ++# previous.at ++# ", not " ++# at
+    | ExpectedPrefix prefix =>
+        if sm'.starts_with prefix previous.text then "" else "note " ++# i32_text seq ++# " does not start with the expected text"
+
 inl note_edit_failure (~reason : string) (~id : string) : i32 = stderr_failure ("agile note-edit " ++# id ++# " rejected: " ++# reason)
 
 inl note_edit_success (~id : string) (seq : i32) (previous : task_note) (revised : task_note) (before : u64) (after : u64) (elapsed : u64) : i32 =
@@ -46,7 +63,7 @@ inl note_edit_success (~id : string) (seq : i32) (previous : task_note) (revised
     inl middle = previous.at ++# " author=" ++# (spi_quoted previous.author) ++# " text_bytes=" ++# (i32_text (byte_len previous.text))
     stdout_line (head ++# middle ++# "->" ++# (i32_text (byte_len revised.text)) ++# (measured_sizes before after elapsed))
 
-let note_edited (~root : string) (~id : string) (seq : i32) (~body : string) (~editor : string) (change : note_change) : i32 =
+let note_edited (~root : string) (~id : string) (seq : i32) (~body : string) (~editor : string) (change : note_change) (guard : note_guard) : i32 =
     inl started = unix_ms ()
     inl state = backlog_state_path root
     match probe (unchecked state) with
@@ -58,7 +75,9 @@ let note_edited (~root : string) (~id : string) (seq : i32) (~body : string) (~e
         if row < 0i32 then note_edit_failure "no note with this number" id
         else
             inl previous = note_at original (row + byte_len (note_row_head id seq))
-            if editor = "" || previous.author = editor then
+            inl refused = guard_problem seq guard previous
+            if refused <> "" then note_edit_failure refused id
+            elif editor = "" || previous.author = editor then
                 inl revised = { previous with text = changed_text change previous.text body }
                 inl updated = spliced original row (line_end_after original row) (note_row id seq revised)
                 match state_written state raw updated with
@@ -73,9 +92,9 @@ let note_edit_entry () : i32 =
     if seq < 1i32 then note_edit_failure "the note number must be a positive integer" id
     elif (body = "") then note_edit_failure "the note text is empty" id
     else
-        inl options = options_from 5i32 { editor = ""; change = ReplaceText; valid = true }
-        if options.valid then note_edited (argument_owned 1i32) id seq body options.editor options.change
-        else note_edit_failure "usage: agile note-edit <root> <id> <note-number> <text> [--as <author>] [--append]" id
+        inl options = options_from 5i32 { editor = ""; change = ReplaceText; guard = NoGuard; valid = true }
+        if options.valid then note_edited (argument_owned 1i32) id seq body options.editor options.change options.guard
+        else note_edit_failure "usage: agile note-edit <root> <id> <note-number> <text> [--as <author>] [--append] [--expect-at <iso> | --expect-prefix <text>]" id
 
 inl main () : i32 =
     !!!!Export("eoie_agile_note_edit_run", ((fun () => note_edit_entry ()) : () -> i32))

@@ -85,7 +85,9 @@ let held_recorded (~id : string) (~executable : string) : () =
     inl _ = text_written (held_file id) executable
     held_beat id
 
-let held_released (~id : string) : () = file_system.file_delete (held_file id)
+let held_released (~id : string) : () =
+    inl path = held_file id
+    $'{ let _ = std::fs::remove_file(&*!path); }' : ()
 
 let settled_in_queue (~id : string) (step : queue_step) : () =
     match step with

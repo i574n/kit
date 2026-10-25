@@ -51,7 +51,7 @@ inl agile_subcommand_spec = function
     | AgilePlan => { name = "plan"; shape = "<root> [--json]" }
     | AgileMigrateTags => { name = "migrate-tags"; shape = "preview|apply <root>" }
     | AgileNote => { name = "note"; shape = "<root> <id> <text> [--as <author>]" }
-    | AgileNoteEdit => { name = "note-edit"; shape = "<root> <id> <note-number> <text> [--as <author>] [--append]" }
+    | AgileNoteEdit => { name = "note-edit"; shape = "<root> <id> <note-number> <text> [--as <author>] [--append] [--expect-at <iso> | --expect-prefix <text>]" }
     | AgileNotes => { name = "notes"; shape = "from-title <root> <id>" }
     | AgileRename => { name = "rename"; shape = "<root> <old-id> <new-id>" }
     | AgileTodos => { name = "todos"; shape = "<root> [<path>...] [--json] [--tagged | --id <ID>] | <root> --record" }

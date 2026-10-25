@@ -139,6 +139,7 @@ dependencies = [
  "agile-planning-filters",
  "agile-task-census",
  "agile-task-query",
+ "eoie-agile-list-args",
  "eoie-agile-records",
 ]
 
@@ -438,6 +439,14 @@ dependencies = [
  "eoie-agile-policy",
  "eoie-proxy-search",
  "eoie-rust-std-fs",
+]
+
+[[package]]
+name = "eoie-agile-list-args"
+version = "0.0.0"
+dependencies = [
+ "agile-planning-filters",
+ "agile-task-query",
 ]
 
 [[package]]
@@ -1007,6 +1016,7 @@ dependencies = [
 name = "eoie-job-host"
 version = "0.0.0"
 dependencies = [
+ "eoie-job-queue",
  "eoie-job-state",
  "eoie-os-launch",
 ]
@@ -1024,7 +1034,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "eoie-job-queue"
+version = "0.0.0"
+dependencies = [
+ "eoie-job-state",
+]
+
+[[package]]
 name = "eoie-job-rechain"
+version = "0.0.0"
+
+[[package]]
+name = "eoie-job-serial"
 version = "0.0.0"
 
 [[package]]
@@ -1059,6 +1080,7 @@ dependencies = [
  "eoie-job-host",
  "eoie-job-launch",
  "eoie-job-rechain",
+ "eoie-job-serial",
  "eoie-job-state",
  "eoie-job-supervise",
  "eoie-jobs-doctor",

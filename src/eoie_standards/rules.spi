@@ -102,6 +102,11 @@ inl finding (~path : string) (number : i32) (rule : standard) (~detail : string)
 
 inl floating (~line : string) : bool = $'{ let line = &*!line; line.contains("f64") || line.contains("f32") }' : bool
 
+let rec outside_quotes (pieces : array string) (index : i32) (kept : string) : string =
+    if am'.length pieces <= index then kept else outside_quotes pieces (index + 2i32) (kept ++# " " ++# am'.index index pieces)
+
+let unquoted (~line : string) : string = outside_quotes (sm'.split "\"" line |> array) 0i32 ""
+
 let line_findings (rule : standard) (~path : string) (~module : string) (number : i32) (~line : string) (kind : line_kind) (scan : file_scan) : string =
     match rule with
     | NoCommentLines =>
@@ -121,7 +126,7 @@ let line_findings (rule : standard) (~path : string) (~module : string) (number 
         else ""
     | HostFree =>
         match kind with
-        | CodeLine => if sm'.contains "$'" line then finding path number rule "a host macro in a host-free package; reach for lib/spiral (sm', am', listm', file_system) or the OS boundary package" else ""
+        | CodeLine => if sm'.contains "$'" (unquoted line) then finding path number rule "a host macro in a host-free package; reach for lib/spiral (sm', am', listm', file_system) or the OS boundary package" else ""
         | _ => ""
     | LibReferenced => ""
 
@@ -189,6 +194,8 @@ test host_free_flags_host_macros_and_rows_declare_it =
     expect (sm'.contains "m.spi:1  host-free  a host macro in a host-free package" found) found
     expect (sm'.contains "m.spi:2" found = false) found
     expect (sm'.contains "m.spi:3" found = false) "a comment that mentions a macro is not one"
+    inl quoted = scanned_text declared "m" "inl opener = \"$'\"\ninl hosted = sm'.replace \"@'\" \"$'\" t\n"
+    expect (quoted = "") "a macro opener inside a string literal is text, not a macro"
 
 ///> rust
 test a_declared_rule_this_eoie_does_not_know_is_a_finding =

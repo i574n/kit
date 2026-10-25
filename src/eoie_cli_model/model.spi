@@ -132,7 +132,8 @@ inl direct_routed (verb : direct_verb) : i32 =
 
 inl run_direct () : i32 =
     inl verb = argument_file.process_argument 1i32
-    inl usage = if verb = "help" then command_spec_domain.model.direct_verb_usage (argument_file.process_argument 2i32) else ""
+    inl target = argument_file.process_argument 2i32
+    inl usage = if verb = "help" then $'command_spec_domain::eoie_direct_verb_usage(&*!target)' : string else ""
     if usage <> "" then direct_help usage
     else
         match direct_of verb with

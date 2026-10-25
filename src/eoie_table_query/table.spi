@@ -42,18 +42,30 @@ inl text_length (~text : string) : i32 = sm'.length text
 inl numbers_ordered (~cell : string) (~value : string) : i32 = $'match (!cell).trim().parse::<f64>().ok().zip((!value).trim().parse::<f64>().ok()) { Some((a, b)) => if a < b { -1 } else if a > b { 1 } else { 0 }, None => 2 }' : i32
 inl texts_ordered (~cell : string) (~value : string) : i32 = $'match (&*!cell).cmp(&*!value) { std::cmp::Ordering::Less => -1, std::cmp::Ordering::Equal => 0, std::cmp::Ordering::Greater => 1 }' : i32
 
+let numeric_text (~text : string) : bool =
+    match (convert.try_convert (sm'.trim text) : option f64) with
+    | Some _ => true
+    | None => false
+
 let cell_passes (op : where_op) (~cell : string) (~value : string) : bool =
     match op with
     | WhereEqual => cell = value
     | WhereNotEqual => cell <> value
     | ordered =>
         inl numeric = numbers_ordered cell value
-        inl order = if numeric = 2i32 then texts_ordered cell value else numeric
-        match ordered with
-        | WhereGreater => order > 0i32
-        | WhereGreaterEqual => order >= 0i32
-        | WhereLess => order < 0i32
-        | _ => order <= 0i32
+        if numeric = 2i32 && numeric_text value then false
+        else
+            inl order = if numeric = 2i32 then texts_ordered cell value else numeric
+            match ordered with
+            | WhereGreater => order > 0i32
+            | WhereGreaterEqual => order >= 0i32
+            | WhereLess => order < 0i32
+            | _ => order <= 0i32
+
+///> rust
+test a_cell_that_is_not_a_number_fails_every_numeric_comparison =
+    (cell_passes WhereLessEqual "" "1000", cell_passes WhereLess "" "1001", cell_passes WhereGreater "" "1000", cell_passes WhereLessEqual "999" "1000", cell_passes WhereLess "abc" "abd")
+    |> testing._assert_eq (false, false, false, true, true)
 
 union rec filters =
     | NoFilters

@@ -70,26 +70,43 @@ inl start_option_set (options : start_options) (flag : start_flag) (value : u64)
     | MinFreeMb => { options with floored = true; min_free = value }
     | SettleMs => { options with settle_given = true; settle_ms = value }
 
-let rec start_options_read (at : i32) (options : start_options) : i32 * start_options =
-    match start_flag_of (argument at) with
-    | StartFlagUnknown => at, options
-    | StartFlagKnown flag =>
-        inl width = start_flag_width flag
-        inl value = if width = 2i32 then decimal_u64 (argument (at + 1i32)) else 0u64
-        start_options_read (at + width) (start_option_set options flag value)
-
 inl after_mode_of (~flag : string) : string = if flag = "--after" then "any" elif flag = "--after-ok" then "ok" else ""
+
+type start_lead =
+    {
+        after_mode : string
+        after_job : string
+        shape : start_shape
+        repeated : string
+    }
+
+let rec flags_read (at : i32) (lead : start_lead) (options : start_options) : i32 * start_lead * start_options =
+    inl word = argument at
+    inl mode = after_mode_of word
+    inl shape = start_shape_of word
+    if mode <> "" then
+        if lead.after_mode <> "" then at, { lead with repeated = word }, options
+        else flags_read (at + 2i32) { lead with after_mode = mode; after_job = argument (at + 1i32) } options
+    elif shape <> PlainStart then
+        if lead.shape <> PlainStart then at, { lead with repeated = word }, options
+        else flags_read (at + shape_offset shape) { lead with shape = shape } options
+    else
+        match start_flag_of word with
+        | StartFlagUnknown => at, lead, options
+        | StartFlagKnown flag =>
+            inl width = start_flag_width flag
+            inl value = if width = 2i32 then decimal_u64 (argument (at + 1i32)) else 0u64
+            flags_read (at + width) lead (start_option_set options flag value)
 
 inl refusal (~problem : string) : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64 =
     false, problem, "", "", "", 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0i32, 0u64
 
 let start_args () : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64 =
-    inl after_mode = after_mode_of (argument 3i32)
-    inl after_job = if after_mode = "" then "" else argument 4i32
-    inl base = if after_mode = "" then 3i32 else 5i32
-    inl shape = start_shape_of (argument base)
-    inl shaped = base + shape_offset shape
-    inl first, options = start_options_read shaped (start_options_none ())
+    inl lead_none = { after_mode = ""; after_job = ""; shape = PlainStart; repeated = "" }
+    inl first, lead, options = flags_read 3i32 lead_none (start_options_none ())
+    inl after_mode = lead.after_mode
+    inl after_job = lead.after_job
+    inl shape = lead.shape
     inl capped = options.capped
     inl cap_mb = options.cap_mb
     inl slot_limited = options.slot_limited
@@ -104,6 +121,8 @@ let start_args () : bool * string * string * string * string * u64 * u64 * u64 *
     inl min_free = options.min_free
     inl missing_after = if after_mode = "" || (sm'.starts_with "job-" after_job && directory_exists (job_directory after_job)) then "" else after_job
     if argument_count () < first + 3i32 then refusal (job_usage ())
+    elif lead.repeated <> "" then
+        refusal (lead.repeated ++# " is given twice (one --after or --after-ok, one --heavy or --compile)")
     elif missing_after <> "" then refusal ("--after names no job: " ++# missing_after)
     elif capped && cap_mb = 0u64 then refusal "--max-private-mb needs a positive number of MB"
     elif slot_limited && slot_minutes = 0u64 then refusal "--slot-within needs a positive number of minutes"

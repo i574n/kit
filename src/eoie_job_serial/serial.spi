@@ -1,0 +1,32 @@
+open sm'_operators
+open eoie_job_after_model.model
+
+let rec serial_ran (~program : string) (mode : after_mode) (links : list (list string)) (ran : i32) failed : i32 =
+    match links with
+    | [] =>
+        console.write_line ("eoie job chain ok serial ran=" ++# sm'.format ran ++# " failed=" ++# sm'.format failed)
+        if failed = 0i32 then 0i32 else 1i32
+    | link :: rest =>
+        match process.try_capture_combined_list program (run_arguments link) with
+        | Some output =>
+            console.write_line (sm'.trim output)
+            serial_ran program mode rest (ran + 1i32) failed
+        | None =>
+            console.write_error_line ("eoie error: job chain link " ++# sm'.format (ran + 1i32) ++# " failed")
+            if continues_after mode false then serial_ran program mode rest (ran + 1i32) (failed + 1i32)
+            else
+                inl skipped = sm'.format (listm.length rest : i32)
+                inl tally = "ran=" ++# sm'.format (ran + 1i32) ++# " failed=1 skipped=" ++# skipped
+                console.write_line ("eoie job chain stopped serial " ++# tally)
+                1i32
+
+let serial_run () : i32 =
+    match chain_of (arguments_from 2i32 (env.command_line_argument_count ()) []) with
+    | ChainRefused reason =>
+        console.write_error_line ("eoie error: job chain refused: " ++# reason)
+        2i32
+    | ChainPlanned plan => serial_ran (env.current_executable ()) plan.head.mode plan.links 0i32 0i32
+
+inl main () : i32 =
+    !!!!Export("eoie_job_serial_run", ((fun () => serial_run ()) : () -> i32))
+    0i32

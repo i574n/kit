@@ -16,3 +16,4 @@ path = "host_run.rs"
 [dependencies]
 eoie-job-state = { path = "../eoie_job_state" }
 eoie-os-launch = { path = "../eoie_os_launch" }
+eoie-job-queue = { path = "../eoie_job_queue" }
