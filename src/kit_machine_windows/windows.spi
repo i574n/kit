@@ -1,0 +1,291 @@
+:< rust_std_string.model
+:< kit_jobs.host
+:< window_model
+
+:~ windows_root () : string =
+    $'std::rc::Rc::<str>::from(std::env::var_os("KIT_WINDOWS_HOME").map(std::path::PathBuf::from).or_else(|| \
+        std::env::var_os("LOCALAPPDATA").map(|base| std::path::PathBuf::from(base).join("kit").join("windows"))).or_el\
+        se(|| std::env::var_os("HOME").map(|base| std::path::PathBuf::from(base).join(".cache").join("kit").join("wind\
+        ows"))).unwrap_or_else(|| std::path::PathBuf::from(".kit-windows")).to_string_lossy().as_ref())' : string
+
+:~ window_file (~root : string) (~id : string) : string = joined root (concat5 id ".window" "" "" "")
+
+:~ released_mark (~root : string) (~id : string) : string = joined root (concat5 id ".released" "" "" "")
+
+:~ event_logged (~root : string) (event : window_event) (~row : string) : () =
+    file_system.append_all_text (joined root "events.log") (event_line (now_ms ()) event row)
+
+:~ lock_taken (~root : string) : bool =
+    $'{ let lock = std::path::Path::new(&*!root).join("lock"); let _ = std::fs::create_dir_all(&*!root); \
+        let mut taken = false; for _ in 0..400 { if std::fs::create_dir(&lock).is_ok() { taken = true; break; \
+        } let stale = std::fs::metadata(&lock).and_then(|meta| meta.modified()).ok().and_then(|time| \
+        time.elapsed().ok()).map(|age| age.as_secs() > 10).unwrap_or(false); \
+        if stale { let _ = std::fs::remove_dir(&lock); } else { \
+        std::thread::sleep(std::time::Duration::from_millis(50)); } } taken }' : bool
+
+:~ lock_released (~root : string) : () = $'{ let _ = std::fs::remove_dir(std::path::Path::new(&*!root).join("lock")); \
+    }' : ()
+
+:~ stored_rows (~root : string) : string =
+    $'{ let mut rows = std::fs::read_dir(&*!root).into_iter().flatten().flatten().map(|entry| \
+        entry.path()).filter(|path| path.extension().map(|ext| ext == "window").unwrap_or(false)).filter_map(|path| \
+        std::fs::read_to_string(&path).ok()).map(|text| text.trim().to_owned()).filter(|text| \
+        \!text.is_empty()).collect::<Vec<_>>(); rows.sort_by_key(|row| \
+        row.split(char::from(9u8)).nth(4).and_then(|start| start.parse::<u64>().ok()).unwrap_or(0)); \
+        std::rc::Rc::<str>::from(rows.join("\n")) }' : string
+
+:~ file_removed (~path : string) : bool = $'std::fs::remove_file(&*!path).is_ok()' : bool
+
+:~ free_mb () : u64 =
+    $'{ \#[cfg(windows)] fn free() -> u64 { \#[repr(C)] struct Status { length: u32, load: u32, total: u64, \
+        available: u64, total_page: u64, available_page: u64, total_virtual: u64, available_virtual: u64, \
+        extended: u64 } unsafe extern "system" { fn GlobalMemoryStatusEx(status: *mut Status) -> i32; \
+        } unsafe { let mut status: Status = std::mem::zeroed(); status.length = std::mem::size_of::<Status>() as u32; \
+        if GlobalMemoryStatusEx(&mut status) == 0 { u64::MAX } else { status.available / 1048576 } } } \
+        \#[cfg(not(windows))] fn free() -> u64 { std::fs::read_to_string("/proc/meminfo").ok().and_then(|text| \
+        text.lines().find(|line| line.starts_with("MemAvailable:")).and_then(|line| \
+        line.split_whitespace().nth(1)).and_then(|kb| kb.parse::<u64>().ok())).map(|kb| kb / \
+        1024).unwrap_or(u64::MAX) } std::env::var("KIT_WINDOWS_FREE_MB").ok().and_then(|text| \
+        text.trim().parse::<u64>().ok()).unwrap_or_else(free) }' : u64
+
+:~ option_value (~flag : string) : string =
+    $'std::rc::Rc::<str>::from(std::env::args().skip_while(|arg| arg \!= &*!flag).nth(1).unwrap_or_default())' : string
+
+:~ process_number () : u64 = $'std::process::id() as u64' : u64
+
+:~ first_row (~rows : string) : string = $'std::rc::Rc::<str>::from(!rows.lines().next().unwrap_or(""))' : string
+
+:~ other_rows (~rows : string) : string = $'std::rc::Rc::<str>::from(!rows.lines().skip(1).collect::<Vec<_>>().join("\n\
+    "))' : string
+
+:~ window_pid (~id : string) : u64 = $'(!id).split(char::from(45u8)).nth(2).and_then(|pid| \
+    pid.parse::<u64>().ok()).unwrap_or(0)' : u64
+
+:| window_holder =
+    | ProcessHolder
+    | LeaseHolder
+
+:~ holder_of (~row : string) : window_holder =
+    ? contains (tab_field row 3i32) "(kit job " || ends_with (tab_field row 0i32) "-run" ?> ProcessHolder |: LeaseHolder
+
+:~ orphaned_window (~row : string) : bool =
+    ?= holder_of row ?|
+    | ProcessHolder => process_alive (window_pid (tab_field row 0i32)) = !-
+    | LeaseHolder => !-
+
+:~ ^ live_rows (~root : string) (~rows : string) (now : u64) (~kept : string) : string =
+    ? rows = "" ?> kept
+    |:
+        := row = first_row rows
+        ? row_expired row now || orphaned_window row ?>
+            := _ = file_removed (window_file root (tab_field row 0i32))
+            event_logged root WindowPruned row
+            live_rows root (other_rows rows) now kept
+        |: live_rows root (other_rows rows) now (? kept = "" ?> row |: concat5 kept "\n" row "" "")
+
+:~ verdict_text
+    (wanted : window_class) (~mine : string) (since : u64) (minutes : u64) (~rows : string) (free : u64) (now : u64)
+    (min_free : u64)
+    : string
+    =
+    := word = class_word wanted
+    $'kit_window_admission::kit_window_verdict(&*!word, &*!mine, !since, !minutes, &*!rows, !free, !now, !min_free)'
+    : string
+
+:~ refused (~message : string) : i32 =
+    stderr_line (concat5 "kit error: window " message "" "" "")
+    2i32
+
+:= window_usage () : string =
+    concat5
+        (
+            "usage: window request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] "
+            ^^ "[--min-free-mb <n>] | window release <id> | window list | window check <class> | window claim <path> "
+            ^^ "| window wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | window run "
+            ^^ "<class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...]; "
+            ^^ "classes "
+        )
+        (class_words ())
+        ""
+        ""
+        ""
+
+:== request =
+    {
+        wanted : window_class
+        minutes : u64
+        label : string
+        id : string
+        since : u64
+        deadline : u64
+        min_free : u64
+    }
+
+:~ request_row (ask : request) (state : window_state) (until : u64) : string =
+    row_text {
+        id = ask.id
+        kind = ask.wanted
+        state = state
+        label = ask.label
+        start_ms = ask.since
+        until_ms = until
+    }
+
+:~ request_head (ask : request) (~verdict : string) : string =
+    concat5 "kit window request " verdict " id=" ask.id (concat5 " class=" (class_word ask.wanted) "" "" "")
+
+:~ ^ requested (ask : request) (announced : bool) : i32 =
+    := root = windows_root ()
+    ? lock_taken root = !-
+    ?> refused "request: the registry lock stayed taken for 20 s"
+    |:
+        := now = now_ms ()
+        := rows = live_rows root (stored_rows root) now ""
+        := free = free_mb ()
+        := terms = verdict_text ask.wanted ask.id ask.since ask.minutes rows free now ask.min_free
+        := step = wait_step_of (terms = "") (file_exists (released_mark root ask.id)) now ask.deadline
+        ?= step ?|
+        | ReleasedWhileWaiting =>
+            := _ = file_removed (released_mark root ask.id)
+            := _ = file_removed (window_file root ask.id)
+            event_logged root WindowReleasedWaiting (request_row ask Waiting now)
+            lock_released root
+            stdout_line (
+                concat5
+                    (request_head ask (wait_step_word step))
+                    " while waiting waited_ms="
+                    (number_text (now - ask.since))
+                    ""
+                    ""
+            )
+            1i32
+        | Granted =>
+            := until = now + ask.minutes * 60000u64
+            := _ = text_written (window_file root ask.id) (request_row { ask ?| since = now } Held until)
+            event_logged root WindowGranted (request_row { ask ?| since = now } Held until)
+            lock_released root
+            stdout_line (
+                concat5
+                    (request_head ask (wait_step_word step))
+                    " minutes="
+                    (number_text ask.minutes)
+                    " free_mb="
+                    (concat5 (number_text free) " waited_ms=" (number_text (now - ask.since)) "" "")
+            )
+            0i32
+        | WaitExpired =>
+            := _ = file_removed (window_file root ask.id)
+            event_logged root WindowGaveUp (request_row ask Waiting now)
+            lock_released root
+            stdout_line (concat5 (request_head ask (wait_step_word step)) " " terms "" "")
+            1i32
+        | KeepWaiting =>
+            := _ = text_written (window_file root ask.id) (request_row ask Waiting (now + 30000u64))
+            := _ = ? announced ?> () |: event_logged root WindowQueued (request_row ask Waiting (now + 30000u64))
+            lock_released root
+            := _ = ? announced ?> () |: stdout_line (concat5 (request_head ask (wait_step_word step)) " " terms "" "")
+            sleep_ms 500u64
+            requested ask !+
+
+:~ window_requested () : i32 =
+    ?= class_of (argument 3i32) ?|
+    | ClassUnknown => refused (concat5 "request: unknown class '" (argument 3i32) "'; " (window_usage ()) "")
+    | ClassKnown wanted =>
+        := minutes = decimal_of (argument 4i32)
+        ? minutes = 0u64
+        ?>
+            refused (
+                concat5
+                    "request: minutes must be a whole number above 0, received '"
+                    (argument 4i32)
+                    "'; "
+                    (window_usage ())
+                    ""
+            )
+        |:
+            := since = now_ms ()
+            := id =
+                concat5
+                    "win-"
+                    (number_text since)
+                    "-"
+                    (number_text (process_number ()))
+                    (concat5 "-" (class_word wanted) "" "" "")
+            requested
+                {
+                    wanted = wanted
+                    minutes = minutes
+                    label = option_value "--label"
+                    id = id
+                    since = since
+                    deadline =
+                        ? option_value "--wait" = "until-granted"
+                        ?> 9223372036854775807u64
+                        |: since + decimal_of (option_value "--wait") * 60000u64
+                    min_free = decimal_of (option_value "--min-free-mb")
+                }
+                !-
+
+:~ window_released () : i32 =
+    := id = argument 3i32
+    := root = windows_root ()
+    := row = text_or_empty (window_file root id)
+    ? starts_with id "win-" = !- ?> refused (concat5 "release: unknown window id '" id "'" "" "")
+    |? file_removed (window_file root id) ?>
+        := was_waiting = tab_field row 2i32 = state_word Waiting
+        event_logged root WindowReleased row
+        := _ = ? was_waiting ?> text_written (released_mark root id) "released" |: ""
+        stdout_line (concat5 "kit window release ok id=" id (? was_waiting ?> " requester=told" |: "") "" "")
+        0i32
+    |: refused (concat5 "release: unknown window id '" id "'; it was released or expired" "" "")
+
+:~ window_run () : i32 =
+    := verb = argument 2i32
+    ? verb = "request" ?> window_requested ()
+    |? verb = "release" ?> window_released ()
+    |? verb = "list" ?> $'kit_window_query::kit_window_list_run()' : i32
+    |? verb = "check" ?> $'kit_window_query::kit_window_check_run()' : i32
+    |? verb = "run" ?> $'kit_window_run::kit_window_run_run()' : i32
+    |? verb = "claim" ?> $'kit_window_claim::kit_window_claim_run()' : i32
+    |? verb = "wait-clear" ?> $'kit_window_wait::kit_window_wait_run()' : i32
+    |: refused (concat5 "unknown verb '" verb "'; " (window_usage ()) "")
+
+:~ ^ dropped_tagged (~root : string) (~rows : string) (~tag : string) (count : u64) : u64 =
+    ? rows = "" ?> count
+    |:
+        := row = first_row rows
+        ? contains (tab_field row 3i32) tag ?>
+            := _ = file_removed (window_file root (tab_field row 0i32))
+            event_logged root WindowDropped row
+            dropped_tagged root (other_rows rows) tag (count + 1u64)
+        |: dropped_tagged root (other_rows rows) tag count
+
+:~ job_windows_dropped (~id : string) : u64 =
+    := root = windows_root ()
+    dropped_tagged root (stored_rows root) (concat5 "(kit job " id ")" "" "") 0u64
+
+:~ own_executable () : string =
+    $'std::rc::Rc::<str>::from(std::env::current_exe().map(|path| \
+        path.to_string_lossy().into_owned()).unwrap_or_default())' : string
+
+:~ heavy_wrapper (~gate : string) (~inner : string) (~label : string) (~id : string) (timeout : u64) : string =
+    := tag = concat5 label " (kit job " id ")" ""
+    := minutes = number_text (timeout / 60000u64 + 1u64)
+    concat5
+        (concat5 "$argv = @(Get-Content -LiteralPath '" inner "')\n. '" gate "'\n")
+        (concat5 "Invoke-Heavy -Label '" tag "' -MaxMinutes " minutes " ")
+        "{ & $argv[0] @($argv | Select-Object -Skip 1) }\n"
+        "exit $LASTEXITCODE\n"
+        ""
+
+:= main () : i32 =
+    !!!!Export("kit_window_run", ((\ () => window_run ()) : () -> i32))
+    !!!!Export("kit_job_windows_dropped", ((\ id => job_windows_dropped id) : string -> u64))
+    !!!!Export(
+        "kit_heavy_wrapper",
+        (
+            \ (gate, inner, label, id, timeout) => heavy_wrapper gate inner label id timeout
+            : string * string * string * string * u64 -> string
+        )
+    )
+    0i32

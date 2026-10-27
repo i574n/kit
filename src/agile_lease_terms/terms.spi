@@ -83,9 +83,9 @@
     | LeaseExpired => "expired"
 
 := u64_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
-:= u64_div (a : u64) (b : u64) : u64 = $"!a / !b"
-:= u64_rem (a : u64) (b : u64) : u64 = $"!a % !b"
-:= u64_le (a : u64) (b : u64) : bool = $"!a <= !b"
+:= u64_div (a : u64) (b : u64) : u64 = (a / b)
+:= u64_rem (a : u64) (b : u64) : u64 = (a % b)
+:= u64_le (a : u64) (b : u64) : bool = (a <= b)
 := u64_minus (a : u64) (b : u64) : u64 = $"!a.saturating_sub(!b)"
 := u64_positive (value : u64) : bool = $"0 < !value"
 := bool_flag (value : bool) : string = ? value ?> "1" |: "0"

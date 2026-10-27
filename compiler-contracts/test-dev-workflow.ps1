@@ -2,38 +2,38 @@
 param([string]$DevBinary)
 $ErrorActionPreference = 'Stop'
 $eoiRoot = Split-Path $PSScriptRoot -Parent
-$fixture = Join-Path ([IO.Path]::GetTempPath()) ('eoie dev contracts ' + [guid]::NewGuid().ToString('N'))
+$fixture = Join-Path ([IO.Path]::GetTempPath()) ('kit dev contracts ' + [guid]::NewGuid().ToString('N'))
 $root = Join-Path $fixture 'workspace with spaces'
 $bundle = Join-Path $fixture 'compiler with spaces'
 $targetDirectory = Join-Path $root 'src/target/shared validation'
 $pwsh = (Get-Process -Id $PID).Path
-$previousMutation = $env:EOIE_TEST_MUTATE_CHECKOUT
-$previousDriver = $env:EOIE_DEV_BINARY
+$previousMutation = $env:KIT_TEST_MUTATE_CHECKOUT
+$previousDriver = $env:KIT_DEV_BINARY
 $suffix = if ($IsWindows) { '.exe' } else { '' }
 $driverTarget = Join-Path $eoiRoot 'src/target/workflow-driver'
-$bootstrapped = Join-Path $driverTarget "debug/eoie-dev$suffix"
+$bootstrapped = Join-Path $driverTarget "debug/kit-dev$suffix"
 if (-not $DevBinary) {
-    $legacy = Join-Path $eoiRoot "src/target/dev-validation/debug/eoie-dev$suffix"
+    $legacy = Join-Path $eoiRoot "src/target/dev-validation/debug/kit-dev$suffix"
     if (Test-Path -LiteralPath $bootstrapped) { $DevBinary = $bootstrapped }
     elseif (Test-Path -LiteralPath $legacy) { $DevBinary = $legacy }
     else { $DevBinary = $bootstrapped }
 }
 if (-not (Test-Path -LiteralPath $DevBinary)) {
     if ($DevBinary -ne $bootstrapped) {
-        throw "eoie-dev was not found at '$DevBinary'. Omit -DevBinary to bootstrap '$bootstrapped', or build it with: cargo build --locked --package eoie-dev --target-dir `"$driverTarget`" from src."
+        throw "kit-dev was not found at '$DevBinary'. Omit -DevBinary to bootstrap '$bootstrapped', or build it with: cargo build --locked --package kit-dev --target-dir `"$driverTarget`" from src."
     }
     if (-not (Get-Command cargo -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1)) {
-        throw "eoie-dev was not found at '$bootstrapped' and cargo is not on PATH. Install Rust 1.88 and run: cargo build --locked --package eoie-dev --target-dir `"$driverTarget`" from src."
+        throw "kit-dev was not found at '$bootstrapped' and cargo is not on PATH. Install Rust 1.88 and run: cargo build --locked --package kit-dev --target-dir `"$driverTarget`" from src."
     }
-    Write-Host "eoie-dev is missing; bootstrapping: cargo build --locked --package eoie-dev --target-dir $driverTarget"
+    Write-Host "kit-dev is missing; bootstrapping: cargo build --locked --package kit-dev --target-dir $driverTarget"
     Push-Location (Join-Path $eoiRoot 'src')
     try {
-        & cargo build --locked --package eoie-dev --target-dir $driverTarget
-        if ($LASTEXITCODE -ne 0) { throw "eoie-dev bootstrap failed (exit $LASTEXITCODE). Expected binary: $bootstrapped" }
+        & cargo build --locked --package kit-dev --target-dir $driverTarget
+        if ($LASTEXITCODE -ne 0) { throw "kit-dev bootstrap failed (exit $LASTEXITCODE). Expected binary: $bootstrapped" }
     } finally { Pop-Location }
 }
 if (-not (Test-Path -LiteralPath $DevBinary)) {
-    throw "eoie-dev bootstrap finished without producing '$DevBinary'. Command: cargo build --locked --package eoie-dev --target-dir `"$driverTarget`" from src."
+    throw "kit-dev bootstrap finished without producing '$DevBinary'. Command: cargo build --locked --package kit-dev --target-dir `"$driverTarget`" from src."
 }
 $DevBinary = (Resolve-Path -LiteralPath $DevBinary).Path
 function Write-Fixture([string]$Path, [string]$Text) {
@@ -45,32 +45,32 @@ function Assert-Contract([bool]$Condition, [string]$Message) {
 }
 function Invoke-Regeneration([string]$Label, [bool]$Success, [string[]]$Extra = @(), [string]$Diagnostic = '') {
     $output = & $pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-regeneration.ps1') `
-        -EoieRoot $root -CompilerBundle $bundle -Package alpha -Offline -KeepStaged -TargetDirectory $targetDirectory @Extra 2>&1
+        -KitRoot $root -CompilerBundle $bundle -Package alpha -Offline -KeepStaged -TargetDirectory $targetDirectory @Extra 2>&1
     $code = $LASTEXITCODE
     if (($code -eq 0) -ne $Success) { throw "$Label failed (exit $code):`n$($output -join "`n")" }
     if ($Diagnostic -and -not ($output -join "`n").Contains($Diagnostic)) { throw "$Label missed expected diagnostic '$Diagnostic':`n$($output -join "`n")" }
-    if ($Success) { $script:lastStagedEoie = [regex]::Match(($output -join "`n"), 'Staged workspace: (.+)').Groups[1].Value.Trim() }
+    if ($Success) { $script:lastStagedKit = [regex]::Match(($output -join "`n"), 'Staged workspace: (.+)').Groups[1].Value.Trim() }
     Write-Host "PASS $Label"
 }
 try {
-    $env:EOIE_DEV_BINARY = $DevBinary
+    $env:KIT_DEV_BINARY = $DevBinary
     . (Join-Path $PSScriptRoot 'workspace.ps1')
     $managed = Join-Path $fixture 'managed compiler/Compiler.DLL'
     Write-Fixture $managed 'first compiler'
     Write-Fixture (Join-Path (Split-Path $managed) 'runtimes/native/dependency.dll') 'dependency'
-    $frozen = Copy-EoieCompilerSnapshot -Compiler $managed -Destination (Join-Path $fixture 'frozen compiler')
+    $frozen = Copy-KitCompilerSnapshot -Compiler $managed -Destination (Join-Path $fixture 'frozen compiler')
     Write-Fixture $managed 'replacement compiler'
     Assert-Contract ([IO.File]::ReadAllText($frozen) -ceq 'first compiler') 'Compiler snapshot changed with its source.'
     Assert-Contract ([IO.File]::ReadAllText((Join-Path (Split-Path $frozen) 'runtimes/native/dependency.dll')) -ceq 'dependency') 'Compiler runtime dependency was not snapshotted.'
-    Assert-Contract (Test-Path -LiteralPath (Join-Path (Split-Path $frozen) 'eoie-compiler-snapshot.json')) 'Compiler identity manifest is missing.'
+    Assert-Contract (Test-Path -LiteralPath (Join-Path (Split-Path $frozen) 'kit-compiler-snapshot.json')) 'Compiler identity manifest is missing.'
     Write-Host 'PASS managed compiler snapshot survives a later rebuild'
     $generatedInput = Join-Path $fixture 'generated input.rs'
     $generatedOutput = Join-Path $fixture 'generated output.rs'
     Write-Fixture $generatedInput "first`r`nsecond`r`n"
-    Assert-Contract (Set-EoieGeneratedFile -Source $generatedInput -Destination $generatedOutput) 'First generated publication was not written.'
+    Assert-Contract (Set-KitGeneratedFile -Source $generatedInput -Destination $generatedOutput) 'First generated publication was not written.'
     Assert-Contract ([IO.File]::ReadAllText($generatedOutput) -ceq "first`nsecond`n") 'Generated line endings were not normalized.'
     $generatedStamp = [IO.File]::GetLastWriteTimeUtc($generatedOutput)
-    Assert-Contract (-not (Set-EoieGeneratedFile -Source $generatedInput -Destination $generatedOutput)) 'Equivalent CRLF output was rewritten.'
+    Assert-Contract (-not (Set-KitGeneratedFile -Source $generatedInput -Destination $generatedOutput)) 'Equivalent CRLF output was rewritten.'
     Assert-Contract ([IO.File]::GetLastWriteTimeUtc($generatedOutput) -eq $generatedStamp) 'Equivalent normalized output timestamp changed.'
     Write-Host 'PASS generated line endings are stable across platforms'
     Write-Fixture (Join-Path $root 'src/Cargo.toml') @'
@@ -128,7 +128,7 @@ $rust = if ($source -eq 'bad-rust') { 'this is invalid Rust' } else {
 }
 [IO.File]::WriteAllText([IO.Path]::ChangeExtension($args[2], '.rs'), $rust)
 [IO.File]::WriteAllText($args[3], $rust)
-if ($env:EOIE_TEST_MUTATE_CHECKOUT) { [IO.File]::AppendAllText($env:EOIE_TEST_MUTATE_CHECKOUT, ' changed concurrently') }
+if ($env:KIT_TEST_MUTATE_CHECKOUT) { [IO.File]::AppendAllText($env:KIT_TEST_MUTATE_CHECKOUT, ' changed concurrently') }
 '@
     Push-Location (Join-Path $root 'src')
     try {
@@ -140,7 +140,7 @@ if ($env:EOIE_TEST_MUTATE_CHECKOUT) { [IO.File]::AppendAllText($env:EOIE_TEST_MU
     Assert-Contract ([IO.File]::ReadAllText($target) -ceq $before) 'Check unexpectedly published output.'
     Invoke-Regeneration 'selected package tests and publication without release' $true @('-CargoCheck', '-Test', '-SkipRelease', '-Publish')
     Assert-Contract ([IO.File]::ReadAllText($target).Contains('42')) 'Validated output was not published.'
-    Assert-Contract (-not (Test-Path (Join-Path $root 'eoie.exe')) -and -not (Test-Path (Join-Path $root 'eoie'))) 'Development run installed a release binary.'
+    Assert-Contract (-not (Test-Path (Join-Path $root 'kit.exe')) -and -not (Test-Path (Join-Path $root 'kit'))) 'Development run installed a release binary.'
     $stamp = [DateTime]::UtcNow.AddDays(-1)
     [IO.File]::SetLastWriteTimeUtc($target, $stamp)
     $stamp = [IO.File]::GetLastWriteTimeUtc($target)
@@ -150,8 +150,8 @@ if ($env:EOIE_TEST_MUTATE_CHECKOUT) { [IO.File]::AppendAllText($env:EOIE_TEST_MU
     Assert-Contract ([IO.File]::ReadAllText((Join-Path $root 'src/alpha/probe.rs')).Contains('42')) 'Auxiliary output was not published.'
     Assert-Contract (Test-Path -LiteralPath (Join-Path $targetDirectory 'debug') -PathType Container) 'Explicit Cargo target directory was not used.'
     Assert-Contract ([IO.File]::GetLastWriteTimeUtc($target) -eq $stamp) 'Auxiliary publication touched unchanged primary output.'
-    Assert-Contract (-not (Test-Path -LiteralPath (Join-Path $script:lastStagedEoie 'src/alpha/aux_entry.rs'))) 'Undeclared compiler sidecar remains in staged sources.'
-    Assert-Contract ([IO.File]::ReadAllText((Join-Path $script:lastStagedEoie 'src/alpha/custom_entry.rs')) -ceq 'pub fn value() -> i32 { 7 }') 'Compiler overwrote a copied native adapter.'
+    Assert-Contract (-not (Test-Path -LiteralPath (Join-Path $script:lastStagedKit 'src/alpha/aux_entry.rs'))) 'Undeclared compiler sidecar remains in staged sources.'
+    Assert-Contract ([IO.File]::ReadAllText((Join-Path $script:lastStagedKit 'src/alpha/custom_entry.rs')) -ceq 'pub fn value() -> i32 { 7 }') 'Compiler overwrote a copied native adapter.'
     $before = [IO.File]::ReadAllText($target)
     foreach ($failure in @('fail-compiler', 'bad-rust', 'sleep-compiler')) {
         Write-Fixture $source $failure
@@ -159,7 +159,7 @@ if ($env:EOIE_TEST_MUTATE_CHECKOUT) { [IO.File]::AppendAllText($env:EOIE_TEST_MU
         if ($failure -eq 'sleep-compiler') { $extra += @('-TimeoutSec', '1') }
         $diagnostic = switch ($failure) {
             'fail-compiler' { 'fixture compiler rejected input' }
-            'bad-rust' { 'Cargo rejected regenerated EOIE owners' }
+            'bad-rust' { 'Cargo rejected regenerated KIT owners' }
             'sleep-compiler' { 'no result within 1000 ms' }
         }
         Invoke-Regeneration "$failure leaves validated output intact" $false $extra $diagnostic
@@ -167,27 +167,27 @@ if ($env:EOIE_TEST_MUTATE_CHECKOUT) { [IO.File]::AppendAllText($env:EOIE_TEST_MU
         Assert-Contract ([IO.File]::GetLastWriteTimeUtc($target) -eq $stamp) "$failure touched output timestamp."
     }
     Write-Fixture $source 'good'
-    $env:EOIE_TEST_MUTATE_CHECKOUT = $source
+    $env:KIT_TEST_MUTATE_CHECKOUT = $source
     Invoke-Regeneration 'concurrent source edit blocks publication' $false @('-CargoCheck', '-Publish') 'Checkout changed during validation'
     Assert-Contract ([IO.File]::ReadAllText($source).Contains('changed concurrently')) 'Concurrent-edit fixture did not run.'
     Assert-Contract ([IO.File]::GetLastWriteTimeUtc($target) -eq $stamp) 'Stale validation published output.'
     Write-Fixture $source 'good'
     $newSource = Join-Path $root 'src/alpha/new_dependency.spi'
-    $env:EOIE_TEST_MUTATE_CHECKOUT = $newSource
+    $env:KIT_TEST_MUTATE_CHECKOUT = $newSource
     Invoke-Regeneration 'concurrent new source blocks publication' $false @('-CargoCheck', '-Publish') 'source file inventory differs'
     Assert-Contract (Test-Path -LiteralPath $newSource) 'New-source fixture did not run.'
     Assert-Contract ([IO.File]::GetLastWriteTimeUtc($target) -eq $stamp) 'New-source drift published output.'
     [IO.File]::Delete($newSource)
     $cacheFile = Join-Path $root '.cache/parallel-build.txt'
     [void][IO.Directory]::CreateDirectory((Split-Path $cacheFile -Parent))
-    $env:EOIE_TEST_MUTATE_CHECKOUT = $cacheFile
+    $env:KIT_TEST_MUTATE_CHECKOUT = $cacheFile
     Invoke-Regeneration 'ignored cache additions allow unchanged publication' $true @('-CargoCheck', '-Publish')
     Assert-Contract (Test-Path -LiteralPath $cacheFile) 'Cache-addition fixture did not run.'
     Assert-Contract ([IO.File]::GetLastWriteTimeUtc($target) -eq $stamp) 'Ignored cache activity touched unchanged output.'
-    Write-Host 'EOIE developer workflow contracts passed.'
+    Write-Host 'KIT developer workflow contracts passed.'
 } finally {
-    $env:EOIE_TEST_MUTATE_CHECKOUT = $previousMutation
-    $env:EOIE_DEV_BINARY = $previousDriver
+    $env:KIT_TEST_MUTATE_CHECKOUT = $previousMutation
+    $env:KIT_DEV_BINARY = $previousDriver
     $resolvedFixture = [IO.Path]::GetFullPath($fixture)
     $temporaryRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
     if (-not $resolvedFixture.StartsWith($temporaryRoot, [StringComparison]::OrdinalIgnoreCase)) { throw "Unsafe fixture cleanup: $resolvedFixture" }

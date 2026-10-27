@@ -1,0 +1,123 @@
+:< sm'_operators
+:< kit_table_sequence_args.args
+
+:| measure_request =
+    | IntervalOf : string * string * u64
+    | WindowOf : string * string * u64 * u64
+    | OrderOf : string * string
+    | LatencyOf : string * string
+
+:== sequence_request =
+    {
+        name : string
+        time : string
+        measure : measure_request
+    }
+
+:= roles_of (measure : measure_request) : string * string =
+    ?= measure ?|
+    | IntervalOf (marked, between, _) => marked, between
+    | WindowOf (counted, marker, _, _) => counted, marker
+    | OrderOf (first, second) => first, second
+    | LatencyOf (starting, ending) => starting, ending
+
+:= measured_text (~file : string) (~events : string) (measure : measure_request) : string =
+    ?= measure ?|
+    | IntervalOf (_, between, modulo) =>
+        := second = ? between = "" ?> "" |: "second"
+        $'kit_log_sequences::kit_sequence_interval(&*!file, &*!events, "first", &*!second, !modulo)' : string
+    | WindowOf (_, _, low, high) => $'kit_log_sequences::kit_sequence_window(&*!file, &*!events, "first", "second", \
+        !low, !high)' : string
+    | OrderOf _ => $'kit_log_sequences::kit_sequence_order(&*!file, &*!events, "first", "second")' : string
+    | LatencyOf _ => $'kit_log_sequences::kit_sequence_latency(&*!file, &*!events, "first", "second")' : string
+
+:~ file_table_of (~path : string) (request : sequence_request) : file_table =
+    := first, second = roles_of request.measure
+    := log = file_system.read_all_text path
+    := time = request.time
+    := events = $'kit_log_sequences::kit_sequence_events(&*!log, &*!time, &*!first, &*!second)' : string
+    data_rows (sm'.split "\n" (measured_text path events request.measure) |> array) 0i32 { text = ""; rows = 0u64 }
+
+:~ measure_from (count : i32) : string * option measure_request =
+    := interval = value_after "--interval" 2i32 count
+    := window = value_after "--window" 2i32 count
+    := order = value_after "--order" 2i32 count
+    := latency = value_after "--latency" 2i32 count
+    ? interval <> ""
+    ?>
+        := name, pattern = split_pair interval "="
+        name,
+        Some (IntervalOf (pattern, value_after "--between" 2i32 count, decimal (value_after "--modulo" 2i32 count)))
+    |? window <> ""
+    ?>
+        := name, pattern = split_pair window "="
+        := marker = value_after "--from" 2i32 count
+        := low, high = split_pair (value_after "--ms" 2i32 count) ".."
+        name, (? marker = "" ?> None |: Some (WindowOf (pattern, marker, decimal low, decimal high)))
+    |? order <> ""
+    ?>
+        := name, pattern = split_pair order "="
+        := first, second = split_pair pattern ","
+        name, (? second = "" ?> None |: Some (OrderOf (first, second)))
+    |? latency <> ""
+    ?>
+        := name, pattern = split_pair latency "="
+        := ending = value_after "--to" 2i32 count
+        name, (? ending = "" ?> None |: Some (LatencyOf (pattern, ending)))
+    |: "", None
+
+:~ ^ tables_of (files : list string) (request : sequence_request) (acc : file_table) : file_table =
+    ?= files ?|
+    | Nil => acc
+    | (path :: rest) =>
+        := found = file_table_of path request
+        tables_of rest request { text = acc.text ++# found.text; rows = acc.rows + found.rows }
+
+:~ table_written (~name : string) (~out : string) (files : list string) (found : file_table) : i32 =
+    := table = "file\tline\t" ++# name ++# "\n" ++# found.text
+    := receipt =
+        "kit table sequences ok files=" ++# sm'.format (listm.length files : i32) ++# " rows=" ++# sm'.format found.rows
+    ? out = "" ?>
+        console.write_line (sm'.trim_end_suffix "\n" table)
+        console.write_error_line receipt
+    |:
+        file_system.write_all_text out table
+        console.write_error_line (receipt ++# " out=" ++# out)
+    0i32
+
+:~ measures_run (count : i32) : i32 =
+    := paths, refusal = paths_from 2i32 count Nil ""
+    := name, measure = measure_from count
+    := time = value_after "--time" 2i32 count
+    ? refusal <> ""
+    ?> refused refusal
+    |:
+        ?= measure ?|
+        | None => refused "needs one measure with both its patterns"
+        | Some measure =>
+            ? time = "" || name = ""
+            ?> refused "needs --time and a measure name"
+            |:
+                ?= paths ?|
+                | Nil => refused "needs at least one file or directory"
+                | Cons _ =>
+                    := missing = missing_path paths
+                    ? missing <> ""
+                    ?> refused ("no such file or directory: " ++# missing)
+                    |:
+                        := files = files_in paths Nil
+                        := request = { name = name; time = time; measure = measure }
+                        table_written name
+                            (value_after "--out" 2i32 count)
+                            files
+                            (tables_of files request { text = ""; rows = 0u64 })
+
+:~ sections_run () : i32 = $'kit_table_sections::kit_table_sections_run()' : i32
+
+:~ sequences_run () : i32 =
+    := count = env.command_line_argument_count ()
+    ? has_columns 2i32 count ?> sections_run () |: measures_run count
+
+:= main () : i32 =
+    !!!!Export("kit_table_sequences_run", ((\ () => sequences_run ()) : () -> i32))
+    0i32

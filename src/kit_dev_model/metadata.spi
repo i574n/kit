@@ -1,0 +1,18 @@
+:< sm'_operators
+
+:~ argument (left : string) (right : string) : string = left ++# (host.separator ()) ++# right
+:= inspect (text : string) (names : string) (separator : string) : i32 =
+    $'developer_metadata_domain::kit_developer_requirements(&*!text,&*!names,&*!separator)' : i32
+:~ requirements (root : string) (names : string) (offline : bool) (timeout : u64) : i32 =
+    := args = argument (argument (argument (argument "metadata" "--no-deps") "--format-version") "1") "--locked"
+    := args = ? offline ?> argument args "--offline" |: args
+    := success, json = host.capture root args timeout
+    := code = ? success ?> inspect json names (host.separator ()) |: -1i32
+    ? (<) code 0i32 ?>
+        := message =
+            ? (=.) code -2i32 ?> "Unknown selected Cargo package or ambiguous workspace name\n"
+            |? (=.) code -3i32 ?> "kit test metadata must be a table\n"
+            |? (=.) code -4i32 ?> "test-requires-cli must be a boolean\n"
+            |: "Cannot inspect selected Cargo test requirements\n"
+        host.print message
+    code

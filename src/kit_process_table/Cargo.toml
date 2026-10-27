@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "run.spi"
+output = "process_table.rs"
+
+[package]
+name = "kit-process-table"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_process_table"
+path = "process_table.rs"
+
+[dependencies]
+kit-process-kill = { path = "../kit_process_kill" }
+regex = "1.13.1"
+sysinfo = "0.38.4"

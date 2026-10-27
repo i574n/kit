@@ -1,0 +1,32 @@
+:< sm'_operators
+:< kit_job_after_model.model
+
+:~ ^ serial_ran (~program : string) (mode : after_mode) (links : list (list string)) (ran : i32) failed : i32 =
+    ?= links ?|
+    | [] =>
+        console.write_line ("kit job chain ok serial ran=" ++# sm'.format ran ++# " failed=" ++# sm'.format failed)
+        ? failed = 0i32 ?> 0i32 |: 1i32
+    | link :: rest =>
+        ?= process.try_capture_combined_list program (run_arguments link) ?|
+        | Some output =>
+            console.write_line (sm'.trim output)
+            serial_ran program mode rest (ran + 1i32) failed
+        | None =>
+            console.write_error_line ("kit error: job chain link " ++# sm'.format (ran + 1i32) ++# " failed")
+            ? continues_after mode !- ?> serial_ran program mode rest (ran + 1i32) (failed + 1i32)
+            |:
+                := skipped = sm'.format (listm.length rest : i32)
+                := tally = "ran=" ++# sm'.format (ran + 1i32) ++# " failed=1 skipped=" ++# skipped
+                console.write_line ("kit job chain stopped serial " ++# tally)
+                1i32
+
+:~ serial_run () : i32 =
+    ?= chain_of (arguments_from 2i32 (env.command_line_argument_count ()) []) ?|
+    | ChainRefused reason =>
+        console.write_error_line ("kit error: job chain refused: " ++# reason)
+        2i32
+    | ChainPlanned plan => serial_ran (env.current_executable ()) plan.head.mode plan.links 0i32 0i32
+
+:= main () : i32 =
+    !!!!Export("kit_job_serial_run", ((\ () => serial_run ()) : () -> i32))
+    0i32

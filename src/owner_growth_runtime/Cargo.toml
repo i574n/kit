@@ -14,7 +14,7 @@ name = "owner_growth_runtime"
 path = "growth.rs"
 
 [dependencies]
-eoie-rust-std-fs = { path = "../rust_std_fs" }
-eoie-source-map = { path = "../eoie_source_map" }
-eoie-bundle-manifest = { path = "../eoie_bundle_manifest" }
-eoie-proxy-search = { path = "../eoie_proxy_search" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-source-map = { path = "../kit_source_map" }
+kit-bundle-manifest = { path = "../kit_bundle_manifest" }
+kit-proxy-search = { path = "../kit_proxy_search" }

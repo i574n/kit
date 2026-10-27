@@ -1,0 +1,177 @@
+///- --package .
+:# receipt_read static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| field_value =
+    | Absent
+    | Present : string
+
+:== receipt_fields =
+    {
+        schema : field_value
+        fingerprint : field_value
+        current : field_value
+        candidates : field_value
+        deletes : field_value
+        remaining : field_value
+        status : field_value
+    }
+
+:= no_fields () : receipt_fields =
+    {
+        schema = Absent
+        fingerprint = Absent
+        current = Absent
+        candidates = Absent
+        deletes = Absent
+        remaining = Absent
+        status = Absent
+    }
+
+:| receipt_reading =
+    | ReceiptRead : string
+    | ReceiptRejected : string
+
+:| field_step =
+    | FieldTaken : receipt_fields
+    | FieldRejected : string
+
+:= marker_line (~text : string) : string =
+    $'std::rc::Rc::<str>::from(!text.lines().find(|line| line.starts_with("// retention-receipt|")).unwrap_or(""))'
+    : string
+
+:= field_count (~line : string) : u64 = $'!line.split(char::from(124u8)).count() as u64' : u64
+:= field_at (~line : string) (~index : u64) : string =
+    $'std::rc::Rc::<str>::from(!line.split(char::from(124u8)).nth(!index as usize).unwrap_or(""))' : string
+:= has_equals (~field : string) : bool = $'!field.contains(char::from(61u8))' : bool
+:= key_of (~field : string) : string = $'std::rc::Rc::<str>::from(!field.split_once(char::from(61u8)).map(|pair| \
+    pair.0).unwrap_or(""))' : string
+:= value_of (~field : string) : string = $'std::rc::Rc::<str>::from(!field.split_once(char::from(61u8)).map(|pair| \
+    pair.1).unwrap_or(""))' : string
+:= count_error (~value : string) : string = $'std::rc::Rc::<str>::from(!value.parse::<usize>().err().map(|error| \
+    error.to_string()).unwrap_or_default())' : string
+:= count_text (~value : string) : string = $'std::rc::Rc::<str>::from(!value.parse::<usize>().map(|count| \
+    count.to_string()).unwrap_or_default())' : string
+
+:= counted (fields : receipt_fields) (~key : string) (~value : string) : field_step =
+    := error = count_error value
+    ? error <> "" ?> FieldRejected error
+    |? key = "candidates" ?> FieldTaken { fields ?| candidates = Present (count_text value) }
+    |? key = "deletes" ?> FieldTaken { fields ?| deletes = Present (count_text value) }
+    |: FieldTaken { fields ?| remaining = Present (count_text value) }
+
+:~ field_applied (fields : receipt_fields) (~field : string) : field_step =
+    ? has_equals field ?>
+        := key = key_of field
+        := value = value_of field
+        ? key = "schema" ?> FieldTaken { fields ?| schema = Present value }
+        |? key = "fingerprint" ?> FieldTaken { fields ?| fingerprint = Present value }
+        |? key = "current" ?> FieldTaken { fields ?| current = Present value }
+        |? key = "candidates" || key = "deletes" || key = "remaining" ?> counted fields key value
+        |? key = "status" ?> FieldTaken { fields ?| status = Present value }
+        |: FieldRejected ("unknown retention receipt field: " ++# key)
+    |: FieldRejected ("invalid retention receipt field: " ++# field)
+
+:~ ^ fields_from (~line : string) (index : u64) (count : u64) (fields : receipt_fields) : field_step =
+    ? index < count ?>
+        ?= field_applied fields (field_at line index) ?|
+        | FieldTaken next => fields_from line (index + 1u64) count next
+        | FieldRejected reason => FieldRejected reason
+    |: FieldTaken fields
+
+:= present_or (value : field_value) (~missing : string) : receipt_reading =
+    ?= value ?|
+    | Present text => ReceiptRead text
+    | Absent => ReceiptRejected missing
+
+:= schema_supported (value : field_value) : bool =
+    ?= value ?|
+    | Present text => text = "1"
+    | Absent => !-
+
+:~ receipt_reading_of (~text : string) : receipt_reading =
+    := line = marker_line text
+    ? line = ""
+    ?> ReceiptRejected "retention receipt marker missing"
+    |:
+        ?= fields_from line 1u64 (field_count line) (no_fields ()) ?|
+        | FieldRejected reason => ReceiptRejected reason
+        | FieldTaken fields =>
+            ? schema_supported fields.schema = !-
+            ?> ReceiptRejected "unsupported retention receipt schema"
+            |:
+                ?=
+                    present_or fields.fingerprint "missing receipt fingerprint",
+                    present_or fields.current "missing receipt current hash"
+                ?|
+                | ReceiptRejected reason, _ => ReceiptRejected reason
+                | _, ReceiptRejected reason => ReceiptRejected reason
+                | ReceiptRead fingerprint, ReceiptRead current =>
+                    ?=
+                        present_or fields.candidates "missing receipt candidate count",
+                        present_or fields.deletes "missing receipt delete count"
+                    ?|
+                    | ReceiptRejected reason, _ => ReceiptRejected reason
+                    | _, ReceiptRejected reason => ReceiptRejected reason
+                    | ReceiptRead candidates, ReceiptRead deletes =>
+                        ?=
+                            present_or fields.remaining "missing receipt remaining count",
+                            present_or fields.status "missing receipt status"
+                        ?|
+                        | ReceiptRejected reason, _ => ReceiptRejected reason
+                        | _, ReceiptRejected reason => ReceiptRejected reason
+                        | ReceiptRead remaining, ReceiptRead status =>
+                            ? status = "planned" || status = "applied"
+                            ?>
+                                ReceiptRead (
+                                    (fingerprint ++# "\t" ++# current ++# "\t" ++# candidates)
+                                    ++# "\t"
+                                    ++# (deletes ++# "\t" ++# remaining ++# "\t" ++# status)
+                                )
+                            |: ReceiptRejected ("invalid retention receipt status: " ++# status)
+
+:~ receipt_error (~text : string) : string =
+    ?= receipt_reading_of text ?|
+    | ReceiptRead _ => ""
+    | ReceiptRejected reason => reason
+
+:~ receipt_row (~text : string) : string =
+    ?= receipt_reading_of text ?|
+    | ReceiptRead row => row
+    | ReceiptRejected _ => ""
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:= marker (~fields : string) : string = "// retention-receipt|" ++# fields ++# "\nunion retention_receipt_status =\n"
+
+///> rust
+:# a_written_receipt_reads_back_as_one_row =
+    expect
+        (
+            receipt_row (marker "schema=1|fingerprint=ab|current=cd|candidates=5|deletes=2|remaining=3|status=applied")
+            = "ab\tcd\t5\t2\t3\tapplied"
+        )
+        "row"
+    expect
+        (
+            receipt_error (marker "schema=1|fingerprint=|current=cd|candidates=5|deletes=2|remaining=3|status=planned")
+            = ""
+        )
+        "an empty value is present"
+
+///> rust
+:# each_broken_receipt_has_its_reason =
+    expect (receipt_error "no marker here" = "retention receipt marker missing") "marker"
+    expect (receipt_error (marker "schema=1|oops") = "invalid retention receipt field: oops") "no equals"
+    expect (receipt_error (marker "schema=1|color=red") = "unknown retention receipt field: color") "unknown key"
+    expect (receipt_error (marker "schema=1|candidates=x") = "invalid digit found in string") "count parse error text"
+    expect (receipt_error (marker "schema=2|fingerprint=ab") = "unsupported retention receipt schema") "schema"
+    expect (receipt_error (marker "schema=1|current=cd") = "missing receipt fingerprint") "missing fingerprint first"
+    expect
+        (
+            receipt_error (marker "schema=1|fingerprint=ab|current=cd|candidates=5|deletes=2|remaining=3|status=done")
+            = "invalid retention receipt status: done"
+        )
+        "status"

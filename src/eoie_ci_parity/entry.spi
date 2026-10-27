@@ -1,5 +1,0 @@
-open parity
-
-inl main () : i32 =
-    !!!!Export("eoie_ci_parity_run", ((fun () => parity_run ()) : () -> i32))
-    0i32

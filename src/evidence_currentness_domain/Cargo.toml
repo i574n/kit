@@ -14,6 +14,6 @@ name = "evidence_currentness_domain"
 path = "evidence_currentness.rs"
 
 [dependencies]
-eoie-patch-control-domain = { path = "../patch_control_domain" }
-eoie-proxy-search = { path = "../eoie_proxy_search" }
-eoie-rust-std-fs = { path = "../rust_std_fs" }
+kit-patch-control-domain = { path = "../patch_control_domain" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-rust-std-fs = { path = "../rust_std_fs" }

@@ -1,0 +1,31 @@
+[package.metadata.spiral]
+entry = "bundle.spi"
+output = "bundle.rs"
+
+[package]
+name = "kit-bundle-zip"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_bundle_zip"
+path = "bundle.rs"
+
+[dependencies]
+archive-deflate-domain = { path = "../archive_deflate_domain" }
+bundle-lifecycle-domain = { path = "../bundle_lifecycle_domain" }
+kit-release-hygiene = { path = "../kit_release_hygiene" }
+kit-bundle-manifest = { path = "../kit_bundle_manifest" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-rust-std-fs-mutation = { path = "../rust_std_fs_mutation" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-source-map = { path = "../kit_source_map" }
+evidence-currentness-domain = { path = "../evidence_currentness_domain" }
+semantic-evidence-domain = { path = "../semantic_evidence_domain" }
+cold-proof-domain = { path = "../cold_proof_domain" }
+rating-guard-runtime = { path = "../rating_guard_runtime" }
+owner-growth-runtime = { path = "../owner_growth_runtime" }
+state-receipt-codec-core = { path = "../state_receipt_codec_core" }
+state-recovered-topology-codec = { path = "../state_recovered_topology_codec" }

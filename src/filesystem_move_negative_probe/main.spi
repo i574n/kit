@@ -1,7 +1,7 @@
-open filesystem_move_contract.model
+:< filesystem_move_contract.model
 
-inl main () : i32 =
-    match agile_rejection "/tmp/eoie-move-negative-source.txt" "/tmp/eoie-move-negative-target.txt" "expected" "actual" with
+:= main () : i32 =
+    ?= agile_rejection "/tmp/kit-move-negative-source.txt" "/tmp/kit-move-negative-target.txt" "expected" "actual" ?|
     | MoveRejected _ => 0i32
     | MoveAccepted _ => 1i32
     | MoveFailed _ => 2i32

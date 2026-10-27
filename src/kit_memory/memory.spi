@@ -1,0 +1,74 @@
+:< rust_std_string.model
+:< kit_memory_model.model
+
+
+:~ ^ rendered_into (list : memory_list) (~out : string) (written : i32) : i32 =
+    ?= list ?|
+    | NoMemories => written
+    | MemoryThen (entry, rest) =>
+        rendered_into rest out (
+            ? text_written (path_joined out entry.file) (rendered entry) ?> written + 1i32 |: written
+        )
+
+:~ memory_render (~data : string) (~out : string) : i32 =
+    ? file_present data = !- ?> failed (concat5 "render needs a readable data file: " data "" "" "")
+    |:
+        := store = store_of (exact_text data)
+        := written = rendered_into store.memories out 0i32
+        := index_written = text_written (path_joined out "MEMORY.md") store.index
+        ? written = store.count && index_written ?>
+            stdout_line (concat5 "kit memory render ok memories=" (count_text written) " out=" out "")
+            0i32
+        |: failed (concat5 "render wrote " (count_text written) " of " (count_text store.count) " memories")
+
+:| memory_verb =
+    | VerbImport
+    | VerbRender
+    | VerbCheck
+    | VerbList
+    | VerbRecall
+
+:| verb_parse =
+    | VerbKnown : memory_verb
+    | VerbUnknown
+
+:= verb_word (verb : memory_verb) : string = ascii_lowercase (union_reflection.cases.union_case_suffix "Verb" verb)
+
+:~ memory_usage () : string =
+    "usage: kit memory import <memory-dir> <data.spi> | render <data.spi> <out-dir> | check <data.spi> | list "
+    ^^ "<data.spi> [--kind user|feedback|project|reference] | recall <data.spi> \"<words>\" [--limit n]"
+
+:~ memory_run () : i32 =
+    := word = argument 2i32
+    ?=
+        union_reflection.cases.union_case_where
+            \ (verb : memory_verb) => word = verb_word verb
+            \ verb => VerbKnown verb
+            VerbUnknown
+    ?|
+    | VerbUnknown => failed (memory_usage ())
+    | VerbKnown verb =>
+        ?= verb ?|
+        | VerbImport =>
+            := dir = argument 3i32
+            := data = argument 4i32
+            ? data = "" ?> failed (memory_usage ()) |: $'kit_memory_import::kit_memory_import(&*!dir, &*!data)' : i32
+        | VerbRender =>
+            ? argument 4i32 = "" ?> failed (memory_usage ()) |: memory_render (argument 3i32) (argument 4i32)
+        | VerbCheck =>
+            := data = argument 3i32
+            ? data = "" ?> failed (memory_usage ()) |: $'kit_memory_query::kit_memory_check(&*!data)' : i32
+        | VerbList =>
+            := data = argument 3i32
+            := kind = option_value "--kind"
+            ? data = "" ?> failed (memory_usage ()) |: $'kit_memory_query::kit_memory_list(&*!data, &*!kind)' : i32
+        | VerbRecall =>
+            := data = argument 3i32
+            := query = argument 4i32
+            := limit = decimal_of (option_value "--limit") 10i32
+            ? query = "" ?> failed (memory_usage ()) |: $'kit_memory_query::kit_memory_recall(&*!data, &*!query, \
+                !limit)' : i32
+
+:= main () : i32 =
+    !!!!Export("kit_memory_run", ((\ () => memory_run ()) : () -> i32))
+    0i32

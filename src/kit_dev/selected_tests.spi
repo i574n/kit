@@ -1,0 +1,125 @@
+:< sm'_operators
+
+:= append (left : string) (right : string) : string = left ++# right
+:= arg (left : string) (right : string) : string = left ++# (host.separator ()) ++# right
+:~ write (root : string) (relative : string) (text : string) : () =
+    $'{ let path=std::path::Path::new(&*!root).join(&*!relative); \
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap(); std::fs::write(path,!text.as_bytes()).unwrap(); }'
+    : ()
+:~ require (condition : bool) (detail : string) : () =
+    $'if !condition { () } else { std::panic::panic_any(!detail.to_string()) }' : ()
+:= contains (text : string) (part : string) : bool = sm'.contains part text
+:= same (left : string) (right : string) : bool = (left = right)
+:~ capture (root : string) (args : string) : string =
+    $'{ let mut command=std::process::Command::new(DEV_BIN); command.current_dir(&*!root).env_remove("RUSTFLAGS").env_\
+        remove("LLVM_PROFILE_FILE").args(!args.split(char::from(0u8))); \
+        let capture=kit_process::run_bounded_capture_with_input(&mut command,120000,None).unwrap(); \
+        let status=if capture.status.success() { "success\n" } else { "failure\n" }; \
+        std::rc::Rc::<str>::from([status,&String::from_utf8_lossy(&capture.stdout),&String::from_utf8_lossy(&capture.s\
+        tderr)].concat()) }' : string
+
+:~ client_manifest (requires : string) : string =
+    """
+        [package]
+        name='kit-coverage-prune'
+        version='0.0.0'
+        edition='2024'
+        [lib]
+        path='lib.rs'
+        [package.metadata.kit]
+        test-requires-cli=
+        """ ++# requires ++# "\n"
+
+:~ selected_args (name : string) : string =
+    arg
+        (arg (arg (arg (arg (arg "--test" "--skip-release") "--offline") "--package") name) "--target-dir")
+        "target with spaces ü"
+
+:~ selected (root : string) (name : string) (success : bool) (message : string) : () =
+    := output = capture root (selected_args name)
+    := expected = ? success ?> "success\n" |: "failure\n"
+    require (sm'.starts_with expected output) output
+    require (contains output message) output
+
+:~ scenarios (root : string) : i32 =
+    write root "src/Cargo.toml" """
+        [workspace]
+        members=['cli','client','isolated']
+        resolver='3'
+
+        """
+    write root "src/cli/Cargo.toml" """
+        [package]
+        name='kit-cli'
+        version='0.0.0'
+        edition='2024'
+        [[bin]]
+        name='kit'
+        path='main.rs'
+
+        """
+    write root "src/cli/main.rs" "fn main() { println!(\"first\"); }\n"
+    write root "src/client/Cargo.toml" (client_manifest "true")
+    write root
+        "src/client/lib.rs"
+        (
+            "#[test] fn fresh_cli_is_available() { let current=std::env::current_exe().unwrap(); let "
+            ^^ "binary=current.parent().unwrap().parent().unwrap().join(format!(\"kit{}\",std::env::consts::EXE_SUFFIX"
+            ^^ ")); let output=std::process::Command::new(binary).output().expect(\"selected test requires the "
+            ^^ "CLI\"); assert!(output.status.success()); assert_eq!(String::from_utf8(output.stdout).unwrap().trim(),"
+            ^^ "include_str!(\"expected.txt\").trim()); }\n"
+        )
+    write root "src/client/expected.txt" "first"
+    write root "src/isolated/Cargo.toml" """
+        [package]
+        name='isolated'
+        version='0.0.0'
+        edition='2024'
+        [lib]
+        path='lib.rs'
+
+        """
+    write root "src/isolated/lib.rs" "#[test] fn independent() { assert_eq!(2+2,4); }\n"
+    := lock = host.cargo root (arg "generate-lockfile" "--offline") "" 60000u64
+    require (lock = 0i32) "fixture lock generation failed"
+    selected root "kit-coverage-prune" !+ "test result: ok"
+    write root "src/cli/main.rs" "fn main() { println!(\"second\"); }\n"
+    write root "src/client/expected.txt" "second"
+    selected root "kit-coverage-prune" !+ "test result: ok"
+    write root "src/cli/main.rs" "compile_error!(\"unselected CLI must not compile\"); fn main() {}\n"
+    selected root "isolated" !+ "test result: ok"
+    selected root "missing-package" !- "Unknown selected Cargo package"
+    write root "src/client/Cargo.toml" (client_manifest "'yes'")
+    selected root "kit-coverage-prune" !- "test-requires-cli must be a boolean"
+    := invalid = capture root "--skip-release"
+    require (contains invalid "require --test") invalid
+    := invalid = capture root (arg "--timeout-ms" "0")
+    require (contains invalid "--timeout-ms must be between") invalid
+    := invalid = capture root "--package"
+    require (contains invalid "missing value") invalid
+    := running_target = $'std::rc::Rc::<str>::from(std::path::Path::new(DEV_BIN).parent().unwrap().parent().unwrap().t\
+        o_str().unwrap())' : string
+    := conflict = capture root (arg (arg "--target-dir" running_target) "--test")
+    require (contains conflict "bootstrap kit-dev with a separate --target-dir") conflict
+    := planned = capture root (arg (selected_args "isolated") "--dry-run")
+    require (contains planned "target with spaces ü") planned
+    require (contains planned "cargo \"test\"") planned
+    write root
+        "src/isolated/lib.rs"
+        "#[test] fn deliberate_failure() { panic!(\"deliberate native workflow test failure\"); }\n"
+    selected root "isolated" !- "deliberate native workflow test failure"
+    0i32
+
+:= main () : i32 =
+    !!!!Global("""
+        const DEV_BIN: &str = env!("CARGO_BIN_EXE_kit-dev");
+        #[cfg(test)] mod native_selected_tests {
+        struct Fixture(std::path::PathBuf);
+        impl Fixture { fn new() -> Self { let stamp=std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos(); let root=std::env::temp_dir().join(format!("kit native workflow ü {} {stamp}",std::process::id())); std::fs::create_dir(&root).unwrap(); Self(root) } }
+        impl Drop for Fixture { fn drop(&mut self) { let _=std::fs::remove_dir_all(&self.0); } }
+        #[test] fn selected_packages_preserve_native_build_contracts() { let fixture=Fixture::new(); assert_eq!(super::kit_dev_selected_scenarios(fixture.0.to_str().unwrap()),0); }
+        }
+
+        """)
+    !!!!Export("kit_dev_selected_scenarios", ((\ root => scenarios root) : string -> i32))
+    0i32

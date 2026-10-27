@@ -2,10 +2,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 fn spiral_main() -> i32 {
-    let mut v0: Rc<str> = std::env::temp_dir().display().to_string().into();
-    let mut v1: bool = std::path::Path::new(&*v0).is_dir();
+    let v0: Rc<str> = std::env::temp_dir().display().to_string().into();
+    let v1: bool = std::path::Path::new(&*v0).is_dir();
     if v1 {
-        let mut v2: bool = eoie_proxy_search::inspection_tree_sha256(std::path::Path::new(&*v0), "../escape").is_err_and(|error| error.contains("unsafe relative path"));
+        let v2: bool = kit_proxy_search::inspection_tree_sha256(std::path::Path::new(&*v0), "../escape").is_err_and(|error| error.contains("unsafe relative path"));
         if v2 {
             0i32
         } else {

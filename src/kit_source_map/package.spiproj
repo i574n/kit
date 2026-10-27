@@ -1,0 +1,5 @@
+packages:
+    |core-
+    kit_source_topology_core-
+modules:
+    main

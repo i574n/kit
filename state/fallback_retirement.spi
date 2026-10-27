@@ -1,58 +1,57 @@
-:| fallback_gap =
+union fallback_gap =
     | NonZipExtraction
     | DestructiveIncidentRecovery
     | GenericCargoResume
     | ExternalPayloadLifecycle
 
-:| fallback_proof =
+union fallback_proof =
     | NonZipTarBzip2Proof :: u32 -> fallback_proof
     | IncidentSnapshotRestoreProof :: bool * bool -> fallback_proof
     | CargoReceiptResumeProof :: bool * bool -> fallback_proof
     | ExternalPayloadRoundTripProof :: u32 * bool -> fallback_proof
 
-:| fallback_gap_state =
+union fallback_gap_state =
     | FallbackGapSettled :: fallback_gap * fallback_proof -> fallback_gap_state
 
-:= non_zip_extraction () : fallback_gap_state =
+inl non_zip_extraction () : fallback_gap_state =
     FallbackGapSettled (NonZipExtraction, NonZipTarBzip2Proof 9780200u32)
 
-:= destructive_incident_recovery () : fallback_gap_state =
-    FallbackGapSettled (DestructiveIncidentRecovery, IncidentSnapshotRestoreProof (!+, !+))
+inl destructive_incident_recovery () : fallback_gap_state =
+    FallbackGapSettled (DestructiveIncidentRecovery, IncidentSnapshotRestoreProof (true, true))
 
-:= generic_cargo_resume () : fallback_gap_state =
-    FallbackGapSettled (GenericCargoResume, CargoReceiptResumeProof (!+, !-))
+inl generic_cargo_resume () : fallback_gap_state =
+    FallbackGapSettled (GenericCargoResume, CargoReceiptResumeProof (true, false))
 
-:= external_payload_lifecycle () : fallback_gap_state =
-    FallbackGapSettled (ExternalPayloadLifecycle, ExternalPayloadRoundTripProof (16u32, !+))
+inl external_payload_lifecycle () : fallback_gap_state =
+    FallbackGapSettled (ExternalPayloadLifecycle, ExternalPayloadRoundTripProof (16u32, true))
 
-:| cold_cutover_proof =
+union cold_cutover_proof =
     | ExclusiveColdCutoverProof :: bool * bool * bool * bool -> cold_cutover_proof
 
-:= exclusive_cold_cutover () : cold_cutover_proof =
-    ExclusiveColdCutoverProof (!+, !+, !+, !+)
+inl exclusive_cold_cutover () : cold_cutover_proof =
+    ExclusiveColdCutoverProof (true, true, true, true)
 
-:| retirement_basis =
+union retirement_basis =
     | CapabilityCompleteRetirement :: u32 * u32 * u32 * u32 * cold_cutover_proof -> retirement_basis
 
-:= retirement_basis () : retirement_basis =
+inl retirement_basis () : retirement_basis =
     CapabilityCompleteRetirement (36u32, 36u32, 34u32, 2u32, exclusive_cold_cutover ())
 
-:= coverage_quality_checkpoint () : u32 * u32 = 804u32, 900u32
+inl coverage_quality_checkpoint () : u32 * u32 = 804u32, 900u32
 
-:= authority () : authority_state_domain.formal_authority_state =
+inl authority () : authority_state_domain.formal_authority_state =
     authority_state_domain.current_formal_authority ()
 
-:= operational_replacement_ready () : bool =
+inl operational_replacement_ready () : bool =
     authority_state_domain.operational_replacement_ready ()
 
-:= legacy_fallback_execution_allowed () : bool =
+inl legacy_fallback_execution_allowed () : bool =
     authority_state_domain.legacy_fallback_execution_allowed ()
 
-:= historical_oracle_policy () : string =
-    "alpha834-and-alpha9252-are-immutable-historical-oracles-by-hash;they-are-not-PATH-authority-and-must-not-be-us"
-    ^^ "ed-as-automatic-fallbacks;formal-exclusive-authority-remains-blocked-by-the-shared-AuthorityState"
+inl historical_oracle_policy () : string =
+    "alpha834-and-alpha9252-are-immutable-historical-oracles-by-hash;they-are-not-PATH-authority-and-must-not-be-used-as-automatic-fallbacks;formal-exclusive-authority-remains-blocked-by-the-shared-AuthorityState"
 
-:= main () : i32 =
-    := _ = authority ()
-    := _ = retirement_basis ()
+inl main () : i32 =
+    inl _ = authority ()
+    inl _ = retirement_basis ()
     0i32

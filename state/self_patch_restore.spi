@@ -1,11 +1,6 @@
-:| patch_exact =
+union patch_exact =
     | PatchExact :: string * string * string -> patch_exact
 
-:= restore_candidate_self_patch () : patch_exact =
-    PatchExact (
-        "state/oracle.spi",
-        "zero-Eoie-symbols-in-compiler-source-self-patch",
-        "zero-Eoie-symbols-in-compiler-source"
-    )
+inl restore_candidate_self_patch () : patch_exact = PatchExact ("state/oracle.spi", "zero-Eoie-symbols-in-compiler-source-self-patch", "zero-Eoie-symbols-in-compiler-source")
 
-:= main () : i32 = 0i32
+inl main () : i32 = 0i32

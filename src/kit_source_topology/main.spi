@@ -1,0 +1,29 @@
+:< model
+
+:= main () : i32 =
+    := _ = topology_public_plan ()
+    := _ = topology_limit_binding 1000i32 1000i32
+    := _ = topology_package_only_binding 1i32 1i32
+    := _ = source_surface_binding 0i32 1i32
+    := _ = build_cache_binding 2u64 0i32 1i32
+    := _ = crate_headroom_binding 990i32
+    !!!!Export(
+        "kit_source_topology_limit_binding",
+        ((\ (first, second) => topology_limit_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_source_topology_package_only_binding",
+        ((\ (first, second) => topology_package_only_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_source_surface_binding",
+        ((\ (first, second) => source_surface_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_source_topology_build_cache_binding",
+        ((\ (kind, tag, beside) => build_cache_binding kind tag beside) : u64 * i32 * i32 -> i32)
+    )
+    !!!!Export("kit_source_topology_crate_headroom_binding", ((\ lines => crate_headroom_binding lines) : i32 -> i32))
+    !!!!Export("kit_source_directory_kind", ((\ name => source_directory_kind name) : string -> u64))
+    terminal.emit_runtime_topology ()
+    0i32

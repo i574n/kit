@@ -1,20 +1,20 @@
-open parallel_search_contract.model
+:< parallel_search_contract.model
 
-inl main () : i32 =
-    inl _ = parallel_search_public_plan ()
-    match parallel_search_request_binding 0i32 128i32 with
+:= main () : i32 =
+    := _ = parallel_search_public_plan ()
+    ?= parallel_search_request_binding 0i32 128i32 ?|
     | 1 =>
-        match parallel_search_worker_binding 56i32 56i32 with
+        ?= parallel_search_worker_binding 56i32 56i32 ?|
         | 1 =>
-            match parallel_search_parity_binding 9i32 9i32 with
+            ?= parallel_search_parity_binding 9i32 9i32 ?|
             | 1 =>
-                match parallel_manifest_order_binding 1i32 1i32 with
+                ?= parallel_manifest_order_binding 1i32 1i32 ?|
                 | 1 =>
-                    match parallel_manifest_parity_binding 12345i32 12345i32 with
+                    ?= parallel_manifest_parity_binding 12345i32 12345i32 ?|
                     | 1 =>
-                        match parallel_consumer_mode_binding 1i32 3i32 with
+                        ?= parallel_consumer_mode_binding 1i32 3i32 ?|
                         | 1 =>
-                            match parallel_consumer_output_binding 111i32 111i32 with
+                            ?= parallel_consumer_output_binding 111i32 111i32 ?|
                             | 1 => 0i32
                             | _ => 7i32
                         | _ => 6i32

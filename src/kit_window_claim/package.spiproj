@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    spiral-
+    union_reflection
+    kit_jobs
+    kit_machine_windows
+    kit_tree_lease
+modules:
+    claim

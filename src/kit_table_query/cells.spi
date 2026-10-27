@@ -1,0 +1,59 @@
+:! table_cells = $'std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>'
+
+:! key_rows = $'std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>'
+
+:| table_load =
+    | TableLoaded : table_cells
+    | TableUnreadable : string
+
+:= table_problem (~path : string) : string = $'kit_table_text::kit_table_problem(&*!path)' : string
+:= cells_of_tsv (~path : string) : table_cells =
+    $'std::rc::Rc::new(kit_table_text::kit_table_tsv(&*!path).lines().map(|line| \
+        line.split(char::from(9u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>())'
+    : table_cells
+
+:= table_read (~path : string) : table_load =
+    := problem = table_problem path
+    ? problem <> "" ?> TableUnreadable problem |: TableLoaded (cells_of_tsv path)
+
+:= row_total (cells : table_cells) : i32 = $'((!cells).len().max(1) - 1) as i32' : i32
+
+:= row_width (cells : table_cells) (row : i32) : i32 = $'(!cells).get(!row as usize).map_or(0, |r| r.len()) as i32' : i32
+
+:= cell_at (cells : table_cells) (row : i32) (column : i32) : string =
+    $'std::rc::Rc::<str>::from((!cells).get(!row as usize).and_then(|cells| cells.get(!column as usize)).map(|cell| \
+        &**cell).unwrap_or(""))' : string
+
+:= column_of (cells : table_cells) (~name : string) : i32 =
+    $'(!cells).first().and_then(|header| header.iter().position(|item| &**item == &*!name)).map(|index| index as \
+        i32).unwrap_or(-1)' : i32
+
+:= header_joined (cells : table_cells) (~separator : string) : string =
+    $'std::rc::Rc::<str>::from((!cells).first().map(|header| header.iter().map(|item| \
+        &**item).collect::<Vec<_>>().join(&*!separator)).unwrap_or_default().as_str())' : string
+
+:= key_of (cells : table_cells) (row : i32) (~columns : string) : string =
+    $'std::rc::Rc::<str>::from((!columns).split(char::from(44u8)).map(|index| \
+        index.parse::<usize>().ok().and_then(|index| (!cells).get(!row as usize).and_then(|cells| \
+        cells.get(index))).map(|cell| cell.to_string()).unwrap_or_default()).collect::<Vec<_>>().join("|").as_str())'
+    : string
+
+:= key_rows_new () : key_rows =
+    $'std::rc::Rc::new(std::cell::RefCell::new(std::collections::HashMap::new()))' : key_rows
+:= key_row (rows : key_rows) (~key : string) : i32 = $'(!rows).borrow().get(&*!key).copied().unwrap_or(-1)' : i32
+:= key_row_set (rows : key_rows) (~key : string) (row : i32) : () = $'{ (!rows).borrow_mut().insert(!key.clone(), \
+    !row); }' : ()
+:= key_rows_count (rows : key_rows) : i32 = $'(!rows).borrow().len() as i32' : i32
+
+:= stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= head_of (~list : string) (~separator : string) : string = $'std::rc::Rc::<str>::from((!list).split(&*!separator).ne\
+    xt().unwrap_or(""))' : string
+:= tail_of (~list : string) (~separator : string) : string = $'std::rc::Rc::<str>::from((!list).split_once(&*!separator\
+    ).map(|(_, rest)| rest).unwrap_or(""))' : string
+:= below_limit (count : i32) (limit : u64) : bool = $'(!count as u64) < !limit' : bool
+
+:= rejected (~message : string) : i32 =
+    stderr_line (rust_std_string.model.concat5 "kit error: table " message "" "" "")
+    2i32

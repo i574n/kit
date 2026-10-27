@@ -2,7 +2,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 fn agile_clock_ms_0() -> u64 {
-    let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
+    let v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
     v0
 }
 fn closure0() -> Rc<dyn Fn() -> u64> {
@@ -11,38 +11,38 @@ fn closure0() -> Rc<dyn Fn() -> u64> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn agile_set_receipt_text_1(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: u64, mut v4: u64, mut v5: u64) -> Rc<str> {
-    let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("eoie agile set ok id="); } LIT.with(|lit| lit.clone()) };
-    let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v0));
-    let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" progress="); } LIT.with(|lit| lit.clone()) };
-    let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-    let mut v10: Rc<str> = std::rc::Rc::<str>::from((v1).to_string());
-    let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
-    let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" status="); } LIT.with(|lit| lit.clone()) };
-    let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v12));
-    let mut v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v2));
-    let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" validation=runtime-attested compiler=not-required"); } LIT.with(|lit| lit.clone()) };
-    let mut v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
-    let mut v17: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v5);
-    let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_before="); } LIT.with(|lit| lit.clone()) };
-    let mut v19: Rc<str> = std::rc::Rc::<str>::from((v3).to_string());
-    let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_after="); } LIT.with(|lit| lit.clone()) };
-    let mut v21: Rc<str> = std::rc::Rc::<str>::from((v4).to_string());
-    let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v23: Rc<str> = std::rc::Rc::<str>::from([&*v18, &*v19, &*v20, &*v21, &*v22].concat());
-    let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
-    let mut v25: Rc<str> = std::rc::Rc::<str>::from((v17).to_string());
-    let mut v26: Rc<str> = std::rc::Rc::<str>::from([&*v23, &*v24, &*v25, &*v22, &*v22].concat());
-    let mut v27: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v26));
-    v27.clone()
+    let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile set ok id="); } LIT.with(|lit| lit.clone()) };
+    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v0));
+    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" progress="); } LIT.with(|lit| lit.clone()) };
+    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
+    let v10: Rc<str> = std::rc::Rc::<str>::from((v1).to_string());
+    let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
+    let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" status="); } LIT.with(|lit| lit.clone()) };
+    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v11, v12)), v2));
+    let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" validation=runtime-attested compiler=not-required"); } LIT.with(|lit| lit.clone()) };
+    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
+    let v17: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v5);
+    let v18: Rc<str> = std::rc::Rc::<str>::from((v3).to_string());
+    let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_before="); } LIT.with(|lit| lit.clone()) };
+    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v18));
+    let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_after="); } LIT.with(|lit| lit.clone()) };
+    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v21));
+    let v23: Rc<str> = std::rc::Rc::<str>::from((v4).to_string());
+    let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v23));
+    let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
+    let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v25));
+    let v27: Rc<str> = std::rc::Rc::<str>::from((v17).to_string());
+    let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v16, Rc::<str>::from(format!("{}{}", v26, v27))));
+    v29.clone()
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>, i32, Rc<str>, u64, u64, u64) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, i32, Rc<str>, u64, u64, u64) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: u64, mut v4: u64, mut v5: u64| -> Rc<str> {
         agile_set_receipt_text_1(v0.clone(), v1, v2.clone(), v3, v4, v5)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-pub fn eoie_agile_clock_ms() -> u64 {
+pub fn kit_agile_clock_ms() -> u64 {
     closure0()()
 }
-pub fn eoie_agile_set_receipt_text(v0: &str, v1: i32, v2: &str, v3: u64, v4: u64, v5: u64) -> Rc<str> {
+pub fn kit_agile_set_receipt_text(v0: &str, v1: i32, v2: &str, v3: u64, v4: u64, v5: u64) -> Rc<str> {
     closure1()(Rc::<str>::from(v0), v1, Rc::<str>::from(v2), v3, v4, v5)
 }

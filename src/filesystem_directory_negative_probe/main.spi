@@ -1,7 +1,7 @@
-open filesystem_directory_contract.model
+:< filesystem_directory_contract.model
 
-inl main () : i32 =
-    match agile_rejection "/tmp/eoie-directory-lifecycle-negative" with
+:= main () : i32 =
+    ?= agile_rejection "/tmp/kit-directory-lifecycle-negative" ?|
     | DirectoryRejected _ => 0i32
     | DirectoryAccepted _ => 1i32
     | DirectoryFailed _ => 2i32

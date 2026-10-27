@@ -1,6 +1,0 @@
-packages:
-    |core-
-    spiral-
-    eoie_table_sequence_args
-modules:
-    verb

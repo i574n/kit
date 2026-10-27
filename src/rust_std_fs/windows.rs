@@ -1,4 +1,4 @@
-pub use eoie_rust_std_fs_mutation::{windows_guard, windows_open_regular, windows_symlink, windows_validate_component};
+pub use kit_rust_std_fs_mutation::{windows_guard, windows_open_regular, windows_symlink, windows_validate_component};
 fn open_nofollow_path(path: &Path, directory: bool) -> Result<std::fs::File, String> {
     if directory { return Err("use rooted directory operations on Windows".to_owned()); }
     windows_open_regular(path)

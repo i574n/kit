@@ -1,0 +1,5 @@
+:< chain
+
+:= main () : i32 =
+    !!!!Export("kit_job_chain_run", ((\ () => chain_run ()) : () -> i32))
+    0i32

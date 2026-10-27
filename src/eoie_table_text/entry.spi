@@ -1,6 +1,0 @@
-open text
-
-inl main () : i32 =
-    !!!!Export("eoie_table_problem", ((fun path => table_problem path) : string -> string))
-    !!!!Export("eoie_table_tsv", ((fun path => table_tsv path) : string -> string))
-    0i32

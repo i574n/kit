@@ -1,0 +1,113 @@
+:< rust_std_string.model
+:< experiment_model
+:< ledger_host
+
+:~ registered () : i32 =
+    := ledger = argument 3i32
+    := id = argument 4i32
+    ? identifier_ok id = !-
+    ?>
+        failed (
+            concat5 "register: the ID must be letters, digits, '-' or '_', received '" id "'; " (experiment_usage ()) ""
+        )
+    |:
+        ?= test_of (option_value "--test") ?|
+        | TestUnknown =>
+            failed (concat5 "register: --test must be " (test_words ()) ", received '" (option_value "--test") "'")
+        | TestKnown kind =>
+            := runs = decimal_i32 (option_value "--runs")
+            ?=
+                plan_checked kind
+                    (option_value "--arms")
+                    (option_value "--group")
+                    runs
+                    (option_value "--prediction")
+                    (option_value "--metric")
+                    (option_value "--decision")
+            ?|
+            | PlanRejected reason => failed (concat5 "register: " reason "" "" "")
+            | PlanAccepted =>
+                := at = agile_note_model.model.utc_stamp (now_ms ())
+                := confidence = ? option_value "--confidence" = "" ?> "0.95" |: option_value "--confidence"
+                := head =
+                    concat5
+                        (field_line "id" id)
+                        (field_line "registered" at)
+                        (field_line "question" (option_value "--question"))
+                        (field_line "test" (test_word kind))
+                        (field_line "metric" (option_value "--metric"))
+                := body =
+                    concat5
+                        (field_line "group" (option_value "--group"))
+                        (field_line "arms" (option_value "--arms"))
+                        (field_line "runs" (option_value "--runs"))
+                        (field_line "prediction" (option_value "--prediction"))
+                        (field_line "confidence" confidence)
+                := problem =
+                    text_created
+                        (record_path ledger id "registration")
+                        (
+                            concat5 head body
+                                (field_line "decision" (option_value "--decision"))
+                                (field_line "time" (option_value "--time"))
+                                (field_line "registered_local" (local_stamp ()))
+                        )
+                ? problem <> ""
+                ?> failed (concat5 "register: " id " is already registered or the ledger is unwritable (" problem ")")
+                |:
+                    stdout_line (
+                        concat5
+                            "kit experiment register ok id="
+                            id
+                            " test="
+                            (test_word kind)
+                            (concat5 " runs=" (option_value "--runs") " registered=" at "")
+                    )
+                    0i32
+
+:~ shown () : i32 =
+    := ledger = argument 3i32
+    := id = argument 4i32
+    := plan = file_text (record_path ledger id "registration")
+    ? plan = ""
+    ?> failed (concat5 "show: no registration for " id " in " ledger "")
+    |:
+        stdout_line (
+            concat5
+                "registration\n"
+                plan
+                "amendments\n"
+                (file_text (record_path ledger id "amendments"))
+                (
+                    concat5
+                        "disclosures\n"
+                        (file_text (record_path ledger id "disclosures"))
+                        "verdict\n"
+                        (file_text (record_path ledger id "verdict"))
+                        (concat5 "addenda\n" (file_text (record_path ledger id "addenda")) "" "" "")
+                )
+        )
+        stdout_line (
+            concat5
+                "kit experiment show ok id="
+                id
+                (? path_exists (record_path ledger id "verdict") ?> " verdict=recorded" |: " verdict=pending")
+                ""
+                ""
+        )
+        0i32
+
+:~ experiment_run () : i32 =
+    := verb = argument 2i32
+    ? verb = "register" ?> registered ()
+    |? verb = "analyze" ?> $'kit_experiment_analysis::kit_experiment_analyze_run()' : i32
+    |? verb = "show" ?> shown ()
+    |? verb = "amend" ?> $'kit_experiment_amend::kit_experiment_amend_run()' : i32
+    |? verb = "addendum" ?> $'kit_experiment_amend::kit_experiment_addendum_run()' : i32
+    |? verb = "import" ?> $'kit_experiment_import::kit_experiment_import_run()' : i32
+    |? verb = "record-verdict" ?> $'kit_experiment_import::kit_experiment_verdict_run()' : i32
+    |: failed (concat5 "unknown verb '" verb "'; " (experiment_usage ()) "")
+
+:= main () : i32 =
+    !!!!Export("kit_experiment_run", ((\ () => experiment_run ()) : () -> i32))
+    0i32

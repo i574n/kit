@@ -85,7 +85,7 @@
 
 := scaffold_path (~root : string) (file : scaffold_file) : string = root ++# (scaffold_relative file)
 := state_directory (~root : string) : string = root ++# "/state"
-:= directory_ready (~path : string) : bool = $'std::fs::create_dir_all(&*!path).is_ok()' : bool
+:= directory_ready (~path : string) : bool = file_system.create_dir_all path |> resultm.is_err |> not
 := file_present (~path : string) : bool = $'std::path::Path::new(&*!path).exists()' : bool
 
 := agile_init_failure (~reason : string) (~root : string) : i32 =

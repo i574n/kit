@@ -1,0 +1,31 @@
+///- --package .
+:# text static =
+    :< sm'_operators
+
+:< sm'_operators
+
+
+:~ ^ tsv_lines (lines : array string) (at : i32) (acc : string) : string =
+    ? am'.length lines <= at ?> acc
+    |:
+        := line = csv.csv_line_as_tsv (sm'.replace "\r" "" (am'.index at lines))
+        tsv_lines lines (at + 1i32) (? at = 0i32 ?> line |: acc ++# "\n" ++# line)
+
+:~ tsv_of_text (~path : string) (~text : string) : string =
+    ? sm'.ends_with ".csv" (sm'.to_lower path) ?> tsv_lines (sm'.split "\n" text |> array) 0i32 "" |: text
+
+:~ table_problem (~path : string) : string = ? file_system.file_exists path ?> "" |: path ++# ": file not found"
+
+:~ table_tsv (~path : string) : string =
+    ? file_system.file_exists path ?> tsv_of_text path (file_system.read_all_text path) |: ""
+
+///> rust
+:# csv_files_become_tab_separated_with_quoted_cells_whole =
+    testing.expect
+        (tsv_of_text "a.csv" "name,\"x, y\"\r\n1,2" = "name\tx, y\n1\t2")
+        "quoted comma stays in its cell, CRLF dropped"
+    testing.expect (tsv_of_text "A.CSV" "a,b" = "a\tb") "extension case does not matter"
+    testing.expect (tsv_of_text "a.tsv" "a,b\tc" = "a,b\tc") "tsv text is untouched"
+    testing.expect
+        (table_problem "C:/no/such/table.tsv" = "C:/no/such/table.tsv: file not found")
+        "a missing table names its path"

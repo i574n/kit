@@ -1,0 +1,13 @@
+:< rust_std_string.model
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:~ state_parts (~id : string) : string * i32 * string =
+    := state = job_state_now id
+    state_word state, state_exit state, state_detail state
+
+:= main () : i32 =
+    !!!!Export("kit_job_summary", ((\ (verb, id) => job_summary verb id) : string * string -> string))
+    !!!!Export("kit_job_state_parts", ((\ id => state_parts id) : string -> string * i32 * string))
+    0i32

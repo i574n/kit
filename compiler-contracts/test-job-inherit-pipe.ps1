@@ -1,12 +1,12 @@
-param([string]$Eoie = (Join-Path $PSScriptRoot '..\src\target\debug\eoie.exe'), [int]$WithinMs = 10000)
+param([string]$Kit = (Join-Path $PSScriptRoot '..\src\target\debug\kit.exe'), [int]$WithinMs = 10000)
 $ErrorActionPreference = 'Stop'
-$home_ = Join-Path ([IO.Path]::GetTempPath()) "eoie-inherit-check-$PID"
-$argsFile = Join-Path ([IO.Path]::GetTempPath()) "eoie-inherit-check-$PID.args"
+$home_ = Join-Path ([IO.Path]::GetTempPath()) "kit-inherit-check-$PID"
+$argsFile = Join-Path ([IO.Path]::GetTempPath()) "kit-inherit-check-$PID.args"
 [IO.File]::WriteAllLines($argsFile, @('job', 'start', 'inherit-check', '60000', 'pwsh', '-NoProfile', '-Command', 'Start-Sleep -Seconds 20; exit 0'))
-$info = [Diagnostics.ProcessStartInfo]::new((Resolve-Path $Eoie).Path)
+$info = [Diagnostics.ProcessStartInfo]::new((Resolve-Path $Kit).Path)
 $info.ArgumentList.Add('--args-from'); $info.ArgumentList.Add($argsFile)
 $info.RedirectStandardOutput = $true; $info.RedirectStandardError = $true; $info.UseShellExecute = $false
-$info.Environment['EOIE_JOBS_HOME'] = $home_
+$info.Environment['KIT_JOBS_HOME'] = $home_
 $watch = [Diagnostics.Stopwatch]::StartNew()
 $process = [Diagnostics.Process]::Start($info)
 $stdout = $process.StandardOutput.ReadToEndAsync(); $stderr = $process.StandardError.ReadToEndAsync()

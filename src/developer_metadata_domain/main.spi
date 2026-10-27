@@ -1,3 +1,6 @@
-inl main () : i32 =
-    !!!!Export("eoie_developer_requirements", ((fun (json,names,separator) => model.inspect json names separator) : string * string * string -> i32))
+:= main () : i32 =
+    !!!!Export(
+        "kit_developer_requirements",
+        ((\ (json, names, separator) => model.inspect json names separator) : string * string * string -> i32)
+    )
     0i32

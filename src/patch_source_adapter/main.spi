@@ -1,17 +1,16 @@
-open patch_resume_contract.model
+:< patch_resume_contract.model
 
-inl rust_global (x : string) : () = !!!!Global(x)
 
-let source_resume_pair_binding (left : i32) (right : i32) : i32 = bool_pair_binding left right
-let source_resume_decision_binding (present : i32) (matches : i32) : i32 = resume_decision_binding present matches
-let source_resume_completion_binding (mutation_ok : i32) (removed : i32) : i32 = completion_binding mutation_ok removed
+:~ source_resume_pair_binding (left : i32) (right : i32) : i32 = bool_pair_binding left right
+:~ source_resume_decision_binding (present : i32) (matches : i32) : i32 = resume_decision_binding present matches
+:~ source_resume_completion_binding (mutation_ok : i32) (removed : i32) : i32 = completion_binding mutation_ok removed
 
-inl emit_source_adapter () : () =
-    rust_global """
+:= emit_source_adapter () : () =
+    global """
         use canonical_plan_ir_domain::parse_plan_ir_manifest as patch_parse_plan_ir_manifest;
-        use eoie_process::{compile_spiral_plan_ir as patch_compile_plan_ir, resolve_spiral_compiler as patch_resolve_spiral_compiler};
-        use eoie_proxy_search::inspection_sha256;
-        use eoie_rust_std_fs::{atomic_write, read_regular_limited, read_regular_text_limited, rooted_canonical_directory, rooted_entry_exists, rooted_regular_size, rooted_remove_regular};
+        use kit_process::{compile_spiral_plan_ir as patch_compile_plan_ir, resolve_spiral_compiler as patch_resolve_spiral_compiler};
+        use kit_proxy_search::inspection_sha256;
+        use kit_rust_std_fs::{atomic_write, read_regular_limited, read_regular_text_limited, rooted_canonical_directory, rooted_entry_exists, rooted_regular_size, rooted_remove_regular};
         use std::path::{Path, PathBuf};
 
         const PATCH_RESUME_RELATIVE: &str = "state/patch_resume.spi";
@@ -26,7 +25,7 @@ inl emit_source_adapter () : () =
             let Some(compiler) = patch_resolve_spiral_compiler(None)? else {
                 return Err("compiled patch provider requires a Spiral compiler".to_owned());
             };
-            let output = plan.with_extension(format!("eoie-plan-ir-{}.ir", std::process::id()));
+            let output = plan.with_extension(format!("kit-plan-ir-{}.ir", std::process::id()));
             let status = patch_compile_plan_ir(compiler.path.to_string_lossy().as_ref(), plan, &output, 30000)?;
             let manifest_result = if status.success() {
                 read_regular_text_limited(&output, 2 * 1024 * 1024)
@@ -77,15 +76,15 @@ inl emit_source_adapter () : () =
             let observed = read_regular_text_limited(&receipt, 64 * 1024)?;
             let compiled_fingerprint = inspection_sha256(source.as_bytes().to_vec());
             let identity = i32::from(observed.contains(&compiled_fingerprint));
-            if eoie_patch_source_adapter_source_resume_pair_binding(1, identity) != 1 {
+            if kit_patch_source_adapter_source_resume_pair_binding(1, identity) != 1 {
                 return Err("typed patch resume completion identity mismatch".to_owned());
             }
             rooted_remove_regular(&receipt)?;
             let removed = i32::from(!rooted_entry_exists(&receipt)?);
-            if eoie_patch_source_adapter_source_resume_completion_binding(1, removed) != 1 {
+            if kit_patch_source_adapter_source_resume_completion_binding(1, removed) != 1 {
                 return Err("typed patch resume receipt close rejected".to_owned());
             }
-            println!("eoie patch resume closed receipt={}", receipt.display());
+            println!("kit patch resume closed receipt={}", receipt.display());
             Ok(())
         }
 
@@ -104,9 +103,9 @@ inl emit_source_adapter () : () =
             let receipt = patch_resume_path(root);
             let present = i32::from(rooted_entry_exists(&receipt)?);
             let matches = i32::from(patch_resume_matches(root, &expected)?);
-            let decision = eoie_patch_source_adapter_source_resume_decision_binding(present, matches);
+            let decision = kit_patch_source_adapter_source_resume_decision_binding(present, matches);
             if decision == 1 {
-                println!("eoie patch resume phase=identified resumed=true compiler={} receipt={}", compiler_status, receipt.display());
+                println!("kit patch resume phase=identified resumed=true compiler={} receipt={}", compiler_status, receipt.display());
                 return Ok(source);
             }
             if decision < 0 {
@@ -118,21 +117,30 @@ inl emit_source_adapter () : () =
             }
             let rendered = patch_resume_render(plan, &before, &source)?;
             patch_resume_atomic_write(&receipt, rendered.as_bytes())?;
-            if eoie_patch_source_adapter_source_resume_pair_binding(1, i32::from(patch_resume_matches(root, &rendered)?)) != 1 {
+            if kit_patch_source_adapter_source_resume_pair_binding(1, i32::from(patch_resume_matches(root, &rendered)?)) != 1 {
                 let _ = remove_regular_if_present(&receipt);
                 return Err("typed patch resume receipt verification rejected".to_owned());
             }
-            println!("eoie patch resume phase=identified resumed=false compiler={} receipt={}", compiler_status, receipt.display());
+            println!("kit patch resume phase=identified resumed=false compiler={} receipt={}", compiler_status, receipt.display());
             Ok(source)
         }
         """
 
-inl main () : i32 =
+:= main () : i32 =
     emit_source_adapter ()
-    inl _ = source_resume_pair_binding 1i32 1i32
-    inl _ = source_resume_decision_binding 1i32 1i32
-    inl _ = source_resume_completion_binding 1i32 1i32
-    !!!!Export("eoie_patch_source_adapter_source_resume_pair_binding", ((fun (first, second) => source_resume_pair_binding first second) : i32 * i32 -> i32))
-    !!!!Export("eoie_patch_source_adapter_source_resume_decision_binding", ((fun (first, second) => source_resume_decision_binding first second) : i32 * i32 -> i32))
-    !!!!Export("eoie_patch_source_adapter_source_resume_completion_binding", ((fun (first, second) => source_resume_completion_binding first second) : i32 * i32 -> i32))
+    := _ = source_resume_pair_binding 1i32 1i32
+    := _ = source_resume_decision_binding 1i32 1i32
+    := _ = source_resume_completion_binding 1i32 1i32
+    !!!!Export(
+        "kit_patch_source_adapter_source_resume_pair_binding",
+        ((\ (first, second) => source_resume_pair_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_source_adapter_source_resume_decision_binding",
+        ((\ (first, second) => source_resume_decision_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_source_adapter_source_resume_completion_binding",
+        ((\ (first, second) => source_resume_completion_binding first second) : i32 * i32 -> i32)
+    )
     0i32

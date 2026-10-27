@@ -1,0 +1,112 @@
+:< sm'_operators
+:< kit_jobs.host
+:< kit_jobs.model
+:< kit_jobs.jobs
+:< kit_machine_windows.window_model
+:< kit_machine_windows.windows
+
+:~ command_after_separator () : string =
+    $'std::rc::Rc::<str>::from(std::env::args().skip_while(|arg| arg \!= \
+        "--").skip(1).collect::<Vec<_>>().join(&char::from(31u8).to_string()).as_str())' : string
+
+:~ own_option (~flag : string) : string =
+    $'std::rc::Rc::<str>::from(std::env::args().take_while(|arg| arg \!= "--").skip_while(|arg| arg \!= \
+        &*!flag).nth(1).unwrap_or_default().as_str())' : string
+
+:~ command_head (~argv : string) : string = $'std::rc::Rc::<str>::from((!argv).split(char::from(31u8)).next().unwrap_o\
+    r(""))' : string
+
+:~ child_status (~argv : string) (~held : string) : i32 =
+    $'{ let mut parts = (!argv).split(char::from(31u8)); let program = parts.next().unwrap_or_default().to_owned(); \
+        match std::process::Command::new(&program).args(parts).env("KIT_WINDOW_HELD", \
+        &*!held).status() { Ok(status) => status.code().unwrap_or(1), \
+        Err(error) => { eprintln\!("kit error: window run: cannot start {program}: {error}"); 127 } } }' : i32
+
+:~ exit_text (code : i32) : string = $'std::rc::Rc::<str>::from((!code).to_string().as_str())' : string
+
+:~ window_ran () : i32 =
+    ?= class_of (argument 3i32) ?|
+    | ClassUnknown => refused ("run: unknown class '" ++# (argument 3i32) ++# "'; " ++# (window_usage ()))
+    | ClassKnown wanted =>
+        := minutes = decimal_of (argument 4i32)
+        := argv = command_after_separator ()
+        ? minutes = 0u64
+        ?>
+            refused (
+                "run: minutes must be a whole number above 0, received '"
+                ++# argument 4i32
+                ++# "'; "
+                ++# window_usage ()
+            )
+        |? argv = ""
+        ?> refused "run: give the command after --, e.g. window run compile 5 --wait 10 -- pwsh -File build.ps1"
+        |:
+            := since = now_ms ()
+            := id =
+                "win-"
+                ++# number_text since
+                ++# "-"
+                ++# number_text (process_number ())
+                ++# ("-" ++# (class_word wanted) ++# "-run")
+            := label = ? own_option "--label" = "" ?> command_head argv |: own_option "--label"
+            := granted =
+                requested
+                    {
+                        wanted = wanted
+                        minutes = minutes
+                        label = label
+                        id = id
+                        since = since
+                        deadline = since + decimal_of (own_option "--wait") * 60000u64
+                        min_free = decimal_of (own_option "--min-free-mb")
+                    }
+                    !-
+            ? granted <> 0i32 ?> granted
+            |:
+                := code = child_status argv ((class_word wanted) ++# ":" ++# id)
+                := _ = file_removed (window_file (windows_root ()) id)
+                stdout_line ("kit window run ok id=" ++# id ++# " exit=" ++# (exit_text code) ++# " released=yes")
+                code
+
+:~ heavy_queue_dir () : string =
+    $'std::rc::Rc::<str>::from(std::env::var_os("KIT_HEAVY_QUEUE").or_else(|| \
+        std::env::var_os("LOCALAPPDATA").or_else(|| std::env::var_os("HOME")).map(|base| \
+        std::path::PathBuf::from(base).join("spiral-bin").join("heavy-queue").into_os_string())).map(|path| \
+        path.to_string_lossy().into_owned()).unwrap_or_default().as_str())' : string
+
+:~ holder_paths (~queue : string) : string =
+    $'std::rc::Rc::<str>::from({ let mut paths = std::fs::read_dir(&*!queue).into_iter().flatten().flatten().map(|entr\
+        y| entry.path()).filter(|path| path.extension().is_some_and(|ext| ext == "h")).map(|path| \
+        path.to_string_lossy().into_owned()).collect::<Vec<_>>(); paths.sort(); paths.join("\n") }.as_str())' : string
+
+:~ file_minutes (~path : string) : u64 = $'std::fs::metadata(&*!path).and_then(|meta| \
+    meta.modified()).ok().and_then(|time| time.elapsed().ok()).map(|age| age.as_secs() / 60).unwrap_or(0)' : u64
+
+:~ field_rest (~row : string) (index : i32) : string =
+    $'std::rc::Rc::<str>::from((!row).trim().splitn((!index as usize) + 1, \
+        char::from(9u8)).nth(!index as usize).unwrap_or("").replace(char::from(9u8), " ").as_str())' : string
+
+:~ ^ holder_lines (~paths : string) (~shown : string) : string =
+    ? paths = ""
+    ?> shown
+    |:
+        := path = first_row paths
+        := row = text_or_empty path
+        ? process_alive (decimal_u64 (tab_field row 1i32)) = !-
+        ?>
+            := _ = file_removed path
+            holder_lines (other_rows paths) shown
+        |:
+            := line =
+                "heavy-slot-"
+                ++# tab_field row 0i32
+                ++# "  pid "
+                ++# tab_field row 1i32
+                ++# ("  held " ++# (number_text (file_minutes path)) ++# "m  " ++# (field_rest row 3i32))
+            holder_lines (other_rows paths) (? shown = "" ?> line |: shown ++# "\n" ++# line)
+
+:~ heavy_holders_text () : string = holder_lines (holder_paths (heavy_queue_dir ())) ""
+:= main () : i32 =
+    !!!!Export("kit_window_run_run", ((\ () => window_ran ()) : () -> i32))
+    !!!!Export("kit_heavy_holders_text", ((\ () => heavy_holders_text ()) : () -> string))
+    0i32

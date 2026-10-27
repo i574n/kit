@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_do_model
+    kit_do_records
+modules:
+    verbs

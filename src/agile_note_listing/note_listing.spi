@@ -1,11 +1,17 @@
-open agile_note_model.model
-open note_filter
+:< agile_note_model.model
+:< note_filter
 
-inl main () : i32 =
-    !!!!Export("eoie_agile_notes_text", ((fun (text, id) => notes_text text id) : string * string -> string))
-    !!!!Export("eoie_agile_notes_json", ((fun (text, id) => notes_json text id) : string * string -> string))
-    !!!!Export("eoie_agile_notes_filtered_text", ((fun (text, id, mode, value) => notes_filtered_text text id (note_filter_of mode value)) : string * string * string * string -> string))
-    inl _ = notes_text "" "X"
-    inl _ = notes_json "" "X"
-    inl _ = notes_filtered_text "" "X" AllNotes
+:= main () : i32 =
+    !!!!Export("kit_agile_notes_text", ((\ (text, id) => notes_text text id) : string * string -> string))
+    !!!!Export("kit_agile_notes_json", ((\ (text, id) => notes_json text id) : string * string -> string))
+    !!!!Export(
+        "kit_agile_notes_filtered_text",
+        (
+            \ (text, id, mode, value) => notes_filtered_text text id (note_filter_of mode value)
+            : string * string * string * string -> string
+        )
+    )
+    := _ = notes_text "" "X"
+    := _ = notes_json "" "X"
+    := _ = notes_filtered_text "" "X" AllNotes
     0i32

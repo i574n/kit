@@ -2,19 +2,19 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 fn fingerprint_byte_valid_binding_0(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 255i32 < v0;
+        let v3: bool = 255i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 0i32;
+            let v4: bool = v1 < 0i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 0i32 < v1;
+                let v5: bool = 0i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -25,15 +25,15 @@ fn fingerprint_byte_valid_binding_0(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn fingerprint_mix_low_binding_1(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: i32 = v0 ^ v1 ;
+    let v2: i32 = v0 ^ v1 ;
     v2
 }
 fn fingerprint_low_step_binding_2(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: i32 = if v1 == 0 { ((v0 as u32).wrapping_mul(435)) as i32 } else { v0 };
+    let v2: i32 = if v1 == 0 { ((v0 as u32).wrapping_mul(435)) as i32 } else { v0 };
     v2
 }
 fn fingerprint_high_step_binding_3(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: i32 = (((((v0 as u32 as u64) * 435) + ((v1 as u32 as u64) * 256) + (((v1 as u32 as u64) * 435) >> 32)) & 0xffff_ffff) as u32) as i32;
+    let v2: i32 = (((((v0 as u32 as u64) * 435) + ((v1 as u32 as u64) * 256) + (((v1 as u32 as u64) * 435) >> 32)) & 0xffff_ffff) as u32) as i32;
     v2
 }
 fn closure0() -> Rc<dyn Fn(i32, i32) -> i32> {
@@ -56,15 +56,15 @@ fn closure3() -> Rc<dyn Fn(i32, i32) -> i32> {
         fingerprint_high_step_binding_3(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-pub fn eoie_state_receipt_byte_valid(v0: i32, v1: i32) -> i32 {
+pub fn kit_state_receipt_byte_valid(v0: i32, v1: i32) -> i32 {
     closure0()(v0, v1)
 }
-pub fn eoie_state_receipt_mix_low(v0: i32, v1: i32) -> i32 {
+pub fn kit_state_receipt_mix_low(v0: i32, v1: i32) -> i32 {
     closure1()(v0, v1)
 }
-pub fn eoie_state_receipt_low_step(v0: i32, v1: i32) -> i32 {
+pub fn kit_state_receipt_low_step(v0: i32, v1: i32) -> i32 {
     closure2()(v0, v1)
 }
-pub fn eoie_state_receipt_high_step(v0: i32, v1: i32) -> i32 {
+pub fn kit_state_receipt_high_step(v0: i32, v1: i32) -> i32 {
     closure3()(v0, v1)
 }

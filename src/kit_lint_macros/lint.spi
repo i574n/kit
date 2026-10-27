@@ -1,0 +1,110 @@
+///- --package .
+:# lint static =
+    :< sm'_operators
+
+:< sm'_operators
+:< file_system_operators
+:< model
+
+:= skipped_dir (name : string) : bool =
+    sm'.starts_with "." name || name = "target" || name = "node_modules" || name = "_build" || name = "deps"
+    || name = "bin" || name = "obj"
+
+:~ entry_names (path : string) : list string =
+    file_system.read_dir_names path
+    |> resultm.unwrap'
+    |> am'.vec_fold' (\ names name => sm'.from_std_string name :: names) []
+    |> listm.rev
+
+:~ ^ spi_files (todo : list string) (found : list string) : list string =
+    ?= todo ?|
+    | [] => listm.rev found
+    | path :: rest =>
+        ? file_system.file_exists path ?> spi_files rest (? sm'.ends_with ".spi" path ?> path :: found |: found)
+        |? file_system.directory_exists path ?>
+            := deeper =
+                entry_names path
+                |> listm.rev
+                |> listm.fold
+                    \ ahead (name : string) => ? skipped_dir name ?> ahead |: (path </> name) :: ahead
+                    rest
+            spi_files deeper found
+        |: spi_files rest found
+
+:~ relative_to (~root : string) (path : string) : string =
+    := base = sm'.replace "\\" "/" root ++# "/"
+    := slashed = sm'.replace "\\" "/" path
+    := skip : i32 = sm'.length base
+    ? sm'.starts_with base slashed ?> sm'.substring skip ((sm'.length slashed : i32) - skip) slashed |: slashed
+
+:== lint_report =
+    {
+        rows : list string
+        tally : lint_tally
+    }
+
+:~ lint_report (~root : string) (paths : list string) (baseline : list known_violation) : lint_report =
+    := starts = ?= paths ?| | [] => [ root ] | _ => paths |> listm.map (\ (path : string) => root </> path)
+    := named = starts |> listm'.filter \ (path : string) => file_system.file_exists path
+    := walked = spi_files (starts |> listm'.filter \ (path : string) => file_system.file_exists path |> not) []
+    := files = listm.fold (\ all path => path :: all) (listm.rev named) walked |> listm.rev
+    := macros, found =
+        files
+        |> listm.fold
+            \ (macros, found) (path : string) =>
+                := read = file_system.read_all_text path
+                := text = ? sm'.ends_with ".diff" path || sm'.ends_with ".patch" path ?> added_text read |: read
+                := count : i32 = listm.length (file_macros text)
+                := here = file_violations (relative_to root path) text
+                macros + count, listm.fold (\ all item => item :: all) found here
+            (0i32, [])
+    := found = listm.rev found
+    := fresh = found |> listm'.filter \ (item : violation) => not (known baseline item)
+    := width = name_width fresh
+    := violations : i32 = listm.length found
+    := tally = { files = listm.length files; macros = macros; violations = violations; fresh = listm.length fresh }
+    { rows = listm.map (violation_row width) fresh; tally = tally }
+
+:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:~ ^ paths_from (index : i32) (count : i32) (found : list string) : list string =
+    ? count <= index || sm'.starts_with "--" (argument index) ?> listm.rev found
+    |: paths_from (index + 1i32) count (argument index :: found)
+
+:~ ^ value_after (~flag : string) (index : i32) (count : i32) : string =
+    ? count <= index + 1i32 ?> ""
+    |? argument index = flag ?> argument (index + 1i32)
+    |: value_after flag (index + 1i32) count
+
+:~ lint_run () : i32 =
+    := started = kit_receipt.receipt.now_ms ()
+    := count = env.command_line_argument_count ()
+    := root = argument 2i32
+    := given = value_after "--baseline" 3i32 count
+    := baseline_path = ? given = "" || file_system.file_exists given ?> given |: root </> given
+    ? root = "" || file_system.directory_exists root |> not ?>
+        console.write_error_line "kit error: lint usage: lint macros <root> [<path>...] [--baseline <rows>]"
+        2i32
+    |? baseline_path <> "" && file_system.file_exists baseline_path |> not ?>
+        console.write_error_line ("kit error: lint macros: no baseline file at " ++# given)
+        2i32
+    |:
+        := baseline = ? baseline_path = "" ?> [] |: baseline_of (file_system.read_all_text baseline_path)
+        := report = lint_report root (paths_from 3i32 count []) baseline
+        report.rows |> listm.iter console.write_line
+        := elapsed = kit_receipt.receipt.elapsed_text started
+        := clock = kit_receipt.receipt.clock_text ()
+        console.write_line (tally_head report.tally ++# "  " ++# elapsed ++# "  " ++# clock)
+        ? report.tally.fresh = 0i32 ?> 0i32 |: 1i32
+
+///> rust
+:# the_sample_tree_reports_its_three_rows =
+    := root = file_system.get_temp_path () </> "kit-lint-macros-sample"
+    := _ = file_system.create_dir_all (root </> "lib")
+    file_system.write_all_text (root </> "lib" </> "sample.spi") (sample ())
+    := report = lint_report root [ "lib" ] []
+    expect ((listm.length report.rows : i32) = 3i32) "three rows"
+    expect (tally_head report.tally = "failed  files 1  macros 5  violations 3  new 3") "tally"
+    := known_two = baseline_of "lib/sample.spi:9  widen  cast\nlib/sample.spi:9  pick  flow\n"
+    := quieter = lint_report root [ "lib" ] known_two
+    expect (tally_head quieter.tally = "failed  files 1  macros 5  violations 3  new 1") "baseline"

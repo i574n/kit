@@ -1,0 +1,8 @@
+packages:
+    |core-
+    rust_std_string
+    union_reflection
+    kit_jobs
+    kit_machine_windows
+modules:
+    gate

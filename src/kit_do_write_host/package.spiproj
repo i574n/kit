@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+    kit_do_model
+    kit_do_records
+modules:
+    host

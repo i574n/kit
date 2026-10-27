@@ -1,0 +1,5 @@
+:< kit_jobs.jobs
+
+:= main () : i32 =
+    !!!!Export("kit_job_environment_adopted", ((\ id => job_environment_adopted id) : string -> ()))
+    0i32

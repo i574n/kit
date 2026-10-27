@@ -1,0 +1,124 @@
+///- --package .
+:# verdict static =
+    :< sm'_operators
+
+:< sm'_operators
+:< file_system_operators
+:< kit_ci_model.tools
+
+:| pin_parity =
+    | Matches : string
+    | Differs : string
+    | MissingLocally
+
+:~ pin_matches (tool : ci_tool) (~ci : string) (~local : string) : bool =
+    ?= tool ?|
+    | ToolRust => ci = local
+    | _ => ci = local || sm'.starts_with (ci ++# ".") local
+
+:~ local_verdict (tool : ci_tool) (~ci : string) (local : option string) : pin_parity =
+    ?= local ?|
+    | None => MissingLocally
+    | Some found => ? pin_matches tool ci found ?> Matches found |: Differs found
+
+:~ differs (verdict : pin_parity) : bool =
+    ?= verdict ?|
+    | Matches _ => !-
+    | _ => !+
+
+:~ verdict_line (tool : ci_tool) (~ci : string) (verdict : pin_parity) : string =
+    := local, state =
+        ?= verdict ?|
+        | Matches found => found, "same"
+        | Differs found => found, "differs"
+        | MissingLocally => "-", "missing"
+    tool_name tool ++# " ci=" ++# ci ++# " local=" ++# local ++# " " ++# state
+
+:~ matching_version (tool : ci_tool) (~ci : string) (versions : list string) : option string =
+    versions |> listm'.try_find_ \ (version : string) => pin_matches tool ci version
+
+:~ fix_line (tool : ci_tool) (~ci : string) (~path : string) : string =
+    ?= tool ?|
+    | ToolZig => "fix: SPIRAL_ZIG=" ++# path
+    | ToolRust => "fix: rustup toolchain install " ++# ci
+    | _ => "candidate: " ++# path
+
+:~ names_in (directory : string) : list string =
+    ? file_system.directory_exists directory |> not ?> []
+    |:
+        file_system.read_dir_names directory
+        |> resultm.unwrap'
+        |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) Nil
+
+:~ scoop_apps () : string =
+    optionm'.default_value "" (env.try_get_environment_variable "USERPROFILE") </> "scoop" </> "apps"
+
+:~ scoop_match (tool : ci_tool) (ci : string) : option string =
+    := apps = scoop_apps ()
+    := exe = tool_name tool ++# ".exe"
+    names_in apps
+    |> listm'.filter (sm'.starts_with (tool_name tool))
+    |> listm.fold \ found (app : string) =>
+            ?= found ?|
+            | Some _ => found
+            | None =>
+                ?= matching_version tool ci (names_in (apps </> app)) ?|
+                | Some version =>
+                    ? file_system.file_exists (apps </> app </> version </> exe)
+                    ?> Some (apps </> app </> version </> exe)
+                    |: None
+                | None => None
+        None
+
+:~ fix_for (rust_installed : string -> bool) (tool : ci_tool) (ci : string) (verdict : pin_parity) : option string =
+    ?= verdict ?|
+    | Matches _ => None
+    | _ =>
+        ?= tool ?|
+        | ToolRust => ? rust_installed ci ?> None |: Some (fix_line ToolRust ci "")
+        | _ => scoop_match tool ci |> optionm.map \ (path : string) => fix_line tool ci path
+
+:~ row_of
+    (probe : string -> string -> bool * string)
+    (rust_installed : string -> bool)
+    (~name : string)
+    (~ci : string)
+    (~repo : string)
+    : string * bool =
+    ?= tool_of_name name ?|
+    | None => name ++# " ci=" ++# ci ++# " local=- unknown", !+
+    | Some tool =>
+        := found, version = probe name repo
+        := verdict = local_verdict tool ci (? found ?> Some version |: None)
+        := fix = ?= fix_for rust_installed tool ci verdict ?| | Some line => "\n  " ++# line | None => ""
+        verdict_line tool ci verdict ++# fix, differs verdict
+
+
+///> rust
+:# a_pin_matches_its_patch_releases_but_not_a_dev_build =
+    testing.expect (pin_matches ToolOtp "29" "29.1.2") "otp 29 takes any 29.x"
+    testing.expect (pin_matches ToolElixir "1.20" "1.20.4") "elixir minor pin"
+    testing.expect (pin_matches ToolZig "0.17.0" "0.18.0-dev.146+35accc06e" = !-) "dev build"
+    testing.expect (pin_matches ToolZig "0.18.0" "0.18.0-dev.146+35accc06e" = !-) "a dev build is not its release"
+    testing.expect (pin_matches ToolOtp "2" "29.1.2" = !-) "prefix only at a dot"
+    testing.expect (pin_matches ToolRust "nightly-2026-10-18" "nightly-2025-05-09" = !-) "rust channels compare whole"
+
+///> rust
+:# rows_read_the_probe_and_name_a_fix =
+    := laptop (name : string) (_ : string) : bool * string =
+        ? name = "rust" ?> !+, "nightly-2025-05-09" |? name = "otp" ?> !+, "29.1.2" |: !-, ""
+    := installed (channel : string) : bool = channel = "stable"
+    := rust_row =
+        "rust ci=nightly-2026-10-18 local=nightly-2025-05-09 differs"
+        ^^ "\n  fix: rustup toolchain install nightly-2026-10-18"
+    testing.expect (row_of laptop installed "rust" "nightly-2026-10-18" "C:/repo" = (rust_row, !+)) "rust names its install"
+    testing.expect (row_of laptop installed "otp" "29" "C:/repo" = ("otp ci=29 local=29.1.2 same", !-)) "otp patch release"
+    testing.expect (row_of laptop installed "cobol" "1" "C:/repo" = ("cobol ci=1 local=- unknown", !+)) "an unknown tool"
+
+///> rust
+:# fix_lines_and_matching_versions =
+    testing.expect (matching_version ToolPython "3.12.10" [ "3.15.0"; "3.12.10" ] = Some "3.12.10") "an installed match"
+    testing.expect (matching_version ToolZig "0.17.0" [ "0.18.0-dev.146+35accc06e" ] = None) "no dev build stands in"
+    := zig = "C:/scoop/apps/zig/0.17.0/zig.exe"
+    testing.expect (fix_line ToolZig "0.17.0" zig = "fix: SPIRAL_ZIG=" ++# zig) "zig names the harness variable"
+    testing.expect (names_in "C:/kit-ci-parity-no-such-folder" = []) "a missing folder lists nothing"

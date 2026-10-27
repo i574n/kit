@@ -1,3 +1,0 @@
-inl main () : i32 =
-    !!!!Export("handoff_render_owned", ((fun root => render.handoff_render_owned root) : string -> i32))
-    0i32

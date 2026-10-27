@@ -1,7 +1,7 @@
-inl main () : i32 =
-    inl outcome =
+:= main () : i32 =
+    := outcome =
         filesystem_roundtrip_contract.model.policy_roundtrip
-            "/tmp/eoie-roundtrip-policy.txt"
+            "/tmp/kit-roundtrip-policy.txt"
             "policy-roundtrip"
-    if filesystem_roundtrip_contract.model.accepted outcome
-    then 0i32 else 1i32
+    ? filesystem_roundtrip_contract.model.accepted outcome
+    ?> 0i32 |: 1i32

@@ -14,10 +14,10 @@ name = "cold_proof_domain"
 path = "cold_proof.rs"
 
 [dependencies]
-eoie-proxy-search = { path = "../eoie_proxy_search" }
-eoie-rust-std-fs = { path = "../rust_std_fs" }
-eoie-source-map = { path = "../eoie_source_map" }
-eoie-source-topology = { path = "../eoie_source_topology" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-source-map = { path = "../kit_source_map" }
+kit-source-topology = { path = "../kit_source_topology" }
 
 [lints.rust]
 dead_code = "allow"

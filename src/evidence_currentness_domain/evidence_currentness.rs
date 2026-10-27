@@ -1,9 +1,9 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
-use eoie_patch_control_domain::{patch_quoted_fields, patch_safe_relative};
-use eoie_proxy_search::{inspection_file_sha256, inspection_sha256, inspection_tree_sha256};
-use eoie_rust_std_fs::atomic_write;
+use kit_patch_control_domain::{patch_quoted_fields, patch_safe_relative};
+use kit_proxy_search::{inspection_file_sha256, inspection_sha256, inspection_tree_sha256};
+use kit_rust_std_fs::atomic_write;
 use std::collections::BTreeSet;
 use std::env;
 use std::fs;
@@ -69,7 +69,7 @@ pub fn evidence_state_tree_sha256(root: &Path) -> Result<String, String> {
     let path = root.join("state");
     let excluded_evidence = root.join("state/evidence.spi");
     let excluded_attestation = root.join("state/typecheck_receipts.spi");
-    let limit = env::var("EOIE_TREE_HASH_LIMIT_BYTES").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(1024 * 1024 * 1024);
+    let limit = env::var("KIT_TREE_HASH_LIMIT_BYTES").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(1024 * 1024 * 1024);
     let mut manifest = Vec::new();
     let mut total = 0u64;
     evidence_tree_collect_filtered(root, &path, &excluded_evidence, &excluded_attestation, &mut manifest, &mut total, limit)?;
@@ -92,12 +92,12 @@ pub fn refresh_release_closeout_evidence(root: &Path, closeout_sha256: &str, clo
     if !cargo_lock_metadata.is_file() || cargo_lock_metadata.file_type().is_symlink() { return Err("Cargo.lock evidence target must be a regular file".to_owned()); }
     let cargo_lock_sha256 = inspection_file_sha256(&cargo_lock_path)?;
     let cargo_lock_bytes = cargo_lock_metadata.len();
-    let eoie_name = evidence_public_binary(root)?;
-    let eoie_path = root.join(&eoie_name);
-    let eoie_metadata = fs::symlink_metadata(&eoie_path).map_err(|error| format!("metadata {}: {error}", eoie_path.display()))?;
-    if !eoie_metadata.is_file() || eoie_metadata.file_type().is_symlink() { return Err("EOIE binary evidence target must be a regular file".to_owned()); }
-    let eoie_sha256 = inspection_file_sha256(&eoie_path)?;
-    let eoie_bytes = eoie_metadata.len();
+    let kit_name = evidence_public_binary(root)?;
+    let kit_path = root.join(&kit_name);
+    let kit_metadata = fs::symlink_metadata(&kit_path).map_err(|error| format!("metadata {}: {error}", kit_path.display()))?;
+    if !kit_metadata.is_file() || kit_metadata.file_type().is_symlink() { return Err("KIT binary evidence target must be a regular file".to_owned()); }
+    let kit_sha256 = inspection_file_sha256(&kit_path)?;
+    let kit_bytes = kit_metadata.len();
     let source_sha256 = inspection_tree_sha256(root, "src")?;
     let mut release_hits = 0usize;
     let mut cold_hits = 0usize;
@@ -138,12 +138,12 @@ pub fn refresh_release_closeout_evidence(root: &Path, closeout_sha256: &str, clo
                 let old_bytes = evidence_parse_u64(line)?;
                 updated = updated.replacen(&format!("{old_bytes}u64"), &format!("{}u64", attested_metadata.len()), 1);
             }
-            if fields.len() == 2 && (fields[0] == "eoie" || fields[0] == "eoie.exe") {
+            if fields.len() == 2 && (fields[0] == "kit" || fields[0] == "kit.exe") {
                 binary_hits += 1;
-                updated = updated.replacen(&format!("({:?}", fields[0]), &format!("({eoie_name:?}"), 1);
-                updated = updated.replacen(&fields[1], &eoie_sha256, 1);
+                updated = updated.replacen(&format!("({:?}", fields[0]), &format!("({kit_name:?}"), 1);
+                updated = updated.replacen(&fields[1], &kit_sha256, 1);
                 let old_bytes = evidence_parse_u64(line)?;
-                updated = updated.replacen(&format!("{old_bytes}u64"), &format!("{eoie_bytes}u64"), 1);
+                updated = updated.replacen(&format!("{old_bytes}u64"), &format!("{kit_bytes}u64"), 1);
             }
         }
         if line.contains("EvidenceTreeRef (") && line.contains("ExactTree") {
@@ -237,7 +237,7 @@ pub fn check_evidence_tree(root: &Path) -> Result<EvidenceCurrentnessSummary, St
         let bytes_match = regular && metadata.len() == spec.bytes;
         let observed_sha = if regular { inspection_file_sha256(&path)? } else { String::new() };
         let sha_match = observed_sha == spec.sha256;
-        let stage = eoie_evidence_row_stage(i32::from(regular), i32::from(bytes_match && sha_match));
+        let stage = kit_evidence_row_stage(i32::from(regular), i32::from(bytes_match && sha_match));
         if stage > 0 { observed_specs += 1; }
         let in_scope = path.starts_with(root) && spec.relative != "state/evidence.spi";
         let mask = i32::from(in_scope) + 2 * i32::from(regular) + 4 * i32::from(bytes_match) + 8 * i32::from(sha_match);
@@ -261,10 +261,10 @@ pub fn check_evidence_tree(root: &Path) -> Result<EvidenceCurrentnessSummary, St
 }
 
 fn evidence_public_binary(root: &Path) -> Result<String, String> {
-    let unix = fs::symlink_metadata(root.join("eoie")).is_ok();
-    let windows = fs::symlink_metadata(root.join("eoie.exe")).is_ok();
-    let name = eoie_evidence_public_binary(i32::from(unix), i32::from(windows));
-    if name.is_empty() { return Err("closeout evidence requires exactly one root binary: eoie or eoie.exe".to_owned()); }
+    let unix = fs::symlink_metadata(root.join("kit")).is_ok();
+    let windows = fs::symlink_metadata(root.join("kit.exe")).is_ok();
+    let name = kit_evidence_public_binary(i32::from(unix), i32::from(windows));
+    if name.is_empty() { return Err("closeout evidence requires exactly one root binary: kit or kit.exe".to_owned()); }
     Ok(name.to_string())
 }
 
@@ -274,8 +274,8 @@ fn coverage_receipt_field<'a>(receipt: &'a str, name: &str) -> Result<&'a str, S
 
 fn coverage_registration_input(lcov: &Path) -> Result<(Vec<u8>, Vec<u8>, String, u32, u64), String> {
     let receipt_path = std::path::PathBuf::from(format!("{}.receipt", lcov.display()));
-    let payload = eoie_rust_std_fs::read_regular_limited(lcov, 256 * 1024 * 1024)?;
-    let receipt = eoie_rust_std_fs::read_regular_limited(&receipt_path, 64 * 1024)?;
+    let payload = kit_rust_std_fs::read_regular_limited(lcov, 256 * 1024 * 1024)?;
+    let receipt = kit_rust_std_fs::read_regular_limited(&receipt_path, 64 * 1024)?;
     let receipt_text = std::str::from_utf8(&receipt).map_err(|_| format!("coverage receipt must be UTF-8: {}", receipt_path.display()))?;
     let text = std::str::from_utf8(&payload).map_err(|_| format!("coverage LCOV must be UTF-8: {}", lcov.display()))?;
     let route = coverage_receipt_field(receipt_text, "route")?;
@@ -298,8 +298,8 @@ pub fn register_coverage_evidence(root: &Path, current: &Path, seed: &Path) -> R
     let (seed_lcov, seed_receipt, seed_sha256, seed_permille, seed_lines) = coverage_registration_input(seed)?;
     let evidence_path = root.join("state/evidence.spi");
     let coverage_path = root.join("state/coverage.spi");
-    let evidence_original = eoie_rust_std_fs::read_regular_text_limited(&evidence_path, 1024 * 1024)?;
-    let coverage_original = eoie_rust_std_fs::read_regular_text_limited(&coverage_path, 1024 * 1024)?;
+    let evidence_original = kit_rust_std_fs::read_regular_text_limited(&evidence_path, 1024 * 1024)?;
+    let coverage_original = kit_rust_std_fs::read_regular_text_limited(&coverage_path, 1024 * 1024)?;
     let payloads = [("evidence/coverage/current.lcov", current_lcov), ("evidence/coverage/current.lcov.receipt", current_receipt), ("evidence/coverage/replay-seed.lcov", seed_lcov), ("evidence/coverage/replay-seed.receipt", seed_receipt)];
     let mut hits = 0usize;
     let mut evidence_lines = Vec::new();
@@ -350,7 +350,7 @@ pub fn register_coverage_evidence(root: &Path, current: &Path, seed: &Path) -> R
         }
         return Err(format!("coverage evidence registration rolled back: {error}"));
     }
-    Ok(format!("eoie proxy coverage-register ok current_sha256={current_sha256} current_permille={current_permille} current_lines={current_lines} seed_sha256={seed_sha256} seed_permille={seed_permille} seed_lines={seed_lines} mutation=true"))
+    Ok(format!("kit proxy coverage-register ok current_sha256={current_sha256} current_permille={current_permille} current_lines={current_lines} seed_sha256={seed_sha256} seed_permille={seed_permille} seed_lines={seed_lines} mutation=true"))
 }
 
 pub fn evidence_status(root: &Path) -> Result<EvidenceCurrentnessSummary, String> { check_evidence_tree(root) }
@@ -362,7 +362,7 @@ mod registration_tests;
 #[derive(Clone, Debug)]
 pub struct ToolchainCurrentnessSummary { pub declared: usize, pub observed: usize, pub verified: usize }
 
-fn toolchain_env_name(relative: &str) -> Option<String> { Some(eoie_rust_tool_environment(relative).to_string()).filter(|name| !name.is_empty()) }
+fn toolchain_env_name(relative: &str) -> Option<String> { Some(kit_rust_tool_environment(relative).to_string()).filter(|name| !name.is_empty()) }
 
 pub fn toolchain_status(root: &Path) -> Result<Option<ToolchainCurrentnessSummary>, String> {
     let state = root.join("state/toolchain_identity.spi");
@@ -382,7 +382,7 @@ pub fn toolchain_status(root: &Path) -> Result<Option<ToolchainCurrentnessSummar
         let regular = metadata.is_file() && !metadata.file_type().is_symlink();
         let bytes_match = regular && metadata.len() == spec.bytes;
         let sha256 = if regular { inspection_file_sha256(path)? } else { String::new() };
-        let stage = eoie_evidence_row_stage(i32::from(regular), i32::from(bytes_match && sha256 == spec.sha256));
+        let stage = kit_evidence_row_stage(i32::from(regular), i32::from(bytes_match && sha256 == spec.sha256));
         if stage > 0 { observed += 1; }
         if stage != 2 { return Err(format!("Rust tool identity mismatch tool={} expected_bytes={} observed_bytes={} expected_sha256={} observed_sha256={}", spec.relative, spec.bytes, metadata.len(), spec.sha256, sha256)); }
         verified += 1;
@@ -392,42 +392,42 @@ pub fn toolchain_status(root: &Path) -> Result<Option<ToolchainCurrentnessSummar
 
 fn loop_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
     loop {
-        let mut v3: bool = v2 == v1;
+        let v3: bool = v2 == v1;
         if v3 {
             return true;
         } else {
-            let mut v4: u64 = v0.as_bytes()[v2 as usize] as u64;
-            let mut v5: bool = v4 < 48u64;
-            let mut v7: bool = if v5 {
+            let v4: u64 = v0.as_bytes()[v2 as usize] as u64;
+            let v5: bool = v4 < 48u64;
+            let v7: bool = if v5 {
                 false
             } else {
-                let mut v6: bool = v4 <= 57u64;
+                let v6: bool = v4 <= 57u64;
                 v6
             };
-            let mut v15: bool = if v7 {
+            let v15: bool = if v7 {
                 true
             } else {
-                let mut v8: bool = v4 < 65u64;
-                let mut v10: bool = if v8 {
+                let v8: bool = v4 < 65u64;
+                let v10: bool = if v8 {
                     false
                 } else {
-                    let mut v9: bool = v4 <= 70u64;
+                    let v9: bool = v4 <= 70u64;
                     v9
                 };
                 if v10 {
                     true
                 } else {
-                    let mut v11: bool = v4 < 97u64;
+                    let v11: bool = v4 < 97u64;
                     if v11 {
                         false
                     } else {
-                        let mut v12: bool = v4 <= 102u64;
+                        let v12: bool = v4 <= 102u64;
                         v12
                     }
                 }
             };
             if v15 {
-                let mut v16: u64 = v2.wrapping_add(1u64);
+                let v16: u64 = v2.wrapping_add(1u64);
                 (v0, v1, v2) = (v0.clone(), v1, v16);
                 continue;
             } else {
@@ -437,17 +437,17 @@ fn loop_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
     }
 }
 fn check_0(mut v0: Rc<str>) -> bool {
-    let mut v1: u64 = (v0.clone().len() as u64);
-    let mut v2: bool = v1 < 64u64;
-    let mut v4: bool = if v2 {
+    let v1: u64 = (v0.clone().len() as u64);
+    let v2: bool = v1 < 64u64;
+    let v4: bool = if v2 {
         false
     } else {
-        let mut v3: bool = v1 <= 64u64;
+        let v3: bool = v1 <= 64u64;
         v3
     };
     if v4 {
-        let mut v5: u64 = 0u64;
-        loop_1(v0.clone(), v1, v5)
+        let v5: u64 = 0u64;
+        loop_1(v0, v1, v5)
     } else {
         false
     }
@@ -458,14 +458,14 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn evidence_row_stage_2(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 == 1i32;
-    let mut v3: bool = v1 == 1i32;
+    let v2: bool = v0 == 1i32;
+    let v3: bool = v1 == 1i32;
     let (mut v4, mut v5): (bool, i32) = if v2 {
         (true, 1i32)
     } else {
         (false, 0i32)
     };
-    let mut v9: i32 = if v4 {
+    let v9: i32 = if v4 {
         if v3 {
             2i32
         } else {
@@ -482,31 +482,31 @@ fn closure1() -> Rc<dyn Fn(i32, i32) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn rust_tool_environment_binding_3(mut v0: Rc<str>) -> Rc<str> {
-    let mut v1: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rustfmt"); } LIT.with(|lit| lit.clone()) };
-    let mut v4: Rc<str> = if v1 {
-        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTFMT"); } LIT.with(|lit| lit.clone()) };
+    let v1: bool = &*v0 == "rustfmt";
+    let v4: Rc<str> = if v1 {
+        let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTFMT"); } LIT.with(|lit| lit.clone()) };
         v2.clone()
     } else {
-        let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v3.clone()
     };
-    let mut v5: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rustdoc"); } LIT.with(|lit| lit.clone()) };
-    let mut v7: Rc<str> = if v5 {
-        let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTDOC"); } LIT.with(|lit| lit.clone()) };
+    let v5: bool = &*v0 == "rustdoc";
+    let v7: Rc<str> = if v5 {
+        let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTDOC"); } LIT.with(|lit| lit.clone()) };
         v6.clone()
     } else {
         v4.clone()
     };
-    let mut v8: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cargo"); } LIT.with(|lit| lit.clone()) };
-    let mut v10: Rc<str> = if v8 {
-        let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CARGO"); } LIT.with(|lit| lit.clone()) };
+    let v8: bool = &*v0 == "cargo";
+    let v10: Rc<str> = if v8 {
+        let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CARGO"); } LIT.with(|lit| lit.clone()) };
         v9.clone()
     } else {
         v7.clone()
     };
-    let mut v11: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rustc"); } LIT.with(|lit| lit.clone()) };
+    let v11: bool = &*v0 == "rustc";
     if v11 {
-        let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTC"); } LIT.with(|lit| lit.clone()) };
+        let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTC"); } LIT.with(|lit| lit.clone()) };
         v12.clone()
     } else {
         v10.clone()
@@ -518,29 +518,29 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn evidence_public_binary_binding_4(mut v0: i32, mut v1: i32) -> Rc<str> {
-    let mut v2: bool = v0 == 1i32;
-    let mut v4: bool = if v2 {
-        let mut v3: bool = v1 == 0i32;
+    let v2: bool = v0 == 1i32;
+    let v4: bool = if v2 {
+        let v3: bool = v1 == 0i32;
         v3
     } else {
         false
     };
     if v4 {
-        let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("eoie"); } LIT.with(|lit| lit.clone()) };
+        let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) };
         v5.clone()
     } else {
-        let mut v6: bool = v0 == 0i32;
-        let mut v8: bool = if v6 {
-            let mut v7: bool = v1 == 1i32;
+        let v6: bool = v0 == 0i32;
+        let v8: bool = if v6 {
+            let v7: bool = v1 == 1i32;
             v7
         } else {
             false
         };
         if v8 {
-            let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("eoie.exe"); } LIT.with(|lit| lit.clone()) };
+            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
             v9.clone()
         } else {
-            let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v10.clone()
         }
     }
@@ -553,12 +553,12 @@ fn closure3() -> Rc<dyn Fn(i32, i32) -> Rc<str>> {
 pub fn evidence_sha256_text(v0: &str) -> bool {
     closure0()(Rc::<str>::from(v0))
 }
-pub fn eoie_evidence_row_stage(v0: i32, v1: i32) -> i32 {
+pub fn kit_evidence_row_stage(v0: i32, v1: i32) -> i32 {
     closure1()(v0, v1)
 }
-pub fn eoie_rust_tool_environment(v0: &str) -> Rc<str> {
+pub fn kit_rust_tool_environment(v0: &str) -> Rc<str> {
     closure2()(Rc::<str>::from(v0))
 }
-pub fn eoie_evidence_public_binary(v0: i32, v1: i32) -> Rc<str> {
+pub fn kit_evidence_public_binary(v0: i32, v1: i32) -> Rc<str> {
     closure3()(v0, v1)
 }

@@ -1,0 +1,215 @@
+:< rust_std_string.model
+:< kit_table_query.cells
+:< kit_table_query.table
+:< kit_experiments.experiment_model
+:< kit_experiments.ledger_host
+:< kit_experiments.experiment_plan
+
+:== tally =
+    {
+        rows : i32
+        count : f64
+        sum : f64
+        squares : f64
+        successes : i32
+    }
+
+:| rows_kept =
+    | RowsKept : string
+    | RowsRefused : string
+
+:= rows_kept_of (kept : bool) (~detail : string) : rows_kept = ? kept ?> RowsKept detail |: RowsRefused detail
+:= row_kept (~mask : string) (row : i32) : bool = $'(!mask).as_bytes().get(!row as usize) == Some(&49u8)' : bool
+
+:== scope =
+    {
+        kept : string
+        group : i32
+        time : i32
+        since : string
+    }
+
+:~ text_before (~left : string) (~right : string) : bool = $'(!left) < (!right)' : bool
+
+:~ in_arm (cells : table_cells) (chosen : scope) (~arm : string) (row : i32) : bool =
+    row_kept chosen.kept row && (chosen.group < 0i32 || cell_at cells row chosen.group = arm)
+
+:~ in_scope (cells : table_cells) (chosen : scope) (~arm : string) (row : i32) : bool =
+    in_arm cells chosen arm row && (chosen.time < 0i32 || text_before (cell_at cells row chosen.time) chosen.since = !-)
+
+:~ ^ tallied
+    (cells : table_cells) (chosen : scope) (~arm : string) (metric : i32) (row : i32) (total : i32) (acc : tally)
+    : tally
+    =
+    ? row > total
+    ?> acc
+    |? in_scope cells chosen arm row
+    ?>
+        := cell = cell_at cells row metric
+        := value = number_parsed cell
+        := numeric = (value = value)
+        := next = { acc ?| rows = acc.rows + 1i32; successes = acc.successes + (? success_cell cell ?> 1i32 |: 0i32) }
+        := measured =
+            ? numeric
+            ?> { next ?| count = next.count + 1.0f64; sum = next.sum + value; squares = next.squares + value * value }
+            |: next
+        tallied cells chosen arm metric (row + 1i32) total measured
+    |: tallied cells chosen arm metric (row + 1i32) total acc
+
+:~ ^ early_rows (cells : table_cells) (chosen : scope) (~arm : string) (row : i32) (total : i32) (found : i32) : i32 =
+    ? row > total || chosen.time < 0i32
+    ?> found
+    |? in_arm cells chosen arm row && in_scope cells chosen arm row = !-
+    ?> early_rows cells chosen arm (row + 1i32) total (found + 1i32)
+    |: early_rows cells chosen arm (row + 1i32) total found
+
+:~ ^ values_of
+    (cells : table_cells) (chosen : scope) (~arm : string) (metric : i32) (row : i32) (total : i32) (~acc : string)
+    : string
+    =
+    ? row > total ?> acc
+    |? in_scope cells chosen arm row ?>
+        := cell = cell_at cells row metric
+        := next = ? number_parsed cell = number_parsed cell ?> (? acc = "" ?> cell |: concat5 acc "," cell "" "") |: acc
+        values_of cells chosen arm metric (row + 1i32) total next
+    |: values_of cells chosen arm metric (row + 1i32) total acc
+
+:~ median_terms_between (~values : string) (low : f64) (high : f64) : string =
+    $'kit_experiment_stats::kit_median_terms(&*!values, !low, !high)' : string
+
+:~ median_terms (~values : string) (~band : string) : string =
+    median_terms_between values (number_parsed (head_of band ",")) (number_parsed (tail_of band ","))
+
+:= look_suffix (verdict : look) : string =
+    ?= verdict ?|
+    | InterimLook _ => " look=interim disclosed=yes"
+    | _ => " look=full verdict=recorded"
+
+:~ optional_column (cells : table_cells) (~name : string) : i32 = ? name = "" ?> (-1i32) |: column_of cells name
+
+:~ terms_of
+    (cells : table_cells) (chosen : scope) (metric : i32) (study : plan) (left : tally) (right : tally)
+    : string
+    =
+    ?= band_of study.test ?|
+    | Band (low, high) =>
+        median_terms_between (values_of cells chosen study.arm metric 1i32 (row_total cells) "") low high
+    | NoBand =>
+        := word = test_word study.kind
+        := left_rows, left_count, left_sum, left_squares, left_successes =
+            left.rows, left.count, left.sum, left.squares, left.successes
+        := right_rows, right_count, right_sum, right_squares, right_successes =
+            right.rows, right.count, right.sum, right.squares, right.successes
+        := prediction = prediction_of study.test
+        := confidence = study.confidence
+        $'kit_experiment_stats::kit_experiment_terms(&*!word, !left_rows, !left_count, !left_sum, !left_squares, \
+            !left_successes, !right_rows, !right_count, !right_sum, !right_squares, !right_successes, !prediction, \
+            !confidence)' : string
+
+:= measures_numbers (kind : test_kind) : bool =
+    ?= kind ?|
+    | WelchTwoSided => !+
+    | OneSampleT => !+
+    | MedianBand => !+
+    | _ => !-
+
+:~ numeric_note (kind : test_kind) (acc : tally) : string =
+    := count = acc.count
+    := used = $'!count as i32' : i32
+    ? measures_numbers kind && used < acc.rows ?> concat5 " (" (i32_text used) " numeric)" "" "" |: ""
+
+:~ arm_counts (study : plan) (left : tally) (right : tally) : string =
+    := planned = i32_text study.runs
+    := first = concat5 study.arm " " (i32_text left.rows) "/" (concat5 planned (numeric_note study.kind left) "" "" "")
+    ?= second_arm_of study.test ?|
+    | AgainstArm arm =>
+        concat5 first ", " arm " " (concat5 (i32_text right.rows) "/" planned (numeric_note study.kind right) "")
+    | OneArm => first
+
+:~ analyzed_plan (~ledger : string) (study : plan) (cells : table_cells) : i32 =
+    := wheres = where_clauses ()
+    := table_path = argument 5i32
+    := mask, missing_wheres =
+        := kept, detail = $'kit_table_query::kit_table_rows_kept(&*!table_path, &*!wheres)' : bool * string
+        ?= rows_kept_of kept detail ?|
+        | RowsKept mask => mask, ""
+        | RowsRefused reason => "", reason
+    := group = optional_column cells study.group
+    := time = optional_column cells study.time
+    := metric = column_of cells study.metric
+    ? metric < 0i32 || missing_wheres <> "" || (study.group <> "" && group < 0i32) || (study.time <> "" && time < 0i32)
+    ?> failed (concat5 "analyze: unknown columns in " (argument 5i32) " (header: " (header_joined cells ",") ")")
+    |:
+        := chosen = { kept = mask; group = group; time = time; since = study.since }
+        := empty = { rows = 0i32; count = 0.0f64; sum = 0.0f64; squares = 0.0f64; successes = 0i32 }
+        := first = study.arm
+        := left = tallied cells chosen first metric 1i32 (row_total cells) empty
+        := right, second_early =
+            ?= second_arm_of study.test ?|
+            | AgainstArm arm =>
+                tallied cells chosen arm metric 1i32 (row_total cells) empty,
+                early_rows cells chosen arm 1i32 (row_total cells) 0i32
+            | OneArm => left, 0i32
+        := early = early_rows cells chosen first 1i32 (row_total cells) 0i32 + second_early
+        := counts = arm_counts study left right
+        := shortfall = left.rows < study.runs || right.rows < study.runs
+        := verdict_at = field_of (file_text (record_path ledger study.id "verdict")) "analyzed"
+        ?= look_of counts shortfall (option_value "--interim") verdict_at ?|
+        | LookRefused reason =>
+            stdout_line (concat5 "kit experiment analyze refused id=" study.id " " reason "")
+            1i32
+        | look =>
+            := stamped = now_ms ()
+            := at = $'agile_task_notes::kit_utc_stamp(!stamped)' : string
+            := excluded = ? time < 0i32 ?> "" |: concat5 " before_registration=" (i32_text early) "" "" ""
+            := line =
+                concat5
+                    "id="
+                    study.id
+                    " test="
+                    (test_word study.kind)
+                    (concat5 " n=" counts " " (terms_of cells chosen metric study left right) excluded)
+            := problem =
+                ?= look ?|
+                | InterimLook reason =>
+                    text_appended
+                        (record_path ledger study.id "disclosures")
+                        (
+                            concat5
+                                (field_line "disclosed" at)
+                                (field_line "reason" reason)
+                                (field_line "result" line)
+                                ""
+                                ""
+                        )
+                | _ =>
+                    text_created
+                        (record_path ledger study.id "verdict")
+                        (
+                            concat5
+                                (field_line "analyzed" at)
+                                (field_line "result" line)
+                                (field_line "decision" study.decision)
+                                ""
+                                ""
+                        )
+            ? problem <> "" ?> failed (concat5 "analyze: " problem "" "" "")
+            |:
+                stdout_line (concat5 "kit experiment analyze ok " line (look_suffix look) "" "")
+                0i32
+
+:~ analyzed () : i32 =
+    := ledger = argument 3i32
+    := id = argument 4i32
+    := text = plan_text ledger id
+    ? text = "" ?> failed (concat5 "analyze: no registration for " id " in " ledger "")
+    |:
+        ?= plan_trusted text ?|
+        | PlanBroken reason => failed (concat5 "analyze: the registration of " id " is unusable: " reason "")
+        | PlanRead study =>
+            ?= table_read (argument 5i32) ?|
+            | TableUnreadable problem => failed (concat5 "analyze: " problem "" "" "")
+            | TableLoaded cells => analyzed_plan ledger study cells
+:= main () : i32 =
+    !!!!Export("kit_experiment_analyze_run", ((\ () => analyzed ()) : () -> i32))
+    0i32

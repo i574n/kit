@@ -15,5 +15,5 @@ path = "archive_deflate.rs"
 
 [dependencies]
 zip = { version = "0.6.6", default-features = false, features = ["deflate"] }
-eoie-rust-std-fs = { path = "../rust_std_fs" }
-eoie-rust-std-fs-mutation = { path = "../rust_std_fs_mutation" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-rust-std-fs-mutation = { path = "../rust_std_fs_mutation" }

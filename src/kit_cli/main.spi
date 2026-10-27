@@ -1,0 +1,4 @@
+:= main () : i32 =
+    kit_cli_routing.routing_terminal.emit_runtime ()
+    := code = kit_cli_model.model.run ()
+    $"kit_coverage_prune::coverage_finish(!code)" : i32

@@ -3,19 +3,19 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 fn bundle_rehydration_binding_1(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -41,23 +41,23 @@ fn bundle_rehydrate_receipt_binding_4(mut v0: i32, mut v1: i32) -> i32 {
     bundle_complete_binding_5(v0, v1)
 }
 fn archive_extract_preflight_binding_6(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
-                    let mut v6: bool = v0 < 1i32;
+                    let v6: bool = v0 < 1i32;
                     if v6 {
                         1i32
                     } else {
@@ -69,19 +69,19 @@ fn archive_extract_preflight_binding_6(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_extract_process_binding_7(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -92,19 +92,19 @@ fn archive_extract_process_binding_7(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn bundle_root_binding_11(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 1i32;
+        let v3: bool = v1 < 1i32;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v0 < v1;
+            let v4: bool = v0 < v1;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = v1 < v0;
+                let v5: bool = v1 < v0;
                 if v5 {
                     0i32
                 } else {
@@ -127,19 +127,19 @@ fn archive_extract_receipt_binding_12(mut v0: i32, mut v1: i32) -> i32 {
     bundle_complete_binding_5(v0, v1)
 }
 fn preflight_binding_14(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -176,27 +176,27 @@ fn closure0() -> Rc<dyn Fn(i32, i32) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn coverage_checkpoint_binding_21(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 0i32;
+            let v4: bool = v1 < 0i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 2i32 < v1;
+                let v5: bool = 2i32 < v1;
                 if v5 {
                     0i32
                 } else {
-                    let mut v6: bool = v0 < 1i32;
+                    let v6: bool = v0 < 1i32;
                     if v6 {
                         1i32
                     } else {
-                        let mut v7: bool = v1 < 2i32;
+                        let v7: bool = v1 < 2i32;
                         if v7 {
                             0i32
                         } else {
@@ -219,15 +219,15 @@ fn closure2() -> Rc<dyn Fn(i32, i32) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn bundle_size_binding_22(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 1i32;
+        let v3: bool = v1 < 1i32;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v0 < v1;
+            let v4: bool = v0 < v1;
             if v4 {
                 0i32
             } else {
@@ -247,19 +247,19 @@ fn closure4() -> Rc<dyn Fn(i32, i32) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn bundle_payload_count_binding_23(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 0i32;
+        let v3: bool = v1 < 0i32;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v0 < v1;
+            let v4: bool = v0 < v1;
             if v4 {
                 0i32
             } else {
-                let mut v5: i32 = v0.wrapping_sub(v1);
+                let v5: i32 = v0.wrapping_sub(v1);
                 v5
             }
         }
@@ -340,63 +340,63 @@ fn closure19() -> Rc<dyn Fn(i32, i32) -> i32> {
         bundle_verify_complete_binding_19(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-pub fn eoie_bundle_root_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_root_binding(v0: i32, v1: i32) -> i32 {
     closure0()(v0, v1)
 }
-pub fn eoie_bundle_coverage_checkpoint_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_coverage_checkpoint_binding(v0: i32, v1: i32) -> i32 {
     closure1()(v0, v1)
 }
-pub fn eoie_bundle_entry_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_entry_binding(v0: i32, v1: i32) -> i32 {
     closure2()(v0, v1)
 }
-pub fn eoie_bundle_size_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_size_binding(v0: i32, v1: i32) -> i32 {
     closure3()(v0, v1)
 }
-pub fn eoie_bundle_extract_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_extract_binding(v0: i32, v1: i32) -> i32 {
     closure4()(v0, v1)
 }
-pub fn eoie_bundle_payload_count_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_payload_count_binding(v0: i32, v1: i32) -> i32 {
     closure5()(v0, v1)
 }
-pub fn eoie_bundle_rehydration_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_rehydration_binding(v0: i32, v1: i32) -> i32 {
     closure6()(v0, v1)
 }
-pub fn eoie_bundle_complete_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_complete_binding(v0: i32, v1: i32) -> i32 {
     closure7()(v0, v1)
 }
-pub fn eoie_bundle_rehydrate_preflight_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_rehydrate_preflight_binding(v0: i32, v1: i32) -> i32 {
     closure8()(v0, v1)
 }
-pub fn eoie_bundle_rehydrate_extract_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_rehydrate_extract_binding(v0: i32, v1: i32) -> i32 {
     closure9()(v0, v1)
 }
-pub fn eoie_bundle_rehydrate_validate_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_rehydrate_validate_binding(v0: i32, v1: i32) -> i32 {
     closure10()(v0, v1)
 }
-pub fn eoie_bundle_rehydrate_receipt_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_rehydrate_receipt_binding(v0: i32, v1: i32) -> i32 {
     closure11()(v0, v1)
 }
-pub fn eoie_archive_extract_preflight_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_extract_preflight_binding(v0: i32, v1: i32) -> i32 {
     closure12()(v0, v1)
 }
-pub fn eoie_archive_extract_process_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_extract_process_binding(v0: i32, v1: i32) -> i32 {
     closure13()(v0, v1)
 }
-pub fn eoie_archive_extract_complete_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_extract_complete_binding(v0: i32, v1: i32) -> i32 {
     closure14()(v0, v1)
 }
-pub fn eoie_archive_extract_receipt_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_extract_receipt_binding(v0: i32, v1: i32) -> i32 {
     closure15()(v0, v1)
 }
-pub fn eoie_bundle_output_preflight_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_output_preflight_binding(v0: i32, v1: i32) -> i32 {
     closure16()(v0, v1)
 }
-pub fn eoie_bundle_output_complete_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_output_complete_binding(v0: i32, v1: i32) -> i32 {
     closure17()(v0, v1)
 }
-pub fn eoie_bundle_verify_preflight_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_verify_preflight_binding(v0: i32, v1: i32) -> i32 {
     closure18()(v0, v1)
 }
-pub fn eoie_bundle_verify_complete_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_verify_complete_binding(v0: i32, v1: i32) -> i32 {
     closure19()(v0, v1)
 }

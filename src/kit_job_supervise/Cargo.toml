@@ -1,0 +1,20 @@
+[package.metadata.spiral]
+entry = "supervise.spi"
+output = "supervise.rs"
+
+[package]
+name = "kit-job-supervise"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_supervise"
+path = "supervise.rs"
+
+[dependencies]
+kit-job-env = { path = "../kit_job_env" }
+kit-machine-windows = { path = "../kit_machine_windows" }
+kit-job-gate = { path = "../kit_job_gate" }
+kit-job-after = { path = "../kit_job_after" }

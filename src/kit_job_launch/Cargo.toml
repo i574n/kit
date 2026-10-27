@@ -1,0 +1,22 @@
+[package.metadata.spiral]
+entry = "launch.spi"
+output = "launch.rs"
+
+[package]
+name = "kit-job-launch"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_launch"
+path = "launch.rs"
+
+[dependencies]
+kit-job-state = { path = "../kit_job_state" }
+kit-job-create = { path = "../kit_job_create" }
+kit-job-start-args = { path = "../kit_job_start_args" }
+kit-machine-windows = { path = "../kit_machine_windows" }
+kit-job-supervise = { path = "../kit_job_supervise" }
+kit-job-host = { path = "../kit_job_host" }

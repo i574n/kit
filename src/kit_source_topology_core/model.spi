@@ -1,0 +1,149 @@
+:! topology_idle = ()
+:! topology_counted = ()
+:! topology_validated = ()
+:! source_map_idle = ()
+:! source_map_collected = ()
+:! source_map_compared = ()
+
+:| topology_policy =
+    | TotalSourceGrowthUnbounded
+    | RustFileLimitOneThousand
+    | CargoCrateLimitOneThousand
+    | DistinguishCargoCratesFromSpiralPackages
+    | ShrinkageEvidenceAdvisory
+
+:| source_surface =
+    | OwnSource
+    | GeneratedSource
+    | VendorSource
+
+:| source_directory =
+    | RepositoryMetadata
+    | VendorDirectory
+    | BuildCacheDirectory
+    | LocalCacheDirectory
+    | MixBuildDirectory
+    | SourceDirectory
+
+:= source_directory_code = \|
+    | RepositoryMetadata => 0u64
+    | VendorDirectory => 1u64
+    | BuildCacheDirectory => 2u64
+    | SourceDirectory => 3u64
+    | LocalCacheDirectory => 4u64
+    | MixBuildDirectory => 5u64
+
+:~ source_directory_kind (~name : string) : u64 =
+    ? (name = ".git") ?> source_directory_code RepositoryMetadata
+    |? (name = "vendor") ?> source_directory_code VendorDirectory
+    |? (name = "target") ?> source_directory_code BuildCacheDirectory
+    |? (name = ".cache") ?> source_directory_code LocalCacheDirectory
+    |? (name = "_build") ?> source_directory_code MixBuildDirectory
+    |: source_directory_code SourceDirectory
+
+:| source_map_policy =
+    | MapPackageOwnership
+    | MapCargoRuntimeBoundary
+    | MapSpiralMainEntryPoints
+    | MapGeneratedRustResiduals
+    | MapPackageImports
+    | CompareStableFingerprints
+    | BuildColdResidualMatrix
+
+:| topology_op from to =
+    | CountCargoCratesAndSpiralPackages :: topology_op topology_idle topology_counted
+    | ValidatePerOwnerLimits :: topology_op topology_counted topology_validated
+
+:| source_map_op from to =
+    | CollectOwnedPackages :: source_map_op source_map_idle source_map_collected
+    | ComparePackageFingerprints :: source_map_op source_map_collected source_map_compared
+
+:| ^ topology_plan from to =
+    | TopologyStep :: \* from to. topology_op from to -> topology_plan from to
+    | TopologyThen :: \* from to.
+        (\? middle. topology_plan from middle * topology_plan middle to) ->
+        topology_plan from to
+
+:| ^ source_map_plan from to =
+    | SourceMapStep :: \* from to. source_map_op from to -> source_map_plan from to
+    | SourceMapThen :: \* from to.
+        (\? middle. source_map_plan from middle * source_map_plan middle to) ->
+        source_map_plan from to
+
+:= topology_public_plan () : topology_plan topology_idle topology_validated =
+    TopologyThen (\? (
+        TopologyStep CountCargoCratesAndSpiralPackages,
+        TopologyStep ValidatePerOwnerLimits
+    ))
+
+:= source_map_public_plan () : source_map_plan source_map_idle source_map_compared =
+    SourceMapThen (\? (
+        SourceMapStep CollectOwnedPackages,
+        SourceMapStep ComparePackageFingerprints
+    ))
+
+:~ topology_limit_binding (rust_file_max : i32) (cargo_crate_max : i32) : i32 =
+    ? 1000i32 < rust_file_max ?> 0i32
+    |? 1000i32 < cargo_crate_max ?> 0i32
+    |: 1i32
+
+:~ topology_package_only_binding (expected_package_only : i32) (observed_package_only : i32) : i32 =
+    ? expected_package_only < 0i32 ?> 0i32
+    |? observed_package_only < 0i32 ?> 0i32
+    |? expected_package_only < observed_package_only ?> 0i32
+    |? observed_package_only < expected_package_only ?> 0i32
+    |: 1i32
+
+:~ source_surface_binding (vendor : i32) (generated : i32) : i32 =
+    ? vendor < 0i32 ?> -1i32
+    |? 1i32 < vendor ?> -1i32
+    |? generated < 0i32 ?> -1i32
+    |? 1i32 < generated ?> -1i32
+    |? vendor = 1i32 ?> 2i32
+    |? generated = 1i32 ?> 1i32
+    |: 0i32
+
+:~ source_map_files_binding (spi_files : i32) (main_files : i32) : i32 =
+    ? spi_files < 0i32 ?> 0i32
+    |? main_files < 0i32 ?> 0i32
+    |? spi_files < main_files ?> 0i32
+    |: 1i32
+
+:~ source_map_edges_binding (rust_files : i32) (imports : i32) : i32 =
+    ? rust_files < 0i32 ?> 0i32
+    |? imports < 0i32 ?> 0i32
+    |: 1i32
+
+:~ source_diff_record_binding (changed : i32) (total : i32) : i32 =
+    ? changed < 0i32 ?> 0i32
+    |? total < 0i32 ?> 0i32
+    |? total < changed ?> 0i32
+    |: 1i32
+
+:~ source_rebuild_count_binding (expected : i32) (observed : i32) : i32 =
+    ? expected < 0i32 ?> 0i32
+    |? observed < 0i32 ?> 0i32
+    |? expected < observed ?> 0i32
+    |? observed < expected ?> 0i32
+    |: 1i32
+
+:| build_cache_evidence =
+    | CacheDirTagged
+    | TargetBesideCargoManifest
+    | MixBuildOutput
+    | NoBuildCacheEvidence
+
+:= build_cache_evidence_of (kind : u64) (cachedir_tag : bool) (beside_manifest : bool) : build_cache_evidence =
+    ? cachedir_tag ?> CacheDirTagged
+    |? kind = source_directory_code BuildCacheDirectory && beside_manifest ?> TargetBesideCargoManifest
+    |? kind = source_directory_code MixBuildDirectory ?> MixBuildOutput
+    |: NoBuildCacheEvidence
+
+:~ build_cache_binding (kind : u64) (cachedir_tag : i32) (beside_manifest : i32) : i32 =
+    ?= build_cache_evidence_of kind (cachedir_tag = 1i32) (beside_manifest = 1i32) ?|
+    | NoBuildCacheEvidence => 0i32
+    | _ => 1i32
+
+:= cargo_crate_line_limit () : i32 = 1000i32
+
+:~ crate_headroom_binding (lines : i32) : i32 = cargo_crate_line_limit () - lines

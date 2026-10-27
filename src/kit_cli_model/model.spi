@@ -1,0 +1,194 @@
+///- --package .
+:# model static =
+    :< command_spec_domain.model
+
+:< command_spec_domain.model
+
+:= shim_argv0_code () : i32 = $"kit_legacy_operations::dogfood_shim_argv0_code()"
+:= shim_run () : i32 = $"kit_legacy_operations::dogfood_shim_dispatch()"
+:= process_verb_code () : i32 = $"KitProcessVerbCode()"
+:= process_tail_count () : i32 = $"std::env::args().skip(2).count() as i32"
+:= status_ok (migration : i32) : i32 = $"KitStatusOk(!migration)"
+:= status_live (migration : i32) : i32 = $"KitStatusLive(!migration)"
+:= status_arity_error () : i32 = $"KitStatusArityError()"
+:= status_authority_error () : i32 = $"KitStatusAuthorityError()"
+:= patch_run () : i32 = $"KitPatchAdapter()"
+:= agile_run () : i32 = $"KitAgileAdapter()"
+:= bundle_run () : i32 = $"KitBundleAdapter()"
+:= proxy_run () : i32 = $"KitProxyAdapter()"
+:= help_rejected () : i32 = $"KitHelpRejected()"
+:= unknown_rejected () : i32 = $"KitUnknownRejected()"
+
+:= migration_status () : i32 = $"bootstrap_authority_status::kit_bootstrap_settled_migration_status()"
+:= workspace_state_status () : i32 = $"bootstrap_authority_status::kit_bootstrap_workspace_state_status()"
+:= compiler_session_status () : i32 = $"bootstrap_authority_status::kit_bootstrap_compiler_session_status()"
+:= legacy_bundle_writer_status () : i32 = $"bootstrap_authority_status::kit_bootstrap_legacy_bundle_writer_status()"
+:= ingest_frontier_status () : i32 = $"bootstrap_authority_status::kit_bootstrap_ingest_frontier_status()"
+:= process_batch_status () : i32 = $"process_batch_plan_domain::kit_batch_matrix_auto_chain_budget(60000, 16000)"
+
+:= run_status () : i32 =
+    ?= process_tail_count () ?|
+    | 0 =>
+        ?= workspace_state_status () ?|
+        | 1 =>
+            ?= compiler_session_status () ?|
+            | 1 =>
+                ?= legacy_bundle_writer_status () ?|
+                | 1 =>
+                    ?= ingest_frontier_status () ?|
+                    | 1 =>
+                        ?= process_batch_status () ?|
+                        | 1 => status_ok (migration_status ())
+                        | _ => status_authority_error ()
+                    | _ => status_authority_error ()
+                | _ => status_authority_error ()
+            | _ => status_authority_error ()
+        | _ => status_authority_error ()
+    | 1 => status_live (migration_status ())
+    | _ => status_arity_error ()
+
+:= run_public_verb () : i32 =
+    ?= command_catalog_witness () ?|
+    | 1 =>
+        ?= handler_from_code (process_verb_code ()) ?|
+        | StatusHandler => run_status ()
+        | PatchHandler => patch_run ()
+        | AgileHandler => agile_run ()
+        | BundleHandler => bundle_run ()
+        | ProxyHandler => proxy_run ()
+        | HelpHandler => help_rejected ()
+        | UnknownHandler => unknown_rejected ()
+        | LeaseDeniedHandler => 2i32
+    | _ => 2i32
+
+:= job_run () : i32 = $"kit_jobs::kit_job_run()" : i32
+
+:= repo_run () : i32 = $"kit_repo_state::kit_repo_run()" : i32
+:= repo_affected_run () : i32 = $"kit_repo_affected::kit_repo_affected_run()" : i32
+:= repo_accept_review_run () : i32 = $"kit_repo_accept_review::kit_repo_accept_review_run()" : i32
+
+:= table_run () : i32 = $"kit_table_query::kit_table_run()" : i32
+
+:= read_run () : i32 = $"kit_read_query::kit_read_run()" : i32
+:= grep_run () : i32 = $"kit_grep_query::kit_grep_run()" : i32
+:= do_run () : i32 = $"kit_do::kit_do_run()" : i32
+:= process_run () : i32 = $"kit_process_table::kit_process_run()" : i32
+:= standards_run () : i32 = $"kit_standards::kit_standards_run()" : i32
+:= window_run () : i32 = $"kit_machine_windows::kit_window_run()" : i32
+:= experiment_run () : i32 = $"kit_experiments::kit_experiment_run()" : i32
+:= logs_run () : i32 = $"kit_table_logs::kit_table_logs_run()" : i32
+:= sequences_run () : i32 = $"kit_table_sequences::kit_table_sequences_run()" : i32
+:= guide_run () : i32 = $"kit_guide::kit_guide_run()" : i32
+:= machine_run () : i32 = $"kit_machine_watch::kit_machine_watch_run()" : i32
+:= adoption_run () : i32 = $"kit_adoption::kit_adoption_run()" : i32
+:= memory_run () : i32 = $"kit_memory::kit_memory_run()" : i32
+:= resume_run () : i32 = $"kit_resume::kit_resume_run()" : i32
+:= ci_run () : i32 = $"kit_ci_parity::kit_ci_parity_run()" : i32
+:= os_launch_run () : i32 = $"kit_os_launch::kit_process_launch_run()" : i32
+:= crate_run () : i32 = $"kit_crate_gate::kit_crate_gate_run()" : i32
+:= table_test_run () : i32 = $"kit_table_test::kit_table_test_run()" : i32
+:= env_run () : i32 = $"kit_env_pins::kit_env_run()" : i32
+:= mirror_run () : i32 = $"kit_mirror::kit_mirror_run()" : i32
+
+:~ direct_help (~usage : string) : i32 =
+    $'println\!("usage: kit {}", &*!usage)' : ()
+    0i32
+
+:< command_spec_domain.direct_verbs
+
+:| direct_parse =
+    | DirectKnown : direct_verb
+    | DirectUnknown
+
+:~ lowercase_named (~word : string) (~name : string) : bool = $'(!name).to_ascii_lowercase() == &*!word' : bool
+
+:~ direct_of (~word : string) : direct_parse =
+    union_reflection.cases.union_case_where
+        \ (verb : direct_verb) => lowercase_named word (union_reflection.cases.union_case_suffix "Verb" verb)
+        \ verb => DirectKnown verb
+        DirectUnknown
+
+:= direct_routed (verb : direct_verb) : i32 =
+    ?= verb ?|
+    | VerbJob => job_run ()
+    | VerbRepo =>
+        ? argument_file.process_argument 2i32 = "affected"
+        ?> repo_affected_run ()
+        |? argument_file.process_argument 2i32 = "accept-review"
+        ?> repo_accept_review_run ()
+        |: repo_run ()
+    | VerbTable =>
+        ? argument_file.process_argument 2i32 = "logs"
+        ?> logs_run ()
+        |? argument_file.process_argument 2i32 = "sequences"
+        ?> sequences_run ()
+        |? argument_file.process_argument 2i32 = "test"
+        ?> table_test_run ()
+        |: table_run ()
+    | VerbRead => read_run ()
+    | VerbLines => read_run ()
+    | VerbGrep => grep_run ()
+    | VerbDo => do_run ()
+    | VerbPs => process_run ()
+    | VerbKill => process_run ()
+    | VerbStandards => standards_run ()
+    | VerbWindow => window_run ()
+    | VerbExperiment => experiment_run ()
+    | VerbGuide => guide_run ()
+    | VerbMachine => machine_run ()
+    | VerbAdoption => adoption_run ()
+    | VerbMemory => memory_run ()
+    | VerbResume => resume_run ()
+    | VerbCi => ci_run ()
+    | VerbProcess => os_launch_run ()
+    | VerbCrate => crate_run ()
+    | VerbEnv => env_run ()
+    | VerbMirror => mirror_run ()
+
+:= run_direct () : i32 =
+    := verb = argument_file.process_argument 1i32
+    := target = argument_file.process_argument 2i32
+    := usage = ? verb = "help" ?> $'command_spec_domain::kit_direct_verb_usage(&*!target)' : string |: ""
+    ? usage <> "" ?> direct_help usage
+    |:
+        ?= direct_of verb ?|
+        | DirectKnown known => direct_routed known
+        | DirectUnknown =>
+            ?= shim_argv0_code () ?|
+            | 0 => run_public_verb ()
+            | _ => shim_run ()
+
+:= run () : i32 = argument_file.run_from (argument_file.argument_source ()) run_direct
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:= known_word (~word : string) : bool =
+    ?= direct_of word ?|
+    | DirectKnown _ => !+
+    | DirectUnknown => !-
+
+///> rust
+:# direct_verbs_parse_from_their_case_names =
+    expect
+        (known_word "job" && known_word "experiment" && known_word "ps" && known_word "grep")
+        "every direct verb word comes from its case name"
+    expect (known_word "JOB" = !-) "verbs stay lowercase"
+    expect (known_word "agile" = !-) "agile stays on the public verb route"
+    expect (known_word "" = !-) "an empty verb is not direct"
+
+:= verb_word (verb : direct_verb) : string =
+    := name = union_reflection.cases.union_case_suffix "Verb" verb
+    $'std::rc::Rc::<str>::from((!name).to_ascii_lowercase())' : string
+
+///> rust
+:# every_direct_verb_has_a_help_line =
+    := missing =
+        union_reflection.cases.union_cases_fold
+            \ found (verb : direct_verb) =>
+                ? command_spec_domain.model.direct_verb_usage (verb_word verb) = "" ?> found + 1i32 |: found
+            0i32
+    expect (missing = 0i32) "every direct verb word has a line in the command spec usages, so kit help <verb> answers"
+    := misnamed =
+        union_reflection.cases.union_cases_fold
+            \ found (verb : direct_verb) => ? verb_word verb = (verb_help_of verb).word ?> found |: found + 1i32
+            0i32
+    expect (misnamed = 0i32) "each help word is its verb's case name, so kit help <word> and kit <word> agree"

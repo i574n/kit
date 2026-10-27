@@ -1,0 +1,5 @@
+:< parity
+
+:= main () : i32 =
+    !!!!Export("kit_ci_parity_run", ((\ () => parity_run ()) : () -> i32))
+    0i32

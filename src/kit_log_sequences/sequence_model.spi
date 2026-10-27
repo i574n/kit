@@ -1,0 +1,268 @@
+///- --package .
+:# sequence_model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! gaps = ()
+:! counts = ()
+:! verdicts = ()
+
+:== event =
+    {
+        role : string
+        line : u64
+        at_ms : u64
+    }
+
+:| interval_fold =
+    | AsRows
+    | Modulo : u64
+
+:== interval_terms =
+    {
+        marked : string
+        between : option string
+        fold : interval_fold
+    }
+
+:== ms_range =
+    {
+        low : u64
+        high : u64
+    }
+
+:== window_terms =
+    {
+        counted : string
+        marker : string
+        range : ms_range
+    }
+
+:== order_terms =
+    {
+        first : string
+        second : string
+    }
+
+:== latency_terms =
+    {
+        starting : string
+        ending : string
+    }
+
+:| sequence_measure result =
+    | Interval :: interval_terms -> sequence_measure gaps
+    | Window :: window_terms -> sequence_measure counts
+    | Order :: order_terms -> sequence_measure verdicts
+    | Latency :: latency_terms -> sequence_measure gaps
+
+:| sequence_measure_any =
+    | AnyGaps : sequence_measure gaps
+    | AnyCounts : sequence_measure counts
+    | AnyVerdicts : sequence_measure verdicts
+
+:| order_verdict =
+    | Before
+    | After
+    | Missing
+
+:| measure_value =
+    | GapMs : u64
+    | CountIn : u64
+    | Verdict : order_verdict
+
+:== measure_row =
+    {
+        line : u64
+        value : measure_value
+    }
+
+:== measure_outcome =
+    {
+        rows : list measure_row
+        unpaired : u64
+    }
+
+:= elapsed (earlier : u64) (later : u64) : u64 = ? later > earlier ?> later - earlier |: 0u64
+
+:= row_of (line : u64) (value : measure_value) : measure_row = { line = line; value = value }
+
+:= role_is (role : option string) (event : event) : bool =
+    ?= role ?|
+    | Some name => name = event.role
+    | None => !-
+
+:= folded (fold : interval_fold) (gap : u64) : u64 =
+    ?= fold ?|
+    | AsRows => gap
+    | Modulo grid => ? grid = 0u64 ?> gap |: gap % grid
+
+:~ ^ interval_rows
+    (terms : interval_terms) (events : list event) (previous : option event) (seen_between : bool)
+    (rows : list measure_row)
+    : list measure_row
+    =
+    ?= events ?|
+    | Nil => listm.rev rows
+    | (event :: rest) =>
+        ? event.role = terms.marked
+        ?>
+            := counts = ?= terms.between ?| Some _ => seen_between | None => !+
+            := rows =
+                ?= previous ?|
+                | Some earlier =>
+                    ? counts
+                    ?> (row_of event.line (GapMs (folded terms.fold (elapsed earlier.at_ms event.at_ms))) :: rows)
+                    |: rows
+                | None => rows
+            interval_rows terms rest (Some event) !- rows
+        |: interval_rows terms rest previous (seen_between || role_is terms.between event) rows
+
+:~ ^ count_within (counted : string) (low : u64) (high : u64) (events : list event) (count : u64) : u64 =
+    ?= events ?|
+    | Nil => count
+    | (event :: rest) =>
+        := inside = event.role = counted && event.at_ms >= low && event.at_ms <= high
+        count_within counted low high rest (? inside ?> count + 1u64 |: count)
+
+:~ ^ window_rows
+    (terms : window_terms) (all : list event) (events : list event) (rows : list measure_row)
+    : list measure_row
+    =
+    ?= events ?|
+    | Nil => listm.rev rows
+    | (event :: rest) =>
+        ? event.role = terms.marker
+        ?>
+            := count =
+                count_within terms.counted (event.at_ms + terms.range.low) (event.at_ms + terms.range.high) all 0u64
+            window_rows terms all rest (row_of event.line (CountIn count) :: rows)
+        |: window_rows terms all rest rows
+
+:~ ^ first_line (role : string) (events : list event) : option u64 =
+    ?= events ?|
+    | Nil => None
+    | (event :: rest) => ? event.role = role ?> Some event.line |: first_line role rest
+
+:= order_of (terms : order_terms) (events : list event) : measure_row =
+    ?= first_line terms.first events, first_line terms.second events ?|
+    | Some first, Some second => row_of first (Verdict (? first < second ?> Before |: After))
+    | Some first, None => row_of first (Verdict Missing)
+    | None, _ => row_of 0u64 (Verdict Missing)
+
+:~ ^ paired (ending : event) (pending : list event) (rows : list measure_row) : list measure_row =
+    ?= pending ?|
+    | Nil => rows
+    | (starting :: rest) =>
+        paired ending rest (row_of starting.line (GapMs (elapsed starting.at_ms ending.at_ms)) :: rows)
+
+:~ ^ pending_count (pending : list event) (count : u64) : u64 =
+    ?= pending ?|
+    | Nil => count
+    | (_ :: rest) => pending_count rest (count + 1u64)
+
+:~ ^ latency_rows
+    (terms : latency_terms) (events : list event) (pending : list event) (rows : list measure_row)
+    : measure_outcome
+    =
+    ?= events ?|
+    | Nil => { rows = listm.rev rows; unpaired = pending_count pending 0u64 }
+    | (event :: rest) =>
+        ? event.role = terms.starting ?> latency_rows terms rest (event :: pending) rows
+        |? event.role = terms.ending ?> latency_rows terms rest Nil (paired event (listm.rev pending) rows)
+        |: latency_rows terms rest pending rows
+
+:= whole (rows : list measure_row) : measure_outcome = { rows = rows; unpaired = 0u64 }
+
+:= measured \* result. (measure : sequence_measure result) (events : list event) : measure_outcome =
+    ?= measure ?|
+    | Interval terms => whole (interval_rows terms events None !- Nil)
+    | Window terms => whole (window_rows terms events events Nil)
+    | Order terms => whole (order_of terms events :: Nil)
+    | Latency terms => latency_rows terms events Nil Nil
+
+:= verdict_word (verdict : order_verdict) : string =
+    ?= verdict ?|
+    | Before => "before"
+    | After => "after"
+    | Missing => "missing"
+
+:= value_text (value : measure_value) : string =
+    ?= value ?|
+    | GapMs gap => sm'.format gap
+    | CountIn count => sm'.format count
+    | Verdict verdict => verdict_word verdict
+
+:~ ^ rows_text (~file : string) (rows : list measure_row) (~text : string) : string =
+    ?= rows ?|
+    | Nil => text
+    | (row :: rest) =>
+        rows_text file rest (text ++# file ++# "\t" ++# sm'.format row.line ++# "\t" ++# value_text row.value ++# "\n")
+
+
+:= at (role : string) (line : u64) (at_ms : u64) : event = { role = role; line = line; at_ms = at_ms }
+
+:= request_log () : list event =
+    (at "request" 1u64 1000u64 :: (at "reply" 2u64 1250u64 :: (at "request" 3u64 2000u64 :: (at "flush" 4u64 2100u64 :: (at "request" 5u64 3500u64 :: (at "reply" 6u64 3900u64 :: (at "request" 7u64 4000u64 :: Nil)))))))
+
+:= outcome_text (outcome : measure_outcome) : string =
+    rows_text "a.log" outcome.rows "" ++# "unpaired=" ++# sm'.format outcome.unpaired
+
+///> rust
+:# intervals_measure_gaps_between_consecutive_matches =
+    := plain = measured (Interval { marked = "request"; between = None; fold = AsRows }) (request_log ())
+    testing.expect (outcome_text plain = "a.log\t3\t1000\na.log\t5\t1500\na.log\t7\t500\nunpaired=0") (outcome_text plain)
+    := flushed = measured (Interval { marked = "request"; between = Some "flush"; fold = AsRows }) (request_log ())
+    testing.expect (outcome_text flushed = "a.log\t5\t1500\nunpaired=0") (outcome_text flushed)
+    := grid = measured (Interval { marked = "request"; between = None; fold = Modulo 400u64 }) (request_log ())
+    testing.expect (outcome_text grid = "a.log\t3\t200\na.log\t5\t300\na.log\t7\t100\nunpaired=0") (outcome_text grid)
+
+///> rust
+:# windows_count_matches_after_each_marker =
+    := replies =
+        measured
+            (Window { counted = "reply"; marker = "request"; range = { low = 0u64; high = 300u64 } })
+            (request_log ())
+    testing.expect
+        (outcome_text replies = "a.log\t1\t1\na.log\t3\t0\na.log\t5\t0\na.log\t7\t0\nunpaired=0")
+        (outcome_text replies)
+    := wide =
+        measured
+            (Window { counted = "reply"; marker = "request"; range = { low = 100u64; high = 500u64 } })
+            (request_log ())
+    testing.expect (outcome_text wide = "a.log\t1\t1\na.log\t3\t0\na.log\t5\t1\na.log\t7\t0\nunpaired=0") (outcome_text wide)
+
+///> rust
+:# order_compares_first_occurrences =
+    testing.expect
+        (
+            outcome_text (measured (Order { first = "flush"; second = "reply" }) (request_log ()))
+            = "a.log\t4\tafter\nunpaired=0"
+        )
+        "a flush first shows after the first reply"
+    testing.expect
+        (
+            outcome_text (measured (Order { first = "request"; second = "flush" }) (request_log ()))
+            = "a.log\t1\tbefore\nunpaired=0"
+        )
+        "request before flush"
+    testing.expect
+        (
+            outcome_text (measured (Order { first = "request"; second = "timeout" }) (request_log ()))
+            = "a.log\t1\tmissing\nunpaired=0"
+        )
+        "a missing second role"
+    testing.expect
+        (
+            outcome_text (measured (Order { first = "timeout"; second = "request" }) (request_log ()))
+            = "a.log\t0\tmissing\nunpaired=0"
+        )
+        "a missing first role"
+
+///> rust
+:# latency_pairs_each_start_with_the_next_end =
+    := latency = measured (Latency { starting = "request"; ending = "reply" }) (request_log ())
+    testing.expect (outcome_text latency = "a.log\t1\t250\na.log\t3\t1900\na.log\t5\t400\nunpaired=1") (outcome_text latency)
+    := none = measured (Latency { starting = "request"; ending = "timeout" }) (request_log ())
+    testing.expect (outcome_text none = "unpaired=4") (outcome_text none)

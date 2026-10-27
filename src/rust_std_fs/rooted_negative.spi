@@ -1,14 +1,14 @@
-open rooted_domain
+:< rooted_domain
 
-union rooted_negative_fixture =
+:| rooted_negative_fixture =
     | RemoveDirectoryAsRegular
     | RemoveRegularAsDirectory
     | CopyMissingSource
     | RemoveRootItself
 
-inl fixtures_are_closed () : bool =
-    match RemoveDirectoryAsRegular, RemoveRegularAsDirectory, CopyMissingSource, RemoveRootItself with
-    | RemoveDirectoryAsRegular, RemoveRegularAsDirectory, CopyMissingSource, RemoveRootItself => true
+:= fixtures_are_closed () : bool =
+    ?= RemoveDirectoryAsRegular, RemoveRegularAsDirectory, CopyMissingSource, RemoveRootItself ?|
+    | RemoveDirectoryAsRegular, RemoveRegularAsDirectory, CopyMissingSource, RemoveRootItself => !+
 
-inl main () : i32 =
-    if fixtures_are_closed () then 0i32 else 1i32
+:= main () : i32 =
+    ? fixtures_are_closed () ?> 0i32 |: 1i32

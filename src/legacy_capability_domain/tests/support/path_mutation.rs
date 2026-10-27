@@ -4,7 +4,7 @@ struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let path = std::env::temp_dir().join(format!("eoie-legacy-paths-{}-{nonce}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("kit-legacy-paths-{}-{nonce}", std::process::id()));
         fs::create_dir_all(path.join("root/state/nested")).unwrap();
         fs::create_dir(path.join("outside")).unwrap();
         fs::write(path.join("root/state/input.txt"), b"input").unwrap();
@@ -24,8 +24,8 @@ fn directory_link(target: &Path, path: &Path) {
     #[cfg(windows)] {
         use std::os::windows::process::CommandExt as _;
         let output = Command::new("pwsh").creation_flags(0x08000000)
-            .args(["-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference='Stop'; New-Item -ItemType Junction -Path $env:EOIE_TEST_LINK -Target $env:EOIE_TEST_TARGET | Out-Null"])
-            .env("EOIE_TEST_LINK", path).env("EOIE_TEST_TARGET", target).output().unwrap();
+            .args(["-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference='Stop'; New-Item -ItemType Junction -Path $env:KIT_TEST_LINK -Target $env:KIT_TEST_TARGET | Out-Null"])
+            .env("KIT_TEST_LINK", path).env("KIT_TEST_TARGET", target).output().unwrap();
         assert!(output.status.success(), "{output:?}");
     }
     #[cfg(unix)] std::os::unix::fs::symlink(target, path).unwrap();
@@ -39,23 +39,23 @@ fn chmod_changes_files_and_directories_and_restores_zero_mode() {
     let fixture = Fixture::new();
     for relative in ["state/input.txt", "state/nested"] {
         chmod(&fixture.root(), relative, "0000").unwrap();
-        assert!(eoie_rust_std_fs::portable_mode_matches(eoie_rust_std_fs::portable_mode(&fs::metadata(fixture.root().join(relative)).unwrap().permissions()), 0));
+        assert!(kit_rust_std_fs::portable_mode_matches(kit_rust_std_fs::portable_mode(&fs::metadata(fixture.root().join(relative)).unwrap().permissions()), 0));
         chmod(&fixture.root(), relative, "0755").unwrap();
         assert!(chmod(&fixture.root(), relative, "10000").is_err());
-        assert!(eoie_rust_std_fs::portable_mode_matches(eoie_rust_std_fs::portable_mode(&fs::metadata(fixture.root().join(relative)).unwrap().permissions()), 0o755));
+        assert!(kit_rust_std_fs::portable_mode_matches(kit_rust_std_fs::portable_mode(&fs::metadata(fixture.root().join(relative)).unwrap().permissions()), 0o755));
     }
 }
 #[test]
 fn chmod_rejects_linked_roots_ancestors_and_leaves() {
     let fixture = Fixture::new();
     let outside = fixture.0.join("outside");
-    let before = eoie_rust_std_fs::portable_mode(&fs::metadata(outside.join("keep.txt")).unwrap().permissions());
+    let before = kit_rust_std_fs::portable_mode(&fs::metadata(outside.join("keep.txt")).unwrap().permissions());
     let linked = fixture.root().join("linked");
     directory_link(&outside, &linked);
     assert!(chmod(&fixture.root(), "linked/keep.txt", "0000").is_err());
     assert!(chmod(&fixture.root(), "linked", "0000").is_err());
     assert!(chmod(&linked, "keep.txt", "0000").is_err());
-    assert_eq!(eoie_rust_std_fs::portable_mode(&fs::metadata(outside.join("keep.txt")).unwrap().permissions()), before);
+    assert_eq!(kit_rust_std_fs::portable_mode(&fs::metadata(outside.join("keep.txt")).unwrap().permissions()), before);
     remove_directory_link(&linked);
 }
 #[test]
@@ -83,7 +83,7 @@ fn symlink_creation_rejects_linked_parents_and_keeps_unowned_stage_names() {
     directory_link(&fixture.0.join("outside"), &linked);
     assert!(link(&fixture.root(), "state/input.txt", "linked/output").is_err());
     assert!(!fixture.0.join("outside/output").exists());
-    let old_stage = fixture.root().join(format!(".eoie-link-stage-{}", std::process::id()));
+    let old_stage = fixture.root().join(format!(".kit-link-stage-{}", std::process::id()));
     fs::write(&old_stage, b"foreign").unwrap();
     let result = link(&fixture.root(), "state/input.txt", "ordinary-link");
     if let Err(error) = result { assert!(cfg!(windows) && error.contains("1314"), "{error}"); }

@@ -1,0 +1,54 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= mirror_call (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("mirror", Arg ("check", Arg ("left", Arg ("right", args)))))
+
+:= mirror_fixture () : fixture_root =
+    := root = fixture_root_create "mirror check"
+    fixture_write root "right/ci.yml" "on: push\n"
+    fixture_write root "right/scripts/build.ps1" "old\n"
+    pause_ms 1100u64
+    fixture_write root "left/ci.yml" "on: push\n"
+    fixture_write root "left/scripts/build.ps1" "new\n"
+    fixture_write root "left/extra.txt" "\n"
+    root
+
+///> rust
+:# a_one_sided_change_names_the_side_and_fails =
+    := root = mirror_fixture ()
+    := steady = mirror_call root (Arg ("ci.yml", NoArgs))
+    testing.expect (steady.code = 0i32) (run_text steady)
+    shows steady.stderr "kit mirror check in-step files=1 differing=0"
+    := moved = mirror_call root (Arg ("scripts", Arg ("ci.yml", NoArgs)))
+    testing.expect (moved.code = 1i32) (run_text moved)
+    same moved.stdout "left-newer\tscripts/build.ps1\n"
+    shows moved.stderr "kit mirror check left-ahead files=2 differing=1"
+    := extra = mirror_call root (Arg ("extra.txt", NoArgs))
+    same extra.stdout "left-only\textra.txt\n"
+    fixture_write root "right/ci.yml" "on: pull_request\n"
+    := both = mirror_call root (Arg ("scripts", Arg ("ci.yml", NoArgs)))
+    shows both.stderr "kit mirror check diverged files=2 differing=2"
+    fixture_root_remove root
+
+///> rust
+:# missing_roots_and_paths_are_refused =
+    := root = mirror_fixture ()
+    rejected_with
+        (
+            kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("mirror", Arg ("check", Arg ("left", Arg ("nowhere",
+                Arg ("ci.yml", NoArgs))))))
+        )
+        2i32
+        "needs two existing roots"
+    rejected_with
+        (
+            kit_run
+                (fixture_text_of root)
+                NoArgs
+                NoArgs
+                (Arg ("mirror", Arg ("check", Arg ("left", Arg ("right", NoArgs)))))
+        )
+        2i32
+        "usage: mirror check"
+    fixture_root_remove root

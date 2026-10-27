@@ -1,0 +1,38 @@
+[package.metadata.spiral]
+entry = "operations.spi"
+output = "operations.rs"
+
+[package]
+name = "kit-legacy-operations"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_legacy_operations"
+path = "operations.rs"
+
+[dependencies]
+kit-process = { path = "../kit_process" }
+kit-process-observation = { path = "../kit_process_observation" }
+proxy-command-output = { path = "../proxy_command_output" }
+kit-toolchain-proxy = { path = "../kit_toolchain_proxy" }
+kit-source-topology = { path = "../kit_source_topology" }
+kit-source-map = { path = "../kit_source_map" }
+kit-cold-rebuild-matrix = { path = "../kit_cold_rebuild_matrix" }
+kit-ingest-frontier = { path = "../kit_ingest_frontier" }
+kit-coverage-prune = { path = "../kit_coverage_prune" }
+kit-bundle-zip = { path = "../kit_bundle_zip" }
+evidence-currentness-domain = { path = "../evidence_currentness_domain" }
+cold-proof-domain = { path = "../cold_proof_domain" }
+kit-patch-control-domain = { path = "../patch_control_domain" }
+proxy-text-replacement = { path = "../proxy_text_replacement" }
+proxy-file-removal = { path = "../proxy_file_removal" }
+proxy-file-receipt = { path = "../proxy_file_receipt" }
+proxy-directory-listing = { path = "../proxy_directory_listing" }
+proxy-file-reading = { path = "../proxy_file_reading" }
+proxy-failure-classification = { path = "../proxy_failure_classification" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+legacy-capability-domain = { path = "../legacy_capability_domain" }

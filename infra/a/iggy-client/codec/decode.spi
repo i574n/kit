@@ -1,0 +1,67 @@
+:< iggy
+
+:== decoded_fields =
+    {
+        status : i32
+        refused_value : i32
+        seq : u64
+        machine : string
+        tag : i32
+        first_text : string
+        second_text : string
+        third_text : string
+        fourth_text : string
+        first_number : i32
+        second_number : i32
+        third_number : i32
+    }
+
+:= refused (status : i32) (refused_value : i32) : decoded_fields =
+    {
+        status; refused_value; seq = 0u64; machine = ""; tag = -1i32
+        first_text = ""; second_text = ""; third_text = ""; fourth_text = ""
+        first_number = 0i32; second_number = 0i32; third_number = 0i32
+    }
+
+:= texts (e : iggy.event) (tag : i32) (first_text : string) (second_text : string) (third_text : string) (fourth_text : string) : decoded_fields =
+    {
+        status = 0i32; refused_value = 0i32; seq = e.seq; machine = e.machine; tag
+        first_text; second_text; third_text; fourth_text
+        first_number = 0i32; second_number = 0i32; third_number = 0i32
+    }
+
+:= with_numbers (fields : decoded_fields) (first_number : i32) (second_number : i32) (third_number : i32) : decoded_fields =
+    { fields ?| first_number; second_number; third_number }
+
+:~ fields_of (e : iggy.event) : decoded_fields =
+    ?= e.body ?|
+    | iggy.JobStarted b => texts e 0i32 b.job b.label "" ""
+    | iggy.JobStep b => with_numbers (texts e 1i32 b.job b.step b.detail "") b.exit 0i32 0i32
+    | iggy.JobDone b => with_numbers (texts e 2i32 b.job "" "" "") b.exit 0i32 0i32
+    | iggy.JobStop b => texts e 3i32 b.job b.reason "" ""
+    | iggy.LeaseAcquired b => texts e 4i32 b.tree b.owner "" ""
+    | iggy.LeaseReleased b => texts e 5i32 b.tree b.owner "" ""
+    | iggy.SlotAdmitted b => with_numbers (texts e 6i32 b.owner "" "" "") b.slot 0i32 0i32
+    | iggy.SlotReleased b => with_numbers (texts e 7i32 b.owner "" "" "") b.slot 0i32 0i32
+    | iggy.Health b => with_numbers (texts e 8i32 "" "" "" "") b.cpu b.free_mem_mb b.free_disk_gb
+    | iggy.Toolchain b => texts e 9i32 b.tool b.version b.path b.mtime
+
+:~ decoded (~bytes : array u8) : decoded_fields =
+    ?= iggy.decode bytes ?|
+    | iggy.Decoded e => fields_of e
+    | iggy.Truncated => refused 1i32 0i32
+    | iggy.UnknownTag tag => refused 2i32 (conv tag)
+    | iggy.NotUtf8 => refused 3i32 0i32
+    | iggy.TrailingBytes count => refused 4i32 count
+
+:= main () : i32 =
+    !!!!Export(
+        "iggy_decode",
+        (
+            \ bytes =>
+                := f = decoded bytes
+                f.status, f.refused_value, f.seq, f.machine, f.tag, f.first_text, f.second_text, f.third_text, f.fourth_text, f.first_number, f.second_number, f.third_number
+            : array u8 -> i32 * i32 * u64 * string * i32 * string * string * string * string * i32 * i32 * i32
+        )
+    )
+    0i32

@@ -14,5 +14,5 @@ name = "agile_todo_sources"
 path = "todo_sources.rs"
 
 [dependencies]
-eoie-process = { path = "../eoie_process" }
-eoie-rust-std-fs = { path = "../rust_std_fs" }
+kit-process = { path = "../kit_process" }
+kit-rust-std-fs = { path = "../rust_std_fs" }

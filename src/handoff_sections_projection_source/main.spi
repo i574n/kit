@@ -1,4 +1,4 @@
-inl main () : i32 =
+:= main () : i32 =
     inl sections_ok = (=.) (handoff_sections_projection (fixture_handoff ())) """
         ok
         ## A
@@ -17,6 +17,6 @@ inl main () : i32 =
 
         four
         """
-    inl duplicate_ok = (=.) (handoff_sections_projection (fixture_handoff_duplicate ())) ""
-    !!!!Export("eoie_handoff_sections_projection", ((fun value => handoff_sections_projection value) : string -> string))
-    if sections_ok then if duplicate_ok then 0i32 else 2i32 else 1i32
+    := duplicate_ok = (=.) (handoff_sections_projection (fixture_handoff_duplicate ())) ""
+    !!!!Export("kit_handoff_sections_projection", ((\ value => handoff_sections_projection value) : string -> string))
+    ? sections_ok ?> ? duplicate_ok ?> 0i32 |: 2i32 |: 1i32

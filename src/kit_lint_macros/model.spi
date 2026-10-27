@@ -1,0 +1,351 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:= macro_open () : string = "$" ++# "'"
+
+:= hosted (text : string) : string = sm'.replace "@'" (macro_open ()) text
+
+:= interpolated_open () : string = "$" ++# "\""
+
+:| macro_place =
+    | TermMacro
+    | TypeMacro
+
+:| macro_origin =
+    | InlineMacro
+    | GlobalDeclaration
+    | GlobalBody
+
+:| macro_class =
+    | MacroLong
+    | MacroBlock
+    | MacroFlow
+    | MacroCast
+    | MacroArith
+
+:== host_macro =
+    {
+        line : i32
+        name : string
+        place : macro_place
+        text : string
+        closed : bool
+        origin : macro_origin
+    }
+
+:== violation =
+    {
+        file : string
+        line : i32
+        name : string
+        class : macro_class
+        text : string
+    }
+
+:== known_violation =
+    {
+        file : string
+        name : string
+        class : string
+    }
+
+:== lint_tally =
+    {
+        files : i32
+        macros : i32
+        violations : i32
+        fresh : i32
+    }
+
+:~ class_word (class : macro_class) : string =
+    ?= class ?|
+    | MacroLong => "long"
+    | MacroBlock => "block"
+    | MacroFlow => "flow"
+    | MacroCast => "cast"
+    | MacroArith => "arith"
+
+:= definition_word (word : string) : bool =
+    word = "inl" || word = "let" || word = ":=" || word = ":~" || word = "nominal" || word = "type" || word = "union"
+
+:~ definition_name (line : string) (current : string) : string =
+    ? line = "" || sm'.starts_with " " line ?> current
+    |:
+        := words = sm'.split " " line |> array
+        ? am'.length words < 2i32 || not (definition_word (am'.index 0i32 words)) ?> current
+        |? am'.index 1i32 words = "rec" && am'.length words >= 3i32 ?> am'.index 2i32 words
+        |: am'.index 1i32 words
+
+:~ place_of (line : string) (before : string) : macro_place =
+    := lead = sm'.trim before
+    ? sm'.starts_with "nominal " line || sm'.starts_with "type " line ?> TypeMacro
+    |? sm'.ends_with ":" lead || sm'.ends_with "->" lead ?> TypeMacro
+    |: TermMacro
+
+:~ ^ line_macros
+    (number : i32) (name : string) (line : string) (from : i32) (found : list host_macro)
+    : list host_macro
+    =
+    := size : i32 = sm'.length line
+    := rest = sm'.substring from (size - from) line
+    := single : i32 = sm'.index_of (macro_open ()) rest
+    := double : i32 = sm'.index_of (interpolated_open ()) rest
+    := relative = ? single < 0i32 ?> double |? double < 0i32 || single < double ?> single |: double
+    := quote = ? relative = single ?> "'" |: "\""
+    ? relative < 0i32 ?> found
+    |:
+        := start = from + relative
+        := place = place_of line (sm'.substring 0i32 start line)
+        := closing : i32 = sm'.index_of quote (sm'.substring (start + 2i32) (size - start - 2i32) line)
+        ? closing < 0i32 ?>
+            := text = sm'.substring start (size - start) line
+            { line = number; name = name; place = place; text = text; closed = !-; origin = InlineMacro } :: found
+        |:
+            := close = start + 2i32 + closing
+            := text = sm'.substring start (close - start + 1i32) line
+            := item = { line = number; name = name; place = place; text = text; closed = !+; origin = InlineMacro }
+            line_macros number name line (close + 1i32) (item :: found)
+
+:= global_line (line : string) : bool =
+    := lead = sm'.trim line
+    sm'.starts_with "global " lead || sm'.starts_with "global(" lead || sm'.starts_with ("rust" ++# "_global") lead
+
+:= declaration_body (body : string) : bool =
+    sm'.starts_with "use " body || sm'.starts_with "import " body || sm'.starts_with "extern " body
+    || sm'.starts_with "mod " body || sm'.starts_with "#" body
+
+:~ global_macro (number : i32) (line : string) : host_macro =
+    := lead = sm'.trim line
+    := quoted : i32 = sm'.index_of "\"" lead
+    := size : i32 = sm'.length lead
+    := body = ? quoted < 0i32 ?> "" |: sm'.substring (quoted + 1i32) (size - quoted - 1i32) lead
+    := declaration = quoted >= 0i32 && sm'.starts_with "\"" body |> not && declaration_body body
+    := origin = ? declaration ?> GlobalDeclaration |: GlobalBody
+    { line = number; name = "global"; place = TermMacro; text = lead; closed = !+; origin = origin }
+
+:~ ^ macros_from
+    (lines : array string) (index : i32) (name : string) (found : list host_macro)
+    : list host_macro
+    =
+    ? am'.length lines <= index ?> listm.rev found
+    |:
+        := line = am'.index index lines
+        := name = definition_name line name
+        ? global_line line ?> macros_from lines (index + 1i32) name (global_macro (index + 1i32) line :: found)
+        |: macros_from lines (index + 1i32) name (line_macros (index + 1i32) name line 0i32 found)
+
+:~ file_macros (text : string) : list host_macro =
+    macros_from (sm'.split "\n" (sm'.replace "\r" "" text) |> array) 0i32 "" []
+
+:~ ^ added_from (rows : array string) (index : i32) (kept : list string) : list string =
+    ? am'.length rows <= index ?> listm.rev kept
+    |:
+        := row = am'.index index rows
+        := size : i32 = sm'.length row
+        := added = sm'.starts_with "+" row && sm'.starts_with "+++" row |> not
+        added_from rows (index + 1i32) (? added ?> sm'.substring 1i32 (size - 1i32) row :: kept |: kept)
+
+:~ added_text (diff : string) : string =
+    sm'.concat_list "\n" (added_from (sm'.split "\n" (sm'.replace "\r" "" diff) |> array) 0i32 [])
+
+:~ ^ outside_quotes (pieces : array string) (index : i32) (kept : string) : string =
+    ? am'.length pieces <= index ?> kept
+    |: outside_quotes pieces (index + 2i32) (kept ++# " " ++# am'.index index pieces)
+
+:~ unquoted_body (text : string) : string =
+    := size : i32 = sm'.length text
+    := body = ? size >= 3i32 ?> sm'.substring 2i32 (size - 3i32) text |: ""
+    outside_quotes (sm'.split "\"" body |> array) 0i32 ""
+
+:= punctuation () : list string =
+    [ "("; ")"; "{"; "}"; "["; "]"; ";"; ","; "."; ":"; "!"; "&"; "*"; "+"; "-"; "/"; "%"; "<"; ">"; "="; "|"; "?" ]
+
+:~ ^ words_from (pieces : array string) (index : i32) (found : list string) : list string =
+    ? am'.length pieces <= index ?> found
+    |:
+        := word = am'.index index pieces
+        words_from pieces (index + 1i32) (? word = "" ?> found |: word :: found)
+
+:~ words_of (body : string) : list string =
+    := spaced = punctuation () |> listm.fold (\ text (mark : string) => sm'.replace mark " " text) body
+    words_from (sm'.split " " spaced |> array) 0i32 []
+
+:= flow_word (word : string) : bool =
+    word = "if" || word = "else" || word = "match" || word = "for" || word = "while" || word = "loop" || word = "let"
+    || word = "return" || word = "fn"
+
+:= word_letter (letter : string) : bool =
+    letter <> "" && sm'.contains letter "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+
+:= last_letter (text : string) : string =
+    := size : i32 = sm'.length text
+    ? size = 0i32 ?> "" |: sm'.substring (size - 1i32) 1i32 text
+
+:= first_letter (text : string) : string = ? text = "" ?> "" |: sm'.substring 0i32 1i32 text
+
+:~ ^ operator_between (pieces : array string) (index : i32) : bool =
+    ? am'.length pieces <= index + 1i32 ?> !-
+    |:
+        := before = last_letter (sm'.trim (am'.index index pieces))
+        := after = first_letter (sm'.trim (am'.index (index + 1i32) pieces))
+        ? (word_letter before || before = ")") && (word_letter after || after = "!" || after = "(") ?> !+
+        |: operator_between pieces (index + 1i32)
+
+:~ arith_in (body : string) : bool =
+    [ "+"; "-"; "*"; "/"; "%" ]
+    |> listm.fold (\ found (mark : string) => found || operator_between (sm'.split mark body |> array) 0i32) !-
+
+:~ term_class (body : string) : option macro_class =
+    := words = words_of body
+    := flow_mark = sm'.contains "=>" body || sm'.contains "->" body || sm'.contains ";" body
+    ? flow_mark || listm'.try_find_ flow_word words <> None ?> Some MacroFlow
+    |? listm'.try_find_ (\ (word : string) => word = "as") words <> None ?> Some MacroCast
+    |? arith_in body || sm'.contains "==" body || sm'.contains "!=" body ?> Some MacroArith
+    |: None
+
+:~ class_of (item : host_macro) : option macro_class =
+    := long = (sm'.length item.text : i32) > 120i32
+    ?= item.origin ?|
+    | GlobalBody => Some MacroBlock
+    | GlobalDeclaration => ? long ?> Some MacroLong |: None
+    | InlineMacro =>
+        ? long ?> Some MacroLong
+        |? not item.closed ?> Some MacroBlock
+        |:
+            ?= item.place ?|
+            | TypeMacro => None
+            | TermMacro => term_class (unquoted_body item.text)
+
+:~ file_violations (~file : string) (text : string) : list violation =
+    file_macros text
+    |> listm.fold
+        \ found (item : host_macro) =>
+            ?= class_of item ?|
+            | Some class =>
+                { file = file; line = item.line; name = item.name; class = class; text = item.text } :: found
+            | None => found
+        []
+    |> listm.rev
+
+:~ ^ words_in (pieces : array string) (index : i32) (found : list string) : list string =
+    ? am'.length pieces <= index ?> listm.rev found
+    |:
+        := word = am'.index index pieces
+        words_in pieces (index + 1i32) (? word = "" ?> found |: word :: found)
+
+:~ known_of (row : string) : option known_violation =
+    ?= words_in (sm'.split " " (sm'.trim row) |> array) 0i32 [] ?|
+    | place :: name :: class :: _ =>
+        := colon : i32 = sm'.last_index_of ":" place
+        ? colon <= 0i32 ?> None |: Some { file = sm'.substring 0i32 colon place; name = name; class = class }
+    | _ => None
+
+:~ ^ baseline_from (rows : array string) (index : i32) (found : list known_violation) : list known_violation =
+    ? am'.length rows <= index ?> found
+    |:
+        ?= known_of (am'.index index rows) ?|
+        | Some row => baseline_from rows (index + 1i32) (row :: found)
+        | None => baseline_from rows (index + 1i32) found
+
+:~ baseline_of (text : string) : list known_violation =
+    baseline_from (sm'.split "\n" (sm'.replace "\r" "" text) |> array) 0i32 []
+
+:~ known (baseline : list known_violation) (item : violation) : bool =
+    listm'.try_find_
+        \ (row : known_violation) =>
+            row.file = item.file && row.name = item.name && row.class = class_word item.class
+        baseline
+    <> None
+
+:~ name_width (items : list violation) : i32 =
+    items
+    |> listm.fold
+        \ width (item : violation) =>
+            := size : i32 = sm'.length item.name
+            ? size > width ?> size |: width
+        0i32
+
+:~ violation_row (width : i32) (item : violation) : string =
+    := named = sm'.pad_right (width + 2i32) ' ' item.name
+    := class = sm'.pad_right 7i32 ' ' (class_word item.class)
+    item.file ++# ":" ++# sm'.format item.line ++# "  " ++# named ++# class ++# item.text
+
+:~ tally_head (tally : lint_tally) : string =
+    (? tally.fresh = 0i32 ?> "ok" |: "failed")
+    ++# "  files "
+    ++# sm'.format tally.files
+    ++# "  macros "
+    ++# sm'.format tally.macros
+    ++# "  violations "
+    ++# sm'.format tally.violations
+    ++# "  new "
+    ++# sm'.format tally.fresh
+
+:= sample () : string =
+    hosted (
+        "inl ok (x : i32) : i32 = @'!x'\ninl widen (x : i32) : i64 = @'!x as i64'\n"
+        ^^ "inl pick (b : bool) : i32 = @'if !b { 1 } else { 0 }'\ninl sum (a : i32) (b : i32) : i32 = @'!a + !b'\n"
+        ^^ "nominal callback = @'Rc<dyn Fn()>'\n"
+    )
+
+///> rust
+:# the_sample_yields_one_row_per_logic_macro =
+    := found = file_violations "lib/sample.spi" (sample ())
+    := width = name_width found
+    expect ((listm.length (file_macros (sample ())) : i32) = 5i32) "five macros"
+    := cast = hosted "lib/sample.spi:2  widen  cast   @'!x as i64'"
+    := flow = hosted "lib/sample.spi:3  pick   flow   @'if !b { 1 } else { 0 }'"
+    := arith = hosted "lib/sample.spi:4  sum    arith  @'!a + !b'"
+    expect (listm.map (violation_row width) found = [ cast; flow; arith ]) "rows"
+    := tally = { files = 1i32; macros = 5i32; violations = 3i32; fresh = 3i32 }
+    expect (tally_head tally = "failed  files 1  macros 5  violations 3  new 3") "receipt head"
+
+///> rust
+:# a_baseline_keeps_known_rows_quiet =
+    := found = file_violations "lib/sample.spi" (sample ())
+    := recorded = "lib/sample.spi:2  widen  cast   @'!x as i64'\nlib/sample.spi:3  pick   flow   @'if !b'\n"
+    := baseline = baseline_of (hosted recorded)
+    := fresh = found |> listm'.filter \ (item : violation) => not (known baseline item)
+    expect (listm.map (\ (item : violation) => item.name) fresh = [ "sum" ]) "only the new row"
+    := quiet = { files = 1i32; macros = 5i32; violations = 3i32; fresh = 0i32 }
+    expect (tally_head quiet = "ok  files 1  macros 5  violations 3  new 0") "ok head"
+    expect (known_of "failed  files 1  macros 5" = None) "a receipt line is no baseline row"
+
+///> rust
+:# a_diff_counts_only_its_added_lines =
+    := diff =
+        hosted (
+            "--- a/lib/sample.spi\n+++ b/lib/sample.spi\n@@ -1,2 +1,3 @@\n"
+            ^^ " inl old (x : i32) : i64 = @'!x as i64'\n"
+            ^^ "-inl gone (b : bool) : i32 = @'if !b { 1 } else { 0 }'\n"
+            ^^ "+inl sum (a : i32) (b : i32) : i32 = @'!a + !b'\n"
+        )
+    := found = file_violations "change.diff" (added_text diff)
+    := names = listm.map (\ (item : violation) => item.name) found
+    expect (names = [ "sum" ]) "context and removed lines are not checked"
+
+///> rust
+:# type_text_is_not_flow_and_strings_are_not_logic =
+    := type_text = hosted "@'Rc<dyn Fn() -> i32>'"
+    := typed = { line = 1i32; name = "t"; place = TypeMacro; text = type_text; closed = !+; origin = InlineMacro }
+    expect (class_of typed = None) "a type macro"
+    := printed = unquoted_body (hosted "@'println!(\"{}; if\", &*!text)'")
+    expect (term_class printed = None) "string text and a deref are clean"
+    expect (term_class (unquoted_body (hosted "@'!xs.len() - 1'")) = Some MacroArith) "arith after a call"
+    expect (definition_name "let rec walk (x : i32) : i32 =" "" = "walk") "a rec definition"
+    expect (definition_name "    body" "walk" = "walk") "an indented line keeps the enclosing name"
+
+///> rust
+:# globals_keep_declarations_and_interpolated_macros_count =
+    := text =
+        "global \"use std::rc::Rc;\"\nglobal \"struct Waker(u8);\"\n"
+        ^^ "inl run () : i32 = $\"kit_x::kit_run()\" : i32\ninl add (a : i32) : i32 = $\"!a + 1\" : i32\n"
+    := found = file_violations "g.spi" text
+    expect ((listm.length (file_macros text) : i32) = 4i32) "two globals and two interpolated macros"
+    := classes = listm.map (\ (item : violation) => item.name ++# " " ++# class_word item.class) found
+    expect (classes = [ "global block"; "add arith" ]) "a body global is a block, an import is not"

@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "check.spi"
+output = "check.rs"
+
+[package]
+name = "kit-env-pins"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_env_pins"
+path = "check.rs"

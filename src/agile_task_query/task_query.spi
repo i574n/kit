@@ -1,14 +1,23 @@
-open query
+:< query
 
-inl main () : i32 =
-    !!!!Export("eoie_query_flag_width", ((fun (argument, value) => flag_width argument value) : string * string -> i32))
-    !!!!Export("eoie_query_flag_refusal", ((fun (argument, value) => flag_refusal argument value) : string * string -> string))
-    !!!!Export("eoie_query_passes", ((fun (query, id, title, tags, status, settled) => query_passes query id title tags status settled) : string * string * string * string * string * bool -> bool))
-    !!!!Export("eoie_query_reads_deps", ((fun query => query_reads_deps query) : string -> bool))
-    !!!!Export("eoie_query_shown", ((fun query => query_shown_of query) : string -> string))
-    !!!!Export("eoie_query_usage", ((fun () => query_usage ()) : () -> string))
-    inl _ = flag_width "--open" ""
-    inl _ = flag_refusal "--team" "Ops"
-    inl _ = query_passes "--open" "ID" "" "" "Active" true
-    inl _ = query_reads_deps "--ready"
+:= main () : i32 =
+    !!!!Export("kit_query_flag_width", ((\ (argument, value) => flag_width argument value) : string * string -> i32))
+    !!!!Export(
+        "kit_query_flag_refusal",
+        ((\ (argument, value) => flag_refusal argument value) : string * string -> string)
+    )
+    !!!!Export(
+        "kit_query_passes",
+        (
+            \ (query, id, title, tags, status, settled) => query_passes query id title tags status settled
+            : string * string * string * string * string * bool -> bool
+        )
+    )
+    !!!!Export("kit_query_reads_deps", ((\ query => query_reads_deps query) : string -> bool))
+    !!!!Export("kit_query_shown", ((\ query => query_shown_of query) : string -> string))
+    !!!!Export("kit_query_usage", ((\ () => query_usage ()) : () -> string))
+    := _ = flag_width "--open" ""
+    := _ = flag_refusal "--team" "Ops"
+    := _ = query_passes "--open" "ID" "" "" "Active" !+
+    := _ = query_reads_deps "--ready"
     0i32

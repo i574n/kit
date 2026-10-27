@@ -14,4 +14,4 @@ name = "proxy_directory_listing"
 path = "directory_listing.rs"
 
 [dependencies]
-eoie-rust-std-fs = { path = "../rust_std_fs" }
+kit-rust-std-fs = { path = "../rust_std_fs" }

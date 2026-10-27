@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "create.spi"
+output = "create.rs"
+
+[package]
+name = "kit-job-create"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_create"
+path = "create.rs"
+
+[dependencies]
+kit-machine-windows = { path = "../kit_machine_windows" }
+kit-job-host = { path = "../kit_job_host" }

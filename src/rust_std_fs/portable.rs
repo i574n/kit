@@ -7,7 +7,7 @@ pub fn portable_mode_matches(observed: u32, expected: u32) -> bool {
     #[cfg(not(unix))] { (observed & 0o222 == 0) == (expected & 0o222 == 0) }
 }
 pub fn portable_set_mode(path: &Path, mode: u32) -> std::io::Result<()> {
-    eoie_rust_std_fs_mutation::rooted_set_mode(path, mode).map_err(std::io::Error::other)
+    kit_rust_std_fs_mutation::rooted_set_mode(path, mode).map_err(std::io::Error::other)
 }
 pub fn portable_symlink(target: &Path, link: &Path) -> std::io::Result<()> {
     #[cfg(unix)] { std::os::unix::fs::symlink(target, link) }

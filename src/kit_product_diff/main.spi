@@ -1,0 +1,35 @@
+:< product_diff_contract.model
+:< product_diff_contract.bindings
+:< source_recovery_contract.model
+
+:= main () : i32 =
+    := _ = product_diff_public_plan ()
+    := _ = source_recovery_public_plan ()
+    := _ =
+        proxy_product_diff_request_binding 1i32 1i32,
+        proxy_product_diff_summary_binding 0i32 1i32,
+        proxy_product_diff_worker_binding 1i32 56i32
+    := _ = (source_recovery_provenance_binding 0i32 0i32, source_recovery_warning_binding 0i32 1i32)
+    product_diff_contract.terminal.emit_runtime ()
+    recovery_terminal.emit_runtime ()
+    !!!!Export(
+        "kit_product_diff_request_binding",
+        ((\ (first, second) => proxy_product_diff_request_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_product_diff_summary_binding",
+        ((\ (first, second) => proxy_product_diff_summary_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_product_diff_worker_binding",
+        ((\ (first, second) => proxy_product_diff_worker_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_source_recovery_provenance_binding",
+        ((\ (first, second) => source_recovery_provenance_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_source_recovery_warning_binding",
+        ((\ (first, second) => source_recovery_warning_binding first second) : i32 * i32 -> i32)
+    )
+    0i32

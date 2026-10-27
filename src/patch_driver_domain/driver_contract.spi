@@ -1,29 +1,29 @@
-let patch_driver_witness_binding (authorized : i32) (parsed : i32) : i32 =
-    if authorized < 1i32 then -1i32
-    elif 1i32 < authorized then -1i32
-    elif parsed < 1i32 then -1i32
-    else parsed
+:~ patch_driver_witness_binding (authorized : i32) (parsed : i32) : i32 =
+    ? authorized < 1i32 ?> -1i32
+    |? 1i32 < authorized ?> -1i32
+    |? parsed < 1i32 ?> -1i32
+    |: parsed
 
-let patch_driver_operation_binding (cursor : i32) (observed : i32) : i32 =
-    if cursor < 0i32 then -1i32
-    elif observed < 0i32 then -1i32
-    elif cursor < observed then -1i32
-    elif observed < cursor then -1i32
-    else cursor + 1i32
+:~ patch_driver_operation_binding (cursor : i32) (observed : i32) : i32 =
+    ? cursor < 0i32 ?> -1i32
+    |? observed < 0i32 ?> -1i32
+    |? cursor < observed ?> -1i32
+    |? observed < cursor ?> -1i32
+    |: cursor + 1i32
 
-let patch_driver_stage_count_binding (expected : i32) (observed : i32) : i32 =
-    if expected < 0i32 then -1i32
-    elif observed < 0i32 then -1i32
-    elif expected < observed then -1i32
-    elif observed < expected then -1i32
-    else expected
+:~ patch_driver_stage_count_binding (expected : i32) (observed : i32) : i32 =
+    ? expected < 0i32 ?> -1i32
+    |? observed < 0i32 ?> -1i32
+    |? expected < observed ?> -1i32
+    |? observed < expected ?> -1i32
+    |: expected
 
-let patch_driver_promotion_binding (cursor : i32) (observed : i32) : i32 =
+:~ patch_driver_promotion_binding (cursor : i32) (observed : i32) : i32 =
     patch_driver_operation_binding cursor observed
 
-let patch_driver_complete_binding (expected : i32) (observed : i32) : i32 =
-    if expected < 0i32 then 0i32
-    elif observed < 0i32 then 0i32
-    elif expected < observed then 0i32
-    elif observed < expected then 0i32
-    else 1i32
+:~ patch_driver_complete_binding (expected : i32) (observed : i32) : i32 =
+    ? expected < 0i32 ?> 0i32
+    |? observed < 0i32 ?> 0i32
+    |? expected < observed ?> 0i32
+    |? observed < expected ?> 0i32
+    |: 1i32

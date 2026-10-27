@@ -1,5 +1,0 @@
-open chain
-
-inl main () : i32 =
-    !!!!Export("eoie_job_chain_run", ((fun () => chain_run ()) : () -> i32))
-    0i32

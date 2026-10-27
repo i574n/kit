@@ -1,11 +1,11 @@
 [CmdletBinding()]
 param(
-    [string]$EoieRoot,
+    [string]$KitRoot,
     [string]$Filter = '.*',
     [string[]]$Package = @(),
     [switch]$IncludeAuxiliary,
     [string]$TargetDirectory,
-    [string]$CompilerBundle = $env:EOIE_SPIRAL_BUNDLE,
+    [string]$CompilerBundle = $env:KIT_SPIRAL_BUNDLE,
     [ValidateRange(1, 1800)][int]$TimeoutSec = 180,
     [switch]$CargoCheck,
     [switch]$Test,
@@ -21,32 +21,34 @@ if ($CompilerContracts -and -not $Test) { throw '-CompilerContracts requires -Te
 if ($Publish -and -not ($CargoCheck -or $Test)) { throw '-Publish requires -CargoCheck or -Test.' }
 . $PSScriptRoot/workspace.ps1
 if ($Publish) {
-    $leaseDir = Join-Path ($env:LOCALAPPDATA ?? $HOME) 'eoie/tree-leases'
+    $leaseDir = Join-Path ($env:LOCALAPPDATA ?? $HOME) 'kit/tree-leases'
     New-Item -ItemType Directory -Force $leaseDir | Out-Null
-    "root=$((Resolve-Path -LiteralPath ($EoieRoot ? $EoieRoot : (Split-Path $PSScriptRoot))).Path)`npid=$PID`nholder=eoie regeneration -Publish`nsince=$(Get-Date -Format HH:mm)" | Set-Content (Join-Path $leaseDir "regeneration-$PID.lease")
+    $publishLease = Join-Path $leaseDir "regeneration-$PID.lease"
+    "root=$((Resolve-Path -LiteralPath ($KitRoot ? $KitRoot : (Split-Path $PSScriptRoot))).Path)`npid=$PID`nholder=kit regeneration -Publish`nsince=$(Get-Date -Format HH:mm)" | Set-Content $publishLease
 }
-if (-not $EoieRoot) { $EoieRoot = Join-Path $PSScriptRoot '..' }
-$EoieRoot = (Resolve-Path -LiteralPath $EoieRoot).Path
-$selected = @(Get-EoieOwners -Root $EoieRoot -Package $Package -Filter $Filter -IncludeAuxiliary:$IncludeAuxiliary)
+trap { if ($publishLease) { Remove-Item -LiteralPath $publishLease -ErrorAction SilentlyContinue }; break }
+if (-not $KitRoot) { $KitRoot = Join-Path $PSScriptRoot '..' }
+$KitRoot = (Resolve-Path -LiteralPath $KitRoot).Path
+$selected = @(Get-KitOwners -Root $KitRoot -Package $Package -Filter $Filter -IncludeAuxiliary:$IncludeAuxiliary)
 if (-not $selected.Count) { throw 'No regeneration owners selected.' }
-$CompilerBundle = Resolve-EoieSpiralBundle $CompilerBundle
+$CompilerBundle = Resolve-KitSpiralBundle $CompilerBundle
 . (Join-Path $CompilerBundle 'scripts/env.ps1')
 $dotnet = Resolve-SpiralDotnet
 $compiler = Get-SpiralCompilerDll 'single-flight'
-$regenerationRoot = Join-Path (Get-SpiralCacheDir) 'eoie-regeneration'
+$regenerationRoot = Join-Path (Get-SpiralCacheDir) 'kit-regeneration'
 foreach ($stale in @(Get-ChildItem -LiteralPath $regenerationRoot -Directory -ErrorAction SilentlyContinue | Where-Object LastWriteTime -lt (Get-Date).AddDays(-2))) {
     try { Remove-Item -LiteralPath $stale.FullName -Recurse -Force -ErrorAction Stop } catch { Write-Host "Could not prune stale regeneration workspace $($stale.FullName): $($_.Exception.Message)" }
 }
 $work = Join-Path $regenerationRoot ([guid]::NewGuid().ToString('N'))
-$compiler = Copy-EoieCompilerSnapshot -Compiler $compiler -Destination (Join-Path $work 'compiler')
-$staged = Join-Path $work 'eoie'
+$compiler = Copy-KitCompilerSnapshot -Compiler $compiler -Destination (Join-Path $work 'compiler')
+$staged = Join-Path $work 'kit'
 $snapshot = [Collections.Generic.List[object]]::new()
 function Get-WorkspaceEntries([string]$Directory) {
     foreach ($entry in Get-ChildItem -LiteralPath $Directory -Force) {
         if ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw "Unexpected workspace link: $($entry.FullName)" }
         if ($entry.PSIsContainer) {
             if ($entry.Name -notin @('target', 'vendor', '.git', '.cache')) { $entry }
-        } elseif ($entry.Name -notin @('eoie', 'eoie.exe')) { $entry }
+        } elseif ($entry.Name -notin @('kit', 'kit.exe')) { $entry }
     }
 }
 function Get-WorkspaceFiles([string]$Directory) {
@@ -69,7 +71,7 @@ function Copy-Workspace([string]$From, [string]$To) {
         }
     }
 }
-Copy-Workspace $EoieRoot $staged
+Copy-Workspace $KitRoot $staged
 $spiralLib = Join-Path $CompilerBundle '../../../lib/spiral'
 $libReaders = @(Get-ChildItem -LiteralPath (Join-Path $staged 'src') -Directory | Where-Object { $project = Join-Path $_.FullName 'package.spiproj'; [IO.File]::Exists($project) -and [IO.File]::ReadAllText($project) -match '(?m)^\s*\|?spiral-\s*$' })
 $libPresent = Test-Path -LiteralPath (Join-Path $spiralLib 'package.spiproj')
@@ -87,12 +89,12 @@ $sourceRoot = Join-Path $staged 'src'
 if (-not $TargetDirectory) { $TargetDirectory = Join-Path $sourceRoot 'target' }
 $rows = @()
 foreach ($owner in $selected) {
-    $entry = Join-Path $staged ([IO.Path]::GetRelativePath($EoieRoot, $owner.Input))
-    $target = Join-Path $staged ([IO.Path]::GetRelativePath($EoieRoot, $owner.Target))
+    $entry = Join-Path $staged ([IO.Path]::GetRelativePath($KitRoot, $owner.Input))
+    $target = Join-Path $staged ([IO.Path]::GetRelativePath($KitRoot, $owner.Target))
     $output = Join-Path $work "outputs/$($owner.Id).rs"
     $rows += [pscustomobject]@{ Member = $owner.Id; Package = $owner.Package; Input = $entry; Output = $output; Target = $target; Original = $owner.Target }
 }
-$sidecars = @(Get-EoieCompilerSidecarGuards -Rows $rows)
+$sidecars = @(Get-KitCompilerSidecarGuards -Rows $rows)
 New-Item -ItemType Directory -Path (Join-Path $work 'outputs') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $work 'logs') -Force | Out-Null
 $results = Join-Path $work 'results.tsv'
@@ -101,7 +103,7 @@ $previousWorkspace = $env:SPIRAL_WORKSPACE_ROOT
 $previousBudget = $env:SPIRAL_BUILD_BUDGET_MS
 try {
     $env:SPIRAL_WORKSPACE_ROOT = $BundleRoot
-    Write-Host "Regenerating $($rows.Count) declared EOIE outputs: $work"
+    Write-Host "Regenerating $($rows.Count) declared KIT outputs: $work"
     $encoding = [Text.UTF8Encoding]::new($false)
     $writer = [IO.StreamWriter]::new($results, $false, $encoding)
     try {
@@ -176,9 +178,9 @@ $failed = @($compiled | Where-Object status -ne 'ok')
 Write-Host "Emitted: $(@($compiled | Where-Object status -eq 'ok').Count)/$($rows.Count); results: $results"
 if ($failed.Count -or $compiled.Count -ne $rows.Count) {
     $failed | Format-Table owner,status,detail -Wrap
-    throw "EOIE regeneration incomplete; committed Rust was not replaced. Results: $results"
+    throw "KIT regeneration incomplete; committed Rust was not replaced. Results: $results"
 }
-Restore-EoieCompilerSidecars -Root $staged -Guards $sidecars
+Restore-KitCompilerSidecars -Root $staged -Guards $sidecars
 foreach ($row in $rows) {
     if (-not (Test-Path -LiteralPath $row.Output)) { throw "Missing emitted owner: $($row.Member)" }
     Copy-Item -LiteralPath $row.Output -Destination $row.Target
@@ -195,32 +197,32 @@ if ($CargoCheck) {
         $cargoLines | ForEach-Object { Write-Host $_ }
         if ($LASTEXITCODE -ne 0) {
             $firstError = @($cargoLines | Select-String -Pattern '^error' -Context 0, 10 | Select-Object -First 1 | ForEach-Object { @($_.Line) + $_.Context.PostContext }) -join "`n"
-            throw "Cargo rejected regenerated EOIE owners: $staged`n$firstError"
+            throw "Cargo rejected regenerated KIT owners: $staged`n$firstError"
         }
     } finally { Pop-Location }
 }
 if ($Test) {
-    $previousDotnet = $env:EOIE_DOTNET
-    $previousBundle = $env:EOIE_SPIRAL_BUNDLE
+    $previousDotnet = $env:KIT_DOTNET
+    $previousBundle = $env:KIT_SPIRAL_BUNDLE
     try {
-        $env:EOIE_DOTNET = $dotnet
-        $env:EOIE_SPIRAL_BUNDLE = $BundleRoot
+        $env:KIT_DOTNET = $dotnet
+        $env:KIT_SPIRAL_BUNDLE = $BundleRoot
         & (Join-Path $staged 'build.ps1') -Test -Package $Package -TargetDirectory $TargetDirectory -SkipRelease:$SkipRelease -CompilerContracts:$CompilerContracts -Offline:$Offline -SpiralCompiler $compiler
-        if ($LASTEXITCODE -ne 0) { throw "Regenerated EOIE runtime contracts failed: $staged" }
+        if ($LASTEXITCODE -ne 0) { throw "Regenerated KIT runtime contracts failed: $staged" }
     } finally {
-        $env:EOIE_DOTNET = $previousDotnet
-        $env:EOIE_SPIRAL_BUNDLE = $previousBundle
+        $env:KIT_DOTNET = $previousDotnet
+        $env:KIT_SPIRAL_BUNDLE = $previousBundle
     }
     if (-not $Package.Count) {
-        $binaryName = if ($IsWindows) { 'eoie.exe' } else { 'eoie' }
+        $binaryName = if ($IsWindows) { 'kit.exe' } else { 'kit' }
         $validatedBinary = Join-Path $TargetDirectory "debug/$binaryName"
         & $validatedBinary proxy source-topology $staged
-        if ($LASTEXITCODE -ne 0) { throw "Regenerated EOIE source topology failed: $staged" }
+        if ($LASTEXITCODE -ne 0) { throw "Regenerated KIT source topology failed: $staged" }
     }
 }
 if ($Publish) {
     $currentFiles = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-    foreach ($path in Get-WorkspaceFiles $EoieRoot) { [void]$currentFiles.Add($path) }
+    foreach ($path in Get-WorkspaceFiles $KitRoot) { [void]$currentFiles.Add($path) }
     if ($currentFiles.Count -ne $snapshot.Count -or @($snapshot | Where-Object { -not $currentFiles.Contains($_.Path) }).Count) {
         throw 'Checkout changed during validation; source file inventory differs and generated outputs were not published.'
     }
@@ -231,13 +233,14 @@ if ($Publish) {
     }
     $changed = 0
     foreach ($row in $rows) {
-        if (Set-EoieGeneratedFile -Source $row.Output -Destination $row.Original) { $changed++ }
+        if (Set-KitGeneratedFile -Source $row.Output -Destination $row.Original) { $changed++ }
     }
     Write-Host "Published $changed changed owners; $($rows.Count - $changed) unchanged."
 }
 if ($KeepStaged) {
-    Write-Host "EOIE regeneration passed for $($rows.Count) selected owners. Staged workspace: $staged"
+    Write-Host "KIT regeneration passed for $($rows.Count) selected owners. Staged workspace: $staged"
 } else {
     Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
-    Write-Host "EOIE regeneration passed for $($rows.Count) selected owners. Staged workspace removed: $work"
+    Write-Host "KIT regeneration passed for $($rows.Count) selected owners. Staged workspace removed: $work"
 }
+if ($publishLease) { Remove-Item -LiteralPath $publishLease -ErrorAction SilentlyContinue }

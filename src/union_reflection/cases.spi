@@ -1,60 +1,64 @@
-inl union_cases_fold forall union_type state. (step : state -> union_type -> state) (initial : state) : state =
-    real
-        !!!!UnionToRecord(`union_type, forall union_record. =>
+:= union_cases_fold \* union_type state. (step : state -> union_type -> state) (initial : state) : state =
+    ~>
+        !!!!UnionToRecord(`union_type, \* union_record. =>
             !!!!RecordTypeFold(
-                (fun acc case_key => forall payload. => step acc (!!!!NominalCreate((case_key, ()), `union_type))),
+                (\ acc case_key => \* payload. => step acc (!!!!NominalCreate((case_key, ()), `union_type))),
                 initial,
                 `union_record
             )
         )
 
-inl union_cases_joined forall union_type. (render : union_type -> string) (separator : string) : string =
-    inl _, joined =
+:= union_cases_joined \* union_type. (render : union_type -> string) (separator : string) : string =
+    := _, joined =
         union_cases_fold
-            (fun (between, joined) (member : union_type) => separator, !!!!StaticStringConcat(joined, !!!!StaticStringConcat(between, render member)))
+            \ (between, joined) (member : union_type) =>
+                separator, !!!!StaticStringConcat(joined, !!!!StaticStringConcat(between, render member))
             ("", "")
     joined
 
-inl union_case_suffix forall union_type. (prefix : string) (value : union_type) : string =
-    real
-        !!!!Unbox(value, fun (case_key, _) =>
-            inl name = !!!!SymbolToString(case_key)
+:= union_case_suffix \* union_type. (prefix : string) (value : union_type) : string =
+    ~>
+        !!!!Unbox(value, \ (case_key, _) =>
+            := name = !!!!SymbolToString(case_key)
             !!!!StringSlice(name, !!!!StringLength(`i32, prefix), !!!!Sub(!!!!StringLength(`i32, name), 1i32))
         )
 
-inl union_case_index forall union_type. (value : union_type) : i32 =
-    real
-        !!!!Unbox(value, fun (case_key, _) =>
-            inl wanted = !!!!SymbolToString(case_key)
-            !!!!UnionToRecord(`union_type, forall union_record. =>
-                inl found, _ =
+:= union_case_index \* union_type. (value : union_type) : i32 =
+    ~>
+        !!!!Unbox(value, \ (case_key, _) =>
+            := wanted = !!!!SymbolToString(case_key)
+            !!!!UnionToRecord(`union_type, \* union_record. =>
+                := found, _ =
                     !!!!RecordTypeFold(
-                        (fun (found, index) key => forall payload. => (if !!!!EQ(!!!!SymbolToString(key), wanted) then index else found), !!!!Add(index, 1i32)),
+                        (\ (found, index) key => \* payload. => (? !!!!EQ(!!!!SymbolToString(key), wanted) ?> index |: found), !!!!Add(index, 1i32)),
                         (0i32, 1i32),
                         `union_record
                     )
                 found
             )
         )
-inl union_case_at forall union_type. (code : i32) (fallback : union_type) : union_type =
-    real
-        !!!!UnionToRecord(`union_type, forall union_record. =>
-            inl _, pick =
+:= union_case_at \* union_type. (code : i32) (fallback : union_type) : union_type =
+    ~>
+        !!!!UnionToRecord(`union_type, \* union_record. =>
+            := _, pick =
                 !!!!RecordTypeFoldBack(
-                    (fun key => forall payload. => fun (index, rest) => !!!!Sub(index, 1i32), (fun () => if !!!!EQ(code, index) then !!!!NominalCreate((key, ()), `union_type) else rest ())),
-                    (!!!!RecordTypeLength(`union_record), (fun () => fallback)),
+                    (\ key => \* payload. => \ (index, rest) => !!!!Sub(index, 1i32), (\ () => ? !!!!EQ(code, index) ?> !!!!NominalCreate((key, ()), `union_type) |: rest ())),
+                    (!!!!RecordTypeLength(`union_record), (\ () => fallback)),
                     `union_record
                 )
             pick ()
         )
 
-inl union_case_where forall union_type result. (picked : union_type -> bool) (found : union_type -> result) (missing : result) : result =
-    real
-        !!!!UnionToRecord(`union_type, forall union_record. =>
-            inl pick =
+:= union_case_where \* union_type result.
+    (picked : union_type -> bool) (found : union_type -> result) (missing : result)
+    : result
+    =
+    ~>
+        !!!!UnionToRecord(`union_type, \* union_record. =>
+            := pick =
                 !!!!RecordTypeFoldBack(
-                    (fun key => forall payload. => fun rest => (fun () => if picked (!!!!NominalCreate((key, ()), `union_type)) then found (!!!!NominalCreate((key, ()), `union_type)) else rest ())),
-                    (fun () => missing),
+                    (\ key => \* payload. => \ rest => (\ () => ? picked (!!!!NominalCreate((key, ()), `union_type)) ?> found (!!!!NominalCreate((key, ()), `union_type)) |: rest ())),
+                    (\ () => missing),
                     `union_record
                 )
             pick ()

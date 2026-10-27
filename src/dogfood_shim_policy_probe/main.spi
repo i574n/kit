@@ -1,17 +1,17 @@
-open dogfood_shim_contract.model
+:< dogfood_shim_contract.model
 
-inl main () : i32 =
-    match shim_decision_packed_binding 0i32 1i32 with
+:= main () : i32 =
+    ?= shim_decision_packed_binding 0i32 1i32 ?|
     | 0 =>
-        match shim_decision_packed_binding 1i32 7i32 with
+        ?= shim_decision_packed_binding 1i32 7i32 ?|
         | 0 =>
-            match shim_decision_packed_binding 0i32 6i32 with
+            ?= shim_decision_packed_binding 0i32 6i32 ?|
             | 1 =>
-                match shim_decision_packed_binding 2i32 1i32 with
+                ?= shim_decision_packed_binding 2i32 1i32 ?|
                 | 2 =>
-                    match shim_install_packed_binding 9i32 0i32 with
+                    ?= shim_install_packed_binding 9i32 0i32 ?|
                     | 1 =>
-                        match shim_uninstall_binding 1i32 4i32 with
+                        ?= shim_uninstall_binding 1i32 4i32 ?|
                         | 1 => 0i32
                         | _ => 6i32
                     | _ => 5i32

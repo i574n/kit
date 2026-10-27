@@ -1,0 +1,7 @@
+packages:
+    |core-
+    kit_dev_model-
+    spiral-
+modules:
+    selected_tests
+    main

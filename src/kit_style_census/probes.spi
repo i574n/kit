@@ -1,0 +1,171 @@
+///- --package .
+:# probes static =
+    :< rust_std_string.model
+
+:< rust_std_string.model
+
+:! feature = ()
+:! drift = ()
+:! neutral = ()
+
+:| probe side =
+    | GadtCase :: probe feature
+    | Existential :: probe feature
+    | Forall :: probe feature
+    | IndexedUnion :: probe feature
+    | Prototype :: probe feature
+    | TypeDecl :: probe neutral
+    | HostMacro :: probe drift
+    | WideHostMacro :: probe drift
+    | RustGlobal :: probe drift
+    | EncodedRow :: probe drift
+    | PipeTable :: probe drift
+    | NumberArm :: probe drift
+    | StringConcat :: probe drift
+    | TopLevelMacro :: probe drift
+    | RcWrap :: probe drift
+    | LetBlock :: probe drift
+    | StdStringUse :: probe drift
+
+:! any_probe = \? side. probe side
+
+:| direction =
+    | MayNotFall
+    | MayNotRise
+    | Unranked
+
+:= direction_of \* side. (which : probe side) : direction =
+    ?= which ?|
+    | GadtCase => MayNotFall
+    | Existential => MayNotFall
+    | Forall => MayNotFall
+    | IndexedUnion => MayNotFall
+    | Prototype => MayNotFall
+    | TypeDecl => Unranked
+    | HostMacro => MayNotRise
+    | WideHostMacro => MayNotRise
+    | RustGlobal => MayNotRise
+    | EncodedRow => MayNotRise
+    | PipeTable => MayNotRise
+    | NumberArm => MayNotRise
+    | StringConcat => MayNotRise
+    | TopLevelMacro => MayNotRise
+    | RcWrap => MayNotRise
+    | LetBlock => MayNotRise
+    | StdStringUse => MayNotRise
+
+:= probe_word \* side. (which : probe side) : string =
+    ?= which ?|
+    | GadtCase => "gadt-case"
+    | Existential => "existential"
+    | Forall => "forall"
+    | IndexedUnion => "indexed-union"
+    | Prototype => "prototype"
+    | TypeDecl => "type-decl"
+    | HostMacro => "host-macro"
+    | WideHostMacro => "wide-host-macro"
+    | RustGlobal => "rust-global"
+    | EncodedRow => "encoded-row"
+    | PipeTable => "pipe-table"
+    | NumberArm => "number-arm"
+    | StringConcat => "string-concat"
+    | TopLevelMacro => "top-level-macro"
+    | RcWrap => "rc-wrap"
+    | LetBlock => "let-block"
+    | StdStringUse => "std-string-use"
+
+:= probe_pattern \* side. (which : probe side) : string =
+    ?= which ?|
+    | GadtCase => "^\\s*\\|\\s*\\w+\\s*::"
+    | Existential => "\\bexists\\s+\\w+\\."
+    | Forall => "\\bforall\\b"
+    | IndexedUnion => "^\\s*union\\s+(rec\\s+)?(private\\s+)?\\w+\\s+\\w+\\s*="
+    | Prototype => "^\\s*(prototype|instance)\\b"
+    | TypeDecl => "^\\s*(union|type|nominal)\\b"
+    | HostMacro => "^\\s+.*(\\$'|\\$\\x22)"
+    | WideHostMacro => "\\$'[^']{200,}'"
+    | RustGlobal => "rust_global"
+    | EncodedRow => "char::from\\((9|30|31)u8\\)|\\x22\\\\t\\x22"
+    | PipeTable => "pipe_(index|member|lookup)"
+    | NumberArm => "^\\s*\\|\\s*\\d+(u64|i32|u32)?\\s*=>"
+    | StringConcat => "\\bconcat5\\b"
+    | TopLevelMacro => "^\\S.*(\\$'|\\$\\x22)"
+    | RcWrap => "Rc::<str>::from"
+    | LetBlock => "\\$'\\{"
+    | StdStringUse => "rust_std_string\\."
+
+:= each_probe \* state. (step : state -> any_probe -> state) (initial : state) : state =
+    := s = step initial (any_probe (\? GadtCase))
+    := s = step s (any_probe (\? Existential))
+    := s = step s (any_probe (\? Forall))
+    := s = step s (any_probe (\? IndexedUnion))
+    := s = step s (any_probe (\? Prototype))
+    := s = step s (any_probe (\? TypeDecl))
+    := s = step s (any_probe (\? HostMacro))
+    := s = step s (any_probe (\? WideHostMacro))
+    := s = step s (any_probe (\? RustGlobal))
+    := s = step s (any_probe (\? EncodedRow))
+    := s = step s (any_probe (\? PipeTable))
+    := s = step s (any_probe (\? NumberArm))
+    := s = step s (any_probe (\? StringConcat))
+    := s = step s (any_probe (\? TopLevelMacro))
+    := s = step s (any_probe (\? RcWrap))
+    := s = step s (any_probe (\? LetBlock))
+    step s (any_probe (\? StdStringUse))
+
+:= any_word (any_probe p : any_probe) : string =
+    := \? side. which = p
+    probe_word which
+
+:= any_direction (any_probe p : any_probe) : direction =
+    := \? side. which = p
+    direction_of which
+
+:= any_pattern (any_probe p : any_probe) : string =
+    := \? side. which = p
+    probe_pattern which
+
+:~ regressed (way : direction) (before : i32) (before_lines : i32) (now : i32) (now_lines : i32) : bool =
+    := base = $'(!before as f64) * 1000.0 / (!before_lines).max(1) as f64' : f64
+    := rate = $'(!now as f64) * 1000.0 / (!now_lines).max(1) as f64' : f64
+    ?= way ?|
+    | MayNotRise => rate > base * 1.05f64 + 0.5f64 && now > before
+    | MayNotFall => rate < base * 0.95f64 - 0.5f64 && before - now > before_lines - now_lines
+    | Unranked => !-
+
+:= guards_falls (way : direction) : bool =
+    ?= way ?|
+    | MayNotFall => !+
+    | _ => !-
+
+
+///> rust
+:# every_probe_has_one_word_and_a_direction_from_its_side =
+    := words = each_probe (\ acc probe => ? acc = "" ?> any_word probe |: concat5 acc " " (any_word probe) "" "") ""
+    testing.expect
+        (
+            words
+            = (
+                "gadt-case existential forall indexed-union prototype type-decl host-macro wide-host-macro "
+                ^^ "rust-global encoded-row pipe-table number-arm string-concat top-level-macro rc-wrap let-block "
+                ^^ "std-string-use"
+            )
+        )
+        words
+    testing.expect (guards_falls (direction_of GadtCase)) "features may not fall"
+    testing.expect (guards_falls (direction_of StringConcat) = !-) "drift may not rise"
+
+///> rust
+:# the_ratchet_tolerates_noise_and_catches_real_moves =
+    testing.expect (regressed MayNotRise 30i32 1000i32 31i32 1000i32 = !-) "one more macro per thousand lines is noise"
+    testing.expect (regressed MayNotRise 30i32 1000i32 40i32 1000i32) "ten more per thousand lines is a regression"
+    testing.expect (regressed MayNotFall 16i32 1000i32 8i32 1000i32) "halving the GADT cases is a regression"
+    testing.expect (regressed MayNotFall 11i32 179i32 0i32 129i32 = !-) "deleting dead feature code with its lines is a prune"
+    testing.expect
+        (regressed MayNotFall 11i32 179i32 0i32 175i32)
+        "rewriting features into plain code at the same size is a regression"
+    testing.expect (regressed Unranked 1i32 1000i32 99i32 1000i32 = !-) "type declarations are only counted"
+    testing.expect (regressed MayNotRise 7i32 269i32 7i32 247i32 = !-) "fewer lines with the same count is not a regression"
+    testing.expect
+        (starts_with (any_pattern (any_probe (\? TopLevelMacro))) "^\\S")
+        "a one-line primitive at column 0 is counted as top-level-macro"

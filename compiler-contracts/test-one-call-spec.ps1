@@ -1,6 +1,6 @@
 param(
     [string]$Spec = (Join-Path $PSScriptRoot '..\spec\one-call.md'),
-    [string]$Eoie = (Join-Path $PSScriptRoot '..\src\target\debug\eoie.exe'),
+    [string]$Kit = (Join-Path $PSScriptRoot '..\src\target\debug\kit.exe'),
     [int[]]$Case = @(),
     [switch]$Quiet
 )
@@ -39,13 +39,13 @@ function New-Fixture([string]$Root, [string]$Block) {
     & $flush
 }
 function Get-CommandArguments([string]$Command) {
-    $match = [regex]::Match($Command.Trim(), "(?s)^eoie (\S+) (\S+) '(.*)'$")
+    $match = [regex]::Match($Command.Trim(), "(?s)^kit (\S+) (\S+) '(.*)'$")
     if (-not $match.Success) { return $null }
     @($match.Groups[1].Value, $match.Groups[2].Value, $match.Groups[3].Value)
 }
 function Get-DirectArguments([string]$Command) {
     $trimmed = $Command.Trim()
-    if ($trimmed -notmatch '^eoie\s' -or $trimmed.Contains("`n")) { return $null }
+    if ($trimmed -notmatch '^kit\s' -or $trimmed.Contains("`n")) { return $null }
     @([regex]::Matches($trimmed.Substring(5), "'([^']*)'|`"([^`"]*)`"|(\S+)") | ForEach-Object { if ($_.Groups[1].Success) { $_.Groups[1].Value } elseif ($_.Groups[2].Success) { $_.Groups[2].Value } else { $_.Groups[3].Value } })
 }
 function Get-SetupPrograms([string]$Program, [switch]$Ungrouped) {
@@ -89,37 +89,37 @@ for ($index = 0; $index -lt $headings.Count; $index++) {
     if ($null -eq $command -or $null -eq $expected) { continue }
     $arguments = Get-CommandArguments $command
     if (-not $arguments) { $arguments = Get-DirectArguments $command }
-    $root = Join-Path ([IO.Path]::GetTempPath()) "eoie-one-call-$PID-$number"
+    $root = Join-Path ([IO.Path]::GetTempPath()) "kit-one-call-$PID-$number"
     Remove-Item -Recurse -Force $root -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force $root | Out-Null
     try {
         if ($fixture) { New-Fixture $root $fixture }
-        if (-not $arguments) { $results += [pscustomobject]@{ Case = $number; Verdict = 'red'; Reason = 'command is not eoie <verb> <root> ''<program>'''; Output = '' }; continue }
+        if (-not $arguments) { $results += [pscustomobject]@{ Case = $number; Verdict = 'red'; Reason = 'command is not kit <verb> <root> ''<program>'''; Output = '' }; continue }
         Push-Location $root
-        $callerEnvironment = @(Get-ChildItem env: | Where-Object { $_.Name -like 'EOIE_*' -or $_.Name -like 'SPIRAL_*' } | ForEach-Object { [pscustomobject]@{ Name = $_.Name; Value = $_.Value } })
+        $callerEnvironment = @(Get-ChildItem env: | Where-Object { $_.Name -like 'KIT_*' -or $_.Name -like 'SPIRAL_*' } | ForEach-Object { [pscustomobject]@{ Name = $_.Name; Value = $_.Value } })
         foreach ($saved in $callerEnvironment) { Remove-Item "env:$($saved.Name)" }
-        $env:EOIE_JOBS_HOME = "$root-jobs"
-        $env:EOIE_WINDOWS_HOME = "$root-windows"
+        $env:KIT_JOBS_HOME = "$root-jobs"
+        $env:KIT_WINDOWS_HOME = "$root-windows"
         $setupFailure = ''
         $setup = Get-Block $body 'setup'
-        $setupArguments = if ($setup) { Get-CommandArguments $(if ($setup.Trim() -match '^eoie\s') { $setup } else { "eoie $($setup.Trim())" }) } else { $null }
+        $setupArguments = if ($setup) { Get-CommandArguments $(if ($setup.Trim() -match '^kit\s') { $setup } else { "kit $($setup.Trim())" }) } else { $null }
         if ($setup -and -not $setupArguments) {
             foreach ($statement in (Get-SetupPrograms $setup -Ungrouped)) {
                 $tokens = @([regex]::Matches($statement, '"([^"]*)"|(\S+)') | ForEach-Object { if ($_.Groups[1].Success) { $_.Groups[1].Value } else { $_.Groups[2].Value } })
-                if ($tokens.Count -gt 1 -and $tokens[0] -eq 'eoie') { $tokens = @($tokens[1..($tokens.Count - 1)]) }
-                if ($tokens.Count -gt 1 -and $tokens[0] -eq 'eoie') { $tokens = @($tokens[1..($tokens.Count - 1)]) }
-                $setupOutput = (& $Eoie @tokens 2>&1 | ForEach-Object { "$_" }) -join ' | '
+                if ($tokens.Count -gt 1 -and $tokens[0] -eq 'kit') { $tokens = @($tokens[1..($tokens.Count - 1)]) }
+                if ($tokens.Count -gt 1 -and $tokens[0] -eq 'kit') { $tokens = @($tokens[1..($tokens.Count - 1)]) }
+                $setupOutput = (& $Kit @tokens 2>&1 | ForEach-Object { "$_" }) -join ' | '
                 if ($LASTEXITCODE -ne 0) { $setupFailure = "setup failed: $setupOutput"; break }
             }
         }
         elseif ($setupArguments) {
             foreach ($program in (Get-SetupPrograms $setupArguments[2])) {
-                $setupOutput = (& $Eoie $setupArguments[0] $setupArguments[1] $program 2>&1 | ForEach-Object { "$_" }) -join ' | '
+                $setupOutput = (& $Kit $setupArguments[0] $setupArguments[1] $program 2>&1 | ForEach-Object { "$_" }) -join ' | '
                 if ($LASTEXITCODE -ne 0) { $setupFailure = "setup failed: $setupOutput"; break }
             }
         }
         if ($setupFailure) { Pop-Location; $results += [pscustomobject]@{ Case = $number; Verdict = 'red'; Reason = $setupFailure; Output = $setupFailure; Expected = $expected }; continue }
-        try { $output = (& $Eoie @arguments 2>&1 | ForEach-Object { "$_" }) -join "`n" } finally { Pop-Location }
+        try { $output = (& $Kit @arguments 2>&1 | ForEach-Object { "$_" }) -join "`n" } finally { Pop-Location }
         $green = [regex]::IsMatch($output, (ConvertTo-Pattern $expected))
         $reason = if ($green) { '' } else {
             $got = @($output -split "`n")
@@ -130,7 +130,7 @@ for ($index = 0; $index -lt $headings.Count; $index++) {
         $results += [pscustomobject]@{ Case = $number; Verdict = $(if ($green) { 'green' } else { 'red' }); Reason = $reason; Output = $output; Expected = $expected }
     } finally {
         Remove-Item -Recurse -Force $root, "$root-jobs", "$root-windows" -ErrorAction SilentlyContinue
-        foreach ($name in @(Get-ChildItem env: | Where-Object { $_.Name -like 'EOIE_*' -or $_.Name -like 'SPIRAL_*' } | ForEach-Object Name)) { Remove-Item "env:$name" }
+        foreach ($name in @(Get-ChildItem env: | Where-Object { $_.Name -like 'KIT_*' -or $_.Name -like 'SPIRAL_*' } | ForEach-Object Name)) { Remove-Item "env:$name" }
         foreach ($saved in @($callerEnvironment)) { if ($saved) { Set-Item "env:$($saved.Name)" $saved.Value } }
     }
 }

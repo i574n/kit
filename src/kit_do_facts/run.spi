@@ -1,0 +1,253 @@
+:< rust_std_string.model
+:< kit_receipt.receipt
+:< host
+:< grammar
+:< kit_do_records.records
+
+:== fact_tally =
+    {
+        report : string
+        failed : bool
+        files : u64
+        bytes : u64
+        distinct : u64
+        hashes : u64
+        lookups : u64
+        nearests : u64
+        fields : u64
+        jsons : u64
+        lines : u64
+        groups : u64
+        groupings : u64
+        sized : u64
+        names : u64
+        names_set : u64
+        envs : u64
+        paths : u64
+        present : u64
+        existings : u64
+        rows : u64
+        matched : u64
+        table_groups : u64
+        tables : u64
+        dirs_matched : u64
+        dirs_total : u64
+        dir_steps : u64
+    }
+
+:~ empty_fact_tally () : fact_tally =
+    {
+        report = ""
+        failed = !-
+        files = 0u64
+        bytes = 0u64
+        distinct = 0u64
+        hashes = 0u64
+        lookups = 0u64
+        nearests = 0u64
+        fields = 0u64
+        jsons = 0u64
+        lines = 0u64
+        groups = 0u64
+        groupings = 0u64
+        sized = 0u64
+        names = 0u64
+        names_set = 0u64
+        envs = 0u64
+        paths = 0u64
+        present = 0u64
+        existings = 0u64
+        rows = 0u64
+        matched = 0u64
+        table_groups = 0u64
+        tables = 0u64
+        dirs_matched = 0u64
+        dirs_total = 0u64
+        dir_steps = 0u64
+    }
+
+:~ lines_joined (~left : string) (~right : string) : string =
+    ? right = "" ?> left |? left = "" ?> right |: concat5 left "\n" right "" ""
+
+:~ fact_step (~root : string) (~records : record_list) (f : fact) : fact_outcome =
+    ?= f ?|
+    | HashFiles items => hashed root (expanded root items)
+    | EnvValues names => environment names
+    | PathsExist paths => existence root paths
+    | NearestMarker (pattern, targets, path) => nearest_marker root path pattern targets
+    | JsonFields (path, fields) => json_fields root path fields
+    | LinesCounted (path, pattern) => lines_grouped root path pattern
+    | FilesCounted target => files_by_extension root (expanded root target)
+    | TableCounted (path, column, keep_equal, value, groups) => table_counted root path column keep_equal value groups
+    | DirsClassified record => dirs_classified root records record
+    | DirsDetail => nothing_found ()
+
+:~ outcome_merged (~state : fact_tally) (f : fact) (~outcome : fact_outcome) : fact_tally =
+    := report = lines_joined state.report (outcome_report outcome)
+    := failed = state.failed || outcome_failed outcome
+    := first = outcome_counter outcome 0u64
+    := second = outcome_counter outcome 1u64
+    := third = outcome_counter outcome 2u64
+    ?= f ?|
+    | HashFiles _ =>
+        { state ?|
+            report = report
+            failed = failed
+            files = (state.files + first)
+            bytes = (state.bytes + second)
+            distinct = (state.distinct + third)
+            hashes = (state.hashes + 1u64)
+        }
+    | EnvValues _ =>
+        { state ?|
+            report = report
+            failed = failed
+            names = (state.names + first)
+            names_set = (state.names_set + second)
+            envs = (state.envs + 1u64)
+        }
+    | PathsExist _ =>
+        { state ?|
+            report = report
+            failed = failed
+            paths = (state.paths + first)
+            present = (state.present + second)
+            existings = (state.existings + 1u64)
+        }
+    | NearestMarker _ =>
+        { state ?|
+            report = report
+            failed = failed
+            files = (state.files + first)
+            lookups = (state.lookups + second)
+            nearests = (state.nearests + 1u64)
+        }
+    | JsonFields _ =>
+        { state ?|
+            report = report
+            failed = failed
+            files = (state.files + first)
+            fields = (state.fields + second)
+            jsons = (state.jsons + 1u64)
+        }
+    | LinesCounted _ =>
+        { state ?|
+            report = report
+            failed = failed
+            files = (state.files + first)
+            lines = (state.lines + second)
+            groups = (state.groups + third)
+            groupings = (state.groupings + 1u64)
+        }
+    | FilesCounted _ =>
+        { state ?|
+            report = report
+            failed = failed
+            files = (state.files + first)
+            bytes = (state.bytes + second)
+            sized = (state.sized + 1u64)
+        }
+    | TableCounted _ =>
+        { state ?|
+            report = report
+            failed = failed
+            rows = (state.rows + first)
+            matched = (state.matched + second)
+            table_groups = (state.table_groups + third)
+            tables = (state.tables + 1u64)
+        }
+    | DirsClassified _ =>
+        { state ?|
+            report = report
+            failed = failed
+            dirs_matched = (state.dirs_matched + first)
+            dirs_total = (state.dirs_total + second)
+            dir_steps = (state.dir_steps + 1u64)
+        }
+    | DirsDetail => state
+
+:~ ^ facts_run (~root : string) (~records : record_list) (~index : i32) (~state : fact_tally) : fact_tally =
+    ? index < record_count records ?>
+        ?= fact_parsed records index ?|
+        | FactParsed f => facts_run root records (index + 1i32) (outcome_merged state f (fact_step root records f))
+        | FactRejected _ => facts_run root records (index + 1i32) state
+    |: state
+
+:~ ^ first_rejection (~records : record_list) (~index : i32) : string =
+    ? index < record_count records
+    ?>
+        ? field_at records index 0i32 <> "query"
+        ?> "edit and query statements cannot share one program yet; run them as two calls"
+        |:
+            ?= fact_parsed records index ?|
+            | FactRejected message => message
+            | FactParsed _ => first_rejection records (index + 1i32)
+    |: ""
+
+:~ segments_joined (~left : string) (~right : string) : string =
+    ? left = "" ?> right |: concat5 left "  " right "" ""
+
+:~ counted_segment (~shown : bool) (~text : string) (~label : string) (~value : u64) : string =
+    ? shown ?> segments_joined text (concat5 label " " (decimal_text value) "" "") |: text
+
+:~ receipt_counts (~state : fact_tally) : string =
+    := dirs =
+        ? state.dir_steps > 0u64
+        ?> concat5 "dirs " (decimal_text state.dirs_matched) " of " (decimal_text state.dirs_total) " matched"
+        |: ""
+    := file_steps = state.hashes + state.nearests + state.jsons + state.groupings + state.sized
+    := files = counted_segment (file_steps > 0u64) dirs "files" state.files
+    := bytes = counted_segment (state.hashes + state.sized > 0u64) files "bytes" state.bytes
+    := distinct = counted_segment (state.hashes > 0u64) bytes "distinct" state.distinct
+    := lookups = counted_segment (state.nearests > 0u64) distinct "lookups" state.lookups
+    := fields = counted_segment (state.jsons > 0u64) lookups "fields" state.fields
+    := lines = counted_segment (state.groupings > 0u64) fields "lines" state.lines
+    := groups = counted_segment (state.groupings > 0u64) lines "groups" state.groups
+    := env =
+        ? state.envs > 0u64
+        ?>
+            segments_joined groups (
+                concat5 "env " (decimal_text state.names) " (" (decimal_text state.names_set) " set)"
+            )
+        |: groups
+    := paths =
+        ? state.existings > 0u64
+        ?>
+            segments_joined env (
+                concat5 "paths " (decimal_text state.paths) " (" (decimal_text state.present) " present)"
+            )
+        |: env
+    := rows = counted_segment (state.tables > 0u64) paths "rows" state.rows
+    := matched = counted_segment (state.tables > 0u64) rows "matched" state.matched
+    counted_segment (state.tables > 0u64) matched "groups" state.table_groups
+
+:= tables_delegated (~records : record_list) : bool = $'!records.iter().skip(1).any(|fields| fields.get(1).map(|verb| \
+    &**verb == "diff").unwrap_or(false))' : bool
+
+:~ tables_run (~root : string) (~encoded : string) : i32 =
+    $'kit_do_tables::kit_do_tables_run(&*!root, &*!encoded)' : i32
+
+:~ facts_program_run (~root : string) (~encoded : string) : i32 =
+    := started = now_ms ()
+    := records = records_of encoded
+    := rejection = first_rejection records 1i32
+    ? tables_delegated records ?> tables_run root encoded
+    |? rejection = "" ?>
+        := state = facts_run root records 1i32 (empty_fact_tally ())
+        := report = state.report
+        ? report = "" ?> () |: stdout_line report
+        := counts = receipt_counts state
+        ? state.failed ?>
+            receipt_line Failed counts started
+            1i32
+        |:
+            receipt_line Succeeded counts started
+            0i32
+    |:
+        stdout_line (concat5 "program rejected: " rejection "" "" "")
+        receipt_line Failed "files 0" started
+        2i32
+
+:= main () : i32 =
+    !!!!Export("kit_do_facts_run", ((\ (root, encoded) => facts_program_run root encoded) : string * string -> i32))
+    0i32

@@ -1,6 +1,0 @@
-packages:
-    |core-
-    spiral-
-    rust_std_string
-modules:
-    receipt

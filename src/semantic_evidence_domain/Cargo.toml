@@ -14,8 +14,8 @@ name = "semantic_evidence_domain"
 path = "semantic_evidence.rs"
 
 [dependencies]
-eoie-proxy-search = { path = "../eoie_proxy_search" }
-eoie-rust-std-fs = { path = "../rust_std_fs" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
 
 [lints.rust]
 dead_code = "allow"

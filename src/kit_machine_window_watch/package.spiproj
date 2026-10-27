@@ -1,0 +1,6 @@
+packages:
+    |core-
+    rust_std_string
+    kit_machine_watch_model
+modules:
+    windows

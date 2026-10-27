@@ -3,12 +3,12 @@ entry = "main.spi"
 output = "backup.rs"
 
 [package]
-name = "eoie-backup-domain"
+name = "kit-backup-domain"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
 [lib]
-name = "eoie_backup_domain"
+name = "kit_backup_domain"
 path = "backup.rs"

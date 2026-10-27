@@ -1,19 +1,19 @@
-open multi_file_patch_contract.model
+:< multi_file_patch_contract.model
 
-inl main () : i32 =
-    match multi_patch_shape_binding 1i32 1i32 1i32 with
+:= main () : i32 =
+    ?= multi_patch_shape_binding 1i32 1i32 1i32 ?|
     | 0 =>
-        match multi_patch_topology_binding 1i32 0i32 with
+        ?= multi_patch_topology_binding 1i32 0i32 ?|
         | 0 =>
-            match multi_patch_topology_binding 0i32 1i32 with
+            ?= multi_patch_topology_binding 0i32 1i32 ?|
             | 0 =>
-                match multi_patch_freshness_binding 5i32 4i32 with
+                ?= multi_patch_freshness_binding 5i32 4i32 ?|
                 | 0 =>
-                    match multi_patch_mode_binding 1i32 1i32 with
+                    ?= multi_patch_mode_binding 1i32 1i32 ?|
                     | 0 =>
-                        match multi_patch_rollback_binding 3i32 2i32 with
+                        ?= multi_patch_rollback_binding 3i32 2i32 ?|
                         | 0 =>
-                            match multi_patch_commit_binding 1i32 1i32 with
+                            ?= multi_patch_commit_binding 1i32 1i32 ?|
                             | 0 => 0i32
                             | _ => 7i32
                         | _ => 6i32

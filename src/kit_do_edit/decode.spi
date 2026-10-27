@@ -1,0 +1,53 @@
+:< kit_do_model.model
+:< kit_do_records.records
+
+:~ runs_in (~encoded : string) : bool = ($'kit_do_verbs::kit_do_program_family(&*!encoded)' : string) = "runs"
+
+:= decimal_of (~text : string) : u64 = $'!text.trim().parse::<u64>().unwrap_or(0)' : u64
+
+:~ count_of (~kind : string) (~wanted : string) : replace_count =
+    ? kind = "once" ?> Once |? kind = "all" ?> Every |: Exactly (decimal_of wanted)
+
+:~ ^ rules_decoded (~records : record_list) (~index : i32) : rule_list * i32 =
+    ?
+        index < record_count records
+        && (field_at records index 0i32 = "replace" || field_at records index 0i32 = "pattern")
+    ?>
+        := rule =
+            {
+                anchor = field_at records index 3i32
+                replacement = field_at records index 4i32
+                count = count_of (field_at records index 1i32) (field_at records index 2i32)
+                matcher = ? field_at records index 0i32 = "pattern" ?> Pattern |: Literal
+            }
+        := rest, next = rules_decoded records (index + 1i32)
+        Rule (rule, rest), next
+    |: NoRules, index
+
+:~ ^ steps_decoded (~records : record_list) (~index : i32) : steps =
+    ? index < record_count records
+    ?>
+        := kind = field_at records index 0i32
+        ? kind = "edit"
+        ?>
+            := files = field_at records index 3i32
+            := expectation =
+                ? files = "-" ?> Unchecked |: Expected (decimal_of files, decimal_of (field_at records index 4i32))
+            := mode = ? field_at records index 2i32 = "preview" ?> Preview |: Apply
+            := excepted = field_at records (index + 1i32) 0i32 = "except"
+            := excluded = ? excepted ?> field_at records (index + 1i32) 1i32 |: ""
+            := rules, next = rules_decoded records (? excepted ?> index + 2i32 |: index + 1i32)
+            Step (
+                EditStep {
+                    target = field_at records index 1i32
+                    mode = mode
+                    expectation = expectation
+                    excluded = excluded
+                    rules = rules
+                },
+                steps_decoded records next
+            )
+        |? kind = "show"
+        ?> Step (ShowStep (field_at records index 1i32), steps_decoded records (index + 1i32))
+        |: steps_decoded records (index + 1i32)
+    |: Done

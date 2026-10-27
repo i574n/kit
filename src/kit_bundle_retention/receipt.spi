@@ -1,0 +1,88 @@
+///- --package .
+:# receipt static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| receipt_status =
+    | PlannedReceipt
+    | AppliedReceipt
+
+:= receipt_status_of (status : string) : receipt_status =
+    ? (status = "planned") ?> PlannedReceipt |: AppliedReceipt
+
+:= status_constructor = \|
+    | PlannedReceipt => "RetentionDryRun"
+    | AppliedReceipt => "RetentionApplied"
+
+:= decimal (~value : u64) : string =
+    $'std::rc::Rc::<str>::from((!value).to_string())' : string
+
+:= receipt_schema () : string =
+    """
+    union retention_receipt_status =
+        | RetentionDryRun
+        | RetentionApplied
+
+    union retention_receipt =
+        | RetentionReceipt :: string * string * i32 * i32 * i32 * retention_receipt_status -> retention_receipt
+
+    inl latest_retention_receipt () : retention_receipt =
+        RetentionReceipt ("
+    """
+
+:= marker_line
+    (fingerprint : string) (current : string) (candidates : u64) (deletes : u64) (remaining : u64) (status : string)
+    : string
+    =
+    ("// retention-receipt|schema=1|fingerprint=" ++# fingerprint ++# "|current=" ++# current ++# "|candidates=")
+    ++# decimal candidates
+    ++# "|deletes="
+    ++# decimal deletes
+    ++# ("|remaining=" ++# (decimal remaining) ++# "|status=" ++# status ++# "\n")
+
+:= receipt_tail (candidates : u64) (deletes : u64) (remaining : u64) (status : receipt_status) : string =
+        ("\", " ++# (decimal candidates) ++# "i32, " ++# (decimal deletes) ++# "i32, ")
+        ++# (decimal remaining)
+        ++# "i32, "
+        ++# (status_constructor status)
+        ++# ")\n\ninl main () : i32 = 0i32\n"
+
+:~ receipt_source
+    (~fingerprint : string) (~current : string) (~candidates : u64) (~deletes : u64) (~remaining : u64)
+    (~status : string)
+    : string
+    =
+    marker_line fingerprint current candidates deletes remaining status
+    ++# receipt_schema ()
+    ++# fingerprint
+    ++# "\", \""
+    ++# (current ++# (receipt_tail candidates deletes remaining (receipt_status_of status)))
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust
+:# a_planned_receipt_is_a_dry_run_spiral_module =
+    := expected =
+        """
+        // retention-receipt|schema=1|fingerprint=ab12|current=cd34|candidates=5|deletes=2|remaining=5|status=planned
+        union retention_receipt_status =
+            | RetentionDryRun
+            | RetentionApplied
+
+        union retention_receipt =
+            | RetentionReceipt :: string * string * i32 * i32 * i32 * retention_receipt_status -> retention_receipt
+
+        inl latest_retention_receipt () : retention_receipt =
+            RetentionReceipt ("ab12", "cd34", 5i32, 2i32, 5i32, RetentionDryRun)
+
+        inl main () : i32 = 0i32
+
+        """
+    expect (((receipt_source "ab12" "cd34" 5u64 2u64 5u64 "planned") = expected)) "planned receipt text"
+
+///> rust
+:# an_applied_receipt_names_the_applied_constructor =
+    := source = receipt_source "ab12" "cd34" 5u64 2u64 3u64 "applied"
+    expect (sm'.contains "|remaining=3|status=applied\n" source) "marker line"
+    expect (sm'.contains "3i32, RetentionApplied)\n" source) "constructor"

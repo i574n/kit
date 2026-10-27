@@ -1,8 +1,8 @@
-let patch_rehearsal_entry_public () : i32 = patch_mutation_contract.model.patch_rehearse_entry ()
+:~ patch_rehearsal_entry_public () : i32 = patch_mutation_contract.model.patch_rehearse_entry ()
 
-inl emit () : () =
+:= emit () : () =
     rehearsal_terminal.emit_runtime ()
-    !!!!Export("eoie_patch_rehearse_run", ((fun () => patch_rehearsal_entry_public ()) : () -> i32))
-    inl _ = patch_mutation_contract.model.typed_patch_rehearsal_plan ()
-    inl _ = patch_rehearsal_entry_public ()
+    !!!!Export("kit_patch_rehearse_run", ((\ () => patch_rehearsal_entry_public ()) : () -> i32))
+    := _ = patch_mutation_contract.model.typed_patch_rehearsal_plan ()
+    := _ = patch_rehearsal_entry_public ()
     ()

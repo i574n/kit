@@ -1,6 +1,5 @@
-inl rust_global (x : string) : () = !!!!Global(x)
 
-inl emit_receipt_formatter () : () = rust_global """
+inl emit_receipt_formatter () : () = global """
     impl RestorationReceipt {
         fn failed_paths(&self) -> Vec<PathBuf> {
             self.failures.iter().map(|failure| failure.path.clone()).collect()

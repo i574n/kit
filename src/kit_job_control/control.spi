@@ -1,0 +1,157 @@
+:< sm'_operators
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:| list_pass =
+    | UnsettledPass
+    | SettledPass
+
+:= pass_takes (pass : list_pass) (state : job_state) : bool =
+    ?= pass ?|
+    | UnsettledPass => state_settled state = !-
+    | SettledPass => state_settled state
+
+:~ ^ listed (~names : string) (pass : list_pass) (left : u64) : u64 =
+    ? names = "" || left = 0u64 ?> left
+    |:
+        := first = $'std::rc::Rc::<str>::from(!names.lines().next().unwrap_or(""))' : string
+        := rest = $'std::rc::Rc::<str>::from(!names.lines().skip(1).collect::<Vec<_>>().join("\n"))' : string
+        ? pass_takes pass (shared_state first) ?>
+            stdout_line (shared_summary "list" first)
+            listed rest pass (left - 1u64)
+        |: listed rest pass left
+
+:= unsettled_window () : u64 = 120u64
+
+:~ job_listed () : i32 =
+    := count = ? argument_count () > 3i32 ?> decimal_u64 (argument 3i32) |: 20u64
+    := names = newest_directories (jobs_root ()) (? count > unsettled_window () ?> count |: unsettled_window ())
+    := shown_unsettled = unsettled_window () - listed names UnsettledPass (unsettled_window ())
+    := _ = ? shown_unsettled < count ?> listed names SettledPass (count - shown_unsettled) |: 0u64
+    0i32
+
+:~ job_tailed () : i32 =
+    := id = argument 3i32
+    ? known_job id
+    ?>
+        := lines = ? argument_count () > 4i32 ?> decimal_u64 (argument 4i32) |: 20u64
+        stdout_line (shared_summary "tail" id)
+        stdout_line (
+            "--- stdout (last "
+            ++# decimal_text lines
+            ++# " lines)\n"
+            ++# last_lines (job_file id "stdout.log") lines
+        )
+        stdout_line (
+            "--- stderr (last "
+            ++# decimal_text lines
+            ++# " lines)\n"
+            ++# last_lines (job_file id "stderr.log") lines
+        )
+        0i32
+    |: rejected ("tail: unknown job id " ++# id)
+
+:~ stop_text (~id : string) : string =
+    ? known_job id = !- ?> "error: stop: unknown job id " ++# id
+    |:
+        ?= stop_verdict_of (shared_state id) ?|
+        | StopRefused reason => "error: stop: job " ++# id ++# " " ++# reason
+        | StopRequested =>
+            := _ = text_written (job_file id "stop") (decimal_text (now_ms ()))
+            := state = waited id (now_ms () + 15000u64) 0u64
+            ? state_settled state ?> shared_summary "stop" id
+            |: "error: stop: job " ++# id ++# " did not settle within 15 s; its supervisor may predate job stop"
+
+:~ job_stopped () : i32 =
+    := text = stop_text (argument 3i32)
+    ? sm'.starts_with "error: " text ?> rejected ($'std::rc::Rc::<str>::from(&(!text)[7..])' : string)
+    |:
+        stdout_line text
+        0i32
+
+:| amend_verdict =
+    | JobAmendAllowed : u64
+    | JobAmendRefused : string
+
+:~ amend_verdict_of (~id : string) (~flag : string) (timeout : u64) : amend_verdict =
+    ? known_job id = !-
+    ?> JobAmendRefused ("unknown job id " ++# id)
+    |? flag <> "--timeout"
+    ?> JobAmendRefused "expects --timeout <ms>"
+    |? timeout = 0u64
+    ?> JobAmendRefused "--timeout needs a positive number of milliseconds"
+    |? state_settled (shared_state id)
+    ?> JobAmendRefused ("job " ++# id ++# " is already settled")
+    |? file_exists (job_file id "pid")
+    ?> JobAmendRefused ("job " ++# id ++# " has started; its supervisor read the limit when the child started")
+    |: JobAmendAllowed timeout
+
+:= wrapper_minutes (timeout : u64) : string = "-MaxMinutes " ++# decimal_text (timeout / 60000u64 + 1u64) ++# " "
+
+:~ job_amended () : i32 =
+    := id = argument 3i32
+    ?= amend_verdict_of id (argument 4i32) (decimal_u64 (argument 5i32)) ?|
+    | JobAmendRefused reason => rejected ("amend: " ++# reason)
+    | JobAmendAllowed timeout =>
+        := before = decimal_u64 (text_or_empty (job_file id "timeout_ms"))
+        := _ = text_written (job_file id "timeout_ms") (decimal_text timeout)
+        := wrapper = job_file id "heavy-wrapper.ps1"
+        := _ =
+            ? file_exists wrapper
+            ?>
+                text_written wrapper (
+                    sm'.replace (wrapper_minutes before) (wrapper_minutes timeout) (text_or_empty wrapper)
+                )
+            |: ""
+        stdout_line (
+            "kit job amend ok id="
+            ++# id
+            ++# " timeout_ms="
+            ++# decimal_text timeout
+            ++# " was="
+            ++# decimal_text before
+        )
+        0i32
+:= record_mark () : string = $'std::rc::Rc::<str>::from(char::from(30u8).to_string())' : string
+
+:~ launched_text (~label : string) (~timeout : u64) (~inner : string) (~cwd : string) : string =
+    $'kit_job_launch::kit_job_launched_text(&*!label, !timeout, &*!inner, &*!cwd)' : string
+
+:~ settled_text (~id : string) (~wait_ms : u64) : string =
+    := _ = waited id (now_ms () + wait_ms) (watched_caller ())
+    (shared_summary "wait" id)
+    ++# " pid="
+    ++# text_or_empty (job_file id "pid")
+    ++# " timeout_ms="
+    ++# text_or_empty (job_file id "timeout_ms")
+
+:~ newest_labeled (~label : string) : string =
+    := root = jobs_root ()
+    $'std::rc::Rc::<str>::from(std::fs::read_dir(&*!root).into_iter().flatten().flatten().filter(|entry| \
+        std::fs::read_to_string(entry.path().join("label")).map(|text| text.trim() == \
+        &*!label).unwrap_or(false)).map(|entry| entry.file_name().to_string_lossy().into_owned()).max_by_key(|name| \
+        name.split(char::from(45u8)).nth(1).and_then(|stamp| stamp.parse::<u64>().ok()).unwrap_or(0)).unwrap_or_defaul\
+        t())' : string
+
+:= main () : i32 =
+    !!!!Export("kit_job_tail_run", ((\ () => job_tailed ()) : () -> i32))
+    !!!!Export("kit_job_stop_run", ((\ () => job_stopped ()) : () -> i32))
+    !!!!Export("kit_job_amend_run", ((\ () => job_amended ()) : () -> i32))
+    !!!!Export("kit_job_list_run", ((\ () => job_listed ()) : () -> i32))
+    !!!!Export("kit_job_stop_text", ((\ id => stop_text id) : string -> string))
+    !!!!Export(
+        "kit_job_launched",
+        (
+            \ (label, timeout, inner, cwd) => launched_text label timeout inner cwd
+            : string * u64 * string * string -> string
+        )
+    )
+    !!!!Export("kit_job_settled", ((\ (id, wait_ms) => settled_text id wait_ms) : string * u64 -> string))
+    !!!!Export(
+        "kit_job_output",
+        ((\ (id, count) => last_lines (job_file id "stdout.log") count) : string * u64 -> string)
+    )
+    !!!!Export("kit_job_labeled", ((\ label => newest_labeled label) : string -> string))
+    !!!!Export("kit_job_state_word", ((\ id => state_word (shared_state id)) : string -> string))
+    0i32

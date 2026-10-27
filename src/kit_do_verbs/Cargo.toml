@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "verbs.spi"
+output = "verbs.rs"
+
+[package]
+name = "kit-do-verbs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_do_verbs"
+path = "verbs.rs"

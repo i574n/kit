@@ -1,0 +1,83 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:~ ^ depth_after (line : string) (at : i32) (count : i32) (depth : i32) (quoted : bool) : i32 =
+    ? count <= at ?> depth
+    |:
+        := c = xml.code_point_at line at
+        := next = at + xml.code_point_width line at
+        ? quoted ?>
+            ? c = 92u32 ?> depth_after line (next + 1i32) count depth !+
+            |? c = 34u32 ?> depth_after line next count depth !-
+            |: depth_after line next count depth !+
+        |? c = 34u32 ?> depth_after line next count depth !+
+        |? c = 40u32 ?> depth_after line next count (depth + 1i32) !-
+        |? c = 41u32 ?> depth_after line next count (depth - 1i32) !-
+        |: depth_after line next count depth !-
+
+:~ paren_depth (line : string) : i32 = depth_after line 0i32 (sm'.length line : i32) 0i32 !-
+
+:~ joined (pending : string) (line : string) : string =
+    := piece = sm'.trim line
+    ? sm'.ends_with "(" pending || sm'.starts_with ")" piece ?> pending ++# piece |: pending ++# " " ++# piece
+
+:~ literals_merged (record : string) : string = sm'.replace "\" ^^ \"" "" record
+
+:~ ^ records_into (lines : array string) (at : i32) (pending : string) (depth : i32) (out : array string) : () =
+    ? am'.length lines <= at ?> (? pending <> "" ?> am'.push_back (literals_merged pending) out)
+    |:
+        := line = am'.index at lines
+        ? pending = "" ?>
+            := opened = paren_depth line
+            := binding_head = sm'.starts_with "inl " (sm'.trim line) && sm'.ends_with "=" (sm'.trim line)
+            ? opened > 0i32 || binding_head ?> records_into lines (at + 1i32) line opened out
+            |:
+                am'.push_back line out
+                records_into lines (at + 1i32) "" 0i32 out
+        |:
+            := merged = joined pending line
+            := remaining = depth + paren_depth line
+            ? remaining > 0i32 ?> records_into lines (at + 1i32) merged remaining out
+            |:
+                am'.push_back (literals_merged merged) out
+                records_into lines (at + 1i32) "" 0i32 out
+
+:~ records_as_lines (text : string) : string =
+    := out : array string = am'.growable ()
+    records_into (sm'.split "\n" text |> array) 0i32 "" 0i32 out
+    sm'.concat_array "\n" out
+
+///> rust
+:# single_line_records_pass_through_byte_for_byte =
+    := text = "inl task_a () = Task (\"A\", \"title (x\", Story, 1u32)\nunion ok =\n    | Yes\n"
+    expect
+        (records_as_lines text = text)
+        "a paren inside a string does not open a record, and the final newline stays single"
+    expect (records_as_lines "no final newline" = "no final newline") "a text without a final newline gains none"
+    expect (records_as_lines "" = "") "empty text"
+
+///> rust
+:# a_formatted_record_joins_back_into_one_line =
+    := text =
+        "inl task_a () =\n    Task (\n        \"A\",\n        \"first part \"\n        ^^ \"second part\",\n"
+        ^^ "        Story\n    )\nnext line\n"
+    expect
+        (records_as_lines text = "inl task_a () = Task (\"A\", \"first part second part\", Story)\nnext line\n")
+        "the binding head, fields and split literal join into one line, no space after ( or before )"
+
+///> rust
+:# a_thousand_records_join_in_one_pass =
+    := out : array string = am'.growable ()
+    :~ ^ fill (n : i32) : () =
+        ? n > 0i32 ?>
+            am'.push_back "inl task_x () =\n    Task (\n        \"X\"\n    )" out
+            fill (n - 1i32)
+    fill 1000i32
+    := formatted = sm'.concat_array "\n" out
+    := joined_back = records_as_lines formatted
+    expect ((sm'.length joined_back : i32) = 1000i32 * 27i32 - 1i32) "1000 joined records of 26 bytes plus 999 newlines"

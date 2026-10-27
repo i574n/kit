@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "sections.spi"
+output = "sections.rs"
+
+[package]
+name = "kit-table-sections"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_table_sections"
+path = "sections.rs"
+
+[dependencies]
+kit-log-sections = { path = "../kit_log_sections" }

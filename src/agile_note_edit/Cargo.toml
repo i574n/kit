@@ -14,4 +14,4 @@ name = "agile_note_edit"
 path = "note_edit.rs"
 
 [dependencies]
-eoie-agile-records = { path = "../eoie_agile_records" }
+kit-agile-records = { path = "../kit_agile_records" }

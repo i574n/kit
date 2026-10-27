@@ -347,7 +347,7 @@ pub fn mutation_boundary_capability() -> &'static str {
     let parent_path = path.parent().ok_or_else(|| format!("path has no parent: {}", path.display()))?;
     let (parent, leaf) = open_parent(path, true)?;
     let mode = target_mode(&parent, leaf.as_os_str())?;
-    let temporary = create_stage(&parent, parent_path, leaf.as_os_str(), "eoie-tmp", bytes, mode)?;
+    let temporary = create_stage(&parent, parent_path, leaf.as_os_str(), "kit-tmp", bytes, mode)?;
     let temporary_leaf = temporary.file_name().ok_or_else(|| "temporary path has no leaf".to_owned())?;
     if let Err(error) = rename_same_parent(&parent, temporary_leaf, leaf.as_os_str()) { let _ = unlink_name(&parent, temporary_leaf, 0); return Err(error); }
     Ok(())
@@ -364,7 +364,7 @@ pub fn mutation_boundary_capability() -> &'static str {
     let _ = target_mode(&target_parent, target_leaf.as_os_str())?;
     let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|error| format!("clock before unix epoch: {error}"))?.as_nanos();
     for attempt in 0u8..32u8 {
-        let candidate = OsString::from(format!(".{}.eoie-copy-{}-{nonce}-{attempt}", target_leaf.to_string_lossy(), std::process::id()));
+        let candidate = OsString::from(format!(".{}.kit-copy-{}-{nonce}-{attempt}", target_leaf.to_string_lossy(), std::process::id()));
         let encoded = c_name(candidate.as_os_str())?;
         let fd = unsafe { openat(target_parent.as_raw_fd(), encoded.as_ptr(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0o600u32) };
         if fd < 0 { let error = std::io::Error::last_os_error(); if error.raw_os_error() == Some(17) { continue; } return Err(format!("create copy stage {}: {error}", candidate.to_string_lossy())); }
@@ -385,7 +385,7 @@ pub fn mutation_boundary_capability() -> &'static str {
     let parent_path = target.parent().ok_or_else(|| format!("target has no parent: {}", target.display()))?;
     let (parent, leaf) = open_parent(target, false)?;
     let mode = target_mode(&parent, leaf.as_os_str())?.ok_or_else(|| format!("replace target is absent: {}", target.display()))?;
-    let temporary = create_stage(&parent, parent_path, leaf.as_os_str(), "eoie-patch", text.as_bytes(), Some(mode))?;
+    let temporary = create_stage(&parent, parent_path, leaf.as_os_str(), "kit-patch", text.as_bytes(), Some(mode))?;
     Ok(StagedWriteReceipt { target: target.to_path_buf(), temporary, bytes_written: text.len(), stage_index, backup_slot })
 }
 #[cfg(not(any(target_os = "linux", windows)))] pub fn stage_text_receipted_bound(_target: &Path, _text: &str, _stage_index: i32, _backup_slot: i32) -> Result<StagedWriteReceipt, String> { Err("staged mutation requires a descriptor-relative backend".to_owned()) }
@@ -397,7 +397,7 @@ pub fn stage_text(target: &Path, text: &str) -> Result<PathBuf, String> { stage_
     let parent_path = target.parent().ok_or_else(|| format!("target has no parent: {}", target.display()))?;
     let (parent, leaf) = open_parent(target, true)?;
     if target_mode(&parent, leaf.as_os_str())?.is_some() { return Err(format!("new target already exists: {}", target.display())); }
-    create_stage(&parent, parent_path, leaf.as_os_str(), "eoie-create", text.as_bytes(), None)
+    create_stage(&parent, parent_path, leaf.as_os_str(), "kit-create", text.as_bytes(), None)
 }
 #[cfg(not(any(target_os = "linux", windows)))] pub fn stage_new_text(_target: &Path, _text: &str) -> Result<PathBuf, String> { Err("staged mutation requires a descriptor-relative backend".to_owned()) }
 
@@ -477,7 +477,7 @@ pub fn restore_text(target: &Path, original: &str) -> Result<(), String> {
     use std::os::unix::fs::symlink;
     fn fixture(name: &str) -> PathBuf {
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        std::env::temp_dir().join(format!("eoie-mutation-{name}-{}-{nonce}", std::process::id()))
+        std::env::temp_dir().join(format!("kit-mutation-{name}-{}-{nonce}", std::process::id()))
     }
     #[test] fn atomic_write_rejects_symlink_ancestor() {
         let root = fixture("atomic"); let inside = root.join("inside"); let outside = root.join("outside");

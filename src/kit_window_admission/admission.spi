@@ -1,0 +1,50 @@
+:< kit_machine_windows.window_model
+:< kit_machine_windows.windows
+
+:~ ^ first_blocker
+    (wanted : window_class) (~mine : string) (since : u64) (backfills : bool) (~rows : string)
+    : string
+    =
+    ? rows = "" ?> ""
+    |:
+        := row = first_row rows
+        ? row_blocks wanted mine since backfills row ?> row
+        |: first_blocker wanted mine since backfills (other_rows rows)
+
+:~ ^ held_until_latest (~rows : string) (latest : u64) : u64 =
+    ? rows = "" ?> latest
+    |:
+        := row = first_row rows
+        := until = ? tab_field row 2i32 = "held" ?> decimal_of (tab_field row 5i32) |: 0u64
+        held_until_latest (other_rows rows) (? until > latest ?> until |: latest)
+
+:~ ^ settling_total (~rows : string) (now : u64) (total : u64) : u64 =
+    ? rows = "" ?> total |: settling_total (other_rows rows) now (total + settling_mb (first_row rows) now)
+
+:~ verdict_terms
+    (~wanted_word : string) (~mine : string) (since : u64) (minutes : u64) (~rows : string) (free : u64) (now : u64)
+    (min_free : u64)
+    : string
+    =
+    ?= class_of wanted_word ?|
+    | ClassUnknown => "reason=unknown-class"
+    | ClassKnown wanted =>
+        := backfills = minutes > 0u64 && now + minutes * 60000u64 <= held_until_latest rows 0u64
+        := verdict =
+            admission_needing
+                (floor_of wanted min_free)
+                (first_blocker wanted mine since backfills rows)
+                (free_after_settling free (settling_total rows now 0u64))
+                now
+        admission_terms wanted verdict
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_window_verdict",
+        (
+            \ (wanted_word, mine, since, minutes, rows, free, now, min_free) =>
+                verdict_terms wanted_word mine since minutes rows free now min_free
+            : string * string * u64 * u64 * string * u64 * u64 * u64 -> string
+        )
+    )
+    0i32

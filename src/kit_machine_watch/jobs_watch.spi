@@ -1,0 +1,131 @@
+:< rust_std_string.model
+:< kit_machine_watch_model.model
+:< host
+
+inl now_ms () : u64 = $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| \
+    elapsed.as_millis() as u64).unwrap_or(0)' : u64
+:= count_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+inl quiet_state_path () : string = $'std::rc::Rc::<str>::from(std::env::var_os("LOCALAPPDATA").map(std::path::PathBuf:\
+    :from).unwrap_or_else(std::env::temp_dir).join("kit").join("machine-watch").join("quiet.tsv").to_string_lossy().a\
+    s_ref())' : string
+inl state_saved (~text : string) : () = $'{ let path = std::path::PathBuf::from(&*!(quiet_state_path ())); if let \
+    Some(parent) = path.parent() { let _ = std::fs::create_dir_all(parent); } let _ = std::fs::write(&path, \
+    (&*!text).as_bytes()); }' : ()
+inl quiet_since (~state : string) (~id : string) (out : u64) (now : u64) : u64 = $'(&*!state).lines().find_map(|line| \
+    { let mut fields = line.split(char::from(9u8)); if fields.next() == Some(&*!id) && fields.next().and_then(|value| \
+    value.parse::<u64>().ok()) == Some(!out) { fields.next().and_then(|value| value.parse::<u64>().ok()) } else { \
+    None } }).unwrap_or(!now)' : u64
+:= line_count (~text : string) : i32 = $'(&*!text).lines().filter(|line| \!line.is_empty()).count() as i32' : i32
+inl line_at (~text : string) (index : i32) : string = $'std::rc::Rc::<str>::from((&*!text).lines().filter(|line| \
+    \!line.is_empty()).nth(!index as usize).unwrap_or(""))' : string
+:= appended (~text : string) (~line : string) : string = ? text = "" ?> line |: concat5 text "\n" line "" ""
+
+:~ ^ owner_cores (~rows : process_rows) (~owner : string) (at : i32) (total : f64) : f64 =
+    ? at >= row_count rows ?> total
+    |? row_cores rows at >= 0.1f64 && owner_text (owner_of rows at) = owner
+    ?> owner_cores rows owner (at + 1i32) (total + row_cores rows at)
+    |: owner_cores rows owner (at + 1i32) total
+
+:~ ^ cells_cores (~rows : process_rows) (at : i32) (total : f64) : f64 =
+    ? at >= row_count rows ?> total
+    |:
+        := busy = row_cores rows at >= 0.1f64 && starts_with (owner_text (owner_of rows at)) "cells-vm:"
+        cells_cores rows (at + 1i32) (? busy ?> total + row_cores rows at |: total)
+
+:= job_state_word (~id : string) : string = $'kit_job_control::kit_job_state_word(&*!id)' : string
+:= job_running (~id : string) : bool = job_state_word id = "running"
+
+:== job_pass =
+    {
+        report : string
+        state : string
+    }
+
+:~ ^ jobs_watched
+    (limits : watch_limits) (~rows : process_rows) (~ids : string) (index : i32) (~previous : string) (live : bool)
+    (cells : f64) (now : u64) (pass : job_pass)
+    : job_pass
+    =
+    ? index >= line_count ids ?> pass
+    |:
+        := id = line_at ids index
+        ? job_running id ?>
+            := out =
+                kit_jobs.host.file_bytes (kit_jobs.jobs.job_file id "stdout.log")
+                + kit_jobs.host.file_bytes (kit_jobs.jobs.job_file id "stderr.log")
+            := since = quiet_since previous id out now
+            := quiet_minutes = (now - since) / 60000u64
+            := tree = owner_cores rows (concat5 "kit:" id "" "" "") 0i32 0.0f64
+            := last = kit_jobs.host.last_lines (kit_jobs.jobs.job_file id "stdout.log") 1u64
+            := verdict =
+                quiet_verdict_of limits {
+                    quiet_minutes = quiet_minutes
+                    tree_cores = tree
+                    live_block = live
+                    last_line = last
+                    cells_cores = cells
+                }
+            := label = kit_jobs.host.text_or_empty (kit_jobs.jobs.job_file id "label")
+            := line =
+                concat5
+                    "  "
+                    label
+                    " output "
+                    (count_text out)
+                    (
+                        concat5
+                            " bytes, unchanged "
+                            (count_text quiet_minutes)
+                            " min, tree "
+                            (cores_text tree)
+                            (concat5 " cores" (verdict_text verdict) "" "" "")
+                    )
+            := kept = concat5 id "\t" (count_text out) "\t" (count_text since)
+            jobs_watched limits rows ids (index + 1i32) previous live cells now {
+                report = appended pass.report line
+                state = appended pass.state kept
+            }
+        |: jobs_watched limits rows ids (index + 1i32) previous live cells now pass
+
+:= window_files () : string =
+    $'std::rc::Rc::<str>::from(std::fs::read_dir(&*!(kit_machine_windows.windows.windows_root ())).map(|entries| \
+        entries.filter_map(|entry| entry.ok()).filter(|entry| entry.path().extension().map(|extension| extension == \
+        "window").unwrap_or(false)).filter_map(|entry| std::fs::read_to_string(entry.path()).ok()).map(|text| \
+        text.lines().next().unwrap_or("").to_owned()).collect::<Vec<_>>().join("\n")).unwrap_or_default().as_str())'
+    : string
+let live_block_held (~windows : string) : bool = $'(&*!windows).lines().any(|row| { let mut fields = \
+    row.split(char::from(9u8)); fields.nth(1) == Some("live-gui") && fields.next() == Some("held") })' : bool
+
+:~ windows_lines (~windows : string) : string =
+    $'kit_machine_window_watch::kit_machine_windows_lines(&*!windows)' : string
+
+:~ gate_summary () : string = $'kit_machine_window_watch::kit_machine_gate_summary()' : string
+
+:~ jobs_and_windows (limits : watch_limits) (~rows : process_rows) : string =
+    := windows = window_files ()
+    := live = live_block_held windows
+    := ids = kit_jobs.host.newest_directories (kit_jobs.host.jobs_root ()) 60u64
+    inl previous = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!(quiet_state_path ())).unwrap_or_default().as\
+        _str())' : string
+    := pass =
+        jobs_watched limits rows ids 0i32 previous live (cells_cores rows 0i32 0.0f64) (now_ms ()) {
+            report = ""
+            state = ""
+        }
+    state_saved pass.state
+    := jobs =
+        concat5
+            "== kit jobs running: "
+            (count_text ($'!(line_count pass.state) as u64' : u64))
+            (? live ?> " (a live block holds the machine)" |: "")
+            ""
+            ""
+    := job_lines = ? pass.report = "" ?> jobs |: concat5 jobs "\n" pass.report "" ""
+    := gate = gate_summary ()
+    := gate_lines =
+        ? gate = "" ?> "== stop gate: no gate.log"
+        |: concat5 "== stop gate (gate.log, newest 4000 lines)\n" gate "" "" ""
+    := now = now_ms ()
+    := crowding = $'kit_machine_crowding::kit_machine_crowding(&*!windows, !now)' : string
+    := listed = concat5 job_lines "\n" gate_lines "\n== windows\n" (windows_lines windows)
+    ? crowding = "" ?> listed |: concat5 listed "\n" crowding "" ""

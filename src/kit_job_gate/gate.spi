@@ -1,0 +1,184 @@
+:< rust_std_string.model
+:< kit_jobs.host
+:< kit_jobs.model
+:< kit_jobs.jobs
+:< kit_machine_windows.window_model
+:< kit_machine_windows.windows
+
+:~ window_blocker (ask : request) : string =
+    := root = windows_root ()
+    ? lock_taken root = !-
+    ?> "reason=registry-lock-busy"
+    |:
+        := now = now_ms ()
+        := terms =
+            verdict_text ask.wanted ask.id ask.since ask.minutes
+                (live_rows root (stored_rows root) now "")
+                (free_mb ())
+                now
+                ask.min_free
+        ? terms = ""
+        ?>
+            := _ =
+                text_written
+                    (window_file root ask.id)
+                    (request_row { ask ?| since = now } Held (now + ask.minutes * 60000u64))
+            event_logged root WindowGranted (request_row { ask ?| since = now } Held (now + ask.minutes * 60000u64))
+            lock_released root
+            ""
+        |:
+            := _ = text_written (window_file root ask.id) (request_row ask Waiting (now + 30000u64))
+            lock_released root
+            terms
+
+:~ ^ gate_loop (~id : string) (ask : request) (limit : u64) : i32 =
+    := now = now_ms ()
+    := _ = text_written (job_file id "heartbeat_ms") (decimal_text now)
+    ? file_exists (job_file id "stop")
+    ?>
+        := _ = file_removed (window_file (windows_root ()) ask.id)
+        := _ = text_written (job_file id "exit") (halt_line HaltOnRequest now (tree_stop_of 0u64))
+        143i32
+    |? now > limit
+    ?>
+        := _ = file_removed (window_file (windows_root ()) ask.id)
+        := _ =
+            text_written
+                (job_file id "exit")
+                (
+                    exit_line 75i32 now JobExpiredInQueue (
+                        concat5
+                            "no "
+                            (class_word ask.wanted)
+                            " window before the deadline (24 hours, or --slot-within); the job never started"
+                            ""
+                            ""
+                    )
+                )
+        75i32
+    |? file_exists (released_mark (windows_root ()) ask.id)
+    ?>
+        := root = windows_root ()
+        := _ = file_removed (released_mark root ask.id)
+        := _ = file_removed (window_file root ask.id)
+        := _ =
+            text_written
+                (job_file id "exit")
+                (
+                    exit_line 75i32 now JobExpiredInQueue (
+                        concat5
+                            "its waiting "
+                            (class_word ask.wanted)
+                            " window was released (kit window release); the job never started"
+                            ""
+                            ""
+                    )
+                )
+        75i32
+    |:
+        := blocker = window_blocker ask
+        ? blocker = ""
+        ?>
+            := _ =
+                text_written
+                    (job_file id "window")
+                    (concat5 "granted id=" ask.id " waited_ms=" (decimal_text (now - ask.since)) "")
+            0i32
+        |:
+            := _ = text_written (job_file id "window") (concat5 "waiting id=" ask.id " " blocker "")
+            sleep_ms 500u64
+            gate_loop id ask limit
+
+:~ windowed_gate (~id : string) (wanted : window_class) : i32 =
+    := timeout = decimal_u64 (text_or_empty (job_file id "timeout_ms"))
+    := since = now_ms ()
+    := label = concat5 (text_or_empty (job_file id "label")) " (kit job " id ")" ""
+    := window =
+        concat5
+            "win-"
+            (number_text since)
+            "-"
+            (number_text (process_number ()))
+            (concat5 "-" (class_word wanted) "" "" "")
+    := by = decimal_u64 (text_or_empty (job_file id "slot_by_ms"))
+    := limit = ? by <> 0u64 && by < since + 86400000u64 ?> by |: since + 86400000u64
+    gate_loop id
+        {
+            wanted = wanted
+            minutes = timeout / 60000u64 + 1u64
+            label = label
+            id = window
+            since = since
+            deadline = limit
+            min_free = decimal_u64 (text_or_empty (job_file id "min_free_mb"))
+        }
+        limit
+
+:~ ^ compile_hold_loop (~id : string) (ask : request) (limit : u64) : () =
+    := now = now_ms ()
+    ? file_exists (job_file id "stop")
+    ?> ()
+    |? now > limit
+    ?>
+        := _ = file_removed (window_file (windows_root ()) ask.id)
+        := _ =
+            text_written
+                (job_file id "quiet")
+                (
+                    concat5
+                        "started beside compile windows after "
+                        (decimal_text ((now - ask.since) / 60000u64))
+                        " min of --quiet-wait"
+                        ""
+                        ""
+                )
+        ()
+    |:
+        := blocker = window_blocker ask
+        ? blocker = ""
+        ?>
+            := _ =
+                text_written
+                    (job_file id "quiet")
+                    (concat5 "holding compiles id=" ask.id " waited_ms=" (decimal_text (now - ask.since)) "")
+            ()
+        |:
+            := _ = text_written (job_file id "quiet") (concat5 "waiting for compiles to end id=" ask.id " " blocker "")
+            sleep_ms 500u64
+            compile_hold_loop id ask limit
+
+:~ compile_hold_taken (~id : string) : i32 =
+    := hold = decimal_u64 (text_or_empty (job_file id "quiet_hold_min"))
+    ? hold = 0u64
+    ?> 0i32
+    |:
+        := since = now_ms ()
+        := wait = decimal_u64 (text_or_empty (job_file id "quiet_wait_min"))
+        := label = concat5 (text_or_empty (job_file id "label")) " (kit job " id ")" ""
+        := window = concat5 "win-" (number_text since) "-" (number_text (process_number ())) "-compile-hold"
+        compile_hold_loop id
+            {
+                wanted = CompileHold
+                minutes = hold
+                label = label
+                id = window
+                since = since
+                deadline = since + wait * 60000u64
+                min_free = 0u64
+            }
+            (since + wait * 60000u64)
+        0i32
+
+:~ job_window_gate (~id : string) : i32 =
+    := slotted = $'kit_job_slot::kit_job_slot_gate(&*!id)' : i32
+    ? slotted <> 0i32 ?> slotted
+    |:
+        := windowed = windowed_gate id HeavyBuild
+        ? windowed <> 0i32 ?> windowed |: compile_hold_taken id
+
+:~ job_compile_gate (~id : string) : i32 = windowed_gate id Compile
+
+:= main () : i32 =
+    !!!!Export("kit_job_window_gate", ((\ id => job_window_gate id) : string -> i32))
+    !!!!Export("kit_job_compile_gate", ((\ id => job_compile_gate id) : string -> i32))
+    0i32

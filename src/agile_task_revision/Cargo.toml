@@ -14,5 +14,5 @@ name = "agile_task_revision"
 path = "task_revision.rs"
 
 [dependencies]
-eoie-agile-records = { path = "../eoie_agile_records" }
+kit-agile-records = { path = "../kit_agile_records" }
 agile-field-rendering = { path = "../agile_field_rendering" }

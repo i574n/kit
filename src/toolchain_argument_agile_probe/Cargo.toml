@@ -3,7 +3,7 @@ entry = "main.spi"
 output = "argument_agile_probe.rs"
 
 [package]
-name = "eoie-toolchain-argument-agile-probe"
+name = "kit-toolchain-argument-agile-probe"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -14,7 +14,7 @@ toolchain-argument-domain = { path = "../toolchain_argument_domain" }
 toolchain-argument-tail-domain = { path = "../toolchain_argument_tail_domain" }
 
 [[example]]
-name = "eoie-toolchain-argument-agile-probe"
+name = "kit-toolchain-argument-agile-probe"
 path = "argument_agile_probe.rs"
 
 [lints.rust]

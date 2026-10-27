@@ -1,7 +1,0 @@
-packages:
-    |core-
-    spiral-
-    rust_std_string
-    eoie_jobs
-modules:
-    state

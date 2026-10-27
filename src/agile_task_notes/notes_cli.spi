@@ -1,224 +1,363 @@
-///- --package ../eoie_cli_harness --timeout 900000
-open cli
+///- --package ../kit_cli_check --timeout 900000
+:< cli
 
-inl agile_drops () : cli_args = Arg ("EOIE_LEASE_ROOT", Arg ("EOIE_CONTROL_READ_ONLY", Arg ("EOIE_AGILE_TEST_PAUSE_MS", Arg ("AI_AGENT", Arg ("CLAUDECODE", NoArgs)))))
-inl home_of (root : fixture_root) : string = cat "EOIE_CONFIG_HOME=" (fixture_text_of root)
-inl renewing (root : fixture_root) : cli_args = Arg ("EOIE_LEASE_POLICY=renewing", Arg (home_of root, NoArgs))
+:= agile_drops () : cli_args =
+    Arg ("KIT_LEASE_ROOT", Arg ("KIT_CONTROL_READ_ONLY", Arg ("KIT_AGILE_TEST_PAUSE_MS", Arg ("AI_AGENT",
+        Arg ("CLAUDECODE", NoArgs)))))
+:= home_of (root : fixture_root) : string = cat "KIT_CONFIG_HOME=" (fixture_text_of root)
+:= renewing (root : fixture_root) : cli_args = Arg ("KIT_LEASE_POLICY=renewing", Arg (home_of root, NoArgs))
 
-inl agile_with (sets : cli_args) (drops : cli_args) (root : fixture_root) (~verb : string) (rest : cli_args) : cli_run =
-    eoie_run (temp_directory ()) sets drops (Arg ("agile", Arg (verb, Arg (fixture_text_of root, rest))))
+:= agile_with (sets : cli_args) (drops : cli_args) (root : fixture_root) (~verb : string) (rest : cli_args) : cli_run =
+    kit_run (temp_directory ()) sets drops (Arg ("agile", Arg (verb, Arg (fixture_text_of root, rest))))
 
-inl agile (root : fixture_root) (~verb : string) (rest : cli_args) : cli_run = agile_with (renewing root) (agile_drops ()) root verb rest
-inl strict (root : fixture_root) (~verb : string) (rest : cli_args) : cli_run = agile_with (Arg (home_of root, NoArgs)) (Arg ("EOIE_LEASE_POLICY", agile_drops ())) root verb rest
-inl accepted (root : fixture_root) (~verb : string) (rest : cli_args) : string = succeeded (agile root verb rest)
+:= agile (root : fixture_root) (~verb : string) (rest : cli_args) : cli_run =
+    agile_with (renewing root) (agile_drops ()) root verb rest
+:= strict (root : fixture_root) (~verb : string) (rest : cli_args) : cli_run =
+    agile_with (Arg (home_of root, NoArgs)) (Arg ("KIT_LEASE_POLICY", agile_drops ())) root verb rest
+:= accepted (root : fixture_root) (~verb : string) (rest : cli_args) : string = succeeded (agile root verb rest)
 
-inl from_title_with (sets : cli_args) (drops : cli_args) (root : fixture_root) (~id : string) : cli_run =
-    eoie_run (temp_directory ()) sets drops (Arg ("agile", Arg ("notes", Arg ("from-title", Arg (fixture_text_of root, Arg (id, NoArgs))))))
+:= from_title_with (sets : cli_args) (drops : cli_args) (root : fixture_root) (~id : string) : cli_run =
+    kit_run (temp_directory ()) sets drops (Arg ("agile", Arg ("notes", Arg ("from-title", Arg (fixture_text_of root,
+        Arg (id, NoArgs))))))
 
-inl from_title (root : fixture_root) (~id : string) : cli_run = from_title_with (renewing root) (agile_drops ()) root id
+:= from_title (root : fixture_root) (~id : string) : cli_run = from_title_with (renewing root) (agile_drops ()) root id
 
-inl state_text (root : fixture_root) : string = fixture_read root "state/agile.spi"
+:= state_text (root : fixture_root) : string = fixture_read root "state/agile.spi"
 
-inl unchanged_after (root : fixture_root) (run : cli_run) (~message : string) (~before : string) : () =
+:= unchanged_after (root : fixture_root) (run : cli_run) (~message : string) (~before : string) : () =
     rejected_with run 2i32 message
     same (state_text root) before
 
-inl lease_file () : string = "union lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\nunion prompt_lease = | PromptLease :: string * string * u64 * u64 * u64 * u64 * lease_status -> prompt_lease\ninl current () : prompt_lease = PromptLease (\"current\", \"groomed add fixture\", 4500000u64, 600000u64, 1791453217263u64, 1791458317263u64, LeaseActive)\ninl main () : i32 = 0i32\n"
+:= lease_file () : string =
+    "union lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\n"
+    ^^ "union prompt_lease = | PromptLease :: string * string * u64 * u64 * u64 * u64 * lease_status -> prompt_lease\n"
+    ^^ "inl current () : prompt_lease = PromptLease (\"current\", \"groomed add fixture\", 4500000u64, 600000u64, "
+    ^^ "1791453217263u64, 1791458317263u64, LeaseActive)\ninl main () : i32 = 0i32\n"
 
-inl volatile () : string = "bytes_before|bytes_after|elapsed_ms|at"
+:= volatile () : string = "bytes_before|bytes_after|elapsed_ms|at"
 
-inl backlog_new (~label : string) : fixture_root =
-    inl root = fixture_root_create (cat "agile notes ü " label)
-    inl _ = accepted root "init" NoArgs
-    inl _ = accepted root "add" (Arg ("ID-A", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Title of ID-A", Arg ("eoie", NoArgs)))))))
-    inl _ = accepted root "add" (Arg ("ID-B", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Title of ID-B", Arg ("eoie", NoArgs)))))))
-    inl _ = accepted root "add" (Arg ("ID-C", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Title of ID-C", Arg ("eoie", NoArgs)))))))
-    inl _ = accepted root "edit" (Arg ("ID-B", Arg ("deps", Arg ("ID-A", NoArgs))))
-    inl _ = accepted root "edit" (Arg ("ID-C", Arg ("title", Arg ("follow-up to ID-A", NoArgs))))
+:= backlog_new (~label : string) : fixture_root =
+    := root = fixture_root_create (cat "agile notes ü " label)
+    := _ = accepted root "init" NoArgs
+    := _ =
+        accepted root "add" (Arg ("ID-A", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Title of ID-A", Arg ("kit",
+            NoArgs)))))))
+    := _ =
+        accepted root "add" (Arg ("ID-B", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Title of ID-B", Arg ("kit",
+            NoArgs)))))))
+    := _ =
+        accepted root "add" (Arg ("ID-C", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Title of ID-C", Arg ("kit",
+            NoArgs)))))))
+    := _ = accepted root "edit" (Arg ("ID-B", Arg ("deps", Arg ("ID-A", NoArgs))))
+    := _ = accepted root "edit" (Arg ("ID-C", Arg ("title", Arg ("follow-up to ID-A", NoArgs))))
     root
 
-inl raced_notes (root : fixture_root) (~count : i32) : i32 =
-    inl binary = eoie_binary ()
-    inl path = fixture_text_of root
-    inl home = fixture_text_of root
-    $'{ let children = (0..!count).map(|k| { let mut command = std::process::Command::new(&*!binary); command.current_dir(std::env::temp_dir()).args(["agile", "note", &*!path, "ID-A", &format\!("race note {k}"), "--as", "racer"]).env("EOIE_LEASE_POLICY", "renewing").env("EOIE_CONFIG_HOME", &*!home).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()); for name in ["EOIE_LEASE_ROOT", "EOIE_CONTROL_READ_ONLY", "EOIE_AGILE_TEST_PAUSE_MS", "AI_AGENT", "CLAUDECODE"] { command.env_remove(name); } command.spawn().unwrap() }).collect::<Vec<_>>(); children.into_iter().map(|mut child| child.wait().map(|status| status.success()).unwrap_or(false)).filter(|ok| *ok).count() as i32 }' : i32
+:= raced_notes (root : fixture_root) (~count : i32) : i32 =
+    := binary = kit_binary ()
+    := path = fixture_text_of root
+    := home = fixture_text_of root
+    $'{ let children = (0..!count).map(|k| { let mut command = std::process::Command::new(&*!binary); \
+        command.current_dir(std::env::temp_dir()).args(["agile", "note", &*!path, "ID-A", &format\!("race note {k}"), \
+        "--as", "racer"]).env("KIT_LEASE_POLICY", "renewing").env("KIT_CONFIG_HOME", \
+        &*!home).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()); \
+        for name in ["KIT_LEASE_ROOT", "KIT_CONTROL_READ_ONLY", "KIT_AGILE_TEST_PAUSE_MS", "AI_AGENT", \
+        "CLAUDECODE"] { command.env_remove(name); } command.spawn().unwrap() }).collect::<Vec<_>>(); \
+        children.into_iter().map(|mut child| child.wait().map(|status| \
+        status.success()).unwrap_or(false)).filter(|ok| *ok).count() as i32 }' : i32
 
 ///> rust
-test agile_add_lands_a_groomed_item_in_one_call =
-    inl root = backlog_new "add-groomed"
+:# agile_add_lands_a_groomed_item_in_one_call =
+    := root = backlog_new "add-groomed"
     fixture_write root "state/prompt.spi" (lease_file ())
-    inl before = state_text root
-    inl options (rest : cli_args) : cli_args = Arg ("PR-17", Arg ("TaskKind", Arg ("P0", Arg ("D2", Arg ("Block", Arg ("ops", rest))))))
-    unchanged_after root (agile root "add" (options (Arg ("--size", Arg ("2", NoArgs))))) "agile add PR-17 rejected: unknown option --size (expected --estimate, --load, --assignee, --deps, --note, --as)" before
-    unchanged_after root (agile_with (renewing root) (Arg ("EOIE_AUTHOR", agile_drops ())) root "add" (options (Arg ("--note", Arg ("why", NoArgs))))) "a note needs its author" before
+    := before = state_text root
+    := options (rest : cli_args) : cli_args =
+        Arg ("PR-17", Arg ("TaskKind", Arg ("P0", Arg ("D2", Arg ("Block", Arg ("ops", rest))))))
+    unchanged_after root
+        (agile root "add" (options (Arg ("--size", Arg ("2", NoArgs)))))
+        (
+            "agile add PR-17 rejected: unknown option --size (expected --estimate, --load, --assignee, --deps, "
+            ^^ "--note, --as)"
+        )
+        before
+    unchanged_after root
+        (
+            agile_with (renewing root) (Arg ("KIT_AUTHOR", agile_drops ())) root "add" (options (Arg ("--note",
+                Arg ("why", NoArgs))))
+        )
+        "a note needs its author"
+        before
     unchanged_after root (agile root "add" (options (Arg ("--load", NoArgs)))) "--load needs a value" before
-    unchanged_after root (agile root "add" (options (Arg ("--estimate", Arg ("abc", NoArgs))))) "estimate must be" before
-    inl added = accepted root "add" (options (Arg ("--estimate", Arg ("2h", Arg ("--load", Arg ("light", Arg ("--assignee", Arg ("agent", Arg ("--deps", Arg ("ID-A,ID-B", Arg ("--note", Arg ("groomed at intake", Arg ("--as", Arg ("ops", NoArgs))))))))))))))
-    shows added "eoie agile add ok id=PR-17 binding=pr_17 status=Planned progress=0 deps=ID-A,ID-B planned=estimate,load,assignee notes=1 bytes_before="
-    inl shown = accepted root "show" (Arg ("PR-17", NoArgs))
+    unchanged_after root
+        (agile root "add" (options (Arg ("--estimate", Arg ("abc", NoArgs)))))
+        "estimate must be"
+        before
+    := added =
+        accepted root "add" (options (Arg ("--estimate", Arg ("2h", Arg ("--load", Arg ("light", Arg ("--assignee",
+            Arg ("agent", Arg ("--deps", Arg ("ID-A,ID-B", Arg ("--note", Arg ("groomed at intake", Arg ("--as",
+            Arg ("ops", NoArgs))))))))))))))
+    shows added (
+        "kit agile add ok id=PR-17 binding=pr_17 status=Planned progress=0 deps=ID-A,ID-B "
+        ^^ "planned=estimate,load,assignee notes=1 bytes_before="
+    )
+    := shown = accepted root "show" (Arg ("PR-17", NoArgs))
     shows shown "deps: ID-A,ID-B"
     shows shown "planning: estimate=120m load=light assignee=agent"
     shows shown "ops  groomed at intake"
-    shows (accepted root "check" NoArgs) "eoie agile check ok"
+    shows (accepted root "check" NoArgs) "kit agile check ok"
     fixture_root_remove root
 
 ///> rust
-test parallel_writers_queue_on_the_state_lock_and_every_note_lands =
-    inl root = backlog_new "race"
+:# parallel_writers_queue_on_the_state_lock_and_every_note_lands =
+    := root = backlog_new "race"
     expect (raced_notes root 8i32 = 8i32) "every parallel note call succeeded"
-    inl state = state_text root
+    := state = state_text root
     expect (lines_starting_count state "inl note_of_id_a_" = 8i32) state
     shows state "race note 0"
     shows state "race note 7"
-    expect (path_exists (fixture_path root "state/agile.spi.lock") = false) "the lock is released"
+    expect (path_exists (fixture_path root "state/agile.spi.lock") = !-) "the lock is released"
     fixture_root_remove root
 ///> rust
-test agile_note_appends_dated_notes_shown_under_the_title_and_in_json =
-    inl root = backlog_new "note"
-    inl first = accepted root "note" (Arg ("ID-A", Arg ("first finding", Arg ("--as", Arg ("lane 2", NoArgs)))))
-    same (receipt_shape first "eoie agile note " (volatile ())) "eoie agile note ok id=ID-A note=1 at=N author=\"lane 2\" text_bytes=13 bytes_before=N bytes_after=N elapsed_ms=N"
-    inl stamp = word_after first " at="
+:# agile_note_appends_dated_notes_shown_under_the_title_and_in_json =
+    := root = backlog_new "note"
+    := first = accepted root "note" (Arg ("ID-A", Arg ("first finding", Arg ("--as", Arg ("lane 2", NoArgs)))))
+    same
+        (receipt_shape first "kit agile note " (volatile ()))
+        (
+            "kit agile note ok id=ID-A note=1 at=N author=\"lane 2\" text_bytes=13 bytes_before=N bytes_after=N "
+            ^^ "elapsed_ms=N"
+        )
+    := stamp = word_after first " at="
     expect (utc_minute stamp) (cat "not a UTC minute stamp: " stamp)
-    inl second = accepted root "note" (Arg ("ID-A", Arg ("a \"quoted\" path C:\\x", NoArgs)))
-    same (receipt_shape second "eoie agile note " (volatile ())) "eoie agile note ok id=ID-A note=2 at=N author=\"user\" text_bytes=20 bytes_before=N bytes_after=N elapsed_ms=N"
-    inl show = accepted root "show" (Arg ("ID-A", NoArgs))
+    := second = accepted root "note" (Arg ("ID-A", Arg ("a \"quoted\" path C:\\x", NoArgs)))
+    same
+        (receipt_shape second "kit agile note " (volatile ()))
+        "kit agile note ok id=ID-A note=2 at=N author=\"user\" text_bytes=20 bytes_before=N bytes_after=N elapsed_ms=N"
+    := show = accepted root "show" (Arg ("ID-A", NoArgs))
     same (line_after show "Title of ID-A" 1i32) "notes (2)"
-    inl noted = line_after show "Title of ID-A" 2i32
+    := noted = line_after show "Title of ID-A" 2i32
     expect (ends noted "  lane 2  first finding" && starts noted stamp) (cat "first note line: " show)
-    expect (ends (line_after show "Title of ID-A" 3i32) "  user  a \"quoted\" path C:\\x") (cat "second note line: " show)
-    shows (accepted root "show" (Arg ("ID-A", Arg ("--json", NoArgs)))) (cat (cat "\"notes\":[{\"at\":\"" stamp) "\",\"author\":\"lane 2\",\"text\":\"first finding\"},")
+    expect
+        (ends (line_after show "Title of ID-A" 3i32) "  user  a \"quoted\" path C:\\x")
+        (cat "second note line: " show)
+    shows
+        (accepted root "show" (Arg ("ID-A", Arg ("--json", NoArgs))))
+        (cat (cat "\"notes\":[{\"at\":\"" stamp) "\",\"author\":\"lane 2\",\"text\":\"first finding\"},")
     shows (accepted root "show" (Arg ("ID-B", Arg ("--json", NoArgs)))) "\"notes\":[]"
     hides (accepted root "show" (Arg ("ID-B", NoArgs))) "notes ("
-    inl before = state_text root
+    := before = state_text root
     shows before "union task_note =\n    | Note :: string * u32 * string * string * string -> task_note"
     unchanged_after root (agile root "note" (Arg ("ID-A", Arg ("   ", NoArgs)))) "the note text is empty" before
     unchanged_after root (agile root "note" (Arg ("NO-SUCH", Arg ("text", NoArgs)))) "no task with this id" before
-    unchanged_after root (agile root "note" (Arg ("ID-A", Arg ("text", Arg ("--by", Arg ("x", NoArgs)))))) "usage: agile note <root> <id> <text> [--as <author>]" before
+    unchanged_after root
+        (agile root "note" (Arg ("ID-A", Arg ("text", Arg ("--by", Arg ("x", NoArgs))))))
+        "usage: agile note <root> <id> <text> [--as <author>]"
+        before
     fixture_root_remove root
 
 ///> rust
-test notes_from_title_moves_each_tail_into_a_dated_note =
-    inl root = backlog_new "from-title"
-    inl _ = accepted root "note" (Arg ("ID-A", Arg ("kept note", NoArgs)))
-    inl title = "base work (a; b); 2026-10-13 22:10 found the gap; 23:05 fixed it; plain tail; 2026-10-14 next day"
-    inl _ = accepted root "edit" (Arg ("ID-A", Arg ("title", Arg (title, NoArgs))))
-    inl moved = succeeded (from_title root "ID-A")
-    same (receipt_shape moved "eoie agile notes " (volatile ())) (cat (cat "eoie agile notes ok id=ID-A moved=3 title_bytes_before=" (decimal (byte_count title))) " title_bytes_after=16 bytes_before=N bytes_after=N elapsed_ms=N")
-    inl show = accepted root "show" (Arg ("ID-A", NoArgs))
+:# notes_from_title_moves_each_tail_into_a_dated_note =
+    := root = backlog_new "from-title"
+    := _ = accepted root "note" (Arg ("ID-A", Arg ("kept note", NoArgs)))
+    := title = "base work (a; b); 2026-10-13 22:10 found the gap; 23:05 fixed it; plain tail; 2026-10-14 next day"
+    := _ = accepted root "edit" (Arg ("ID-A", Arg ("title", Arg (title, NoArgs))))
+    := moved = succeeded (from_title root "ID-A")
+    same
+        (receipt_shape moved "kit agile notes " (volatile ()))
+        (
+            cat
+                (cat "kit agile notes ok id=ID-A moved=3 title_bytes_before=" (decimal (byte_count title)))
+                " title_bytes_after=16 bytes_before=N bytes_after=N elapsed_ms=N"
+        )
+    := show = accepted root "show" (Arg ("ID-A", NoArgs))
     same (line_after show "base work (a; b)" 1i32) "notes (4)"
     expect (ends (line_after show "base work (a; b)" 2i32) "  user  kept note") (cat "kept note line: " show)
-    inl gap = line_after show "base work (a; b)" 3i32
-    expect (starts gap "2026-10-13 22:10" && ends gap "  migrated  found the gap") (cat "found the gap note keeps its UTC stamp, local time aside: " gap)
-    inl fix = line_after show "base work (a; b)" 4i32
-    expect (starts fix "2026-10-13 23:05" && ends fix "  migrated  fixed it; plain tail") (cat "fixed it note keeps its UTC stamp, local time aside: " fix)
+    := gap = line_after show "base work (a; b)" 3i32
+    expect
+        (starts gap "2026-10-13 22:10" && ends gap "  migrated  found the gap")
+        (cat "found the gap note keeps its UTC stamp, local time aside: " gap)
+    := fix = line_after show "base work (a; b)" 4i32
+    expect
+        (starts fix "2026-10-13 23:05" && ends fix "  migrated  fixed it; plain tail")
+        (cat "fixed it note keeps its UTC stamp, local time aside: " fix)
     same (line_after show "base work (a; b)" 5i32) "2026-10-14  migrated  next day"
-    inl before = state_text root
-    unchanged_after root (from_title root "ID-A") "the title has no \"; \" tail starting with a date or time to move" before
+    := before = state_text root
+    unchanged_after root
+        (from_title root "ID-A")
+        "the title has no \"; \" tail starting with a date or time to move"
+        before
     unchanged_after root (from_title root "NO-SUCH") "no task with this id" before
     fixture_root_remove root
 
 ///> rust
-test rename_rewrites_the_task_its_planning_notes_and_every_dependency =
-    inl root = backlog_new "rename"
-    inl _ = accepted root "note" (Arg ("ID-A", Arg ("moves with the task", NoArgs)))
-    inl _ = accepted root "edit" (Arg ("ID-A", Arg ("estimate", Arg ("2h", NoArgs))))
-    inl renamed = accepted root "rename" (Arg ("ID-A", Arg ("ID-Z", NoArgs)))
-    same (receipt_shape renamed "eoie agile rename " (volatile ())) "eoie agile rename ok old=ID-A new=ID-Z items=3 deps_rewritten=1 deps_in=ID-B titles_mentioning_old=1 titles_in=ID-C bytes_before=N bytes_after=N elapsed_ms=N"
-    inl state = state_text root
+:# rename_rewrites_the_task_its_planning_notes_and_every_dependency =
+    := root = backlog_new "rename"
+    := _ = accepted root "note" (Arg ("ID-A", Arg ("moves with the task", NoArgs)))
+    := _ = accepted root "edit" (Arg ("ID-A", Arg ("estimate", Arg ("2h", NoArgs))))
+    := renamed = accepted root "rename" (Arg ("ID-A", Arg ("ID-Z", NoArgs)))
+    same
+        (receipt_shape renamed "kit agile rename " (volatile ()))
+        (
+            "kit agile rename ok old=ID-A new=ID-Z items=3 deps_rewritten=1 deps_in=ID-B titles_mentioning_old=1 "
+            ^^ "titles_in=ID-C bytes_before=N bytes_after=N elapsed_ms=N"
+        )
+    := state = state_text root
     shows state "inl id_z () = Task (\"ID-Z\","
     shows state "inl planning_of_id_z () = Planning (\"ID-Z\","
     shows state "inl note_of_id_z_1 () = Note (\"ID-Z\", 1u32,"
     hides state "(\"ID-A\","
     expect (has_line (accepted root "show" (Arg ("ID-B", NoArgs))) "deps: ID-Z") "ID-B does not depend on ID-Z"
-    inl shown = accepted root "show" (Arg ("ID-Z", NoArgs))
+    := shown = accepted root "show" (Arg ("ID-Z", NoArgs))
     shows shown "planning: estimate=120m"
     shows shown "  user  moves with the task"
     shows (accepted root "show" (Arg ("ID-C", NoArgs))) "follow-up to ID-A"
-    inl before = state_text root
-    unchanged_after root (agile root "rename" (Arg ("ID-Z", Arg ("ID-B", NoArgs)))) "the id ID-B is already taken" before
-    unchanged_after root (agile root "rename" (Arg ("ID-Z", Arg ("id-lower", NoArgs)))) "a task id is upper-case letters, digits and -" before
+    := before = state_text root
+    unchanged_after root
+        (agile root "rename" (Arg ("ID-Z", Arg ("ID-B", NoArgs))))
+        "the id ID-B is already taken"
+        before
+    unchanged_after root
+        (agile root "rename" (Arg ("ID-Z", Arg ("id-lower", NoArgs))))
+        "a task id is upper-case letters, digits and -"
+        before
     unchanged_after root (agile root "rename" (Arg ("NO-SUCH", Arg ("ID-Y", NoArgs)))) "no task with this id" before
-    unchanged_after root (agile root "rename" (Arg ("ID-Z", Arg ("ID-Z", NoArgs)))) "the new id equals the old one" before
-    unchanged_after root (agile root "rename" (Arg ("ID-Z", Arg ("MAIN", NoArgs)))) "the name inl main is already declared" before
-    unchanged_after root (agile root "rename" (Arg ("ID-Z", Arg ("2FA-LOGIN", NoArgs)))) "the new id must start with a letter" before
+    unchanged_after root
+        (agile root "rename" (Arg ("ID-Z", Arg ("ID-Z", NoArgs))))
+        "the new id equals the old one"
+        before
+    unchanged_after root
+        (agile root "rename" (Arg ("ID-Z", Arg ("MAIN", NoArgs))))
+        "the name inl main is already declared"
+        before
+    unchanged_after root
+        (agile root "rename" (Arg ("ID-Z", Arg ("2FA-LOGIN", NoArgs))))
+        "the new id must start with a letter"
+        before
     fixture_root_remove root
 
 ///> rust
-test a_write_from_outside_between_read_and_commit_wins_and_the_rename_writes_nothing =
-    inl root = backlog_new "concurrent"
-    inl before = state_text root
-    inl outside = "inl outside_marker () = 0i32\n"
-    inl paused = Arg ("EOIE_AGILE_TEST_PAUSE_MS=1500", renewing root)
-    inl run = eoie_run_racing (temp_directory ()) paused (agile_drops ()) (Arg ("agile", Arg ("rename", Arg (fixture_text_of root, Arg ("ID-A", Arg ("ID-Z", NoArgs)))))) (fixture_path root "state/agile.spi.paused") (fixture_path root "state/agile.spi") outside
+:# a_write_from_outside_between_read_and_commit_wins_and_the_rename_writes_nothing =
+    := root = backlog_new "concurrent"
+    := before = state_text root
+    := outside = "inl outside_marker () = 0i32\n"
+    := paused = Arg ("KIT_AGILE_TEST_PAUSE_MS=1500", renewing root)
+    := run =
+        kit_run_racing
+            (temp_directory ())
+            paused
+            (agile_drops ())
+            (Arg ("agile", Arg ("rename", Arg (fixture_text_of root, Arg ("ID-A", Arg ("ID-Z", NoArgs))))))
+            (fixture_path root "state/agile.spi.paused")
+            (fixture_path root "state/agile.spi")
+            outside
     rejected_with run 2i32 "state/agile.spi changed since it was read; nothing written, run the call again"
     same (state_text root) (cat before outside)
     fixture_root_remove root
 
 ///> rust
-test an_expired_lease_blocks_note_from_title_and_rename_alike =
-    inl root = backlog_new "lease"
-    inl _ = accepted root "edit" (Arg ("ID-A", Arg ("title", Arg ("base; 22:10 tail", NoArgs))))
-    fixture_write root "state/prompt.spi" "union lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\nunion prompt_lease = | PromptLease :: string * string * u64 * u64 * u64 * u64 * lease_status -> prompt_lease\ninl current () : prompt_lease = PromptLease (\"fixture\", \"expired effect lease\", 3000000u64, 600000u64, 1000u64, 3601000u64, LeaseActive)\ninl main () : i32 = 0i32\n"
-    inl before = state_text root
-    inl strict_drops = Arg ("EOIE_LEASE_POLICY", agile_drops ())
+:# an_expired_lease_blocks_note_from_title_and_rename_alike =
+    := root = backlog_new "lease"
+    := _ = accepted root "edit" (Arg ("ID-A", Arg ("title", Arg ("base; 22:10 tail", NoArgs))))
+    fixture_write root
+        "state/prompt.spi"
+        (
+            "union lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\n"
+            ^^ "union prompt_lease = | PromptLease :: string * string * u64 * u64 * u64 * u64 * lease_status -> "
+            ^^ "prompt_lease\ninl current () : prompt_lease = PromptLease (\"fixture\", \"expired effect lease\", "
+            ^^ "3000000u64, 600000u64, 1000u64, 3601000u64, LeaseActive)\ninl main () : i32 = 0i32\n"
+        )
+    := before = state_text root
+    := strict_drops = Arg ("KIT_LEASE_POLICY", agile_drops ())
     failed_with (strict root "note" (Arg ("ID-A", Arg ("text", NoArgs)))) "lease authority blocked mutating effect"
     same (state_text root) before
-    failed_with (from_title_with (Arg (home_of root, NoArgs)) strict_drops root "ID-A") "lease authority blocked mutating effect"
+    failed_with
+        (from_title_with (Arg (home_of root, NoArgs)) strict_drops root "ID-A")
+        "lease authority blocked mutating effect"
     same (state_text root) before
     failed_with (strict root "rename" (Arg ("ID-A", Arg ("ID-Z", NoArgs)))) "lease authority blocked mutating effect"
     same (state_text root) before
     fixture_root_remove root
 
 ///> rust
-test agile_add_rejects_an_id_that_starts_with_a_digit =
-    inl root = backlog_new "add-digit"
-    inl before = state_text root
-    unchanged_after root (agile root "add" (Arg ("2FA-LOGIN", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Two factor", Arg ("eoie", NoArgs)))))))) "agile add 2FA-LOGIN rejected: the id must start with a letter, so its inl name is a valid identifier" before
-    expect (starts (accepted root "add" (Arg ("FA2-LOGIN", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Two factor", Arg ("eoie", NoArgs)))))))) "eoie agile add ok id=FA2-LOGIN binding=fa2_login ") "FA2-LOGIN add receipt"
+:# agile_add_rejects_an_id_that_starts_with_a_digit =
+    := root = backlog_new "add-digit"
+    := before = state_text root
+    unchanged_after root
+        (
+            agile root "add" (Arg ("2FA-LOGIN", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Two factor", Arg ("kit",
+                NoArgs)))))))
+        )
+        "agile add 2FA-LOGIN rejected: the id must start with a letter, so its inl name is a valid identifier"
+        before
+    expect
+        (
+            starts
+                (
+                    accepted root "add" (Arg ("FA2-LOGIN", Arg ("TaskKind", Arg ("P1", Arg ("D3", Arg ("Two factor",
+                        Arg ("kit", NoArgs)))))))
+                )
+                "kit agile add ok id=FA2-LOGIN binding=fa2_login "
+        )
+        "FA2-LOGIN add receipt"
     fixture_root_remove root
 
 ///> rust
-test a_root_fresh_from_init_takes_a_groomed_add_without_a_hand_written_lease =
-    inl root = fixture_root_create "agile init lease"
+:# a_root_fresh_from_init_takes_a_groomed_add_without_a_hand_written_lease =
+    := root = fixture_root_create "agile init lease"
     shows (accepted root "init" NoArgs) "files=3"
     shows (fixture_read root "state/prompt.spi") "LeaseActive)"
-    shows (accepted root "add" (Arg ("PR-1", Arg ("TaskKind", Arg ("P1", Arg ("D2", Arg ("First item", Arg ("ops", Arg ("--estimate", Arg ("1h", NoArgs)))))))))) "eoie agile add ok id=PR-1"
+    shows
+        (
+            accepted root "add" (Arg ("PR-1", Arg ("TaskKind", Arg ("P1", Arg ("D2", Arg ("First item", Arg ("ops",
+                Arg ("--estimate", Arg ("1h", NoArgs)))))))))
+        )
+        "kit agile add ok id=PR-1"
     failed_with (agile root "init" NoArgs) "already exists"
     fixture_root_remove root
 
 ///> rust
-test show_reads_the_newest_or_matching_notes_with_their_numbers =
-    inl root = backlog_new "show filters"
-    inl _ = accepted root "note" (Arg ("ID-A", Arg ("first finding", NoArgs)))
-    inl _ = accepted root "note" (Arg ("ID-A", Arg ("second clue", NoArgs)))
-    inl _ = accepted root "note" (Arg ("ID-A", Arg ("third finding", NoArgs)))
-    inl newest = accepted root "show" (Arg ("ID-A", Arg ("--last", Arg ("1", NoArgs))))
+:# show_reads_the_newest_or_matching_notes_with_their_numbers =
+    := root = backlog_new "show filters"
+    := _ = accepted root "note" (Arg ("ID-A", Arg ("first finding", NoArgs)))
+    := _ = accepted root "note" (Arg ("ID-A", Arg ("second clue", NoArgs)))
+    := _ = accepted root "note" (Arg ("ID-A", Arg ("third finding", NoArgs)))
+    := newest = accepted root "show" (Arg ("ID-A", Arg ("--last", Arg ("1", NoArgs))))
     shows newest "notes (1/3)"
     shows newest "#3 "
     hides newest "first finding"
-    inl matching = accepted root "show" (Arg ("ID-A", Arg ("--grep", Arg ("CLUE", NoArgs))))
+    := matching = accepted root "show" (Arg ("ID-A", Arg ("--grep", Arg ("CLUE", NoArgs))))
     shows matching "notes (1/3)"
     shows matching "#2 "
     hides matching "third finding"
-    unchanged_after root (agile root "show" (Arg ("ID-A", Arg ("--bogus", Arg ("x", NoArgs))))) "options are --json, --last <n> or --grep <word>" (state_text root)
+    unchanged_after root
+        (agile root "show" (Arg ("ID-A", Arg ("--bogus", Arg ("x", NoArgs)))))
+        "options are --json, --last <n> or --grep <word>"
+        (state_text root)
     fixture_root_remove root
 
 ///> rust
-test note_edit_append_adds_a_sentence_to_the_stored_note =
-    inl root = backlog_new "note append"
-    inl _ = accepted root "note" (Arg ("ID-A", Arg ("first finding.", Arg ("--as", Arg ("lane 2", NoArgs)))))
-    inl _ = accepted root "note-edit" (Arg ("ID-A", Arg ("1", Arg ("second sentence.", Arg ("--append", Arg ("--as", Arg ("lane 2", NoArgs)))))))
+:# note_edit_append_adds_a_sentence_to_the_stored_note =
+    := root = backlog_new "note append"
+    := _ = accepted root "note" (Arg ("ID-A", Arg ("first finding.", Arg ("--as", Arg ("lane 2", NoArgs)))))
+    := _ =
+        accepted root "note-edit" (Arg ("ID-A", Arg ("1", Arg ("second sentence.", Arg ("--append", Arg ("--as",
+            Arg ("lane 2", NoArgs)))))))
     shows (accepted root "show" (Arg ("ID-A", NoArgs))) "  lane 2  first finding. second sentence."
-    unchanged_after root (agile root "note-edit" (Arg ("ID-A", Arg ("1", Arg ("x", Arg ("--bogus", NoArgs)))))) "usage: agile note-edit <root> <id> <note-number> <text> [--as <author>] [--append]" (state_text root)
+    unchanged_after root
+        (agile root "note-edit" (Arg ("ID-A", Arg ("1", Arg ("x", Arg ("--bogus", NoArgs))))))
+        "usage: agile note-edit <root> <id> <note-number> <text> [--as <author>] [--append]"
+        (state_text root)
     fixture_root_remove root
 
 ///> rust
-test note_takes_as_before_or_after_the_text =
-    inl root = backlog_new "note as first"
-    inl _ = accepted root "note" (Arg ("ID-A", Arg ("--as", Arg ("lane 2", Arg ("flag first", NoArgs)))))
-    inl _ = accepted root "note" (Arg ("ID-A", Arg ("flag last", Arg ("--as", Arg ("lane 2", NoArgs)))))
-    inl show = accepted root "show" (Arg ("ID-A", NoArgs))
+:# note_takes_as_before_or_after_the_text =
+    := root = backlog_new "note as first"
+    := _ = accepted root "note" (Arg ("ID-A", Arg ("--as", Arg ("lane 2", Arg ("flag first", NoArgs)))))
+    := _ = accepted root "note" (Arg ("ID-A", Arg ("flag last", Arg ("--as", Arg ("lane 2", NoArgs)))))
+    := show = accepted root "show" (Arg ("ID-A", NoArgs))
     shows show "  lane 2  flag first"
     shows show "  lane 2  flag last"
-    unchanged_after root (agile root "note" (Arg ("ID-A", Arg ("--as", Arg ("lane 2", Arg ("", NoArgs)))))) "the note text is empty" (state_text root)
+    unchanged_after root
+        (agile root "note" (Arg ("ID-A", Arg ("--as", Arg ("lane 2", Arg ("", NoArgs))))))
+        "the note text is empty"
+        (state_text root)
     fixture_root_remove root

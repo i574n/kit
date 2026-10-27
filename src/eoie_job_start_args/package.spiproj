@@ -1,8 +1,0 @@
-packages:
-    |core-
-    spiral-
-    union_reflection
-    eoie_jobs
-    eoie_job_launch_model
-modules:
-    start_args

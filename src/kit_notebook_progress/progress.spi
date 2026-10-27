@@ -1,0 +1,23 @@
+:< sm'_operators
+:< file_system_operators
+:< model
+
+:= run_notebook_batch (command : string) : bool =
+    sm'.contains "run_notebook.ps1" command && sm'.contains " --output-dir " command
+
+:= now_ms () : u64 = convert.u64 (reactors.physical_micros () / 1000i64)
+
+:~ notebook_batch_line (command : string) (age_minutes : u64) (now : u64) : string =
+    ? run_notebook_batch command |> not ?> ""
+    |:
+        := dir = batch_output_dir command
+        := started_ms = now - (age_minutes + 1u64) * 60000u64
+        := progress = batch_progress_of command (\ name => file_system.last_write_ms (dir </> name)) started_ms
+        batch_progress_text progress started_ms now
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_notebook_batch_line",
+        ((\ (command, age_minutes) => notebook_batch_line command age_minutes (now_ms ())) : string * u64 -> string)
+    )
+    0i32

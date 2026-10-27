@@ -1,13 +1,12 @@
-inl rust_global (x : string) : () = !!!!Global(x)
 
-inl emit_coverage_run () : () =
-    rust_global """
+:= emit_coverage_run () : () =
+    global """
         pub fn coverage_finish(code: i32) -> i32 {
-            #[cfg(all(windows, eoie_coverage))]
+            #[cfg(all(windows, kit_coverage))]
             {
                 unsafe extern "C" { fn __llvm_profile_write_file() -> i32; }
                 if unsafe { __llvm_profile_write_file() } != 0 {
-                    eprintln!("eoie error: coverage profile flush failed");
+                    eprintln!("kit error: coverage profile flush failed");
                     return if code == 0 { 1 } else { code };
                 }
             }
@@ -19,21 +18,21 @@ inl emit_coverage_run () : () =
         }
 
         fn coverage_jobs() -> Result<String, String> {
-            let requested = env::var("EOIE_COVERAGE_JOBS").or_else(|_| env::var("CARGO_BUILD_JOBS")).ok();
+            let requested = env::var("KIT_COVERAGE_JOBS").or_else(|_| env::var("CARGO_BUILD_JOBS")).ok();
             let requested = match requested {
                 Some(value) => value.parse::<i32>().ok().filter(|value| *value > 0).unwrap_or(-1),
                 None => 0,
             };
             let available = std::thread::available_parallelism().map(|value| i32::try_from(value.get()).unwrap_or(i32::MAX)).unwrap_or(1);
-            let jobs = eoie_coverage_jobs(requested, available);
-            if jobs < 1 { return Err("EOIE_COVERAGE_JOBS/CARGO_BUILD_JOBS must be within 1..=256".to_owned()); }
+            let jobs = kit_coverage_jobs(requested, available);
+            if jobs < 1 { return Err("KIT_COVERAGE_JOBS/CARGO_BUILD_JOBS must be within 1..=256".to_owned()); }
             Ok(jobs.to_string())
         }
 
         fn coverage_run_test_args(scope: &str, jobs: &str) -> Result<Vec<String>, String> {
             let mut args = vec!["test".to_owned(), "--offline".to_owned(), "--locked".to_owned(), "--release".to_owned()];
             match scope {
-                "public" => args.extend(["-p", "eoie-contracts", "--lib"].into_iter().map(str::to_owned)),
+                "public" => args.extend(["-p", "kit-contracts", "--lib"].into_iter().map(str::to_owned)),
                 "workspace" => args.extend(["--workspace", "--lib", "--bins", "--tests"].into_iter().map(str::to_owned)),
                 value if value.starts_with("owner:") => { let package = &value[6..]; if package.is_empty() || !package.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_') { return Err("coverage owner scope is invalid".to_owned()); } args.extend(["-p".to_owned(), package.to_owned(), "--all-targets".to_owned()]); },
                 _ => return Err("coverage scope must be public workspace smoke or owner:<package>".to_owned()),
@@ -70,12 +69,12 @@ inl emit_coverage_run () : () =
         fn coverage_run_phase(context: &CoverageRunContext<'_>, command_args: &[String], phase: &str) -> Result<(), String> {
             let started = std::time::Instant::now();
             let mut command = Command::new(context.cargo);
-            command.current_dir(context.source).args(command_args).env("CARGO_TARGET_DIR", context.target).env("CARGO_BUILD_JOBS", context.jobs).env("RUST_TEST_THREADS", env::var("RUST_TEST_THREADS").unwrap_or_else(|_| context.jobs.to_owned())).env("CARGO_INCREMENTAL", "1").env_remove("CARGO_ENCODED_RUSTFLAGS").env("RUSTFLAGS", "-C instrument-coverage --cfg eoie_coverage").env("LLVM_PROFILE_FILE", context.profile_pattern).env("EOIE_SPIRAL_COMPILE", context.compiler).env("EOIE_BIN_UNDER_TEST", context.binary).env("RAYON_NUM_THREADS", context.jobs);
+            command.current_dir(context.source).args(command_args).env("CARGO_TARGET_DIR", context.target).env("CARGO_BUILD_JOBS", context.jobs).env("RUST_TEST_THREADS", env::var("RUST_TEST_THREADS").unwrap_or_else(|_| context.jobs.to_owned())).env("CARGO_INCREMENTAL", "1").env_remove("CARGO_ENCODED_RUSTFLAGS").env("RUSTFLAGS", "-C instrument-coverage --cfg kit_coverage").env("LLVM_PROFILE_FILE", context.profile_pattern).env("KIT_SPIRAL_COMPILE", context.compiler).env("KIT_BIN_UNDER_TEST", context.binary).env("RAYON_NUM_THREADS", context.jobs);
             let _observation = coverage_run_bounded_streaming_checked(&mut command, context.timeout_ms, phase, None)?;
         """
 
-    rust_global """
-            println!("eoie coverage phase={phase} status=passed elapsed_ms={}", started.elapsed().as_millis());
+    global """
+            println!("kit coverage phase={phase} status=passed elapsed_ms={}", started.elapsed().as_millis());
             Ok(())
         }
 
@@ -102,31 +101,31 @@ inl emit_coverage_run () : () =
             else { coverage_smoke_preflight(&env::current_exe().map_err(|error| error.to_string())?, root, timeout_ms)?; }
             fs::create_dir_all(target).map_err(|error| format!("create {}: {error}", target.display()))?;
             let profile_pattern = profraw.join("%p-%m.profraw").to_string_lossy().into_owned();
-            let binary = target.join("release").join(if cfg!(windows) { "eoie.exe" } else { "eoie" });
-            let smoke_child = env::var("EOIE_COVERAGE_SMOKE_CHILD").ok().as_deref() == Some("1");
+            let binary = target.join("release").join(if cfg!(windows) { "kit.exe" } else { "kit" });
+            let smoke_child = env::var("KIT_COVERAGE_SMOKE_CHILD").ok().as_deref() == Some("1");
             if smoke_child {
                 if scope != "smoke" { return Err("coverage smoke child requires smoke scope".to_owned()); }
-                if !binary.is_file() { return Err(format!("instrumented EOIE binary missing: {}", binary.display())); }
+                if !binary.is_file() { return Err(format!("instrumented KIT binary missing: {}", binary.display())); }
                 let smoke_context = CoverageSmokeContext { root, cargo, compiler, binary: &binary, target, profile_pattern: &profile_pattern, timeout_ms, jobs: &jobs };
                 coverage_smoke_run(&smoke_context)?;
-                println!("eoie coverage smoke child ok target={}", target.display());
+                println!("kit coverage smoke child ok target={}", target.display());
                 return Ok(());
             }
             let removed = coverage_clear_profraw(profraw)?;
-            let build = ["build", "--offline", "--locked", "--release", "-p", "eoie-cli", "--bin", "eoie", "--jobs", jobs.as_str()].into_iter().map(str::to_owned).collect::<Vec<_>>();
+            let build = ["build", "--offline", "--locked", "--release", "-p", "kit-cli", "--bin", "kit", "--jobs", jobs.as_str()].into_iter().map(str::to_owned).collect::<Vec<_>>();
             let context = CoverageRunContext { cargo, source: &source, target, profile_pattern: &profile_pattern, compiler, binary: &binary, jobs: &jobs, timeout_ms };
             coverage_run_phase(&context, &build, "build-binary")?;
-            if !binary.is_file() { return Err(format!("instrumented EOIE binary missing: {}", binary.display())); }
+            if !binary.is_file() { return Err(format!("instrumented KIT binary missing: {}", binary.display())); }
             let preflight = profraw.join("preflight");
             coverage_clear_profraw(&preflight)?;
             let mut probe = Command::new(&binary);
             probe.current_dir(root).args(["help", "--schema"]).env("LLVM_PROFILE_FILE", preflight.join("%p-%m.profraw"));
             coverage_run_bounded_streaming_checked(&mut probe, timeout_ms, "coverage-binary-probe", None)?;
-            if coverage_profile_count(&preflight)? == 0 { return Err("instrumented EOIE produced no nonempty profile; check coverage flags and Windows profile flushing".to_owned()); }
+            if coverage_profile_count(&preflight)? == 0 { return Err("instrumented KIT produced no nonempty profile; check coverage flags and Windows profile flushing".to_owned()); }
 
             if scope == "smoke" {
                 let mut command = Command::new(&binary);
-                command.current_dir(root).arg("proxy").args(args).env("EOIE_COVERAGE_SMOKE_CHILD", "1").env("LLVM_PROFILE_FILE", &profile_pattern).env("EOIE_SPIRAL_COMPILE", compiler).env("EOIE_BIN_UNDER_TEST", &binary).env("CARGO_TARGET_DIR", target).env("RAYON_NUM_THREADS", &jobs);
+                command.current_dir(root).arg("proxy").args(args).env("KIT_COVERAGE_SMOKE_CHILD", "1").env("LLVM_PROFILE_FILE", &profile_pattern).env("KIT_SPIRAL_COMPILE", compiler).env("KIT_BIN_UNDER_TEST", &binary).env("CARGO_TARGET_DIR", target).env("RAYON_NUM_THREADS", &jobs);
                 let _observation = coverage_run_bounded_streaming_checked(&mut command, timeout_ms, "smoke-reentry", None)?;
             } else {
                 let tests = coverage_run_test_args(scope, &jobs)?;
@@ -134,18 +133,18 @@ inl emit_coverage_run () : () =
             }
             let profiles = coverage_profile_count(profraw)?;
             if profiles == 0 { return Err("coverage run produced no profraw files".to_owned()); }
-            println!("eoie proxy coverage-run ok scope={scope} profiles={profiles} cleared={removed} target={}", target.display());
+            println!("kit proxy coverage-run ok scope={scope} profiles={profiles} cleared={removed} target={}", target.display());
             Ok(())
         }
 
         mod coverage_run_tests {
             #[test] fn coverage_scope_builds_bounded_test_surfaces() {
                 let public = super::coverage_run_test_args("public", "56").expect("public");
-                assert!(public.iter().any(|arg| arg == "eoie-contracts"));
+                assert!(public.iter().any(|arg| arg == "kit-contracts"));
                 let workspace = super::coverage_run_test_args("workspace", "56").expect("workspace");
                 assert!(workspace.iter().any(|arg| arg == "--workspace"));
-                let owner = super::coverage_run_test_args("owner:eoie-patch-transaction-contracts", "56").expect("owner");
-                assert!(owner.windows(2).any(|pair| pair == ["-p", "eoie-patch-transaction-contracts"]));
+                let owner = super::coverage_run_test_args("owner:kit-patch-transaction-contracts", "56").expect("owner");
+                assert!(owner.windows(2).any(|pair| pair == ["-p", "kit-patch-transaction-contracts"]));
                 assert!(super::coverage_run_test_args("owner:../bad", "56").is_err());
                 assert!(super::coverage_run_test_args("unknown", "56").is_err());
             }

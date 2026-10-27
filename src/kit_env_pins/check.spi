@@ -1,0 +1,72 @@
+:< sm'_operators
+:< pins
+
+:= argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:= split_pair (~text : string) (~separator : string) : string * string =
+    := at = sm'.index_of separator text
+    ? at <= 0 ?> text, "" |: sm'.substring 0i32 at text, sm'.substring (at + 1i32) (sm'.length text - at - 1i32) text
+
+:= executable_name (~tool : string) : string =
+    ? sm'.contains "." tool ?> tool |: tool ++# platform.get_executable_suffix ()
+
+:= path_entries () : array string =
+    sm'.split (? platform.is_windows () ?> ";" |: ":") (env.get_environment_variable "PATH") |> array
+
+:~ ^ found_on_path (entries : array string) (index : i32) (~name : string) (acc : list string) : list string =
+    ? index < 0i32
+    ?> acc
+    |:
+        := entry = sm'.trim_end_suffix "\\" (sm'.trim_end_suffix "/" (am'.index index entries))
+        := candidate = entry ++# "/" ++# name
+        found_on_path entries
+            (index - 1i32)
+            name
+            (? entry <> "" && file_system.file_exists candidate ?> (candidate :: acc) |: acc)
+
+:~ ^ pins_from (index : i32) (count : i32) (acc : list tool_pin) (~refusal : string) : list tool_pin * string =
+    ? index >= count || refusal <> "" ?> listm.rev acc, refusal
+    |:
+        := tool, path = split_pair (argument index) "="
+        ? path = "" ?> acc, "expects tool=pinned-path, received " ++# argument index
+        |: pins_from (index + 1i32) count ({ tool = tool; path = path } :: acc) ""
+
+:~ ^ checked (entries : array string) (pins : list tool_pin) (~text : string) (drifted : u64) : string * u64 =
+    ?= pins ?|
+    | Nil => text, drifted
+    | (pin :: rest) =>
+        := drift = drift_of pin (found_on_path entries (am'.length entries - 1i32) (executable_name pin.tool) Nil)
+        checked entries rest (text ++# drift_text pin drift ++# "\n") (? holds drift ?> drifted |: drifted + 1u64)
+
+:= usage () : string =
+    "usage: env check <tool>=<pinned-path>... (each tool is looked up on PATH in order; the first copy found must "
+    ^^ "be the pinned one)"
+
+:~ env_run () : i32 =
+    := count = env.command_line_argument_count ()
+    ? argument 1i32 <> "check" || count < 3i32
+    ?>
+        console.write_error_line ("kit error: env " ++# usage ())
+        2i32
+    |:
+        := pins, refusal = pins_from 2i32 count Nil ""
+        ? refusal <> ""
+        ?>
+            console.write_error_line ("kit error: env check " ++# refusal ++# "; " ++# usage ())
+            2i32
+        |:
+            := lines, drifted = checked (path_entries ()) pins "" 0u64
+            console.write_line (sm'.trim_end_suffix "\n" lines)
+            console.write_error_line (
+                "kit env check "
+                ++# (? drifted = 0u64 ?> "ok" |: "drift")
+                ++# " pins="
+                ++# sm'.format (listm.length pins : i32)
+                ++# " drifted="
+                ++# sm'.format drifted
+            )
+            ? drifted = 0u64 ?> 0i32 |: 1i32
+
+:= main () : i32 =
+    !!!!Export("kit_env_run", ((\ () => env_run ()) : () -> i32))
+    0i32

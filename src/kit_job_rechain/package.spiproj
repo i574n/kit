@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+    kit_job_after_model
+modules:
+    rechain
+    entry

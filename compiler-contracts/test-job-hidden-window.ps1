@@ -1,8 +1,8 @@
-param([string]$Eoie = (Join-Path $PSScriptRoot '..\src\target\debug\eoie.exe'))
+param([string]$Kit = (Join-Path $PSScriptRoot '..\src\target\debug\kit.exe'))
 $ErrorActionPreference = 'Stop'
-$env:EOIE_JOBS_HOME = Join-Path ([IO.Path]::GetTempPath()) "eoie-hidden-window-$PID"
-$marker = "eoie-hidden-window-$PID"
-$started = & $Eoie job start hidden-window 6000 pwsh -NoProfile -Command "`$null = '$marker'; Start-Sleep 30"
+$env:KIT_JOBS_HOME = Join-Path ([IO.Path]::GetTempPath()) "kit-hidden-window-$PID"
+$marker = "kit-hidden-window-$PID"
+$started = & $Kit job start hidden-window 6000 pwsh -NoProfile -Command "`$null = '$marker'; Start-Sleep 30"
 $id = [regex]::Match("$started", 'id=(\S+)').Groups[1].Value
 $deadline = [DateTime]::UtcNow.AddSeconds(5)
 $child = $null
@@ -22,7 +22,7 @@ else {
     }
     if ($handle -eq 0) { 'PASS the job child has no visible window' } else { $failures++; "FAIL the job child shows window $handle" }
 }
-$waited = & $Eoie job wait $id 30000
+$waited = & $Kit job wait $id 30000
 if ($LASTEXITCODE -eq 124) { 'PASS the job still stops on its timeout' } else { $failures++; "FAIL job wait exit ${LASTEXITCODE}: $waited" }
 "hidden window: $(2 - $failures)/2 passed"
 exit $failures

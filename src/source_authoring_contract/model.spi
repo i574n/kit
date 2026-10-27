@@ -1,10 +1,10 @@
-nominal source_authoring_raw = ()
-nominal source_authoring_loaded = ()
-nominal source_authoring_rendered = ()
-nominal source_authoring_authorized = ()
-nominal source_authoring_committed = ()
+:! source_authoring_raw = ()
+:! source_authoring_loaded = ()
+:! source_authoring_rendered = ()
+:! source_authoring_authorized = ()
+:! source_authoring_committed = ()
 
-union source_authoring_policy =
+:| source_authoring_policy =
     | RejectUnsafePath
     | RejectStaleTemplate
     | RejectStaleTarget
@@ -13,22 +13,24 @@ union source_authoring_policy =
     | AuthorizeMaterialization
     | RollbackFailedVerification
 
-union source_authoring_op from to =
+:| source_authoring_op from to =
     | LoadAuthoringInputs :: source_authoring_op source_authoring_raw source_authoring_loaded
     | RenderAuthoringTemplate :: source_authoring_op source_authoring_loaded source_authoring_rendered
     | AuthorizeAuthoringMode :: source_authoring_op source_authoring_rendered source_authoring_authorized
     | CommitAuthoringOutput :: source_authoring_op source_authoring_authorized source_authoring_committed
 
-union rec source_authoring_plan from to =
-    | SourceAuthoringStep :: forall from to. source_authoring_op from to -> source_authoring_plan from to
-    | SourceAuthoringThen :: forall from to. (exists middle. source_authoring_plan from middle * source_authoring_plan middle to) -> source_authoring_plan from to
+:| ^ source_authoring_plan from to =
+    | SourceAuthoringStep :: \* from to. source_authoring_op from to -> source_authoring_plan from to
+    | SourceAuthoringThen :: \* from to.
+        (\? middle. source_authoring_plan from middle * source_authoring_plan middle to) ->
+        source_authoring_plan from to
 
-inl source_authoring_public_plan () : source_authoring_plan source_authoring_raw source_authoring_committed =
-    SourceAuthoringThen (exists (
+:= source_authoring_public_plan () : source_authoring_plan source_authoring_raw source_authoring_committed =
+    SourceAuthoringThen (\? (
         SourceAuthoringStep LoadAuthoringInputs,
-        SourceAuthoringThen (exists (
+        SourceAuthoringThen (\? (
             SourceAuthoringStep RenderAuthoringTemplate,
-            SourceAuthoringThen (exists (
+            SourceAuthoringThen (\? (
                 SourceAuthoringStep AuthorizeAuthoringMode,
                 SourceAuthoringStep CommitAuthoringOutput
             ))

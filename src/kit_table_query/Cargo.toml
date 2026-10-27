@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "table.spi"
+output = "table_query.rs"
+
+[package]
+name = "kit-table-query"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_table_query"
+path = "table_query.rs"
+
+[dependencies]
+kit-table-text = { path = "../kit_table_text" }
+kit-table-diff = { path = "../kit_table_diff" }
+kit-table-measures = { path = "../kit_table_measures" }

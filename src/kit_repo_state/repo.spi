@@ -1,0 +1,105 @@
+:< sm'_operators
+:< state
+
+:! area_tally = $'std::rc::Rc<std::cell::RefCell<std::collections::BTreeMap<String, [u64; 4]>>>'
+
+:= new_tally () : area_tally =
+    $'std::rc::Rc::new(std::cell::RefCell::new(std::collections::BTreeMap::new()))' : area_tally
+
+:= tallied (tally : area_tally) (~area : string) (counts : change_counts) : () =
+    := staged = counts.staged
+    := modified = counts.modified
+    := untracked = counts.untracked
+    := unmerged = counts.unmerged
+    $'{ let mut map = !tally.borrow_mut(); let entry = map.entry(!area.to_string()).or_insert([0; 4]); \
+        entry[0] += !staged; entry[1] += !modified; entry[2] += !untracked; entry[3] += !unmerged; }' : ()
+
+:= busiest_areas () : u64 = 12u64
+
+:= tally_lines (tally : area_tally) (~prefix : string) (~limit : u64) : string =
+    $'{ let map = !tally.borrow(); let mut areas = map.iter().collect::<Vec<_>>(); \
+        areas.sort_by(|left, right| right.1.iter().sum::<u64>().cmp(&left.1.iter().sum::<u64>()).then_with(|| \
+        left.0.cmp(right.0))); let shown = areas.iter().take(!limit as usize).map(|(area, \
+        counts)| format\!("{}area={} staged={} modified={} untracked={} unmerged={}", &*!prefix, area, counts[0], \
+        counts[1], counts[2], counts[3])).collect::<Vec<_>>(); let hidden = areas.len().saturating_sub(shown.len()); \
+        let mut text = shown.join("\n"); if hidden > 0 { text.push_str(&format\!("\n{}... {hidden} more areas (kit \
+        table query or git status for the rest)", &*!prefix)); } std::rc::Rc::<str>::from(text) }' : string
+
+:= area_count (tally : area_tally) : u64 = $'!tally.borrow().len() as u64' : u64
+
+:= tally_total (tally : area_tally) (~index : u64) : u64 = $'!tally.borrow().values().map(|counts| counts[!index as \
+    usize]).sum::<u64>()' : u64
+
+:~ git_output (~root : string) (~arguments : string) : string =
+    $'std::rc::Rc::<str>::from(std::process::Command::new("git").arg("-C").arg(&*!root).args(!arguments.split(char::fr\
+        om(10u8))).output().ok().filter(|output| output.status.success()).map(|output| \
+        String::from_utf8_lossy(&output.stdout).into_owned()).unwrap_or_default())' : string
+
+:= header_value (~status : string) (~key : string) : string =
+    $'std::rc::Rc::<str>::from(!status.lines().find_map(|line| line.strip_prefix(&*!key)).unwrap_or("").trim())'
+    : string
+
+:= line_at (~text : string) (~index : u64) : string = sm'.line_at (convert.i32 index) text
+
+:= line_count (~text : string) : u64 = convert.u64 (sm'.line_count text)
+
+:~ ^ tally_status (tally : area_tally) (~status : string) (index : u64) (count : u64) (depth : u64) : () =
+    ? index < count ?>
+        := line = line_at status index
+        := path = path_of line
+        ? path <> "" ?> tallied tally (area_of path depth) (counts_of line)
+        tally_status tally status (index + 1u64) count depth
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
+:= decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= is_repository (~root : string) : bool = $'std::path::Path::new(&*!root).join(".git").exists()' : bool
+
+:~ repo_state_of (~root : string) (depth : u64) : i32 =
+    ? is_repository root
+    ?>
+        := status = git_output root "status\n--porcelain=v2\n--branch\n--untracked-files=all"
+        := last = git_output root "log\n-1\n--format=%h %cI %s"
+        := tally = new_tally ()
+        tally_status tally status 0u64 (line_count status) depth
+        := branch = header_value status "# branch.head "
+        := ab = header_value status "# branch.ab "
+        := head =
+            "kit repo state ok root=" ++# root ++# " branch=" ++# branch ++# (" ab=" ++# (? ab = "" ?> "none" |: ab))
+        := totals =
+            " staged="
+            ++# decimal_text (tally_total tally 0u64)
+            ++# " modified="
+            ++# decimal_text (tally_total tally 1u64)
+            ++# (
+                " untracked="
+                ++# decimal_text (tally_total tally 2u64)
+                ++# " unmerged="
+                ++# decimal_text (tally_total tally 3u64)
+            )
+        stdout_line (
+            head ++# totals ++# (" areas=" ++# (decimal_text (area_count tally))) ++# " last=" ++# (line_at last 0u64)
+        )
+        := areas = tally_lines tally "  " (busiest_areas ())
+        ? areas <> "" ?> stdout_line areas
+        0i32
+    |:
+        stdout_line ("kit repo state rejected root=" ++# root ++# " reason=not-a-git-repository")
+        2i32
+
+:~ ^ states_from (index : i32) (count : i32) (depth : u64) (worst : i32) : i32 =
+    ? index < count ?>
+        := code = repo_state_of (argument index) depth
+        states_from (index + 1i32) count depth (? code > worst ?> code |: worst)
+    |: worst
+
+:~ repo_run () : i32 =
+    ? argument 2i32 = "state" && argument_count () > 3i32 ?> states_from 3i32 (argument_count ()) 2u64 0i32
+    |:
+        stdout_line "kit error: repo usage: repo state <root> [<root>...]"
+        2i32
+
+:= main () : i32 =
+    !!!!Export("kit_repo_run", ((\ () => repo_run ()) : () -> i32))
+    0i32

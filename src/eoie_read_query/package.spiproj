@@ -1,8 +1,0 @@
-packages:
-    |core-
-    spiral-
-    eoie_receipt
-modules:
-    model
-    slice
-    read

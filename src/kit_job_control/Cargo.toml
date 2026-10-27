@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "control.spi"
+output = "control.rs"
+
+[package]
+name = "kit-job-control"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_control"
+path = "control.rs"
+[dependencies]
+kit-job-state = { path = "../kit_job_state" }
+kit-machine-windows = { path = "../kit_machine_windows" }
+kit-job-launch = { path = "../kit_job_launch" }

@@ -1,12 +1,12 @@
 #![cfg(windows)]
-use eoie_rust_std_fs::*;
+use kit_rust_std_fs::*;
 use std::fs;
 use std::path::PathBuf;
 static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 fn scratch() -> PathBuf {
     let count = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     let root = std::env::temp_dir().join(format!(
-        "eoie windows ü {}-{}-{}",
+        "kit windows ü {}-{}-{}",
         std::process::id(),
         count,
         std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()

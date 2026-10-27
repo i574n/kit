@@ -1,22 +1,22 @@
 [CmdletBinding()]
 param(
-    [string]$EoieRoot = (Join-Path $PSScriptRoot '..'),
-    [string]$EoieBinary,
+    [string]$KitRoot = (Join-Path $PSScriptRoot '..'),
+    [string]$KitBinary,
     [string]$TargetDirectory,
     [switch]$Offline,
     [switch]$SkipBuild,
     [switch]$PassThru
 )
 $ErrorActionPreference = 'Stop'
-$EoieRoot = (Resolve-Path -LiteralPath $EoieRoot).Path
-if (-not $EoieBinary) { $EoieBinary = Join-Path $EoieRoot $(if ($IsWindows) { 'eoie.exe' } else { 'eoie' }) }
-$EoieBinary = (Resolve-Path -LiteralPath $EoieBinary).Path
-if (-not $TargetDirectory) { $TargetDirectory = Join-Path $EoieRoot 'src/target/source-package-validation' }
+$KitRoot = (Resolve-Path -LiteralPath $KitRoot).Path
+if (-not $KitBinary) { $KitBinary = Join-Path $KitRoot $(if ($IsWindows) { 'kit.exe' } else { 'kit' }) }
+$KitBinary = (Resolve-Path -LiteralPath $KitBinary).Path
+if (-not $TargetDirectory) { $TargetDirectory = Join-Path $KitRoot 'src/target/source-package-validation' }
 $TargetDirectory = [IO.Path]::GetFullPath($TargetDirectory, $PWD.Path)
-$work = Join-Path $EoieRoot ('.cache/source-package/' + [guid]::NewGuid().ToString('N'))
+$work = Join-Path $KitRoot ('.cache/source-package/' + [guid]::NewGuid().ToString('N'))
 $staged = Join-Path $work 'sources'
 $restored = Join-Path $work 'rehydrated sources ü'
-$archive = Join-Path $work 'eoie-source.zip'
+$archive = Join-Path $work 'kit-source.zip'
 [void][IO.Directory]::CreateDirectory($staged)
 
 $start = [Diagnostics.ProcessStartInfo]::new('git')
@@ -25,7 +25,7 @@ $start.CreateNoWindow = $true
 $start.RedirectStandardOutput = $true
 $start.RedirectStandardError = $true
 $start.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
-foreach ($argument in @('-C', $EoieRoot, 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.')) { $start.ArgumentList.Add($argument) }
+foreach ($argument in @('-C', $KitRoot, 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.')) { $start.ArgumentList.Add($argument) }
 $process = [Diagnostics.Process]::new()
 $process.StartInfo = $start
 try {
@@ -40,20 +40,20 @@ try {
 $paths = @($output.Split([char]0, [StringSplitOptions]::RemoveEmptyEntries) | Sort-Object -CaseSensitive -Unique)
 if (-not $paths.Count) { throw 'Git source inventory is empty.' }
 $comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
-$prefix = $EoieRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+$prefix = $KitRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 $manifest = [Collections.Generic.List[object]]::new()
 foreach ($relative in $paths) {
-    $source = [IO.Path]::GetFullPath($relative, $EoieRoot)
-    if (-not $source.StartsWith($prefix, $comparison)) { throw "Git source path escapes EOIE: $relative" }
+    $source = [IO.Path]::GetFullPath($relative, $KitRoot)
+    if (-not $source.StartsWith($prefix, $comparison)) { throw "Git source path escapes KIT: $relative" }
     if (-not (Test-Path -LiteralPath $source)) { continue }
-    if ($relative -match '(^|/)(vendor|target|\.cache|\.git)(/|$)' -or $relative -match '^(eoie|eoie\.exe)$') {
+    if ($relative -match '(^|/)(vendor|target|\.cache|\.git)(/|$)' -or $relative -match '^(kit|kit\.exe)$') {
         throw "Build artifact is Git-eligible: $relative"
     }
     $cursor = $source
-    while ($cursor.Length -ge $EoieRoot.Length) {
+    while ($cursor.Length -ge $KitRoot.Length) {
         $entry = Get-Item -LiteralPath $cursor -Force
         if ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw "Source package rejects links: $cursor" }
-        if ($cursor -eq $EoieRoot) { break }
+        if ($cursor -eq $KitRoot) { break }
         $cursor = Split-Path $cursor -Parent
     }
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Git source is not a regular file: $relative" }
@@ -65,21 +65,21 @@ foreach ($relative in $paths) {
     $manifest.Add([pscustomobject]@{ Path = $relative; Bytes = (Get-Item -LiteralPath $destination -Force).Length; SHA256 = $hash })
 }
 foreach ($file in $manifest) {
-    if ((Get-FileHash -LiteralPath (Join-Path $EoieRoot $file.Path) -Algorithm SHA256).Hash -cne $file.SHA256) { throw "Source changed during snapshot: $($file.Path)" }
+    if ((Get-FileHash -LiteralPath (Join-Path $KitRoot $file.Path) -Algorithm SHA256).Hash -cne $file.SHA256) { throw "Source changed during snapshot: $($file.Path)" }
 }
 [IO.File]::WriteAllText((Join-Path $work 'manifest.json'), ($manifest | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
-& $EoieBinary bundle create-flat $staged $archive 30000000
-if ($LASTEXITCODE -ne 0) { throw 'EOIE source archive creation failed.' }
-& $EoieBinary bundle verify-flat $archive 30000000
-if ($LASTEXITCODE -ne 0) { throw 'EOIE source archive verification failed.' }
-& $EoieBinary bundle rehydrate $archive $restored generic
-if ($LASTEXITCODE -ne 0) { throw 'EOIE source rehydration failed.' }
+& $KitBinary bundle create-flat $staged $archive 30000000
+if ($LASTEXITCODE -ne 0) { throw 'KIT source archive creation failed.' }
+& $KitBinary bundle verify-flat $archive 30000000
+if ($LASTEXITCODE -ne 0) { throw 'KIT source archive verification failed.' }
+& $KitBinary bundle rehydrate $archive $restored generic
+if ($LASTEXITCODE -ne 0) { throw 'KIT source rehydration failed.' }
 $restoredFiles = @(Get-ChildItem -LiteralPath $restored -Recurse -File -Force)
 if ($restoredFiles.Count -ne $manifest.Count) { throw 'Rehydrated source file count differs.' }
 foreach ($file in $manifest) {
     if ((Get-FileHash -LiteralPath (Join-Path $restored $file.Path) -Algorithm SHA256).Hash -cne $file.SHA256) { throw "Rehydrated content differs: $($file.Path)" }
 }
-& $EoieBinary proxy source-topology $restored
+& $KitBinary proxy source-topology $restored
 if ($LASTEXITCODE -ne 0) { throw 'Rehydrated source topology failed.' }
 if (-not $SkipBuild) {
     $previousJobs = $env:CARGO_BUILD_JOBS
@@ -94,7 +94,7 @@ if (-not $SkipBuild) {
         $env:RUST_TEST_THREADS = $previousThreads
     }
 }
-Write-Host "EOIE source package passed: files=$($manifest.Count) native_build=$(-not $SkipBuild) manifest=$(Join-Path $work 'manifest.json')"
+Write-Host "KIT source package passed: files=$($manifest.Count) native_build=$(-not $SkipBuild) manifest=$(Join-Path $work 'manifest.json')"
 if ($PassThru) {
     [pscustomobject]@{
         Manifest = Join-Path $work 'manifest.json'

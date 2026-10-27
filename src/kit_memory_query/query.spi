@@ -1,0 +1,210 @@
+:< rust_std_string.model
+:< kit_memory_model.model
+
+:~ ^ dangling_in (~body : string) (from : i32) (~slugs : string) (~file : string) (~acc : string) : string =
+    := opening = index_of body "[[" from
+    := close = ? opening < 0i32 ?> -1i32 |: index_of body "]]" opening
+    ? close < 0i32 ?> acc
+    |:
+        := target = text_between body (opening + 2i32) close
+        := known = contains slugs (concat5 "\n" target "\n" "" "")
+        dangling_in body (close + 2i32) slugs file (? known ?> acc |: concat5 acc file ": dangling [[" target "]]\n")
+
+:~ ^ slug_lines (list : memory_list) (~acc : string) : string =
+    ?= list ?|
+    | NoMemories => acc
+    | MemoryThen (entry, rest) => slug_lines rest (concat5 acc entry.slug "\n" "" "")
+
+:~ ^ file_lines (list : memory_list) (~acc : string) : string =
+    ?= list ?|
+    | NoMemories => acc
+    | MemoryThen (entry, rest) => file_lines rest (concat5 acc entry.file "\n" "" "")
+
+:== check_tally =
+    {
+        lines : string
+        dangling : i32
+        reasons : i32
+        unindexed : i32
+    }
+
+:~ ^ checked (list : memory_list) (~slugs : string) (~index : string) (tally : check_tally) : check_tally =
+    ?= list ?|
+    | NoMemories => tally
+    | MemoryThen (entry, rest) =>
+        := dangling = dangling_in entry.body 0i32 slugs entry.file ""
+        := dangling_count = $'(!dangling).lines().count() as i32' : i32
+        := reasoned = contains entry.body "**Why:**" && contains entry.body "**How to apply:**"
+        := reason_line =
+            ? needs_reasons entry.kind && reasoned = !-
+            ?> concat5 entry.file ": " (kind_word entry.kind) " without **Why:** and **How to apply:**\n" ""
+            |: ""
+        := indexed = contains index (concat5 "](" entry.file ")" "" "")
+        := index_line = ? indexed ?> "" |: concat5 entry.file ": missing from MEMORY.md\n" "" "" ""
+        checked rest slugs index {
+            lines = concat5 tally.lines dangling reason_line index_line ""
+            dangling = tally.dangling + dangling_count
+            reasons = tally.reasons + (? reason_line = "" ?> 0i32 |: 1i32)
+            unindexed = tally.unindexed + (? indexed ?> 0i32 |: 1i32)
+        }
+
+:~ ^ index_targets_missing (~index : string) (from : i32) (~files : string) (~acc : string) : string =
+    := opening = index_of index "](" from
+    := close = ? opening < 0i32 ?> -1i32 |: index_of index ")" opening
+    ? close < 0i32
+    ?> acc
+    |:
+        := target = text_between index (opening + 2i32) close
+        := present = contains files (concat5 "\n" target "\n" "" "")
+        index_targets_missing index
+            (close + 1i32)
+            files
+            (
+                ? present || ends_with target ".md" = !-
+                ?> acc
+                |: concat5 acc "MEMORY.md: entry for missing " target "\n" ""
+            )
+
+:~ memory_check (~data : string) : i32 =
+    ? file_present data = !-
+    ?> failed (concat5 "check needs a readable data file: " data "" "" "")
+    |:
+        := store = store_of (exact_text data)
+        := slugs = slug_lines store.memories "\n"
+        := tally =
+            checked store.memories slugs store.index { lines = ""; dangling = 0i32; reasons = 0i32; unindexed = 0i32 }
+        := missing = index_targets_missing store.index 0i32 (file_lines store.memories "\n") ""
+        := missing_count = $'(!missing).lines().count() as i32' : i32
+        := problems = tally.reasons + tally.unindexed + missing_count
+        := report = concat5 tally.lines missing store.problems "" ""
+        $'print\!("{}", &*!report)' : ()
+        := counts =
+            concat5
+                " memories="
+                (count_text store.count)
+                " dangling_links="
+                (count_text tally.dangling)
+                " missing_reasons="
+        stdout_line (
+            concat5
+                (? problems = 0i32 ?> "kit memory check ok" |: "kit memory check failed")
+                counts
+                (count_text tally.reasons)
+                (concat5 " unindexed=" (count_text tally.unindexed) " index_missing=" (count_text missing_count) "")
+                ""
+        )
+        ? problems = 0i32 ?> 0i32 |: 1i32
+
+:~ ^ listed (list : memory_list) (~kind : string) (shown : i32) : i32 =
+    ?= list ?|
+    | NoMemories => shown
+    | MemoryThen (entry, rest) =>
+        ? kind = "" || kind = kind_word entry.kind ?>
+            stdout_line (concat5 (kind_word entry.kind) "  " entry.slug "  " (clipped entry.description 100i32))
+            listed rest kind (shown + 1i32)
+        |: listed rest kind shown
+
+:~ memory_list_run (~data : string) (~kind : string) : i32 =
+    ? file_present data = !-
+    ?> failed (concat5 "list needs a readable data file: " data "" "" "")
+    |:
+        ?= (? kind = "" ?> KindKnown KindUser |: kind_of_word kind) ?|
+        | KindUnknown =>
+            failed (
+                concat5
+                    "list --kind expects "
+                    (union_reflection.cases.union_cases_joined kind_word "|")
+                    ", got "
+                    kind
+                    ""
+            )
+        | KindKnown _ =>
+            := shown = listed (store_of (exact_text data)).memories kind 0i32
+            stdout_line (
+                concat5
+                    "kit memory list ok shown="
+                    (count_text shown)
+                    (? kind = "" ?> "" |: concat5 " kind=" kind "" "" "")
+                    ""
+                    ""
+            )
+            0i32
+
+:= lowered (~text : string) : string = $'std::rc::Rc::<str>::from((!text).to_lowercase().as_str())' : string
+:= occurrences (~text : string) (~word : string) : i32 = $'(!text).matches(&*!word).count() as i32' : i32
+:= query_words (~query : string) : string = $'std::rc::Rc::<str>::from((!query).to_lowercase().split_whitespace().coll\
+    ect::<Vec<_>>().join("\n").as_str())' : string
+
+:~ ^ query_score (~words : string) (entry : memory_entry) (score : i32) : i32 =
+    ? words = ""
+    ?> score
+    |:
+        := word = first_line words
+        := gained =
+            5i32 * occurrences (lowered entry.slug) word
+            + 3i32 * occurrences (lowered entry.description) word
+            + occurrences (lowered entry.body) word
+        query_score (rest_lines words) entry (score + gained)
+
+:| ^ ranked =
+    | NoRanked
+    | RankedThen : i32 * memory_entry * ranked
+
+:~ ^ ranked_inserted (score : i32) (entry : memory_entry) (list : ranked) : ranked =
+    ?= list ?|
+    | NoRanked => RankedThen (score, entry, NoRanked)
+    | RankedThen (head_score, head, rest) =>
+        ? score > head_score || (score = head_score && text_before entry.slug head.slug)
+        ?> RankedThen (score, entry, list)
+        |: RankedThen (head_score, head, ranked_inserted score entry rest)
+
+:~ ^ ranked_from (list : memory_list) (~words : string) (acc : ranked) : ranked =
+    ?= list ?|
+    | NoMemories => acc
+    | MemoryThen (entry, rest) =>
+        := score = query_score words entry 0i32
+        ranked_from rest words (? score > 0i32 ?> ranked_inserted score entry acc |: acc)
+
+:~ ^ ranked_printed (list : ranked) (limit : i32) (shown : i32) : i32 =
+    ?= list ?|
+    | NoRanked => shown
+    | RankedThen (score, entry, rest) =>
+        ? shown < limit
+        ?>
+            stdout_line (
+                concat5
+                    (count_text score)
+                    "  "
+                    (kind_word entry.kind)
+                    "  "
+                    (concat5 entry.slug "  " (clipped entry.description 100i32) "" "")
+            )
+            ranked_printed rest limit (shown + 1i32)
+        |: shown
+
+:~ memory_recall (~data : string) (~query : string) (limit : i32) : i32 =
+    ? file_present data = !-
+    ?> failed (concat5 "recall needs a readable data file: " data "" "" "")
+    |? query_words query = ""
+    ?> failed "recall needs query words"
+    |:
+        := store = store_of (exact_text data)
+        := shown = ranked_printed (ranked_from store.memories (query_words query) NoRanked) limit 0i32
+        stdout_line (
+            concat5
+                "kit memory recall ok shown="
+                (count_text shown)
+                " of="
+                (count_text store.count)
+                (concat5 " query=" query "" "" "")
+        )
+        0i32
+
+:= main () : i32 =
+    !!!!Export("kit_memory_check", ((\ data => memory_check data) : string -> i32))
+    !!!!Export("kit_memory_list", ((\ (data, kind) => memory_list_run data kind) : string * string -> i32))
+    !!!!Export(
+        "kit_memory_recall",
+        ((\ (data, query, limit) => memory_recall data query limit) : string * string * i32 -> i32)
+    )
+    0i32

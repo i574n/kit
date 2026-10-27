@@ -1,0 +1,6 @@
+:= comments () = NoCommentLines
+:= width () = LineWidth 120i32
+:= lf () = LfOnly
+:= targets () = TestTargets
+:= host () = HostFree
+:= lib () = LibReferenced

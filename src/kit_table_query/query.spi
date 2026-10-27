@@ -1,0 +1,108 @@
+///- --package .
+:# query static =
+    :< rust_std_string.model
+
+:< rust_std_string.model
+
+:| table_command =
+    | TableQuery
+    | TableDiff
+    | TableUnknown
+
+:= table_command_of (~word : string) : table_command =
+    ? word = "query" ?> TableQuery
+    |? word = "diff" ?> TableDiff
+    |: TableUnknown
+
+:= table_usage () : string =
+    "table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] "
+    ^^ "[--group col] [--mean|--sd|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> "
+    ^^ "<right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"
+
+:== table_request =
+    {
+        wheres : string
+        cols : string
+        group : string
+        key : string
+        limit : u64
+        measured : string
+        latest : string
+        quiet : bool
+    }
+
+:~ no_request () : table_request =
+    { wheres = ""; cols = ""; group = ""; key = ""; limit = 20u64; measured = ""; latest = ""; quiet = !- }
+
+:| option_step =
+    | StepTaken : table_request
+    | StepRejected : string
+
+:= appended (~list : string) (~item : string) : string = ? list = "" ?> item |: concat5 list "\n" item "" ""
+:= listed_line (~list : string) (~item : string) : string = appended list item
+:= listed (~list : string) (~item : string) : string =
+    ? list = "" ?> item |? item = "" ?> list |: concat5 list "," item "" ""
+
+:= trim_start_matches (~text : string) (~prefix : string) : string = $'std::rc::Rc::<str>::from((!text).trim_start_mat\
+    ches(&*!prefix))' : string
+:~ each_prefixed (~prefix : string) (~items : string) : string =
+    $'std::rc::Rc::<str>::from((!items).split(char::from(44u8)).filter(|item| \!item.trim().is_empty()).map(|item| \
+        format\!("{}{}", &*!prefix, item.trim())).collect::<Vec<_>>().join(",").as_str())' : string
+
+:~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+
+:~ option_applied (request : table_request) (~name : string) (~value : string) : option_step =
+    ? name = "--where"
+    ?>
+        ? contains value "=" || contains value "<" || contains value ">"
+        ?> StepTaken { request ?| wheres = appended request.wheres value }
+        |:
+            StepRejected (
+                concat5
+                    "--where expects col=value (or col!=value, col>value, col>=value, col<value, col<=value), got "
+                    value
+                    ""
+                    ""
+                    ""
+            )
+    |? name = "--cols"
+    ?> StepTaken { request ?| cols = value }
+    |? name = "--group"
+    ?> StepTaken { request ?| group = value }
+    |? name = "--key"
+    ?> StepTaken { request ?| key = value }
+    |? pipe_member "--mean|--sd|--sum|--min|--max|--count" name
+    ?>
+        StepTaken { request ?|
+            measured =
+                listed request.measured (each_prefixed (concat5 (trim_start_matches name "-") ":" "" "" "") value)
+        }
+    |? name = "--latest-by"
+    ?> StepTaken { request ?| latest = value }
+    |? name = "--limit"
+    ?>
+        := limit = decimal_u64 value
+        ? limit = 0u64 ?> StepRejected "--limit expects a positive integer" |: StepTaken { request ?| limit = limit }
+    |: StepRejected (concat5 "unknown option " name "" "" "")
+
+
+:= taken (step : option_step) : table_request =
+    ?= step ?|
+    | StepTaken request => request
+    | StepRejected reason => failwith reason
+
+///> rust
+:# options_build_a_typed_request =
+    := a = taken (option_applied (no_request ()) "--where" "backend=C")
+    := b = taken (option_applied a "--where" "native=ran")
+    testing.expect (b.wheres = "backend=C\nnative=ran") "wheres accumulate in order"
+    testing.expect ((taken (option_applied b "--limit" "5")).limit = 5u64) "limit"
+    := measured = taken (option_applied (taken (option_applied b "--mean" "retries,latency_ms")) "--min" "free_mb")
+    testing.expect (measured.measured = "mean:retries,mean:latency_ms,min:free_mb") measured.measured
+    testing.expect ((taken (option_applied b "--latest-by" "timestamp")).latest = "timestamp") "latest by"
+    testing.expect (listed (listed "" "a") "" = "a") "listed skips empty items"
+    := rejected =
+        ?= option_applied b "--where" "backend" ?|
+        | StepRejected _ => !+
+        | StepTaken _ => !-
+    testing.expect rejected "where without equals"

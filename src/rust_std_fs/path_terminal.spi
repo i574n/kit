@@ -1,7 +1,6 @@
-inl rust_global (x : string) : () = !!!!Global(x)
 
-inl emit_paths () : () =
-    rust_global """
+:= emit_paths () : () =
+    global """
         pub fn safe_relative_path(value: &str) -> Result<PathBuf, String> {
             let path = Path::new(value);
             #[cfg(windows)] for c in path.components() {
@@ -37,7 +36,7 @@ inl emit_paths () : () =
         }
 
         pub fn copy_regular_atomic_preserve(source: &Path, target: &Path) -> Result<u64, String> {
-            eoie_rust_std_fs_mutation::copy_regular_atomic_preserve(source, target)
+            kit_rust_std_fs_mutation::copy_regular_atomic_preserve(source, target)
         }
 
         """

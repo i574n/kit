@@ -1,0 +1,11 @@
+:= main () : i32 =
+    terminal.emit_runtime ()
+    !!!!Export(
+        "kit_tree_copy_entry_allowed_binding",
+        ((\ (depth, entries) => model.entry_allowed depth entries) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_tree_copy_remaining_binding",
+        ((\ (entries, unused) => model.remaining_entries entries) : i32 * i32 -> i32)
+    )
+    0i32

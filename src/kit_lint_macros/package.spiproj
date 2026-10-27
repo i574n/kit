@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+modules:
+    model
+    lint

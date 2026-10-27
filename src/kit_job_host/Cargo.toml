@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "host_run.spi"
+output = "host_run.rs"
+
+[package]
+name = "kit-job-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_host"
+path = "host_run.rs"
+
+[dependencies]
+kit-job-state = { path = "../kit_job_state" }
+kit-os-launch = { path = "../kit_os_launch" }
+kit-job-queue = { path = "../kit_job_queue" }

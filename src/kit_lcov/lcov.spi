@@ -1,0 +1,147 @@
+///- --package .
+:# lcov static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| lcov_line =
+    | SourceLine : string
+    | HitLine : string
+    | EndLine
+    | MalformedLine
+    | OtherLine
+
+:| lcov_rejection =
+    | SourceBeforeEnd
+    | EmptySource
+    | HitBeforeSource
+    | InvalidHitFields
+    | InvalidHitLine
+    | InvalidHitCount
+    | EndBeforeSource
+    | MalformedRecord
+    | UnterminatedSource
+    | NoLineRecords
+
+:= rejection_text = \|
+    | SourceBeforeEnd => "coverage has SF before end_of_record"
+    | EmptySource => "coverage has an empty SF record"
+    | HitBeforeSource => "coverage has DA before SF"
+    | InvalidHitFields => "coverage has invalid DA fields"
+    | InvalidHitLine => "coverage has invalid DA line"
+    | InvalidHitCount => "coverage has invalid DA hits"
+    | EndBeforeSource => "coverage has end_of_record before SF"
+    | MalformedRecord => "coverage has a malformed source or line record"
+    | UnterminatedSource => "coverage has an unterminated source record"
+    | NoLineRecords => "coverage input has no line records"
+
+:= after_prefix (~text : string) (~prefix : string) : string =
+    $'std::rc::Rc::<str>::from(!text.strip_prefix(&*!prefix).unwrap_or(""))' : string
+
+:= lcov_line_of (~raw : string) : lcov_line =
+    ? sm'.starts_with "SF:" raw ?> SourceLine (after_prefix raw "SF:")
+    |? sm'.starts_with "DA:" raw ?> HitLine (after_prefix raw "DA:")
+    |? raw = "end_of_record" ?> EndLine
+    |? sm'.starts_with "DA" raw || sm'.starts_with "SF" raw ?> MalformedLine
+    |: OtherLine
+
+:| hit_reading =
+    | HitRead : string
+    | HitRejected : lcov_rejection
+
+:= fields_valid (~value : string) : bool =
+    $'{ let parts = !value.split(char::from(44u8)).collect::<Vec<_>>(); \
+        (2..=3).contains(&parts.len()) && parts[..2].iter().all(|value| \!value.is_empty() && \
+        value.bytes().all(|byte| byte.is_ascii_digit())) }' : bool
+
+:= hit_line_number (~value : string) : u64 = $'!value.split(char::from(44u8)).next().and_then(|line| \
+    line.parse::<u32>().ok()).filter(|line| *line > 0).map(|line| line as u64).unwrap_or(0)' : u64
+
+:= hit_count_valid (~value : string) : bool = $'!value.split(char::from(44u8)).nth(1).map(|hits| \
+    hits.parse::<u64>().is_ok()).unwrap_or(false)' : bool
+
+:= hit_count_text (~value : string) : string = $'std::rc::Rc::<str>::from(!value.split(char::from(44u8)).nth(1).unwrap\
+    _or(""))' : string
+
+:= decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+
+:~ hit_reading_of (~value : string) : hit_reading =
+    ? fields_valid value ?>
+        := line = hit_line_number value
+        ? line = 0u64 ?> HitRejected InvalidHitLine
+        |? hit_count_valid value ?> HitRead ((decimal_text line) ++# "\t" ++# (hit_count_text value))
+        |: HitRejected InvalidHitCount
+    |: HitRejected InvalidHitFields
+
+:| lcov_state =
+    | BetweenSources
+    | InSource : string
+
+:| lcov_reading =
+    | LcovRecords : string
+    | LcovRejected : lcov_rejection
+
+:= line_at (~text : string) (~index : u64) : string = sm'.line_at (convert.i32 index) text
+:= line_count (~text : string) : u64 = convert.u64 (sm'.line_count text)
+:= slashes_normalized (~source : string) : string = $'std::rc::Rc::<str>::from(!source.replace(char::from(92u8), \
+    "/"))' : string
+:= appended (~rows : string) (~row : string) : string = ? rows = "" ?> row |: rows ++# "\n" ++# row
+
+:~ ^ lcov_from (~text : string) (index : u64) (count : u64) (state : lcov_state) (~rows : string) : lcov_reading =
+    ? index < count ?>
+        := next = index + 1u64
+        ?= lcov_line_of (line_at text index), state ?|
+        | SourceLine _, InSource _ => LcovRejected SourceBeforeEnd
+        | SourceLine source, BetweenSources =>
+            ? sm'.trim source = "" ?> LcovRejected EmptySource
+            |:
+                := normalized = slashes_normalized source
+                lcov_from text next count (InSource normalized) (appended rows normalized)
+        | HitLine _, BetweenSources => LcovRejected HitBeforeSource
+        | HitLine value, InSource source =>
+            ?= hit_reading_of value ?|
+            | HitRead hit => lcov_from text next count state (appended rows (source ++# "\t" ++# hit))
+            | HitRejected rejection => LcovRejected rejection
+        | EndLine, BetweenSources => LcovRejected EndBeforeSource
+        | EndLine, InSource _ => lcov_from text next count BetweenSources rows
+        | MalformedLine, _ => LcovRejected MalformedRecord
+        | OtherLine, _ => lcov_from text next count state rows
+    |:
+        ?= state ?|
+        | InSource _ => LcovRejected UnterminatedSource
+        | BetweenSources => ? sm'.contains "\t" rows ?> LcovRecords rows |: LcovRejected NoLineRecords
+
+:~ lcov_reading_of (~text : string) : lcov_reading = lcov_from text 0u64 (line_count text) BetweenSources ""
+
+:~ lcov_error (~text : string) : string =
+    ?= lcov_reading_of text ?|
+    | LcovRecords _ => ""
+    | LcovRejected rejection => rejection_text rejection
+
+:~ lcov_rows (~text : string) : string =
+    ?= lcov_reading_of text ?|
+    | LcovRecords rows => rows
+    | LcovRejected _ => ""
+
+
+///> rust
+:# valid_lcov_becomes_normalized_rows =
+    testing.expect
+        (
+            lcov_rows "TN:\nSF:src\\a.rs\nDA:1,3\nDA:2,0,abc\nend_of_record\nSF:b.rs\nend_of_record\n"
+            = "src/a.rs\nsrc/a.rs\t1\t3\nsrc/a.rs\t2\t0\nb.rs"
+        )
+        "rows keep sources without lines"
+    testing.expect (lcov_error "SF:a\nDA:1,1\nend_of_record\n" = "") "valid input has no error"
+
+///> rust
+:# each_malformed_shape_has_its_reason =
+    testing.expect (lcov_error "SF:a\nSF:b\n" = "coverage has SF before end_of_record") "nested SF"
+    testing.expect (lcov_error "SF:  \n" = "coverage has an empty SF record") "empty SF"
+    testing.expect (lcov_error "DA:1,1\n" = "coverage has DA before SF") "DA first"
+    testing.expect (lcov_error "SF:a\nDA:1\nend_of_record\n" = "coverage has invalid DA fields") "one field"
+    testing.expect (lcov_error "SF:a\nDA:0,1\nend_of_record\n" = "coverage has invalid DA line") "line zero"
+    testing.expect (lcov_error "end_of_record\n" = "coverage has end_of_record before SF") "end first"
+    testing.expect (lcov_error "SF:a\nDAX\nend_of_record\n" = "coverage has a malformed source or line record") "malformed"
+    testing.expect (lcov_error "SF:a\nDA:1,1\n" = "coverage has an unterminated source record") "unterminated"
+    testing.expect (lcov_error "SF:a\nend_of_record\n" = "coverage input has no line records") "no lines"

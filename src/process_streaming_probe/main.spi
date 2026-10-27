@@ -1,11 +1,11 @@
-open eoie_process_observation.streaming_observation
+:< kit_process_observation.streaming_observation
 
-inl main () : i32 =
-    inl launched : observation_plan observation_idle observation_running =
+:= main () : i32 =
+    := launched : observation_plan observation_idle observation_running =
         ObservationLaunch (ObservationInputText "observed-input", 5000u64)
-    inl _ : observation_plan observation_running observation_done = ObservationFinish
-    inl no_input : observation_plan observation_idle observation_running =
+    := _ : observation_plan observation_running observation_done = ObservationFinish
+    := no_input : observation_plan observation_idle observation_running =
         ObservationLaunch (ObservationNoInput, 10u64)
-    inl _ = launched
-    inl _ = no_input
+    := _ = launched
+    := _ = no_input
     0i32

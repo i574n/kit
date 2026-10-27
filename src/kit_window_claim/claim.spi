@@ -1,0 +1,43 @@
+:< sm'_operators
+:< kit_jobs.host
+:< kit_machine_windows.window_model
+:< kit_machine_windows.windows
+:< kit_tree_lease.lease
+
+:= reading_window (row : window_row) : bool =
+    ?= row.kind ?|
+    | TreeRead => !+
+    | _ => !-
+
+:~ ^ leases_of_rows (~rows : string) (leases : stored_leases) : stored_leases =
+    ? rows = "" ?> leases
+    |:
+        := rest = leases_of_rows (other_rows rows) leases
+        ?= row_of (first_row rows) ?|
+        | RowKnown row =>
+            ? reading_window row
+            ?> LeaseThen (stored (ReadLease { root = row.label; holder = row.id; until_ms = row.until_ms }), rest)
+            |: rest
+        | RowUnknown => rest
+
+:~ window_claim_run () : i32 =
+    := path = argument 3i32
+    ? path = "" ?>
+        stderr_line "kit error: window claim <path> (refused while a tree-read window covers the path)"
+        2i32
+    |:
+        := now = now_ms ()
+        := root = windows_root ()
+        := verdict =
+            edit_verdict_of (claim_of (leases_of_rows (live_rows root (stored_rows root) now "") NoLeases) path now)
+        ?= verdict ?|
+        | EditAllowed =>
+            stdout_line ("kit window claim ok path=" ++# path ++# " " ++# verdict_text verdict now)
+            0i32
+        | EditRefused _ =>
+            stdout_line ("kit window claim refused path=" ++# path ++# " " ++# verdict_text verdict now)
+            1i32
+
+:= main () : i32 =
+    !!!!Export("kit_window_claim_run", ((\ () => window_claim_run ()) : () -> i32))
+    0i32

@@ -1,0 +1,56 @@
+:< sm'_operators
+:< kit_receipt.receipt
+:< host
+:< kit_do_model.model
+:< decode
+
+:~ delegated_run (family : program_family) (~root : string) (~encoded : string) : i32 =
+    ?= family ?|
+    | Edits => $'kit_do_edit::kit_do_edit_run(&*!root, &*!encoded)' : i32
+    | Reads => $'kit_do_read::kit_do_read_run(&*!root, &*!encoded)' : i32
+    | Facts => $'kit_do_facts::kit_do_facts_run(&*!root, &*!encoded)' : i32
+    | Runs => $'kit_do_process::kit_do_process_run(&*!root, &*!encoded)' : i32
+    | Writes => $'kit_do_write::kit_do_write_run(&*!root, &*!encoded)' : i32
+    | Git => $'kit_do_git::kit_do_git_run(&*!root, &*!encoded)' : i32
+    | Jobs => $'kit_do_jobs::kit_do_jobs_run(&*!root, &*!encoded)' : i32
+    | Labs => $'kit_do_lab::kit_do_lab_run(&*!root, &*!encoded)' : i32
+
+:~ program_run (~root : string) (~text : string) : i32 =
+    := started = now_ms ()
+    ?= program_decoded text ?|
+    | CompileRejected message =>
+        stdout_line ("program rejected: " ++# message)
+        receipt_line Failed "files 0  replacements 0" started
+        2i32
+    | Delegated (family, encoded) => delegated_run family root encoded
+    | Split (edits, writes) =>
+        := edited = delegated_run Edits root edits
+        ? edited <> 0i32 ?> edited |: delegated_run Writes root writes
+
+:= usage () : string =
+    "do <root> <program>... | do <root> - (program on stdin); statements: edit <path|glob> [dry-run] [expect files "
+    ^^ "<n> replacements <n>], replace [pattern] once|all|<n> times \"<old>\" with \"<new>\" (pattern: a regex, $1 "
+    ^^ "groups in the replacement; either takes raw lines between <<< and a >>> line), patch <<< apply_patch hunks "
+    ^^ "(@@, then lines starting with space, - or +) >>>, show <path>"
+
+:~ lines_joined (~left : string) (~right : string) : string =
+    ? right = "" ?> left |? left = "" ?> right |: left ++# "\n" ++# right
+
+:~ ^ program_from (~index : i32) (~count : i32) (~text : string) : string =
+    ? index < count ?> program_from (index + 1i32) count (lines_joined text (argument index)) |: text
+
+:~ do_run () : i32 =
+    := count = argument_count ()
+    := root = argument 2i32
+    ? count < 4i32 ?>
+        stdout_line ("usage: kit " ++# (usage ()))
+        2i32
+    |? directory_exists root = !- ?>
+        stdout_line ("kit error: root is not a directory: " ++# root)
+        2i32
+    |? argument 3i32 = "-" ?> program_run root (stdin_text ())
+    |: program_run root (program_from 3i32 count "")
+
+:= main () : i32 =
+    !!!!Export("kit_do_run", ((\ () => do_run ()) : () -> i32))
+    0i32

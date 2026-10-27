@@ -14,4 +14,4 @@ name = "proxy_text_replacement"
 path = "text_replacement.rs"
 
 [dependencies]
-eoie-rust-std-fs = { path = "../rust_std_fs" }
+kit-rust-std-fs = { path = "../rust_std_fs" }

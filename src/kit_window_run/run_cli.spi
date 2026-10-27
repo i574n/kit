@@ -1,0 +1,64 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= window_call (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run
+        (fixture_text_of root)
+        (Arg (cat "KIT_WINDOWS_HOME=" (fixture_path root "windows"), Arg ("KIT_WINDOWS_FREE_MB=8000", NoArgs)))
+        NoArgs
+        (Arg ("window", args))
+
+:= touching_source () : string =
+    "fn main() { let args: Vec<String> = std::env::args().collect(); std::fs::write(&args[1], [114u8, 97u8, "
+    ^^ "110u8]).unwrap(); std::process::exit(3); }"
+
+///> rust
+:# a_run_holds_the_window_for_the_command_and_passes_its_exit_through =
+    := root = fixture_root_create "window run"
+    := program = rustc_program root "touch" (touching_source ())
+    := ran =
+        window_call root (Arg ("run", Arg ("compile", Arg ("5", Arg ("--label", Arg ("quick compile", Arg ("--",
+            Arg (program, Arg (fixture_path root "ran.txt", NoArgs)))))))))
+    testing.expect (ran.code = 3i32) (run_text ran)
+    shows ran.stdout "kit window request ok id=win-"
+    shows ran.stdout "class=compile minutes=5"
+    shows ran.stdout "exit=3 released=yes"
+    same (fixture_read root "ran.txt") "ran"
+    shows (succeeded (window_call root (Arg ("list", NoArgs)))) "kit window list ok windows=0"
+    fixture_root_remove root
+
+///> rust
+:# a_blocked_run_never_starts_the_command =
+    := root = fixture_root_create "window run blocked"
+    := program = rustc_program root "touch" (touching_source ())
+    := _ =
+        succeeded (window_call root (Arg ("request", Arg ("live-gui", Arg ("30", Arg ("--label", Arg ("gui block",
+            NoArgs)))))))
+    := blocked =
+        window_call root (Arg ("run", Arg ("compile", Arg ("5", Arg ("--", Arg (program,
+            Arg (fixture_path root "ran.txt", NoArgs)))))))
+    testing.expect (blocked.code = 1i32) (run_text blocked)
+    shows blocked.stdout "kit window request blocked"
+    testing.expect (path_exists (fixture_path root "ran.txt") = !-) "the command must not run without its window"
+    rejected_with
+        (window_call root (Arg ("run", Arg ("compile", Arg ("5", NoArgs)))))
+        2i32
+        "run: give the command after --"
+    fixture_root_remove root
+
+:= marker_source () : string =
+    "fn main() { let args: Vec<String> = std::env::args().collect(); std::fs::write(&args[1], "
+    ^^ "std::env::var(&args[2]).unwrap_or_default()).unwrap(); }"
+
+///> rust
+:# a_run_tells_its_command_which_window_it_holds =
+    := root = fixture_root_create "window run marker"
+    := program = rustc_program root "marker" (marker_source ())
+    shows
+        (
+            succeeded (window_call root (Arg ("run", Arg ("compile", Arg ("5", Arg ("--", Arg (program,
+                Arg (fixture_path root "held.txt", Arg ("KIT_WINDOW_HELD", NoArgs)))))))))
+        )
+        "released=yes"
+    shows (fixture_read root "held.txt") "compile:win-"
+    fixture_root_remove root

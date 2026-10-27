@@ -1,0 +1,101 @@
+:< sm'_operators
+:< kit_table_query.query
+:< kit_table_query.cells
+:< kit_table_query.stats
+:< kit_table_query.wheres
+
+:~ ^ measures_from (cells : table_cells) (~items : string) : measures * string =
+    ? items = ""
+    ?> NoMeasures, ""
+    |:
+        := item = head_of items ","
+        := word = head_of item ":"
+        := name = tail_of item ":"
+        := index = column_of cells name
+        := rest, missing = measures_from cells (tail_of items ",")
+        ? index < 0i32
+        ?> rest, listed name missing
+        |:
+            union_reflection.cases.union_cases_fold
+                \ found (kind : aggregate) =>
+                    ? word = aggregate_word kind ?> MeasureThen (kind, name, index, rest) |: found
+                rest,
+            missing
+
+:~ ^ row_cells (list : measures) (cells : table_cells) (row : i32) : cell_texts =
+    ?= list ?|
+    | NoMeasures => NoCells
+    | MeasureThen (_, _, index, rest) => CellThen (cell_at cells row index, row_cells rest cells row)
+
+:= group_key (cells : table_cells) (row : i32) (group : i32) : string =
+    ? group < 0i32 ?> "all" |: cell_at cells row group
+
+:~ ^ grouped_from
+    (cells : table_cells) (list : filters) (group : i32) (chosen : measures) (empty : measure_stats) (row : i32)
+    (total : i32) (found : groups) (matched : i32)
+    : groups * i32
+    =
+    ? total < row
+    ?> found, matched
+    |? row_passes list cells row
+    ?>
+        grouped_from cells list group chosen empty
+            (row + 1i32)
+            total
+            (group_added found (group_key cells row group) empty (row_cells chosen cells row))
+            (matched + 1i32)
+    |: grouped_from cells list group chosen empty (row + 1i32) total found matched
+
+:~ ^ groups_printed (chosen : measures) (sorted : groups) (limit : u64) (shown : i32) : i32 =
+    ?= sorted ?|
+    | NoGroups => shown
+    | GroupThen (name, rows, stats, rest) =>
+        ? below_limit shown limit ?>
+            stdout_line ((i32_text rows) ++# "\t" ++# name ++# (measure_cells chosen stats))
+            groups_printed chosen rest limit (shown + 1i32)
+        |: shown
+
+:~ grouped_measures (cells : table_cells) (request : table_request) : i32 =
+    := whole = request.group = ""
+    := group = ? whole ?> -1i32 |: column_of cells request.group
+    := list, missing_wheres = filters_from cells request.wheres
+    := chosen, missing_measures = measures_from cells request.measured
+    := missing_group = ? whole = !- && group < 0i32 ?> request.group |: ""
+    := missing = listed (listed missing_wheres missing_group) missing_measures
+    ? missing <> ""
+    ?> rejected ("unknown columns: " ++# missing ++# " (header: " ++# (header_joined cells ",") ++# ")")
+    |:
+        := found, matched =
+            grouped_from cells list group chosen (stats_empty chosen) 1i32 (row_total cells) NoGroups 0i32
+        stdout_line ("count\t" ++# (? whole ?> "all" |: request.group) ++# (measure_headers chosen))
+        := shown = groups_printed chosen (groups_sorted found NoGroups) request.limit 0i32
+        := counts =
+            " matched=" ++# (i32_text matched) ++# " groups=" ++# (i32_text (group_count found 0i32)) ++# " shown="
+        ? request.quiet
+        ?> ()
+        |: stdout_line ("kit table query ok total=" ++# (i32_text (row_total cells)) ++# counts ++# (i32_text shown))
+        0i32
+
+:= measured (request : table_request) : bool = request.measured <> ""
+
+:~ measured_query (~file : string) (request : table_request) : i32 =
+    ?= table_read file ?|
+    | TableUnreadable problem => rejected problem
+    | TableLoaded cells => grouped_measures cells request
+
+:~ measured_entry
+    (~file : string) (~wheres : string) (~group : string) (~measures : string) (limit : u64) (quiet : bool)
+    : i32
+    =
+    := base = no_request ()
+    measured_query file { base ?| wheres = wheres; group = group; measured = measures; limit = limit; quiet = quiet }
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_table_measured",
+        (
+            \ (file, wheres, group, measures, limit, quiet) => measured_entry file wheres group measures limit quiet
+            : string * string * string * string * u64 * bool -> i32
+        )
+    )
+    0i32

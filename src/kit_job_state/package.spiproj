@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    kit_jobs
+modules:
+    state

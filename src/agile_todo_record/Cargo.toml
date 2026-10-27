@@ -14,6 +14,6 @@ name = "agile_todo_record"
 path = "record.rs"
 
 [dependencies]
-eoie-agile-records = { path = "../eoie_agile_records" }
+kit-agile-records = { path = "../kit_agile_records" }
 agile-todo-scan = { path = "../agile_todo_scan" }
 agile-todo-lines = { path = "../agile_todo_lines" }

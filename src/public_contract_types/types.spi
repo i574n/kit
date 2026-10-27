@@ -1,11 +1,11 @@
-nominal contract_cold = ()
-nominal contract_identified = ()
-nominal contract_mutated = ()
-nominal contract_bundled = ()
-nominal contract_evidenced = ()
-nominal contract_closed = ()
+:! contract_cold = ()
+:! contract_identified = ()
+:! contract_mutated = ()
+:! contract_bundled = ()
+:! contract_evidenced = ()
+:! contract_closed = ()
 
-union contract_subject =
+:| contract_subject =
     | PublicSurface :: contract_subject
     | RootedFilesystem :: contract_subject
     | TypedMutation :: contract_subject

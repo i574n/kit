@@ -1,0 +1,115 @@
+///- --package .
+:# habits static =
+    :< sm'_operators
+
+:< sm'_operators
+
+
+:| habit =
+    | GetContent
+    | SelectString
+    | GetChildItem
+    | SetContent
+    | AddContent
+    | OutFile
+    | ForEachObject
+    | MeasureObject
+    | CopyItem
+    | RemoveItem
+    | MoveItem
+    | TestPath
+    | StartSleep
+    | Robocopy
+    | Findstr
+    | Python
+    | Python3
+    | PyExe
+    | IoFile
+
+:= habit_word (h : habit) : string =
+    ?= h ?|
+    | GetContent => "get-content"
+    | SelectString => "select-string"
+    | GetChildItem => "get-childitem"
+    | SetContent => "set-content"
+    | AddContent => "add-content"
+    | OutFile => "out-file"
+    | ForEachObject => "foreach-object"
+    | MeasureObject => "measure-object"
+    | CopyItem => "copy-item"
+    | RemoveItem => "remove-item"
+    | MoveItem => "move-item"
+    | TestPath => "test-path"
+    | StartSleep => "start-sleep"
+    | Robocopy => "robocopy"
+    | Findstr => "findstr"
+    | Python => "python"
+    | Python3 => "python3"
+    | PyExe => "py.exe"
+    | IoFile => "[io.file]"
+
+:= all_habits () : list habit =
+    [ GetContent; SelectString; GetChildItem; SetContent; AddContent; OutFile; ForEachObject; MeasureObject; CopyItem;
+    RemoveItem; MoveItem; TestPath; StartSleep; Robocopy; Findstr; Python; Python3; PyExe; IoFile]
+
+:= word_code (c : u32) : bool =
+    (48u32 <= c && c <= 57u32) || (97u32 <= c && c <= 122u32) || (65u32 <= c && c <= 90u32) || c = 95u32
+
+:= ends_in_word (piece : string) : bool =
+    := length = (sm'.length piece : i32)
+    length > 0i32 && word_code (xml.code_point_at piece (length - 1i32))
+
+:= starts_in_word (piece : string) : bool = (sm'.length piece : i32) > 0i32 && word_code (xml.code_point_at piece 0i32)
+
+:~ ^ bounded_at (pieces : array string) (at : i32) : bool =
+    ? am'.length pieces <= at + 1i32 ?> !-
+    |? not (ends_in_word (am'.index at pieces)) && not (starts_in_word (am'.index (at + 1i32) pieces)) ?> !+
+    |: bounded_at pieces (at + 1i32)
+
+:~ habit_in (command : string) (h : habit) : bool =
+    := lower = sm'.to_lower command
+    ?= h ?|
+    | IoFile => sm'.contains (habit_word h) lower
+    | _ => bounded_at (sm'.split (habit_word h) lower |> array) 0i32
+
+:== habit_count =
+    {
+        kind : habit
+        calls : u64
+    }
+
+:~ ^ counted (commands : list string) (h : habit) (calls : u64) : u64 =
+    ?= commands ?|
+    | Nil => calls
+    | (command :: rest) => counted rest h (? habit_in command h ?> calls + 1u64 |: calls)
+
+:~ habit_counts (commands : list string) : list habit_count =
+    all_habits () |> listm.map (\ h => { kind = h; calls = counted commands h 0u64 })
+
+:~ habit_counts_text (counts : list habit_count) : string =
+    counts
+    |> listm.fold \ acc (c : habit_count) =>
+            ? c.calls > 0u64 ?> acc ++# habit_word c.kind ++# "\t" ++# sm'.format c.calls ++# "\n" |: acc
+        ""
+
+///> rust
+:# habits_match_whole_words_only =
+    testing.expect (habit_in "Get-Content -Raw x.txt" GetContent) "a cmdlet, any case"
+    testing.expect (habit_in "gc x | Select-String foo" SelectString) "after a pipe"
+    testing.expect (habit_in "python3 run.py" Python |> not) "python3 is not python"
+    testing.expect (habit_in "python3 run.py" Python3) "python3 itself"
+    testing.expect (habit_in "my-get-contents.ps1" GetContent |> not) "a longer word is not the cmdlet"
+    testing.expect (habit_in "[IO.File]::ReadAllText(p)" IoFile) "the .NET file class"
+
+///> rust
+:# counts_tally_each_habit_once_per_call =
+    := commands = [ "Get-Content a"; "Get-Content b | Select-String x"; "kit read a"; "Start-Sleep 5" ]
+    := text = habit_counts_text (habit_counts commands)
+    testing.expect (text = "get-content\t2\nselect-string\t1\nstart-sleep\t1\n") "only habits that occur, in union order"
+
+:~ habit_any (command : string) : bool =
+    all_habits () |> listm.fold (\ found (h : habit) => found || habit_in command h) !-
+
+:~ habit_words (command : string) : string =
+    all_habits ()
+    |> listm.fold (\ words (h : habit) => ? habit_in command h ?> words ++# habit_word h ++# "\n" |: words) ""

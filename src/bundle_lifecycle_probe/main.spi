@@ -1,6 +1,6 @@
-inl eq_i32 (a : i32) (b : i32) : bool = a = b
+:= eq_i32 (a : i32) (b : i32) : bool = a = b
 
-inl positive_ok () : bool =
+:= positive_ok () : bool =
     eq_i32 (bundle_lifecycle_domain.bundle_root_binding 3i32 3i32) 1i32 &&
     eq_i32 (bundle_lifecycle_domain.bundle_entry_binding 17i32 17i32) 1i32 &&
     eq_i32 (bundle_lifecycle_domain.bundle_size_binding 30000000i32 11000000i32) 1i32 &&
@@ -18,7 +18,7 @@ inl positive_ok () : bool =
     eq_i32 (bundle_lifecycle_domain.archive_extract_complete_binding 17i32 17i32) 1i32 &&
     eq_i32 (bundle_lifecycle_domain.archive_extract_receipt_binding 1i32 1i32) 1i32
 
-inl negative_ok () : bool =
+:= negative_ok () : bool =
     eq_i32 (bundle_lifecycle_domain.bundle_root_binding 3i32 1i32) 0i32 &&
     eq_i32 (bundle_lifecycle_domain.bundle_entry_binding 17i32 16i32) 0i32 &&
     eq_i32 (bundle_lifecycle_domain.bundle_size_binding 30000000i32 30000001i32) 0i32 &&
@@ -37,4 +37,4 @@ inl negative_ok () : bool =
     eq_i32 (bundle_lifecycle_domain.archive_extract_complete_binding 17i32 16i32) 0i32 &&
     eq_i32 (bundle_lifecycle_domain.archive_extract_receipt_binding 1i32 0i32) 0i32
 
-inl main () : i32 = if positive_ok () && negative_ok () then 0i32 else 1i32
+:= main () : i32 = ? positive_ok () && negative_ok () ?> 0i32 |: 1i32

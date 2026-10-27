@@ -1,10 +1,10 @@
-nominal release_closeout_raw = ()
-nominal release_closeout_inspected = ()
-nominal release_closeout_verified = ()
-nominal release_closeout_sealed = ()
-nominal release_closeout_attested = ()
+:! release_closeout_raw = ()
+:! release_closeout_inspected = ()
+:! release_closeout_verified = ()
+:! release_closeout_sealed = ()
+:! release_closeout_attested = ()
 
-union release_closeout_gate =
+:| release_closeout_gate =
     | StateGate
     | WorkspaceGate
     | ContractsGate
@@ -12,7 +12,7 @@ union release_closeout_gate =
     | ColdReplayGate
     | MigrationGate
 
-union release_closeout_policy =
+:| release_closeout_policy =
     | RejectMissingGate
     | RejectDuplicateGate
     | RejectUnsafeEvidence
@@ -30,22 +30,24 @@ union release_closeout_policy =
     | ResealAttestedCloseout
     | RollbackFailedSeal
 
-union release_closeout_op from to =
+:| release_closeout_op from to =
     | InspectReleaseCloseout :: release_closeout_op release_closeout_raw release_closeout_inspected
     | VerifyReleaseEvidence :: release_closeout_op release_closeout_inspected release_closeout_verified
     | SealReleaseCloseout :: release_closeout_op release_closeout_verified release_closeout_sealed
     | AttestReleaseCloseout :: release_closeout_op release_closeout_sealed release_closeout_attested
 
-union rec release_closeout_plan from to =
-    | ReleaseCloseoutStep :: forall from to. release_closeout_op from to -> release_closeout_plan from to
-    | ReleaseCloseoutThen :: forall from to. (exists middle. release_closeout_plan from middle * release_closeout_plan middle to) -> release_closeout_plan from to
+:| ^ release_closeout_plan from to =
+    | ReleaseCloseoutStep :: \* from to. release_closeout_op from to -> release_closeout_plan from to
+    | ReleaseCloseoutThen :: \* from to.
+        (\? middle. release_closeout_plan from middle * release_closeout_plan middle to) ->
+        release_closeout_plan from to
 
-inl release_closeout_public_plan () : release_closeout_plan release_closeout_raw release_closeout_attested =
-    ReleaseCloseoutThen (exists (
+:= release_closeout_public_plan () : release_closeout_plan release_closeout_raw release_closeout_attested =
+    ReleaseCloseoutThen (\? (
         ReleaseCloseoutStep InspectReleaseCloseout,
-        ReleaseCloseoutThen (exists (
+        ReleaseCloseoutThen (\? (
             ReleaseCloseoutStep VerifyReleaseEvidence,
-            ReleaseCloseoutThen (exists (
+            ReleaseCloseoutThen (\? (
                 ReleaseCloseoutStep SealReleaseCloseout,
                 ReleaseCloseoutStep AttestReleaseCloseout
             ))

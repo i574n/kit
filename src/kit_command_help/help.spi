@@ -1,0 +1,18 @@
+:< agile_subcommand_domain.subcommand
+
+:~ root_flag_refusal (~name : string) (~flag : string) : string =
+    ?= agile_subcommand_of name ?|
+    | AgileKnown subcommand => agile_root_flag_refusal subcommand flag
+    | AgileUnknownName => ""
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_root_flag_refusal",
+        ((\ (name, flag) => root_flag_refusal name flag) : string * string -> string)
+    )
+    !!!!Export("kit_command_more_usages", ((\ () => command_spec_domain.model.command_more_usages ()) : () -> string))
+    !!!!Export(
+        "kit_agile_subcommand_known",
+        ((\ value => agile_subcommand_domain.subcommand.agile_subcommand_known value) : string -> i32)
+    )
+    0i32

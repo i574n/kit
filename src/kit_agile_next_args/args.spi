@@ -1,0 +1,95 @@
+:< sm'_operators
+
+:= query_flag_width (~argument : string) (~value : string) : i32 = $'agile_task_query::kit_query_flag_width(&*!argument\
+    , &*!value)' : i32
+:= query_flag_refusal (~argument : string) (~value : string) : string =
+    $'agile_task_query::kit_query_flag_refusal(&*!argument, &*!value)' : string
+:= query_usage () : string = $'agile_task_query::kit_query_usage()' : string
+:= fitting_loads () : string = $'kit_window_query::kit_fitting_loads()' : string
+:= planned_load_valid (~load : string) : bool = $'agile_planning_filters::kit_agile_planning_filters_valid(&*!load, \
+    "all")' : bool
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:= argument_count () : i32 =
+    := count = env.host_argument_count ()
+    ? count > 2i32 ?> count - 2i32 |: 0i32
+
+:~ load_words (~loads : string) : array string = sm'.split "," loads |> array
+
+:~ ^ loads_valid (words : array string) (at : i32) : bool =
+    ? am'.length words <= at ?> !+
+    |? planned_load_valid (am'.index at words) ?> loads_valid words (at + 1i32)
+    |: !-
+
+:= query_appended (~query : string) (~argument : string) (~value : string) : string =
+    query ++# (? query = "" ?> "" |: " ") ++# argument ++# (? value = "" ?> "" |: " ") ++# value
+
+:== next_args =
+    {
+        role : string
+        limit : i32
+        filters : string
+        load : string
+        json : bool
+    }
+
+:| args_parse =
+    | ArgsParsed : next_args
+    | ArgsRejected : string
+
+:= next_usage () : string =
+        "expected --as main|subagent, "
+        ++# (query_usage ())
+        ++# ", --load <light|medium|heavy|none,...>, --fits, --json or a positive count"
+
+:~ ^ next_request_from (index : i32) (count : i32) (request : next_args) : args_parse =
+    ? count <= index
+    ?> ArgsParsed request
+    |:
+        := argument = argument_owned index
+        := value = argument_owned (index + 1i32)
+        ? argument = "--as"
+        ?>
+            ? value = "main" || value = "subagent" ?> next_request_from (index + 2i32) count { request ?| role = value }
+            |: ArgsRejected ("--as expects main or subagent, got " ++# value)
+        |? argument = "--json"
+        ?> next_request_from (index + 1i32) count { request ?| json = !+ }
+        |? argument = "--fits"
+        ?> next_request_from (index + 1i32) count { request ?| load = fitting_loads () }
+        |? argument = "--load"
+        ?>
+            ? value <> "" && loads_valid (load_words value) 0i32
+            ?> next_request_from (index + 2i32) count { request ?| load = value }
+            |: ArgsRejected ("--load expects light, medium, heavy or none, or a comma list of them, got " ++# value)
+        |:
+            := width = query_flag_width argument value
+            ? width > 0i32
+            ?>
+                next_request_from (index + width) count { request ?|
+                    filters = query_appended request.filters argument (? width = 2i32 ?> value |: "")
+                }
+            |? width < 0i32
+            ?> ArgsRejected (query_flag_refusal argument value)
+            |:
+                := parsed = $'(!argument).parse::<i32>().ok().filter(|value| *value > 0).unwrap_or(0)' : i32
+                ? 0i32 < parsed ?> next_request_from (index + 1i32) count { request ?| limit = parsed }
+                |: ArgsRejected ("unexpected argument " ++# argument ++# " (" ++# (next_usage ()) ++# ")")
+
+:~ next_request () : bool * string * string * i32 * string * string * bool =
+    ?=
+        next_request_from 2i32 (argument_count ()) {
+            role = "main"
+            limit = 10i32
+            filters = ""
+            load = "all"
+            json = !-
+        }
+    ?|
+    | ArgsParsed request => !+, "", request.role, request.limit, request.filters, request.load, request.json
+    | ArgsRejected reason => !-, reason, "", 0i32, "", "", !-
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_next_request",
+        ((\ () => next_request ()) : () -> bool * string * string * i32 * string * string * bool)
+    )
+    0i32

@@ -2,13 +2,13 @@ use super::*;
 use std::path::PathBuf;
 
 const ZERO: &str = "0000000000000000000000000000000000000000000000000000000000000000";
-const LCOV: &str = "SF:src/eoie_cli/eoie.rs\nDA:1,1\nDA:2,0\nend_of_record\n";
+const LCOV: &str = "SF:src/kit_cli/kit.rs\nDA:1,1\nDA:2,0\nend_of_record\n";
 
 struct Fixture(PathBuf);
 impl Fixture {
     fn new(label: &str) -> Self {
         let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let root = env::temp_dir().join(format!("eoie evidence {label} ü {} {stamp}", std::process::id()));
+        let root = env::temp_dir().join(format!("kit evidence {label} ü {} {stamp}", std::process::id()));
         fs::create_dir_all(root.join("state")).unwrap();
         fs::create_dir_all(root.join("input")).unwrap();
         Self(root)
@@ -78,10 +78,10 @@ fn closeout_evidence_refresh_binds_the_platform_binary_name() {
     let root = &f.0;
     fs::create_dir_all(root.join("src")).unwrap();
     fs::create_dir_all(root.join("evidence")).unwrap();
-    for (relative, text) in [("state/release_closeout.spi", "closeout\n"), ("state/cold_proof.spi", "cold\n"), ("src/Cargo.lock", "lock\n"), ("eoie.exe", "windows binary")] {
+    for (relative, text) in [("state/release_closeout.spi", "closeout\n"), ("state/cold_proof.spi", "cold\n"), ("src/Cargo.lock", "lock\n"), ("kit.exe", "windows binary")] {
         fs::write(root.join(relative), text).unwrap();
     }
-    let rows = ["state/release_closeout.spi", "state/cold_proof.spi", "src/Cargo.lock", "eoie"]
+    let rows = ["state/release_closeout.spi", "state/cold_proof.spi", "src/Cargo.lock", "kit"]
         .iter()
         .map(|relative| format!("    core.EvidenceRef (\"{relative}\", \"{ZERO}\", 1u64, core.Utf8TextMedia, core.BundlePath)\n"))
         .collect::<String>();
@@ -89,9 +89,9 @@ fn closeout_evidence_refresh_binds_the_platform_binary_name() {
     let closeout = inspection_file_sha256(&root.join("state/release_closeout.spi")).unwrap();
     assert_eq!(refresh_release_closeout_evidence(root, &closeout, 9).unwrap(), 127);
     let manifest = fs::read_to_string(root.join("state/evidence.spi")).unwrap();
-    let binary = inspection_file_sha256(&root.join("eoie.exe")).unwrap();
-    assert!(manifest.contains(&format!("(\"eoie.exe\", \"{binary}\", 14u64")), "{manifest}");
-    fs::write(root.join("eoie"), "unix binary").unwrap();
+    let binary = inspection_file_sha256(&root.join("kit.exe")).unwrap();
+    assert!(manifest.contains(&format!("(\"kit.exe\", \"{binary}\", 14u64")), "{manifest}");
+    fs::write(root.join("kit"), "unix binary").unwrap();
     assert!(refresh_release_closeout_evidence(root, &closeout, 9).unwrap_err().contains("exactly one root binary"));
 }
 
@@ -101,10 +101,10 @@ fn closeout_evidence_refresh_attests_the_release_state() {
     let root = &f.0;
     fs::create_dir_all(root.join("src")).unwrap();
     fs::create_dir_all(root.join("evidence")).unwrap();
-    for (relative, text) in [("state/release_closeout.spi", "closeout\n"), ("state/cold_proof.spi", "cold\n"), ("src/Cargo.lock", "lock\n"), ("src/Cargo.toml", "[workspace]\n"), ("state/bundle.spi", "bundle\n"), ("eoie.exe", "windows binary")] {
+    for (relative, text) in [("state/release_closeout.spi", "closeout\n"), ("state/cold_proof.spi", "cold\n"), ("src/Cargo.lock", "lock\n"), ("src/Cargo.toml", "[workspace]\n"), ("state/bundle.spi", "bundle\n"), ("kit.exe", "windows binary")] {
         fs::write(root.join(relative), text).unwrap();
     }
-    let rows = ["state/release_closeout.spi", "state/cold_proof.spi", "src/Cargo.lock", "src/Cargo.toml", "state/bundle.spi", "eoie"]
+    let rows = ["state/release_closeout.spi", "state/cold_proof.spi", "src/Cargo.lock", "src/Cargo.toml", "state/bundle.spi", "kit"]
         .iter()
         .map(|relative| format!("    core.EvidenceRef (\"{relative}\", \"{ZERO}\", 1u64, core.Utf8TextMedia, core.BundlePath)\n"))
         .collect::<String>();
@@ -120,10 +120,10 @@ fn closeout_evidence_refresh_attests_the_release_state() {
 
 #[test]
 fn evidence_rows_follow_the_spiral_currentness_plan() {
-    for (regular, identical, stage) in [(0, 0, 0), (0, 1, 0), (1, 0, 1), (1, 1, 2)] { assert_eq!(eoie_evidence_row_stage(regular, identical), stage); }
+    for (regular, identical, stage) in [(0, 0, 0), (0, 1, 0), (1, 0, 1), (1, 1, 2)] { assert_eq!(kit_evidence_row_stage(regular, identical), stage); }
     for (tool, name) in [("rustc", "RUSTC"), ("cargo", "CARGO"), ("rustdoc", "RUSTDOC"), ("rustfmt", "RUSTFMT"), ("rustup", ""), ("", "")] { assert_eq!(toolchain_env_name(tool).unwrap_or_default(), name); }
-    for (unix, windows, name) in [(1, 0, "eoie"), (0, 1, "eoie.exe"), (1, 1, ""), (0, 0, "")] { assert_eq!(&*eoie_evidence_public_binary(unix, windows), name); }
+    for (unix, windows, name) in [(1, 0, "kit"), (0, 1, "kit.exe"), (1, 1, ""), (0, 0, "")] { assert_eq!(&*kit_evidence_public_binary(unix, windows), name); }
     assert!(evidence_sha256_text(ZERO) && evidence_sha256_text(&"Ab".repeat(32)));
     assert!(!evidence_sha256_text(&ZERO[1..]) && !evidence_sha256_text(&"g".repeat(64)) && !evidence_sha256_text(&format!("{ZERO}0")));
-    for (code, tail) in [(0, "contains no PatchExact values"), (-1, "is malformed"), (-2, "exceeds 256 KiB"), (-3, "source is unavailable"), (9, "returned an invalid witness")] { assert_eq!(&*eoie_patch_control_domain::eoie_patch_plan_failure_message(code), format!("typed patch plan {tail}")); }
+    for (code, tail) in [(0, "contains no PatchExact values"), (-1, "is malformed"), (-2, "exceeds 256 KiB"), (-3, "source is unavailable"), (9, "returned an invalid witness")] { assert_eq!(&*kit_patch_control_domain::kit_patch_plan_failure_message(code), format!("typed patch plan {tail}")); }
 }

@@ -1,7 +1,6 @@
-inl rust_global (x : string) : () = !!!!Global(x)
 
-inl emit_types () : () =
-    rust_global """
+:= emit_types () : () =
+    global """
         #[rustfmt::skip]
         mod dense {
         #[cfg(target_os = "linux")] use std::io::Write;
@@ -38,8 +37,8 @@ inl emit_types () : () =
         }
         """
 
-inl emit_linux_helpers () : () =
-    rust_global """
+:= emit_linux_helpers () : () =
+    global """
         #[cfg(target_os = "linux")] use std::ffi::{CString, OsStr, OsString};
         #[cfg(target_os = "linux")] use std::os::fd::{AsRawFd, FromRawFd};
         #[cfg(target_os = "linux")] use std::os::raw::{c_char, c_int, c_uint};
@@ -191,8 +190,8 @@ inl emit_linux_helpers () : () =
         }
         """
 
-inl emit_public_mutation () : () =
-    rust_global """
+:= emit_public_mutation () : () =
+    global """
         pub fn mutation_boundary_capability() -> &'static str {
             #[cfg(windows)] { return "windows-locked-ancestor-nofollow"; }
             #[cfg(target_os = "linux")] { return "descriptor-relative-mutation-tree"; }
@@ -356,7 +355,7 @@ inl emit_public_mutation () : () =
             let parent_path = path.parent().ok_or_else(|| format!("path has no parent: {}", path.display()))?;
             let (parent, leaf) = open_parent(path, true)?;
             let mode = target_mode(&parent, leaf.as_os_str())?;
-            let temporary = create_stage(&parent, parent_path, leaf.as_os_str(), "eoie-tmp", bytes, mode)?;
+            let temporary = create_stage(&parent, parent_path, leaf.as_os_str(), "kit-tmp", bytes, mode)?;
             let temporary_leaf = temporary.file_name().ok_or_else(|| "temporary path has no leaf".to_owned())?;
             if let Err(error) = rename_same_parent(&parent, temporary_leaf, leaf.as_os_str()) { let _ = unlink_name(&parent, temporary_leaf, 0); return Err(error); }
             Ok(())
@@ -373,7 +372,7 @@ inl emit_public_mutation () : () =
             let _ = target_mode(&target_parent, target_leaf.as_os_str())?;
             let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|error| format!("clock before unix epoch: {error}"))?.as_nanos();
             for attempt in 0u8..32u8 {
-                let candidate = OsString::from(format!(".{}.eoie-copy-{}-{nonce}-{attempt}", target_leaf.to_string_lossy(), std::process::id()));
+                let candidate = OsString::from(format!(".{}.kit-copy-{}-{nonce}-{attempt}", target_leaf.to_string_lossy(), std::process::id()));
                 let encoded = c_name(candidate.as_os_str())?;
                 let fd = unsafe { openat(target_parent.as_raw_fd(), encoded.as_ptr(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0o600u32) };
                 if fd < 0 { let error = std::io::Error::last_os_error(); if error.raw_os_error() == Some(17) { continue; } return Err(format!("create copy stage {}: {error}", candidate.to_string_lossy())); }
@@ -394,7 +393,7 @@ inl emit_public_mutation () : () =
             let parent_path = target.parent().ok_or_else(|| format!("target has no parent: {}", target.display()))?;
             let (parent, leaf) = open_parent(target, false)?;
             let mode = target_mode(&parent, leaf.as_os_str())?.ok_or_else(|| format!("replace target is absent: {}", target.display()))?;
-            let temporary = create_stage(&parent, parent_path, leaf.as_os_str(), "eoie-patch", text.as_bytes(), Some(mode))?;
+            let temporary = create_stage(&parent, parent_path, leaf.as_os_str(), "kit-patch", text.as_bytes(), Some(mode))?;
             Ok(StagedWriteReceipt { target: target.to_path_buf(), temporary, bytes_written: text.len(), stage_index, backup_slot })
         }
         #[cfg(not(any(target_os = "linux", windows)))] pub fn stage_text_receipted_bound(_target: &Path, _text: &str, _stage_index: i32, _backup_slot: i32) -> Result<StagedWriteReceipt, String> { Err("staged mutation requires a descriptor-relative backend".to_owned()) }
@@ -406,7 +405,7 @@ inl emit_public_mutation () : () =
             let parent_path = target.parent().ok_or_else(|| format!("target has no parent: {}", target.display()))?;
             let (parent, leaf) = open_parent(target, true)?;
             if target_mode(&parent, leaf.as_os_str())?.is_some() { return Err(format!("new target already exists: {}", target.display())); }
-            create_stage(&parent, parent_path, leaf.as_os_str(), "eoie-create", text.as_bytes(), None)
+            create_stage(&parent, parent_path, leaf.as_os_str(), "kit-create", text.as_bytes(), None)
         }
         #[cfg(not(any(target_os = "linux", windows)))] pub fn stage_new_text(_target: &Path, _text: &str) -> Result<PathBuf, String> { Err("staged mutation requires a descriptor-relative backend".to_owned()) }
 
@@ -451,8 +450,8 @@ inl emit_public_mutation () : () =
         #[cfg(not(any(target_os = "linux", windows)))] pub fn rooted_unlink_nondirectory(_path: &Path) -> Result<(), String> { Err("nofollow unlink requires a descriptor-relative backend".to_owned()) }
         """
 
-inl emit_tree_removal () : () =
-    rust_global """
+:= emit_tree_removal () : () =
+    global """
         #[cfg(target_os = "linux")] fn remove_directory_contents(directory: &std::fs::File) -> Result<u64, String> {
             let descriptor_path = PathBuf::from(format!("/proc/self/fd/{}", directory.as_raw_fd()));
             let mut count = 0u64;
@@ -487,14 +486,14 @@ inl emit_tree_removal () : () =
         #[cfg(not(any(target_os = "linux", windows)))] pub fn rooted_remove_tree_within(_root: &Path, _path: &Path) -> Result<u64, String> { Err("tree removal requires a descriptor-relative backend".to_owned()) }
         """
 
-inl emit_tests () : () =
-    rust_global """
+:= emit_tests () : () =
+    global """
         #[cfg(all(test, target_os = "linux"))] mod descriptor_mutation_tests {
             use super::*;
             use std::os::unix::fs::symlink;
             fn fixture(name: &str) -> PathBuf {
                 let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-                std::env::temp_dir().join(format!("eoie-mutation-{name}-{}-{nonce}", std::process::id()))
+                std::env::temp_dir().join(format!("kit-mutation-{name}-{}-{nonce}", std::process::id()))
             }
             #[test] fn atomic_write_rejects_symlink_ancestor() {
                 let root = fixture("atomic"); let inside = root.join("inside"); let outside = root.join("outside");
@@ -542,12 +541,12 @@ inl emit_tests () : () =
         }
         """
 
-inl main () : i32 =
+:= main () : i32 =
     emit_types ()
     emit_linux_helpers ()
     emit_public_mutation ()
     emit_tree_removal ()
     emit_tests ()
-    rust_global "}"
-    rust_global "pub use dense::*;"
+    global "}"
+    global "pub use dense::*;"
     0i32

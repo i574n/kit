@@ -1,6 +1,0 @@
-packages:
-    |core-
-    rust_std_string
-    eoie_machine_watch_model
-modules:
-    windows

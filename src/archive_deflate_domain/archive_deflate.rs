@@ -2,8 +2,8 @@
 #![allow(clippy::needless_late_init)]
 #![allow(clippy::items_after_test_module)]
 use std::collections::BTreeSet;
-use eoie_rust_std_fs::{rooted_list_names, rooted_open_regular_read, rooted_read_symlink};
-use eoie_rust_std_fs_mutation::{rooted_create_directory_within, rooted_create_hardlink_within, rooted_create_regular_within, rooted_create_symlink_within, rooted_ensure_directory, rooted_promote_directory_within, rooted_remove_tree_within, rooted_set_directory_mode_within};
+use kit_rust_std_fs::{rooted_list_names, rooted_open_regular_read, rooted_read_symlink};
+use kit_rust_std_fs_mutation::{rooted_create_directory_within, rooted_create_hardlink_within, rooted_create_regular_within, rooted_create_symlink_within, rooted_ensure_directory, rooted_promote_directory_within, rooted_remove_tree_within, rooted_set_directory_mode_within};
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
 use zip::CompressionMethod;
@@ -12,11 +12,11 @@ use zip::ZipArchive;
 const DEFAULT_ARCHIVE_LIMIT_BYTES: u64 = 256 * 1024 * 1024;
 
 fn archive_fault_code() -> Result<i32, String> {
-    match std::env::var("EOIE_ARCHIVE_FAULT").ok().as_deref() {
+    match std::env::var("KIT_ARCHIVE_FAULT").ok().as_deref() {
         None | Some("") | Some("none") => Ok(0),
         Some("after-first-payload") => Ok(1),
         Some("before-commit") => Ok(2),
-        Some(value) => Err(format!("unknown EOIE_ARCHIVE_FAULT: {value}")),
+        Some(value) => Err(format!("unknown KIT_ARCHIVE_FAULT: {value}")),
     }
 }
 
@@ -46,7 +46,7 @@ pub fn archive_link_target_confined(link_relative: &Path, target: &Path) -> bool
 
 pub fn archive_create_confined_symlink(link_relative: &Path, target: &Path, output: &Path, stage: &Path, size: u64) -> Result<(), String> {
     let confined = archive_link_target_confined(link_relative, target);
-    if eoie_archive_tar_symlink_binding(i32::from(confined), i32::from(size == 0)) != 1 {
+    if kit_archive_tar_symlink_binding(i32::from(confined), i32::from(size == 0)) != 1 {
         return Err(format!("tar symlink rejected: {} -> {}", link_relative.display(), target.display()));
     }
     rooted_create_symlink_within(stage, output, target)?;
@@ -57,7 +57,7 @@ pub fn archive_create_confined_hardlink(target_relative: &Path, output: &Path, s
     let target_safe = archive_safe_relative(target_relative);
     let target = stage.join(target_relative);
     let target_regular = rooted_open_regular_read(&target).is_ok();
-    if eoie_archive_tar_hardlink_binding(i32::from(target_safe && target_regular), i32::from(size == 0)) != 1 {
+    if kit_archive_tar_hardlink_binding(i32::from(target_safe && target_regular), i32::from(size == 0)) != 1 {
         return Err(format!("tar hardlink rejected: {} -> {}", output.display(), target_relative.display()));
     }
     if let Some(parent) = output.parent() { rooted_ensure_directory(parent)?; }
@@ -91,7 +91,7 @@ fn archive_validate_tree(root: &Path) -> Result<usize, String> {
 }
 
 pub fn archive_extract_with_limit(archive_path: &Path, destination: &Path, limit_bytes: u64) -> Result<(usize, usize, u64), String> {
-    if eoie_archive_preflight_binding(i32::from(archive_path.is_file()), i32::from(!destination.exists())) != 1 {
+    if kit_archive_preflight_binding(i32::from(archive_path.is_file()), i32::from(!destination.exists())) != 1 {
         return Err(format!("archive preflight rejected archive={} destination={}", archive_path.display(), destination.display()));
     }
     if limit_bytes == 0 || limit_bytes > i32::MAX as u64 { return Err("archive limit must be between 1 and i32::MAX".to_owned()); }
@@ -99,7 +99,7 @@ pub fn archive_extract_with_limit(archive_path: &Path, destination: &Path, limit
     let parent = destination.parent().ok_or_else(|| format!("destination has no parent: {}", destination.display()))?;
     rooted_ensure_directory(parent)?;
     let name = destination.file_name().and_then(|value| value.to_str()).unwrap_or("archive");
-    let stage = parent.join(format!(".{name}.eoie-extract-{}", std::process::id()));
+    let stage = parent.join(format!(".{name}.kit-extract-{}", std::process::id()));
     if stage.exists() { return Err(format!("staging path already exists: {}", stage.display())); }
     rooted_create_directory_within(parent, &stage)?;
     let result = (|| {
@@ -117,12 +117,12 @@ pub fn archive_extract_with_limit(archive_path: &Path, destination: &Path, limit
             let compression_supported = matches!(entry.compression(), CompressionMethod::Stored | CompressionMethod::Deflated);
             let mode = entry.unix_mode().unwrap_or(if entry.is_dir() { 0o755 } else { 0o644 });
             let is_symlink = mode & 0o170000 == 0o120000;
-            if eoie_archive_compression_binding(1, i32::from(compression_supported)) != 1 {
+            if kit_archive_compression_binding(1, i32::from(compression_supported)) != 1 {
                 return Err(format!("zip entry rejected path={} compression={:?} mode={mode:o}", relative.display(), entry.compression()));
             }
             let output = stage.join(&relative);
             if entry.is_dir() {
-                if is_symlink || eoie_archive_entry_binding(1, 1) != 1 { return Err(format!("directory zip entry rejected: {}", relative.display())); }
+                if is_symlink || kit_archive_entry_binding(1, 1) != 1 { return Err(format!("directory zip entry rejected: {}", relative.display())); }
                 rooted_ensure_directory(&output)?;
                 rooted_set_directory_mode_within(&stage, &output, mode)?;
                 continue;
@@ -139,15 +139,15 @@ pub fn archive_extract_with_limit(archive_path: &Path, destination: &Path, limit
                 let target_text = String::from_utf8(bytes).map_err(|_| format!("symlink target is not UTF-8: {}", relative.display()))?;
                 let target = PathBuf::from(target_text);
                 let confined = archive_link_target_confined(&relative, &target);
-                if eoie_archive_entry_binding(1, i32::from(confined)) != 1 { return Err(format!("zip symlink escapes root: {} -> {}", relative.display(), target.display())); }
+                if kit_archive_entry_binding(1, i32::from(confined)) != 1 { return Err(format!("zip symlink escapes root: {} -> {}", relative.display(), target.display())); }
                 rooted_create_symlink_within(&stage, &output, &target)?;
                 payloads += 1;
-                if eoie_archive_fault_binding(fault, 1) == 1 {
+                if kit_archive_fault_binding(fault, 1) == 1 {
                     return Err("injected archive fault after-first-payload".to_owned());
                 }
                 continue;
             }
-            if eoie_archive_entry_binding(1, 1) != 1 { return Err(format!("zip file entry rejected: {}", relative.display())); }
+            if kit_archive_entry_binding(1, 1) != 1 { return Err(format!("zip file entry rejected: {}", relative.display())); }
             let mut output_file = rooted_create_regular_within(&stage, &output, mode)?;
             let mut written = 0u64;
             let mut buffer = [0u8; 64 * 1024];
@@ -162,16 +162,16 @@ pub fn archive_extract_with_limit(archive_path: &Path, destination: &Path, limit
             if written != declared { return Err(format!("zip entry size mismatch path={} declared={declared} written={written}", relative.display())); }
             output_file.sync_all().map_err(|error| format!("sync {}: {error}", output.display()))?;
             payloads += 1;
-            if eoie_archive_fault_binding(fault, 1) == 1 {
+            if kit_archive_fault_binding(fault, 1) == 1 {
                 return Err("injected archive fault after-first-payload".to_owned());
             }
         }
-        if eoie_archive_budget_binding(limit_bytes as i32, total_bytes as i32) != 1 { return Err("typed archive budget rejected".to_owned()); }
+        if kit_archive_budget_binding(limit_bytes as i32, total_bytes as i32) != 1 { return Err("typed archive budget rejected".to_owned()); }
         let tree_files = archive_validate_tree(&stage)?;
-        if eoie_archive_complete_binding(payloads as i32, tree_files as i32) != 1 || eoie_archive_tree_binding(1, 1) != 1 {
+        if kit_archive_complete_binding(payloads as i32, tree_files as i32) != 1 || kit_archive_tree_binding(1, 1) != 1 {
             return Err(format!("typed archive completion rejected payloads={payloads} tree_files={tree_files}"));
         }
-        if eoie_archive_fault_binding(fault, 2) == 1 {
+        if kit_archive_fault_binding(fault, 2) == 1 {
             return Err("injected archive fault before-commit".to_owned());
         }
         Ok((entries_total, payloads, total_bytes))
@@ -194,27 +194,27 @@ pub fn archive_extract_run(args: &[String]) -> Result<(), String> {
     if args.len() != 3 { return Err("zip-extract expects archive.zip destination".to_owned()); }
     let archive = Path::new(archive_arg(args, 1, "archive.zip")?);
     let destination = Path::new(archive_arg(args, 2, "destination")?);
-    let limit = std::env::var("EOIE_ARCHIVE_MAX_BYTES").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(DEFAULT_ARCHIVE_LIMIT_BYTES);
+    let limit = std::env::var("KIT_ARCHIVE_MAX_BYTES").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(DEFAULT_ARCHIVE_LIMIT_BYTES);
     let (entries, payloads, bytes) = archive_extract_with_limit(archive, destination, limit)?;
-    println!("eoie proxy zip-extract ok entries_total={entries} payloads={payloads} bytes={bytes} compression=stored,deflate receipt=typed-generic");
+    println!("kit proxy zip-extract ok entries_total={entries} payloads={payloads} bytes={bytes} compression=stored,deflate receipt=typed-generic");
     Ok(())
 }
 use std::cell::RefCell;
 use std::rc::Rc;
 fn archive_preflight_binding_0(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -225,19 +225,19 @@ fn archive_preflight_binding_0(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_entry_binding_1(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -248,19 +248,19 @@ fn archive_entry_binding_1(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_tar_symlink_binding_2(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -271,19 +271,19 @@ fn archive_tar_symlink_binding_2(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_tar_hardlink_binding_3(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -294,19 +294,19 @@ fn archive_tar_hardlink_binding_3(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_tar_long_link_binding_4(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -317,19 +317,19 @@ fn archive_tar_long_link_binding_4(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_tar_pax_path_binding_5(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -340,19 +340,19 @@ fn archive_tar_pax_path_binding_5(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_compression_binding_6(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -363,15 +363,15 @@ fn archive_compression_binding_6(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_budget_binding_7(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 0i32;
+        let v3: bool = v1 < 0i32;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v0 < v1;
+            let v4: bool = v0 < v1;
             if v4 {
                 0i32
             } else {
@@ -381,19 +381,19 @@ fn archive_budget_binding_7(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_complete_binding_8(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 0i32;
+        let v3: bool = v1 < 0i32;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v0 < v1;
+            let v4: bool = v0 < v1;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = v1 < v0;
+                let v5: bool = v1 < v0;
                 if v5 {
                     0i32
                 } else {
@@ -404,19 +404,19 @@ fn archive_complete_binding_8(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_tree_binding_9(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -427,19 +427,19 @@ fn archive_tree_binding_9(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_format_binding_10(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 4i32 < v0;
+        let v3: bool = 4i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -450,27 +450,27 @@ fn archive_format_binding_10(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn archive_fault_binding_11(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 2i32 < v0;
+        let v3: bool = 2i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 2i32 < v1;
+                let v5: bool = 2i32 < v1;
                 if v5 {
                     0i32
                 } else {
-                    let mut v6: bool = v0 < v1;
+                    let v6: bool = v0 < v1;
                     if v6 {
                         0i32
                     } else {
-                        let mut v7: bool = v1 < v0;
+                        let v7: bool = v1 < v0;
                         if v7 {
                             0i32
                         } else {
@@ -542,39 +542,39 @@ fn closure11() -> Rc<dyn Fn(i32, i32) -> i32> {
         archive_fault_binding_11(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-pub fn eoie_archive_preflight_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_preflight_binding(v0: i32, v1: i32) -> i32 {
     closure0()(v0, v1)
 }
-pub fn eoie_archive_entry_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_entry_binding(v0: i32, v1: i32) -> i32 {
     closure1()(v0, v1)
 }
-pub fn eoie_archive_tar_symlink_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_tar_symlink_binding(v0: i32, v1: i32) -> i32 {
     closure2()(v0, v1)
 }
-pub fn eoie_archive_tar_hardlink_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_tar_hardlink_binding(v0: i32, v1: i32) -> i32 {
     closure3()(v0, v1)
 }
-pub fn eoie_archive_tar_long_link_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_tar_long_link_binding(v0: i32, v1: i32) -> i32 {
     closure4()(v0, v1)
 }
-pub fn eoie_archive_tar_pax_path_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_tar_pax_path_binding(v0: i32, v1: i32) -> i32 {
     closure5()(v0, v1)
 }
-pub fn eoie_archive_compression_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_compression_binding(v0: i32, v1: i32) -> i32 {
     closure6()(v0, v1)
 }
-pub fn eoie_archive_budget_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_budget_binding(v0: i32, v1: i32) -> i32 {
     closure7()(v0, v1)
 }
-pub fn eoie_archive_complete_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_complete_binding(v0: i32, v1: i32) -> i32 {
     closure8()(v0, v1)
 }
-pub fn eoie_archive_tree_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_tree_binding(v0: i32, v1: i32) -> i32 {
     closure9()(v0, v1)
 }
-pub fn eoie_archive_format_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_format_binding(v0: i32, v1: i32) -> i32 {
     closure10()(v0, v1)
 }
-pub fn eoie_archive_fault_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_archive_fault_binding(v0: i32, v1: i32) -> i32 {
     closure11()(v0, v1)
 }

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
-    [string]$EoieRoot = (Join-Path $PSScriptRoot '..'),
-    [string]$EoieBinary,
+    [string]$KitRoot = (Join-Path $PSScriptRoot '..'),
+    [string]$KitBinary,
     [Parameter(Mandatory)][string]$SpiralCompiler,
     [Parameter(Mandatory)][string]$LlvmDirectory,
     [string]$TargetDirectory,
@@ -10,9 +10,9 @@ param(
     [switch]$CompilerContracts
 )
 $ErrorActionPreference = 'Stop'
-$EoieRoot = (Resolve-Path -LiteralPath $EoieRoot).Path
-if (-not $EoieBinary) { $EoieBinary = Join-Path $EoieRoot $(if ($IsWindows) { 'eoie.exe' } else { 'eoie' }) }
-$EoieBinary = (Resolve-Path -LiteralPath $EoieBinary).Path
+$KitRoot = (Resolve-Path -LiteralPath $KitRoot).Path
+if (-not $KitBinary) { $KitBinary = Join-Path $KitRoot $(if ($IsWindows) { 'kit.exe' } else { 'kit' }) }
+$KitBinary = (Resolve-Path -LiteralPath $KitBinary).Path
 $SpiralCompiler = (Resolve-Path -LiteralPath $SpiralCompiler).Path
 $LlvmDirectory = (Resolve-Path -LiteralPath $LlvmDirectory).Path
 $suffix = if ($IsWindows) { '.exe' } else { '' }
@@ -20,18 +20,18 @@ $profdata = (Resolve-Path -LiteralPath (Join-Path $LlvmDirectory "llvm-profdata$
 $llvmCov = (Resolve-Path -LiteralPath (Join-Path $LlvmDirectory "llvm-cov$suffix")).Path
 $cargo = (Get-Command cargo -CommandType Application | Select-Object -First 1).Source
 $rustc = (Get-Command rustc -CommandType Application | Select-Object -First 1).Source
-if (-not $TargetDirectory) { $TargetDirectory = Join-Path $EoieRoot 'src/target/native-coverage' }
+if (-not $TargetDirectory) { $TargetDirectory = Join-Path $KitRoot 'src/target/native-coverage' }
 $TargetDirectory = [IO.Path]::GetFullPath($TargetDirectory, $PWD.Path)
-$work = Join-Path $EoieRoot ('.cache/native-coverage/' + [guid]::NewGuid().ToString('N'))
+$work = Join-Path $KitRoot ('.cache/native-coverage/' + [guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($work)
 $encoding = [Text.UTF8Encoding]::new($false)
-Copy-Item -LiteralPath $EoieBinary -Destination (Join-Path $work "eoie$suffix")
-$EoieBinary = Join-Path $work "eoie$suffix"
+Copy-Item -LiteralPath $KitBinary -Destination (Join-Path $work "kit$suffix")
+$KitBinary = Join-Path $work "kit$suffix"
 
 function Invoke-Captured([string]$Name, [string]$Program, [string[]]$Arguments, [switch]$RejectStderr, [switch]$Quiet) {
     $receiptName = "$Name.txt"
-    & $EoieBinary proxy command-capture $work $receiptName $TimeoutMs $Program @Arguments | ForEach-Object { if (-not $Quiet) { Write-Host $_ } }
-    if ($LASTEXITCODE -ne 0) { throw "EOIE could not capture $Name." }
+    & $KitBinary proxy command-capture $work $receiptName $TimeoutMs $Program @Arguments | ForEach-Object { if (-not $Quiet) { Write-Host $_ } }
+    if ($LASTEXITCODE -ne 0) { throw "KIT could not capture $Name." }
     $receipt = [IO.File]::ReadAllText((Join-Path $work $receiptName))
     $marker = "--- stdout ---" + [char]10
     $start = $receipt.IndexOf($marker, [StringComparison]::Ordinal)
@@ -63,21 +63,21 @@ $toolLlvm = [regex]::Match($llvmVersion, 'LLVM version\s+([0-9.]+)').Groups[1].V
 if (-not $rustLlvm -or $rustLlvm -ne $toolLlvm) { throw "LLVM tools must match rustc: rustc=$rustLlvm tools=$toolLlvm" }
 
 . $PSScriptRoot/workspace.ps1
-$SpiralCompiler = Copy-EoieCompilerSnapshot -Compiler $SpiralCompiler -Destination (Join-Path $work 'compiler')
-$snapshot = & $PSScriptRoot/test-source-package.ps1 -EoieRoot $EoieRoot -EoieBinary $EoieBinary -SkipBuild -PassThru | ForEach-Object {
+$SpiralCompiler = Copy-KitCompilerSnapshot -Compiler $SpiralCompiler -Destination (Join-Path $work 'compiler')
+$snapshot = & $PSScriptRoot/test-source-package.ps1 -KitRoot $KitRoot -KitBinary $KitBinary -SkipBuild -PassThru | ForEach-Object {
     if ($_.PSObject.Properties.Name -contains 'Manifest') { $_ } else { Write-Host $_ }
 }
 if (@($snapshot).Count -ne 1) { throw 'Source snapshot did not return one manifest.' }
 $source = $snapshot.RestoredRoot
 $profiles = Join-Path $work 'profiles'
 [void][IO.Directory]::CreateDirectory($profiles)
-$binary = Join-Path $TargetDirectory "release/eoie$suffix"
+$binary = Join-Path $TargetDirectory "release/kit$suffix"
 $settings = @{
-    CARGO_BUILD_JOBS = [string]$Jobs; EOIE_COVERAGE_JOBS = [string]$Jobs; RUST_TEST_THREADS = '1'
-    CARGO_INCREMENTAL = '1'; RUSTFLAGS = '-C instrument-coverage --cfg eoie_coverage'; CARGO_ENCODED_RUSTFLAGS = $null
+    CARGO_BUILD_JOBS = [string]$Jobs; KIT_COVERAGE_JOBS = [string]$Jobs; RUST_TEST_THREADS = '1'
+    CARGO_INCREMENTAL = '1'; RUSTFLAGS = '-C instrument-coverage --cfg kit_coverage'; CARGO_ENCODED_RUSTFLAGS = $null
     CARGO_TARGET_DIR = $TargetDirectory; CARGO_PROFILE_RELEASE_STRIP = 'none'
-    LLVM_PROFILE_FILE = (Join-Path $profiles '%p-%m.profraw'); EOIE_SPIRAL_COMPILE = $SpiralCompiler
-    EOIE_BIN_UNDER_TEST = $binary; EOIE_COVERAGE_SMOKE_CHILD = $null; RAYON_NUM_THREADS = [string]$Jobs
+    LLVM_PROFILE_FILE = (Join-Path $profiles '%p-%m.profraw'); KIT_SPIRAL_COMPILE = $SpiralCompiler
+    KIT_BIN_UNDER_TEST = $binary; KIT_COVERAGE_SMOKE_CHILD = $null; RAYON_NUM_THREADS = [string]$Jobs
 }
 $previous = @{}
 try {
@@ -91,13 +91,13 @@ try {
     [void][IO.Directory]::CreateDirectory($buildProfiles)
     $env:LLVM_PROFILE_FILE = Join-Path $buildProfiles '%p-%m.profraw'
     $manifest = Join-Path $source 'src/Cargo.toml'
-    $buildArgs = @('build', '--manifest-path', $manifest, '--release', '--offline', '--locked', '--package', 'eoie-cli', '--bin', 'eoie', '--jobs', [string]$Jobs)
+    $buildArgs = @('build', '--manifest-path', $manifest, '--release', '--offline', '--locked', '--package', 'kit-cli', '--bin', 'kit', '--jobs', [string]$Jobs)
     [void](Invoke-Captured 'coverage-build' $cargo $buildArgs)
     $testArgs = @('test', '--manifest-path', $manifest, '--release', '--offline', '--locked', '--workspace', '--lib', '--bins', '--tests', '--jobs', [string]$Jobs)
     [void](Invoke-Captured 'coverage-test-build' $cargo ($testArgs + @('--no-run')))
     $env:LLVM_PROFILE_FILE = Join-Path $profiles '%p-%m.profraw'
-    $run = Invoke-Captured 'workspace-run' $EoieBinary @('proxy', 'coverage-run', $source, $cargo, $SpiralCompiler, $TargetDirectory, $profiles, 'workspace', [string]$TimeoutMs)
-    foreach ($line in ($run -split [char]10 | Where-Object { $_ -match 'test result: ok\. [1-9]|eoie coverage phase=|coverage-run ok' })) { Write-Host $line }
+    $run = Invoke-Captured 'workspace-run' $KitBinary @('proxy', 'coverage-run', $source, $cargo, $SpiralCompiler, $TargetDirectory, $profiles, 'workspace', [string]$TimeoutMs)
+    foreach ($line in ($run -split [char]10 | Where-Object { $_ -match 'test result: ok\. [1-9]|kit coverage phase=|coverage-run ok' })) { Write-Host $line }
     if ($CompilerContracts) {
         $ignored = Invoke-Captured 'compiler-contracts' $cargo ($testArgs + @('--', '--ignored'))
         foreach ($line in ($ignored -split [char]10 | Where-Object { $_ -match 'test result: ok\. [1-9]' })) { Write-Host $line }
@@ -159,8 +159,8 @@ try {
     $unclaimed = @($rawProfiles | Where-Object { -not $claimed.Contains($_.FullName) } | ForEach-Object Name)
     if ($unclaimed.Count) { throw "Profiles outside the Cargo executable inventory require review: $($unclaimed -join ', ')" }
     $lcovPath = Join-Path $work 'current.lcov'
-    [void](Invoke-Captured 'union-lcov' $EoieBinary (@('proxy', 'coverage-union', 'current.lcov') + $lcovInputs.ToArray()) -RejectStderr)
-    $assessment = Invoke-Captured 'assess-lcov' $EoieBinary @('proxy', 'coverage-assess', $lcovPath, $lcovPath, '0', '0', '0')
+    [void](Invoke-Captured 'union-lcov' $KitBinary (@('proxy', 'coverage-union', 'current.lcov') + $lcovInputs.ToArray()) -RejectStderr)
+    $assessment = Invoke-Captured 'assess-lcov' $KitBinary @('proxy', 'coverage-assess', $lcovPath, $lcovPath, '0', '0', '0')
     Write-Host $assessment.Trim()
     $evidence = [ordered]@{
         Schema = 1; Platform = [Runtime.InteropServices.RuntimeInformation]::OSDescription
@@ -171,7 +171,7 @@ try {
         PreflightPolicy = 'Early CLI instrumentation probes are separate because Cargo may relink the binary before tests.'
         SourceManifest = $snapshot.Manifest; SourceManifestSHA256 = (Get-FileHash -LiteralPath $snapshot.Manifest -Algorithm SHA256).Hash
         RustVersion = $rustVersion.Trim(); LlvmVersion = $llvmVersion.Trim()
-        EoieSHA256 = (Get-FileHash -LiteralPath $EoieBinary -Algorithm SHA256).Hash
+        KitSHA256 = (Get-FileHash -LiteralPath $KitBinary -Algorithm SHA256).Hash
         DriverSHA256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
         CompilerSHA256 = (Get-FileHash -LiteralPath $SpiralCompiler -Algorithm SHA256).Hash
         ProfdataSHA256 = (Get-FileHash -LiteralPath $profdata -Algorithm SHA256).Hash
@@ -180,7 +180,7 @@ try {
         Assessment = $assessment.Trim(); CoverageValidated = $true; StrictReleaseCertification = $false
     }
     [IO.File]::WriteAllText((Join-Path $work 'evidence.json'), ($evidence | ConvertTo-Json -Depth 5), $encoding)
-    Write-Host "EOIE native coverage passed: evidence=$(Join-Path $work 'evidence.json')"
+    Write-Host "KIT native coverage passed: evidence=$(Join-Path $work 'evidence.json')"
 } finally {
     foreach ($name in $previous.Keys) {
         if ($null -eq $previous[$name]) { Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue }

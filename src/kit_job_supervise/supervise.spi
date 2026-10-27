@@ -1,0 +1,89 @@
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:~ halted (child : child_process) (~id : string) (halt : job_halt) : i32 =
+    := stop = tree_stop_of (child_tree_stopped child)
+    := _ = text_written (job_file id "exit") (halt_line halt (now_ms ()) stop)
+    := _ = $'kit_machine_windows::kit_job_windows_dropped(&*!id)' : u64
+    := code, _, _ = halt_terms halt
+    code
+
+:= cap_reached (cap : u64) (peak : u64) : bool = cap > 0u64 && peak * 100u64 >= cap * 98u64
+
+:~ ^ supervised (child : child_process) (~id : string) (deadline : u64) (beat : u64) (cap : u64) (hard : u64) : i32 =
+    := code = child_exit_or_running child
+    := peak = ? cap > 0u64 ?> container_peak_mb () |: 0u64
+    ? code <> -1i64 && cap_reached cap peak ?>
+        := _ = text_written (job_file id "peak_private_mb") (decimal_text peak)
+        halted child id HaltOnMemory
+    |? code <> -1i64 ?>
+        := exit = $'!code as i32' : i32
+        := _ = text_written (job_file id "exit") (exit_line exit (now_ms ()) (JobFinished exit) "")
+        := _ = $'kit_machine_windows::kit_job_windows_dropped(&*!id)' : u64
+        exit
+    |:
+        ?=
+            halt_of
+                (now_ms () > deadline || (hard <> 0u64 && now_ms () > hard))
+                (file_exists (job_file id "stop"))
+                (cap_reached cap peak)
+        ?|
+        | KeepRunning =>
+            := now = now_ms ()
+            := beating = now > beat + 1000u64
+            := next_beat =
+                ? beating ?>
+                    := _ = text_written (job_file id "heartbeat_ms") (decimal_text now)
+                    := _ = ? cap > 0u64 ?> text_written (job_file id "peak_private_mb") (decimal_text peak) |: ""
+                    now
+                |: beat
+            := next_deadline = ? beating && gate_queued id ?> deadline + (now - beat) |: deadline
+            sleep_ms 200u64
+            supervised child id next_deadline next_beat cap hard
+        | halt =>
+            := _ = ? cap > 0u64 ?> text_written (job_file id "peak_private_mb") (decimal_text peak) |: ""
+            halted child id halt
+
+:~ supervise_cleared (~id : string) : i32 =
+    := gate =
+        ? file_exists (job_file id "heavy-wrapper.ps1") ?> $'kit_job_gate::kit_job_window_gate(&*!id)' : i32
+        |? file_exists (job_file id "window-class") ?> $'kit_job_gate::kit_job_compile_gate(&*!id)' : i32
+        |: 0i32
+    ? gate <> 0i32 ?> gate
+    |:
+        := cap = decimal_u64 (text_or_empty (job_file id "memory_cap_mb"))
+        := _ =
+            ? cap > 0u64 && container_capped cap = !- ?>
+                text_written
+                    (job_file id "memory_cap_unenforced")
+                    "the job object refused the memory limit; the supervisor still stops the tree at the cap"
+            |: ""
+        := outcome =
+            logged_spawn
+                (text_or_empty (job_file id "argv"))
+                (text_or_empty (job_file id "cwd"))
+                (job_file id "stdout.log")
+                (job_file id "stderr.log")
+        ? spawned outcome ?>
+            := child = spawned_child outcome
+            := _ = text_written (job_file id "pid") (decimal_text (child_pid child))
+            := _ = text_written (job_file id "heartbeat_ms") (decimal_text (now_ms ()))
+            supervised child id (now_ms () + decimal_u64 (text_or_empty (job_file id "timeout_ms"))) (now_ms ()) cap (
+                decimal_u64 (text_or_empty (job_file id "done_by_ms")))
+        |:
+            := _ =
+                text_written
+                    (job_file id "exit")
+                    (exit_line 125i32 (now_ms ()) (JobSpawnFailed "") (spawn_error outcome))
+            125i32
+
+:~ supervise_job (~id : string) : i32 =
+    := _ = text_written (job_file id "supervisor") (decimal_text ($'std::process::id() as u64' : u64))
+    ($'kit_job_env::kit_job_environment_adopted(&*!id)' : ())
+    := halted = ? file_exists (job_file id "after") ?> $'kit_job_after::kit_job_after_wait(&*!id)' : i32 |: 0i32
+    ? halted <> 0i32 ?> halted |: supervise_cleared id
+
+:= main () : i32 =
+    !!!!Export("kit_job_supervise", ((\ id => supervise_job id) : string -> i32))
+    0i32

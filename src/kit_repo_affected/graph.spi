@@ -1,0 +1,98 @@
+///- --package .
+:# graph static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== package_node =
+    {
+        name : string
+        uses : list string
+        crate : bool
+    }
+
+:= package_word (~text : string) : string =
+    := bare = ? sm'.starts_with "|" text ?> sm'.substring 1i32 (sm'.length text - 1i32) text |: text
+    sm'.trim_end_suffix "-" bare
+
+:~ ^ lines_list (parts : array string) (index : i32) (acc : list string) : list string =
+    ? index < 0i32 ?> acc |: lines_list parts (index - 1i32) (am'.index index parts :: acc)
+
+:~ ^ section_uses (lines : list string) (inside : bool) (acc : list string) : list string =
+    ?= lines ?|
+    | Nil => listm.rev acc
+    | (line :: rest) =>
+        := trimmed = sm'.trim line
+        ? trimmed = "packages:" ?> section_uses rest !+ acc
+        |? trimmed = "modules:" ?> listm.rev acc
+        |? inside && trimmed <> "" ?> section_uses rest !+ (package_word trimmed :: acc)
+        |: section_uses rest inside acc
+
+:~ project_uses (~text : string) : list string =
+    := parts = sm'.split "\n" text |> array
+    section_uses (lines_list parts (am'.length parts - 1i32) Nil) !- Nil
+
+:~ ^ node_named (~name : string) (nodes : list package_node) : option package_node =
+    ?= nodes ?|
+    | Nil => None
+    | (node :: rest) => ? node.name = name ?> Some node |: node_named name rest
+
+:~ ^ prepended (front : list string) (back : list string) : list string =
+    ?= front ?|
+    | Nil => back
+    | (name :: rest) => (name :: prepended rest back)
+
+:~ ^ reaches
+    (nodes : list package_node) (changed : list string) (visited : list string) (pending : list string)
+    : bool
+    =
+    ?= pending ?|
+    | Nil => !-
+    | (name :: rest) =>
+        ? listm'.contains name changed ?> !+
+        |? listm'.contains name visited ?> reaches nodes changed visited rest
+        |:
+            ?= node_named name nodes ?|
+            | Some node => reaches nodes changed (name :: visited) (prepended node.uses rest)
+            | None => reaches nodes changed (name :: visited) rest
+
+:~ ^ affected_crates
+    (nodes : list package_node) (all : list package_node) (changed : list string) (acc : list string)
+    : list string
+    =
+    ?= nodes ?|
+    | Nil => listm.rev acc
+    | (node :: rest) =>
+        := hit = node.crate && reaches all changed Nil (node.name :: Nil)
+        affected_crates rest all changed (? hit ?> (node.name :: acc) |: acc)
+
+
+:= node (~name : string) (uses : list string) (crate : bool) : package_node =
+    { name = name; uses = uses; crate = crate }
+
+:= sample_graph () : list package_node =
+    ((node "jobs" ("core" :: ("spiral" :: Nil)) !-) :: ((node "job_after" ("core" :: ("jobs" :: Nil)) !+) :: ((node "windows" ("jobs" :: Nil) !+) :: ((node "watch" ("windows" :: Nil) !+) :: ((node "notes" ("core" :: Nil) !+) :: ((node "loop_a" ("loop_b" :: Nil) !+) :: ((node "loop_b" ("loop_a" :: Nil) !+) :: Nil)))))))
+
+:= joined (names : list string) : string =
+    listm.fold (\ text name => ? text = "" ?> name |: text ++# "," ++# name) "" names
+
+///> rust
+:# a_project_lists_its_packages_without_markers =
+    := uses = project_uses "packages:\n    |core-\n    spiral-\n    kit_jobs\nmodules:\n    graph\n"
+    testing.expect (joined uses = "core,spiral,kit_jobs") (joined uses)
+    testing.expect (joined (project_uses "modules:\n    graph\n") = "") "no packages section"
+
+///> rust
+:# crates_reaching_a_changed_package_are_affected_transitively =
+    testing.expect
+        (
+            joined (affected_crates (sample_graph ()) (sample_graph ()) ("jobs" :: Nil) Nil)
+            = "job_after,windows,watch"
+        )
+        "direct and transitive users, never the unrelated crate"
+    testing.expect
+        (joined (affected_crates (sample_graph ()) (sample_graph ()) ("watch" :: Nil) Nil) = "watch")
+        "a changed crate is affected itself"
+    testing.expect
+        (joined (affected_crates (sample_graph ()) (sample_graph ()) ("missing" :: Nil) Nil) = "")
+        "cycles end without a match"

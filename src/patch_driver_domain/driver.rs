@@ -1,9 +1,9 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
-use eoie_patch_control_domain::patch_rooted as source_authoring_rooted;
-use eoie_rust_std_fs::atomic_write as source_authoring_atomic_write;
-use eoie_process::{compile_spiral as source_authoring_compile_spiral, resolve_spiral_compiler as source_authoring_resolve_spiral_compiler};
+use kit_patch_control_domain::patch_rooted as source_authoring_rooted;
+use kit_rust_std_fs::atomic_write as source_authoring_atomic_write;
+use kit_process::{compile_spiral as source_authoring_compile_spiral, resolve_spiral_compiler as source_authoring_resolve_spiral_compiler};
 
 fn source_authoring_arg<'a>(args: &'a [String], index: usize, name: &str) -> Result<&'a str, String> { args.get(index).map(String::as_str).ok_or_else(|| format!("missing argument: {name}")) }
 
@@ -56,7 +56,7 @@ fn source_authoring_render(template: &str, bindings: &std::collections::BTreeMap
     if tokens == 0 {
         return Err("template must contain at least one token".to_owned());
     }
-    if eoie_patch_driver_source_authoring_render_binding(bindings.len() as i32, 0) != 1 {
+    if kit_patch_driver_source_authoring_render_binding(bindings.len() as i32, 0) != 1 {
         return Err("typed template rendering rejected".to_owned());
     }
     Ok(output)
@@ -67,7 +67,7 @@ fn source_authoring_freshness(target: &std::path::Path, expected: &str) -> Resul
         if target.exists() {
             return Err(format!("stale target: expected missing but found {}", target.display()));
         }
-        if eoie_patch_driver_source_authoring_freshness_binding(0, 0) != 1 {
+        if kit_patch_driver_source_authoring_freshness_binding(0, 0) != 1 {
             return Err("typed missing-target witness rejected".to_owned());
         }
         return Ok((0, None));
@@ -76,11 +76,11 @@ fn source_authoring_freshness(target: &std::path::Path, expected: &str) -> Resul
     if !metadata.is_file() || metadata.file_type().is_symlink() {
         return Err(format!("target must be a regular file: {}", target.display()));
     }
-    let observed = eoie_proxy_search::inspection_file_sha256(target)?;
+    let observed = kit_proxy_search::inspection_file_sha256(target)?;
     if observed != expected {
         return Err(format!("stale target fingerprint expected={expected} observed={observed}"));
     }
-    if eoie_patch_driver_source_authoring_freshness_binding(1, 1) != 1 {
+    if kit_patch_driver_source_authoring_freshness_binding(1, 1) != 1 {
         return Err("typed present-target witness rejected".to_owned());
     }
     let original = std::fs::read(target).map_err(|error| format!("read {}: {error}", target.display()))?;
@@ -88,8 +88,8 @@ fn source_authoring_freshness(target: &std::path::Path, expected: &str) -> Resul
 }
 
 pub fn source_authoring_typecheck(path: &std::path::Path) -> Result<(), String> {
-    let compiler = source_authoring_resolve_spiral_compiler(None)?.ok_or_else(|| "Spiral compiler is required for .spi materialization; configure EOIE_SPIRAL_COMPILE, EOIE_CONFIG_HOME/XDG/HOME, or PATH".to_owned())?;
-    let output = path.with_extension(format!("eoie-author-typecheck-{}.rs", std::process::id()));
+    let compiler = source_authoring_resolve_spiral_compiler(None)?.ok_or_else(|| "Spiral compiler is required for .spi materialization; configure KIT_SPIRAL_COMPILE, KIT_CONFIG_HOME/XDG/HOME, or PATH".to_owned())?;
+    let output = path.with_extension(format!("kit-author-typecheck-{}.rs", std::process::id()));
     let status = source_authoring_compile_spiral(compiler.path.to_string_lossy().as_ref(), path, &output, "Rust", 5000, 30000)?;
     let _ = std::fs::remove_file(&output);
     let _ = std::fs::remove_file(std::path::PathBuf::from(format!("{}.spiral-entry", output.display())));
@@ -108,30 +108,30 @@ pub fn source_authoring_run(args: &[String]) -> Result<(), String> {
     let template_relative = source_authoring_arg(args, 4, "template-relative")?;
     let target = source_authoring_rooted(root, target_relative)?;
     let template = source_authoring_rooted(root, template_relative)?;
-    if eoie_patch_driver_source_authoring_shape_binding(1, 1) != 1 {
+    if kit_patch_driver_source_authoring_shape_binding(1, 1) != 1 {
         return Err("typed authoring path shape rejected".to_owned());
     }
     let expected_target = source_authoring_arg(args, 5, "expected-target|missing")?;
     let expected_template = source_authoring_arg(args, 6, "expected-template-sha256")?;
-    let template_hash = eoie_proxy_search::inspection_file_sha256(&template)?;
+    let template_hash = kit_proxy_search::inspection_file_sha256(&template)?;
     let template_text = std::fs::read_to_string(&template).map_err(|error| format!("read template {}: {error}", template.display()))?;
     let template_matches = i32::from(template_hash == expected_template);
-    if eoie_patch_driver_source_authoring_template_binding(template_matches, i32::from(!template_text.is_empty())) != 1 {
+    if kit_patch_driver_source_authoring_template_binding(template_matches, i32::from(!template_text.is_empty())) != 1 {
         return Err(format!("stale or empty template expected={expected_template} observed={template_hash}"));
     }
     let bindings = source_authoring_bindings(&args[7..])?;
     let rendered = source_authoring_render(&template_text, &bindings)?;
-    let rendered_hash = eoie_proxy_search::inspection_sha256(rendered.as_bytes().to_vec());
+    let rendered_hash = kit_proxy_search::inspection_sha256(rendered.as_bytes().to_vec());
     let (_, original) = source_authoring_freshness(&target, expected_target)?;
-    let tag = eoie_proxy_search::mnemonic_path_tag(target_relative)?;
+    let tag = kit_proxy_search::mnemonic_path_tag(target_relative)?;
     if mode_code == 0 {
-        if eoie_patch_driver_source_authoring_mode_binding(0, 0) != 1 {
+        if kit_patch_driver_source_authoring_mode_binding(0, 0) != 1 {
             return Err("typed preview mode rejected".to_owned());
         }
-        println!("eoie proxy source-author preview ok target={} tag={} bytes={} sha256={} mutation=false", target.display(), tag, rendered.len(), rendered_hash);
+        println!("kit proxy source-author preview ok target={} tag={} bytes={} sha256={} mutation=false", target.display(), tag, rendered.len(), rendered_hash);
         return Ok(());
     }
-    if eoie_patch_driver_source_authoring_mode_binding(1, 1) != 1 {
+    if kit_patch_driver_source_authoring_mode_binding(1, 1) != 1 {
         return Err("typed materialization mode rejected".to_owned());
     }
     if let Some(parent) = target.parent() {
@@ -154,20 +154,20 @@ pub fn source_authoring_run(args: &[String]) -> Result<(), String> {
         let _ = source_authoring_restore(&target, original.as_deref());
         return Err(format!("source typecheck failed and materialization was rolled back: {error}"));
     }
-    if eoie_patch_driver_source_authoring_commit_binding(1, 1) != 1 {
+    if kit_patch_driver_source_authoring_commit_binding(1, 1) != 1 {
         let _ = source_authoring_restore(&target, original.as_deref());
         return Err("typed authoring commit rejected and was rolled back".to_owned());
     }
-    println!("eoie proxy source-author apply ok target={} tag={} bytes={} sha256={} mutation=true", target.display(), tag, rendered.len(), rendered_hash);
+    println!("kit proxy source-author apply ok target={} tag={} bytes={} sha256={} mutation=true", target.display(), tag, rendered.len(), rendered_hash);
     Ok(())
 }
 
 fn source_authoring_shape_binding_0(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 1i32;
+        let v3: bool = v1 < 1i32;
         if v3 {
             0i32
         } else {
@@ -176,11 +176,11 @@ fn source_authoring_shape_binding_0(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn source_authoring_template_binding_1(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 1i32;
+        let v3: bool = v1 < 1i32;
         if v3 {
             0i32
         } else {
@@ -189,15 +189,15 @@ fn source_authoring_template_binding_1(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn source_authoring_render_binding_2(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 0i32;
+        let v3: bool = v1 < 0i32;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = 0i32 < v1;
+            let v4: bool = 0i32 < v1;
             if v4 {
                 0i32
             } else {
@@ -207,27 +207,27 @@ fn source_authoring_render_binding_2(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn source_authoring_freshness_binding_3(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 0i32;
+        let v3: bool = v1 < 0i32;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = 1i32 < v0;
+            let v4: bool = 1i32 < v0;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
-                    let mut v6: bool = v0 < v1;
+                    let v6: bool = v0 < v1;
                     if v6 {
                         0i32
                     } else {
-                        let mut v7: bool = v1 < v0;
+                        let v7: bool = v1 < v0;
                         if v7 {
                             0i32
                         } else {
@@ -240,32 +240,32 @@ fn source_authoring_freshness_binding_3(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn source_authoring_mode_binding_4(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 0i32;
+            let v4: bool = v1 < 0i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = v0 < 1i32;
+                let v5: bool = v0 < 1i32;
                 if v5 {
-                    let mut v6: bool = v1 < 1i32;
+                    let v6: bool = v1 < 1i32;
                     if v6 {
                         1i32
                     } else {
                         0i32
                     }
                 } else {
-                    let mut v8: bool = v1 < 1i32;
+                    let v8: bool = v1 < 1i32;
                     if v8 {
                         0i32
                     } else {
-                        let mut v9: bool = 1i32 < v1;
+                        let v9: bool = 1i32 < v1;
                         if v9 {
                             0i32
                         } else {
@@ -278,11 +278,11 @@ fn source_authoring_mode_binding_4(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn source_authoring_commit_binding_5(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < 1i32;
+        let v3: bool = v1 < 1i32;
         if v3 {
             0i32
         } else {
@@ -320,21 +320,21 @@ fn closure5() -> Rc<dyn Fn(i32, i32) -> i32> {
         source_authoring_commit_binding_5(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-pub fn eoie_patch_driver_source_authoring_shape_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_driver_source_authoring_shape_binding(v0: i32, v1: i32) -> i32 {
     closure0()(v0, v1)
 }
-pub fn eoie_patch_driver_source_authoring_template_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_driver_source_authoring_template_binding(v0: i32, v1: i32) -> i32 {
     closure1()(v0, v1)
 }
-pub fn eoie_patch_driver_source_authoring_render_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_driver_source_authoring_render_binding(v0: i32, v1: i32) -> i32 {
     closure2()(v0, v1)
 }
-pub fn eoie_patch_driver_source_authoring_freshness_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_driver_source_authoring_freshness_binding(v0: i32, v1: i32) -> i32 {
     closure3()(v0, v1)
 }
-pub fn eoie_patch_driver_source_authoring_mode_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_driver_source_authoring_mode_binding(v0: i32, v1: i32) -> i32 {
     closure4()(v0, v1)
 }
-pub fn eoie_patch_driver_source_authoring_commit_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_driver_source_authoring_commit_binding(v0: i32, v1: i32) -> i32 {
     closure5()(v0, v1)
 }

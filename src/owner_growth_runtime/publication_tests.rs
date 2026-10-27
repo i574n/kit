@@ -4,7 +4,7 @@ struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {
         let stamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-        let path = std::env::temp_dir().join(format!("eoie growth ü {} {stamp}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("kit growth ü {} {stamp}", std::process::id()));
         fs::create_dir(&path).unwrap();
         Self(path)
     }
@@ -38,8 +38,8 @@ fn receipt_publication_rejects_a_linked_state_directory() {
     #[cfg(windows)] {
         use std::os::windows::process::CommandExt as _;
         let output = std::process::Command::new("pwsh").creation_flags(0x08000000)
-            .args(["-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference='Stop'; New-Item -ItemType Junction -Path $env:EOIE_TEST_LINK -Target $env:EOIE_TEST_TARGET | Out-Null"])
-            .env("EOIE_TEST_LINK", &link).env("EOIE_TEST_TARGET", &outside).output().unwrap();
+            .args(["-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference='Stop'; New-Item -ItemType Junction -Path $env:KIT_TEST_LINK -Target $env:KIT_TEST_TARGET | Out-Null"])
+            .env("KIT_TEST_LINK", &link).env("KIT_TEST_TARGET", &outside).output().unwrap();
         assert!(output.status.success(), "{output:?}");
     }
     #[cfg(unix)] std::os::unix::fs::symlink(&outside, &link).unwrap();

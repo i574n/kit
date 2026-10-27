@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "experiments.spi"
+output = "experiments.rs"
+
+[package]
+name = "kit-experiments"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_experiments"
+path = "experiments.rs"
+
+[dependencies]
+kit-experiment-amend = { path = "../kit_experiment_amend" }
+kit-experiment-import = { path = "../kit_experiment_import" }
+kit-experiment-analysis = { path = "../kit_experiment_analysis" }

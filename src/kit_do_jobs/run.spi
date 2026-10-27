@@ -1,0 +1,202 @@
+:< sm'_operators
+:< kit_receipt.receipt
+:< host
+:< grammar
+:< kit_do_records.records
+
+:== job_tally =
+    {
+        report : string
+        failed : bool
+        jobs : u64
+        finished : u64
+        timed_out : u64
+        notifications : u64
+        started : string
+        notified : string
+        exit : i32
+    }
+
+:~ empty_job_tally () : job_tally =
+    {
+        report = ""
+        failed = !-
+        jobs = 0u64
+        finished = 0u64
+        timed_out = 0u64
+        notifications = 0u64
+        started = ""
+        notified = ""
+        exit = 0i32
+    }
+
+:~ lines_joined (~left : string) (~right : string) : string =
+    ? right = "" ?> left |? left = "" ?> right |: left ++# "\n" ++# right
+
+:~ decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+
+:~ code_text (~code : i32) : string = $'std::rc::Rc::<str>::from((!code).to_string())' : string
+
+:~ start_run
+    (~root : string) (~name : string) (~command : string) (~timeout : string) (~notify : bool) (~state : job_tally)
+    : job_tally
+    =
+    := cwd = current_directory_of root
+    := outcome = launched name (duration_ms timeout) (launch_argv_via cwd command) cwd
+    ? sm'.starts_with "error: " outcome
+    ?> { state ?| report = lines_joined state.report ("job " ++# name ++# "  " ++# outcome); failed = !+; exit = 1i32 }
+    |:
+        := pid = started_pid (part_at outcome 0i32)
+        := row = "job " ++# name ++# "  started " ++# command ++# ("  pid " ++# pid ++# "  timeout " ++# timeout)
+        { state ?|
+            report = lines_joined state.report row
+            jobs = state.jobs + 1u64
+            started = lines_joined state.started name
+            notified = ? notify ?> lines_joined state.notified name |: state.notified
+        }
+
+:~ settled_line (~name : string) (~summary : string) (~wait_ms : u64) : string =
+    := word = summary_field summary "state"
+    := detail = summary_field summary "detail"
+    := head = "job " ++# name ++# "  "
+    ? word = "finished"
+    ?>
+        head
+        ++# "finished after "
+        ++# duration_text (decimal_of (summary_field summary "elapsed_ms"))
+        ++# "  exit "
+        ++# (summary_field summary "exit")
+    |? word = "timed-out"
+    ?>
+        head
+        ++# "timed out after "
+        ++# duration_text (decimal_of (summary_field summary "timeout_ms"))
+        ++# (
+            ? sm'.contains "process tree stopped" detail
+            ?> "  stopped (tree)"
+            |: "  " ++# (sm'.replace "wall-clock timeout; " "" detail)
+        )
+        ++# "  exit killed"
+    |? word = "running" || word = "pending"
+    ?> head ++# "still running after " ++# (duration_text wait_ms)
+    |: head ++# word ++# "  " ++# detail
+
+:~ notice_of (~name : string) (~word : string) (~code : string) : string =
+    := what = ? word = "finished" ?> "finished (exit " ++# code ++# ")" |? word = "timed-out" ?> "timed out" |: word
+    "notify  " ++# name ++# " " ++# what
+
+:~ output_block (~name : string) (~id : string) : string =
+    := output = sm'.trim_end_suffix "\n" (output_tail id 10u64)
+    := lines = line_count output
+    ? lines = 0u64
+    ?> name ++# " output (no lines)"
+    |:
+        lines_joined
+            (name ++# " output (last " ++# (decimal_text lines) ++# (? lines = 1u64 ?> " line)" |: " lines)"))
+            output
+
+:~ wait_run (~name : string) (~wait_ms : u64) (~state : job_tally) : job_tally =
+    := id = labeled name
+    := counted = ? name_listed state.started name ?> state.jobs |: state.jobs + 1u64
+    ? id = ""
+    ?>
+        { state ?|
+            report = lines_joined state.report ("job wait: no job named " ++# name)
+            failed = !+
+            jobs = counted
+            exit = 1i32
+        }
+    |:
+        := summary = settled id (? wait_ms = 0u64 ?> 86400000u64 |: wait_ms)
+        := word = summary_field summary "state"
+        := code = summary_field summary "exit"
+        := notice = ? name_listed state.notified name ?> notice_of name word code |: ""
+        := outcome =
+            ? word = "timed-out" || word = "running" || word = "pending"
+            ?> 3i32
+            |? word = "finished" && code = "0"
+            ?> 0i32
+            |: 1i32
+        := report =
+            lines_joined
+                (lines_joined (lines_joined state.report (settled_line name summary wait_ms)) notice)
+                (output_block name id)
+        := finished = ? word = "finished" ?> 1u64 |: 0u64
+        := timed_out = ? word = "timed-out" ?> 1u64 |: 0u64
+        := noticed = ? notice = "" ?> 0u64 |: 1u64
+        { state ?|
+            report = report
+            failed = state.failed || outcome <> 0i32
+            jobs = counted
+            finished = state.finished + finished
+            timed_out = state.timed_out + timed_out
+            notifications = state.notifications + noticed
+            exit = ? outcome > state.exit ?> outcome |: state.exit
+        }
+
+:~ stop_run (~name : string) (~state : job_tally) : job_tally =
+    := id = labeled name
+    ? id = ""
+    ?> { state ?| report = lines_joined state.report ("job stop: no job named " ++# name); failed = !+; exit = 1i32 }
+    |:
+        := text = stopped_text id
+        ? sm'.starts_with "error: " text
+        ?> { state ?| report = lines_joined state.report ("job " ++# name ++# "  " ++# text); failed = !+; exit = 1i32 }
+        |:
+            { state ?|
+                report =
+                    lines_joined state.report (
+                        "job " ++# name ++# "  stopped (" ++# (summary_field text "detail") ++# ")"
+                    )
+            }
+
+:~ step_run (~root : string) (step : job_step) (~state : job_tally) : job_tally =
+    ?= step ?|
+    | JobStart (name, command, timeout, notify) => start_run root name command timeout notify state
+    | JobWait (name, wait_ms) => wait_run name wait_ms state
+    | JobStop name => stop_run name state
+    | Blank => state
+
+:~ ^ jobs_run (~root : string) (~records : record_list) (~index : i32) (~state : job_tally) : job_tally =
+    ? index < record_count records ?>
+        ?= job_parsed records index ?|
+        | JobParsed step => jobs_run root records (index + 1i32) (step_run root step state)
+        | JobRejected _ => jobs_run root records (index + 1i32) state
+    |: state
+
+:~ ^ first_rejection (~records : record_list) (~index : i32) : string =
+    ? index < record_count records ?>
+        ?= job_parsed records index ?|
+        | JobRejected message => message
+        | JobParsed _ => first_rejection records (index + 1i32)
+    |: ""
+
+:~ receipt_counts (~state : job_tally) : string =
+    := base = "jobs " ++# (decimal_text state.jobs)
+    := finished = ? state.finished > 0u64 ?> base ++# "  finished " ++# (decimal_text state.finished) |: base
+    := timed = ? state.timed_out > 0u64 ?> finished ++# "  timed out " ++# (decimal_text state.timed_out) |: finished
+    := notes = ? state.notified <> "" ?> timed ++# "  notifications " ++# (decimal_text state.notifications) |: timed
+    ? state.exit = 0i32 ?> notes |: notes ++# "  exit " ++# (code_text state.exit)
+
+:~ job_program_run (~root : string) (~encoded : string) : i32 =
+    := started = now_ms ()
+    := records = records_of encoded
+    := rejection = first_rejection records 1i32
+    ? rejection = "" ?>
+        := state = jobs_run root records 1i32 (empty_job_tally ())
+        := report = state.report
+        ? report = "" ?> () |: stdout_line report
+        ? state.failed ?>
+            receipt_line Failed (receipt_counts state) started
+            state.exit
+        |:
+            receipt_line Succeeded (receipt_counts state) started
+            0i32
+    |:
+        stdout_line ("program rejected: " ++# rejection)
+        receipt_line Failed "jobs 0" started
+        2i32
+
+:= main () : i32 =
+    !!!!Export("kit_do_jobs_run", ((\ (root, encoded) => job_program_run root encoded) : string * string -> i32))
+    0i32

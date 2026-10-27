@@ -1,5 +1,0 @@
-open rechain
-
-inl main () : i32 =
-    !!!!Export("eoie_job_rechain_run", ((fun () => rechain_run ()) : () -> i32))
-    0i32

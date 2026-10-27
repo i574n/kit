@@ -1,10 +1,10 @@
 #![cfg(any(windows, target_os = "linux"))]
-use eoie_rust_std_fs::{rooted_list_names, rooted_list_names_limited};
+use kit_rust_std_fs::{rooted_list_names, rooted_list_names_limited};
 use std::fs;
 
 fn scratch() -> std::path::PathBuf {
     let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-    let root = std::env::temp_dir().join(format!("eoie-list-bounds-{}-{nonce}", std::process::id()));
+    let root = std::env::temp_dir().join(format!("kit-list-bounds-{}-{nonce}", std::process::id()));
     fs::create_dir(&root).unwrap();
     root
 }

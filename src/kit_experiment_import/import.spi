@@ -1,0 +1,121 @@
+:< sm'_operators
+:< kit_experiments.experiment_model
+:< kit_experiments.ledger_host
+
+:= dated (~text : string) : bool = $'{ let bytes = (!text).as_bytes(); bytes.len() >= 10 && \
+    bytes[..4].iter().all(u8::is_ascii_digit) && bytes[4] == 45u8 && bytes[5..7].iter().all(u8::is_ascii_digit) && \
+    bytes[7] == 45u8 && bytes[8..10].iter().all(u8::is_ascii_digit) }' : bool
+
+:~ imported () : i32 =
+    := ledger = argument 3i32
+    := id = argument 4i32
+    := claimed = option_value "--registered-at"
+    := evidence = option_value "--evidence"
+    ? identifier_ok id = !-
+    ?> failed ("import: the ID must be letters, digits, '-' or '_', received '" ++# id ++# "'")
+    |? dated claimed = !-
+    ?>
+        failed (
+            "import: --registered-at needs the source's registration date or time (YYYY-MM-DD...), as the source "
+            ^^ "states it"
+        )
+    |? evidence = ""
+    ?> failed "import: --evidence names what attests the registration (a git commit or file@line)"
+    |:
+        ?= test_of (option_value "--test") ?|
+        | TestUnknown =>
+            failed (
+                "import: --test must be " ++# (test_words ()) ++# ", received '" ++# (option_value "--test") ++# "'"
+            )
+        | TestKnown kind =>
+            ?=
+                plan_checked kind
+                    (option_value "--arms")
+                    (option_value "--group")
+                    (decimal_i32 (option_value "--runs"))
+                    (option_value "--prediction")
+                    (option_value "--metric")
+                    (option_value "--decision")
+            ?|
+            | PlanRejected reason => failed ("import: " ++# reason)
+            | PlanAccepted =>
+                := now = agile_note_model.model.utc_stamp (now_ms ())
+                := confidence = ? option_value "--confidence" = "" ?> "0.95" |: option_value "--confidence"
+                := provenance =
+                    (field_line "id" id)
+                    ++# (field_line "registered" claimed)
+                    ++# (field_line "imported" "yes")
+                    ++# (field_line "imported_at" now)
+                    ++# (field_line "evidence" evidence)
+                := plan =
+                    (field_line "question" (option_value "--question"))
+                    ++# (field_line "test" (test_word kind))
+                    ++# (field_line "metric" (option_value "--metric"))
+                    ++# (field_line "group" (option_value "--group"))
+                    ++# (field_line "arms" (option_value "--arms"))
+                := rest =
+                    (field_line "runs" (option_value "--runs"))
+                    ++# (field_line "prediction" (option_value "--prediction"))
+                    ++# (field_line "confidence" confidence)
+                    ++# (field_line "decision" (option_value "--decision"))
+                    ++# (field_line "time" (option_value "--time"))
+                := problem = text_created (record_path ledger id "registration") (provenance ++# plan ++# rest)
+                ? problem <> ""
+                ?>
+                    failed (
+                        "import: "
+                        ++# id
+                        ++# " is already in the ledger or the ledger is unwritable ("
+                        ++# problem
+                        ++# ")"
+                    )
+                |:
+                    stdout_line (
+                        "kit experiment import ok id="
+                        ++# id
+                        ++# " imported=yes registered="
+                        ++# claimed
+                        ++# (" evidence=" ++# evidence ++# " imported_at=" ++# now)
+                    )
+                    0i32
+
+:~ verdict_recorded () : i32 =
+    := ledger = argument 3i32
+    := id = argument 4i32
+    := plan = plan_text ledger id
+    := verdict = option_value "--verdict"
+    := claimed = option_value "--at"
+    ? plan = ""
+    ?> failed ("record-verdict: no registration for " ++# id ++# " in " ++# ledger)
+    |? field_of plan "imported" <> "yes"
+    ?>
+        failed (
+            "record-verdict: only imported registrations take a recorded verdict; a live registration is analyzed "
+            ^^ "(experiment analyze)"
+        )
+    |? verdict = ""
+    ?> failed "record-verdict: --verdict is the historical result as the source states it"
+    |? dated claimed = !-
+    ?> failed "record-verdict: --at needs the source's verdict date or time (YYYY-MM-DD...)"
+    |:
+        := now = agile_note_model.model.utc_stamp (now_ms ())
+        := evidence = ? option_value "--evidence" = "" ?> field_of plan "evidence" |: option_value "--evidence"
+        := problem =
+            text_created
+                (record_path ledger id "verdict")
+                (
+                    (field_line "verdict" verdict)
+                    ++# (field_line "at" claimed)
+                    ++# (field_line "imported" "yes")
+                    ++# (field_line "imported_at" now)
+                    ++# (field_line "evidence" evidence)
+                )
+        ? problem <> "" ?> failed ("record-verdict: " ++# id ++# " already has a verdict (" ++# problem ++# ")")
+        |:
+            stdout_line ("kit experiment record-verdict ok id=" ++# id ++# " at=" ++# claimed ++# " imported=yes")
+            0i32
+
+:= main () : i32 =
+    !!!!Export("kit_experiment_import_run", ((\ () => imported ()) : () -> i32))
+    !!!!Export("kit_experiment_verdict_run", ((\ () => verdict_recorded ()) : () -> i32))
+    0i32

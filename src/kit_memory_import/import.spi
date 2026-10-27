@@ -1,0 +1,31 @@
+:< sm'_operators
+:< kit_memory_model.model
+
+:~ ^ identical_count (list : memory_list) (~dir : string) (count : i32) : i32 =
+    ?= list ?|
+    | NoMemories => count
+    | MemoryThen (entry, rest) =>
+        := same = rendered entry = exact_text (path_joined dir entry.file)
+        identical_count rest dir (? same ?> count + 1i32 |: count)
+
+:~ import_receipt (~count : i32) (~identical : i32) (~index_same : string) (~data : string) : string =
+    "kit memory import ok memories=" ++# count_text count ++# " identical=" ++# count_text identical
+    ++# " index_identical=" ++# index_same ++# " data=" ++# data
+
+:~ memory_import (~dir : string) (~data : string) : i32 =
+    ? file_present (path_joined dir "MEMORY.md") = !- ?> failed ("import needs " ++# dir ++# "/MEMORY.md")
+    |:
+        := tally = entries_from dir (markdown_names dir) { memories = NoMemories; count = 0i32; refused = "" }
+        ? tally.refused <> "" ?> failed ("import refused, nothing written:\n" ++# tally.refused)
+        |:
+            := index = exact_text (path_joined dir "MEMORY.md")
+            ? text_written data (data_text (memories_flipped tally.memories NoMemories) index) ?>
+                := store = store_of (exact_text data)
+                := index_same = ? store.index = index ?> "yes" |: "no"
+                stdout_line (import_receipt tally.count (identical_count store.memories dir 0i32) index_same data)
+                0i32
+            |: failed ("import could not write " ++# data)
+
+:= main () : i32 =
+    !!!!Export("kit_memory_import", ((\ (dir, data) => memory_import dir data) : string * string -> i32))
+    0i32

@@ -1,0 +1,21 @@
+:= main () : i32 =
+    := rust_over = model.topology_limit_binding 1001i32 1000i32
+    := crate_over = model.topology_limit_binding 1000i32 1001i32
+    := confused = model.topology_package_only_binding 22i32 21i32
+    := invalid_surface = model.source_surface_binding 2i32 0i32
+    := impossible_main = model.source_map_files_binding 1i32 2i32
+    := negative_edge = model.source_map_edges_binding -1i32 0i32
+    := impossible_diff = model.source_diff_record_binding 11i32 10i32
+    ? rust_over < 1i32 ?>
+        ? crate_over < 1i32 ?>
+            ? confused < 1i32 ?>
+                ? invalid_surface < 0i32 ?>
+                    ? impossible_main < 1i32 ?>
+                        ? negative_edge < 1i32 ?>
+                            ? impossible_diff < 1i32 ?> 0i32 |: 1i32
+                        |: 1i32
+                    |: 1i32
+                |: 1i32
+            |: 1i32
+        |: 1i32
+    |: 1i32

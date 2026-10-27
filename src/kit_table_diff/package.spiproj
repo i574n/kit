@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    kit_table_query
+modules:
+    diff

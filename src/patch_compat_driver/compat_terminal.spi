@@ -1,21 +1,20 @@
-inl rust_global (x : string) : () = !!!!Global(x)
-inl emit_runtime () : () = rust_global """
-    use eoie_backup_domain::{
-        eoie_patch_backup_binding_slot, eoie_patch_backup_next_count,
-        eoie_patch_backup_should_capture, eoie_patch_backup_slot, eoie_patch_capture_authorized,
-        eoie_patch_capture_binding_slot, 
-        eoie_patch_promotion_slot_authorized,
+inl emit_runtime () : () = global """
+    use kit_backup_domain::{
+        kit_patch_backup_binding_slot, kit_patch_backup_next_count,
+        kit_patch_backup_should_capture, kit_patch_backup_slot, kit_patch_capture_authorized,
+        kit_patch_capture_binding_slot, 
+        kit_patch_promotion_slot_authorized,
         
-        eoie_patch_restoration_select, eoie_patch_restoration_bind,
-        eoie_patch_restoration_complete, eoie_patch_restoration_attempt_count,
-        eoie_patch_restoration_attempt_authorized, eoie_patch_restoration_counter_next,
-        eoie_patch_restoration_accumulator_outcome,
+        kit_patch_restoration_select, kit_patch_restoration_bind,
+        kit_patch_restoration_complete, kit_patch_restoration_attempt_count,
+        kit_patch_restoration_attempt_authorized, kit_patch_restoration_counter_next,
+        kit_patch_restoration_accumulator_outcome,
     };
-    use eoie_patch_control_domain::{ eoie_patch_restoration_payload_identity, eoie_patch_restoration_payload_slot_binding, eoie_patch_restoration_payload_outcome_binding, parse_patch_exact_source, patch_occurrence_count, patch_rooted, patch_target_max_bytes};
-    use eoie_patch_effect_domain::{eoie_patch_authority_pair, eoie_patch_read_limit_binding, eoie_patch_read_receipt_binding, eoie_patch_remove_receipt_binding, eoie_patch_rename_slot_authorized, eoie_patch_rename_slot_binding, eoie_patch_rename_stage_authorized, eoie_patch_stage_identity, eoie_patch_write_bytes_authorized, eoie_patch_write_slot_binding};
-    use eoie_patch_orchestration_domain::{eoie_patch_orchestration_complete_binding, eoie_patch_orchestration_guard_identity, eoie_patch_orchestration_guard_match_binding, eoie_patch_orchestration_guard_needle_binding, eoie_patch_orchestration_operation_binding, eoie_patch_orchestration_promotion_binding, eoie_patch_orchestration_stage_binding, eoie_patch_orchestration_witness_binding};
-    use eoie_patch_source_adapter::prepare_patch_source;
-    use eoie_rust_std_fs::{
+    use kit_patch_control_domain::{ kit_patch_restoration_payload_identity, kit_patch_restoration_payload_slot_binding, kit_patch_restoration_payload_outcome_binding, parse_patch_exact_source, patch_occurrence_count, patch_rooted, patch_target_max_bytes};
+    use kit_patch_effect_domain::{kit_patch_authority_pair, kit_patch_read_limit_binding, kit_patch_read_receipt_binding, kit_patch_remove_receipt_binding, kit_patch_rename_slot_authorized, kit_patch_rename_slot_binding, kit_patch_rename_stage_authorized, kit_patch_stage_identity, kit_patch_write_bytes_authorized, kit_patch_write_slot_binding};
+    use kit_patch_orchestration_domain::{kit_patch_orchestration_complete_binding, kit_patch_orchestration_guard_identity, kit_patch_orchestration_guard_match_binding, kit_patch_orchestration_guard_needle_binding, kit_patch_orchestration_operation_binding, kit_patch_orchestration_promotion_binding, kit_patch_orchestration_stage_binding, kit_patch_orchestration_witness_binding};
+    use kit_patch_source_adapter::prepare_patch_source;
+    use kit_rust_std_fs::{
         discard_stage, promote_stage_receipted, read_regular_text_limited, restore_text, stage_text_receipted_bound,
         StagedWriteReceipt,
     };
@@ -23,11 +22,11 @@ inl emit_runtime () : () = rust_global """
     use std::env;
     use std::fs;
     use std::path::{Path, PathBuf};
-    pub use eoie_patch_control_domain::patch_plan_error;
+    pub use kit_patch_control_domain::patch_plan_error;
 
     fn patch_finish(result: Result<(), String>) -> i32 {
         if let Err(error) = result {
-            eprintln!("eoie error: {error}");
+            eprintln!("kit error: {error}");
             2
         } else {
             0
@@ -46,10 +45,10 @@ inl emit_runtime () : () = rust_global """
         let observed_i32 = i32::try_from(observed).unwrap_or(i32::MAX);
         let limit_i32 = i32::try_from(max_bytes)
             .map_err(|_| "typed capture limit does not fit i32".to_owned())?;
-        if eoie_patch_read_limit_binding(limit_i32, observed_i32) != observed_i32 {
+        if kit_patch_read_limit_binding(limit_i32, observed_i32) != observed_i32 {
             return Err(format!("patch target exceeds typed capture limit: {} bytes={} limit={}", path.display(), observed, max_bytes));
         }
-        if eoie_patch_read_receipt_binding(observed_i32, observed_i32) != observed_i32 {
+        if kit_patch_read_receipt_binding(observed_i32, observed_i32) != observed_i32 {
             return Err(format!("patch target read receipt mismatch: {}", path.display()));
         }
         Ok(text)
@@ -66,8 +65,8 @@ inl emit_runtime () : () = rust_global """
             .map_err(|_| "expected temporary write length does not fit i32".to_owned())?;
         let observed = i32::try_from(observed_bytes)
             .map_err(|_| "observed temporary write length does not fit i32".to_owned())?;
-        let authorized = eoie_patch_write_bytes_authorized(expected, observed);
-        let bound_slot = eoie_patch_write_slot_binding(slot, authorized);
+        let authorized = kit_patch_write_bytes_authorized(expected, observed);
+        let bound_slot = kit_patch_write_slot_binding(slot, authorized);
         if bound_slot != slot {
             return Err(format!(
                 "typed temporary write receipt mismatch: expected={expected_bytes} observed={observed_bytes}"
@@ -88,11 +87,11 @@ inl emit_runtime () : () = rust_global """
         let expected_slot_i32 = i32::try_from(expected_slot)
             .map_err(|_| "expected promotion slot does not fit i32".to_owned())?;
         let stage_authorized =
-            eoie_patch_rename_stage_authorized(expected_stage_i32, observed_stage);
+            kit_patch_rename_stage_authorized(expected_stage_i32, observed_stage);
         let slot_authorized =
-            eoie_patch_rename_slot_authorized(expected_slot_i32, observed_slot);
-        let authorized = eoie_patch_authority_pair(stage_authorized, slot_authorized);
-        let bound_slot = eoie_patch_rename_slot_binding(expected_slot_i32, authorized);
+            kit_patch_rename_slot_authorized(expected_slot_i32, observed_slot);
+        let authorized = kit_patch_authority_pair(stage_authorized, slot_authorized);
+        let bound_slot = kit_patch_rename_slot_binding(expected_slot_i32, authorized);
         if bound_slot != expected_slot_i32 {
             return Err(format!(
                 "typed promotion identity mismatch: expected_stage={expected_stage} observed_stage={observed_stage} expected_slot={expected_slot} observed_slot={observed_slot}"
@@ -112,7 +111,7 @@ inl emit_runtime () : () = rust_global """
 
 
     fn patch_fault_from_env() -> Option<PatchFault> {
-        match env::var("EOIE_PATCH_FAULT").ok().as_deref() {
+        match env::var("KIT_PATCH_FAULT").ok().as_deref() {
             Some("between-promotions") => Some(PatchFault::BetweenPromotions),
             Some("between-promotions-rollback-failure") => {
                 Some(PatchFault::BetweenPromotionsRollbackFailure)
@@ -142,7 +141,7 @@ inl emit_runtime () : () = rust_global """
         }
         let parsed_count = i32::try_from(patches.len())
             .map_err(|_| "patch plan operation count overflow".to_owned())?;
-        let driver_expected_operations = eoie_patch_orchestration_witness_binding(validated_count, parsed_count);
+        let driver_expected_operations = kit_patch_orchestration_witness_binding(validated_count, parsed_count);
         if driver_expected_operations != parsed_count {
             return Err(format!(
                 "patch plan witness mismatch: spiral={validated_count} host={parsed_count}"
@@ -155,7 +154,7 @@ inl emit_runtime () : () = rust_global """
         let mut operation_cursor = 0i32;
         for (operation_index, patch) in patches.iter().enumerate() {
             let observed_operation = i32::try_from(operation_index).map_err(|_| "patch operation index does not fit i32".to_owned())?;
-            let next_operation_cursor = eoie_patch_orchestration_operation_binding(operation_cursor, observed_operation);
+            let next_operation_cursor = kit_patch_orchestration_operation_binding(operation_cursor, observed_operation);
             let operation_authorized = if next_operation_cursor < 0 { 0 } else { 1 };
             if operation_authorized != 1 {
                 return Err(format!("typed patch operation order mismatch: expected={operation_cursor} observed={operation_index}"));
@@ -168,7 +167,7 @@ inl emit_runtime () : () = rust_global """
             };
             let backup_slot = backups.observe(&path, &text, target_max_bytes)?;
             let count = patch_occurrence_count(&text, &patch.before);
-            let guard_payload_invalid = { let path_slot = i32::try_from(backup_slot).unwrap_or(-1); let guard = eoie_patch_orchestration_guard_identity(observed_operation, path_slot); let guard = eoie_patch_orchestration_guard_needle_binding(guard, i32::try_from(patch.before.len()).unwrap_or(i32::MAX)); let guard = eoie_patch_orchestration_guard_match_binding(guard, i32::try_from(count).unwrap_or(i32::MAX));   guard != observed_operation }; if guard_payload_invalid {
+            let guard_payload_invalid = { let path_slot = i32::try_from(backup_slot).unwrap_or(-1); let guard = kit_patch_orchestration_guard_identity(observed_operation, path_slot); let guard = kit_patch_orchestration_guard_needle_binding(guard, i32::try_from(patch.before.len()).unwrap_or(i32::MAX)); let guard = kit_patch_orchestration_guard_match_binding(guard, i32::try_from(count).unwrap_or(i32::MAX));   guard != observed_operation }; if guard_payload_invalid {
                 return Err(format!(
                     "patch precondition failed: {} has {count} matches",
                     path.display()
@@ -183,10 +182,10 @@ inl emit_runtime () : () = rust_global """
             }
         }
 
-        if eoie_patch_orchestration_complete_binding(driver_expected_operations, operation_cursor) != 1 {
+        if kit_patch_orchestration_complete_binding(driver_expected_operations, operation_cursor) != 1 {
             return Err("typed patch driver operation completion mismatch".to_owned());
         }
-        if eoie_patch_orchestration_complete_binding(parsed_count, operation_cursor) != 1 {
+        if kit_patch_orchestration_complete_binding(parsed_count, operation_cursor) != 1 {
             return Err(format!("typed patch commit witness mismatch: expected={parsed_count} observed={operation_cursor}"));
         }
         if fault == Some(PatchFault::CheckOnly) {
@@ -197,14 +196,14 @@ inl emit_runtime () : () = rust_global """
         for (stage_index, (path, (text, backup_slot))) in current.iter().enumerate() {
             let slot = i32::try_from(*backup_slot).map_err(|error| error.to_string())?;
             let stage_index = i32::try_from(stage_index).map_err(|error| error.to_string())?;
-            let bound_slot = eoie_patch_backup_binding_slot(slot, stage_index);
+            let bound_slot = kit_patch_backup_binding_slot(slot, stage_index);
             if bound_slot != slot {
                 return Err(path.display().to_string());
             }
             let bound_slot = usize::try_from(bound_slot).map_err(|error| error.to_string())?;
             let bound_slot_i32 = i32::try_from(bound_slot)
                 .map_err(|_| "bound stage slot does not fit i32".to_owned())?;
-            if eoie_patch_stage_identity(stage_index, bound_slot_i32) != bound_slot_i32 { return Err(path.display().to_string()); } let receipt = stage_text_receipted_bound(path, text, stage_index, bound_slot_i32)?;
+            if kit_patch_stage_identity(stage_index, bound_slot_i32) != bound_slot_i32 { return Err(path.display().to_string()); } let receipt = stage_text_receipted_bound(path, text, stage_index, bound_slot_i32)?;
             let write_slot = match authorize_staged_write(
                 bound_slot,
                 text.len(),
@@ -213,7 +212,7 @@ inl emit_runtime () : () = rust_global """
                 Ok(slot) => slot,
                 Err(error) => {
                     let remove_outcome = if discard_stage(receipt.temporary()).is_ok() { 1 } else { 0 };
-                    if eoie_patch_remove_receipt_binding(receipt.stage_index(), remove_outcome) != receipt.stage_index() { return Err("typed remove receipt mismatch".to_owned()); }
+                    if kit_patch_remove_receipt_binding(receipt.stage_index(), remove_outcome) != receipt.stage_index() { return Err("typed remove receipt mismatch".to_owned()); }
                     return Err(error);
                 }
             };
@@ -221,7 +220,7 @@ inl emit_runtime () : () = rust_global """
         }
         let driver_expected_files = i32::try_from(current.len()).map_err(|_| "typed patch driver file count overflow".to_owned())?;
         let driver_observed_stages = i32::try_from(staged.len()).map_err(|_| "typed patch driver stage count overflow".to_owned())?;
-        let driver_stage_count = eoie_patch_orchestration_stage_binding(driver_expected_files, driver_observed_stages);
+        let driver_stage_count = kit_patch_orchestration_stage_binding(driver_expected_files, driver_observed_stages);
         if driver_stage_count != driver_expected_files { return Err("typed patch driver stage receipt mismatch".to_owned()); }
 
         fn rollback_error(
@@ -298,7 +297,7 @@ inl emit_runtime () : () = rust_global """
                     "promotion receipt path identity mismatch".to_owned(),
                 ));
             }
-            let next_driver_promotion_cursor = eoie_patch_orchestration_promotion_binding(driver_promotion_cursor, promotion.stage_index());
+            let next_driver_promotion_cursor = kit_patch_orchestration_promotion_binding(driver_promotion_cursor, promotion.stage_index());
             if next_driver_promotion_cursor < 0 {
                 return Err(rollback_error(&backups, promoted_count, &staged, "typed patch driver promotion receipt mismatch".to_owned()));
             }
@@ -332,7 +331,7 @@ inl emit_runtime () : () = rust_global """
                 ));
             }
         }
-        if eoie_patch_orchestration_complete_binding(driver_stage_count, driver_promotion_cursor) != 1 {
+        if kit_patch_orchestration_complete_binding(driver_stage_count, driver_promotion_cursor) != 1 {
             return Err(rollback_error(&backups, committed_count, &staged, "typed patch driver completion mismatch".to_owned()));
         }
         if let Some(gate) = postgate.as_mut()
@@ -356,7 +355,7 @@ inl emit_runtime () : () = rust_global """
                 }
             }
             println!(
-                "eoie patch rehearse ok operations={} files={} {}",
+                "kit patch rehearse ok operations={} files={} {}",
                 patches.len(),
                 current.len(),
                 receipt.public_context()
@@ -365,7 +364,7 @@ inl emit_runtime () : () = rust_global """
         }
 
         println!(
-            "eoie patch ok operations={} files={} witness=spiral",
+            "kit patch ok operations={} files={} witness=spiral",
             patches.len(),
             current.len()
         );

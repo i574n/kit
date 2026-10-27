@@ -1,9 +1,9 @@
-nominal unknown_path = string
-nominal regular_path = string
-nominal directory_path = string
-nominal absent_path = string
+:! unknown_path = string
+:! regular_path = string
+:! directory_path = string
+:! absent_path = string
 
-union rooted_transition from to =
+:| rooted_transition from to =
     | DiscoverRegular :: rooted_transition unknown_path regular_path
     | DiscoverDirectory :: rooted_transition unknown_path directory_path
     | DiscoverAbsent :: rooted_transition unknown_path absent_path
@@ -11,17 +11,17 @@ union rooted_transition from to =
     | RemoveRegular :: rooted_transition regular_path absent_path
     | RemoveDirectory :: rooted_transition directory_path absent_path
 
-union rooted_policy_result state =
-    | RootedPolicyAccepted :: forall state. rooted_policy_result state
-    | RootedPolicyRejected :: forall state. rooted_policy_result state
+:| rooted_policy_result state =
+    | RootedPolicyAccepted :: \* state. rooted_policy_result state
+    | RootedPolicyRejected :: \* state. rooted_policy_result state
 
-inl unknown (path : string) : unknown_path = unknown_path path
-inl regular (path : string) : regular_path = regular_path path
-inl directory (path : string) : directory_path = directory_path path
-inl absent (path : string) : absent_path = absent_path path
+:= unknown (path : string) : unknown_path = unknown_path path
+:= regular (path : string) : regular_path = regular_path path
+:= directory (path : string) : directory_path = directory_path path
+:= absent (path : string) : absent_path = absent_path path
 
-inl transition_allowed forall from to. (transition : rooted_transition from to) : rooted_policy_result to =
-    match transition with
+:= transition_allowed \* from to. (transition : rooted_transition from to) : rooted_policy_result to =
+    ?= transition ?|
     | DiscoverRegular => RootedPolicyAccepted
     | DiscoverDirectory => RootedPolicyAccepted
     | DiscoverAbsent => RootedPolicyAccepted
@@ -29,7 +29,7 @@ inl transition_allowed forall from to. (transition : rooted_transition from to) 
     | RemoveRegular => RootedPolicyAccepted
     | RemoveDirectory => RootedPolicyAccepted
 
-inl policy_accepted forall state. (result : rooted_policy_result state) : bool =
-    match result with
-    | RootedPolicyAccepted => true
-    | RootedPolicyRejected => false
+:= policy_accepted \* state. (result : rooted_policy_result state) : bool =
+    ?= result ?|
+    | RootedPolicyAccepted => !+
+    | RootedPolicyRejected => !-

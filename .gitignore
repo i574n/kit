@@ -1,4 +1,5 @@
 /src/target/
+/infra/**/target/
 /eoie.exe
 /eoie
 /src/**/*.c

@@ -2,7 +2,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 #[cfg(test)] #[path = "publication_tests.rs"] mod publication_tests;
-fn owner_growth_current(root: &std::path::Path) -> Result<std::collections::BTreeMap<String,u32>, String> { eoie_source_map::source_owner_rust_lines(root) }
+fn owner_growth_current(root: &std::path::Path) -> Result<std::collections::BTreeMap<String,u32>, String> { kit_source_map::source_owner_rust_lines(root) }
 
 type OwnerGrowthParsed = (String, std::collections::BTreeMap<String,u32>, std::collections::BTreeSet<String>);
 
@@ -61,18 +61,18 @@ fn owner_growth_render(predecessor_sha256: &str, baseline: &std::collections::BT
 
 fn owner_growth_write(root: &std::path::Path, text: &str) -> Result<(), String> {
     let path = root.join("state/owner_growth.spi");
-    eoie_rust_std_fs::atomic_write(&path, text.as_bytes())
+    kit_rust_std_fs::atomic_write(&path, text.as_bytes())
 }
 
 fn owner_growth_predecessor_proof(predecessor_archive: &std::path::Path, previous: &std::path::Path) -> Result<String, String> {
-    let _ = eoie_bundle_manifest::verify_generic_flat_zip(predecessor_archive, 30_000_000)?;
-    let manifest = eoie_bundle_manifest::collect_bundle_manifest(previous)?;
-    let stage = std::env::temp_dir().join(format!("eoie-owner-growth-predecessor-{}.zip", std::process::id()));
+    let _ = kit_bundle_manifest::verify_generic_flat_zip(predecessor_archive, 30_000_000)?;
+    let manifest = kit_bundle_manifest::collect_bundle_manifest(previous)?;
+    let stage = std::env::temp_dir().join(format!("kit-owner-growth-predecessor-{}.zip", std::process::id()));
     let _ = std::fs::remove_file(&stage);
     let result = (|| -> Result<String, String> {
-        eoie_bundle_manifest::write_deterministic_deflate_zip(previous, &stage, &manifest)?;
-        let expected = eoie_proxy_search::inspection_file_sha256(predecessor_archive)?;
-        let observed = eoie_proxy_search::inspection_file_sha256(&stage)?;
+        kit_bundle_manifest::write_deterministic_deflate_zip(previous, &stage, &manifest)?;
+        let expected = kit_proxy_search::inspection_file_sha256(predecessor_archive)?;
+        let observed = kit_proxy_search::inspection_file_sha256(&stage)?;
         owner_growth_sha256_token(&expected, "predecessor sha256")?;
         if expected != observed { return Err(format!("owner growth predecessor archive/root mismatch expected={expected} observed={observed}")); }
         Ok(expected)
@@ -85,7 +85,7 @@ pub fn owner_growth_seed(predecessor_archive: &std::path::Path, previous: &std::
     let predecessor_sha256 = owner_growth_predecessor_proof(predecessor_archive, previous)?;
     let baseline = owner_growth_current(previous)?;
     owner_growth_write(root, &owner_growth_render(&predecessor_sha256, &baseline, &std::collections::BTreeSet::new(), "seed", "OWNER-GROWTH-TELEMETRY"))?;
-    println!("eoie bundle growth-baseline ok owners={} predecessor_sha256={} previous={} root={}", baseline.len(), predecessor_sha256, previous.display(), root.display());
+    println!("kit bundle growth-baseline ok owners={} predecessor_sha256={} previous={} root={}", baseline.len(), predecessor_sha256, previous.display(), root.display());
     Ok(())
 }
 
@@ -95,7 +95,7 @@ pub fn owner_growth_author(root: &std::path::Path, reason: &str, reference: &str
     let current = owner_growth_current(root)?;
     let changed = owner_growth_changed(&baseline, &current);
     owner_growth_write(root, &owner_growth_render(&predecessor_sha256, &baseline, &changed, reason, reference))?;
-    println!("eoie bundle growth-receipt ok changed={} reason={} reference={}", changed.len(), reason, reference);
+    println!("kit bundle growth-receipt ok changed={} reason={} reference={}", changed.len(), reason, reference);
     Ok(())
 }
 
@@ -112,17 +112,17 @@ pub fn owner_growth_all_owner_check(root: &std::path::Path) -> Result<(), String
         let before = baseline.get(&owner).copied().unwrap_or(0); let after = current.get(&owner).copied().unwrap_or(0);
         if after > before { growth = growth.saturating_add(after - before); } else { shrink = shrink.saturating_add(before - after); }
     }
-    let compensated = eoie_bundle_owner_growth_compensation_binding(i32::try_from(growth).unwrap_or(i32::MAX), i32::try_from(shrink).unwrap_or(i32::MAX));
+    let compensated = kit_bundle_owner_growth_compensation_binding(i32::try_from(growth).unwrap_or(i32::MAX), i32::try_from(shrink).unwrap_or(i32::MAX));
     println!("owner_growth_owners={} owner_growth_changed={} owner_growth_rust_growth={} owner_growth_rust_shrink={} owner_growth_compensated={} owner_growth_predecessor_sha256={} owner_growth_net_policy=report-only", current.len(), changed.len(), growth, shrink, compensated, predecessor_sha256);
     Ok(())
 }
 
 fn owner_growth_compensation_binding_1(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < v0;
+        let v3: bool = v1 < v0;
         if v3 {
             0i32
         } else {
@@ -138,6 +138,6 @@ fn closure0() -> Rc<dyn Fn(i32, i32) -> i32> {
         owner_growth_runtime_compensation_binding_0(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-pub fn eoie_bundle_owner_growth_compensation_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_bundle_owner_growth_compensation_binding(v0: i32, v1: i32) -> i32 {
     closure0()(v0, v1)
 }

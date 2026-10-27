@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "gate.spi"
+output = "gate.rs"
+
+[package]
+name = "kit-crate-gate"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_crate_gate"
+path = "gate.rs"

@@ -1,0 +1,189 @@
+///- --package .
+:# render static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| state_read =
+    | StateMissing
+    | StateText : string
+    | StateUnreadable : string
+
+:| rendered =
+    | Rendered : string
+    | Refused : string
+
+:| evidence =
+    | ToolchainEvidence
+    | ColdProofEvidence
+
+:! state_host = $'(i32, std::rc::Rc<str>)'
+
+:~ state_host_of (~root : string) (~relative : string) : state_host =
+    $'{ let path = std::path::Path::new(&*!root).join(&*!relative); \
+        match std::fs::read_to_string(&path) { Ok(source) => (1, std::rc::Rc::<str>::from(source)), \
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => (0, std::rc::Rc::<str>::from("")), \
+        Err(error) => (2, std::rc::Rc::<str>::from(format\!("read {}: {error}", path.display()))) } }' : state_host
+
+:= host_kind (~read : state_host) : i32 = $'!read.0' : i32
+:= host_text (~read : state_host) : string = $'!read.1.clone()' : string
+:= i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= without_prefix (~text : string) (bytes : i32) : string =
+    $'std::rc::Rc::<str>::from(&(&*!text)[!bytes as usize..])' : string
+:= sorted_lines (~text : string) : string = $'{ let mut items = (&*!text).lines().filter(|line| \
+    \!line.is_empty()).collect::<Vec<_>>(); items.sort(); std::rc::Rc::<str>::from(items.join("\n")) }' : string
+:= line_count (~text : string) : i32 = sm'.line_count text
+:= line_at (~text : string) (index : i32) : string = sm'.line_at index text
+
+:~ state_read_of (~root : string) (~relative : string) : state_read =
+    := read = state_host_of root relative
+    := kind = host_kind read
+    ? kind = 1i32 ?> StateText (host_text read)
+    |? kind = 0i32 ?> StateMissing
+    |: StateUnreadable (host_text read)
+
+:= projected (~label : string) (~value : string) : rendered =
+    ? value = "" ?> Refused (label ++# " projection rejected typed state") |: Rendered value
+
+:= evidence_path = \|
+    | ToolchainEvidence => "state/toolchain_identity.spi"
+    | ColdProofEvidence => "state/cold_proof.spi"
+
+:= evidence_label = \|
+    | ToolchainEvidence => "toolchain"
+    | ColdProofEvidence => "cold proof"
+
+:= evidence_projection (kind : evidence) (~text : string) : string =
+    ?= kind ?|
+    | ToolchainEvidence => $'handoff_evidence_projection_domain::kit_handoff_toolchain_projection(&*!text)' : string
+    | ColdProofEvidence => $'handoff_evidence_projection_domain::kit_handoff_cold_projection(&*!text)' : string
+
+:= with_evidence (~root : string) (kind : evidence) (~block : rendered) : rendered =
+    ?= block ?|
+    | Refused problem => Refused problem
+    | Rendered text =>
+        ?= state_read_of root (evidence_path kind) ?|
+        | StateMissing => Rendered text
+        | StateUnreadable problem => Refused problem
+        | StateText source =>
+            ?= projected (evidence_label kind) (evidence_projection kind source) ?|
+            | Refused problem => Refused problem
+            | Rendered line => Rendered (text ++# "\n" ++# line ++# "\n")
+
+:= authority_mask () : i32 = $'authority_state_domain::kit_authority_declared_mask(0, 0)' : i32
+:= authority_code (mask : i32) : i32 = $'authority_state_domain::kit_authority_state(!mask, 0)' : i32
+
+:~ recorded_lines (~root : string) (~ratings_line : string) (~census_line : string) : rendered =
+    := mask = authority_mask ()
+    := code = authority_code mask
+    ? mask < 0i32 || code < 0i32
+    ?> Refused "compiled authority projection rejected"
+    |:
+        := authority = ? code = 1i32 ?> "exclusive" |: "blocked"
+        := heading =
+            "\n## Recorded state\n\nSaved ratings, census and receipts are shown below with compiled authority "
+            ^^ "declarations. This command does not revalidate their freshness or certify a release.\n"
+        := authority_line =
+            "\nauthority=" ++# authority ++# " blocker_mask=" ++# (i32_text mask) ++# (" " ++# census_line ++# "\n")
+        := opening = heading ++# "\n" ++# ratings_line ++# "\n" ++# authority_line
+        with_evidence root ColdProofEvidence (with_evidence root ToolchainEvidence (Rendered opening))
+
+:~ recorded_block (~root : string) : rendered =
+    ?= state_read_of root "state/ratings.spi" ?|
+    | StateMissing => Rendered ""
+    | StateUnreadable problem => Refused problem
+    | StateText ratings =>
+        ?= state_read_of root "state/authority_census.spi" ?|
+        | StateMissing => Rendered ""
+        | StateUnreadable problem => Refused problem
+        | StateText census =>
+            ?=
+                projected
+                    "ratings"
+                    ($'handoff_state_projection_domain::kit_handoff_ratings_projection(&*!ratings)' : string)
+            ?|
+            | Refused problem => Refused problem
+            | Rendered ratings_line =>
+                ?=
+                    projected
+                        "authority census"
+                        ($'handoff_state_projection_domain::kit_handoff_census_projection(&*!census)' : string)
+                ?|
+                | Refused problem => Refused problem
+                | Rendered census_line => recorded_lines root ratings_line census_line
+
+:~ ^ bulleted (~items : string) (index : i32) (~acc : string) : string =
+    ? index < line_count items ?> bulleted items (index + 1i32) (acc ++# "\n- " ++# (line_at items index) ++# "\n")
+    |: acc
+
+:= active_items (~items : string) : string = ? items = "" ?> "" |: bulleted items 0i32 "\n## Active work\n"
+
+:~ active_block (~root : string) : rendered =
+    ?= state_read_of root "state/agile.spi" ?|
+    | StateMissing => Rendered ""
+    | StateUnreadable problem => Refused problem
+    | StateText agile =>
+        ?= projected "active work" ($'handoff_active_work_projection_domain::kit_handoff_active_work_projection(&*kit_\
+            agile_records::kit_agile_records_as_lines(&*!agile))' : string) ?|
+        | Refused problem => Refused problem
+        | Rendered raw =>
+            ? raw = "ok" ?> Rendered ""
+            |? sm'.starts_with "ok\n" raw ?> Rendered (active_items (sorted_lines (without_prefix raw 3i32)))
+            |: Refused "active work projection returned invalid envelope"
+
+:~ sections_block (~handoff : string) : rendered =
+    ?=
+        projected
+            "handoff sections"
+            ($'handoff_sections_projection_domain::kit_handoff_sections_projection(&*!handoff)' : string)
+    ?|
+    | Refused problem => Refused problem
+    | Rendered sections =>
+        ? sm'.starts_with "ok" sections ?> Rendered ((without_prefix sections 2i32) ++# "\n")
+        |: Refused "handoff sections projection returned invalid envelope"
+
+:~ handoff_text (~root : string) : rendered =
+    ?= state_read_of root "state/handoff.spi" ?|
+    | StateMissing => Refused "state/handoff.spi is missing"
+    | StateUnreadable problem => Refused problem
+    | StateText handoff =>
+        ?= sections_block handoff ?|
+        | Refused problem => Refused problem
+        | Rendered sections =>
+            ?= recorded_block root ?|
+            | Refused problem => Refused problem
+            | Rendered recorded =>
+                ?= active_block root ?|
+                | Refused problem => Refused problem
+                | Rendered work => Rendered ("# KIT handoff\n" ++# recorded ++# sections ++# work)
+
+:= written (~text : string) : string =
+    $'{ let mut stdout = std::io::stdout().lock(); match std::io::Write::write_all(&mut stdout, \
+        (&*!text).as_bytes()).and_then(|()| std::io::Write::flush(&mut stdout)) { Err(error) if error.kind() \!= \
+        std::io::ErrorKind::BrokenPipe => std::rc::Rc::<str>::from(format\!("write handoff: {error}")), \
+        _ => std::rc::Rc::<str>::from("") } }' : string
+
+:= handoff_failed (~problem : string) : i32 =
+    := _ = $'eprintln\!("kit error: {}", &*!problem)' : ()
+    2i32
+
+:~ handoff_render_owned (~root : string) : i32 =
+    ?= handoff_text root ?|
+    | Refused problem => handoff_failed problem
+    | Rendered text =>
+        := problem = written text
+        ? problem = "" ?> 0i32 |: handoff_failed problem
+
+
+///> rust
+:# active_work_lists_sorted_items_under_one_heading =
+    testing.expect
+        (active_items (sorted_lines "b item\n\na item\n") = "\n## Active work\n\n- a item\n\n- b item\n")
+        (active_items (sorted_lines "b item\n\na item\n"))
+    testing.expect (active_items (sorted_lines "") = "") "no items, no heading"
+
+///> rust
+:# a_missing_state_file_is_absent_not_an_error =
+    ?= state_read_of "." "state/no-such-handoff-file.spi" ?|
+    | StateMissing => ()
+    | _ => testing.expect !- "missing file"

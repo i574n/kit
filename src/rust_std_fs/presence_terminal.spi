@@ -1,7 +1,6 @@
-inl rust_global (x : string) : () = !!!!Global(x)
 
-inl emit_presence () : () =
-    rust_global """
+:= emit_presence () : () =
+    global """
         #[cfg(target_os = "linux")] pub fn rooted_entry_exists(path: &Path) -> Result<bool, String> {
             use std::ffi::CString;
             use std::os::fd::{AsRawFd as _, FromRawFd as _};
@@ -27,7 +26,7 @@ inl emit_presence () : () =
             use std::os::unix::fs::symlink;
             #[test] fn presence_is_nofollow_and_descriptor_relative() {
                 let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-                let root = std::env::temp_dir().join(format!("eoie-presence-{}-{nonce}", std::process::id()));
+                let root = std::env::temp_dir().join(format!("kit-presence-{}-{nonce}", std::process::id()));
                 let real = root.join("real");
                 let file = real.join("file.txt");
                 let ancestor = root.join("ancestor");

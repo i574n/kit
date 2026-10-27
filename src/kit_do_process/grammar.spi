@@ -1,0 +1,183 @@
+///- --package .
+:# grammar static =
+    :< rust_std_string.model
+    :< host
+    :< kit_do_records.records
+
+:< rust_std_string.model
+:< host
+:< kit_do_records.records
+
+:| process_step =
+    | RunForeground : string * u64
+    | RunUntil : string * string * u64
+    | RunBackground : string * string
+    | TailOutput : u64
+    | SearchOutput : string
+    | ErrorsBy : string
+    | ProcessesMatching : string
+    | StopNamed : string
+
+:| step_parse =
+    | StepParsed : process_step
+    | StepRejected : string
+
+:| run_end =
+    | Exited : i64
+    | TimedOut
+    | Matched
+    | NoMatch
+    | ExitedBeforeMatch : i64
+    | BadPattern
+
+:= run_end_of (~kind : u8) (~value : i64) : run_end =
+    ? kind = 1u8 ?> Exited value
+    |? kind = 2u8 ?> TimedOut
+    |? kind = 3u8 ?> Matched
+    |? kind = 4u8 ?> NoMatch
+    |? kind = 5u8 ?> ExitedBeforeMatch value
+    |: BadPattern
+
+:= run_end_failed = \|
+    | Exited code => code <> 0i64
+    | Matched => !-
+    | _ => !+
+
+:~ run_end_text
+    (~command : string) (~needle : string) (~timeout_ms : u64) (~elapsed_ms : u64) (~lines : u64) (finish : run_end)
+    : string
+    =
+    := head = concat5 "run " command "  " "" ""
+    := lines_text = concat5 "  lines " ($'std::rc::Rc::<str>::from((!lines).to_string())' : string) "" "" ""
+    := quoted = concat5 "\"" needle "\"" "" ""
+    ?= finish ?|
+    | Exited code =>
+        concat5 head "exit " (signed_text code) lines_text (concat5 "  " (duration_text elapsed_ms) "" "" "")
+    | TimedOut => concat5 head "timed out after " (timeout_text timeout_ms) "  stopped (tree)" lines_text
+    | Matched =>
+        concat5 head
+            "matched "
+            quoted
+            " after "
+            (concat5 (duration_text elapsed_ms) "  stopped (tree)  exit killed" "" "" "")
+    | NoMatch =>
+        concat5 head
+            "no match for "
+            quoted
+            (concat5 " in " (timeout_text timeout_ms) "  stopped (tree)" "" "")
+            lines_text
+    | ExitedBeforeMatch code =>
+        concat5 head "exited " (signed_text code) (concat5 " before matching " quoted "" "" "") lines_text
+    | BadPattern => concat5 head "invalid pattern " quoted "  stopped (tree)" ""
+
+:= in_output (~records : record_list) (~record : i32) : bool =
+    body_at records record (field_index records record "in" + 1i32) = "output"
+
+:~ run_parsed (~records : record_list) (~record : i32) : step_parse =
+    := command = command_words records record
+    := timeout_at = field_index records record "timeout"
+    := timeout = ? timeout_at < 0i32 ?> 600000u64 |: duration_ms (body_at records record (timeout_at + 1i32))
+    := background_at = field_index records record "background"
+    ? command = ""
+    ?> StepRejected "run: expected a command"
+    |? timeout = 0u64
+    ?> StepRejected "timeout: expected a duration like 20s"
+    |? background_at >= 0i32
+    ?>
+        := name = body_at records record (field_index records record "as" + 1i32)
+        ? name = "" ?> StepRejected "background: expected as <name>" |: StepParsed (RunBackground (command, name))
+    |? field_index records record "until" >= 0i32
+    ?>
+        := needle = first_of_kind records record 113u8
+        ? needle = ""
+        ?> StepRejected "until: expected output ~ \"<regex>\""
+        |: StepParsed (RunUntil (command, needle, timeout))
+    |: StepParsed (RunForeground (command, timeout))
+
+:~ step_parsed (~records : record_list) (~record : i32) : step_parse =
+    := verb = field_at records record 1i32
+    := needle = first_of_kind records record 113u8
+    ? verb = "run"
+    ?> run_parsed records record
+    |? verb = "tail"
+    ?>
+        ? first_of_kind records record 119u8 <> "output"
+        ?> StepRejected "tail: a run program reads its own output: tail output <n>"
+        |:
+            := count = decimal_of (body_at records record 3i32)
+            StepParsed (TailOutput (? count = 0u64 ?> 10u64 |: count))
+    |? verb = "search"
+    ?>
+        ? needle = "" ?> StepRejected "search: expected a quoted pattern"
+        |? in_output records record ?> StepParsed (SearchOutput needle)
+        |: StepRejected "search: a run program searches its own output: search \"<regex>\" in output"
+    |? verb = "errors"
+    ?>
+        ? needle = "" || field_index records record "by" < 0i32
+        ?> StepRejected "errors: expected errors in output by \"<regex>\""
+        |: StepParsed (ErrorsBy needle)
+    |? verb = "processes"
+    ?>
+        ? needle = ""
+        ?> StepRejected "processes: expected where command ~ \"<regex>\""
+        |: StepParsed (ProcessesMatching needle)
+    |? verb = "stop"
+    ?>
+        := name = first_of_kind records record 119u8
+        ? name = "" ?> StepRejected "stop: expected a run name" |: StepParsed (StopNamed name)
+    |: StepRejected (concat5 verb " cannot share one program with run yet; run it as its own call" "" "" "")
+
+
+:= rejection_at (~records : record_list) (~record : i32) : string =
+    ?= step_parsed records record ?|
+    | StepRejected message => message
+    | StepParsed _ => ""
+
+///> rust
+:# run_statements_parse_into_steps =
+    := records =
+        records_from_bars (
+            "ok\nquery|run|wserver.cmd|wuntil|woutput|w~|qserver online|wtimeout|w20s|wthen|wstop\n"
+            ^^ "query|tail|woutput|w2\nquery|run|wsleeper.cmd|wbackground|was|ws1\n"
+            ^^ "query|errors|win|woutput|wby|qerror (FS[0-9]+)\nquery|run|wcargo|wbuild|w-p|wkit"
+        )
+    ?= step_parsed records 1i32 ?|
+    | StepParsed (RunUntil (command, needle, timeout)) =>
+        testing.expect (command = "server.cmd" && needle = "server online" && timeout = 20000u64) "run until"
+    | _ => testing.expect !- "run until"
+    ?= step_parsed records 2i32 ?|
+    | StepParsed (TailOutput count) => testing.expect (count = 2u64) "tail output"
+    | _ => testing.expect !- "tail output"
+    ?= step_parsed records 3i32 ?|
+    | StepParsed (RunBackground (command, name)) => testing.expect (command = "sleeper.cmd" && name = "s1") "background"
+    | _ => testing.expect !- "background"
+    ?= step_parsed records 4i32 ?|
+    | StepParsed (ErrorsBy needle) => testing.expect (needle = "error (FS[0-9]+)") "errors by"
+    | _ => testing.expect !- "errors"
+    ?= step_parsed records 5i32 ?|
+    | StepParsed (RunForeground (command, timeout)) =>
+        testing.expect (command = "cargo build -p kit" && timeout = 600000u64) "multi-word command"
+    | _ => testing.expect !- "foreground"
+
+///> rust
+:# run_endings_read_as_one_line_each =
+    testing.expect
+        (
+            run_end_text "build.cmd" "" 600000u64 42u64 4u64 (run_end_of 1u8 1i64)
+            = "run build.cmd  exit 1  lines 4  42ms"
+        )
+        "exited"
+    testing.expect (run_end_failed (run_end_of 1u8 1i64)) "nonzero exit fails"
+    testing.expect (run_end_failed (run_end_of 3u8 0i64) = !-) "a match is a success"
+    testing.expect
+        (
+            run_end_text "s.cmd" "online" 20000u64 900u64 2u64 (run_end_of 4u8 0i64)
+            = "run s.cmd  no match for \"online\" in 20s  stopped (tree)  lines 2"
+        )
+        "no match"
+    testing.expect
+        (
+            rejection_at (records_from_bars "ok\nquery|tail|wlogs/a.log|w2") 1i32
+            = "tail: a run program reads its own output: tail output <n>"
+        )
+        "foreign tail"

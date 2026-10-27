@@ -14,4 +14,4 @@ name = "proxy_file_removal"
 path = "file_removal.rs"
 
 [dependencies]
-eoie-rust-std-fs = { path = "../rust_std_fs" }
+kit-rust-std-fs = { path = "../rust_std_fs" }

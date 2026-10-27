@@ -1,25 +1,27 @@
-nominal cold_rebuild_raw = ()
-nominal cold_rebuild_regenerated = ()
-nominal cold_rebuild_gated = ()
-nominal cold_rebuild_reproduced = ()
-nominal cold_rebuild_closed = ()
+:! cold_rebuild_raw = ()
+:! cold_rebuild_regenerated = ()
+:! cold_rebuild_gated = ()
+:! cold_rebuild_reproduced = ()
+:! cold_rebuild_closed = ()
 
-union cold_rebuild_op from to =
+:| cold_rebuild_op from to =
     | RegenerateAllOwners :: cold_rebuild_op cold_rebuild_raw cold_rebuild_regenerated
     | VerifyColdGates :: cold_rebuild_op cold_rebuild_regenerated cold_rebuild_gated
     | CompareIndependentProducts :: cold_rebuild_op cold_rebuild_gated cold_rebuild_reproduced
     | CloseColdRebuild :: cold_rebuild_op cold_rebuild_reproduced cold_rebuild_closed
 
-union rec cold_rebuild_plan from to =
-    | ColdRebuildStep :: forall from to. cold_rebuild_op from to -> cold_rebuild_plan from to
-    | ColdRebuildThen :: forall from to. (exists middle. cold_rebuild_plan from middle * cold_rebuild_plan middle to) -> cold_rebuild_plan from to
+:| ^ cold_rebuild_plan from to =
+    | ColdRebuildStep :: \* from to. cold_rebuild_op from to -> cold_rebuild_plan from to
+    | ColdRebuildThen :: \* from to.
+        (\? middle. cold_rebuild_plan from middle * cold_rebuild_plan middle to) ->
+        cold_rebuild_plan from to
 
-inl cold_rebuild_public_plan () : cold_rebuild_plan cold_rebuild_raw cold_rebuild_closed =
-    ColdRebuildThen (exists (
+:= cold_rebuild_public_plan () : cold_rebuild_plan cold_rebuild_raw cold_rebuild_closed =
+    ColdRebuildThen (\? (
         ColdRebuildStep RegenerateAllOwners,
-        ColdRebuildThen (exists (
+        ColdRebuildThen (\? (
             ColdRebuildStep VerifyColdGates,
-            ColdRebuildThen (exists (
+            ColdRebuildThen (\? (
                 ColdRebuildStep CompareIndependentProducts,
                 ColdRebuildStep CloseColdRebuild
             ))

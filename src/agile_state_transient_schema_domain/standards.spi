@@ -1,6 +1,6 @@
-inl comments () = NoCommentLines
-inl width () = LineWidth 120i32
-inl lf () = LfOnly
-inl targets () = TestTargets
-inl host () = HostFree
-inl lib () = LibReferenced
+:= comments () = NoCommentLines
+:= width () = LineWidth 120i32
+:= lf () = LfOnly
+:= targets () = TestTargets
+:= host () = HostFree
+:= lib () = LibReferenced

@@ -4,8 +4,8 @@ use std::rc::Rc;
 #[rustfmt::skip]
 mod dense {
 use std::path::{Path, PathBuf};
-pub use eoie_rust_std_fs_mutation::{discard_stage, mutation_boundary_capability, promote_stage, promote_stage_receipted, restore_text, stage_new_text, stage_text, stage_text_receipted, stage_text_receipted_bound, PromotionReceipt, StagedWriteReceipt};
-pub use eoie_rust_std_fs_mutation::atomic_write;
+pub use kit_rust_std_fs_mutation::{discard_stage, mutation_boundary_capability, promote_stage, promote_stage_receipted, restore_text, stage_new_text, stage_text, stage_text_receipted, stage_text_receipted_bound, PromotionReceipt, StagedWriteReceipt};
+pub use kit_rust_std_fs_mutation::atomic_write;
 use std::io::Read;
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/portable.rs"));
 #[cfg(windows)] include!(concat!(env!("CARGO_MANIFEST_DIR"), "/windows.rs"));
@@ -216,15 +216,15 @@ pub fn rooted_copy_atomic(source: &Path, target: &Path) -> Result<usize, String>
 }
 
 pub fn rooted_remove_regular(path: &Path) -> Result<(), String> {
-    eoie_rust_std_fs_mutation::rooted_remove_regular(path)
+    kit_rust_std_fs_mutation::rooted_remove_regular(path)
 }
 
 pub fn rooted_unlink_nondirectory(path: &Path) -> Result<(), String> {
-    eoie_rust_std_fs_mutation::rooted_unlink_nondirectory(path)
+    kit_rust_std_fs_mutation::rooted_unlink_nondirectory(path)
 }
 
 pub fn rooted_remove_tree_within(root: &Path, path: &Path) -> Result<u64, String> {
-    eoie_rust_std_fs_mutation::rooted_remove_tree_within(root, path)
+    kit_rust_std_fs_mutation::rooted_remove_tree_within(root, path)
 }
 
 #[cfg(all(test, target_os = "linux"))]
@@ -234,7 +234,7 @@ mod descriptor_nofollow_tests {
     fn rejects_symlink_ancestor_and_leaf() {
         use std::os::unix::fs::symlink;
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let root = std::env::temp_dir().join(format!("eoie-nofollow-{}-{nonce}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("kit-nofollow-{}-{nonce}", std::process::id()));
         let real = root.join("real");
         let secret = real.join("secret.txt");
         let ancestor = root.join("link");
@@ -262,7 +262,7 @@ mod descriptor_nofollow_tests {
     fn directory_listing_stays_bound_after_path_swap() {
         use std::os::unix::fs::symlink;
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let root = std::env::temp_dir().join(format!("eoie-list-fd-{}-{nonce}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("kit-list-fd-{}-{nonce}", std::process::id()));
         let watched = root.join("watched");
         let moved = root.join("moved");
         let outside = root.join("outside");
@@ -304,7 +304,7 @@ mod descriptor_nofollow_tests {
     use std::os::unix::fs::symlink;
     #[test] fn presence_is_nofollow_and_descriptor_relative() {
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let root = std::env::temp_dir().join(format!("eoie-presence-{}-{nonce}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("kit-presence-{}-{nonce}", std::process::id()));
         let real = root.join("real");
         let file = real.join("file.txt");
         let ancestor = root.join("ancestor");
@@ -358,7 +358,7 @@ pub fn rooted_path(root: &Path, relative: &str) -> Result<PathBuf, String> {
 }
 
 pub fn copy_regular_atomic_preserve(source: &Path, target: &Path) -> Result<u64, String> {
-    eoie_rust_std_fs_mutation::copy_regular_atomic_preserve(source, target)
+    kit_rust_std_fs_mutation::copy_regular_atomic_preserve(source, target)
 }
 
 }

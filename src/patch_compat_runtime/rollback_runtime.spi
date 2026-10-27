@@ -14,20 +14,20 @@ inl emit_rollback_runtime () : () = !!!!Global("""
                 .unwrap_or(-1);
             let next = i32::try_from(self.originals.len())
                 .map_err(|_| "backup slot count overflow".to_owned())?;
-            let should_capture = eoie_patch_backup_should_capture(existing, next) == 1;
+            let should_capture = kit_patch_backup_should_capture(existing, next) == 1;
             let observed = i32::try_from(text.len()).unwrap_or(i32::MAX);
             let limit = i32::try_from(max_bytes)
                 .map_err(|_| "typed capture limit does not fit i32".to_owned())?;
-            let capture_authorized = eoie_patch_capture_authorized(observed, limit);
-            let planned_slot = eoie_patch_backup_slot(existing, next);
-            let planned_count = eoie_patch_backup_next_count(existing, next);
+            let capture_authorized = kit_patch_capture_authorized(observed, limit);
+            let planned_slot = kit_patch_backup_slot(existing, next);
+            let planned_count = kit_patch_backup_next_count(existing, next);
             let slot = usize::try_from(planned_slot)
                 .map_err(|_| "typed backup slot is negative".to_owned())?;
             let count = usize::try_from(planned_count)
                 .map_err(|_| "typed backup count is negative".to_owned())?;
 
             if should_capture {
-                let bound_slot = eoie_patch_capture_binding_slot(planned_slot, capture_authorized);
+                let bound_slot = kit_patch_capture_binding_slot(planned_slot, capture_authorized);
                 if bound_slot != planned_slot {
                     return Err("typed backup capture authority denied".to_owned());
                 }
@@ -89,11 +89,11 @@ inl emit_rollback_runtime () : () = !!!!Global("""
         }
 
         fn attempt_count(&self) -> i32 {
-            eoie_patch_restoration_attempt_count(self.success_count, self.failure_count)
+            kit_patch_restoration_attempt_count(self.success_count, self.failure_count)
         }
 
         fn authorize_attempt(&self) -> i32 {
-            eoie_patch_restoration_attempt_authorized(self.expected_count, self.attempt_count())
+            kit_patch_restoration_attempt_authorized(self.expected_count, self.attempt_count())
         }
 
         fn begin_attempt(&mut self, identity: i32) {
@@ -105,7 +105,7 @@ inl emit_rollback_runtime () : () = !!!!Global("""
         }
 
         fn take_attempt_identity(&mut self, outcome: i32) -> i32 {
-            let identity = eoie_patch_restoration_payload_outcome_binding(self.pending_identity, outcome);
+            let identity = kit_patch_restoration_payload_outcome_binding(self.pending_identity, outcome);
             self.pending_identity = -1;
             identity
         }
@@ -116,7 +116,7 @@ inl emit_rollback_runtime () : () = !!!!Global("""
                 self.success_count = -1;
                 return;
             }
-            let next = eoie_patch_restoration_counter_next(self.success_count, self.authorize_attempt());
+            let next = kit_patch_restoration_counter_next(self.success_count, self.authorize_attempt());
             if next < 0 {
                 self.success_count = -1;
                 return;
@@ -132,7 +132,7 @@ inl emit_rollback_runtime () : () = !!!!Global("""
                 self.failure_count = -1;
                 return;
             }
-            let next = eoie_patch_restoration_counter_next(self.failure_count, self.authorize_attempt());
+            let next = kit_patch_restoration_counter_next(self.failure_count, self.authorize_attempt());
             if next < 0 {
                 self.failure_count = -1;
                 return;
@@ -146,8 +146,8 @@ inl emit_rollback_runtime () : () = !!!!Global("""
         }
 
         fn outcome(&self) -> i32 {
-            let complete = eoie_patch_restoration_complete(self.expected_count, self.attempt_count());
-            eoie_patch_restoration_accumulator_outcome(complete, self.failure_count)
+            let complete = kit_patch_restoration_complete(self.expected_count, self.attempt_count());
+            kit_patch_restoration_accumulator_outcome(complete, self.failure_count)
         }
 
     }
@@ -168,9 +168,9 @@ inl emit_rollback_runtime () : () = !!!!Global("""
             .map_err(|_| "restoration payload candidate does not fit i32".to_owned())?;
         let expected_slot = i32::try_from(expected_slot)
             .map_err(|_| "restoration payload slot does not fit i32".to_owned())?;
-        let identity = eoie_patch_restoration_payload_identity(candidate, observed_stage);
-        let slot_authorized = eoie_patch_promotion_slot_authorized(expected_slot, observed_slot);
-        let identity = eoie_patch_restoration_payload_slot_binding(identity, slot_authorized);
+        let identity = kit_patch_restoration_payload_identity(candidate, observed_stage);
+        let slot_authorized = kit_patch_promotion_slot_authorized(expected_slot, observed_slot);
+        let identity = kit_patch_restoration_payload_slot_binding(identity, slot_authorized);
         if identity < 0 {
             Err("typed restoration payload identity mismatch".to_owned())
         } else {
@@ -253,7 +253,7 @@ inl emit_rollback_runtime () : () = !!!!Global("""
         let committed_i32 = i32::try_from(committed_count).unwrap_or(i32::MAX);
         let mut cursor = 0i32;
         loop {
-            let candidate = eoie_patch_restoration_select(committed_i32, cursor);
+            let candidate = kit_patch_restoration_select(committed_i32, cursor);
             if candidate < 0 {
                 break;
             }
@@ -305,7 +305,7 @@ inl emit_rollback_runtime () : () = !!!!Global("""
                     continue;
                 }
             };
-            if eoie_patch_restoration_bind(candidate, observed_index) != candidate {
+            if kit_patch_restoration_bind(candidate, observed_index) != candidate {
                 restoration_receipt.record_failure(
                     receipt.target(),
                     "typed restoration receipt index mismatch",

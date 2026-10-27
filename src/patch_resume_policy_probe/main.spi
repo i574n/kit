@@ -1,14 +1,14 @@
-open patch_resume_contract.model
+:< patch_resume_contract.model
 
-inl one_is (value : i32) : bool =
-    if value < 1i32 then false
-    elif 1i32 < value then false
-    else true
+:= one_is (value : i32) : bool =
+    ? value < 1i32 ?> !-
+    |? 1i32 < value ?> !-
+    |: !+
 
-inl main () : i32 =
-    inl _ = policy_plan ()
-    if one_is (receipt_shape_binding 1i32 1i32 1i32 1i32) then
-        if one_is (resume_decision_binding 1i32 1i32) then
-            if one_is (completion_binding 1i32 1i32) then 0i32 else 3i32
-        else 2i32
-    else 1i32
+:= main () : i32 =
+    := _ = policy_plan ()
+    ? one_is (receipt_shape_binding 1i32 1i32 1i32 1i32) ?>
+        ? one_is (resume_decision_binding 1i32 1i32) ?>
+            ? one_is (completion_binding 1i32 1i32) ?> 0i32 |: 3i32
+        |: 2i32
+    |: 1i32

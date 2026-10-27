@@ -1,0 +1,311 @@
+:< rust_std_string.model
+:< probes
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:~ stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:~ stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:~ count_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:~ file_text (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default\
+    ().as_str())' : string
+:~ text_written (~path : string) (~text : string) : bool = $'std::fs::write(&*!path, (!text).as_bytes()).is_ok()' : bool
+:~ quote () : string = $'std::rc::Rc::<str>::from(char::from(34u8).to_string().as_str())' : string
+:~ first_line (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split(char::from(10u8)).next().unwrap_o\
+    r(""))' : string
+:~ other_lines (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split_once(char::from(10u8)).map(|(_, \
+    rest)| rest).unwrap_or(""))' : string
+:~ appended (~lines : string) (~line : string) : string = ? lines = "" ?> line |: concat5 lines "\n" line "" ""
+
+:~ entry_list (~dir : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_dir(&*!dir).into_iter().flatten().fl\
+    atten().map(|e| e.path().to_string_lossy().into_owned()).collect::<Vec<_>>().join("\n").as_str())' : string
+:~ sorted_lines (~text : string) : string = $'std::rc::Rc::<str>::from({ let mut lines = \
+    (!text).lines().collect::<Vec<_>>(); lines.sort(); lines.join("\n") }.as_str())' : string
+:~ is_dir (~path : string) : bool = file_system.directory_exists path
+
+:| entry_kind =
+    | SpiralFile
+    | Directory
+
+:~ entry_matches (kind : entry_kind) (~path : string) : bool =
+    ?= kind ?|
+    | SpiralFile => ends_with path ".spi"
+    | Directory => is_dir path
+
+:~ ^ kept_entries (kind : entry_kind) (~paths : string) (~found : string) : string =
+    ? paths = "" ?> found
+    |:
+        := path = first_line paths
+        kept_entries kind (other_lines paths) (? entry_matches kind path ?> appended found path |: found)
+
+:~ spi_paths (~dir : string) : string = kept_entries SpiralFile (sorted_lines (entry_list dir)) ""
+:~ child_dirs (~dir : string) : string = kept_entries Directory (sorted_lines (entry_list dir)) ""
+:~ ^ text_of_files (~paths : string) (~text : string) : string =
+    ? paths = "" ?> text
+    |:
+        := file = file_text (first_line paths)
+        text_of_files (other_lines paths) (concat5 text file (? file = "" || ends_with file "\n" ?> "" |: "\n") "" "")
+
+:~ ^ package_children (~children : string) (~found : string) : string =
+    ? children = "" ?> found
+    |:
+        := child = first_line children
+        package_children (other_lines children) (? spi_paths child = "" ?> found |: appended found child)
+
+:~ ^ package_dirs (~paths : string) (~found : string) : string =
+    ? paths = "" ?> found
+    |:
+        := path = first_line paths
+        := more = ? spi_paths path = "" ?> package_children (child_dirs path) "" |: path
+        package_dirs (other_lines paths) (? more = "" ?> found |: appended found more)
+
+:~ package_name (~dir : string) : string = $'std::rc::Rc::<str>::from(std::path::Path::new(&*!dir).file_name().map(|na\
+    me| name.to_string_lossy().into_owned()).unwrap_or_default().as_str())' : string
+:~ line_total (~text : string) : i32 = $'(!text).lines().count() as i32' : i32
+:~ matching_lines (~text : string) (~pattern : string) : i32 = $'regex::Regex::new(&*!pattern).map(|pattern| \
+    (!text).lines().filter(|line| pattern.is_match(line)).count() as i32).unwrap_or(0)' : i32
+:~ binding_of (~name : string) : string = $'std::rc::Rc::<str>::from((!name).to_lowercase().replace(char::from(45u8), \
+    "_").as_str())' : string
+:~ line_after (~text : string) (~needle : string) : string = $'std::rc::Rc::<str>::from((!text).lines().find_map(|line\
+    | line.split_once(&*!needle).map(|(_, rest)| rest)).unwrap_or(""))' : string
+:~ integer_field (~rest : string) (index : i32) : i32 = $'(!rest).split(char::from(44u8)).nth(!index as \
+    usize).and_then(|part| part.trim().trim_end_matches(")").trim_end_matches("i32").parse::<i32>().ok()).unwrap_or(-1\
+    )' : i32
+
+:== probe_reading =
+    {
+        word : string
+        way : direction
+        count : i32
+    }
+
+:| ^ probe_counts =
+    | NoCounts
+    | CountThen : probe_reading * probe_counts
+
+:== package_census =
+    {
+        name : string
+        lines : i32
+        counts : probe_counts
+    }
+
+:~ census_of (~dir : string) : package_census =
+    := text = text_of_files (spi_paths dir) ""
+    := counts =
+        each_probe
+            \ acc probe =>
+                CountThen (
+                    {
+                        word = any_word probe
+                        way = any_direction probe
+                        count = matching_lines text (any_pattern probe)
+                    },
+                    acc
+                )
+            NoCounts
+    { name = package_name dir; lines = line_total text; counts = counts }
+
+:~ ^ counts_text (counts : probe_counts) : string =
+    ?= counts ?|
+    | NoCounts => ""
+    | CountThen (reading, rest) => concat5 (counts_text rest) " " reading.word "=" (count_text reading.count)
+
+:~ ^ count_of (counts : probe_counts) (~word : string) : i32 =
+    ?= counts ?|
+    | NoCounts => 0i32
+    | CountThen (reading, rest) => ? reading.word = word ?> reading.count |: count_of rest word
+
+:~ ^ feature_total (counts : probe_counts) (total : i32) : i32 =
+    ?= counts ?|
+    | NoCounts => total
+    | CountThen (reading, rest) =>
+        ?= reading.way ?|
+        | MayNotFall => feature_total rest (total + reading.count)
+        | _ => feature_total rest total
+
+:~ census_key (~name : string) (~word : string) : string =
+    concat5 "CensusCount (" (quote ()) name (quote ()) (concat5 ", " (quote ()) word (quote ()) ", ")
+
+:~ ^ baseline_rows (counts : probe_counts) (~name : string) (lines : i32) (~rows : string) : string =
+    ?= counts ?|
+    | NoCounts => rows
+    | CountThen (reading, rest) =>
+        := head = concat5 "inl census_" (binding_of name) "_" (binding_of reading.word) " () = "
+        := row =
+            concat5 head
+                (census_key name reading.word)
+                (count_text reading.count)
+                "i32, "
+                (concat5 (count_text lines) "i32)" "" "" "")
+        baseline_rows rest name lines (appended rows row)
+
+:== baseline_entry =
+    {
+        count : i32
+        lines : i32
+    }
+
+:~ entry_of (~baseline : string) (~name : string) (~word : string) : baseline_entry =
+    := rest = line_after baseline (census_key name word)
+    ? rest = ""
+    ?> { count = (-1i32); lines = 0i32 }
+    |: { count = integer_field rest 0i32; lines = integer_field rest 1i32 }
+
+:| verdict =
+    | Held
+    | Regressed : string
+
+:~ ^ probes_compared
+    (counts : probe_counts) (~baseline : string) (~name : string) (lines : i32) (~found : string)
+    : string
+    =
+    ?= counts ?|
+    | NoCounts => found
+    | CountThen (reading, rest) =>
+        := before = entry_of baseline name reading.word
+        := line =
+            concat5 name
+                "  "
+                reading.word
+                "  "
+                (
+                    concat5
+                        (count_text before.count)
+                        "/"
+                        (count_text before.lines)
+                        " -> "
+                        (concat5 (count_text reading.count) "/" (count_text lines) "" "")
+                )
+        := worse = before.count >= 0i32 && regressed reading.way before.count before.lines reading.count lines
+        probes_compared rest baseline name lines (? worse ?> appended found line |: found)
+
+:~ new_package_problem (counts : probe_counts) : string =
+    ? count_of counts "rust-global" > 0i32
+    ?> "a new package carries rust_global"
+    |? count_of counts "wide-host-macro" > 0i32
+    ?> "a new package has host macros over 200 characters"
+    |? count_of counts "encoded-row" > 0i32
+    ?> "a new package encodes rows with tab or record separators"
+    |? count_of counts "type-decl" >= 2i32 && feature_total counts 0i32 = 0i32
+    ?>
+        "a new package declares types but uses none of the typefeatureset (GADT cases, existentials, foralls, "
+        ^^ "indexed unions, prototypes)"
+    |: ""
+
+:~ census_verdict (census : package_census) (~baseline : string) : verdict =
+    := known = entry_of baseline census.name "type-decl"
+    ? known.count < 0i32 ?>
+        := problem = new_package_problem census.counts
+        ? problem = "" ?> Held |: Regressed (concat5 census.name "  new  " problem "" "")
+    |:
+        := found = probes_compared census.counts baseline census.name census.lines ""
+        ? found = "" ?> Held |: Regressed found
+
+:| census_mode =
+    | PrintCensus
+    | WriteBaseline : string
+    | MergeBaseline : string
+    | CheckRatchet : string
+
+:== census_tally =
+    {
+        packages : i32
+        regressions : i32
+        rows : string
+        walked : list string
+    }
+
+:~ ^ census_walk (mode : census_mode) (~dirs : string) (tally : census_tally) : census_tally =
+    ? dirs = ""
+    ?> tally
+    |:
+        := census = census_of (first_line dirs)
+        := counted = { tally ?| packages = tally.packages + 1i32 }
+        ?= mode ?|
+        | PrintCensus =>
+            stdout_line (concat5 census.name "  lines=" (count_text census.lines) (counts_text census.counts) "")
+            census_walk mode (other_lines dirs) counted
+        | WriteBaseline _ =>
+            census_walk mode (other_lines dirs) { counted ?|
+                rows = baseline_rows census.counts census.name census.lines counted.rows
+            }
+        | MergeBaseline _ =>
+            census_walk mode (other_lines dirs) { counted ?|
+                rows = baseline_rows census.counts census.name census.lines counted.rows
+                walked = (census.name :: counted.walked)
+            }
+        | CheckRatchet baseline =>
+            ?= census_verdict census (file_text baseline) ?|
+            | Held => census_walk mode (other_lines dirs) counted
+            | Regressed lines =>
+                stdout_line lines
+                census_walk mode (other_lines dirs) { counted ?| regressions = counted.regressions + 1i32 }
+
+:~ census_paths (first : i32) : string = $'std::rc::Rc::<str>::from(std::env::args().skip(!first as \
+    usize).collect::<Vec<_>>().join("\n").as_str())' : string
+
+:= census_usage () : string =
+    "usage: standards --census <dir>... | standards --baseline <file.spi> <dir>... | standards --baseline-merge "
+    ^^ "<file.spi> <dir>... (replaces only the walked packages' rows) | standards --ratchet <file.spi> <dir>... (a "
+    ^^ "directory without .spi files stands for its package subdirectories)"
+
+:~ mode_of (~flag : string) : census_mode =
+    ? flag = "--baseline" ?> WriteBaseline (argument 3i32)
+    |? flag = "--baseline-merge" ?> MergeBaseline (argument 3i32)
+    |? flag = "--ratchet" ?> CheckRatchet (argument 3i32)
+    |: PrintCensus
+
+:= row_package (~line : string) : string =
+    optionm'.default_value "" (am'.try_item 1i32 (sm'.split (quote ()) line |> array))
+
+:~ ^ kept_rows (lines : array string) (index : i32) (walked : list string) (~rows : string) : string =
+    ? index >= am'.length lines ?> rows
+    |:
+        := line = am'.index index lines
+        := kept = sm'.starts_with "inl census_" line && listm'.contains (row_package line) walked = !-
+        kept_rows lines (index + 1i32) walked (? kept ?> appended rows line |: rows)
+
+:~ baseline_saved (~path : string) (~rows : string) (packages : string) : i32 =
+    ? text_written path (concat5 "union census_row = CensusCount : string * string * i32 * i32\n\n" rows "\n" "" "") ?>
+        stdout_line (concat5 "kit standards baseline ok packages=" packages " path=" path "")
+        0i32
+    |:
+        stderr_line (concat5 "kit error: standards could not write " path "" "" "")
+        2i32
+
+:~ census_report (mode : census_mode) (tally : census_tally) : i32 =
+    := packages = count_text tally.packages
+    ?= mode ?|
+    | PrintCensus =>
+        stdout_line (concat5 "kit standards census ok packages=" packages "" "" "")
+        0i32
+    | WriteBaseline path => baseline_saved path tally.rows packages
+    | MergeBaseline path =>
+        baseline_saved path
+            (appended (kept_rows (sm'.split "\n" (file_text path) |> array) 0i32 tally.walked "") tally.rows)
+            packages
+    | CheckRatchet path =>
+        := word = ? tally.regressions = 0i32 ?> "ok" |: "failed"
+        stdout_line (
+            concat5
+                "kit standards ratchet "
+                word
+                (concat5 " packages=" packages " regressions=" (count_text tally.regressions) "")
+                " baseline="
+                path
+        )
+        ? tally.regressions = 0i32 ?> 0i32 |: 1i32
+
+:~ census_run () : i32 =
+    := mode = mode_of (argument 2i32)
+    := first = ?= mode ?|
+                | PrintCensus => 3i32
+                | _ => 4i32
+    := dirs = package_dirs (census_paths first) ""
+    ? dirs = "" ?>
+        stderr_line (concat5 "kit error: standards found no Spiral packages; " (census_usage ()) "" "" "")
+        2i32
+    |: census_report mode (census_walk mode dirs { packages = 0i32; regressions = 0i32; rows = ""; walked = Nil })
+
+:= main () : i32 =
+    !!!!Export("kit_census_run", ((\ () => census_run ()) : () -> i32))
+    0i32

@@ -1,32 +1,34 @@
-open rust_std_fs.model
-open sm'_operators
-open numbers
+:< rust_std_fs.model
+:< sm'_operators
+:< numbers
 
-inl text_bytes (~text : string) : u64 = $'!text.len() as u64' : u64
-inl loaded_string (loaded_text text) : string = text
+:= text_bytes (~text : string) : u64 = $'!text.len() as u64' : u64
+:= loaded_string (loaded_text text) : string = text
 
-union file_replacement =
+:| file_replacement =
     | Replaced
     | TemporaryWriteFailed
     | RenameFailed
     | RenameFailedTemporaryKept
     | ReadbackMismatch
 
-inl file_replacement_problem = function
+:= file_replacement_problem = \|
     | Replaced => ""
     | TemporaryWriteFailed => "could not write the replacement file"
     | RenameFailed => "could not move the replacement file into place"
     | RenameFailedTemporaryKept => "could not move the replacement file into place or remove its .pending copy"
     | ReadbackMismatch => "readback did not match the written file"
 
-inl replace_file_checked (~path : string) (~text : string) : file_replacement =
-    inl temporary = rust_std_string.model.concat5 path "." ($'std::rc::Rc::<str>::from(std::process::id().to_string().as_str())' : string) ".pending" ""
-    if write_text temporary text then
-        if rename path temporary then
-            if text_equals text path then Replaced else ReadbackMismatch
-        elif remove_file temporary then RenameFailed
-        else RenameFailedTemporaryKept
-    else TemporaryWriteFailed
+:= pending_path (~path : string) : string = path ++# ".pending"
 
-inl measured_sizes (before : u64) (after : u64) (elapsed : u64) : string =
+:= replace_file_checked (~path : string) (~text : string) : file_replacement =
+    := temporary = pending_path path
+    ? write_text temporary text ?>
+        ? rename path temporary ?>
+            ? text_equals text path ?> Replaced |: ReadbackMismatch
+        |? remove_file temporary ?> RenameFailed
+        |: RenameFailedTemporaryKept
+    |: TemporaryWriteFailed
+
+:= measured_sizes (before : u64) (after : u64) (elapsed : u64) : string =
     " bytes_before=" ++# u64_text before ++# " bytes_after=" ++# u64_text after ++# " elapsed_ms=" ++# u64_text elapsed

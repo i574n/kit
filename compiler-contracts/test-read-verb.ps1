@@ -1,6 +1,6 @@
-param([string]$Eoie = 'C:\home\git\eoie\src\target\debug\eoie.exe')
+param([string]$Kit = 'C:\home\git\eoie\src\target\debug\kit.exe')
 $ErrorActionPreference = 'Stop'
-$root = Join-Path $env:TEMP "eoie-read-e2e-$PID"
+$root = Join-Path $env:TEMP "kit-read-e2e-$PID"
 Remove-Item -Recurse -Force $root -ErrorAction SilentlyContinue
 $files = [ordered]@{
     'out/a/main.rs' = "fn f() {`n    if v0 { RecursiveCreate(1) }`n}`n"
@@ -31,7 +31,7 @@ $failures = 0
 Push-Location $root
 try {
     foreach ($case in $cases) {
-        $output = @(& $Eoie @($case.Args) 2>&1 | ForEach-Object { "$_" })
+        $output = @(& $Kit @($case.Args) 2>&1 | ForEach-Object { "$_" })
         $code = $LASTEXITCODE
         $normalized = @($output | ForEach-Object {
             $_ -replace '  \d+(\.\d)?m?s  \d\d:\d\d:\d\d([+-]\d\d:\d\d|Z)$', '  <elapsed>  <clock>' -replace '\(unreadable: .+\)$', '(unreadable: <error>)'

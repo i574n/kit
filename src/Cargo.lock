@@ -28,14 +28,14 @@ name = "agile-memory-links"
 version = "0.0.0"
 dependencies = [
  "agile-task-census",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
 name = "agile-note-edit"
 version = "0.0.0"
 dependencies = [
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -57,7 +57,7 @@ dependencies = [
  "agile-planning-fields",
  "agile-planning-rewrite",
  "agile-planning-values",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -67,7 +67,7 @@ dependencies = [
  "agile-planning-fields",
  "agile-planning-rewrite",
  "agile-planning-values",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -79,7 +79,7 @@ name = "agile-planning-rollup"
 version = "0.0.0"
 dependencies = [
  "agile-planning-tally",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -119,7 +119,7 @@ name = "agile-task-creation"
 version = "0.0.0"
 dependencies = [
  "agile-task-notes",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -128,7 +128,7 @@ version = "0.0.0"
 dependencies = [
  "agile-note-listing",
  "agile-planning-fields",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -139,8 +139,8 @@ dependencies = [
  "agile-planning-filters",
  "agile-task-census",
  "agile-task-query",
- "eoie-agile-list-args",
- "eoie-agile-records",
+ "kit-agile-list-args",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -150,9 +150,9 @@ dependencies = [
  "agile-planning-fields",
  "agile-planning-filters",
  "agile-task-query",
- "eoie-agile-next-args",
- "eoie-agile-records",
- "eoie-window-query",
+ "kit-agile-next-args",
+ "kit-agile-records",
+ "kit-window-query",
 ]
 
 [[package]]
@@ -161,7 +161,7 @@ version = "0.0.0"
 dependencies = [
  "agile-planning-rewrite",
  "agile-planning-values",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -173,7 +173,7 @@ name = "agile-task-rename"
 version = "0.0.0"
 dependencies = [
  "agile-rename-rewrite",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -181,7 +181,7 @@ name = "agile-task-revision"
 version = "0.0.0"
 dependencies = [
  "agile-field-rendering",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -193,7 +193,7 @@ name = "agile-title-notes"
 version = "0.0.0"
 dependencies = [
  "agile-title-tails",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -214,14 +214,14 @@ version = "0.0.0"
 dependencies = [
  "agile-todo-lines",
  "agile-todo-scan",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
 name = "agile-todo-roots"
 version = "0.0.0"
 dependencies = [
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
@@ -232,15 +232,15 @@ dependencies = [
  "agile-todo-lines",
  "agile-todo-paths",
  "agile-todo-sources",
- "eoie-agile-records",
+ "kit-agile-records",
 ]
 
 [[package]]
 name = "agile-todo-sources"
 version = "0.0.0"
 dependencies = [
- "eoie-process",
- "eoie-rust-std-fs",
+ "kit-process",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
@@ -260,8 +260,8 @@ dependencies = [
 name = "archive-deflate-domain"
 version = "0.0.0"
 dependencies = [
- "eoie-rust-std-fs",
- "eoie-rust-std-fs-mutation",
+ "kit-rust-std-fs",
+ "kit-rust-std-fs-mutation",
  "zip",
 ]
 
@@ -296,8 +296,8 @@ version = "0.0.0"
 name = "bundle-retention-domain"
 version = "0.0.0"
 dependencies = [
- "eoie-proxy-search",
- "eoie-rust-std-fs",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
@@ -320,10 +320,10 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 name = "cold-proof-domain"
 version = "0.0.0"
 dependencies = [
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "eoie-source-map",
- "eoie-source-topology",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "kit-source-map",
+ "kit-source-topology",
 ]
 
 [[package]]
@@ -414,1186 +414,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91622ff5e7162018101f2fea40d6ebf4a78bbe5a49736a2020649edf9693679e"
 
 [[package]]
-name = "eoie-adoption"
-version = "0.0.0"
-dependencies = [
- "eoie-adoption-habits",
- "regex",
-]
-
-[[package]]
-name = "eoie-adoption-habits"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-agile-contracts"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-agile-lease"
-version = "0.0.0"
-dependencies = [
- "agile-lease-terms",
- "agile-state-runtime-policy-domain",
- "command-spec-domain",
- "eoie-agile-policy",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
-]
-
-[[package]]
-name = "eoie-agile-list-args"
-version = "0.0.0"
-dependencies = [
- "agile-planning-filters",
- "agile-task-query",
-]
-
-[[package]]
-name = "eoie-agile-mutation"
-version = "0.0.0"
-dependencies = [
- "agile-backlog-scaffold",
- "agile-memory-links",
- "agile-note-edit",
- "agile-planning-migration",
- "agile-planning-revision",
- "agile-planning-rollup",
- "agile-task-creation",
- "agile-task-inspection",
- "agile-task-listing",
- "agile-task-next",
- "agile-task-notes",
- "agile-task-rename",
- "agile-task-revision",
- "agile-task-views",
- "agile-title-notes",
- "agile-todo-record",
- "agile-todo-roots",
- "agile-todo-scan",
- "eoie-agile-lease",
- "eoie-agile-routes",
- "eoie-agile-state",
- "eoie-command-help",
- "eoie-handoff-render",
-]
-
-[[package]]
-name = "eoie-agile-next-args"
-version = "0.0.0"
-dependencies = [
- "agile-planning-filters",
- "agile-task-query",
- "eoie-window-query",
-]
-
-[[package]]
-name = "eoie-agile-policy"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-agile-records"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-agile-routes"
-version = "0.0.0"
-dependencies = [
- "agile-planning-revision",
- "agile-task-revision",
- "agile-todo-scan",
- "eoie-agile-lease",
- "eoie-agile-state",
-]
-
-[[package]]
-name = "eoie-agile-state"
-version = "0.0.0"
-dependencies = [
- "agile-lease-terms",
- "agile-record-catalog",
- "agile-state-decision-domain",
- "agile-state-runtime-policy-domain",
- "agile-state-transient-schema-domain",
- "agile-update-receipt",
- "eoie-agile-lease",
- "eoie-agile-policy",
- "eoie-compiler-discovery",
- "eoie-process",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "rayon",
- "state-receipt-codec-core",
- "state-receipt-fingerprint-domain",
- "state-receipt-parser-domain",
- "state-receipt-serializer-domain",
- "state-receipt-tuple-domain",
-]
-
-[[package]]
-name = "eoie-archive-contracts"
-version = "0.0.0"
-dependencies = [
- "zip",
-]
-
-[[package]]
-name = "eoie-archive-tar-runtime"
-version = "0.0.0"
-dependencies = [
- "archive-deflate-domain",
-]
-
-[[package]]
-name = "eoie-backup-domain"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-batch-write"
-version = "0.0.0"
-dependencies = [
- "canonical-plan-ir-domain",
- "eoie-patch-control-domain",
- "eoie-patch-driver-domain",
- "eoie-process",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
-]
-
-[[package]]
-name = "eoie-bootstrap-policy"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-bootstrap-probe"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-bundle-manifest"
-version = "0.0.0"
-dependencies = [
- "archive-deflate-domain",
- "eoie-archive-tar-runtime",
- "eoie-process-observation",
- "eoie-rust-std-fs-mutation",
- "zip",
-]
-
-[[package]]
-name = "eoie-bundle-retention"
-version = "0.0.0"
-dependencies = [
- "bundle-retention-domain",
- "eoie-process",
- "rayon",
-]
-
-[[package]]
-name = "eoie-bundle-zip"
-version = "0.0.0"
-dependencies = [
- "archive-deflate-domain",
- "bundle-lifecycle-domain",
- "cold-proof-domain",
- "eoie-bundle-manifest",
- "eoie-proxy-search",
- "eoie-release-hygiene",
- "eoie-rust-std-fs",
- "eoie-rust-std-fs-mutation",
- "eoie-source-map",
- "evidence-currentness-domain",
- "owner-growth-runtime",
- "rating-guard-runtime",
- "semantic-evidence-domain",
- "state-receipt-codec-core",
- "state-recovered-topology-codec",
-]
-
-[[package]]
-name = "eoie-ci-parity"
-version = "0.0.0"
-dependencies = [
- "eoie-ci-verdict",
-]
-
-[[package]]
-name = "eoie-ci-probe"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-ci-verdict"
-version = "0.0.0"
-dependencies = [
- "eoie-ci-probe",
-]
-
-[[package]]
-name = "eoie-cli"
-version = "0.0.0"
-dependencies = [
- "archive-deflate-domain",
- "authority-state-domain",
- "bootstrap-authority-status",
- "bundle-retention-domain",
- "canonical-plan-ir-domain",
- "cold-proof-domain",
- "command-spec-domain",
- "eoie-adoption",
- "eoie-agile-lease",
- "eoie-agile-mutation",
- "eoie-agile-state",
- "eoie-batch-write",
- "eoie-bundle-manifest",
- "eoie-bundle-retention",
- "eoie-ci-parity",
- "eoie-command-help",
- "eoie-compiler-discovery",
- "eoie-coverage-prune",
- "eoie-crate-gate",
- "eoie-do",
- "eoie-env-pins",
- "eoie-experiments",
- "eoie-fs-actions",
- "eoie-grep-query",
- "eoie-guide",
- "eoie-handoff",
- "eoie-jobs",
- "eoie-legacy-operations",
- "eoie-machine-watch",
- "eoie-machine-windows",
- "eoie-memory",
- "eoie-mirror",
- "eoie-os-launch",
- "eoie-patch-driver-domain",
- "eoie-patch-mutation",
- "eoie-patch-rehearsal",
- "eoie-process-observation",
- "eoie-process-table",
- "eoie-product-diff",
- "eoie-proxy-search",
- "eoie-read-query",
- "eoie-release-hygiene",
- "eoie-repo-accept-review",
- "eoie-repo-affected",
- "eoie-repo-state",
- "eoie-resume",
- "eoie-standards",
- "eoie-table-logs",
- "eoie-table-query",
- "eoie-table-sequences",
- "eoie-table-test",
- "eoie-toolchain-proxy",
- "evidence-currentness-domain",
- "legacy-capability-domain",
- "process-batch-plan-domain",
- "semantic-evidence-domain",
-]
-
-[[package]]
-name = "eoie-cold-rebuild-matrix"
-version = "0.0.0"
-dependencies = [
- "eoie-process-observation",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "eoie-source-map",
- "process-batch-plan-domain",
- "serde_json",
-]
-
-[[package]]
-name = "eoie-command-help"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-command-line"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-compiler-discovery"
-version = "0.0.0"
-dependencies = [
- "eoie-proxy-search",
- "eoie-rust-std-fs",
-]
-
-[[package]]
-name = "eoie-contracts"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-coverage-prune"
-version = "0.0.0"
-dependencies = [
- "eoie-coverage-smoke",
- "eoie-lcov",
- "eoie-process",
- "eoie-process-observation",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "eoie-rust-std-fs-mutation",
-]
-
-[[package]]
-name = "eoie-coverage-smoke"
-version = "0.0.0"
-dependencies = [
- "eoie-process-observation",
-]
-
-[[package]]
-name = "eoie-crate-gate"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-dev"
-version = "0.0.0"
-dependencies = [
- "developer-metadata-domain",
- "eoie-dev-spiral-tests",
- "eoie-process",
- "predicate-lex-domain",
- "predicate-literal-domain",
-]
-
-[[package]]
-name = "eoie-dev-spiral-tests"
-version = "0.0.0"
-dependencies = [
- "eoie-process",
- "eoie-process-streaming",
-]
-
-[[package]]
-name = "eoie-do"
-version = "0.0.0"
-dependencies = [
- "eoie-do-edit",
- "eoie-do-facts",
- "eoie-do-git",
- "eoie-do-jobs",
- "eoie-do-lab",
- "eoie-do-process",
- "eoie-do-program",
- "eoie-do-read",
- "eoie-do-verbs",
- "eoie-do-write",
-]
-
-[[package]]
-name = "eoie-do-edit"
-version = "0.0.0"
-dependencies = [
- "eoie-do-process",
- "eoie-do-verbs",
- "regex",
- "sha2",
-]
-
-[[package]]
-name = "eoie-do-facts"
-version = "0.0.0"
-dependencies = [
- "eoie-do-read",
- "eoie-do-tables",
- "regex",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "eoie-do-file-steps"
-version = "0.0.0"
-dependencies = [
- "eoie-do-read",
- "regex",
-]
-
-[[package]]
-name = "eoie-do-git"
-version = "0.0.0"
-dependencies = [
- "eoie-do-git-reports",
-]
-
-[[package]]
-name = "eoie-do-git-reports"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-do-jobs"
-version = "0.0.0"
-dependencies = [
- "eoie-command-line",
- "eoie-job-control",
- "eoie-jobs",
-]
-
-[[package]]
-name = "eoie-do-lab"
-version = "0.0.0"
-dependencies = [
- "regex",
- "serde_json",
-]
-
-[[package]]
-name = "eoie-do-process"
-version = "0.0.0"
-dependencies = [
- "eoie-command-line",
- "regex",
- "sysinfo",
-]
-
-[[package]]
-name = "eoie-do-program"
-version = "0.0.0"
-dependencies = [
- "eoie-do-verbs",
-]
-
-[[package]]
-name = "eoie-do-read"
-version = "0.0.0"
-dependencies = [
- "rayon",
- "regex",
-]
-
-[[package]]
-name = "eoie-do-tables"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-do-verbs"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-do-write"
-version = "0.0.0"
-dependencies = [
- "eoie-do-file-steps",
- "eoie-do-read",
- "regex",
-]
-
-[[package]]
-name = "eoie-domain-probe"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-env-pins"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-experiment-amend"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-experiment-analysis"
-version = "0.0.0"
-dependencies = [
- "agile-task-notes",
- "eoie-experiment-stats",
- "eoie-table-query",
- "eoie-table-text",
-]
-
-[[package]]
-name = "eoie-experiment-import"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-experiment-stats"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-experiments"
-version = "0.0.0"
-dependencies = [
- "eoie-experiment-amend",
- "eoie-experiment-analysis",
- "eoie-experiment-import",
-]
-
-[[package]]
-name = "eoie-fs-actions"
-version = "0.0.0"
-dependencies = [
- "canonical-plan-ir-domain",
- "eoie-patch-control-domain",
- "eoie-patch-driver-domain",
- "eoie-process",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "eoie-rust-std-fs-mutation",
-]
-
-[[package]]
-name = "eoie-grep-query"
-version = "0.0.0"
-dependencies = [
- "rayon",
- "regex",
-]
-
-[[package]]
-name = "eoie-guide"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-handoff"
-version = "0.0.0"
-dependencies = [
- "authority-state-domain",
- "cold-proof-domain",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "eoie-source-topology",
- "evidence-currentness-domain",
- "handoff-active-work-projection-domain",
- "handoff-evidence-projection-domain",
- "handoff-sections-projection-domain",
- "handoff-state-projection-domain",
- "semantic-evidence-domain",
-]
-
-[[package]]
-name = "eoie-handoff-render"
-version = "0.0.0"
-dependencies = [
- "authority-state-domain",
- "eoie-agile-records",
- "handoff-active-work-projection-domain",
- "handoff-evidence-projection-domain",
- "handoff-sections-projection-domain",
- "handoff-state-projection-domain",
-]
-
-[[package]]
-name = "eoie-ingest-frontier"
-version = "0.1.0"
-
-[[package]]
-name = "eoie-job-after"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-job-chain"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-job-control"
-version = "0.0.0"
-dependencies = [
- "eoie-job-launch",
- "eoie-job-state",
- "eoie-machine-windows",
-]
-
-[[package]]
-name = "eoie-job-create"
-version = "0.0.0"
-dependencies = [
- "eoie-job-host",
- "eoie-machine-windows",
-]
-
-[[package]]
-name = "eoie-job-env"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-job-gate"
-version = "0.0.0"
-dependencies = [
- "eoie-job-slot",
- "eoie-window-admission",
-]
-
-[[package]]
-name = "eoie-job-host"
-version = "0.0.0"
-dependencies = [
- "eoie-job-queue",
- "eoie-job-state",
- "eoie-os-launch",
-]
-
-[[package]]
-name = "eoie-job-launch"
-version = "0.0.0"
-dependencies = [
- "eoie-job-create",
- "eoie-job-host",
- "eoie-job-start-args",
- "eoie-job-state",
- "eoie-job-supervise",
- "eoie-machine-windows",
-]
-
-[[package]]
-name = "eoie-job-queue"
-version = "0.0.0"
-dependencies = [
- "eoie-job-state",
-]
-
-[[package]]
-name = "eoie-job-rechain"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-job-serial"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-job-slot"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-job-start-args"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-job-state"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-job-supervise"
-version = "0.0.0"
-dependencies = [
- "eoie-job-after",
- "eoie-job-env",
- "eoie-job-gate",
- "eoie-machine-windows",
-]
-
-[[package]]
-name = "eoie-jobs"
-version = "0.0.0"
-dependencies = [
- "eoie-job-chain",
- "eoie-job-control",
- "eoie-job-gate",
- "eoie-job-host",
- "eoie-job-launch",
- "eoie-job-rechain",
- "eoie-job-serial",
- "eoie-job-state",
- "eoie-job-supervise",
- "eoie-jobs-doctor",
- "eoie-machine-windows",
-]
-
-[[package]]
-name = "eoie-jobs-doctor"
-version = "0.0.0"
-dependencies = [
- "eoie-jobs-doctor-env",
- "sysinfo",
-]
-
-[[package]]
-name = "eoie-jobs-doctor-env"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-lcov"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-legacy-operations"
-version = "0.0.0"
-dependencies = [
- "cold-proof-domain",
- "eoie-bundle-zip",
- "eoie-cold-rebuild-matrix",
- "eoie-coverage-prune",
- "eoie-ingest-frontier",
- "eoie-patch-control-domain",
- "eoie-process",
- "eoie-process-observation",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "eoie-source-map",
- "eoie-source-topology",
- "eoie-toolchain-proxy",
- "evidence-currentness-domain",
- "legacy-capability-domain",
- "proxy-command-output",
- "proxy-directory-listing",
- "proxy-failure-classification",
- "proxy-file-reading",
- "proxy-file-receipt",
- "proxy-file-removal",
- "proxy-text-replacement",
-]
-
-[[package]]
-name = "eoie-log-sections"
-version = "0.0.0"
-dependencies = [
- "regex",
-]
-
-[[package]]
-name = "eoie-log-sequences"
-version = "0.0.0"
-dependencies = [
- "regex",
-]
-
-[[package]]
-name = "eoie-machine-crowding"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-machine-watch"
-version = "0.0.0"
-dependencies = [
- "eoie-job-control",
- "eoie-machine-crowding",
- "eoie-machine-window-watch",
- "eoie-notebook-progress",
- "sysinfo",
-]
-
-[[package]]
-name = "eoie-machine-window-watch"
-version = "0.0.0"
-dependencies = [
- "eoie-job-control",
-]
-
-[[package]]
-name = "eoie-machine-windows"
-version = "0.0.0"
-dependencies = [
- "eoie-window-admission",
- "eoie-window-claim",
- "eoie-window-query",
- "eoie-window-run",
- "eoie-window-wait",
-]
-
-[[package]]
-name = "eoie-memory"
-version = "0.0.0"
-dependencies = [
- "eoie-memory-import",
- "eoie-memory-query",
-]
-
-[[package]]
-name = "eoie-memory-import"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-memory-query"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-mirror"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-notebook-progress"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-os-launch"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-patch-batch"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-patch-compat-driver"
-version = "0.0.0"
-dependencies = [
- "eoie-backup-domain",
- "eoie-patch-control-domain",
- "eoie-patch-effect-domain",
- "eoie-patch-orchestration-domain",
- "eoie-patch-source-adapter",
- "eoie-rust-std-fs",
-]
-
-[[package]]
-name = "eoie-patch-control-domain"
-version = "0.0.0"
-dependencies = [
- "canonical-plan-ir-domain",
- "eoie-rust-std-fs",
-]
-
-[[package]]
-name = "eoie-patch-driver-domain"
-version = "0.0.0"
-dependencies = [
- "eoie-patch-control-domain",
- "eoie-process",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
-]
-
-[[package]]
-name = "eoie-patch-effect-domain"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-patch-fallback-domain"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-patch-grammar"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-patch-mutation"
-version = "0.0.0"
-dependencies = [
- "canonical-plan-ir-domain",
- "eoie-patch-compat-driver",
-]
-
-[[package]]
-name = "eoie-patch-mutation-contracts"
-version = "0.0.0"
-dependencies = [
- "eoie-patch-mutation",
-]
-
-[[package]]
-name = "eoie-patch-orchestration-domain"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-patch-rehearsal"
-version = "0.0.0"
-dependencies = [
- "canonical-plan-ir-domain",
- "eoie-patch-compat-driver",
- "eoie-process",
-]
-
-[[package]]
-name = "eoie-patch-scan"
-version = "0.0.0"
-dependencies = [
- "canonical-plan-ir-domain",
-]
-
-[[package]]
-name = "eoie-patch-source-adapter"
-version = "0.0.0"
-dependencies = [
- "canonical-plan-ir-domain",
- "eoie-process",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
-]
-
-[[package]]
-name = "eoie-patch-transaction-contracts"
-version = "0.0.0"
-dependencies = [
- "eoie-patch-compat-driver",
-]
-
-[[package]]
-name = "eoie-policy-probe"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-predicate-lift"
-version = "0.0.0"
-dependencies = [
- "eoie-rust-std-fs",
- "predicate-lex-domain",
- "predicate-literal-domain",
- "predicate-rewrite-domain",
-]
-
-[[package]]
-name = "eoie-process"
-version = "0.0.0"
-dependencies = [
- "eoie-compiler-discovery",
- "eoie-process-streaming",
-]
-
-[[package]]
-name = "eoie-process-kill"
-version = "0.0.0"
-dependencies = [
- "regex",
- "sysinfo",
-]
-
-[[package]]
-name = "eoie-process-observation"
-version = "0.0.0"
-dependencies = [
- "eoie-process",
-]
-
-[[package]]
-name = "eoie-process-streaming"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-process-table"
-version = "0.0.0"
-dependencies = [
- "eoie-process-kill",
- "regex",
- "sysinfo",
-]
-
-[[package]]
-name = "eoie-product-diff"
-version = "0.0.0"
-dependencies = [
- "eoie-proxy-search",
- "eoie-source-map",
- "rayon",
-]
-
-[[package]]
-name = "eoie-proxy-edit-contracts"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-proxy-search"
-version = "0.0.0"
-dependencies = [
- "eoie-rust-std-fs",
- "proxy-file-copy",
- "proxy-search-receipt",
- "rayon",
-]
-
-[[package]]
-name = "eoie-read-query"
-version = "0.0.0"
-dependencies = [
- "rayon",
-]
-
-[[package]]
-name = "eoie-release-contracts"
-version = "0.0.0"
-dependencies = [
- "eoie-release-hygiene",
-]
-
-[[package]]
-name = "eoie-release-hygiene"
-version = "0.0.0"
-dependencies = [
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "legacy-capability-domain",
-]
-
-[[package]]
-name = "eoie-repo-accept-review"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-repo-affected"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-repo-state"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-resume"
-version = "0.0.0"
-dependencies = [
- "eoie-agile-records",
-]
-
-[[package]]
-name = "eoie-rust-std-env"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-rust-std-fs"
-version = "0.0.0"
-dependencies = [
- "eoie-rust-std-fs-mutation",
-]
-
-[[package]]
-name = "eoie-rust-std-fs-mutation"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-source-map"
-version = "0.1.0"
-dependencies = [
- "eoie-proxy-search",
- "eoie-source-topology",
-]
-
-[[package]]
-name = "eoie-source-topology"
-version = "0.1.0"
-dependencies = [
- "eoie-proxy-search",
- "toml",
-]
-
-[[package]]
-name = "eoie-standards"
-version = "0.0.0"
-dependencies = [
- "eoie-style-census",
-]
-
-[[package]]
-name = "eoie-style-census"
-version = "0.0.0"
-dependencies = [
- "regex",
-]
-
-[[package]]
-name = "eoie-table-diff"
-version = "0.0.0"
-dependencies = [
- "eoie-table-text",
-]
-
-[[package]]
-name = "eoie-table-logs"
-version = "0.0.0"
-dependencies = [
- "regex",
-]
-
-[[package]]
-name = "eoie-table-measures"
-version = "0.0.0"
-dependencies = [
- "eoie-table-text",
-]
-
-[[package]]
-name = "eoie-table-query"
-version = "0.0.0"
-dependencies = [
- "eoie-table-diff",
- "eoie-table-measures",
- "eoie-table-text",
-]
-
-[[package]]
-name = "eoie-table-sections"
-version = "0.0.0"
-dependencies = [
- "eoie-log-sections",
-]
-
-[[package]]
-name = "eoie-table-sequences"
-version = "0.0.0"
-dependencies = [
- "eoie-log-sequences",
- "eoie-table-sections",
-]
-
-[[package]]
-name = "eoie-table-test"
-version = "0.0.0"
-dependencies = [
- "eoie-experiment-stats",
- "eoie-table-query",
- "eoie-table-text",
-]
-
-[[package]]
-name = "eoie-table-text"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-toolchain-argument-agile-probe"
-version = "0.0.0"
-dependencies = [
- "toolchain-argument-domain",
- "toolchain-argument-tail-domain",
-]
-
-[[package]]
-name = "eoie-toolchain-argument-policy-probe"
-version = "0.0.0"
-dependencies = [
- "toolchain-argument-domain",
- "toolchain-argument-tail-domain",
-]
-
-[[package]]
-name = "eoie-toolchain-proxy"
-version = "0.0.0"
-dependencies = [
- "canonical-plan-ir-domain",
- "command-spec-domain",
- "eoie-process",
- "eoie-process-observation",
- "eoie-proxy-search",
- "process-batch-plan-domain",
- "toolchain-argument-domain",
- "toolchain-argument-tail-domain",
- "toolchain-command-domain",
- "toolchain-runtime-policy-domain",
-]
-
-[[package]]
-name = "eoie-tree-copy"
-version = "0.0.0"
-dependencies = [
- "eoie-rust-std-fs",
- "eoie-rust-std-fs-mutation",
- "proxy-file-receipt",
-]
-
-[[package]]
-name = "eoie-window-admission"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-window-claim"
-version = "0.0.0"
-
-[[package]]
-name = "eoie-window-query"
-version = "0.0.0"
-dependencies = [
- "eoie-window-admission",
- "eoie-window-run",
-]
-
-[[package]]
-name = "eoie-window-run"
-version = "0.0.0"
-dependencies = [
- "eoie-window-admission",
-]
-
-[[package]]
-name = "eoie-window-wait"
-version = "0.0.0"
-dependencies = [
- "eoie-window-admission",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1603,9 +423,9 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 name = "evidence-currentness-domain"
 version = "0.0.0"
 dependencies = [
- "eoie-patch-control-domain",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
+ "kit-patch-control-domain",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
@@ -1663,14 +483,14 @@ dependencies = [
 name = "inspection-negative"
 version = "0.0.0"
 dependencies = [
- "eoie-proxy-search",
+ "kit-proxy-search",
 ]
 
 [[package]]
 name = "inspection-policy-probe"
 version = "0.0.0"
 dependencies = [
- "eoie-proxy-search",
+ "kit-proxy-search",
 ]
 
 [[package]]
@@ -1680,13 +500,1193 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
+name = "kit-adoption"
+version = "0.0.0"
+dependencies = [
+ "kit-adoption-habits",
+ "regex",
+]
+
+[[package]]
+name = "kit-adoption-habits"
+version = "0.0.0"
+
+[[package]]
+name = "kit-agile-contracts"
+version = "0.0.0"
+
+[[package]]
+name = "kit-agile-lease"
+version = "0.0.0"
+dependencies = [
+ "agile-lease-terms",
+ "agile-state-runtime-policy-domain",
+ "command-spec-domain",
+ "kit-agile-policy",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+]
+
+[[package]]
+name = "kit-agile-list-args"
+version = "0.0.0"
+dependencies = [
+ "agile-planning-filters",
+ "agile-task-query",
+]
+
+[[package]]
+name = "kit-agile-mutation"
+version = "0.0.0"
+dependencies = [
+ "agile-backlog-scaffold",
+ "agile-memory-links",
+ "agile-note-edit",
+ "agile-planning-migration",
+ "agile-planning-revision",
+ "agile-planning-rollup",
+ "agile-task-creation",
+ "agile-task-inspection",
+ "agile-task-listing",
+ "agile-task-next",
+ "agile-task-notes",
+ "agile-task-rename",
+ "agile-task-revision",
+ "agile-task-views",
+ "agile-title-notes",
+ "agile-todo-record",
+ "agile-todo-roots",
+ "agile-todo-scan",
+ "kit-agile-lease",
+ "kit-agile-routes",
+ "kit-agile-state",
+ "kit-command-help",
+ "kit-handoff-render",
+]
+
+[[package]]
+name = "kit-agile-next-args"
+version = "0.0.0"
+dependencies = [
+ "agile-planning-filters",
+ "agile-task-query",
+ "kit-window-query",
+]
+
+[[package]]
+name = "kit-agile-policy"
+version = "0.0.0"
+
+[[package]]
+name = "kit-agile-records"
+version = "0.0.0"
+
+[[package]]
+name = "kit-agile-routes"
+version = "0.0.0"
+dependencies = [
+ "agile-planning-revision",
+ "agile-task-revision",
+ "agile-todo-scan",
+ "kit-agile-lease",
+ "kit-agile-state",
+]
+
+[[package]]
+name = "kit-agile-state"
+version = "0.0.0"
+dependencies = [
+ "agile-lease-terms",
+ "agile-record-catalog",
+ "agile-state-decision-domain",
+ "agile-state-runtime-policy-domain",
+ "agile-state-transient-schema-domain",
+ "agile-update-receipt",
+ "kit-agile-lease",
+ "kit-agile-policy",
+ "kit-compiler-discovery",
+ "kit-process",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "rayon",
+ "state-receipt-codec-core",
+ "state-receipt-fingerprint-domain",
+ "state-receipt-parser-domain",
+ "state-receipt-serializer-domain",
+ "state-receipt-tuple-domain",
+]
+
+[[package]]
+name = "kit-archive-contracts"
+version = "0.0.0"
+dependencies = [
+ "zip",
+]
+
+[[package]]
+name = "kit-archive-tar-runtime"
+version = "0.0.0"
+dependencies = [
+ "archive-deflate-domain",
+]
+
+[[package]]
+name = "kit-backup-domain"
+version = "0.0.0"
+
+[[package]]
+name = "kit-batch-write"
+version = "0.0.0"
+dependencies = [
+ "canonical-plan-ir-domain",
+ "kit-patch-control-domain",
+ "kit-patch-driver-domain",
+ "kit-process",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+]
+
+[[package]]
+name = "kit-bootstrap-policy"
+version = "0.0.0"
+
+[[package]]
+name = "kit-bootstrap-probe"
+version = "0.0.0"
+
+[[package]]
+name = "kit-bundle-manifest"
+version = "0.0.0"
+dependencies = [
+ "archive-deflate-domain",
+ "kit-archive-tar-runtime",
+ "kit-process-observation",
+ "kit-rust-std-fs-mutation",
+ "zip",
+]
+
+[[package]]
+name = "kit-bundle-retention"
+version = "0.0.0"
+dependencies = [
+ "bundle-retention-domain",
+ "kit-process",
+ "rayon",
+]
+
+[[package]]
+name = "kit-bundle-zip"
+version = "0.0.0"
+dependencies = [
+ "archive-deflate-domain",
+ "bundle-lifecycle-domain",
+ "cold-proof-domain",
+ "evidence-currentness-domain",
+ "kit-bundle-manifest",
+ "kit-proxy-search",
+ "kit-release-hygiene",
+ "kit-rust-std-fs",
+ "kit-rust-std-fs-mutation",
+ "kit-source-map",
+ "owner-growth-runtime",
+ "rating-guard-runtime",
+ "semantic-evidence-domain",
+ "state-receipt-codec-core",
+ "state-recovered-topology-codec",
+]
+
+[[package]]
+name = "kit-ci-parity"
+version = "0.0.0"
+dependencies = [
+ "kit-ci-verdict",
+]
+
+[[package]]
+name = "kit-ci-probe"
+version = "0.0.0"
+
+[[package]]
+name = "kit-ci-verdict"
+version = "0.0.0"
+dependencies = [
+ "kit-ci-probe",
+]
+
+[[package]]
+name = "kit-cli"
+version = "0.0.0"
+dependencies = [
+ "archive-deflate-domain",
+ "authority-state-domain",
+ "bootstrap-authority-status",
+ "bundle-retention-domain",
+ "canonical-plan-ir-domain",
+ "cold-proof-domain",
+ "command-spec-domain",
+ "evidence-currentness-domain",
+ "kit-adoption",
+ "kit-agile-lease",
+ "kit-agile-mutation",
+ "kit-agile-state",
+ "kit-batch-write",
+ "kit-bundle-manifest",
+ "kit-bundle-retention",
+ "kit-ci-parity",
+ "kit-command-help",
+ "kit-compiler-discovery",
+ "kit-coverage-prune",
+ "kit-crate-gate",
+ "kit-do",
+ "kit-env-pins",
+ "kit-experiments",
+ "kit-fs-actions",
+ "kit-grep-query",
+ "kit-guide",
+ "kit-handoff",
+ "kit-jobs",
+ "kit-legacy-operations",
+ "kit-machine-watch",
+ "kit-machine-windows",
+ "kit-memory",
+ "kit-mirror",
+ "kit-os-launch",
+ "kit-patch-driver-domain",
+ "kit-patch-mutation",
+ "kit-patch-rehearsal",
+ "kit-process-observation",
+ "kit-process-table",
+ "kit-product-diff",
+ "kit-proxy-search",
+ "kit-read-query",
+ "kit-release-hygiene",
+ "kit-repo-accept-review",
+ "kit-repo-affected",
+ "kit-repo-state",
+ "kit-resume",
+ "kit-standards",
+ "kit-table-logs",
+ "kit-table-query",
+ "kit-table-sequences",
+ "kit-table-test",
+ "kit-toolchain-proxy",
+ "legacy-capability-domain",
+ "process-batch-plan-domain",
+ "semantic-evidence-domain",
+]
+
+[[package]]
+name = "kit-cold-rebuild-matrix"
+version = "0.0.0"
+dependencies = [
+ "kit-process-observation",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "kit-source-map",
+ "process-batch-plan-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "kit-command-help"
+version = "0.0.0"
+
+[[package]]
+name = "kit-command-line"
+version = "0.0.0"
+
+[[package]]
+name = "kit-compiler-discovery"
+version = "0.0.0"
+dependencies = [
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+]
+
+[[package]]
+name = "kit-contracts"
+version = "0.0.0"
+
+[[package]]
+name = "kit-coverage-prune"
+version = "0.0.0"
+dependencies = [
+ "kit-coverage-smoke",
+ "kit-lcov",
+ "kit-process",
+ "kit-process-observation",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "kit-rust-std-fs-mutation",
+]
+
+[[package]]
+name = "kit-coverage-smoke"
+version = "0.0.0"
+dependencies = [
+ "kit-process-observation",
+]
+
+[[package]]
+name = "kit-crate-gate"
+version = "0.0.0"
+
+[[package]]
+name = "kit-dev"
+version = "0.0.0"
+dependencies = [
+ "developer-metadata-domain",
+ "kit-dev-spiral-tests",
+ "kit-process",
+ "predicate-lex-domain",
+ "predicate-literal-domain",
+]
+
+[[package]]
+name = "kit-dev-spiral-tests"
+version = "0.0.0"
+dependencies = [
+ "kit-process",
+ "kit-process-streaming",
+]
+
+[[package]]
+name = "kit-do"
+version = "0.0.0"
+dependencies = [
+ "kit-do-edit",
+ "kit-do-facts",
+ "kit-do-git",
+ "kit-do-jobs",
+ "kit-do-lab",
+ "kit-do-process",
+ "kit-do-program",
+ "kit-do-read",
+ "kit-do-verbs",
+ "kit-do-write",
+]
+
+[[package]]
+name = "kit-do-edit"
+version = "0.0.0"
+dependencies = [
+ "kit-do-process",
+ "kit-do-verbs",
+ "regex",
+ "sha2",
+]
+
+[[package]]
+name = "kit-do-facts"
+version = "0.0.0"
+dependencies = [
+ "kit-do-read",
+ "kit-do-tables",
+ "regex",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "kit-do-file-steps"
+version = "0.0.0"
+dependencies = [
+ "kit-do-read",
+ "regex",
+]
+
+[[package]]
+name = "kit-do-git"
+version = "0.0.0"
+dependencies = [
+ "kit-do-git-reports",
+]
+
+[[package]]
+name = "kit-do-git-reports"
+version = "0.0.0"
+
+[[package]]
+name = "kit-do-jobs"
+version = "0.0.0"
+dependencies = [
+ "kit-command-line",
+ "kit-job-control",
+ "kit-jobs",
+]
+
+[[package]]
+name = "kit-do-lab"
+version = "0.0.0"
+dependencies = [
+ "regex",
+ "serde_json",
+]
+
+[[package]]
+name = "kit-do-process"
+version = "0.0.0"
+dependencies = [
+ "kit-command-line",
+ "regex",
+ "sysinfo",
+]
+
+[[package]]
+name = "kit-do-program"
+version = "0.0.0"
+dependencies = [
+ "kit-do-verbs",
+]
+
+[[package]]
+name = "kit-do-read"
+version = "0.0.0"
+dependencies = [
+ "rayon",
+ "regex",
+]
+
+[[package]]
+name = "kit-do-tables"
+version = "0.0.0"
+
+[[package]]
+name = "kit-do-verbs"
+version = "0.0.0"
+
+[[package]]
+name = "kit-do-write"
+version = "0.0.0"
+dependencies = [
+ "kit-do-file-steps",
+ "kit-do-read",
+ "regex",
+]
+
+[[package]]
+name = "kit-domain-probe"
+version = "0.0.0"
+
+[[package]]
+name = "kit-env-pins"
+version = "0.0.0"
+
+[[package]]
+name = "kit-experiment-amend"
+version = "0.0.0"
+
+[[package]]
+name = "kit-experiment-analysis"
+version = "0.0.0"
+dependencies = [
+ "agile-task-notes",
+ "kit-experiment-stats",
+ "kit-table-query",
+ "kit-table-text",
+]
+
+[[package]]
+name = "kit-experiment-import"
+version = "0.0.0"
+
+[[package]]
+name = "kit-experiment-stats"
+version = "0.0.0"
+
+[[package]]
+name = "kit-experiments"
+version = "0.0.0"
+dependencies = [
+ "kit-experiment-amend",
+ "kit-experiment-analysis",
+ "kit-experiment-import",
+]
+
+[[package]]
+name = "kit-fs-actions"
+version = "0.0.0"
+dependencies = [
+ "canonical-plan-ir-domain",
+ "kit-patch-control-domain",
+ "kit-patch-driver-domain",
+ "kit-process",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "kit-rust-std-fs-mutation",
+]
+
+[[package]]
+name = "kit-grep-query"
+version = "0.0.0"
+dependencies = [
+ "rayon",
+ "regex",
+]
+
+[[package]]
+name = "kit-guide"
+version = "0.0.0"
+
+[[package]]
+name = "kit-handoff"
+version = "0.0.0"
+dependencies = [
+ "authority-state-domain",
+ "cold-proof-domain",
+ "evidence-currentness-domain",
+ "handoff-active-work-projection-domain",
+ "handoff-evidence-projection-domain",
+ "handoff-sections-projection-domain",
+ "handoff-state-projection-domain",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "kit-source-topology",
+ "semantic-evidence-domain",
+]
+
+[[package]]
+name = "kit-handoff-render"
+version = "0.0.0"
+dependencies = [
+ "authority-state-domain",
+ "handoff-active-work-projection-domain",
+ "handoff-evidence-projection-domain",
+ "handoff-sections-projection-domain",
+ "handoff-state-projection-domain",
+ "kit-agile-records",
+]
+
+[[package]]
+name = "kit-ingest-frontier"
+version = "0.1.0"
+
+[[package]]
+name = "kit-job-after"
+version = "0.0.0"
+
+[[package]]
+name = "kit-job-chain"
+version = "0.0.0"
+
+[[package]]
+name = "kit-job-control"
+version = "0.0.0"
+dependencies = [
+ "kit-job-launch",
+ "kit-job-state",
+ "kit-machine-windows",
+]
+
+[[package]]
+name = "kit-job-create"
+version = "0.0.0"
+dependencies = [
+ "kit-job-host",
+ "kit-machine-windows",
+]
+
+[[package]]
+name = "kit-job-env"
+version = "0.0.0"
+
+[[package]]
+name = "kit-job-gate"
+version = "0.0.0"
+dependencies = [
+ "kit-job-slot",
+ "kit-window-admission",
+]
+
+[[package]]
+name = "kit-job-host"
+version = "0.0.0"
+dependencies = [
+ "kit-job-queue",
+ "kit-job-state",
+ "kit-os-launch",
+]
+
+[[package]]
+name = "kit-job-launch"
+version = "0.0.0"
+dependencies = [
+ "kit-job-create",
+ "kit-job-host",
+ "kit-job-start-args",
+ "kit-job-state",
+ "kit-job-supervise",
+ "kit-machine-windows",
+]
+
+[[package]]
+name = "kit-job-queue"
+version = "0.0.0"
+dependencies = [
+ "kit-job-state",
+]
+
+[[package]]
+name = "kit-job-rechain"
+version = "0.0.0"
+
+[[package]]
+name = "kit-job-serial"
+version = "0.0.0"
+
+[[package]]
+name = "kit-job-slot"
+version = "0.0.0"
+
+[[package]]
+name = "kit-job-start-args"
+version = "0.0.0"
+
+[[package]]
+name = "kit-job-state"
+version = "0.0.0"
+
+[[package]]
+name = "kit-job-supervise"
+version = "0.0.0"
+dependencies = [
+ "kit-job-after",
+ "kit-job-env",
+ "kit-job-gate",
+ "kit-machine-windows",
+]
+
+[[package]]
+name = "kit-jobs"
+version = "0.0.0"
+dependencies = [
+ "kit-job-chain",
+ "kit-job-control",
+ "kit-job-gate",
+ "kit-job-host",
+ "kit-job-launch",
+ "kit-job-rechain",
+ "kit-job-serial",
+ "kit-job-state",
+ "kit-job-supervise",
+ "kit-jobs-doctor",
+ "kit-machine-windows",
+]
+
+[[package]]
+name = "kit-jobs-doctor"
+version = "0.0.0"
+dependencies = [
+ "kit-jobs-doctor-env",
+ "sysinfo",
+]
+
+[[package]]
+name = "kit-jobs-doctor-env"
+version = "0.0.0"
+
+[[package]]
+name = "kit-lcov"
+version = "0.0.0"
+
+[[package]]
+name = "kit-legacy-operations"
+version = "0.0.0"
+dependencies = [
+ "cold-proof-domain",
+ "evidence-currentness-domain",
+ "kit-bundle-zip",
+ "kit-cold-rebuild-matrix",
+ "kit-coverage-prune",
+ "kit-ingest-frontier",
+ "kit-patch-control-domain",
+ "kit-process",
+ "kit-process-observation",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "kit-source-map",
+ "kit-source-topology",
+ "kit-toolchain-proxy",
+ "legacy-capability-domain",
+ "proxy-command-output",
+ "proxy-directory-listing",
+ "proxy-failure-classification",
+ "proxy-file-reading",
+ "proxy-file-receipt",
+ "proxy-file-removal",
+ "proxy-text-replacement",
+]
+
+[[package]]
+name = "kit-log-sections"
+version = "0.0.0"
+dependencies = [
+ "regex",
+]
+
+[[package]]
+name = "kit-log-sequences"
+version = "0.0.0"
+dependencies = [
+ "regex",
+]
+
+[[package]]
+name = "kit-machine-crowding"
+version = "0.0.0"
+
+[[package]]
+name = "kit-machine-watch"
+version = "0.0.0"
+dependencies = [
+ "kit-job-control",
+ "kit-machine-crowding",
+ "kit-machine-window-watch",
+ "kit-notebook-progress",
+ "sysinfo",
+]
+
+[[package]]
+name = "kit-machine-window-watch"
+version = "0.0.0"
+dependencies = [
+ "kit-job-control",
+]
+
+[[package]]
+name = "kit-machine-windows"
+version = "0.0.0"
+dependencies = [
+ "kit-window-admission",
+ "kit-window-claim",
+ "kit-window-query",
+ "kit-window-run",
+ "kit-window-wait",
+]
+
+[[package]]
+name = "kit-memory"
+version = "0.0.0"
+dependencies = [
+ "kit-memory-import",
+ "kit-memory-query",
+]
+
+[[package]]
+name = "kit-memory-import"
+version = "0.0.0"
+
+[[package]]
+name = "kit-memory-query"
+version = "0.0.0"
+
+[[package]]
+name = "kit-mirror"
+version = "0.0.0"
+
+[[package]]
+name = "kit-notebook-progress"
+version = "0.0.0"
+
+[[package]]
+name = "kit-os-launch"
+version = "0.0.0"
+
+[[package]]
+name = "kit-patch-batch"
+version = "0.0.0"
+
+[[package]]
+name = "kit-patch-compat-driver"
+version = "0.0.0"
+dependencies = [
+ "kit-backup-domain",
+ "kit-patch-control-domain",
+ "kit-patch-effect-domain",
+ "kit-patch-orchestration-domain",
+ "kit-patch-source-adapter",
+ "kit-rust-std-fs",
+]
+
+[[package]]
+name = "kit-patch-control-domain"
+version = "0.0.0"
+dependencies = [
+ "canonical-plan-ir-domain",
+ "kit-rust-std-fs",
+]
+
+[[package]]
+name = "kit-patch-driver-domain"
+version = "0.0.0"
+dependencies = [
+ "kit-patch-control-domain",
+ "kit-process",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+]
+
+[[package]]
+name = "kit-patch-effect-domain"
+version = "0.0.0"
+
+[[package]]
+name = "kit-patch-fallback-domain"
+version = "0.0.0"
+
+[[package]]
+name = "kit-patch-grammar"
+version = "0.0.0"
+
+[[package]]
+name = "kit-patch-mutation"
+version = "0.0.0"
+dependencies = [
+ "canonical-plan-ir-domain",
+ "kit-patch-compat-driver",
+]
+
+[[package]]
+name = "kit-patch-mutation-contracts"
+version = "0.0.0"
+dependencies = [
+ "kit-patch-mutation",
+]
+
+[[package]]
+name = "kit-patch-orchestration-domain"
+version = "0.0.0"
+
+[[package]]
+name = "kit-patch-rehearsal"
+version = "0.0.0"
+dependencies = [
+ "canonical-plan-ir-domain",
+ "kit-patch-compat-driver",
+ "kit-process",
+]
+
+[[package]]
+name = "kit-patch-scan"
+version = "0.0.0"
+dependencies = [
+ "canonical-plan-ir-domain",
+]
+
+[[package]]
+name = "kit-patch-source-adapter"
+version = "0.0.0"
+dependencies = [
+ "canonical-plan-ir-domain",
+ "kit-process",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+]
+
+[[package]]
+name = "kit-patch-transaction-contracts"
+version = "0.0.0"
+dependencies = [
+ "kit-patch-compat-driver",
+]
+
+[[package]]
+name = "kit-policy-probe"
+version = "0.0.0"
+
+[[package]]
+name = "kit-predicate-lift"
+version = "0.0.0"
+dependencies = [
+ "kit-rust-std-fs",
+ "predicate-lex-domain",
+ "predicate-literal-domain",
+ "predicate-rewrite-domain",
+]
+
+[[package]]
+name = "kit-process"
+version = "0.0.0"
+dependencies = [
+ "kit-compiler-discovery",
+ "kit-process-streaming",
+]
+
+[[package]]
+name = "kit-process-kill"
+version = "0.0.0"
+dependencies = [
+ "regex",
+ "sysinfo",
+]
+
+[[package]]
+name = "kit-process-observation"
+version = "0.0.0"
+dependencies = [
+ "kit-process",
+]
+
+[[package]]
+name = "kit-process-streaming"
+version = "0.0.0"
+
+[[package]]
+name = "kit-process-table"
+version = "0.0.0"
+dependencies = [
+ "kit-process-kill",
+ "regex",
+ "sysinfo",
+]
+
+[[package]]
+name = "kit-product-diff"
+version = "0.0.0"
+dependencies = [
+ "kit-proxy-search",
+ "kit-source-map",
+ "rayon",
+]
+
+[[package]]
+name = "kit-proxy-edit-contracts"
+version = "0.0.0"
+
+[[package]]
+name = "kit-proxy-search"
+version = "0.0.0"
+dependencies = [
+ "kit-rust-std-fs",
+ "proxy-file-copy",
+ "proxy-search-receipt",
+ "rayon",
+]
+
+[[package]]
+name = "kit-read-query"
+version = "0.0.0"
+dependencies = [
+ "rayon",
+]
+
+[[package]]
+name = "kit-release-contracts"
+version = "0.0.0"
+dependencies = [
+ "kit-release-hygiene",
+]
+
+[[package]]
+name = "kit-release-hygiene"
+version = "0.0.0"
+dependencies = [
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "legacy-capability-domain",
+]
+
+[[package]]
+name = "kit-repo-accept-review"
+version = "0.0.0"
+
+[[package]]
+name = "kit-repo-affected"
+version = "0.0.0"
+
+[[package]]
+name = "kit-repo-state"
+version = "0.0.0"
+
+[[package]]
+name = "kit-resume"
+version = "0.0.0"
+dependencies = [
+ "kit-agile-records",
+]
+
+[[package]]
+name = "kit-rust-std-env"
+version = "0.0.0"
+
+[[package]]
+name = "kit-rust-std-fs"
+version = "0.0.0"
+dependencies = [
+ "kit-rust-std-fs-mutation",
+]
+
+[[package]]
+name = "kit-rust-std-fs-mutation"
+version = "0.0.0"
+
+[[package]]
+name = "kit-source-map"
+version = "0.1.0"
+dependencies = [
+ "kit-proxy-search",
+ "kit-source-topology",
+]
+
+[[package]]
+name = "kit-source-topology"
+version = "0.1.0"
+dependencies = [
+ "kit-proxy-search",
+ "toml",
+]
+
+[[package]]
+name = "kit-standards"
+version = "0.0.0"
+dependencies = [
+ "kit-style-census",
+]
+
+[[package]]
+name = "kit-style-census"
+version = "0.0.0"
+dependencies = [
+ "regex",
+]
+
+[[package]]
+name = "kit-table-diff"
+version = "0.0.0"
+dependencies = [
+ "kit-table-text",
+]
+
+[[package]]
+name = "kit-table-logs"
+version = "0.0.0"
+dependencies = [
+ "regex",
+]
+
+[[package]]
+name = "kit-table-measures"
+version = "0.0.0"
+dependencies = [
+ "kit-table-text",
+]
+
+[[package]]
+name = "kit-table-query"
+version = "0.0.0"
+dependencies = [
+ "kit-table-diff",
+ "kit-table-measures",
+ "kit-table-text",
+]
+
+[[package]]
+name = "kit-table-sections"
+version = "0.0.0"
+dependencies = [
+ "kit-log-sections",
+]
+
+[[package]]
+name = "kit-table-sequences"
+version = "0.0.0"
+dependencies = [
+ "kit-log-sequences",
+ "kit-table-sections",
+]
+
+[[package]]
+name = "kit-table-test"
+version = "0.0.0"
+dependencies = [
+ "kit-experiment-stats",
+ "kit-table-query",
+ "kit-table-text",
+]
+
+[[package]]
+name = "kit-table-text"
+version = "0.0.0"
+
+[[package]]
+name = "kit-toolchain-argument-agile-probe"
+version = "0.0.0"
+dependencies = [
+ "toolchain-argument-domain",
+ "toolchain-argument-tail-domain",
+]
+
+[[package]]
+name = "kit-toolchain-argument-policy-probe"
+version = "0.0.0"
+dependencies = [
+ "toolchain-argument-domain",
+ "toolchain-argument-tail-domain",
+]
+
+[[package]]
+name = "kit-toolchain-proxy"
+version = "0.0.0"
+dependencies = [
+ "canonical-plan-ir-domain",
+ "command-spec-domain",
+ "kit-process",
+ "kit-process-observation",
+ "kit-proxy-search",
+ "process-batch-plan-domain",
+ "toolchain-argument-domain",
+ "toolchain-argument-tail-domain",
+ "toolchain-command-domain",
+ "toolchain-runtime-policy-domain",
+]
+
+[[package]]
+name = "kit-tree-copy"
+version = "0.0.0"
+dependencies = [
+ "kit-rust-std-fs",
+ "kit-rust-std-fs-mutation",
+ "proxy-file-receipt",
+]
+
+[[package]]
+name = "kit-window-admission"
+version = "0.0.0"
+
+[[package]]
+name = "kit-window-claim"
+version = "0.0.0"
+
+[[package]]
+name = "kit-window-query"
+version = "0.0.0"
+dependencies = [
+ "kit-window-admission",
+ "kit-window-run",
+]
+
+[[package]]
+name = "kit-window-run"
+version = "0.0.0"
+dependencies = [
+ "kit-window-admission",
+]
+
+[[package]]
+name = "kit-window-wait"
+version = "0.0.0"
+dependencies = [
+ "kit-window-admission",
+]
+
+[[package]]
 name = "legacy-capability-domain"
 version = "0.0.0"
 dependencies = [
- "eoie-process-observation",
- "eoie-rust-std-fs",
- "eoie-rust-std-fs-mutation",
- "eoie-tree-copy",
+ "kit-process-observation",
+ "kit-rust-std-fs",
+ "kit-rust-std-fs-mutation",
+ "kit-tree-copy",
 ]
 
 [[package]]
@@ -1743,10 +1743,10 @@ dependencies = [
 name = "owner-growth-runtime"
 version = "0.0.0"
 dependencies = [
- "eoie-bundle-manifest",
- "eoie-proxy-search",
- "eoie-rust-std-fs",
- "eoie-source-map",
+ "kit-bundle-manifest",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
+ "kit-source-map",
 ]
 
 [[package]]
@@ -1790,9 +1790,9 @@ dependencies = [
 name = "process-batch-plan-domain"
 version = "0.0.0"
 dependencies = [
- "eoie-agile-lease",
- "eoie-process-observation",
- "eoie-rust-std-fs",
+ "kit-agile-lease",
+ "kit-process-observation",
+ "kit-rust-std-fs",
  "serde_json",
 ]
 
@@ -1818,7 +1818,7 @@ version = "0.0.0"
 name = "proxy-directory-listing"
 version = "0.0.0"
 dependencies = [
- "eoie-rust-std-fs",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
@@ -1829,14 +1829,14 @@ version = "0.0.0"
 name = "proxy-file-copy"
 version = "0.0.0"
 dependencies = [
- "eoie-rust-std-fs",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
 name = "proxy-file-reading"
 version = "0.0.0"
 dependencies = [
- "eoie-rust-std-fs",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
@@ -1847,7 +1847,7 @@ version = "0.0.0"
 name = "proxy-file-removal"
 version = "0.0.0"
 dependencies = [
- "eoie-rust-std-fs",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
@@ -1858,7 +1858,7 @@ version = "0.0.0"
 name = "proxy-text-replacement"
 version = "0.0.0"
 dependencies = [
- "eoie-rust-std-fs",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
@@ -1927,8 +1927,8 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 name = "semantic-evidence-domain"
 version = "0.0.0"
 dependencies = [
- "eoie-proxy-search",
- "eoie-rust-std-fs",
+ "kit-proxy-search",
+ "kit-rust-std-fs",
 ]
 
 [[package]]
@@ -2113,7 +2113,7 @@ version = "0.0.0"
 name = "typed-predicate-contracts"
 version = "0.0.0"
 dependencies = [
- "eoie-handoff",
+ "kit-handoff",
 ]
 
 [[package]]

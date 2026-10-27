@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+    kit_read_query
+modules:
+    search
+    grep

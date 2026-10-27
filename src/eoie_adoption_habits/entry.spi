@@ -1,6 +1,0 @@
-open habits
-
-inl main () : i32 =
-    !!!!Export("eoie_adoption_habit_any", ((fun command => habit_any command) : string -> bool))
-    !!!!Export("eoie_adoption_habit_words", ((fun command => habit_words command) : string -> string))
-    0i32

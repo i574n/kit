@@ -1,0 +1,7 @@
+:< check
+
+:~ env_drift () : bool * string = $'kit_jobs_doctor_env::kit_job_doctor_env_drift()' : bool * string
+
+:= main () : i32 =
+    !!!!Export("kit_job_doctor_run", ((\ () => doctor_run env_drift) : () -> i32))
+    0i32

@@ -1,16 +1,16 @@
-open rust_std_fs.model
-open sm'_operators
-open agile_task_text.model
-open workspace_primitives.outcome
-open workspace_primitives.numbers
-open workspace_primitives.bytes
-open workspace_primitives.clock
-open workspace_primitives.console
-open workspace_primitives.files
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
 
-inl argument_owned index : string = rust_std_env.model.argument_owned index
+:= argument_owned index : string = rust_std_env.model.argument_owned index
 
-type task_record =
+:== task_record =
     {
         id : string
         title : string
@@ -23,35 +23,39 @@ type task_record =
         tags : string
     }
 
-inl ascii_n () : i32 = 110i32
-inl ascii_r () : i32 = 114i32
-inl ascii_t () : i32 = 116i32
+:= ascii_n () : i32 = 110i32
+:= ascii_r () : i32 = 114i32
+:= ascii_t () : i32 = 116i32
 
-inl escape_target (text : string) (escaped : i32) : string =
-    inl code = byte_at text escaped
-    if code = ascii_n () then "\n"
-    elif code = ascii_r () then "\r"
-    elif code = ascii_t () then "\t"
-    else byte_slice text escaped (escaped + 1i32)
+:= escape_target (text : string) (escaped : i32) : string =
+    := code = byte_at text escaped
+    ? code = ascii_n () ?> "\n"
+    |? code = ascii_r () ?> "\r"
+    |? code = ascii_t () ?> "\t"
+    |: byte_slice text escaped (escaped + 1i32)
 
-let rec unescaped_from (text : string) (offset : i32) (run_start : i32) (length : i32) (decoded : string) : string =
-    if length <= offset then decoded ++# (byte_slice text run_start length)
-    elif byte_at text offset = backslash_byte () then
-        inl escaped = offset + 1i32
-        inl resumed = escaped + 1i32
-        unescaped_from text resumed resumed length (decoded ++# (byte_slice text run_start offset) ++# (escape_target text escaped))
-    else unescaped_from text (offset + 1i32) run_start length decoded
+:~ ^ unescaped_from (text : string) (offset : i32) (run_start : i32) (length : i32) (decoded : string) : string =
+    ? length <= offset
+    ?> decoded ++# (byte_slice text run_start length)
+    |? byte_at text offset = backslash_byte ()
+    ?>
+        := escaped = offset + 1i32
+        := resumed = escaped + 1i32
+        unescaped_from text resumed resumed length (
+            decoded ++# (byte_slice text run_start offset) ++# (escape_target text escaped)
+        )
+    |: unescaped_from text (offset + 1i32) run_start length decoded
 
-inl quote_stripped (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
+:= quote_stripped (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
 
-let unquoted (~token : string) : string =
-    inl inner = quote_stripped token
+:~ unquoted (~token : string) : string =
+    := inner = quote_stripped token
     unescaped_from inner 0i32 0i32 (byte_len inner) ""
 
-inl progress_digits (~token : string) : string = sm'.replace "u32" "" token
+:= progress_digits (~token : string) : string = sm'.replace "u32" "" token
 
-inl task_record_with decode (text : string) (arguments : i32) (length : i32) : task_record =
-    inl field = tuple_field text arguments length
+:= task_record_with decode (text : string) (arguments : i32) (length : i32) : task_record =
+    := field = tuple_field text arguments length
     {
         id = decode (field 0i32)
         title = decode (field 1i32)
@@ -64,89 +68,135 @@ inl task_record_with decode (text : string) (arguments : i32) (length : i32) : t
         tags = decode (field 8i32)
     }
 
-let task_record_at (text : string) (arguments : i32) (length : i32) : task_record = task_record_with unquoted text arguments length
+:~ task_record_at (text : string) (arguments : i32) (length : i32) : task_record =
+    task_record_with unquoted text arguments length
 
-let task_json_record_at (text : string) (arguments : i32) (length : i32) : task_record = task_record_with quote_stripped text arguments length
+:~ task_json_record_at (text : string) (arguments : i32) (length : i32) : task_record =
+    task_record_with quote_stripped text arguments length
 
-union show_format =
+:| show_format =
     | ShowText
     | ShowJson
     | ShowFiltered : string * string
 
-let argument_count () : i32 =
-    inl user = env.command_line_argument_count ()
-    if user > 0i32 then user - 1i32 else 0i32
+:~ argument_count () : i32 =
+    := user = env.command_line_argument_count ()
+    ? user > 0i32 ?> user - 1i32 |: 0i32
 
-inl show_format_of (~flag : string) (~value : string) : validation_result show_format =
-    if flag = "--json" && value = "" then Valid ShowJson
-    elif (flag = "--last" || flag = "--grep") && value <> "" then Valid (ShowFiltered (sm'.replace "--" "" flag, value))
-    else Invalid
+:= show_format_of (~flag : string) (~value : string) : validation_result show_format =
+    ? flag = "--json" && value = "" ?> Valid ShowJson
+    |? (flag = "--last" || flag = "--grep") && value <> "" ?> Valid (ShowFiltered (sm'.replace "--" "" flag, value))
+    |: Invalid
 
-inl json_string (~text : string) : string = "\"" ++# text ++# "\""
-inl json_field (~name : string) (~value : string) : string = "\"" ++# name ++# "\":" ++# value
+:= json_string (~text : string) : string = "\"" ++# text ++# "\""
+:= json_field (~name : string) (~value : string) : string = "\"" ++# name ++# "\":" ++# value
 
-let task_json (record : task_record) (~planning : string) (started : u64) : string =
-    inl head = "{" ++# (json_field "id" (json_string record.id)) ++# "," ++# (json_field "title" (json_string record.title)) ++# ","
-    inl middle = (json_field "kind" (json_string record.kind)) ++# "," ++# (json_field "priority" (json_string record.priority)) ++# "," ++# (json_field "difficulty" (json_string record.difficulty))
-    inl tail = "," ++# (json_field "progress" record.progress) ++# "," ++# (json_field "status" (json_string record.status)) ++# ","
-    inl lists = (json_field "deps" (json_string record.deps)) ++# "," ++# (json_field "tags" (json_string record.tags)) ++# ("," ++# planning ++# "," ++# (json_field "elapsed_ms" (u64_text (ms_since started))))
+:~ task_json (record : task_record) (~planning : string) (started : u64) : string =
+    := head =
+        "{"
+        ++# (json_field "id" (json_string record.id))
+        ++# ","
+        ++# (json_field "title" (json_string record.title))
+        ++# ","
+    := middle =
+        (json_field "kind" (json_string record.kind))
+        ++# ","
+        ++# (json_field "priority" (json_string record.priority))
+        ++# ","
+        ++# (json_field "difficulty" (json_string record.difficulty))
+    := tail =
+        ","
+        ++# (json_field "progress" record.progress)
+        ++# ","
+        ++# (json_field "status" (json_string record.status))
+        ++# ","
+    := lists =
+        (json_field "deps" (json_string record.deps)) ++# "," ++# (json_field "tags" (json_string record.tags)) ++# (
+            "," ++# planning ++# "," ++# (json_field "elapsed_ms" (u64_text (ms_since started))))
     head ++# middle ++# tail ++# lists ++# "}"
 
-inl planning_summary (~text : string) (~id : string) : string = $'agile_planning_fields::eoie_agile_planning_summary(&*!text, &*!id)' : string
-inl planning_json (~text : string) (~id : string) : string = $'agile_planning_fields::eoie_agile_planning_json(&*!text, &*!id)' : string
-inl notes_text (~text : string) (~id : string) : string = $'agile_note_listing::eoie_agile_notes_text(&*!text, &*!id)' : string
-inl notes_filtered (~text : string) (~id : string) (~mode : string) (~value : string) : string =
-    $'agile_note_listing::eoie_agile_notes_filtered_text(&*!text, &*!id, &*!mode, &*!value)' : string
-inl notes_json (~text : string) (~id : string) : string = $'agile_note_listing::eoie_agile_notes_json(&*!text, &*!id)' : string
+:= planning_summary (~text : string) (~id : string) : string =
+    $'agile_planning_fields::kit_agile_planning_summary(&*!text, &*!id)' : string
+:= planning_json (~text : string) (~id : string) : string = $'agile_planning_fields::kit_agile_planning_json(&*!text, \
+    &*!id)' : string
+:= notes_text (~text : string) (~id : string) : string =
+    $'agile_note_listing::kit_agile_notes_text(&*!text, &*!id)' : string
+:= notes_filtered (~text : string) (~id : string) (~mode : string) (~value : string) : string =
+    $'agile_note_listing::kit_agile_notes_filtered_text(&*!text, &*!id, &*!mode, &*!value)' : string
+:= notes_json (~text : string) (~id : string) : string =
+    $'agile_note_listing::kit_agile_notes_json(&*!text, &*!id)' : string
 
-inl task_anchor (~id : string) : string = "Task (\"" ++# id ++# "\","
+:= task_anchor (~id : string) : string = "Task (\"" ++# id ++# "\","
 
-inl dash_when_empty (~text : string) : string = if (text = "") then "-" else text
+:= dash_when_empty (~text : string) : string = ? (text = "") ?> "-" |: text
 
-let task_summary (record : task_record) : string =
-    inl head = record.id ++# "  " ++# record.kind ++# "  " ++# record.priority
-    inl tail = "  " ++# record.difficulty ++# "  " ++# record.progress ++# "%  "
+:~ task_summary (record : task_record) : string =
+    := head = record.id ++# "  " ++# record.kind ++# "  " ++# record.priority
+    := tail = "  " ++# record.difficulty ++# "  " ++# record.progress ++# "%  "
     head ++# tail ++# record.status
 
-let show_receipt (record : task_record) (started : u64) : string =
-    inl head = "eoie agile show ok id=" ++# record.id ++# " title_bytes=" ++# (i32_text (byte_len record.title)) ++# " elapsed_ms="
+:~ show_receipt (record : task_record) (started : u64) : string =
+    := head =
+        "kit agile show ok id="
+        ++# record.id
+        ++# " title_bytes="
+        ++# i32_text (byte_len record.title)
+        ++# " elapsed_ms="
     head ++# (u64_text (ms_since started))
 
-let show_task (record : task_record) (~planning : string) (~notes : string) (started : u64) : i32 =
-    inl _ = stdout_line (task_summary record)
-    inl _ = stdout_line ("deps: " ++# (dash_when_empty record.deps))
-    inl _ = stdout_line ("tags: " ++# (dash_when_empty record.tags))
-    inl _ = stdout_line ("planning: " ++# planning)
-    inl _ = stdout_line record.title
-    inl _ = if (notes = "") then 0i32 else stdout_line notes
+:~ show_task (record : task_record) (~planning : string) (~notes : string) (started : u64) : i32 =
+    := _ = stdout_line (task_summary record)
+    := _ = stdout_line ("deps: " ++# (dash_when_empty record.deps))
+    := _ = stdout_line ("tags: " ++# (dash_when_empty record.tags))
+    := _ = stdout_line ("planning: " ++# planning)
+    := _ = stdout_line record.title
+    := _ = ? (notes = "") ?> 0i32 |: stdout_line notes
     stdout_line (show_receipt record started)
 
-inl agile_show_failure (~reason : string) (~id : string) : i32 = stderr_failure ("agile show " ++# id ++# " rejected: " ++# reason)
+:= agile_show_failure (~reason : string) (~id : string) : i32 =
+    stderr_failure ("agile show " ++# id ++# " rejected: " ++# reason)
 
-let agile_show (~root : string) (~id : string) (format : show_format) : i32 =
-    inl started = unix_ms ()
-    match probe (unchecked (backlog_state_path root)) with
+:~ agile_show (~root : string) (~id : string) (format : show_format) : i32 =
+    := started = unix_ms ()
+    ?= probe (unchecked (backlog_state_path root)) ?|
     | FileMissing _ => agile_show_failure "state/agile.spi is missing" id
     | FileReadable file =>
-        inl text = records_text (loaded_string (read_text file))
-        inl found = byte_find text (task_anchor id)
-        if found < 0i32 then agile_show_failure "no task with this id" id
-        else
-            inl arguments = $"!found + !(task_arguments_offset ())" : i32
-            match format with
-            | ShowText => show_task (task_record_at text arguments (byte_len text)) (planning_summary text id) (notes_text text id) started
-            | ShowFiltered (mode, value) => show_task (task_record_at text arguments (byte_len text)) (planning_summary text id) (notes_filtered text id mode value) started
-            | ShowJson => stdout_line (task_json (task_json_record_at text arguments (byte_len text)) ((planning_json text id) ++# "," ++# (notes_json text id)) started)
+        := text = records_text (loaded_string (read_text file))
+        := found = byte_find text (task_anchor id)
+        ? found < 0i32
+        ?> agile_show_failure "no task with this id" id
+        |:
+            := arguments = (found + (task_arguments_offset ()))
+            ?= format ?|
+            | ShowText =>
+                show_task
+                    (task_record_at text arguments (byte_len text))
+                    (planning_summary text id)
+                    (notes_text text id)
+                    started
+            | ShowFiltered (mode, value) =>
+                show_task
+                    (task_record_at text arguments (byte_len text))
+                    (planning_summary text id)
+                    (notes_filtered text id mode value)
+                    started
+            | ShowJson =>
+                stdout_line (
+                    task_json
+                        (task_json_record_at text arguments (byte_len text))
+                        ((planning_json text id) ++# "," ++# (notes_json text id))
+                        started
+                )
 
-let agile_show_entry () : i32 =
-    if argument_count () = 3i32 then agile_show (argument_owned 1i32) (argument_owned 2i32) ShowText
-    else
-        inl value = if argument_count () = 5i32 then argument_owned 4i32 else ""
-        match (if argument_count () > 5i32 then Invalid else show_format_of (argument_owned 3i32) value) with
+:~ agile_show_entry () : i32 =
+    ? argument_count () = 3i32 ?> agile_show (argument_owned 1i32) (argument_owned 2i32) ShowText
+    |:
+        := value = ? argument_count () = 5i32 ?> argument_owned 4i32 |: ""
+        ?= (? argument_count () > 5i32 ?> Invalid |: show_format_of (argument_owned 3i32) value) ?|
         | Valid format => agile_show (argument_owned 1i32) (argument_owned 2i32) format
         | Invalid => agile_show_failure "options are --json, --last <n> or --grep <word>" (argument_owned 2i32)
 
-inl main () : i32 =
-    !!!!Export("eoie_agile_show_run", ((fun () => agile_show_entry ()) : () -> i32))
-    inl _ = agile_show_entry ()
+:= main () : i32 =
+    !!!!Export("kit_agile_show_run", ((\ () => agile_show_entry ()) : () -> i32))
+    := _ = agile_show_entry ()
     0i32

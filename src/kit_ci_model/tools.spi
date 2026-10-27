@@ -1,0 +1,77 @@
+///- --package .
+:# tools static =
+    :< sm'_operators
+
+:< sm'_operators
+:< file_system_operators
+
+:| ci_tool =
+    | ToolRust
+    | ToolZig
+    | ToolOtp
+    | ToolElixir
+    | ToolGleam
+    | ToolRebar
+    | ToolPython
+
+:~ tool_name (tool : ci_tool) : string =
+    ?= tool ?|
+    | ToolRust => "rust"
+    | ToolZig => "zig"
+    | ToolOtp => "otp"
+    | ToolElixir => "elixir"
+    | ToolGleam => "gleam"
+    | ToolRebar => "rebar3"
+    | ToolPython => "python"
+
+:~ tool_of_name (~name : string) : option ci_tool =
+    ? name = "rust" ?> Some ToolRust
+    |? name = "zig" ?> Some ToolZig
+    |? name = "otp" ?> Some ToolOtp
+    |? name = "elixir" ?> Some ToolElixir
+    |? name = "gleam" ?> Some ToolGleam
+    |? name = "rebar3" ?> Some ToolRebar
+    |? name = "python" ?> Some ToolPython
+    |: None
+
+:~ unquoted (~text : string) : string = sm'.trim text |> sm'.replace "\"" "" |> sm'.replace "'" ""
+
+:~ ^ channel_line (lines : array string) (at : i32) : option string =
+    ? at >= (am'.length lines : i32) ?> None
+    |:
+        := line = sm'.trim (am'.index at lines)
+        ? sm'.starts_with "channel" line && sm'.contains "=" line ?>
+            := value = sm'.split "=" line |> array |> am'.index 1i32 |> unquoted
+            ? value = "" ?> None |: Some value
+        |: channel_line lines (at + 1i32)
+
+:~ toolchain_file_channel (~text : string) : option string =
+    := plain = sm'.trim (sm'.replace "\r" "" text)
+    ? sm'.contains "[toolchain]" plain ?> channel_line (sm'.split "\n" plain |> array) 0i32
+    |? plain = "" || sm'.contains "\n" plain ?> None
+    |: Some plain
+
+:~ text_at (path : string) : string = ? file_system.file_exists path ?> file_system.read_all_text path |: ""
+
+:~ repo_toolchain (repo : string) : option string =
+    ?= toolchain_file_channel (text_at (repo </> "rust-toolchain.toml")) ?|
+    | Some channel => Some channel
+    | None => toolchain_file_channel (text_at (repo </> "rust-toolchain"))
+
+
+///> rust
+:# tool_names_round_trip =
+    testing.expect (tool_of_name "rebar3" = Some ToolRebar) "rebar3 names Rebar"
+    testing.expect (tool_of_name "otp" = Some ToolOtp) "otp names Otp"
+    testing.expect (tool_of_name "cobol" = None) "an unknown name"
+
+///> rust
+:# the_toolchain_file_names_the_rust_channel =
+    testing.expect
+        (
+            toolchain_file_channel "[toolchain]\nchannel = \"nightly-2026-10-18\"\ncomponents = [\"rustfmt\"]\n"
+            = Some "nightly-2026-10-18"
+        )
+        "toml channel"
+    testing.expect (toolchain_file_channel "nightly-2026-10-18\n" = Some "nightly-2026-10-18") "legacy one-line file"
+    testing.expect (toolchain_file_channel "" = None) "no file"

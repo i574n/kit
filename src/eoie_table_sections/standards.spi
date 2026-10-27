@@ -1,5 +1,0 @@
-inl comments () = NoCommentLines
-inl width () = LineWidth 120i32
-inl lf () = LfOnly
-inl targets () = TestTargets
-inl lib () = LibReferenced

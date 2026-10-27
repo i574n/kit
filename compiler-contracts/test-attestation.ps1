@@ -5,7 +5,7 @@ $dotnet = Resolve-SpiralDotnet
 $compiler = Get-SpiralCompilerDll $Mode
 $rustc = (Get-SpiralNativeTools).Rustc
 if (-not $rustc) { throw 'rustc is required.' }
-$work = Join-Path (Get-SpiralCacheDir) ('eoie-attestation/' + [guid]::NewGuid().ToString('N'))
+$work = Join-Path (Get-SpiralCacheDir) ('kit-attestation/' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 function Fixture([string]$Name, [string]$Source) {
     $directory = Join-Path $work $Name
@@ -50,7 +50,7 @@ $rows = [IO.File]::ReadAllLines($manifest)
 $expected = @('op') + (@('patch-exact', 'value.txt', '{old}', '}new{', 'write') | ForEach-Object {
     [Convert]::ToHexString([Text.Encoding]::UTF8.GetBytes($_)).ToLowerInvariant()
 })
-if ($rows.Count -ne 2 -or $rows[0] -ne "EOIE-PLAN-IR`t1" -or $rows[1] -cne ($expected -join "`t")) { throw 'Plan payload changed.' }
+if ($rows.Count -ne 2 -or $rows[0] -ne "KIT-PLAN-IR`t1" -or $rows[1] -cne ($expected -join "`t")) { throw 'Plan payload changed.' }
 $conditional = Fixture 'conditional-plan' @'
 inl main () : i32 =
     inl flag = $"true" : bool
@@ -125,5 +125,5 @@ if ($negativeCode -eq 2) { throw "Negative array index returned the portable las
 $joinPanic = [regex]::Match($arrayCode, 'Err\(_\) => (\d+) \}\);')
 $panicCode = if ($joinPanic.Success) { [int]$joinPanic.Groups[1].Value } else { 101 }
 if ($negativeCode -ne $panicCode) { throw "Negative array index exited $negativeCode; native Vec indexing panics, and the spiral_main join maps a panic to $panicCode.`n$negativeOutput" }
-Write-Host "EOIE attestation contracts passed: $work"
+Write-Host "KIT attestation contracts passed: $work"
 exit 0

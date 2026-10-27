@@ -1,8 +1,0 @@
-packages:
-    |core-
-    spiral-
-    eoie_ci_model
-modules:
-    model
-    parity
-    entry

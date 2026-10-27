@@ -1,0 +1,101 @@
+///- --package .
+:# series static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| series_rejection =
+    | MissingZipSuffix
+    | MissingAlphaSuffix
+    | InvalidAlphaSuffix
+    | AlphaOutOfRange : string
+
+:| series_reading =
+    | SeriesMember : string * u64
+    | SeriesRejected : series_rejection
+
+:= alpha_marker () : string = "alpha"
+
+:= zip_suffix () : string = ".zip"
+
+:= without_suffix (~text : string) (~suffix : string) : string =
+    $'std::rc::Rc::<str>::from(!text.strip_suffix(&*!suffix).unwrap_or(&*!text))' : string
+
+:= last_index_of (~text : string) (~needle : string) : i64 =
+    $'!text.rfind(&*!needle).map(|index| index as i64).unwrap_or(-1)' : i64
+
+:= from_index (~text : string) (~start : i64) : string =
+    $'std::rc::Rc::<str>::from(&(&*!text)[!start as usize..])' : string
+
+:= through_index (~text : string) (~end : i64) : string =
+    $'std::rc::Rc::<str>::from(&(&*!text)[..!end as usize])' : string
+
+:= ascii_digits (~text : string) : bool =
+    $'\!!text.is_empty() && !text.bytes().all(|byte| byte.is_ascii_digit())' : bool
+
+:= decimal_overflow (~digits : string) : string =
+    $'std::rc::Rc::<str>::from(!digits.parse::<u64>().err().map(|error| error.to_string()).unwrap_or_default())'
+    : string
+
+:= decimal_value (~digits : string) : u64 =
+    $'!digits.parse::<u64>().unwrap_or(0)' : u64
+
+:~ read_series (~current : string) : series_reading =
+    ? sm'.ends_with (zip_suffix ()) current ?>
+        := stem = without_suffix current (zip_suffix ())
+        := marker = last_index_of stem (alpha_marker ())
+        ? marker < 0i64 ?> SeriesRejected MissingAlphaSuffix
+        |:
+            := prefix_end = marker + 5i64
+            := digits = from_index stem prefix_end
+            ? ascii_digits digits ?>
+                := overflow = decimal_overflow digits
+                ? (overflow = "") ?> SeriesMember (through_index stem prefix_end, decimal_value digits)
+                |: SeriesRejected (AlphaOutOfRange overflow)
+            |: SeriesRejected InvalidAlphaSuffix
+    |: SeriesRejected MissingZipSuffix
+
+:= rejection_text (current : string) = \|
+    | MissingZipSuffix => "retention current must end in .zip: " ++# current
+    | MissingAlphaSuffix => "retention current has no alpha suffix: " ++# current
+    | InvalidAlphaSuffix => "retention current has invalid alpha suffix: " ++# current
+    | AlphaOutOfRange detail => detail
+
+:~ series_error (~current : string) : string =
+    ?= read_series current ?|
+    | SeriesMember _ => ""
+    | SeriesRejected rejection => rejection_text current rejection
+
+:~ series_prefix (~current : string) : string =
+    ?= read_series current ?|
+    | SeriesMember (prefix, _) => prefix
+    | SeriesRejected _ => ""
+
+:~ series_alpha (~current : string) : u64 =
+    ?= read_series current ?|
+    | SeriesMember (_, alpha) => alpha
+    | SeriesRejected _ => 0u64
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:= member (current : string) (prefix : string) (alpha : u64) : () =
+    expect (((series_error current) = "")) current
+    expect (((series_prefix current) = prefix)) current
+    expect (series_alpha current = alpha) current
+
+:= rejected (current : string) (message : string) : () =
+    expect (((series_error current) = message)) current
+
+///> rust
+:# series_members_split_at_the_last_alpha_marker =
+    member "kit-alpha716.zip" "kit-alpha" 716u64
+    member "alpha-tools-alpha0.zip" "alpha-tools-alpha" 0u64
+    member "kit-alpha007.zip" "kit-alpha" 7u64
+
+///> rust
+:# malformed_series_names_are_rejected_with_their_reason =
+    rejected "kit-alpha716.tar" "retention current must end in .zip: kit-alpha716.tar"
+    rejected "kit-716.zip" "retention current has no alpha suffix: kit-716.zip"
+    rejected "kit-alpha.zip" "retention current has invalid alpha suffix: kit-alpha.zip"
+    rejected "kit-alpha7b.zip" "retention current has invalid alpha suffix: kit-alpha7b.zip"
+    rejected "kit-alpha99999999999999999999.zip" "number too large to fit in target type"

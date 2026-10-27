@@ -1,7 +1,13 @@
-open filesystem_copy_contract.model
+:< filesystem_copy_contract.model
 
-inl main () : i32 =
-    match agile_rejection "/tmp/eoie-copy-negative-source.txt" "/tmp/eoie-copy-negative-target.txt" "expected-copy" "actual-copy" with
+:= main () : i32 =
+    ?=
+        agile_rejection
+            "/tmp/kit-copy-negative-source.txt"
+            "/tmp/kit-copy-negative-target.txt"
+            "expected-copy"
+            "actual-copy"
+    ?|
     | CopyAccepted _ => 1i32
     | CopyRejected _ => 0i32
     | CopyFailed _ => 2i32

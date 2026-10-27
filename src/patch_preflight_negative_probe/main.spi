@@ -1,17 +1,17 @@
-open patch_preflight_contract.model
+:< patch_preflight_contract.model
 
-inl main () : i32 =
-    match patch_preflight_witness_binding 2i32 1i32 with
+:= main () : i32 =
+    ?= patch_preflight_witness_binding 2i32 1i32 ?|
     | 0 =>
-        match patch_preflight_witness_binding 0i32 0i32 with
+        ?= patch_preflight_witness_binding 0i32 0i32 ?|
         | 0 =>
-            match patch_preflight_mode_binding 1i32 1i32 with
+            ?= patch_preflight_mode_binding 1i32 1i32 ?|
             | 0 =>
-                match patch_preflight_mode_binding 0i32 0i32 with
+                ?= patch_preflight_mode_binding 0i32 0i32 ?|
                 | 0 =>
-                    match patch_preflight_check_binding 1i32 0i32 with
+                    ?= patch_preflight_check_binding 1i32 0i32 ?|
                     | 0 =>
-                        match patch_preflight_check_binding 0i32 1i32 with
+                        ?= patch_preflight_check_binding 0i32 1i32 ?|
                         | 0 => 0i32
                         | _ => 6i32
                     | _ => 5i32

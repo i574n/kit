@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "table_test.spi"
+output = "table_test.rs"
+
+[package]
+name = "kit-table-test"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_table_test"
+path = "table_test.rs"
+
+[dependencies]
+kit-table-text = { path = "../kit_table_text" }
+kit-experiment-stats = { path = "../kit_experiment_stats" }
+kit-table-query = { path = "../kit_table_query" }

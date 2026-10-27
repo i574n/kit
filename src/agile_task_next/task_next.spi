@@ -1,35 +1,40 @@
-open rust_std_fs.model
-open agile_task_text.model
-open workspace_primitives.numbers
-open workspace_primitives.bytes
-open workspace_primitives.clock
-open workspace_primitives.console
-open workspace_primitives.files
-open ranking
-open sm'_operators
+:< rust_std_fs.model
+:< agile_task_text.model
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+:< ranking
+:< sm'_operators
 
-inl planned_load_selected (~text : string) (~id : string) (~load : string) : bool = $'agile_planning_filters::eoie_agile_planning_selected(&*!text, &*!id, &*!load, "all")' : bool
+:= planned_load_selected (~text : string) (~id : string) (~load : string) : bool =
+    $'agile_planning_filters::kit_agile_planning_selected(&*!text, &*!id, &*!load, "all")' : bool
 
-let load_words (~loads : string) : array string = sm'.split "," loads |> array
+:~ load_words (~loads : string) : array string = sm'.split "," loads |> array
 
-let rec loads_pass (~text : string) (~id : string) (words : array string) (at : i32) : bool =
-    if am'.length words <= at then false
-    elif planned_load_selected text id (am'.index at words) then true
-    else loads_pass text id words (at + 1i32)
-inl argument_owned index : string = rust_std_env.model.argument_owned index
-inl unquoted (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
-inl padded (~text : string) (width : i32) : string =
-    $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); std::rc::Rc::<str>::from(text.to_string() + &" ".repeat(filler)) }' : string
-inl right_aligned (~text : string) (width : i32) : string =
-    $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); std::rc::Rc::<str>::from(" ".repeat(filler) + &*text) }' : string
-inl clipped (~text : string) (width : i32) : string =
-    $'{ let text = !text; if text.chars().count() <= !width as usize { text } else { std::rc::Rc::<str>::from(text.chars().take((!width as usize).saturating_sub(3)).collect::<String>() + "...") } }' : string
+:~ ^ loads_pass (~text : string) (~id : string) (words : array string) (at : i32) : bool =
+    ? am'.length words <= at ?> !-
+    |? planned_load_selected text id (am'.index at words) ?> !+
+    |: loads_pass text id words (at + 1i32)
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:= unquoted (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
+:= padded (~text : string) (width : i32) : string =
+    $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); \
+        std::rc::Rc::<str>::from(text.to_string() + &" ".repeat(filler)) }' : string
+:= right_aligned (~text : string) (width : i32) : string =
+    $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); \
+        std::rc::Rc::<str>::from(" ".repeat(filler) + &*text) }' : string
+:= clipped (~text : string) (width : i32) : string =
+    $'{ let text = !text; if text.chars().count() <= !width as usize { text } else { \
+        std::rc::Rc::<str>::from(text.chars().take((!width as usize).saturating_sub(3)).collect::<String>() + "...") \
+        } }' : string
 
-inl progress_of (~token : string) : i32 = $'(!token).trim().trim_end_matches("u32").parse::<i32>().unwrap_or(0)' : i32
+:= progress_of (~token : string) : i32 = $'(!token).trim().trim_end_matches("u32").parse::<i32>().unwrap_or(0)' : i32
 
-let backlog_task_at (text : string) (arguments : i32) (length : i32) : backlog_task =
-    inl field = tuple_field text arguments length
-    inl id = unquoted (field 0i32)
+:~ backlog_task_at (text : string) (arguments : i32) (length : i32) : backlog_task =
+    := field = tuple_field text arguments length
+    := id = unquoted (field 0i32)
     {
         id = id
         title = unquoted (field 1i32)
@@ -38,47 +43,58 @@ let backlog_task_at (text : string) (arguments : i32) (length : i32) : backlog_t
         status = field 6i32
         deps = unquoted (field 7i32)
         tags = unquoted (field 8i32)
-        estimate = $'agile_planning_fields::eoie_agile_planning_minutes_near(&*!text, &*!id, !arguments)' : i32
+        estimate = $'agile_planning_fields::kit_agile_planning_minutes_near(&*!text, &*!id, !arguments)' : i32
         progress = progress_of (field 5i32)
     }
 
-let rec tasks_from (text : string) (offset : i32) (length : i32) (tasks : task_list) : task_list =
-    inl found = byte_find_from text (task_marker ()) offset
-    if found < 0i32 then tasks
-    else
-        inl arguments = $"!found + !(task_arguments_offset ())" : i32
-        if declared_task text found then tasks_from text arguments length (TaskThen (backlog_task_at text arguments length, tasks))
-        else tasks_from text arguments length tasks
+:~ ^ tasks_from (text : string) (offset : i32) (length : i32) (tasks : task_list) : task_list =
+    := found = byte_find_from text (task_marker ()) offset
+    ? found < 0i32
+    ?> tasks
+    |:
+        := arguments = (found + (task_arguments_offset ()))
+        ? declared_task text found
+        ?> tasks_from text arguments length (TaskThen (backlog_task_at text arguments length, tasks))
+        |: tasks_from text arguments length tasks
 
-let ranked_line (role : rank_role) (rank : i32) (item : ranked_task) : string =
-    inl minutes = rust_std_string.model.concat5 (i32_text item.minutes) "m" (if item.estimated then " " else "~") "" ""
-    inl score =
-        match role with
+:~ ranked_line (role : rank_role) (rank : i32) (item : ranked_task) : string =
+    := minutes = rust_std_string.model.concat5 (i32_text item.minutes) "m" (? item.estimated ?> " " |: "~") "" ""
+    := score =
+        ?= role ?|
         | MainAgent => rust_std_string.model.concat5 "  wsjf=" (padded (i32_text item.key) 7i32) "" "" ""
         | Subagent => ""
-    inl head = rust_std_string.model.concat5 (right_aligned (i32_text rank) 3i32) "  " (padded item.id 28i32) " P" (i32_text item.priority)
-    inl middle = rust_std_string.model.concat5 " D" (i32_text item.difficulty) "  " (right_aligned minutes 7i32) score
-    rust_std_string.model.concat5 head middle "  unblocks=" (padded (i32_text item.unblocks) 5i32) (rust_std_string.model.concat5 "  " (clipped item.title 72i32) "" "" "")
+    := head =
+        rust_std_string.model.concat5
+            (right_aligned (i32_text rank) 3i32)
+            "  "
+            (padded item.id 28i32)
+            " P"
+            (i32_text item.priority)
+    := middle = rust_std_string.model.concat5 " D" (i32_text item.difficulty) "  " (right_aligned minutes 7i32) score
+    rust_std_string.model.concat5 head middle
+        "  unblocks="
+        (padded (i32_text item.unblocks) 5i32)
+        (rust_std_string.model.concat5 "  " (clipped item.title 72i32) "" "" "")
 
-let rec printed (role : rank_role) (list : ranked_list) (rank : i32) (limit : i32) : i32 =
-    match list with
+:~ ^ printed (role : rank_role) (list : ranked_list) (rank : i32) (limit : i32) : i32 =
+    ?= list ?|
     | NoRanked => rank - 1i32
     | RankedThen (head, rest) =>
-        if limit < rank then rank - 1i32
-        else
-            inl _ = stdout_line (ranked_line role rank head)
+        ? limit < rank ?> rank - 1i32
+        |:
+            := _ = stdout_line (ranked_line role rank head)
             printed role rest (rank + 1i32) limit
 
-let rec ranked_count (list : ranked_list) (counted : i32) : i32 =
-    match list with
+:~ ^ ranked_count (list : ranked_list) (counted : i32) : i32 =
+    ?= list ?|
     | NoRanked => counted
     | RankedThen (_, rest) => ranked_count rest (counted + 1i32)
 
-union next_format =
+:| next_format =
     | NextText
     | NextJson
 
-type next_request =
+:== next_request =
     {
         role : rank_role
         limit : i32
@@ -87,50 +103,104 @@ type next_request =
         format : next_format
     }
 
-let ranked_json (rank : i32) (item : ranked_task) : string =
-    inl head = rust_std_string.model.concat5 "{\"rank\":" (i32_text rank) ",\"id\":\"" item.id "\""
-    inl middle = rust_std_string.model.concat5 ",\"priority\":" (i32_text item.priority) ",\"difficulty\":" (i32_text item.difficulty) (rust_std_string.model.concat5 ",\"minutes\":" (i32_text item.minutes) ",\"estimated\":" (if item.estimated then "true" else "false") "")
-    rust_std_string.model.concat5 head middle ",\"wsjf\":" (i32_text item.key) (rust_std_string.model.concat5 ",\"unblocks\":" (i32_text item.unblocks) ",\"title\":\"" item.title "\"}")
+:~ ranked_json (rank : i32) (item : ranked_task) : string =
+    := head = rust_std_string.model.concat5 "{\"rank\":" (i32_text rank) ",\"id\":\"" item.id "\""
+    := middle =
+        rust_std_string.model.concat5
+            ",\"priority\":"
+            (i32_text item.priority)
+            ",\"difficulty\":"
+            (i32_text item.difficulty)
+            (
+                rust_std_string.model.concat5
+                    ",\"minutes\":"
+                    (i32_text item.minutes)
+                    ",\"estimated\":"
+                    (? item.estimated ?> "true" |: "false")
+                    ""
+            )
+    rust_std_string.model.concat5 head middle
+        ",\"wsjf\":"
+        (i32_text item.key)
+        (rust_std_string.model.concat5 ",\"unblocks\":" (i32_text item.unblocks) ",\"title\":\"" item.title "\"}")
 
-let rec json_items (list : ranked_list) (rank : i32) (limit : i32) (~items : string) : string * i32 =
-    match list with
+:~ ^ json_items (list : ranked_list) (rank : i32) (limit : i32) (~items : string) : string * i32 =
+    ?= list ?|
     | NoRanked => items, rank - 1i32
     | RankedThen (head, rest) =>
-        if limit < rank then items, rank - 1i32
-        else json_items rest (rank + 1i32) limit (if items = "" then ranked_json rank head else rust_std_string.model.concat5 items "," (ranked_json rank head) "" "")
+        ? limit < rank
+        ?> items, rank - 1i32
+        |:
+            json_items rest
+                (rank + 1i32)
+                limit
+                (
+                    ? items = ""
+                    ?> ranked_json rank head
+                    |: rust_std_string.model.concat5 items "," (ranked_json rank head) "" ""
+                )
 
-inl next_failure (~reason : string) : i32 = stderr_failure (rust_std_string.model.concat5 "agile next rejected: " reason "" "" "")
+:= next_failure (~reason : string) : i32 =
+    stderr_failure (rust_std_string.model.concat5 "agile next rejected: " reason "" "" "")
 
-let agile_next (~root : string) (request : next_request) : i32 =
-    inl role = request.role
-    inl limit = request.limit
-    inl started = unix_ms ()
-    match probe (unchecked (backlog_state_path root)) with
+:~ agile_next (~root : string) (request : next_request) : i32 =
+    := role = request.role
+    := limit = request.limit
+    := started = unix_ms ()
+    ?= probe (unchecked (backlog_state_path root)) ?|
     | FileMissing _ => next_failure "state/agile.spi is missing"
     | FileReadable file =>
-        inl text = records_text (loaded_string (read_text file))
-        inl length = byte_len text
-        inl malformed = first_malformed_task text 0i32 length
-        if malformed < 0i32 then
-            inl list = ranking_where role (fun task => task_passes request.filters task && loads_pass text task.id (load_words request.load) 0i32) (tasks_from text 0i32 length NoTasks)
-            match request.format with
+        := text = records_text (loaded_string (read_text file))
+        := length = byte_len text
+        := malformed = first_malformed_task text 0i32 length
+        ? malformed < 0i32
+        ?>
+            := list =
+                ranking_where role
+                    \ task => task_passes request.filters task && loads_pass text task.id (load_words request.load) 0i32
+                    (tasks_from text 0i32 length NoTasks)
+            ?= request.format ?|
             | NextJson =>
-                inl items, shown = json_items list 1i32 limit ""
-                stdout_line (rust_std_string.model.concat5 "{\"role\":\"" (rank_role_word role) "\",\"ready\":" (i32_text (ranked_count list 0i32)) (rust_std_string.model.concat5 ",\"shown\":" (i32_text shown) ",\"items\":[" items "]}"))
+                := items, shown = json_items list 1i32 limit ""
+                stdout_line (
+                    rust_std_string.model.concat5
+                        "{\"role\":\""
+                        (rank_role_word role)
+                        "\",\"ready\":"
+                        (i32_text (ranked_count list 0i32))
+                        (rust_std_string.model.concat5 ",\"shown\":" (i32_text shown) ",\"items\":[" items "]}")
+                )
             | NextText =>
-                inl shown = printed role list 1i32 limit
-                inl ready = rust_std_string.model.concat5 " ready=" (i32_text (ranked_count list 0i32)) " shown=" (i32_text shown) "" ++# (if request.load = "all" then "" else " load=" ++# request.load)
-                stdout_line (rust_std_string.model.concat5 "eoie agile next ok role=" (rank_role_word role) ready " elapsed_ms=" (u64_text (ms_since started)))
-        else next_failure (rust_std_string.model.concat5 "malformed Task fields at byte " (i32_text malformed) "" "" "")
+                := shown = printed role list 1i32 limit
+                := ready =
+                    rust_std_string.model.concat5
+                        " ready="
+                        (i32_text (ranked_count list 0i32))
+                        " shown="
+                        (i32_text shown)
+                        ""
+                    ++# (? request.load = "all" ?> "" |: " load=" ++# request.load)
+                stdout_line (
+                    rust_std_string.model.concat5 "kit agile next ok role=" (rank_role_word role) ready " elapsed_ms=" (
+                    u64_text (ms_since started)))
+        |: next_failure (rust_std_string.model.concat5 "malformed Task fields at byte " (i32_text malformed) "" "" "")
 
-let agile_next_entry () : i32 =
-    inl parsed, reason, role, limit, filters, load, json =
-        $'eoie_agile_next_args::eoie_agile_next_request()' : bool * string * string * i32 * string * string * bool
-    if parsed then
-        inl request = { role = (if role = "subagent" then Subagent else MainAgent); limit = limit; filters = filters; load = load; format = (if json then NextJson else NextText) }
+:~ agile_next_entry () : i32 =
+    := parsed, reason, role, limit, filters, load, json =
+        $'kit_agile_next_args::kit_agile_next_request()' : bool * string * string * i32 * string * string * bool
+    ? parsed
+    ?>
+        := request =
+            {
+                role = (? role = "subagent" ?> Subagent |: MainAgent)
+                limit = limit
+                filters = filters
+                load = load
+                format = (? json ?> NextJson |: NextText)
+            }
         agile_next (argument_owned 1i32) request
-    else next_failure reason
-inl main () : i32 =
-    !!!!Export("eoie_agile_next_run", ((fun () => agile_next_entry ()) : () -> i32))
-    inl _ = agile_next_entry ()
+    |: next_failure reason
+:= main () : i32 =
+    !!!!Export("kit_agile_next_run", ((\ () => agile_next_entry ()) : () -> i32))
+    := _ = agile_next_entry ()
     0i32

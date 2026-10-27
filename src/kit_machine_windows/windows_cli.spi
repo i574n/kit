@@ -1,0 +1,432 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= window_call (root : fixture_root) (~free : string) (args : cli_args) : cli_run =
+    kit_run
+        (fixture_text_of root)
+        (
+            Arg (cat "KIT_WINDOWS_HOME=" (fixture_path root "windows"), Arg (cat "KIT_WINDOWS_FREE_MB=" free,
+                Arg (cat "KIT_HEAVY_QUEUE=" (fixture_path root "queue"), NoArgs)))
+        )
+        NoArgs
+        (Arg ("window", args))
+
+:= requested (root : fixture_root) (~class : string) (~label : string) (rest : cli_args) : cli_run =
+    window_call root "8000" (Arg ("request", Arg (class, Arg ("30", Arg ("--label", Arg (label, rest))))))
+
+:= held_row (~until : u64) : string =
+    $'std::rc::Rc::<str>::from(format\!("win-1-install{0}compiler-install{0}held{0}spiral install{0}1{0}{1}", \
+        char::from(9u8), !until).as_str())' : string
+
+:= planted_row (~id : string) (~class : string) (~state : string) (start : u64) (until : u64) : string =
+    $'std::rc::Rc::<str>::from(format\!("{1}{0}{2}{0}{3}{0}planted{0}{4}{0}{5}", char::from(9u8), &*!id, &*!class, \
+        &*!state, !start, !until).as_str())' : string
+
+///> rust
+:# a_short_window_backfills_while_an_exclusive_request_waits_on_long_holders =
+    := root = fixture_root_create "window backfill"
+    := now = now_ms ()
+    fixture_write root
+        "windows/win-1-heavy.window"
+        (planted_row "win-1-heavy" "heavy-build" "held" (now - 60000u64) (now + 3600000u64))
+    fixture_write root
+        "windows/win-2-live.window"
+        (planted_row "win-2-live" "live-gui" "waiting" (now - 30000u64) (now + 60000u64))
+    shows
+        (
+            succeeded (window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", Arg ("--label", Arg ("quick",
+                NoArgs)))))))
+        )
+        "kit window request ok"
+    := long =
+        window_call root "8000" (Arg ("request", Arg ("compile", Arg ("120", Arg ("--label", Arg ("long", NoArgs))))))
+    testing.expect (long.code = 1i32) (run_text long)
+    shows long.stdout "by=win-2-live holder=live-gui state=waiting"
+    := checked = window_call root "8000" (Arg ("check", Arg ("compile", NoArgs)))
+    testing.expect (checked.code = 1i32) (run_text checked)
+    fixture_root_remove root
+
+///> rust
+:# a_live_window_holds_compiles_back_until_it_is_released =
+    := root = fixture_root_create "window live"
+    := live = succeeded (requested root "live-gui" "gui PR-12" NoArgs)
+    shows live "kit window request ok id=win-"
+    shows live "class=live-gui minutes=30 free_mb=8000"
+    := id = word_after live "id="
+    := blocked = requested root "compile" "kit quick" NoArgs
+    testing.expect (blocked.code = 1i32) (run_text blocked)
+    shows blocked.stdout "kit window request blocked"
+    shows blocked.stdout (cat "by=" id)
+    shows blocked.stdout "holder=live-gui state=held left_min=30 label='gui PR-12'"
+    := checked = window_call root "8000" (Arg ("check", Arg ("compile", NoArgs)))
+    testing.expect (checked.code = 1i32) (run_text checked)
+    shows checked.stdout "kit window check blocked class=compile by="
+    shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "kit window list ok windows=1"
+    shows (succeeded (window_call root "8000" (Arg ("release", Arg (id, NoArgs))))) (cat "kit window release ok id=" id)
+    shows
+        (succeeded (window_call root "8000" (Arg ("check", Arg ("compile", NoArgs)))))
+        "kit window check ok class=compile free"
+    shows (succeeded (requested root "compile" "kit quick" NoArgs)) "kit window request ok"
+    fixture_root_remove root
+
+///> rust
+:# shared_classes_coexist_and_memory_gates_admission =
+    := root = fixture_root_create "window shared"
+    shows (succeeded (requested root "heavy-build" "release" NoArgs)) "class=heavy-build"
+    shows (succeeded (requested root "test-suite" "suite gate" NoArgs)) "class=test-suite"
+    shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "windows=2"
+    := starved = window_call root "1000" (Arg ("request", Arg ("test-suite", Arg ("5", NoArgs))))
+    testing.expect (starved.code = 1i32) (run_text starved)
+    shows starved.stdout "reason=low-memory free_mb=0 need_mb=3072"
+    fixture_root_remove root
+
+///> rust
+:# a_waiting_request_is_granted_when_the_holder_releases =
+    := root = fixture_root_create "window wait"
+    fixture_write root "windows/win-1-install.window" (held_row (now_ms () + 3000u64))
+    := now_blocked = requested root "compile" "kit quick" NoArgs
+    shows now_blocked.stdout "by=win-1-install holder=compiler-install state=held left_min=1 label='spiral install'"
+    := waited =
+        succeeded (
+            window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", Arg ("--wait", Arg ("1", NoArgs))))))
+        )
+    shows (line_starting waited "kit window request queued") "by=win-1-install holder=compiler-install"
+    shows (line_starting waited "kit window request ok") "class=compile minutes=5"
+    testing.expect (path_exists (fixture_path root "windows/win-1-install.window") = !-) "the expired window was pruned"
+    fixture_write root "windows/win-1-install.window" (held_row (now_ms () + 3000u64))
+    shows
+        (
+            line_starting
+                (
+                    succeeded (window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", Arg ("--wait",
+                        Arg ("until-granted", NoArgs)))))))
+                )
+                "kit window request ok"
+        )
+        "class=compile minutes=5"
+    fixture_root_remove root
+
+:= fake_gate () : string =
+    "function Invoke-Heavy { param([scriptblock] $Command, [string] $Label, [int] $MaxMinutes) Write-Host "
+    ^^ "('Invoke-Heavy: acquired slot 1 after 0 s (held at most ' + $MaxMinutes + ' min)'); & $Command }\n"
+
+:= heavy_call (root : fixture_root) (args : cli_args) : cli_run =
+    := sets =
+        Arg (
+            cat "KIT_JOBS_HOME=" (fixture_path root "jobs"),
+            Arg (cat "KIT_WINDOWS_HOME=" (fixture_path root "windows"), Arg ("KIT_WINDOWS_FREE_MB=8000",
+                Arg (cat "KIT_HEAVY_GATE=" (fixture_path root "gate.ps1"),
+                Arg (cat "KIT_HEAVY_QUEUE=" (fixture_path root "queue"), Arg ("KIT_HEAVY_MUTEX=kit-test-heavy-mutex",
+                NoArgs)))))
+        )
+    kit_run (fixture_text_of root) sets (Arg ("KIT_JOB_RELAUNCHED", Arg ("KIT_JOB_WATCH", NoArgs))) (Arg ("job", args))
+
+///> rust
+:# a_heavy_job_waits_for_a_live_window_and_releases_its_own =
+    := root = fixture_root_create "window heavy job"
+    fixture_write root "gate.ps1" (fake_gate ())
+    := live = word_after (succeeded (requested root "live-gui" "gui PR-12" NoArgs)) "id="
+    := quick = rustc_program root "quick" "fn main() {}"
+    := job =
+        word_after
+            (
+                succeeded (
+                    heavy_call root (Arg ("start", Arg ("--heavy", Arg ("gated", Arg ("30000", Arg (quick, NoArgs))))))
+                )
+            )
+            "id="
+    pause_ms 4000u64
+    shows (succeeded (heavy_call root (Arg ("status", Arg (job, NoArgs))))) "state=queued"
+    shows (fixture_read root (cat "jobs/" (cat job "/window"))) "waiting id=win-"
+    shows (fixture_read root (cat "jobs/" (cat job "/window"))) "holder=live-gui"
+    testing.expect
+        (path_exists (fixture_path root (cat "jobs/" (cat job "/stdout.log"))) = !-)
+        "no wrapper runs while the job only waits for its window"
+    := _ = succeeded (window_call root "8000" (Arg ("release", Arg (live, NoArgs))))
+    shows (succeeded (heavy_call root (Arg ("wait", Arg (job, Arg ("60000", NoArgs)))))) "state=finished exit=0"
+    shows (fixture_read root (cat "jobs/" (cat job "/window"))) "granted id=win-"
+    shows (fixture_read root (cat "jobs/" (cat job "/slot"))) "ready ticket="
+    shows (fixture_read root (cat "jobs/" (cat job "/heavy-wrapper.ps1"))) "-MaxMinutes 1 {"
+    shows (fixture_read root (cat "jobs/" (cat job "/stdout.log"))) "held at most 1 min"
+    shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "kit window list ok windows=0"
+    fixture_root_remove root
+
+///> rust
+:# a_stopped_heavy_job_leaves_no_window_behind =
+    := root = fixture_root_create "window heavy stop"
+    fixture_write root "gate.ps1" (fake_gate ())
+    := sleepy = rustc_program root "sleepy" "fn main() { std::thread::sleep(std::time::Duration::from_secs(60)); }"
+    := job =
+        word_after
+            (
+                succeeded (heavy_call root (Arg ("start", Arg ("--heavy", Arg ("held", Arg ("120000", Arg (sleepy,
+                    NoArgs)))))))
+            )
+            "id="
+    testing.expect (path_appears (fixture_path root (cat "jobs/" (cat job "/stdout.log"))) 20000u64) "the job never started"
+    pause_ms 4000u64
+    := listed = succeeded (window_call root "8000" (Arg ("list", NoArgs)))
+    shows listed "windows=1"
+    shows listed (cat "(kit job " (cat job ")"))
+    shows (succeeded (heavy_call root (Arg ("stop", Arg (job, NoArgs))))) "state=stopped"
+    shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "kit window list ok windows=0"
+    fixture_root_remove root
+
+///> rust
+:# a_compile_job_waits_for_an_install_window_and_releases_its_own =
+    := root = fixture_root_create "window compile job"
+    := install = word_after (succeeded (requested root "compiler-install" "spiral install" NoArgs)) "id="
+    := quick = rustc_program root "quick" "fn main() {}"
+    := job =
+        word_after
+            (
+                succeeded (heavy_call root (Arg ("start", Arg ("--compile", Arg ("compiles", Arg ("3000", Arg (quick,
+                    NoArgs)))))))
+            )
+            "id="
+    pause_ms 4000u64
+    shows (succeeded (heavy_call root (Arg ("status", Arg (job, NoArgs))))) "state=queued"
+    shows (fixture_read root (cat "jobs/" (cat job "/window"))) "holder=compiler-install"
+    := _ = succeeded (window_call root "8000" (Arg ("release", Arg (install, NoArgs))))
+    shows (succeeded (heavy_call root (Arg ("wait", Arg (job, Arg ("60000", NoArgs)))))) "state=finished exit=0"
+    shows (fixture_read root (cat "jobs/" (cat job "/window"))) "granted id=win-"
+    shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "kit window list ok windows=0"
+    fixture_root_remove root
+
+:= orphan_row () : string =
+    $'std::rc::Rc::<str>::from(format\!("win-1-4294967290-heavy-build{0}heavy-build{0}held{0}reaped (kit job \
+        job-1-reaped){0}1{0}{1}", char::from(9u8), u64::MAX / 2).as_str())' : string
+
+///> rust
+:# a_window_whose_job_supervisor_died_is_dropped =
+    := root = fixture_root_create "window orphan"
+    fixture_write root "windows/win-1-4294967290-heavy-build.window" (orphan_row ())
+    shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "kit window list ok windows=0"
+    testing.expect
+        (path_exists (fixture_path root "windows/win-1-4294967290-heavy-build.window") = !-)
+        "the orphaned row was removed"
+    shows (succeeded (requested root "live-gui" "next block" NoArgs)) "kit window request ok"
+    fixture_root_remove root
+
+:= run_orphan_row () : string =
+    $'std::rc::Rc::<str>::from(format\!("win-1-4294967290-compile-run{0}compile{0}held{0}a stopped window \
+        run{0}1{0}{1}", char::from(9u8), u64::MAX / 2).as_str())' : string
+
+:= lease_row () : string =
+    $'std::rc::Rc::<str>::from(format\!("win-2-4294967291-compile{0}compile{0}held{0}a lease from window \
+        request{0}1{0}{1}", char::from(9u8), u64::MAX / 2).as_str())' : string
+
+///> rust
+:# a_window_run_whose_process_died_is_dropped_but_a_request_lease_stays =
+    := root = fixture_root_create "window run orphan"
+    fixture_write root "windows/win-1-4294967290-compile-run.window" (run_orphan_row ())
+    fixture_write root "windows/win-2-4294967291-compile.window" (lease_row ())
+    shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "kit window list ok windows=1"
+    testing.expect
+        (path_exists (fixture_path root "windows/win-1-4294967290-compile-run.window") = !-)
+        "the stopped run's row was removed"
+    testing.expect
+        (path_exists (fixture_path root "windows/win-2-4294967291-compile.window"))
+        "a lease outlives the process that requested it"
+    fixture_root_remove root
+:= holder_row () : string =
+    $'std::rc::Rc::<str>::from(format\!("1{0}{1}{0}2026-10-20T20:00:00{0}sefaz gates", char::from(9u8), \
+        std::process::id()).as_str())' : string
+
+:= dead_holder_row () : string =
+    $'std::rc::Rc::<str>::from(format\!("2{0}4294967290{0}2026-10-20T20:00:00{0}stopped chain", \
+        char::from(9u8)).as_str())' : string
+
+///> rust
+:# window_list_names_the_heavy_slot_holders =
+    := root = fixture_root_create "window holders"
+    fixture_write root "queue/holder-1.h" (holder_row ())
+    fixture_write root "queue/holder-2.h" (dead_holder_row ())
+    := listed = succeeded (window_call root "8000" (Arg ("list", NoArgs)))
+    shows listed "heavy-slot-1  pid "
+    shows listed "held 0m  sefaz gates"
+    hides listed "stopped chain"
+    shows listed "kit window list ok windows=0 free_mb=8000 heavy_slots=1"
+    testing.expect (path_exists (fixture_path root "queue/holder-2.h") = !-) "a holder whose pid is gone is removed"
+    fixture_root_remove root
+
+///> rust
+:# refusals_name_the_usage =
+    := root = fixture_root_create "window refusals"
+    rejected_with
+        (window_call root "8000" (Arg ("request", Arg ("gui", Arg ("5", NoArgs)))))
+        2i32
+        "request: unknown class 'gui'"
+    rejected_with
+        (window_call root "8000" (Arg ("request", Arg ("compile", Arg ("soon", NoArgs)))))
+        2i32
+        "minutes must be a whole number above 0, received 'soon'"
+    rejected_with
+        (window_call root "8000" (Arg ("release", Arg ("win-0-missing", NoArgs))))
+        2i32
+        "release: unknown window id 'win-0-missing'"
+    rejected_with
+        (window_call root "8000" (Arg ("open", NoArgs)))
+        2i32
+        "classes live-gui|test-suite|heavy-build|compile|compiler-install"
+    fixture_root_remove root
+
+///> rust
+:# a_tree_read_window_refuses_edits_under_its_root_and_never_blocks_compiles =
+    := root = fixture_root_create "window claim"
+    := tree = fixture_path root "repo"
+    shows (succeeded (requested root "tree-read" tree NoArgs)) "class=tree-read minutes=30"
+    := inside = window_call root "8000" (Arg ("claim", Arg (cat tree "/src/a.spi", NoArgs)))
+    testing.expect (inside.code = 1i32) (run_text inside)
+    shows inside.stdout "kit window claim refused path="
+    shows inside.stdout " is read by win-"
+    shows
+        (succeeded (window_call root "8000" (Arg ("claim", Arg (fixture_path root "elsewhere/a.spi", NoArgs)))))
+        "edit allowed"
+    shows (succeeded (requested root "compile" "next build" NoArgs)) "kit window request ok"
+    fixture_root_remove root
+
+:= dead_reader_row (~tree : string) : string =
+    cat "win-1-4294967290-run\ttree-read\theld\t" (cat tree "\t1\t9223372036854775807")
+
+///> rust
+:# a_tree_read_window_whose_holder_died_refuses_nothing =
+    := root = fixture_root_create "window claim orphan"
+    := tree = fixture_path root "repo"
+    fixture_write root "windows/win-1-4294967290-run.window" (dead_reader_row tree)
+    shows (succeeded (window_call root "8000" (Arg ("claim", Arg (cat tree "/src/a.spi", NoArgs))))) "edit allowed"
+    testing.expect
+        (path_exists (fixture_path root "windows/win-1-4294967290-run.window") = !-)
+        "the claim pruned the dead reader's row"
+    fixture_root_remove root
+
+///> rust
+:# a_compile_job_gives_up_when_no_window_comes_within_its_slot_minutes =
+    := root = fixture_root_create "window slot within"
+    := install = word_after (succeeded (requested root "compiler-install" "spiral install" NoArgs)) "id="
+    := quick = rustc_program root "quick" "fn main() {}"
+    := started =
+        succeeded (heavy_call root (Arg ("start", Arg ("--compile", Arg ("--slot-within", Arg ("1", Arg ("expires",
+            Arg ("3000", Arg (quick, NoArgs)))))))))
+    shows started "slot_within_min=1"
+    := job = word_after started "id="
+    := waited = heavy_call root (Arg ("wait", Arg (job, Arg ("120000", NoArgs))))
+    testing.expect (waited.code = 75i32) (cat "expected exit 75, " (run_text waited))
+    shows waited.stdout "state=expired-in-queue exit=75"
+    shows waited.stdout "--slot-within"
+    testing.expect (path_exists (fixture_path root (cat "jobs/" (cat job "/stdout.log"))) = !-) "the job never started"
+    shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "kit window list ok windows=1"
+    := _ = succeeded (window_call root "8000" (Arg ("release", Arg (install, NoArgs))))
+    rejected_with
+        (
+            heavy_call root (Arg ("start", Arg ("--compile", Arg ("--slot-within", Arg ("0", Arg ("zero", Arg ("3000",
+                Arg (quick, NoArgs))))))))
+        )
+        2i32
+        "--slot-within needs a positive number of minutes"
+    rejected_with
+        (
+            heavy_call root (
+                Arg ("start", Arg ("--slot-within", Arg ("5", Arg ("plain", Arg ("3000", Arg (quick, NoArgs))))))
+            )
+        )
+        2i32
+        "--slot-within applies to --heavy or --compile jobs"
+    fixture_root_remove root
+
+///> rust
+:# a_compile_hold_window_keeps_new_compiles_waiting =
+    := root = fixture_root_create "window compile hold"
+    := hold = word_after (succeeded (requested root "compile-hold" "pre-commit start" NoArgs)) "id="
+    := blocked = window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", NoArgs))))
+    testing.expect (blocked.code = 1i32) (run_text blocked)
+    shows blocked.stdout "holder=compile-hold"
+    shows
+        (succeeded (window_call root "8000" (Arg ("request", Arg ("heavy-build", Arg ("5", NoArgs))))))
+        "kit window request ok"
+    := _ = succeeded (window_call root "8000" (Arg ("release", Arg (hold, NoArgs))))
+    shows
+        (succeeded (window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", NoArgs))))))
+        "kit window request ok"
+    := quick = rustc_program root "quick" "fn main() {}"
+    rejected_with
+        (heavy_call root (Arg ("start", Arg ("--quiet", Arg ("plain", Arg ("3000", Arg (quick, NoArgs)))))))
+        2i32
+        "--quiet applies to --heavy jobs"
+    rejected_with
+        (
+            heavy_call root (Arg ("start", Arg ("--heavy", Arg ("--quiet", Arg ("--quiet-hold", Arg ("90", Arg ("long",
+                Arg ("3000", Arg (quick, NoArgs)))))))))
+        )
+        2i32
+        "--quiet-hold takes 1 to 60 minutes"
+    fixture_root_remove root
+
+///> rust
+:# a_request_waits_for_the_memory_floor_it_asks_for =
+    := root = fixture_root_create "window floor"
+    := raised =
+        window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", Arg ("--label", Arg ("cells notebook",
+            Arg ("--min-free-mb", Arg ("9000", NoArgs))))))))
+    testing.expect (raised.code = 1i32) (run_text raised)
+    shows raised.stdout "reason=low-memory free_mb=8000 need_mb=9000"
+    shows
+        (
+            succeeded (window_call root "8000" (Arg ("request", Arg ("compile", Arg ("5", Arg ("--label", Arg ("small",
+                Arg ("--min-free-mb", Arg ("500", NoArgs)))))))))
+        )
+        "kit window request ok"
+    fixture_root_remove root
+
+///> rust
+:# a_compile_job_waits_for_the_memory_floor_it_declares =
+    := root = fixture_root_create "job floor"
+    fixture_write root "gate.ps1" (fake_gate ())
+    := quick = rustc_program root "quick" "fn main() {}"
+    := job =
+        word_after
+            (
+                succeeded (heavy_call root (Arg ("start", Arg ("--compile", Arg ("--min-free-mb", Arg ("9000",
+                    Arg ("floored", Arg ("30000", Arg (quick, NoArgs)))))))))
+            )
+            "id="
+    pause_ms 3000u64
+    shows (succeeded (heavy_call root (Arg ("status", Arg (job, NoArgs))))) "state=queued"
+    shows (fixture_read root (cat "jobs/" (cat job "/window"))) "need_mb=9000"
+    := _ = succeeded (heavy_call root (Arg ("stop", Arg (job, NoArgs))))
+    rejected_with
+        (
+            heavy_call root (Arg ("start", Arg ("--min-free-mb", Arg ("500", Arg ("plain", Arg ("3000", Arg (quick,
+                NoArgs)))))))
+        )
+        2i32
+        "--min-free-mb applies to --heavy or --compile jobs"
+    rejected_with
+        (
+            heavy_call root (Arg ("start", Arg ("--compile", Arg ("--min-free-mb", Arg ("0", Arg ("zero", Arg ("3000",
+                Arg (quick, NoArgs))))))))
+        )
+        2i32
+        "--min-free-mb needs a positive number of MB"
+    rejected_with
+        (
+            heavy_call root (Arg ("start", Arg ("--heavy", Arg ("--done-within-typo", Arg ("5", Arg ("label",
+                Arg ("3000", Arg (quick, NoArgs))))))))
+        )
+        2i32
+        "unknown option --done-within-typo"
+    rejected_with
+        (heavy_call root (Arg ("start", Arg ("label", Arg ("3000", Arg ("--heavy", NoArgs))))))
+        2i32
+        "the program cannot start with --"
+    fixture_root_remove root
+
+///> rust
+:# every_grant_and_release_lands_in_the_window_event_log =
+    := root = fixture_root_create "window events"
+    := id = word_after (succeeded (requested root "compile" "logged" NoArgs)) "id="
+    := _ = succeeded (window_call root "8000" (Arg ("release", Arg (id, NoArgs))))
+    := log = fixture_read root "windows/events.log"
+    shows log (cat "\tgranted\t" id)
+    shows log (cat "\treleased\t" id)
+    fixture_root_remove root

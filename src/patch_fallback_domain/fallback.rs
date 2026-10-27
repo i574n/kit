@@ -2,19 +2,19 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 fn patch_route_role_binding_0(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         -1i32
     } else {
-        let mut v3: bool = 2i32 < v0;
+        let v3: bool = 2i32 < v0;
         if v3 {
             -1i32
         } else {
-            let mut v4: bool = v0 < v1;
+            let v4: bool = v0 < v1;
             if v4 {
                 -1i32
             } else {
-                let mut v5: bool = v1 < v0;
+                let v5: bool = v1 < v0;
                 if v5 {
                     -1i32
                 } else {
@@ -25,19 +25,19 @@ fn patch_route_role_binding_0(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn patch_route_forward_binding_1(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         -1i32
     } else {
-        let mut v3: bool = 2i32 < v0;
+        let v3: bool = 2i32 < v0;
         if v3 {
             -1i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 -1i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     -1i32
                 } else {
@@ -51,11 +51,11 @@ fn patch_route_restore_binding_2(mut v0: i32, mut v1: i32) -> i32 {
     patch_route_forward_binding_1(v0, v1)
 }
 fn patch_route_hash_binding_3(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < v1;
+    let v2: bool = v0 < v1;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < v0;
+        let v3: bool = v1 < v0;
         if v3 {
             0i32
         } else {
@@ -64,19 +64,19 @@ fn patch_route_hash_binding_3(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn patch_route_complete_binding_4(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 2i32 < v0;
+        let v3: bool = 2i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -87,19 +87,19 @@ fn patch_route_complete_binding_4(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn patch_route_agreement_binding_5(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 1i32;
+    let v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = 1i32 < v0;
+        let v3: bool = 1i32 < v0;
         if v3 {
             0i32
         } else {
-            let mut v4: bool = v1 < 1i32;
+            let v4: bool = v1 < 1i32;
             if v4 {
                 0i32
             } else {
-                let mut v5: bool = 1i32 < v1;
+                let v5: bool = 1i32 < v1;
                 if v5 {
                     0i32
                 } else {
@@ -139,21 +139,21 @@ fn closure5() -> Rc<dyn Fn(i32, i32) -> i32> {
         patch_route_agreement_binding_5(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-pub fn eoie_patch_route_role_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_route_role_binding(v0: i32, v1: i32) -> i32 {
     closure0()(v0, v1)
 }
-pub fn eoie_patch_route_forward_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_route_forward_binding(v0: i32, v1: i32) -> i32 {
     closure1()(v0, v1)
 }
-pub fn eoie_patch_route_restore_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_route_restore_binding(v0: i32, v1: i32) -> i32 {
     closure2()(v0, v1)
 }
-pub fn eoie_patch_route_hash_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_route_hash_binding(v0: i32, v1: i32) -> i32 {
     closure3()(v0, v1)
 }
-pub fn eoie_patch_route_complete_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_route_complete_binding(v0: i32, v1: i32) -> i32 {
     closure4()(v0, v1)
 }
-pub fn eoie_patch_route_agreement_binding(v0: i32, v1: i32) -> i32 {
+pub fn kit_patch_route_agreement_binding(v0: i32, v1: i32) -> i32 {
     closure5()(v0, v1)
 }

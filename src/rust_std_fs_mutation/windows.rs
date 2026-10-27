@@ -231,7 +231,7 @@ fn windows_stage_reader(target: &Path, reader: &mut impl std::io::Read, permissi
     let g = windows_guard(target, false, create)?;
     let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|e| e.to_string())?.as_nanos();
     for attempt in 0..32 {
-        let stage = target.with_file_name(format!(".eoie-stage-{}-{nonce}-{attempt}", std::process::id()));
+        let stage = target.with_file_name(format!(".kit-stage-{}-{nonce}-{attempt}", std::process::id()));
         let absolute_stage = g.path.with_file_name(stage.file_name().ok_or("stage has no filename")?);
         let mut file = match WinOptions::new().write(true).create_new(true).open(&absolute_stage) {
             Ok(f) => f, Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue, Err(e) => return Err(e.to_string()),
@@ -335,12 +335,12 @@ mod windows_copy_tests {
     impl Fixture {
         fn new() -> Self {
             let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-            let root = std::env::temp_dir().join(format!("eoie copy ü {} {nonce}", std::process::id()));
+            let root = std::env::temp_dir().join(format!("kit copy ü {} {nonce}", std::process::id()));
             win_fs::create_dir(&root).unwrap();
             Self(root)
         }
         fn stages(&self) -> usize {
-            win_fs::read_dir(&self.0).unwrap().filter(|entry| entry.as_ref().unwrap().file_name().to_string_lossy().starts_with(".eoie-stage-")).count()
+            win_fs::read_dir(&self.0).unwrap().filter(|entry| entry.as_ref().unwrap().file_name().to_string_lossy().starts_with(".kit-stage-")).count()
         }
     }
     impl Drop for Fixture {
@@ -395,7 +395,7 @@ mod windows_copy_tests {
         let offset = std::mem::offset_of!(RenameInfo, name);
         let leaves_covering_every_name_length_mod_4 = ["t", "t1", "t22", "t333"];
         for leaf in leaves_covering_every_name_length_mod_4 {
-            let target = Path::new(r"\\?\C:\eoie").join(leaf);
+            let target = Path::new(r"\\?\C:\kit").join(leaf);
             let (buffer, size) = windows_rename_info(&target, 1).unwrap();
             let length = unsafe { (*buffer.as_ptr().cast::<RenameInfo>()).bytes } as usize;
             assert_eq!(length, 2 * target.as_os_str().len(), "FileNameLength excludes the NUL");

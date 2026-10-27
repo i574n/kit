@@ -1,11 +1,11 @@
-nominal binary_install_raw = ()
-nominal binary_install_inspected = ()
-nominal binary_install_staged = ()
-nominal binary_install_verified = ()
-nominal binary_install_promoted = ()
-nominal binary_install_recorded = ()
+:! binary_install_raw = ()
+:! binary_install_inspected = ()
+:! binary_install_staged = ()
+:! binary_install_verified = ()
+:! binary_install_promoted = ()
+:! binary_install_recorded = ()
 
-union binary_install_policy =
+:| binary_install_policy =
     | RejectUnsafeInstallPath
     | RejectStaleInstallSource
     | RejectStaleInstallDestination
@@ -17,25 +17,27 @@ union binary_install_policy =
     | RollbackFailedPromotion
     | RecordTypedProvenance
 
-union binary_install_op from to =
+:| binary_install_op from to =
     | InspectBinaryInstall :: binary_install_op binary_install_raw binary_install_inspected
     | StageBinaryPayload :: binary_install_op binary_install_inspected binary_install_staged
     | VerifyBinaryStage :: binary_install_op binary_install_staged binary_install_verified
     | PromoteBinaryStage :: binary_install_op binary_install_verified binary_install_promoted
     | PersistBinaryProvenance :: binary_install_op binary_install_promoted binary_install_recorded
 
-union rec binary_install_plan from to =
-    | BinaryInstallStep :: forall from to. binary_install_op from to -> binary_install_plan from to
-    | BinaryInstallThen :: forall from to. (exists middle. binary_install_plan from middle * binary_install_plan middle to) -> binary_install_plan from to
+:| ^ binary_install_plan from to =
+    | BinaryInstallStep :: \* from to. binary_install_op from to -> binary_install_plan from to
+    | BinaryInstallThen :: \* from to.
+        (\? middle. binary_install_plan from middle * binary_install_plan middle to) ->
+        binary_install_plan from to
 
-inl binary_install_public_plan () : binary_install_plan binary_install_raw binary_install_recorded =
-    BinaryInstallThen (exists (
+:= binary_install_public_plan () : binary_install_plan binary_install_raw binary_install_recorded =
+    BinaryInstallThen (\? (
         BinaryInstallStep InspectBinaryInstall,
-        BinaryInstallThen (exists (
+        BinaryInstallThen (\? (
             BinaryInstallStep StageBinaryPayload,
-            BinaryInstallThen (exists (
+            BinaryInstallThen (\? (
                 BinaryInstallStep VerifyBinaryStage,
-                BinaryInstallThen (exists (
+                BinaryInstallThen (\? (
                     BinaryInstallStep PromoteBinaryStage,
                     BinaryInstallStep PersistBinaryProvenance
                 ))

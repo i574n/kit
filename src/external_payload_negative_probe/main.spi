@@ -1,19 +1,19 @@
-open external_payload_contract.model
+:< external_payload_contract.model
 
-inl main () : i32 =
-    match external_payload_scope_binding 1i32 1i32 1i32 0i32 with
+:= main () : i32 =
+    ?= external_payload_scope_binding 1i32 1i32 1i32 0i32 ?|
     | 0 =>
-        match external_payload_identity_binding 0i32 1i32 1i32 with
+        ?= external_payload_identity_binding 0i32 1i32 1i32 ?|
         | 0 =>
-            match external_payload_hydrate_binding 0i32 0i32 0i32 0i32 with
+            ?= external_payload_hydrate_binding 0i32 0i32 0i32 0i32 ?|
             | 0 =>
-                match external_payload_hydrate_binding 1i32 1i32 0i32 1i32 with
+                ?= external_payload_hydrate_binding 1i32 1i32 0i32 1i32 ?|
                 | 0 =>
-                    match external_payload_dehydrate_binding 1i32 0i32 1i32 1i32 with
+                    ?= external_payload_dehydrate_binding 1i32 0i32 1i32 1i32 ?|
                     | 0 =>
-                        match external_payload_stage_binding 1i32 1i32 0i32 with
+                        ?= external_payload_stage_binding 1i32 1i32 0i32 ?|
                         | 0 =>
-                            match external_payload_completion_binding 1i32 1i32 0i32 with
+                            ?= external_payload_completion_binding 1i32 1i32 0i32 ?|
                             | 0 => 0i32
                             | _ => 7i32
                         | _ => 6i32

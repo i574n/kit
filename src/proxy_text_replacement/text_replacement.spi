@@ -1,115 +1,130 @@
-open agile_task_text.model
-open sm'_operators
-open workspace_primitives.outcome
-open workspace_primitives.numbers
-open workspace_primitives.bytes
-open workspace_primitives.clock
-open workspace_primitives.console
-open workspace_primitives.files
-open workspace_primitives.rooted
+:< agile_task_text.model
+:< sm'_operators
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+:< workspace_primitives.rooted
 
-union replace_mode =
+:| replace_mode =
     | CheckReplacement
     | ApplyReplacement
 
-union match_expectation =
+:| match_expectation =
     | ExactlyOneMatch
     | ExactlyMatches : u64
     | EveryMatch
 
-union replacement_outcome =
+:| replacement_outcome =
     | ReplacementReceipt : string
     | ReplacementRejected : string
 
-inl u64_parsed (~text : string) : u64 = $'!text.parse::<u64>().unwrap_or(0)' : u64
-inl u64_positive (value : u64) : bool = $"0 < !value"
-inl u64_equal (a : u64) (b : u64) : bool = $"!a == !b"
+:= u64_parsed (~text : string) : u64 = $'!text.parse::<u64>().unwrap_or(0)' : u64
+:= u64_positive (value : u64) : bool = $"0 < !value"
+:= u64_equal (a : u64) (b : u64) : bool = (a = b)
 
-let regular_file (~path : string) : bool = file_system.path_buf_is_file (file_system.new_path_buf (sm'.to_std_string path))
-inl file_text (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default())' : string
-inl match_count (~text : string) (~needle : string) : u64 = $'!text.match_indices(&*!needle).count() as u64' : u64
-inl replaced_text (~text : string) (~needle : string) (~replacement : string) (count : u64) : string =
+:~ regular_file (~path : string) : bool =
+    file_system.path_buf_is_file (file_system.new_path_buf (sm'.to_std_string path))
+:= file_text (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default\
+    ())' : string
+:= match_count (~text : string) (~needle : string) : u64 = $'!text.match_indices(&*!needle).count() as u64' : u64
+:= replaced_text (~text : string) (~needle : string) (~replacement : string) (count : u64) : string =
     $'std::rc::Rc::<str>::from(!text.replacen(&*!needle, &*!replacement, !count as usize))' : string
-inl replaced_everywhere (~text : string) (~needle : string) (~replacement : string) : string =
-    $'std::rc::Rc::<str>::from(!text.replace(&*!needle, &*!replacement))' : string
+:= replaced_everywhere (~text : string) (~needle : string) (~replacement : string) : string =
+    sm'.replace needle replacement text
 
-inl parse_mode (~text : string) : validation_result replace_mode =
-    if (text = "check") then Valid CheckReplacement
-    elif (text = "apply") then Valid ApplyReplacement
-    else Invalid
+:= parse_mode (~text : string) : validation_result replace_mode =
+    ? (text = "check") ?> Valid CheckReplacement
+    |? (text = "apply") ?> Valid ApplyReplacement
+    |: Invalid
 
-inl parse_expectation () : validation_result match_expectation =
-    match proxy_argument_count () with
+:= parse_expectation () : validation_result match_expectation =
+    ?= proxy_argument_count () ?|
     | 6i32 => Valid ExactlyOneMatch
-    | 7i32 => if ((proxy_argument 6i32) = "--all") then Valid EveryMatch else Invalid
+    | 7i32 => ? ((proxy_argument 6i32) = "--all") ?> Valid EveryMatch |: Invalid
     | 8i32 =>
-        inl expected = u64_parsed (proxy_argument 7i32)
-        if ((proxy_argument 6i32) = "--expect") then
-            if u64_positive expected then Valid (ExactlyMatches expected) else Invalid
-        else Invalid
+        := expected = u64_parsed (proxy_argument 7i32)
+        ? ((proxy_argument 6i32) = "--expect") ?>
+            ? u64_positive expected ?> Valid (ExactlyMatches expected) |: Invalid
+        |: Invalid
     | _ => Invalid
 
-inl expectation_met (expectation : match_expectation) (matches : u64) : bool =
-    match expectation with
+:= expectation_met (expectation : match_expectation) (matches : u64) : bool =
+    ?= expectation ?|
     | ExactlyOneMatch => u64_equal matches 1u64
     | ExactlyMatches expected => u64_equal matches expected
     | EveryMatch => u64_positive matches
 
-inl expectation_text = function
+:= expectation_text = \|
     | ExactlyOneMatch => "1"
     | ExactlyMatches expected => u64_text expected
     | EveryMatch => "all"
 
-inl mode_text = function
+:= mode_text = \|
     | CheckReplacement => "check"
     | ApplyReplacement => "apply"
 
-inl rejected (~reason : string) : replacement_outcome = ReplacementRejected reason
+:= rejected (~reason : string) : replacement_outcome = ReplacementRejected reason
 
-inl receipt (mode : replace_mode) (~path : string) (matches : u64) (expectation : match_expectation) (before : u64) (after : u64) (started : u64) : replacement_outcome =
-    inl head = "eoie proxy text-replace ok mode=" ++# (mode_text mode) ++# " path=" ++# path ++# " matches="
-    inl middle = (u64_text matches) ++# " expected=" ++# (expectation_text expectation)
+:= receipt
+    (mode : replace_mode) (~path : string) (matches : u64) (expectation : match_expectation) (before : u64)
+    (after : u64) (started : u64)
+    : replacement_outcome
+    =
+    := head = "kit proxy text-replace ok mode=" ++# (mode_text mode) ++# " path=" ++# path ++# " matches="
+    := middle = (u64_text matches) ++# " expected=" ++# (expectation_text expectation)
     ReplacementReceipt (head ++# middle ++# (measured_sizes before after (ms_since started)))
 
-inl replace_in (mode : replace_mode) (expectation : match_expectation) (~path : string) (~needle : string) (~replacement : string) (started : u64) : replacement_outcome =
-    inl original = file_text path
-    inl matches = match_count original needle
-    if expectation_met expectation matches then
-        inl updated =
-            match expectation with
+:= replace_in
+    (mode : replace_mode) (expectation : match_expectation) (~path : string) (~needle : string) (~replacement : string)
+    (started : u64)
+    : replacement_outcome
+    =
+    := original = file_text path
+    := matches = match_count original needle
+    ? expectation_met expectation matches
+    ?>
+        := updated =
+            ?= expectation ?|
             | EveryMatch => replaced_everywhere original needle replacement
             | _ => replaced_text original needle replacement matches
-        match mode with
+        ?= mode ?|
         | CheckReplacement => receipt mode path matches expectation (text_bytes original) (text_bytes updated) started
         | ApplyReplacement =>
-            match replace_file_checked path updated with
+            ?= replace_file_checked path updated ?|
             | Replaced => receipt mode path matches expectation (text_bytes original) (text_bytes updated) started
             | problem => rejected (file_replacement_problem problem)
-    else
-        inl observed = "text-replace expected " ++# (expectation_text expectation) ++# " match(es), observed matches=" ++# (u64_text matches)
+    |:
+        := observed =
+            "text-replace expected "
+            ++# expectation_text expectation
+            ++# " match(es), observed matches="
+            ++# u64_text matches
         rejected (observed ++# " (use --expect N or --all for repeated text)")
 
-let text_replace_outcome () : replacement_outcome =
-    inl started = unix_ms ()
-    match parse_mode (proxy_argument 1i32), parse_expectation () with
+:~ text_replace_outcome () : replacement_outcome =
+    := started = unix_ms ()
+    ?= parse_mode (proxy_argument 1i32), parse_expectation () ?|
     | Invalid, _ => rejected "text-replace mode must be check or apply"
     | _, Invalid => rejected "text-replace expects <check|apply> <root> <relative> <old> <new> [--expect N | --all]"
     | Valid mode, Valid expectation =>
-        inl needle = proxy_argument 4i32
-        inl replacement = proxy_argument 5i32
-        inl path = rooted_path (proxy_argument 2i32) (proxy_argument 3i32)
-        if (path = "") then rejected "text-replace target escapes the root"
-        elif (needle = "") then rejected "text-replace old text is empty"
-        elif (needle = replacement) then rejected "text-replace old and new text are identical"
-        elif regular_file path then replace_in mode expectation path needle replacement started
-        else rejected "text-replace target is not a regular file"
+        := needle = proxy_argument 4i32
+        := replacement = proxy_argument 5i32
+        := path = rooted_path (proxy_argument 2i32) (proxy_argument 3i32)
+        ? (path = "") ?> rejected "text-replace target escapes the root"
+        |? (needle = "") ?> rejected "text-replace old text is empty"
+        |? (needle = replacement) ?> rejected "text-replace old and new text are identical"
+        |? regular_file path ?> replace_in mode expectation path needle replacement started
+        |: rejected "text-replace target is not a regular file"
 
-let text_replace_report () : i32 * string =
-    match text_replace_outcome () with
+:~ text_replace_report () : i32 * string =
+    ?= text_replace_outcome () ?|
     | ReplacementReceipt text => 0i32, text
     | ReplacementRejected text => 2i32, text
 
-inl main () : i32 =
-    !!!!Export("eoie_text_replace_outcome", ((fun () => text_replace_report ()) : () -> i32 * string))
-    inl _ = text_replace_outcome ()
+:= main () : i32 =
+    !!!!Export("kit_text_replace_outcome", ((\ () => text_replace_report ()) : () -> i32 * string))
+    := _ = text_replace_outcome ()
     0i32

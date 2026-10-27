@@ -1,0 +1,34 @@
+:< kit_do_model.model
+
+:< kit_do_records.records
+
+:~ compiled_text (~text : string) : string = $'kit_do_program::kit_do_program_compiled(&*!text)' : string
+
+inl has_edit (~records : record_list) : bool = $'!records.iter().skip(1).any(|fields| fields.first().map(|kind| \
+    &**kind == "edit").unwrap_or(false))' : bool
+
+:~ program_family_of (~encoded : string) : program_family =
+    ?= program_family_named ($'kit_do_verbs::kit_do_program_family(&*!encoded)' : string) ?|
+    | Some family => family
+    | None => Edits
+
+:| compiled_program =
+    | CompileRejected : string
+    | Delegated : program_family * string
+    | Split : string * string
+
+:~ program_decoded (~text : string) : compiled_program =
+    := encoded = compiled_text text
+    := records = records_of encoded
+    ? field_at records 0i32 0i32 = "ok" ?>
+        ?= program_family_of encoded ?|
+        | Runs => Delegated ((? has_edit records ?> Edits |: Runs), encoded)
+        | Writes =>
+            ? has_edit records ?>
+                Split (
+                    records_by_kinds records "edit|except|replace|pattern|show" !+,
+                    records_by_kinds records "edit|except|replace|pattern|show" !-
+                )
+            |: Delegated (Writes, encoded)
+        | family => Delegated (family, encoded)
+    |: CompileRejected (field_at records 1i32 0i32)

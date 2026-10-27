@@ -1,0 +1,6 @@
+:< habits
+
+:= main () : i32 =
+    !!!!Export("kit_adoption_habit_any", ((\ command => habit_any command) : string -> bool))
+    !!!!Export("kit_adoption_habit_words", ((\ command => habit_words command) : string -> string))
+    0i32

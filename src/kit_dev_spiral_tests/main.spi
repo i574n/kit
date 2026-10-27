@@ -1,0 +1,55 @@
+:< registry
+:< sm'_operators
+:< failures
+
+:~ ^ selected_notebooks
+    (root : string) (names : string) (separator : string) (notebooks : list spiral_test_notebook) (~acc : string)
+    : string
+    =
+    ?= notebooks ?|
+    | [] => acc
+    | entry :: rest =>
+        := chosen = selects names separator entry.package && notebook.present root entry.relative
+        selected_notebooks root names separator rest (
+            ? chosen ?> (? acc = "" ?> entry.relative |: acc ++# "\n" ++# entry.relative) |: acc
+        )
+
+:~ ^ announced (~listed : string) (index : i32) : i32 =
+    ? index < notebook.line_count listed ?>
+        := _ = notebook.announce (notebook.line_at listed index)
+        announced listed (index + 1i32)
+    |: 0i32
+
+:~ reported (failures : failed_notebooks) (code : i32) : i32 =
+    ?= failures ?|
+    | NoFailures =>
+        := _ = ? code = 0i32 ?> () |: $'eprintln\!("spiral notebooks: every notebook reported passing, \
+            but the batch exited {}", !code)' : ()
+        code
+    | _ =>
+        := listed = failure_list failures ""
+        := count = failure_count failures 0i32
+        := _ = $'eprintln\!("spiral notebooks failed ({}): {}", !count, &*!listed)' : ()
+        first_code failures 1i32
+
+:~ run_registered
+    (root : string) (target : string) (names : string) (separator : string) (dry : bool) (timeout : u64)
+    : i32
+    =
+    := listed = selected_notebooks root names separator (registered ()) ""
+    ? dry ?> announced listed 0i32
+    |? listed = "" ?> 0i32
+    |:
+        := outcome = notebook.run_batch root target listed timeout
+        := code = notebook.batch_code outcome
+        reported (failures_of (notebook.batch_failed outcome) 0i32 (? code = 0i32 ?> 1i32 |: code) NoFailures) code
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_dev_spiral_tests_run",
+        (
+            \ (root, target, names, separator, dry, timeout) => run_registered root target names separator dry timeout
+            : string * string * string * string * bool * u64 -> i32
+        )
+    )
+    0i32

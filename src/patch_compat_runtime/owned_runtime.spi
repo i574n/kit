@@ -1,13 +1,12 @@
-inl rust_global (x : string) : () = !!!!Global(x)
 
-inl emit_owned_runtime () : () =
-    rust_global """
+:= emit_owned_runtime () : () =
+    global """
         #[must_use]
         pub fn patch_prepare_source_owned(root: &str, plan: &str) -> std::rc::Rc<str> {
             match prepare_patch_source(root, plan) {
                 Ok(source) => std::rc::Rc::<str>::from(source),
                 Err(error) => {
-                    eprintln!("eoie error: {error}");
+                    eprintln!("kit error: {error}");
                     std::rc::Rc::<str>::default()
                 }
             }
@@ -24,7 +23,7 @@ inl emit_owned_runtime () : () =
             ) {
                 Ok(()) => validated_count,
                 Err(error) => {
-                    eprintln!("eoie error: {error}");
+                    eprintln!("kit error: {error}");
                     -1
                 }
             }
@@ -32,12 +31,12 @@ inl emit_owned_runtime () : () =
 
         #[must_use]
         pub fn patch_apply_context_owned(root: &str, source: &str, validated_count: i32) -> i32 {
-            if std::env::var("EOIE_PATCH_FAULT").ok().as_deref() == Some("after-typecheck") {
+            if std::env::var("KIT_PATCH_FAULT").ok().as_deref() == Some("after-typecheck") {
                 return patch_finish(Err("injected patch fault after typecheck".to_owned()));
             }
             let result = apply_patch_context(std::path::Path::new(root), source, validated_count);
             if result.is_ok()
-                && let Err(error) = eoie_patch_source_adapter::patch_resume_complete(root, source)
+                && let Err(error) = kit_patch_source_adapter::patch_resume_complete(root, source)
             {
                 return patch_finish(Err(error));
             }

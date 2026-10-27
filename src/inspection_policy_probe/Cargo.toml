@@ -14,4 +14,4 @@ name = "inspection-policy-probe"
 path = "inspection_policy_probe.rs"
 
 [dependencies]
-eoie-proxy-search = { path = "../eoie_proxy_search" }
+kit-proxy-search = { path = "../kit_proxy_search" }

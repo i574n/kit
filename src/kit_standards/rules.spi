@@ -1,0 +1,316 @@
+///- --package .
+:# rules static =
+    :< sm'_operators
+    :< workspace_primitives.bytes
+
+:< sm'_operators
+:< workspace_primitives.bytes
+
+:| standard =
+    | NoCommentLines
+    | LineWidth : i32
+    | LfOnly
+    | IntegerOnly : string
+    | TestTargets
+    | HostFree
+    | LibReferenced
+
+:| ^ standards =
+    | NoStandards
+    | StandardThen : standard * standards
+
+:| line_kind =
+    | BlankLine
+    | CodeLine
+    | DirectiveLine
+    | TodoLine
+    | CommentLine
+
+:== file_scan =
+    {
+        findings : string
+        count : i32
+        in_todo : bool
+        last_code : string
+        header_targets : bool
+    }
+
+:= todo_marker () : string = "TO" ++# "DO"
+
+:= trimmed_start (~line : string) : string = $'std::rc::Rc::<str>::from((!line).trim_start())' : string
+:= char_count (~line : string) : i32 = $'(!line).trim_end_matches(char::from(13u8)).chars().count() as i32' : i32
+:= i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+
+:= line_kind_of (~line : string) : line_kind =
+    := lead = trimmed_start line
+    ? lead = "" || lead = "\r" ?> BlankLine
+    |? sm'.starts_with "///" lead ?> DirectiveLine
+    |? sm'.starts_with "//" lead ?> (? sm'.contains (todo_marker ()) lead ?> TodoLine |: CommentLine)
+    |: CodeLine
+
+:= standard_word = \|
+    | NoCommentLines => "no-comment-lines"
+    | LineWidth _ => "line-width"
+    | LfOnly => "lf-only"
+    | IntegerOnly _ => "integer-only"
+    | TestTargets => "test-targets"
+    | HostFree => "host-free"
+    | LibReferenced => "lib-referenced"
+
+:= default_standards () : standards =
+    StandardThen (NoCommentLines, StandardThen (LineWidth 120i32, StandardThen (LfOnly, StandardThen (TestTargets,
+        NoStandards))))
+
+:= row_value (~row : string) (~case : string) : string =
+    $'std::rc::Rc::<str>::from((!row).split_once(&*!case).map(|(_, \
+        rest)| rest.trim().trim_end_matches("u32").trim_end_matches("i32").trim_matches(char::from(34u8))).unwrap_or("\
+        "))' : string
+
+:= line_head (~text : string) : string = $'std::rc::Rc::<str>::from((!text).split(char::from(10u8)).next().unwrap_or("\
+    "))' : string
+:= line_rest (~text : string) : string = $'std::rc::Rc::<str>::from((!text).split_once(char::from(10u8)).map(|(_, \
+    rest)| rest).unwrap_or(""))' : string
+
+:| declared_row =
+    | DeclaredRule : standard
+    | UnknownRule : string
+    | NotARule
+
+:= declaration_row (~row : string) : bool =
+    sm'.starts_with "inl " row || sm'.starts_with "let " row || sm'.starts_with ":= " row || sm'.starts_with ":~ " row
+
+:~ declared_row_of (~row : string) : declared_row =
+    ? declaration_row row = !- ?> NotARule
+    |? sm'.contains "= NoCommentLines" row ?> DeclaredRule NoCommentLines
+    |? sm'.contains "= LfOnly" row ?> DeclaredRule LfOnly
+    |? sm'.contains "= TestTargets" row ?> DeclaredRule TestTargets
+    |? sm'.contains "= HostFree" row ?> DeclaredRule HostFree
+    |? sm'.contains "= LibReferenced" row ?> DeclaredRule LibReferenced
+    |? sm'.contains "= LineWidth " row ?> DeclaredRule (LineWidth ($'(!(row_value row "= LineWidth ")).parse::<i32>().\
+        unwrap_or(120)' : i32))
+    |? sm'.contains "= IntegerOnly " row ?> DeclaredRule (IntegerOnly (row_value row "= IntegerOnly "))
+    |? sm'.contains "() = " row && sm'.contains ") : " row = !- ?> UnknownRule (row_value row "() = ")
+    |: NotARule
+
+:~ ^ declared_from (~text : string) (found : standards) : standards =
+    ? text = "" ?> found
+    |:
+        ?= declared_row_of (line_head text) ?|
+        | DeclaredRule rule => declared_from (line_rest text) (StandardThen (rule, found))
+        | _ => declared_from (line_rest text) found
+
+:~ ^ unknown_rules (~text : string) (~path : string) (number : i32) (~found : string) : string =
+    ? text = ""
+    ?> found
+    |:
+        := next = line_rest text
+        ?= declared_row_of (line_head text) ?|
+        | UnknownRule name =>
+            unknown_rules next path
+                (number + 1i32)
+                (
+                    found
+                    ++# path
+                    ++# ":"
+                    ++# i32_text number
+                    ++# ("  unknown-rule  " ++# name ++# " is not a rule this kit knows, so it never runs" ++# "\n")
+                )
+        | _ => unknown_rules next path (number + 1i32) found
+
+:= finding (~path : string) (number : i32) (rule : standard) (~detail : string) : string =
+    path ++# ":" ++# (i32_text number) ++# "  " ++# ((standard_word rule) ++# "  " ++# detail ++# "\n")
+
+:= floating (~line : string) : bool = $'{ let line = &*!line; line.contains("f64") || line.contains("f32") }' : bool
+
+:~ ^ outside_quotes (pieces : array string) (index : i32) (kept : string) : string =
+    ? am'.length pieces <= index
+    ?> kept
+    |: outside_quotes pieces (index + 2i32) (kept ++# " " ++# am'.index index pieces)
+
+:~ unquoted (~line : string) : string = outside_quotes (sm'.split "\"" line |> array) 0i32 ""
+
+:~ line_findings
+    (rule : standard) (~path : string) (~module : string) (number : i32) (~line : string) (kind : line_kind)
+    (scan : file_scan)
+    : string
+    =
+    ?= rule ?|
+    | NoCommentLines =>
+        ?= kind ?|
+        | CommentLine =>
+            ? scan.in_todo ?> "" |: finding path number rule "a comment line; encode it in names or drop it"
+        | _ => ""
+    | LineWidth width =>
+        := count = char_count line
+        ? width < count ?> finding path number rule ((i32_text count) ++# " columns, limit " ++# (i32_text width)) |: ""
+    | LfOnly => ? sm'.ends_with "\r" line ?> finding path number rule "CRLF line ending" |: ""
+    | IntegerOnly name =>
+        ?= kind ?|
+        | CodeLine =>
+            ? name = module && floating line
+            ?> finding path number rule "floating point in an integer-only module"
+            |: ""
+        | _ => ""
+    | TestTargets =>
+        ?
+            sm'.starts_with "test " line
+            && sm'.contains " static =" line = !-
+            && sm'.starts_with "///> " scan.last_code = !-
+            && scan.header_targets = !-
+        ?> finding path number rule "test block without a ///> target line above it or in the file header"
+        |: ""
+    | HostFree =>
+        ?= kind ?|
+        | CodeLine =>
+            ? sm'.contains "$'" (unquoted line)
+            ?>
+                finding path number rule (
+                    "a host macro in a host-free package; reach for lib/spiral (sm', am', listm', file_system) or "
+                    ^^ "the OS boundary package"
+                )
+            |: ""
+        | _ => ""
+    | LibReferenced => ""
+
+:~ ^ rules_applied
+    (list : standards) (~path : string) (~module : string) (number : i32) (~line : string) (kind : line_kind)
+    (scan : file_scan) (~found : string)
+    : string
+    =
+    ?= list ?|
+    | NoStandards => found
+    | StandardThen (rule, rest) =>
+        rules_applied rest path module number line kind scan (
+            found ++# (line_findings rule path module number line kind scan)
+        )
+
+:= findings_count (~text : string) : i32 = $'(!text).lines().count() as i32' : i32
+
+:~ ^ lines_scanned
+    (list : standards) (~path : string) (~module : string) (~text : string) (number : i32) (scan : file_scan)
+    : file_scan
+    =
+    ? text = ""
+    ?> scan
+    |:
+        := line = line_head text
+        := kind = line_kind_of line
+        := found = rules_applied list path module number line kind scan ""
+        := in_todo =
+            ?= kind ?|
+            | TodoLine => !+
+            | CommentLine => scan.in_todo
+            | _ => !-
+        := last_code =
+            ?= kind ?|
+            | BlankLine => scan.last_code
+            | _ => trimmed_start line
+        := header_targets =
+            scan.header_targets
+            || (number = 2i32 && sm'.starts_with "///-" scan.last_code && sm'.starts_with "///> " (trimmed_start line))
+        := next =
+            {
+                findings = scan.findings ++# found
+                count = scan.count + findings_count found
+                in_todo = in_todo
+                last_code = last_code
+                header_targets = header_targets
+            }
+        lines_scanned list path module (line_rest text) (number + 1i32) next
+
+:~ file_scan_start () : file_scan = { findings = ""; count = 0i32; in_todo = !-; last_code = ""; header_targets = !- }
+
+
+:= scanned_text (list : standards) (~module : string) (~text : string) : string =
+    (lines_scanned list "m.spi" module text 1i32 (file_scan_start ())).findings
+
+///> rust
+:# comments_fail_but_todo_blocks_and_directives_pass =
+    := text = "///> rust\ninl a = 1\n// stray note\n// TODO: KIT-X wire it\n//     continuation\ninl b = 2\n"
+    testing.expect
+        (
+            scanned_text (StandardThen (NoCommentLines, NoStandards)) "m" text
+            = "m.spi:3  no-comment-lines  a comment line; encode it in names or drop it\n"
+        )
+        (scanned_text (StandardThen (NoCommentLines, NoStandards)) "m" text)
+
+///> rust
+:# widths_crlf_floats_and_test_targets_are_flagged =
+    := list =
+        StandardThen (LineWidth 10i32, StandardThen (LfOnly, StandardThen (IntegerOnly "m", StandardThen (TestTargets,
+            NoStandards))))
+    := text = "inl short = 1\r\ninl x = 1.0f64\n\n///> rust\ntest fine =\ntest bare =\ntest m static =\n"
+    := found = scanned_text list "m" text
+    testing.expect (sm'.contains "m.spi:1  line-width  13 columns, limit 10" found) found
+    testing.expect (sm'.contains "m.spi:1  lf-only  CRLF line ending" found) found
+    testing.expect (sm'.contains "m.spi:2  integer-only  floating point in an integer-only module" found) found
+    testing.expect (sm'.contains "m.spi:6  test-targets" found) found
+    testing.expect (sm'.contains "m.spi:5  test-targets" found = !-) found
+    testing.expect (sm'.contains "m.spi:7  test-targets" found = !-) found
+    testing.expect
+        ((scanned_text list "other" "inl x = 1.0f64\n") = "m.spi:1  line-width  14 columns, limit 10\n")
+        "integer-only is per module"
+
+///> rust
+:# declared_rows_replace_the_defaults =
+    := declared =
+        declared_from
+            (
+                "union standard =\n    | LineWidth :: u32 -> standard\ninl width () = LineWidth 100u32\n"
+                ^^ "inl ints () = IntegerOnly \"model\"\n"
+            )
+            NoStandards
+    := found = scanned_text declared "model" "inl f = 2.5f64\n"
+    testing.expect (sm'.contains "integer-only" found) found
+    testing.expect (sm'.contains "line-width" found = !-) found
+    := edition3 =
+        declared_from
+            ":= width () = LineWidth 100u32\n:= ints () = IntegerOnly \"model\"\n:= host () = HostFree\n"
+            NoStandards
+    := found3 = scanned_text edition3 "model" "inl f = 2.5f64\n"
+    testing.expect (sm'.contains "integer-only" found3) "an edition-3 := row declares a rule"
+
+///> rust
+:# host_free_flags_host_macros_and_rows_declare_it =
+    := declared = declared_from "inl host () = HostFree\ninl lib () = LibReferenced\n" NoStandards
+    := found =
+        scanned_text declared
+            "m"
+            "inl up (~t : string) : string = $'x' : string\ninl ok = sm'.to_upper t\n// $'x' in prose\n"
+    testing.expect (sm'.contains "m.spi:1  host-free  a host macro in a host-free package" found) found
+    testing.expect (sm'.contains "m.spi:2" found = !-) found
+    testing.expect (sm'.contains "m.spi:3" found = !-) "a comment that mentions a macro is not one"
+    := quoted = scanned_text declared "m" "inl opener = \"$'\"\ninl hosted = sm'.replace \"@'\" \"$'\" t\n"
+    testing.expect (quoted = "") "a macro opener inside a string literal is text, not a macro"
+
+///> rust
+:# a_declared_rule_this_kit_does_not_know_is_a_finding =
+    := text = "inl width () = LineWidth 100u32\ninl future () = ShinyRule\ninl helper = 1\n"
+    testing.expect
+        (
+            unknown_rules text "p/standards.spi" 1i32 ""
+            = "p/standards.spi:2  unknown-rule  ShinyRule is not a rule this kit knows, so it never runs\n"
+        )
+        (unknown_rules text "p/standards.spi" 1i32 "")
+    testing.expect
+        (unknown_rules "inl host () = HostFree\ninl lib () = LibReferenced\n" "s" 1i32 "" = "")
+        "known rules are no finding"
+    testing.expect
+        (
+            unknown_rules ":= future () = ShinyRule\n" "p/standards.spi" 1i32 ""
+            = "p/standards.spi:1  unknown-rule  ShinyRule is not a rule this kit knows, so it never runs\n"
+        )
+        "an unknown edition-3 rule is a finding too"
+    testing.expect
+        (unknown_rules "inl stdout_line (~text : string) : () = $'println'\n" "s" 1i32 "" = "")
+        "a typed unit function in a module named standards.spi is no declaration"
+
+///> rust
+:# targets_declared_in_the_file_header_cover_every_test =
+    := list = StandardThen (TestTargets, NoStandards)
+    := headed =
+        "///- --package .\n///> rust\n///> gleam\ntest m static =\n    open sm'_operators\n\ntest bare =\n"
+        ^^ "    inl a = 1\n"
+    testing.expect (scanned_text list "m" headed = "") (scanned_text list "m" headed)
+    := plain = "///- --package .\ntest m static =\n    open sm'_operators\n\ntest bare =\n"
+    testing.expect (sm'.contains "m.spi:5  test-targets" (scanned_text list "m" plain)) (scanned_text list "m" plain)

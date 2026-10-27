@@ -1,36 +1,36 @@
 [CmdletBinding()]
 param(
-    [string]$EoieRoot = (Join-Path $PSScriptRoot '..'),
-    [string]$EoieBinary,
+    [string]$KitRoot = (Join-Path $PSScriptRoot '..'),
+    [string]$KitBinary,
     [string]$TargetDirectory,
     [ValidateRange(1, 256)][int]$Jobs = 2,
     [ValidateRange(1000, 600000)][int]$TimeoutMs = 60000
 )
 $ErrorActionPreference = 'Stop'
-$EoieRoot = (Resolve-Path -LiteralPath $EoieRoot).Path
+$KitRoot = (Resolve-Path -LiteralPath $KitRoot).Path
 $suffix = if ($IsWindows) { '.exe' } else { '' }
-if (-not $EoieBinary) { $EoieBinary = Join-Path $EoieRoot "eoie$suffix" }
-$EoieBinary = (Resolve-Path -LiteralPath $EoieBinary).Path
-if (-not $TargetDirectory) { $TargetDirectory = Join-Path $EoieRoot 'src/target/native-probes' }
+if (-not $KitBinary) { $KitBinary = Join-Path $KitRoot "kit$suffix" }
+$KitBinary = (Resolve-Path -LiteralPath $KitBinary).Path
+if (-not $TargetDirectory) { $TargetDirectory = Join-Path $KitRoot 'src/target/native-probes' }
 $TargetDirectory = [IO.Path]::GetFullPath($TargetDirectory, $PWD.Path)
 $cargo = (Get-Command cargo -CommandType Application | Select-Object -First 1).Source
-$work = Join-Path $EoieRoot ('.cache/native-probes/' + [guid]::NewGuid().ToString('N'))
+$work = Join-Path $KitRoot ('.cache/native-probes/' + [guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($work)
 $encoding = [Text.UTF8Encoding]::new($false)
-Copy-Item -LiteralPath $EoieBinary -Destination (Join-Path $work "eoie$suffix")
-$EoieBinary = Join-Path $work "eoie$suffix"
+Copy-Item -LiteralPath $KitBinary -Destination (Join-Path $work "kit$suffix")
+$KitBinary = Join-Path $work "kit$suffix"
 $isolatedCwd = [IO.Path]::GetTempPath()
 
 function Invoke-ProbeCapture([string]$Name, [string]$Program, [string[]]$Arguments, [int]$Budget = $TimeoutMs) {
     $receiptPath = Join-Path $work "$Name.txt"
-    $leaseRoot = $env:EOIE_LEASE_ROOT
+    $leaseRoot = $env:KIT_LEASE_ROOT
     Push-Location -LiteralPath $isolatedCwd
     try {
-        $env:EOIE_LEASE_ROOT = $null
-        & $EoieBinary proxy command-capture $work "$Name.txt" $Budget $Program @Arguments | ForEach-Object { Write-Host $_ }
+        $env:KIT_LEASE_ROOT = $null
+        & $KitBinary proxy command-capture $work "$Name.txt" $Budget $Program @Arguments | ForEach-Object { Write-Host $_ }
         $captureExit = $LASTEXITCODE
-    } finally { Pop-Location; $env:EOIE_LEASE_ROOT = $leaseRoot }
-    if ($captureExit -ne 0) { throw "EOIE could not capture $Name." }
+    } finally { Pop-Location; $env:KIT_LEASE_ROOT = $leaseRoot }
+    if ($captureExit -ne 0) { throw "KIT could not capture $Name." }
     $receipt = [IO.File]::ReadAllText($receiptPath)
     $startMarker = "--- stdout ---" + [char]10
     $endMarker = [char]10 + "--- stderr ---" + [char]10
@@ -47,7 +47,7 @@ function Invoke-ProbeCapture([string]$Name, [string]$Program, [string[]]$Argumen
     }
 }
 
-$snapshot = & $PSScriptRoot/test-source-package.ps1 -EoieRoot $EoieRoot -EoieBinary $EoieBinary -SkipBuild -PassThru | ForEach-Object {
+$snapshot = & $PSScriptRoot/test-source-package.ps1 -KitRoot $KitRoot -KitBinary $KitBinary -SkipBuild -PassThru | ForEach-Object {
     if ($_.PSObject.Properties.Name -contains 'Manifest') { $_ } else { Write-Host $_ }
 }
 if (@($snapshot).Count -ne 1) { throw 'Expected one source snapshot.' }
@@ -85,7 +85,7 @@ $failed = @($results | Where-Object { -not $_.Passed })
 $evidence = [ordered]@{
     Schema = 1; SourceManifest = $snapshot.Manifest
     SourceManifestSHA256 = (Get-FileHash -LiteralPath $snapshot.Manifest -Algorithm SHA256).Hash
-    EoieSHA256 = (Get-FileHash -LiteralPath $EoieBinary -Algorithm SHA256).Hash
+    KitSHA256 = (Get-FileHash -LiteralPath $KitBinary -Algorithm SHA256).Hash
     DriverSHA256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
     Jobs = $Jobs; ProbeConcurrency = 1; Declared = $expected.Count; Passed = $results.Count - $failed.Count
     StrictReleaseCertification = $false; Results = $results.ToArray()
@@ -93,4 +93,4 @@ $evidence = [ordered]@{
 $evidencePath = Join-Path $work 'evidence.json'
 [IO.File]::WriteAllText($evidencePath, ($evidence | ConvertTo-Json -Depth 5), $encoding)
 if ($failed.Count) { throw "$($failed.Count) native probes failed; evidence=$evidencePath" }
-Write-Host "EOIE native probes passed: count=$($results.Count) evidence=$evidencePath"
+Write-Host "KIT native probes passed: count=$($results.Count) evidence=$evidencePath"

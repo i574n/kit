@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "run.spi"
+output = "adoption.rs"
+
+[package]
+name = "kit-adoption"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_adoption"
+path = "adoption.rs"
+
+[dependencies]
+kit-adoption-habits = { path = "../kit_adoption_habits" }
+regex = "1.13.1"

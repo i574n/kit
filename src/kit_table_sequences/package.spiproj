@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    kit_table_sequence_args
+modules:
+    verb

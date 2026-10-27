@@ -1,7 +1,0 @@
-packages:
-    |core-
-    spiral-
-    eoie_job_after_model
-modules:
-    chain
-    entry

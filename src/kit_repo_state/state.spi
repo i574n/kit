@@ -1,0 +1,91 @@
+///- --package .
+:# state static =
+
+
+:| entry_kind =
+    | TrackedChange
+    | RenamedChange
+    | UntrackedEntry
+    | UnmergedEntry
+    | HeaderLine
+    | OtherLine
+
+:= entry_kind_of (~line : string) : entry_kind =
+    ? sm'.starts_with "1 " line ?> TrackedChange
+    |? sm'.starts_with "2 " line ?> RenamedChange
+    |? sm'.starts_with "? " line ?> UntrackedEntry
+    |? sm'.starts_with "u " line ?> UnmergedEntry
+    |? sm'.starts_with "# " line ?> HeaderLine
+    |: OtherLine
+
+:== change_counts =
+    {
+        staged : u64
+        modified : u64
+        untracked : u64
+        unmerged : u64
+    }
+
+:= no_changes () : change_counts = { staged = 0u64; modified = 0u64; untracked = 0u64; unmerged = 0u64 }
+
+:= field (~line : string) (~index : u64) : string =
+    $'std::rc::Rc::<str>::from(!line.split(char::from(32u8)).nth(!index as usize).unwrap_or(""))' : string
+
+:= from_field (~line : string) (~index : u64) : string =
+    $'std::rc::Rc::<str>::from(!line.splitn((!index as usize) + 1, \
+        char::from(32u8)).nth(!index as usize).unwrap_or("").split(char::from(9u8)).next().unwrap_or(""))' : string
+
+:= staged_flag (~xy : string) : bool =
+    $'!xy.chars().next().map(|c| c == char::from(46u8)).unwrap_or(true) == false' : bool
+
+:= modified_flag (~xy : string) : bool =
+    $'!xy.chars().nth(1).map(|c| c == char::from(46u8)).unwrap_or(true) == false' : bool
+
+:= area_of (~path : string) (~depth : u64) : string =
+    $'{ let parts = !path.split(char::from(47u8)).collect::<Vec<_>>(); \
+        let keep = (!depth as usize).min(parts.len().saturating_sub(1)).max(1).min(parts.len()); \
+        std::rc::Rc::<str>::from(parts[..keep].join("/")) }' : string
+
+:= flag_count (flag : bool) : u64 = ? flag ?> 1u64 |: 0u64
+
+:~ counts_of (~line : string) : change_counts =
+    := base = no_changes ()
+    ?= entry_kind_of line ?|
+    | TrackedChange =>
+        := xy = field line 1u64
+        { base ?| staged = flag_count (staged_flag xy); modified = flag_count (modified_flag xy) }
+    | RenamedChange =>
+        := xy = field line 1u64
+        { base ?| staged = flag_count (staged_flag xy); modified = flag_count (modified_flag xy) }
+    | UntrackedEntry => { base ?| untracked = 1u64 }
+    | UnmergedEntry => { base ?| unmerged = 1u64 }
+    | HeaderLine => base
+    | OtherLine => base
+
+:~ path_of (~line : string) : string =
+    ?= entry_kind_of line ?|
+    | TrackedChange => from_field line 8u64
+    | RenamedChange => from_field line 9u64
+    | UntrackedEntry => from_field line 1u64
+    | UnmergedEntry => from_field line 10u64
+    | HeaderLine => ""
+    | OtherLine => ""
+
+
+///> rust
+:# porcelain_v2_lines_count_by_kind =
+    := staged = counts_of "1 M. N... 100644 100644 100644 abc def src/kit_jobs/jobs.spi"
+    testing.expect (staged.staged = 1u64 && staged.modified = 0u64) "staged only"
+    := both = counts_of "1 MM N... 100644 100644 100644 abc def src/kit_cli/main.spi"
+    testing.expect (both.staged = 1u64 && both.modified = 1u64) "staged and modified"
+    testing.expect ((counts_of "? lab/KIT-CORE-OPERATORS/sweep.ps1").untracked = 1u64) "untracked"
+    testing.expect (path_of "1 .M N... 100644 100644 100644 abc def src/a b/c.spi" = "src/a b/c.spi") "paths keep spaces"
+    testing.expect
+        (path_of "2 R. N... 100644 100644 100644 abc def R100 src/new.spi\tsrc/old.spi" = "src/new.spi")
+        "renames report the new path"
+
+///> rust
+:# areas_cut_paths_at_the_requested_depth =
+    testing.expect (area_of "src/kit_jobs/jobs.spi" 2u64 = "src/kit_jobs") "two levels"
+    testing.expect (area_of "Cargo.lock" 2u64 = "Cargo.lock") "top-level file"
+    testing.expect (area_of "apps/compiler/tmp/x.ps1" 1u64 = "apps") "one level"

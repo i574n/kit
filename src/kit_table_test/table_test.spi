@@ -1,0 +1,93 @@
+:< sm'_operators
+:< kit_table_query.cells
+:< kit_table_query.table
+:< kit_experiments.experiment_model
+:< kit_experiments.ledger_host
+:< kit_experiment_analysis.analysis
+
+:~ refused (~message : string) : i32 =
+    stderr_line ("kit error: table test " ++# message)
+    2i32
+
+:= test_usage () : string =
+    "usage: table test <file.tsv> --test welch|one-sample|binomial|wilson|median|binomial-band --metric <column> "
+    ^^ "[--arms a[,b] [--group <column>]] (a one-population test without both measures the whole table) [--prediction "
+    ^^ "x] [--confidence 0.95] [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]..."
+
+:~ confidence_given () : f64 =
+    := given = number_parsed (option_value "--confidence")
+    ? given = given ?> given |: 0.95f64
+
+:~ tested_run (kind : test_kind) (cells : table_cells) : i32 =
+    := wheres = where_clauses ()
+    := table_path = argument 3i32
+    := mask, missing_wheres =
+        := kept, detail = $'kit_table_query::kit_table_rows_kept(&*!table_path, &*!wheres)' : bool * string
+        ?= rows_kept_of kept detail ?|
+        | RowsKept mask => mask, ""
+        | RowsRefused reason => "", reason
+    := group = optional_column cells (option_value "--group")
+    := metric = column_of cells (option_value "--metric")
+    ? metric < 0i32 || missing_wheres <> "" || (option_value "--group" <> "" && group < 0i32)
+    ?> refused ("unknown columns in " ++# (argument 3i32) ++# " (header: " ++# (header_joined cells ",") ++# ")")
+    |:
+        := arms = option_value "--arms"
+        := first_arm = ? arms = "" ?> "all" |: head_of arms ","
+        := second_arm = tail_of arms ","
+        := two = arms_needed kind = 2i32
+        := chosen = { kept = mask; group = group; time = (-1i32); since = "" }
+        := empty = { rows = 0i32; count = 0.0f64; sum = 0.0f64; squares = 0.0f64; successes = 0i32 }
+        := left = tallied cells chosen first_arm metric 1i32 (row_total cells) empty
+        := right = ? two ?> tallied cells chosen second_arm metric 1i32 (row_total cells) empty |: left
+        := word = test_word kind
+        := left_rows, left_count, left_sum, left_squares, left_successes =
+            left.rows, left.count, left.sum, left.squares, left.successes
+        := right_rows, right_count, right_sum, right_squares, right_successes =
+            right.rows, right.count, right.sum, right.squares, right.successes
+        := prediction = number_parsed (option_value "--prediction")
+        := confidence = confidence_given ()
+        := terms =
+            ? kind = MedianBand
+            ?>
+                median_terms
+                    (values_of cells chosen first_arm metric 1i32 (row_total cells) "")
+                    (option_value "--prediction")
+            |:
+                $'kit_experiment_stats::kit_experiment_terms(&*!word, !left_rows, !left_count, !left_sum, \
+                    !left_squares, !left_successes, !right_rows, !right_count, !right_sum, !right_squares, \
+                    !right_successes, !prediction, !confidence)'
+                : string
+        := counts =
+            ? two
+            ?>
+                first_arm
+                ++# " "
+                ++# i32_text left.rows
+                ++# numeric_note kind left
+                ++# (", " ++# second_arm ++# " " ++# (i32_text right.rows) ++# (numeric_note kind right))
+            |: first_arm ++# " " ++# (i32_text left.rows) ++# (numeric_note kind left)
+        stdout_line ("kit table test ok test=" ++# word ++# (" n=" ++# counts ++# " " ++# terms) ++# " post_hoc=yes")
+        0i32
+
+:~ table_tested () : i32 =
+    ?= test_of (option_value "--test") ?|
+    | TestUnknown => refused ("needs --test with a known test; " ++# (test_usage ()))
+    | TestKnown kind =>
+        ?=
+            plan_checked kind
+                (option_value "--arms")
+                (option_value "--group")
+                2i32
+                (option_value "--prediction")
+                (option_value "--metric")
+                "post hoc"
+        ?|
+        | PlanRejected reason => refused (reason ++# "; " ++# (test_usage ()))
+        | PlanAccepted =>
+            ?= table_read (argument 3i32) ?|
+            | TableUnreadable problem => refused problem
+            | TableLoaded cells => tested_run kind cells
+
+:= main () : i32 =
+    !!!!Export("kit_table_test_run", ((\ () => table_tested ()) : () -> i32))
+    0i32

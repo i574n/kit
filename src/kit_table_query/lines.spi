@@ -1,0 +1,12 @@
+:< sm'_operators
+:< cells
+
+:~ ^ row_text (cells : table_cells) (row : i32) (indexes : list i32) : string =
+    ?= indexes ?|
+    | [] => ""
+    | [ index ] => cell_at cells row index
+    | index :: rest => cell_at cells row index ++# "\t" ++# row_text cells row rest
+
+:= group_line (count : i32) (value : string) : string = i32_text count ++# "\t" ++# value
+
+:= group_header (group : string) : string = "count\t" ++# group

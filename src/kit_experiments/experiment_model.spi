@@ -1,0 +1,310 @@
+///- --package .
+:# experiment_model static =
+    :< rust_std_string.model
+
+:< rust_std_string.model
+
+:| test_kind =
+    | WelchTwoSided
+    | OneSampleT
+    | BinomialAtMost
+    | WilsonBand
+    | MedianBand
+    | BinomialBand
+
+:= test_word (kind : test_kind) : string =
+    ?= kind ?|
+    | WelchTwoSided => "welch"
+    | OneSampleT => "one-sample"
+    | BinomialAtMost => "binomial"
+    | WilsonBand => "wilson"
+    | MedianBand => "median"
+    | BinomialBand => "binomial-band"
+
+:| test_parse =
+    | TestKnown : test_kind
+    | TestUnknown
+
+:~ test_of (~text : string) : test_parse =
+    union_reflection.cases.union_case_where
+        \ (kind : test_kind) => text = test_word kind
+        \ kind => TestKnown kind
+        TestUnknown
+
+:= test_words () : string = union_reflection.cases.union_cases_joined (\ (kind : test_kind) => test_word kind) "|"
+
+:~ arms_needed (kind : test_kind) : i32 =
+    ?= kind ?|
+    | WelchTwoSided => 2i32
+    | _ => 1i32
+
+:~ needs_prediction (kind : test_kind) : bool =
+    ?= kind ?|
+    | WelchTwoSided => !-
+    | _ => !+
+
+:~ field_line (~key : string) (~value : string) : string =
+    $'std::rc::Rc::<str>::from(format\!("{}={}\n", &*!key, (!value).chars().map(|c| if c.is_control() { \
+        char::from(32u8) } else { c }).collect::<String>()).as_str())' : string
+
+:~ field_of (~text : string) (~key : string) : string =
+    $'std::rc::Rc::<str>::from((!text).lines().rev().find_map(|line| line.split_once(char::from(61u8)).filter(|(name, \
+        _)| *name == &*!key).map(|(_, value)| value)).unwrap_or(""))' : string
+
+:~ comma_count (~list : string) : i32 = $'(!list).split(char::from(44u8)).filter(|item| \
+    \!item.trim().is_empty()).count() as i32' : i32
+
+:| planning =
+    | PlanAccepted
+    | PlanRejected : string
+
+:~ plan_checked
+    (kind : test_kind) (~arms : string) (~group : string) (runs : i32) (~prediction : string) (~metric : string)
+    (~decision : string)
+    : planning
+    =
+    ? metric = ""
+    ?> PlanRejected "--metric names the primary metric column"
+    |? decision = ""
+    ?> PlanRejected "--decision states the decision rule before any data"
+    |? runs < 2i32
+    ?> PlanRejected "--runs is the planned count per arm, at least 2"
+    |? arms = "" && arms_needed kind = 1i32 && group <> ""
+    ?>
+        PlanRejected (
+            concat5
+                (test_word kind)
+                " with --group needs --arms naming the group value (without both it measures the whole table)"
+                ""
+                ""
+                ""
+        )
+    |? comma_count arms <> arms_needed kind && (arms <> "" || arms_needed kind = 2i32)
+    ?>
+        PlanRejected (
+            concat5
+                (test_word kind)
+                " needs --arms with "
+                (? arms_needed kind = 2i32 ?> "two group values (a,b)" |: "one group value")
+                ""
+                ""
+        )
+    |? kind = MedianBand && comma_count prediction <> 2i32
+    ?> PlanRejected "median needs --prediction low,high (the band the median must fall in)"
+    |? needs_prediction kind && prediction = ""
+    ?>
+        PlanRejected (
+            concat5 (test_word kind) " needs --prediction (the model value or rate it is tested against)" "" "" ""
+        )
+    |: PlanAccepted
+
+:| amendable_field =
+    | FieldQuestion
+    | FieldTest
+    | FieldMetric
+    | FieldGroup
+    | FieldArms
+    | FieldRuns
+    | FieldPrediction
+    | FieldConfidence
+    | FieldDecision
+    | FieldTime
+
+:= amendable_word (field : amendable_field) : string =
+    ?= field ?|
+    | FieldQuestion => "question"
+    | FieldTest => "test"
+    | FieldMetric => "metric"
+    | FieldGroup => "group"
+    | FieldArms => "arms"
+    | FieldRuns => "runs"
+    | FieldPrediction => "prediction"
+    | FieldConfidence => "confidence"
+    | FieldDecision => "decision"
+    | FieldTime => "time"
+
+:= amendable_fields () : string = union_reflection.cases.union_cases_joined amendable_word "|"
+
+:~ amendable_named (~field : string) : bool =
+    union_reflection.cases.union_case_where (\ (known : amendable_field) => field = amendable_word known) (\ _ => !+) !-
+
+:| amendment =
+    | AmendAccepted
+    | AmendRefused : string
+
+:~ amend_checked (~field : string) (~reason : string) (looked : bool) : amendment =
+    ? looked
+    ?>
+        AmendRefused (
+            "the metric was already read (an interim look or the verdict); an amendment must precede the runs it "
+            ^^ "changes, so record an addendum instead"
+        )
+    |? amendable_named field = !-
+    ?> AmendRefused (concat5 "--field must be one of " (amendable_fields ()) ", received '" field "'")
+    |? reason = ""
+    ?> AmendRefused "--reason says why the plan changes"
+    |: AmendAccepted
+
+:| look =
+    | FullLook
+    | InterimLook : string
+    | LookRefused : string
+
+:~ look_of (~counts : string) (shortfall : bool) (~interim : string) (~verdict_at : string) : look =
+    ? verdict_at <> ""
+    ?>
+        LookRefused (
+            concat5
+                "the verdict was already recorded at "
+                verdict_at
+                "; an experiment is analyzed once (experiment show prints it)"
+                ""
+                ""
+        )
+    |? shortfall = !-
+    ?> FullLook
+    |? interim = ""
+    ?>
+        LookRefused (
+            concat5
+                "interim look refused: "
+                counts
+                " rows of the planned count; pass --interim '<reason>' to look anyway and record a disclosure"
+                ""
+                ""
+        )
+    |: InterimLook interim
+
+
+:= plan_reason (verdict : planning) : string =
+    ?= verdict ?|
+    | PlanAccepted => ""
+    | PlanRejected reason => reason
+
+:= look_word (verdict : look) : string =
+    ?= verdict ?|
+    | FullLook => "full"
+    | InterimLook reason => concat5 "interim: " reason "" "" ""
+    | LookRefused reason => reason
+
+:= parsed_word (~text : string) : string =
+    ?= test_of text ?|
+    | TestKnown kind => test_word kind
+    | TestUnknown => "?"
+
+///> rust
+:# test_kinds_round_trip_through_their_words =
+    testing.expect (test_words () = "welch|one-sample|binomial|wilson|median|binomial-band") (test_words ())
+    testing.expect (parsed_word "one-sample" = "one-sample") "parsed back"
+    testing.expect (parsed_word "anova" = "?") "unknown test"
+
+///> rust
+:# plans_name_what_is_missing_before_any_data =
+    testing.expect
+        (plan_reason (plan_checked WelchTwoSided "fast,base" "" 10i32 "" "retries" "fast wins if p < 0.05") = "")
+        "a complete welch plan"
+    testing.expect
+        (
+            plan_reason (plan_checked WelchTwoSided "fast" "" 10i32 "" "retries" "d")
+            = "welch needs --arms with two group values (a,b)"
+        )
+        "two arms"
+    testing.expect
+        (
+            plan_reason (plan_checked OneSampleT "fast" "" 10i32 "" "retries" "d")
+            = "one-sample needs --prediction (the model value or rate it is tested against)"
+        )
+        "prediction"
+    testing.expect
+        (
+            plan_reason (plan_checked BinomialAtMost "fast" "" 1i32 "0.35" "passed" "d")
+            = "--runs is the planned count per arm, at least 2"
+        )
+        "runs"
+    testing.expect
+        (
+            plan_reason (plan_checked WilsonBand "fast" "" 20i32 "0.5" "passed" "")
+            = "--decision states the decision rule before any data"
+        )
+        "decision first"
+    testing.expect
+        (
+            plan_reason (plan_checked MedianBand "fast" "" 9i32 "30" "seconds" "d")
+            = "median needs --prediction low,high (the band the median must fall in)"
+        )
+        "band"
+    testing.expect (plan_reason (plan_checked MedianBand "fast" "" 9i32 "28,32" "seconds" "d") = "") "a complete median plan"
+    testing.expect
+        (plan_reason (plan_checked OneSampleT "" "" 10i32 "3" "misses" "d") = "")
+        "one population without arms or group is the whole table"
+    testing.expect
+        (
+            plan_reason (plan_checked OneSampleT "" "variant" 10i32 "3" "misses" "d")
+            = "one-sample with --group needs --arms naming the group value (without both it measures the whole table)"
+        )
+        "a group needs its arm"
+    testing.expect
+        (
+            plan_reason (plan_checked WelchTwoSided "" "" 10i32 "" "misses" "d")
+            = "welch needs --arms with two group values (a,b)"
+        )
+        "two arms are never optional"
+
+///> rust
+:# the_metric_is_read_once_at_the_planned_count =
+    testing.expect (look_word (look_of "fast 10/10, base 10/10" !- "" "") = "full") "planned count reached"
+    testing.expect
+        (
+            look_word (look_of "fast 7/10" !+ "" "")
+            = (
+                "interim look refused: fast 7/10 rows of the planned count; pass --interim '<reason>' to look "
+                ^^ "anyway and record a disclosure"
+            )
+        )
+        "guarded"
+    testing.expect (look_word (look_of "fast 7/10" !+ "crash check" "") = "interim: crash check") "disclosed look"
+    testing.expect
+        (
+            look_word (look_of "fast 10/10" !- "" "2026-10-20T12:00Z")
+            = (
+                "the verdict was already recorded at 2026-10-20T12:00Z; an experiment is analyzed once (experiment "
+                ^^ "show prints it)"
+            )
+        )
+        "once"
+
+:= amend_reason (verdict : amendment) : string =
+    ?= verdict ?|
+    | AmendAccepted => ""
+    | AmendRefused reason => reason
+
+///> rust
+:# amendments_are_refused_after_the_metric_was_read =
+    testing.expect (amend_reason (amend_checked "runs" "crash rule" !-) = "") "before any look"
+    testing.expect
+        (
+            amend_reason (amend_checked "runs" "crash rule" !+)
+            = (
+                "the metric was already read (an interim look or the verdict); an amendment must precede the runs "
+                ^^ "it changes, so record an addendum instead"
+            )
+        )
+        "after a look"
+    testing.expect
+        (
+            amend_reason (amend_checked "id" "r" !-)
+            = (
+                "--field must be one of question|test|metric|group|arms|runs|prediction|confidence|decision|time, "
+                ^^ "received 'id'"
+            )
+        )
+        "fixed fields"
+    testing.expect (amend_reason (amend_checked "runs" "" !-) = "--reason says why the plan changes") "a reason"
+
+///> rust
+:# registrations_keep_one_line_fields =
+    := text = concat5 (field_line "question" "does it\nwin?") (field_line "runs" "10") "" "" ""
+    testing.expect (text = "question=does it win?\nruns=10\n") text
+    testing.expect (field_of text "runs" = "10") "field read back"
+    testing.expect (field_of text "missing" = "") "absent field"
+    testing.expect (field_of (concat5 text (field_line "runs" "12") "" "" "") "runs" = "12") "the latest amendment wins"

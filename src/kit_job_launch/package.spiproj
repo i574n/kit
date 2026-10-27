@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_jobs
+    kit_job_launch_model
+modules:
+    launch

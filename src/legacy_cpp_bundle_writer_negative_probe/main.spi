@@ -1,26 +1,27 @@
-open legacy_cpp_bundle_writer_contract.model
+:< legacy_cpp_bundle_writer_contract.model
 
-inl zero_is (value : i32) : bool =
-    if value < 0i32 then false
-    elif 0i32 < value then false
-    else true
+:= zero_is (value : i32) : bool =
+    ? value < 0i32 ?> !-
+    |? 0i32 < value ?> !-
+    |: !+
 
-inl main () : i32 =
-    inl _ = negative_plan ()
-    inl missing_source = source_comparison_binding 1i32 0i32
-    inl wrong_order = ordering_binding 1i32 0i32
-    inl wrong_count = count_binding 1i32 0i32
-    inl wrong_nested_mode = nested_policy_binding (nested_zip_policy_code LegacyExcludeNested) (nested_zip_policy_code LegacyExcludeNested)
-    inl wrong_epoch = epoch_binding 1i32 0i32
-    inl nondeterministic = determinism_binding 1i32 0i32
-    if zero_is missing_source then
-        if zero_is wrong_order then
-            if zero_is wrong_count then
-                if zero_is wrong_nested_mode then
-                    if zero_is wrong_epoch then
-                        if zero_is nondeterministic then 0i32 else 6i32
-                    else 5i32
-                else 4i32
-            else 3i32
-        else 2i32
-    else 1i32
+:= main () : i32 =
+    := _ = negative_plan ()
+    := missing_source = source_comparison_binding 1i32 0i32
+    := wrong_order = ordering_binding 1i32 0i32
+    := wrong_count = count_binding 1i32 0i32
+    := wrong_nested_mode =
+        nested_policy_binding (nested_zip_policy_code LegacyExcludeNested) (nested_zip_policy_code LegacyExcludeNested)
+    := wrong_epoch = epoch_binding 1i32 0i32
+    := nondeterministic = determinism_binding 1i32 0i32
+    ? zero_is missing_source ?>
+        ? zero_is wrong_order ?>
+            ? zero_is wrong_count ?>
+                ? zero_is wrong_nested_mode ?>
+                    ? zero_is wrong_epoch ?>
+                        ? zero_is nondeterministic ?> 0i32 |: 6i32
+                    |: 5i32
+                |: 4i32
+            |: 3i32
+        |: 2i32
+    |: 1i32

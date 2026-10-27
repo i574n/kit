@@ -1,0 +1,8 @@
+:< patch_model.model
+:< patch_domain.context
+
+
+:= main () : i32 =
+    global "#![allow(dead_code)]"
+    := source = patch_source "inl p () = PatchExact (\"a.txt\", \"old\", \"new\")\n"
+    validation_witness (validate_source source)

@@ -16,11 +16,11 @@ pub fn active_rating_receipt_check(root: &std::path::Path) -> Result<(), String>
 }
 
 fn active_rating_ceiling_binding_0(mut v0: i32, mut v1: i32) -> i32 {
-    let mut v2: bool = v0 < 0i32;
+    let v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
-        let mut v3: bool = v1 < v0;
+        let v3: bool = v1 < v0;
         if v3 {
             0i32
         } else {
