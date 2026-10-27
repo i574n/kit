@@ -1,11 +1,11 @@
-# One-call eoie: cases mined from agent history
+# One-call kit: cases mined from agent history
 
 Each case is a tutorial and a test. A runner extracts the `fixture`, `command` and `expected` blocks, builds the
 fixture in a temporary root, runs the command once and compares its whole output with `expected`, byte for byte.
 Cases are ordered by how many recorded agent calls they replace (transcript sweep 2026-10-13: ~45k tool calls from
 Claude, Codex, OpenCode and Grok; 48% of shell calls chained three or more operations).
 
-Every run is one call: `eoie do <root> '<program>'`. A program is statements separated by newlines or `;`. Paths
+Every run is one call: `kit do <root> '<program>'`. A program is statements separated by newlines or `;`. Paths
 are relative to the root. Every run ends with one receipt line: `ok` or `failed`, the counts it touched, elapsed time
 and the local clock with its offset, so no case ever needs a separate clock or status call. Elapsed times and clocks
 are written `<elapsed>` and `<clock>` in `expected`; the runner substitutes them.
@@ -15,8 +15,8 @@ clock's hour and minute). A `fixture` block lists a path, then that file's lines
 has no whitespace and either contains `/` or ends in `.` and letters; every other line is content (this rule splits
 all 33 cases correctly). A receipt shows `bytes` when the program read or wrote whole files by size, and `exit` when it
 ran a process or ended in a failure that has a code. A `setup`
-block, when a case has one, is an eoie program the runner runs before `command`; its output is not compared. Cases run
-with every `EOIE_*` and `SPIRAL_*` variable unset.
+block, when a case has one, is an kit program the runner runs before `command`; its output is not compared. Cases run
+with every `KIT_*` and `SPIRAL_*` variable unset.
 
 Cases 7 to 33 come from a second pass over the same history (2026-10-14, `tmp/one-call/mine_clusters.py` in the job
 folder: 21,239 shell calls that combine two or more intents, grouped by their exact intent set). Each heading names one
@@ -38,7 +38,7 @@ inl main () =
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit lib/bench_kit.spi
   replace once "x |> convert.i64 |> show_i64" with "show_i64 (convert.i64 x)"
   replace once "convert.f64 iters" with "f64_of_i32 iters"
@@ -66,7 +66,7 @@ beta
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit a.txt
   replace once "alpha" with "ALPHA"
 edit b.txt
@@ -95,7 +95,7 @@ if v0 {}
 ```
 
 ```command
-eoie do . 'search "if v|RecursiveCreate" in out/**/*.rs context 1 first 12 per file'
+kit do . 'search "if v|RecursiveCreate" in out/**/*.rs context 1 first 12 per file'
 ```
 
 ```expected
@@ -124,7 +124,7 @@ inl main () = 0
 ```
 
 ```command
-eoie do . '
+kit do . '
 dirs samples/* having main.spi and main.c
   tag switch_no_wasm = main.spi ~ "BackendSwitch" and not main.spi ~ "Wasm ="
 count by switch_no_wasm'
@@ -156,7 +156,7 @@ s4	C	ok	0	ee
 ```
 
 ```command
-eoie do . 'diff a.tsv b.tsv by id,backend on compile,exit,residual'
+kit do . 'diff a.tsv b.tsv by id,backend on compile,exit,residual'
 ```
 
 ```expected
@@ -182,7 +182,7 @@ ping -n 30 127.0.0.1 >nul
 ```
 
 ```command
-eoie do . 'run server.cmd until output ~ "server online" timeout 20s then stop; tail output 2'
+kit do . 'run server.cmd until output ~ "server online" timeout 20s then stop; tail output 2'
 ```
 
 ```expected
@@ -209,7 +209,7 @@ let c = 3
 ```
 
 ```command
-eoie do . 'read src/lib.fs around "section: parse" context 1,2'
+kit do . 'read src/lib.fs around "section: parse" context 1,2'
 ```
 
 ```expected
@@ -236,7 +236,7 @@ fail
 ```
 
 ```command
-eoie do . 'files logs/*.log; head logs/*.log 2'
+kit do . 'files logs/*.log; head logs/*.log 2'
 ```
 
 ```expected
@@ -266,7 +266,7 @@ waiting
 ```
 
 ```command
-eoie do . 'tail tasks/*.output 1'
+kit do . 'tail tasks/*.output 1'
 ```
 
 ```expected
@@ -293,7 +293,7 @@ nothing here
 ```
 
 ```command
-eoie do . 'search literal "show <root> <id> [--json]" in src/** include *.rs,*.spi exclude src/target/** paths'
+kit do . 'search literal "show <root> <id> [--json]" in src/** include *.rs,*.spi exclude src/target/** paths'
 ```
 
 ```expected
@@ -315,7 +315,7 @@ host = "localhost"
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit cfg.toml dry-run
   replace once "port = 8080" with "port = 9090"'
 ```
@@ -337,7 +337,7 @@ inl a = 1
 ```
 
 ```setup
-eoie do . '
+kit do . '
 git init repo
 git commit repo all "first" at 2026-10-01T10:00:00Z
 append repo/lib.spi "inl b = 2"
@@ -345,7 +345,7 @@ git commit repo all "add b" at 2026-10-02T10:00:00Z'
 ```
 
 ```command
-eoie do . 'git history repo "inl b" in lib.spi'
+kit do . 'git history repo "inl b" in lib.spi'
 ```
 
 ```expected
@@ -368,7 +368,7 @@ SUITE-EXIT 0
 ```
 
 ```command
-eoie do . 'wait out.log ~ "SUITE-EXIT" timeout 5s; tail out.log 2'
+kit do . 'wait out.log ~ "SUITE-EXIT" timeout 5s; tail out.log 2'
 ```
 
 ```expected
@@ -387,7 +387,7 @@ running
 ```
 
 ```command
-eoie do . 'wait out.log ~ "SUITE-EXIT" timeout 1s'
+kit do . 'wait out.log ~ "SUITE-EXIT" timeout 1s'
 ```
 
 ```expected
@@ -410,7 +410,7 @@ ping -n 30 127.0.0.1 >nul
 ```
 
 ```command
-eoie do . 'run sleeper.cmd background as s1; processes where command ~ "sleeper.cmd"; stop s1'
+kit do . 'run sleeper.cmd background as s1; processes where command ~ "sleeper.cmd"; stop s1'
 ```
 
 ```expected
@@ -437,7 +437,7 @@ exit /b 1
 ```
 
 ```command
-eoie do . 'run build.cmd; errors in output by "error (FS[0-9]+)"'
+kit do . 'run build.cmd; errors in output by "error (FS[0-9]+)"'
 ```
 
 ```expected
@@ -465,7 +465,7 @@ proj/d.md
 ```
 
 ```command
-eoie do . 'files proj/** count by extension'
+kit do . 'files proj/** count by extension'
 ```
 
 ```expected
@@ -492,7 +492,7 @@ let d = 4
 ```
 
 ```command
-eoie do . 'nearest "^/// ## " before lines 3,6 in big.fs'
+kit do . 'nearest "^/// ## " before lines 3,6 in big.fs'
 ```
 
 ```expected
@@ -504,7 +504,7 @@ ok  files 1  lookups 2  <elapsed>  <clock>
 
 ## 19. Environment variables and the folders that should exist (read + walk + clock: 170 calls)
 
-Habit (Claude, abbreviated): `Write-Output ('EOIE_SPIRAL_BUNDLE = [' + $env:EOIE_SPIRAL_BUNDLE + ']')`, `foreach ($d in
+Habit (Claude, abbreviated): `Write-Output ('KIT_SPIRAL_BUNDLE = [' + $env:KIT_SPIRAL_BUNDLE + ']')`, `foreach ($d in
 'bundles','dist','bin') { if (Test-Path ...) ... }`, `Get-Date`.
 
 ```fixture
@@ -515,12 +515,12 @@ r
 ```
 
 ```command
-eoie do . 'env EOIE_SPIRAL_BUNDLE, EOIE_SPIRAL_COMPILE; exists bundles, dist, bin'
+kit do . 'env KIT_SPIRAL_BUNDLE, KIT_SPIRAL_COMPILE; exists bundles, dist, bin'
 ```
 
 ```expected
-EOIE_SPIRAL_BUNDLE   unset
-EOIE_SPIRAL_COMPILE  unset
+KIT_SPIRAL_BUNDLE   unset
+KIT_SPIRAL_COMPILE  unset
 bundles  directory  1 entry
 dist     directory  1 entry
 bin      missing
@@ -534,15 +534,15 @@ $j.scripts.build; $j.deps.Count`.
 
 ```fixture
 package.json
-{"name": "eoie", "version": "0.3.1", "scripts": {"build": "pwsh build.ps1"}, "deps": ["a", "b"]}
+{"name": "kit", "version": "0.3.1", "scripts": {"build": "pwsh build.ps1"}, "deps": ["a", "b"]}
 ```
 
 ```command
-eoie do . 'json package.json get name, version, scripts.build, deps.length'
+kit do . 'json package.json get name, version, scripts.build, deps.length'
 ```
 
 ```expected
-name           "eoie"
+name           "kit"
 version        "0.3.1"
 scripts.build  "pwsh build.ps1"
 deps.length    2
@@ -561,7 +561,7 @@ BOARD.md
 ```
 
 ```command
-eoie do . 'append BOARD.md "- {clock:HH:mm} lane 3: R2 done"; tail BOARD.md 2'
+kit do . 'append BOARD.md "- {clock:HH:mm} lane 3: R2 done"; tail BOARD.md 2'
 ```
 
 ```expected
@@ -587,7 +587,7 @@ INFO stop
 ```
 
 ```command
-eoie do . 'lines app.log count by "^(\w+)"'
+kit do . 'lines app.log count by "^(\w+)"'
 ```
 
 ```expected
@@ -613,7 +613,7 @@ r
 ```
 
 ```setup
-eoie do . '
+kit do . '
 git init a; git commit a all "init" at 2026-10-01T10:00:00Z
 git init b; git commit b all "init" at 2026-10-01T10:00:00Z
 edit a/lib.spi
@@ -622,7 +622,7 @@ append a/new.txt "n"'
 ```
 
 ```command
-eoie do . 'git status a, b group by state'
+kit do . 'git status a, b group by state'
 ```
 
 ```expected
@@ -649,7 +649,7 @@ findstr /c:"return 0;" main.c >nul && (echo built) || (echo missing return & exi
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit main.c
   replace once "return 1;" with "return 0;"
 run build.cmd'
@@ -664,7 +664,7 @@ ok  files 1  replacements 1  runs 1  exit 0  <elapsed>  <clock>
 
 ## 25. Replace across files with the counts it must find (read + search + replace: 106 calls; search + walk + replace: 67)
 
-Habit (Claude, abbreviated): a list of `@(old, new)` pairs applied with `eoie proxy text-replace apply` per pair, then a
+Habit (Claude, abbreviated): a list of `@(old, new)` pairs applied with `kit proxy text-replace apply` per pair, then a
 `Get-ChildItem -Recurse | Select-String` to find the sites it missed.
 
 ```fixture
@@ -680,7 +680,7 @@ nothing here
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit src/**/*.spi expect files 2 replacements 3
   replace all "<deps|tags>" with "<deps|tags|estimate>"'
 ```
@@ -701,7 +701,7 @@ list <root>
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit src/**/*.spi expect files 2 replacements 2
   replace all "<deps|tags>" with "<deps|tags|estimate>"'
 ```
@@ -729,7 +729,7 @@ s5	Rust	error
 ```
 
 ```command
-eoie do . 'table results.tsv where status <> "ok" count by backend, status'
+kit do . 'table results.tsv where status <> "ok" count by backend, status'
 ```
 
 ```expected
@@ -754,7 +754,7 @@ alpha
 ```
 
 ```command
-eoie do . 'hash a.bin, b.bin, c.bin'
+kit do . 'hash a.bin, b.bin, c.bin'
 ```
 
 ```expected
@@ -783,7 +783,7 @@ inl c = 3
 ```
 
 ```command
-eoie do . 'copy src/** to backup except *.tmp; files backup/**'
+kit do . 'copy src/** to backup except *.tmp; files backup/**'
 ```
 
 ```expected
@@ -810,7 +810,7 @@ echo step 2
 ```
 
 ```command
-eoie do . 'job start slow.cmd as j1 timeout 2s notify; job wait j1'
+kit do . 'job start slow.cmd as j1 timeout 2s notify; job wait j1'
 ```
 
 ```expected
@@ -833,7 +833,7 @@ repo/a.txt
 ```
 
 ```setup
-eoie do . '
+kit do . '
 git init repo
 git commit repo all "one" at 2026-10-01T10:00:00Z
 append repo/a.txt "2"
@@ -843,7 +843,7 @@ git commit repo all "three" at 2026-10-02T11:00:00Z'
 ```
 
 ```command
-eoie do . 'git log repo since 2026-10-01 count by day'
+kit do . 'git log repo since 2026-10-01 count by day'
 ```
 
 ```expected
@@ -866,7 +866,7 @@ repo/b.spi
 ```
 
 ```setup
-eoie do . '
+kit do . '
 git init repo
 git commit repo all "init" at 2026-10-01T10:00:00Z
 edit repo/a.spi
@@ -874,7 +874,7 @@ edit repo/a.spi
 ```
 
 ```command
-eoie do . 'search "TODO" in repo/** with git status'
+kit do . 'search "TODO" in repo/** with git status'
 ```
 
 ```expected
@@ -899,7 +899,7 @@ exit /b 1
 ```
 
 ```command
-eoie do . 'run suite.cmd timeout 10s; search "SUITE-EXIT|DISAGREE|REGRESSED" in output'
+kit do . 'run suite.cmd timeout 10s; search "SUITE-EXIT|DISAGREE|REGRESSED" in output'
 ```
 
 ```expected
@@ -911,7 +911,7 @@ failed  runs 1  exit 1  matches 2  <elapsed>  <clock>
 
 ## 34. Audit lab directories against the backlog (read + walk + agile: new verb, LAB-IN-REPO)
 
-Habit (Claude, 2026-10-17, abbreviated): `Get-ChildItem lab -Directory`, then `eoie agile show <root> <ID>` per
+Habit (Claude, 2026-10-17, abbreviated): `Get-ChildItem lab -Directory`, then `kit agile show <root> <ID>` per
 directory, then `Select-String -Pattern 'C:\\Users'` over the sources, then a hand-written verdict per directory.
 
 ```fixture
@@ -932,7 +932,7 @@ agile add backlog PACK-NIGHT Story P0 D3 "Night pack" compiler; agile set backlo
 ```
 
 ```command
-eoie do . 'lab audit lab against backlog'
+kit do . 'lab audit lab against backlog'
 ```
 
 ```expected
@@ -958,7 +958,7 @@ inl show_u8 (x : u8) : string =
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit lib/kit.spi
   replace once "x |> convert.i64 |> show_i64" with "show_i64 (convert.i64 x)"'
 ```
@@ -984,7 +984,7 @@ do . 'edit lib/kit.spi
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit lib/kit.spi
   replace once "x |> convert.i64 |> show_i64" with "show_i64 (convert.i64 x)"'
 ```
@@ -1005,7 +1005,7 @@ beta
 ```
 
 ```command
-eoie do . '
+kit do . '
 edit b.txt
   replace once "beta" with "BETA"
 edit a.txt
@@ -1013,7 +1013,7 @@ edit a.txt
 ```
 
 ```expected
-edit a.txt  the edits would leave the file empty (was 6 bytes); empty it with eoie proxy fs-write --expect-hash
+edit a.txt  the edits would leave the file empty (was 6 bytes); empty it with kit proxy fs-write --expect-hash
 nothing written: 1 of 2 edits failed validation
 failed  files 0  replacements 0  <elapsed>  <clock>
 ```
@@ -1034,7 +1034,7 @@ t=900 reply
 ```
 
 ```command
-eoie table sequences runs --time "t=(?<ms>\d+)" --latency lat=request --to reply
+kit table sequences runs --time "t=(?<ms>\d+)" --latency lat=request --to reply
 ```
 
 ```expected
@@ -1042,7 +1042,7 @@ file	line	lat
 runs/a.log	1	250
 runs/a.log	3	1900
 runs/b.log	1	400
-eoie table sequences ok files=2 rows=3
+kit table sequences ok files=2 rows=3
 ```
 
 The table goes to stdout and the receipt to stderr; each start pairs with the next end in the same file.
@@ -1061,12 +1061,12 @@ one side only
 ```
 
 ```command
-eoie mirror check left right ci.yml extra.txt
+kit mirror check left right ci.yml extra.txt
 ```
 
 ```expected
 left-only	extra.txt
-eoie mirror check left-ahead files=2 differing=1
+kit mirror check left-ahead files=2 differing=1
 ```
 
 Anything but in-step exits 1, so a pre-commit step can refuse a change made on one side only.
@@ -1076,15 +1076,15 @@ Anything but in-step exits 1, so a pre-commit step can refuse a change made on o
 Habit (abbreviated): list the lease folder, parse each file's pid= line, ask the process table whether that pid still runs, and compare the leased root with the path about to be edited.
 
 ```setup
-eoie window request tree-read 5 --label repo
+kit window request tree-read 5 --label repo
 ```
 
 ```command
-eoie window claim repo/src/a.spi
+kit window claim repo/src/a.spi
 ```
 
 ```expected
-eoie window claim refused path=repo/src/a.spi edit refused: repo is read by win-<ms>-<pid>-tree-read for 5 more min
+kit window claim refused path=repo/src/a.spi edit refused: repo is read by win-<ms>-<pid>-tree-read for 5 more min
 ```
 
 A path outside every leased root prints 'edit allowed' and exits 0; a refusal exits 1, so a hook or a script can gate an edit on the exit code alone.
@@ -1093,25 +1093,25 @@ A path outside every leased root prints 'edit allowed' and exits 0; a refusal ex
 
 ## 41. The same filtered list, asked for by name (agile: the retyped long-flag list, existing verbs view-add and view)
 
-Habit (abbreviated): retype 'agile list <backlog> --team eoie --open --load light --sort priority' every time the heavy slots are busy and light work is wanted, sometimes with a flag in the wrong slot.
+Habit (abbreviated): retype 'agile list <backlog> --team kit --open --load light --sort priority' every time the heavy slots are busy and light work is wanted, sometimes with a flag in the wrong slot.
 
 ```setup
-eoie agile init backlog
-eoie agile add backlog A-LIGHT Story P1 D1 "light first item" "eoie" --load light
-eoie agile add backlog B-HEAVY Story P0 D2 "heavy item" "eoie" --load heavy
-eoie agile add backlog C-LIGHT Story P0 D1 "light urgent item" "eoie" --load light
-eoie agile view-add backlog light list --open --load light --sort priority
+kit agile init backlog
+kit agile add backlog A-LIGHT Story P1 D1 "light first item" "kit" --load light
+kit agile add backlog B-HEAVY Story P0 D2 "heavy item" "kit" --load heavy
+kit agile add backlog C-LIGHT Story P0 D1 "light urgent item" "kit" --load light
+kit agile view-add backlog light list --open --load light --sort priority
 ```
 
 ```command
-eoie agile view backlog light
+kit agile view backlog light
 ```
 
 ```expected
 ID                         P  D     %  STATUS  KIND     EST    LOAD   WHO   TITLE
 C-LIGHT                    P0 D1    0  Planned Story    -      light  -     light urgent item
 A-LIGHT                    P1 D1    0  Planned Story    -      light  -     light first item
-eoie agile list ok shown=2 filter=all load=light assignee=all open planned=3 active=0 blocked=0 paused=0 done=0 elapsed_ms=<ms>
+kit agile list ok shown=2 filter=all load=light assignee=all open planned=3 active=0 blocked=0 paused=0 done=0 elapsed_ms=<ms>
 ```
 
 A saved view runs its verb with its stored flags plus any extra flags given after the name, so the long list is typed once.
@@ -1123,13 +1123,13 @@ A saved view runs its verb with its stored flags plus any extra flags given afte
 Habit (abbreviated): start a job, read its id from the receipt, start the next with --after <that id>, and repeat for every job in the chain; when the order changes, stop each job and start it again with new ids (seven or eight re-chains in one day).
 
 ```command
-eoie job chain -- one 60000 cmd /c exit 0 -- two 60000 cmd /c exit 0
+kit job chain -- one 60000 cmd /c exit 0 -- two 60000 cmd /c exit 0
 ```
 
 ```expected
-eoie job start ok id=job-<ms>-one supervisor_pid=<pid> timeout_ms=60000 gate=plain label=one
-eoie job start ok id=job-<ms>-two supervisor_pid=<pid> timeout_ms=60000 gate=plain label=two after=job-<ms>-one after_mode=any
-eoie job chain ok jobs=2 ids=job-<ms>-one,job-<ms>-two
+kit job start ok id=job-<ms>-one supervisor_pid=<pid> timeout_ms=60000 gate=plain label=one
+kit job start ok id=job-<ms>-two supervisor_pid=<pid> timeout_ms=60000 gate=plain label=two after=job-<ms>-one after_mode=any
+kit job chain ok jobs=2 ids=job-<ms>-one,job-<ms>-two
 ```
 
 Each link starts with --after the previous id (--after-ok when the chain begins with --ok); a link that does not start stops the chain and names the ids started before it. 'job after <queued-id> <predecessor-id>' re-points a waiting link in place, keeping its id.
@@ -1162,13 +1162,13 @@ fn e() {}
 ```
 
 ```command
-eoie crate gate . --enforce --limit 4
+kit crate gate . --enforce --limit 4
 ```
 
 ```expected
 gate / tool tool.rs 3 lines ok
 gate / big big.rs 5 lines OVER 4
-eoie crate gate refused: 1 crate(s) over the limit; crates=2 over=1 limit=4 root=.
+kit crate gate refused: 1 crate(s) over the limit; crates=2 over=1 limit=4 root=.
 ```
 
 Without --enforce the same rows print and the call exits 0; with it, a crate over the limit or a crate whose output was never generated exits 1, and a root with no Spiral crate at all is refused rather than read as clean.
@@ -1186,7 +1186,7 @@ beta two
 ```
 
 ```command
-eoie grep notes.txt "one|two"
+kit grep notes.txt "one|two"
 ```
 
 ```expected
@@ -1222,14 +1222,14 @@ lead-trace knight gone @knight+90000
 ```
 
 ```command
-eoie table sequences trace.log --section-on "run (?<section>\S+)" --carry "@knight\+-1" --time "@knight\+(?<ms>-?\d+)" --first move="monster (?<id>\d+) moved to (?<value>\S+)"
+kit table sequences trace.log --section-on "run (?<section>\S+)" --carry "@knight\+-1" --time "@knight\+(?<ms>-?\d+)" --first move="monster (?<id>\d+) moved to (?<value>\S+)"
 ```
 
 ```expected
 section	id	move_time	move_value
 20261023-030000	81	850	1930,1352
 20261023-030300	71	700	1932,1352
-eoie table sequences ok files=1 sections=2 rows=2
+kit table sequences ok files=1 sections=2 rows=2
 ```
 
 A section starts at each line matching --section-on; lines matching --carry before a header belong to the section that header opens. --first keeps the earliest match per section and id, named by the word before '='. (Expected rows from tibia's synthetic trace, TIBIA-EVENT-TIME note 100, verified by hand and by tibia's scratch reader.)
@@ -1261,7 +1261,7 @@ lead-trace knight gone @knight+90000
 ```
 
 ```command
-eoie table sequences trace.log --section-on "run (?<section>\S+)" --carry "@knight\+-1" --time "@knight\+(?<ms>-?\d+)" --first appear="monster (?<id>\d+) Hunter starts at (?<value>\S+)" --last think="think (?<id>\d+) at (?<value>\S+)"
+kit table sequences trace.log --section-on "run (?<section>\S+)" --carry "@knight\+-1" --time "@knight\+(?<ms>-?\d+)" --first appear="monster (?<id>\d+) Hunter starts at (?<value>\S+)" --last think="think (?<id>\d+) at (?<value>\S+)"
 ```
 
 ```expected
@@ -1270,26 +1270,26 @@ section	id	appear_time	appear_value	think_time	think_value
 20261023-030000	82	-1	1931,1353	2300	1931,1353
 20261023-030300	71	-1	1931,1352	-	-
 20261023-030300	72	-1	1931,1353	-	-
-eoie table sequences ok files=1 sections=2 rows=4
+kit table sequences ok files=1 sections=2 rows=4
 ```
 
-Rows are one per (section, id) seen by any --first or --last, in section order and then by first sighting; a column with no match in that section prints '-'. Ids repeat across sections (each run restarts the server), so the key is the pair. Negative times (@knight+-1, lines carried into the next run) are kept as written. (tibia, EOIE-LOG-SEQUENCES note 15.)
+Rows are one per (section, id) seen by any --first or --last, in section order and then by first sighting; a column with no match in that section prints '-'. Ids repeat across sections (each run restarts the server), so the key is the pair. Negative times (@knight+-1, lines carried into the next run) are kept as written. (tibia, KIT-LOG-SEQUENCES note 15.)
 
 ---
 
 ## 47. The usage of one verb, not a fragment of another (help: help <verb> answered from a grammar line that merely contains the word, per-verb help lines)
 
-Habit (abbreviated): `eoie help env` printed the `do` grammar (its `env <A,B>` statement matched first), and `eoie help mirror` had no line at all, so the agent read the crate source to learn the flags.
+Habit (abbreviated): `kit help env` printed the `do` grammar (its `env <A,B>` statement matched first), and `kit help mirror` had no line at all, so the agent read the crate source to learn the flags.
 
 ```command
-eoie help env
+kit help env
 ```
 
 ```expected
-usage: eoie env check <tool>=<pinned-path>... (each tool is looked up on PATH in order; the first copy found must be the pinned one)
+usage: kit env check <tool>=<pinned-path>... (each tool is looked up on PATH in order; the first copy found must be the pinned one)
 ```
 
-Every direct verb has exactly one help line, chosen by its own case: a new verb does not compile without one, and verbs that share a grammar (read, lines and grep; ps and kill) share one line. (eoie, EOIE-UNION-REFLECTION note 34.)
+Every direct verb has exactly one help line, chosen by its own case: a new verb does not compile without one, and verbs that share a grammar (read, lines and grep; ps and kill) share one line. (kit, KIT-UNION-REFLECTION note 34.)
 
 ---
 
@@ -1307,7 +1307,7 @@ nominal callback = $'Rc<dyn Fn()>'
 ```
 
 ```command
-eoie lint macros . lib
+kit lint macros . lib
 ```
 
 ```expected
@@ -1336,7 +1336,7 @@ lib/sample.spi:3  pick   flow   $'if !b { 1 } else { 0 }'
 ```
 
 ```command
-eoie lint macros . lib --baseline lint/macros.txt
+kit lint macros . lib --baseline lint/macros.txt
 ```
 
 ```expected
@@ -1344,6 +1344,6 @@ lib/sample.spi:4  sum    arith  $'!a + !b'
 failed  files 1  macros 5  violations 3  new 1  <elapsed>  <clock>
 ```
 
-A named file counts whatever its extension, and a `.diff` or `.patch` contributes only its added lines (`+`, not the `+++` header), so `eoie lint macros . change.diff` checks just what a slice adds. The baseline is the verb's own output (`eoie lint macros . lib > lint/macros.txt`); a row is keyed by file, definition name and class, not by line number, so edits above a known violation keep it known, and the receipt line in a saved output is not a row. With all three rows listed the call prints no rows and ends `ok  files 1  macros 5  violations 3  new 0`.
+A named file counts whatever its extension, and a `.diff` or `.patch` contributes only its added lines (`+`, not the `+++` header), so `kit lint macros . change.diff` checks just what a slice adds. The baseline is the verb's own output (`kit lint macros . lib > lint/macros.txt`); a row is keyed by file, definition name and class, not by line number, so edits above a known violation keep it known, and the receipt line in a saved output is not a row. With all three rows listed the call prints no rows and ends `ok  files 1  macros 5  violations 3  new 0`.
 
 ---

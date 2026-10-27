@@ -1,11 +1,11 @@
-# EOIE source workspace
+# KIT source workspace
 
-Every eoie operation is one call: a patch batch, a multi-file write or a gated
+Every kit operation is one call: a patch batch, a multi-file write or a gated
 change is passed inline and validated, rehearsed and applied by that same call,
 with one receipt. A verb that needs a plan file written first, or separate
-check/rehearse/apply calls, does not meet this rule (EOIE-ONE-CALL).
+check/rehearse/apply calls, does not meet this rule (KIT-ONE-CALL).
 
-This repository is the source workspace extracted from the EOIE bundle. Generated
+This repository is the source workspace extracted from the KIT bundle. Generated
 Rust is checked in so a normal build does not require a Spiral compiler. New
 application policy, migration tools and test scenarios belong in native Spiral.
 Existing handwritten Rust adapters and tests remain migration debt; embedding
@@ -18,11 +18,11 @@ needs a native C linker. From `src`, bootstrap the Spiral-authored driver
 into a separate target directory so Windows can rebuild the workspace safely:
 
 ```text
-cargo build --locked --package eoie-dev --target-dir target/workflow-driver
-./target/workflow-driver/debug/eoie-dev --root .. --test --skip-release
+cargo build --locked --package kit-dev --target-dir target/workflow-driver
+./target/workflow-driver/debug/kit-dev --root .. --test --skip-release
 ```
 
-On Windows, the executable is `eoie-dev.exe`. Add `--offline` to both commands
+On Windows, the executable is `kit-dev.exe`. Add `--offline` to both commands
 after caching dependencies. Omit `--skip-release` to also build a release
 candidate. The native driver does not install it. `--package NAME` selects tests,
 `--target-dir PATH` selects artifacts, and `--timeout-ms N` bounds each Cargo
@@ -33,7 +33,7 @@ adapter. From the repository root:
 
 ```powershell
 pwsh -NoProfile -File build.ps1 -Test
-pwsh -NoProfile -File eoie.ps1 help
+pwsh -NoProfile -File kit.ps1 help
 ```
 
 Cargo downloads registry dependencies using the committed `src/Cargo.lock`.
@@ -51,8 +51,8 @@ For a Spiral edit, use the targeted development loop:
 
 ```powershell
 pwsh dev.ps1 -List
-pwsh dev.ps1 -Package eoie-fs-actions -Offline
-pwsh dev.ps1 -Package eoie-fs-actions -Offline -Publish
+pwsh dev.ps1 -Package kit-fs-actions -Offline
+pwsh dev.ps1 -Package kit-fs-actions -Offline -Publish
 ```
 
 The command regenerates the selected Cargo packages and their declared probes in an isolated copy, checks
@@ -68,13 +68,13 @@ Managed compiler assemblies are copied and hashed once per run so concurrent
 compiler rebuilds cannot replace them between owners. `-CompilerBundle` and `-TimeoutSec`
 select the compiler and bound each owner compilation; no compiler is needed for
 `-List`. An existing Cargo build can be tested without regeneration using
-`build.ps1 -Test -Package eoie-fs-actions -SkipRelease`.
+`build.ps1 -Test -Package kit-fs-actions -SkipRelease`.
 Packages whose tests launch the CLI declare `test-requires-cli = true` under
-`[package.metadata.eoie]`. Selected runs build that executable first, including
+`[package.metadata.kit]`. Selected runs build that executable first, including
 when the target directory is empty; pure library tests remain isolated. Run
-`cargo test --locked -p eoie-dev --test selected_workflow` from `src` to check
+`cargo test --locked -p kit-dev --test selected_workflow` from `src` to check
 this behavior independently of the Spiral compiler. Scenarios are authored in
-`src/eoie_dev/selected_tests.spi`.
+`src/kit_dev/selected_tests.spi`.
 
 Each Cargo owner declares its Spiral `entry` and Rust `output` under
 `[package.metadata.spiral]` in its existing `Cargo.toml`. Add this metadata when
@@ -83,7 +83,7 @@ mapping. Workflow failure/timeout/publication contracts run independently of a
 Spiral installation with `compiler-contracts/test-dev-workflow.ps1`.
 Generated examples also declare `entry` and `output` in
 `[[package.metadata.spiral.auxiliary]]` tables. Handwritten adapters and tests
-still lack generation declarations and must be migrated. EOIE's source statistics and cold rebuild
+still lack generation declarations and must be migrated. KIT's source statistics and cold rebuild
 planner use these mappings too.
 
 ## Mechanical native Spiral migration
@@ -93,14 +93,14 @@ projections and an HKT registry. The first consumers replace three cold-proof
 and handoff helpers, removing 335 bytes of embedded production Rust. This is
 semantic migration credit, not a claim that three entire RustGlobal sites vanished.
 
-The `eoie-predicate-lift` tool lexes, matches and rewrites source in native Spiral.
+The `kit-predicate-lift` tool lexes, matches and rewrites source in native Spiral.
 It accepts only the supported SHA-256-text and receipt-text helper forms and
 rejects ambiguity, attributes, public functions and near matches. From `src`:
 
 ```text
-cargo build --locked -p eoie-predicate-lift
-./target/debug/eoie-lift-predicate sha256 helper input.spi candidate.spi
-cargo test --locked -p eoie-predicate-lift --test native_codemod
+cargo build --locked -p kit-predicate-lift
+./target/debug/kit-lift-predicate sha256 helper input.spi candidate.spi
+cargo test --locked -p kit-predicate-lift --test native_codemod
 ```
 
 Use `.exe` on Windows. The output must be a new file; the input is preserved.
@@ -109,7 +109,7 @@ regenerate and test the affected owner before adopting it. The codemod uses an
 exact token grammar, not a general Rust AST or semantic equivalence proof.
 Its lexer and rewrite models live in `predicate_lex_core` and
 `predicate_rewrite_model`; their generated libraries are separate Cargo owners.
-The native developer workflow uses `eoie_dev_model` and
+The native developer workflow uses `kit_dev_model` and
 `developer_metadata_domain` for argument, ordering and package-selection policy.
 
 Process matrix `args` cells can use `json:["argument with spaces", "", "next"]`
@@ -117,10 +117,10 @@ to preserve exact arguments, including Windows paths and empty strings. Ordinary
 whitespace-separated cells retain their existing behavior. These arguments go
 directly to the child process; they are not shell commands.
 
-`proxy cold-rebuild-matrix <root> <matrix-relative> <eoie> <compiler> <dotnet>
+`proxy cold-rebuild-matrix <root> <matrix-relative> <kit> <compiler> <dotnet>
 <rustfmt> [compiler-timeout-ms]` plans one bounded compiler process per declared
 output. The optional budget defaults to 180,000 ms. Use absolute tool paths or
-names available on PATH, and set `EOIE_SPIRAL_BUNDLE` when the compiler needs its
+names available on PATH, and set `KIT_SPIRAL_BUNDLE` when the compiler needs its
 bundle for package resolution. Planning records a source snapshot under
 `.cache/cold-rebuild/`; owner commands compile there so compiler sidecars never
 touch the replay root. Each owner checks source/output drift, optionally formats
@@ -132,7 +132,7 @@ inputs unchanged between planning and replay. Pass a row timeout larger than
 the compiler budget plus formatting time to `proxy batch-plan` and
 choose its parallel-chain count explicitly when sharing the machine.
 
-Build products (`eoie`, `eoie.exe`, `src/target`, compiler C residuals and sidecars)
+Build products (`kit`, `kit.exe`, `src/target`, compiler C residuals and sidecars)
 are ignored. Keep `.spi`, `.spiproj`, generated `.rs`, adapters, tests, Cargo
 manifests and the lockfile. Files under `state/` include historical Linux release
 evidence; they do not certify the current Windows build.
@@ -148,8 +148,8 @@ $compiler = '../spiral/apps/compiler/tmp'
 pwsh "$compiler/scripts/install-dotnet.ps1" # only if .NET 11 is absent
 pwsh "$compiler/scripts/build.ps1" -Mode single-flight
 pwsh spiral.ps1 -CompilerBundle $compiler `
-  -InputPath src/eoie_fs_actions/main.spi `
-  -OutputPath src/eoie_fs_actions/fs_actions.rs
+  -InputPath src/kit_fs_actions/main.spi `
+  -OutputPath src/kit_fs_actions/fs_actions.rs
 ```
 
 `spiral.ps1` supports `-Backend Rust|C|Fsharp|Delphi`, `-TimeoutSec`, and
@@ -158,19 +158,19 @@ before compilation, preventing the core from leaving C residuals in the checkout
 It publishes the requested output only after a successful bounded compile and
 preserves the output timestamp when its content is unchanged.
 
-Set `EOIE_SPIRAL_BUNDLE` or pass `-CompilerBundle` for a compiler elsewhere.
+Set `KIT_SPIRAL_BUNDLE` or pass `-CompilerBundle` for a compiler elsewhere.
 Without either, the scripts use `../spiral/apps/compiler/tmp` (a spiral checkout beside this repository).
 The compiler's `SPIRAL_BIN_CACHE_DIR` and `SPIRAL_DOTNET` select its cache and SDK.
 The same scripts run on Windows and Linux; CI is configured to test runtime builds
 on both. This review was executed on Windows.
 
-EOIE's process library also accepts a native `SpiralCompiler.dll` through
-`EOIE_SPIRAL_COMPILE`. Set `EOIE_DOTNET` (or `SPIRAL_DOTNET`) to the matching .NET
-host, and `EOIE_SPIRAL_BUNDLE` for core-package resolution. Native code generation
-omits the legacy timeout flag and is supervised by EOIE's process timeout.
+KIT's process library also accepts a native `SpiralCompiler.dll` through
+`KIT_SPIRAL_COMPILE`. Set `KIT_DOTNET` (or `SPIRAL_DOTNET`) to the matching .NET
+host, and `KIT_SPIRAL_BUNDLE` for core-package resolution. Native code generation
+omits the legacy timeout flag and is supervised by KIT's process timeout.
 The patched native host implements package-wide `--check` without requiring
 `main`, and bounded `--plan-ir` for unconditional compiled `RustPlanOp` markers.
-Runtime-dependent plans are rejected. All seventeen optional EOIE integration
+Runtime-dependent plans are rejected. All seventeen optional KIT integration
 contracts can run against this host; Hopac package attestation remains unsupported.
 Run `compiler-contracts/test-attestation.ps1` for package rejection,
 plan payload, timeout, and native GADT regression coverage.
@@ -187,8 +187,8 @@ Run the compiler's `scripts/test-rust-exports.ps1` (in the spiral repository's `
 consumer and negative ABI contracts. `compiler-contracts/test-regeneration.ps1`
 regenerates every declared primary Cargo target in an isolated
 cache copy. Use `-CargoCheck -Test -CompilerContracts` to check all targets, run
-the workspace contracts, check source topology with the rebuilt EOIE, and build a release executable from those regenerated
-owners. Use `-EoieRoot` after relocating EOIE, `-Filter` for selected members,
+the workspace contracts, check source topology with the rebuilt KIT, and build a release executable from those regenerated
+owners. Use `-KitRoot` after relocating KIT, `-Filter` for selected members,
 and `-Offline` with a populated registry cache. Auxiliary probes and operating
 system adapters remain consumers by default; `-IncludeAuxiliary` also regenerates
 the declared probes. Checkout Rust changes only with explicit `-Publish`, after
@@ -198,16 +198,16 @@ successful Cargo validation and a checkout snapshot check.
 
 | Profile | What passing means |
 | --- | --- |
-| `generic` | A nonempty tree can be represented by the archive policy: normalized unique paths, no symlinks/special entries, canonical manifest and bounded extraction. It does not attest EOIE source, executable identity or release evidence. |
-| `eoie` (strict) | The EOIE release layout, source/package census, growth limits, current evidence, ratings, receipts and executable/archive contracts also pass. `verify` extracts a bounded temporary copy and applies the release checks before reporting success. |
-| `auto` | Selects `eoie` when `eoie` or `eoie.exe` accompanies `state/package.spiproj`, `state/core.spi` and `src/Cargo.toml`; otherwise selects `generic`. A strict distribution must contain exactly one root binary. Auto-selection is not certification. |
+| `generic` | A nonempty tree can be represented by the archive policy: normalized unique paths, no symlinks/special entries, canonical manifest and bounded extraction. It does not attest KIT source, executable identity or release evidence. |
+| `kit` (strict) | The KIT release layout, source/package census, growth limits, current evidence, ratings, receipts and executable/archive contracts also pass. `verify` extracts a bounded temporary copy and applies the release checks before reporting success. |
+| `auto` | Selects `kit` when `kit` or `kit.exe` accompanies `state/package.spiproj`, `state/core.spi` and `src/Cargo.toml`; otherwise selects `generic`. A strict distribution must contain exactly one root binary. Auto-selection is not certification. |
 
 The strict check counts Cargo `[[bin]]` targets as public binaries and requires
 exactly one. Developer tools that are built from source but not shipped declare
-`developer-tool = true` under `[package.metadata.eoie]` (`eoie-dev` and
-`eoie-lift-predicate`); they are excluded from that count.
+`developer-tool = true` under `[package.metadata.kit]` (`kit-dev` and
+`kit-lift-predicate`); they are excluded from that count.
 
-Use explicit `eoie` for release gates. A source checkout has docs, scripts and
+Use explicit `kit` for release gates. A source checkout has docs, scripts and
 tests and lacks a certified release payload, so it is not expected to pass that
 packaging gate. Generic success must never be substituted for strict release
 approval. Do not run `bundle create` over a live checkout: it prunes release
@@ -221,12 +221,12 @@ removes its temporary extraction after either acceptance or rejection.
 
 The first source commit is checked through locked builds, tests and Git hygiene.
 `pwsh compiler-contracts/test-source-package.ps1 -Offline` stages the working-tree
-contents of Git-eligible files, archives and rehydrates them through EOIE, checks
+contents of Git-eligible files, archives and rehydrates them through KIT, checks
 every SHA-256 and runs the native workspace tests from the restored tree. It
 leaves the source archive and manifest under ignored `.cache/source-package/`.
-Use `-SkipBuild` for archive/hash/topology checks only, or `-EoieBinary` to test a
+Use `-SkipBuild` for archive/hash/topology checks only, or `-KitBinary` to test a
 specific executable. Omit `-Offline` before dependencies have been cached.
-Producing a newly certified EOIE release still requires compatible compiler
+Producing a newly certified KIT release still requires compatible compiler
 attestation, fresh release evidence and cold rebuilds. These remain tracked in
 the `PORT-*` agile tasks, alongside the fixes completed in this review.
 
@@ -241,26 +241,26 @@ Run `pwsh compiler-contracts/test-native-probes.ps1` from this directory to buil
 and execute every Cargo example in a verified source snapshot. The runner checks
 Cargo's declared inventory, uses two build jobs, runs probes sequentially and
 keeps process receipts and source/binary hashes under ignored `.cache/native-probes/`.
-`-EoieBinary`, `-TargetDirectory`, `-Jobs` and `-TimeoutMs` configure the run.
+`-KitBinary`, `-TargetDirectory`, `-Jobs` and `-TimeoutMs` configure the run.
 
 `compiler-contracts/test-native-coverage.ps1` archives and rehydrates Git-eligible
-sources, freezes the EOIE executable and managed compiler, and runs instrumented
-workspace tests through EOIE. It uses two Cargo jobs and one test thread by
+sources, freezes the KIT executable and managed compiler, and runs instrumented
+workspace tests through KIT. It uses two Cargo jobs and one test thread by
 default. LLVM tools must match the installed Rust compiler; use its
 `llvm-tools-preview` component or provide a matching tools directory.
 
 ```powershell
-pwsh compiler-contracts/test-native-coverage.ps1 -SpiralCompiler $env:EOIE_SPIRAL_COMPILE -LlvmDirectory '<LLVM bin directory>' -CompilerContracts
+pwsh compiler-contracts/test-native-coverage.ps1 -SpiralCompiler $env:KIT_SPIRAL_COMPILE -LlvmDirectory '<LLVM bin directory>' -CompilerContracts
 ```
 
-The optional compiler contracts also use the configured `EOIE_DOTNET` and
-`EOIE_SPIRAL_BUNDLE`. Omit `-CompilerContracts` to collect native tests only.
+The optional compiler contracts also use the configured `KIT_DOTNET` and
+`KIT_SPIRAL_BUNDLE`. Omit `-CompilerContracts` to collect native tests only.
 All dependencies must already be cached. Results, source/tool hashes and process
 receipts stay under ignored `.cache/native-coverage/`; the reusable instrumented
 Cargo target stays under `src/target/native-coverage`. Evidence from this workflow
 does not certify a strict release. Once registered (below), its LCOV satisfies the
 strict check's coverage identity and durability gate, but it is test-run coverage,
-not the canonical release-basis measurement. `-EoieBinary` selects the supervising build.
+not the canonical release-basis measurement. `-KitBinary` selects the supervising build.
 
 The driver checks that the instrumented CLI writes a nonempty profile before
 running tests. Instrumented Windows builds explicitly flush profiling data before
@@ -287,14 +287,14 @@ rolls back every file. Registering test-run coverage does not make it
 release-smoke coverage, and the narrative rows of `state/coverage.spi` stay historical.
 
 The lower-level `proxy coverage-run` resolves relative paths before changing
-directories. `EOIE_COVERAGE_JOBS`, then `CARGO_BUILD_JOBS`, overrides its default
+directories. `KIT_COVERAGE_JOBS`, then `CARGO_BUILD_JOBS`, overrides its default
 of at most two jobs; explicit values must be 1–256. Invalid settings are rejected
 before clearing profiles. LCOV assessment rejects malformed or ambiguous line
 evidence, pruning requires the exact rooted source file, and failed exports
 preserve existing LCOV data and receipts.
 
-The legacy `smoke` scope requires a separately staged strict EOIE release,
-`EOIE_GRCOV` as an absolute executable path, and `EOIE_LLVM_BIN` containing
+The legacy `smoke` scope requires a separately staged strict KIT release,
+`KIT_GRCOV` as an absolute executable path, and `KIT_LLVM_BIN` containing
 `llvm-profdata` and `llvm-cov`. It checks these prerequisites before creating
 build output or clearing profiles. Mutable phases use a bounded temporary copy,
 reject links and Windows junctions, and leave shared compiler sessions running.
@@ -319,7 +319,7 @@ why each one cannot yet be renewed are recorded in
 
 `proxy release-closeout apply` is the renewal path for the ColdProofV4 and
 closeout evidence receipts. It renews all five cold-proof gates. The binary gate
-records the root binary that is actually present (`eoie` or `eoie.exe`, exactly
+records the root binary that is actually present (`kit` or `kit.exe`, exactly
 one) and the workspace gate records the current `src/Cargo.lock`. The renewed
 proof is kept only if formal authority verifies: the cold proof itself, its census,
 the differential catalog, the family contracts and ColdRebuildV1. The binary must
@@ -361,7 +361,7 @@ and is still blocked.
 The guard looks for `state/prompt.spi` in the command's directory operands and in
 the caller's working directory and its ancestors. A supervising `proxy
 command-capture` or `command-capture-env` offers only its own operands; the
-supervised program's arguments are not its targets, and an `eoie` child applies
+supervised program's arguments are not its targets, and an `kit` child applies
 its own guard. The committed lease belongs to the session that produced the
 commit and has always expired by the time CI checks it, so the validation drivers
 (`test-native-probes.ps1`, `test-strict-preflight.ps1`) run their supervisor from
@@ -369,9 +369,9 @@ the system temporary directory: their results do not depend on the wall clock.
 Work in the checkout itself still needs `agile begin` first.
 
 ```powershell
-pwsh eoie.ps1 agile begin . 'Continue portable source review'
-pwsh eoie.ps1 agile list .
-pwsh eoie.ps1 agile list . Active
+pwsh kit.ps1 agile begin . 'Continue portable source review'
+pwsh kit.ps1 agile list .
+pwsh kit.ps1 agile list . Active
 ```
 
 The optional list filter accepts `Planned`, `Active`, `Blocked`, `Paused` or
@@ -429,14 +429,14 @@ backlog does not declare (`dangling`, exit 1), Done items cited by feedback or p
 rule may have changed (`done`), and `[[name]]` links to memories not written yet (`unwritten-link`).
 Only tokens whose first segment is a backlog ID prefix count as IDs, so `UTF-8` is not one.
 
-`eoie standards <package-dir>... [--json]` checks each package's `.spi` files against the rules its
+`kit standards <package-dir>... [--json]` checks each package's `.spi` files against the rules its
 `standards.spi` declares as rows (`inl width () = LineWidth 100u32`, `NoCommentLines`, `LfOnly`,
 `IntegerOnly "module"`, `TestTargets`), or against the defaults (no comment lines outside TODO blocks
 and `///` directives, 120 columns, LF only, a `///>` target above every test block); it prints
-`path:line  rule  detail` per finding and exits 1 when there is any. `eoie standards --census <dir>...` counts, per package, the typefeatureset constructs (GADT cases `| X :: t`, existentials, foralls, indexed unions, prototypes) and the drift (host macros, macros over 200 characters, rust_global, tab or record-separated rows, pipe tables, number-coded arms, concat5); `--baseline <file.spi> <dir>...` writes the counts as typed `CensusCount` rows, and `--ratchet <file.spi> <dir>...` exits 1 when a package's drift per thousand lines rose or its typefeatureset use fell beyond noise, or when a package missing from the baseline carries rust_global, wide macros or encoded rows, or declares types without any typefeatureset construct. A directory without `.spi` files stands for its package subdirectories, so `--ratchet standards/census.spi src` checks all of eoie.
+`path:line  rule  detail` per finding and exits 1 when there is any. `kit standards --census <dir>...` counts, per package, the typefeatureset constructs (GADT cases `| X :: t`, existentials, foralls, indexed unions, prototypes) and the drift (host macros, macros over 200 characters, rust_global, tab or record-separated rows, pipe tables, number-coded arms, concat5); `--baseline <file.spi> <dir>...` writes the counts as typed `CensusCount` rows, and `--ratchet <file.spi> <dir>...` exits 1 when a package's drift per thousand lines rose or its typefeatureset use fell beyond noise, or when a package missing from the baseline carries rust_global, wide macros or encoded rows, or declares types without any typefeatureset construct. A directory without `.spi` files stands for its package subdirectories, so `--ratchet standards/census.spi src` checks all of kit.
 
-`eoie window request <class> <minutes> [--label <text>] [--wait <minutes>]` takes a machine window
-that every session on the box sees (`%LOCALAPPDATA%\eoie\windows`, or `EOIE_WINDOWS_HOME`). The
+`kit window request <class> <minutes> [--label <text>] [--wait <minutes>]` takes a machine window
+that every session on the box sees (`%LOCALAPPDATA%\kit\windows`, or `KIT_WINDOWS_HOME`). The
 classes are `live-gui`, `test-suite`, `heavy-build`, `compile`, `compiler-install`, `bench` and `tree-read`: a live GUI run
 or a compiler install excludes every other window, a bench excludes heavy builds, suites and other benches but lets
 compiles through, a tree read only marks a source tree as being read (edits under it are refused while it holds),
@@ -449,9 +449,9 @@ class, minutes left and label (or `reason=low-memory`) and exits 1. With `--wait
 waiting live-gui or compiler-install request keeps newer requests out, so a live block is not starved
 by a stream of compiles. Windows end at their minutes (a waiting request lapses after 30 s unless it
 is still polling); `window release <id>` ends one early, `window list` shows them and `window check
-<class>` answers without taking one. A `--heavy` job's supervisor waits for its heavy-build window and then for a heavy-gate slot itself (it writes its own heavy-queue ticket and hands it to `Invoke-Heavy` through `SPIRAL_HEAVY_TICKET`), so a queued job costs one small process and no PowerShell; `jobs/<id>/window` and `jobs/<id>/slot` show where it waits, and the window is dropped whenever the job ends. `--slot-within <minutes>` makes a `--heavy` or `--compile` job give up when it has no slot or window by then (state `expired-in-queue`, exit 75, nothing started), and `--done-within <minutes>` caps a job's whole life from submission, never stretched by queue time: still queued then, it expires in the queue; running, it stops as `timed-out`. Every job runs in a kill-on-close job object: when its supervisor ends, for any reason, everything the job started ends with it. Supervisors are children of one `eoie job host` per jobs folder (`jobs/host.pid`): the first `job start` launches it, it exits after ten quiet minutes or once its jobs folder is gone, and a start that no host answers within 5 s launches its supervisor detached instead. `eoie job run [--heavy] <label> <timeout-ms> <program> [args...]` supervises in the calling process instead of a detached one, so the job stays in its caller's process tree, still shows in `job list`/`status`/`tail`/`stop`, and exits with the job's code; an agent runs it as a background task and gets the completion as a notification instead of blocking on `job wait`. An attached job ends with its caller, so a long run from an agent shell that the memory reaper may kill belongs in `job start` plus a background `job wait`. A job whose supervisor stopped beating and whose child is gone is settled as `lost` the first time it is observed (exit 125, elapsed frozen at the last heartbeat, a detail naming the cause), and a machine window whose job supervisor is dead is dropped instead of waiting out its minutes. `window run <class> <minutes> [--label <text>] [--wait <minutes>] -- <command> [args...]` does all three steps in one call: it takes the window (waiting if asked), runs the command only when the window was granted, releases the window when the command ends and exits with the command's code, so a blocked request never falls through to the work.
+<class>` answers without taking one. A `--heavy` job's supervisor waits for its heavy-build window and then for a heavy-gate slot itself (it writes its own heavy-queue ticket and hands it to `Invoke-Heavy` through `SPIRAL_HEAVY_TICKET`), so a queued job costs one small process and no PowerShell; `jobs/<id>/window` and `jobs/<id>/slot` show where it waits, and the window is dropped whenever the job ends. `--slot-within <minutes>` makes a `--heavy` or `--compile` job give up when it has no slot or window by then (state `expired-in-queue`, exit 75, nothing started), and `--done-within <minutes>` caps a job's whole life from submission, never stretched by queue time: still queued then, it expires in the queue; running, it stops as `timed-out`. Every job runs in a kill-on-close job object: when its supervisor ends, for any reason, everything the job started ends with it. Supervisors are children of one `kit job host` per jobs folder (`jobs/host.pid`): the first `job start` launches it, it exits after ten quiet minutes or once its jobs folder is gone, and a start that no host answers within 5 s launches its supervisor detached instead. `kit job run [--heavy] <label> <timeout-ms> <program> [args...]` supervises in the calling process instead of a detached one, so the job stays in its caller's process tree, still shows in `job list`/`status`/`tail`/`stop`, and exits with the job's code; an agent runs it as a background task and gets the completion as a notification instead of blocking on `job wait`. An attached job ends with its caller, so a long run from an agent shell that the memory reaper may kill belongs in `job start` plus a background `job wait`. A job whose supervisor stopped beating and whose child is gone is settled as `lost` the first time it is observed (exit 125, elapsed frozen at the last heartbeat, a detail naming the cause), and a machine window whose job supervisor is dead is dropped instead of waiting out its minutes. `window run <class> <minutes> [--label <text>] [--wait <minutes>] -- <command> [args...]` does all three steps in one call: it takes the window (waiting if asked), runs the command only when the window was granted, releases the window when the command ends and exits with the command's code, so a blocked request never falls through to the work.
 
-`eoie experiment register <ledger> <ID> --test welch|one-sample|binomial|wilson|median --metric <col> --runs <n>
+`kit experiment register <ledger> <ID> --test welch|one-sample|binomial|wilson|median --metric <col> --runs <n>
 --decision <rule> [--group <col> --arms a[,b]] [--prediction <x>] [--confidence 0.95] [--question <text>] [--time <col>]`
 writes `<ledger>/<ID>.registration` once, stamped with the time, before any data. `experiment analyze
 <ledger> <ID> <table.tsv> [--where col=value]...` reads the metric only when every arm has the planned
@@ -462,7 +462,7 @@ unless `--interim <reason>` is given, and then it appends the look to `<ID>.disc
 verdict. A success cell is any non-empty cell other than `0`, `false`, `no` or `-`. `experiment show`
 prints the registration, the disclosures and the verdict. With `--time <col>` the registration also keeps the local time, and analysis leaves out (and counts as `before_registration`) every row whose time cell sorts before it, so data gathered before the plan cannot decide the verdict. `experiment amend <ledger> <ID> --field <name> --value <v> --reason <text>` changes one plan field (question, test, metric, group, arms, runs, prediction, confidence, decision, time) before any look, appended with its time and reason to `<ID>.amendments` while the registration stays as written; it is refused after an interim look or the verdict, and with `--time` the amendment time becomes the new data cutoff. `experiment addendum <ledger> <ID> <text>` appends a post-hoc note to `<ID>.addenda`, kept apart from the verdict.
 
-`eoie table logs <file|dir>... [--glob *.log] [--since regex] (--count name=regex | --count-by name=regex | --sum name=regex | --last name=regex | --field name=regex)... [--out file.tsv] [--quiet]` turns log files into a table: one row per file (directories are walked, `--glob` filters file names), a `file` column, then one column per option in order: `--count` counts the regex matches in the file, `--count-by` adds one `name_<value>` column per distinct capture group 1, `--sum` adds capture group 1 of every match, `--last` keeps capture group 1 of the last match, `--field` takes capture group 1 from the file path. `--since regex` counts only the lines after the first one that matches it. `--values name=regex` stands alone and makes one row per match instead. The TSV goes to stdout (the receipt to stderr, or nothing with `--quiet`) or to `--out`, ready for `table query` and `experiment analyze`.
+`kit table logs <file|dir>... [--glob *.log] [--since regex] (--count name=regex | --count-by name=regex | --sum name=regex | --last name=regex | --field name=regex)... [--out file.tsv] [--quiet]` turns log files into a table: one row per file (directories are walked, `--glob` filters file names), a `file` column, then one column per option in order: `--count` counts the regex matches in the file, `--count-by` adds one `name_<value>` column per distinct capture group 1, `--sum` adds capture group 1 of every match, `--last` keeps capture group 1 of the last match, `--field` takes capture group 1 from the file path. `--since regex` counts only the lines after the first one that matches it. `--values name=regex` stands alone and makes one row per match instead. The TSV goes to stdout (the receipt to stderr, or nothing with `--quiet`) or to `--out`, ready for `table query` and `experiment analyze`.
 
 `agile next <root> [--as main|subagent] [count]` ranks the open (Planned or Active) tasks whose deps
 are all Done, top 10 by default. `--as main` (the default) is weighted shortest job first: the

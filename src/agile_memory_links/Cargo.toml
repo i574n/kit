@@ -14,5 +14,5 @@ name = "agile_memory_links"
 path = "links.rs"
 
 [dependencies]
-eoie-agile-records = { path = "../eoie_agile_records" }
+kit-agile-records = { path = "../kit_agile_records" }
 agile-task-census = { path = "../agile_task_census" }

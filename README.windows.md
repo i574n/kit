@@ -1,14 +1,14 @@
-# EOIE on Windows
+# KIT on Windows
 
 Run the native executable from PowerShell:
 
 ```powershell
-.\eoie.exe help
+.\kit.exe help
 ```
 
-`eoie.exe` is the Windows build; Linux builds produce `eoie`. Both are ignored
+`kit.exe` is the Windows build; Linux builds produce `kit`. Both are ignored
 build products. An original Linux binary may still exist in older local bundles.
-`eoie.ps1` builds the native executable if it is missing, then forwards arguments
+`kit.ps1` builds the native executable if it is missing, then forwards arguments
 and the exit code.
 
 ## Build and test
@@ -22,8 +22,8 @@ The build/test driver is now authored in Spiral. From `src`, bootstrap it in a
 separate target directory, then run it from that same directory:
 
 ```powershell
-cargo build --locked -p eoie-dev --target-dir target/workflow-driver
-./target/workflow-driver/debug/eoie-dev.exe --root .. --test --skip-release
+cargo build --locked -p kit-dev --target-dir target/workflow-driver
+./target/workflow-driver/debug/kit-dev.exe --root .. --test --skip-release
 ```
 
 Use `--offline` after caching dependencies. This runs tests without installing
@@ -36,21 +36,21 @@ pwsh -NoProfile -File .\build.ps1 -Test
 ```
 
 This builds the CLI, runs the native workspace tests, builds an optimized release,
-and copies it to `eoie.exe`. It works from any current directory. Build output is
-under `src/target`, replacing the old `/mnt/data/eoie-rust-target` setting.
+and copies it to `kit.exe`. It works from any current directory. Build output is
+under `src/target`, replacing the old `/mnt/data/kit-rust-target` setting.
 
 Every workspace suite runs. Individual tests requiring optional compiler package
 attestation and Plan IR interfaces are explicitly ignored by default. The patched
 alpha418 single-flight host implements these interfaces. To include those tests,
-set `EOIE_DOTNET` to its .NET host and supply its built `SpiralCompiler.dll`:
+set `KIT_DOTNET` to its .NET host and supply its built `SpiralCompiler.dll`:
 
 ```powershell
 pwsh -NoProfile -File .\build.ps1 -Test -CompilerContracts -SpiralCompiler C:\tools\SpiralCompiler.dll
 ```
 
-`EOIE_SPIRAL_COMPILE` also selects a compiler. Discovery searches Windows `.exe`
-and `.cmd` names on PATH and `%APPDATA%/eoie/spiral-compiler.path`, following
-explicit `EOIE_CONFIG_HOME` and `XDG_CONFIG_HOME` overrides. The supplied Linux
+`KIT_SPIRAL_COMPILE` also selects a compiler. Discovery searches Windows `.exe`
+and `.cmd` names on PATH and `%APPDATA%/kit/spiral-compiler.path`, following
+explicit `KIT_CONFIG_HOME` and `XDG_CONFIG_HOME` overrides. The supplied Linux
 compiler/toolchain payloads cannot run as Windows executables.
 
 Managed compiler identities include neighboring assemblies, runtime configuration
@@ -80,7 +80,7 @@ For native Spiral code generation and compiler configuration, see [README.md](RE
   Timeout and error cleanup terminate descendants as well as the immediate child.
   Processes run without opening console windows.
 - ZIP creation, verification, and extraction run natively. Windows archives mark
-  `eoie` and executable/script extensions executable in ZIP Unix metadata.
+  `kit` and executable/script extensions executable in ZIP Unix metadata.
 - POSIX file modes map to Windows's read-only attribute. Execute bits and Unix
   owner/group distinctions do not change Windows ACLs. Symlink commands require
   Windows Developer Mode or an account with the symlink privilege; failures are
@@ -100,7 +100,7 @@ For native Spiral code generation and compiler configuration, see [README.md](RE
   where an ID can change with the directory entry, a completed promotion may be
   reported as an error.
   File hashing uses bounded reads and rejects linked ancestors.
-- `self-upgrade-check` accepts exactly one `eoie` or `eoie.exe` in each bundle
+- `self-upgrade-check` accepts exactly one `kit` or `kit.exe` in each bundle
   and runs all six strict compatibility checks; generic archive validation
   cannot substitute for those release checks.
 - Use native programs in command plans, such as `cmd.exe` or `pwsh.exe`. Linux
@@ -110,7 +110,7 @@ The saved workspace lease can expire independently of operating system support.
 To begin a new work session in this bundle:
 
 ```powershell
-.\eoie.exe agile begin . "Windows work session"
+.\kit.exe agile begin . "Windows work session"
 ```
 
 The port does not fabricate new attestations for the original Linux release.
@@ -129,7 +129,7 @@ to the next compiler check.
 
 Platform-specific Rust lives in `rust_std_fs_mutation/windows.rs`,
 `rust_std_fs/windows.rs`, `rust_std_fs/portable.rs`, and
-`eoie_process_streaming/windows.rs`. The matching embedded Rust in the `.spi`
+`kit_process_streaming/windows.rs`. The matching embedded Rust in the `.spi`
 sources is updated too. Retain these adapter files when regenerating Rust owners.
 
 Windows regression tests cover Unicode/space paths, junction rejection, ancestor

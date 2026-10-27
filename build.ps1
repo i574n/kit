@@ -12,11 +12,11 @@ param(
 $ErrorActionPreference = 'Stop'
 $targetRoot = if ($TargetDirectory) { [IO.Path]::GetFullPath($TargetDirectory, $PWD.Path) } else { Join-Path $PSScriptRoot 'src/target' }
 $suffix = if ($IsWindows) { '.exe' } else { '' }
-$driver = $env:EOIE_DEV_BINARY
+$driver = $env:KIT_DEV_BINARY
 if (-not $driver) {
     $driverTarget = Join-Path $targetRoot 'workflow-driver'
-    $driver = Join-Path $driverTarget "debug/eoie-dev$suffix"
-    $bootstrap = @('build', '--locked', '--package', 'eoie-dev', '--target-dir', $driverTarget)
+    $driver = Join-Path $driverTarget "debug/kit-dev$suffix"
+    $bootstrap = @('build', '--locked', '--package', 'kit-dev', '--target-dir', $driverTarget)
     if ($Offline) { $bootstrap += '--offline' }
     Push-Location (Join-Path $PSScriptRoot 'src')
     try { & cargo @bootstrap; if ($LASTEXITCODE -ne 0) { throw 'Native Spiral developer workflow build failed.' } }
@@ -35,5 +35,5 @@ foreach ($name in $Package) { $arguments += @('--package', $name) }
 if ($LASTEXITCODE -ne 0) { throw "Native Spiral developer workflow failed (exit $LASTEXITCODE)." }
 if ($SkipRelease) { return }
 . (Join-Path $PSScriptRoot 'compiler-contracts/workspace.ps1')
-$published = Publish-EoieBinary -Source (Join-Path $targetRoot "release/eoie$suffix") -Destination (Join-Path $PSScriptRoot "eoie$suffix") -ValidationRoot $PSScriptRoot
-Write-Host "EOIE candidate schema and source topology checks passed; published=$published"
+$published = Publish-KitBinary -Source (Join-Path $targetRoot "release/kit$suffix") -Destination (Join-Path $PSScriptRoot "kit$suffix") -ValidationRoot $PSScriptRoot
+Write-Host "KIT candidate schema and source topology checks passed; published=$published"

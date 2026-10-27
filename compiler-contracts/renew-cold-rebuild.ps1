@@ -1,31 +1,31 @@
 [CmdletBinding()]
 param(
-    [string]$EoieRoot = (Join-Path $PSScriptRoot '..'),
-    [string]$EoieBinary,
+    [string]$KitRoot = (Join-Path $PSScriptRoot '..'),
+    [string]$KitBinary,
     [ValidateRange(1000, 600000)][int]$OwnerTimeoutMs = 180000,
     [ValidateRange(1, 56)][int]$ParallelChains = 12,
     [switch]$Apply
 )
 $ErrorActionPreference = 'Stop'
 . $PSScriptRoot/workspace.ps1
-$EoieRoot = (Resolve-Path -LiteralPath $EoieRoot).Path
+$KitRoot = (Resolve-Path -LiteralPath $KitRoot).Path
 $suffix = if ($IsWindows) { '.exe' } else { '' }
-if (-not $EoieBinary) { $EoieBinary = Join-Path $EoieRoot "eoie$suffix" }
-$EoieBinary = (Resolve-Path -LiteralPath $EoieBinary).Path
-$work = Join-Path $EoieRoot ('.cache/cold-renewal/' + [guid]::NewGuid().ToString('N'))
+if (-not $KitBinary) { $KitBinary = Join-Path $KitRoot "kit$suffix" }
+$KitBinary = (Resolve-Path -LiteralPath $KitBinary).Path
+$work = Join-Path $KitRoot ('.cache/cold-renewal/' + [guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($work)
 $supervisor = Join-Path $work "supervisor$suffix"
-Copy-Item -LiteralPath $EoieBinary -Destination $supervisor
+Copy-Item -LiteralPath $KitBinary -Destination $supervisor
 
-function Invoke-Eoie([string[]]$Arguments) {
+function Invoke-Kit([string[]]$Arguments) {
     $output = & $supervisor @Arguments 2>&1 | ForEach-Object { "$_" }
-    if ($LASTEXITCODE -ne 0) { throw "eoie $($Arguments -join ' ') failed (exit $LASTEXITCODE): $($output -join ' | ')" }
+    if ($LASTEXITCODE -ne 0) { throw "kit $($Arguments -join ' ') failed (exit $LASTEXITCODE): $($output -join ' | ')" }
     $output
 }
 function Get-Sha256([string]$Path) { (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() }
 
 function New-ReleaseRoot([string]$Name) {
-    $snapshot = & $PSScriptRoot/test-source-package.ps1 -EoieRoot $EoieRoot -EoieBinary $supervisor -SkipBuild -PassThru | ForEach-Object {
+    $snapshot = & $PSScriptRoot/test-source-package.ps1 -KitRoot $KitRoot -KitBinary $supervisor -SkipBuild -PassThru | ForEach-Object {
         if ($_.PSObject.Properties.Name -contains 'Manifest') { $_ } else { Write-Host $_ }
     }
     if (-not $snapshot -or $snapshot.Count -gt 1) { throw 'Expected one verified source snapshot.' }
@@ -41,7 +41,7 @@ function New-ReleaseRoot([string]$Name) {
     $release
 }
 function Get-TreeSha([string]$Root) {
-    $line = Invoke-Eoie @('proxy', 'hash-tree', $Root, 'src') | Where-Object { $_ -match '[0-9a-f]{64}' } | Select-Object -Last 1
+    $line = Invoke-Kit @('proxy', 'hash-tree', $Root, 'src') | Where-Object { $_ -match '[0-9a-f]{64}' } | Select-Object -Last 1
     [regex]::Match($line, '[0-9a-f]{64}').Value
 }
 function Build-ColdProduct([string]$Root) {
@@ -51,13 +51,13 @@ function Build-ColdProduct([string]$Root) {
     $env:RUSTFLAGS = $flags; $env:CARGO_INCREMENTAL = '0'; $env:CARGO_TARGET_DIR = $target
     Push-Location (Join-Path $Root 'src')
     try {
-        & cargo build --release --locked --offline --package eoie-cli 2>&1 | Select-Object -Last 3 | ForEach-Object { Write-Host "  $_" }
+        & cargo build --release --locked --offline --package kit-cli 2>&1 | Select-Object -Last 3 | ForEach-Object { Write-Host "  $_" }
         if ($LASTEXITCODE -ne 0) { throw "cold build failed in $Root" }
     } finally {
         Pop-Location
         foreach ($k in $saved.Keys) { if ($null -eq $saved[$k]) { Remove-Item "Env:$k" -ErrorAction Ignore } else { Set-Item "Env:$k" $saved[$k] } }
     }
-    Join-Path $target "release/eoie$suffix"
+    Join-Path $target "release/kit$suffix"
 }
 
 Write-Host "cold renewal: staging two release roots under $work"
@@ -79,26 +79,26 @@ if ($productShaA -cne $productShaB) { throw "cold rebuild products differ: a=$pr
 . $PSScriptRoot/spiral-compiler.ps1
 $compiler = Get-SpiralCompilerDll 'single-flight'
 $dotnet = Resolve-SpiralDotnet
-$env:EOIE_SPIRAL_BUNDLE = $compilerRoot
-$owners = @(Get-EoieOwners -Root $rootA -IncludeAuxiliary)
+$env:KIT_SPIRAL_BUNDLE = $compilerRoot
+$owners = @(Get-KitOwners -Root $rootA -IncludeAuxiliary)
 $rustfmt = (Get-Command rustfmt).Source
-Copy-Item -LiteralPath $productA -Destination (Join-Path $rootA "eoie$suffix")
+Copy-Item -LiteralPath $productA -Destination (Join-Path $rootA "kit$suffix")
 $matrixRelative = 'cold-matrix.spi'
-Invoke-Eoie @('proxy', 'cold-rebuild-matrix', $rootA, $matrixRelative, $supervisor, $compiler, $dotnet, $rustfmt, "$OwnerTimeoutMs") | ForEach-Object { Write-Host "  $_" }
+Invoke-Kit @('proxy', 'cold-rebuild-matrix', $rootA, $matrixRelative, $supervisor, $compiler, $dotnet, $rustfmt, "$OwnerTimeoutMs") | ForEach-Object { Write-Host "  $_" }
 $reportRelative = 'cold-matrix-report.tsv'
 $batchStart = Get-Date
-Invoke-Eoie @('proxy', 'batch-plan', $rootA, $matrixRelative, "$($OwnerTimeoutMs + 60000)", $reportRelative, "$ParallelChains") | Select-Object -Last 3 | ForEach-Object { Write-Host "  $_" }
+Invoke-Kit @('proxy', 'batch-plan', $rootA, $matrixRelative, "$($OwnerTimeoutMs + 60000)", $reportRelative, "$ParallelChains") | Select-Object -Last 3 | ForEach-Object { Write-Host "  $_" }
 Write-Host "cold renewal: owner replay $([int]((Get-Date) - $batchStart).TotalSeconds) s at $ParallelChains parallel chains; report $(Join-Path $rootA $reportRelative)"
 $rows = @(Import-Csv -LiteralPath (Join-Path $rootA $reportRelative) -Delimiter "`t")
 $failed = @($rows | Where-Object { $_.rc -ne '0' })
 if ($failed.Count) { throw "owner replay failed: $(($failed | ForEach-Object { "$($_.id) rc=$($_.rc)" }) -join ', ')" }
-if ($rows.Count -ne $owners.Count) { Write-Host "cold renewal: note: replay rows=$($rows.Count), Get-EoieOwners=$($owners.Count)" }
+if ($rows.Count -ne $owners.Count) { Write-Host "cold renewal: note: replay rows=$($rows.Count), Get-KitOwners=$($owners.Count)" }
 $owners = $rows
 $maxOwnerMs = ($rows | ForEach-Object { [int64]$_.elapsed_ms } | Measure-Object -Maximum).Maximum
 
-Copy-Item -LiteralPath $productA -Destination (Join-Path $rootB "eoie$suffix")
+Copy-Item -LiteralPath $productA -Destination (Join-Path $rootB "kit$suffix")
 $gateWatch = [Diagnostics.Stopwatch]::StartNew()
-$gateOutput = & (Join-Path $rootB "eoie$suffix") bundle check $rootB eoie 2>&1 | ForEach-Object { "$_" }
+$gateOutput = & (Join-Path $rootB "kit$suffix") bundle check $rootB kit 2>&1 | ForEach-Object { "$_" }
 $gateMs = $gateWatch.ElapsedMilliseconds
 Write-Host "cold renewal: global gate $gateMs ms (exit $LASTEXITCODE; it checks the receipt this run replaces, so a cold rebuild error here is expected)"
 $gateOutput | Select-Object -Last 3 | ForEach-Object { Write-Host "  $_" }
@@ -107,7 +107,7 @@ function Get-ToolRow([string]$Path) { [pscustomobject]@{ Name = [IO.Path]::GetFi
 $rustc = Get-ToolRow (& rustup which rustc); $cargo = Get-ToolRow (& rustup which cargo)
 $rustdoc = Get-ToolRow (& rustup which rustdoc); $fmt = Get-ToolRow (& rustup which rustfmt)
 $entry = Get-ToolRow $compiler; $facade = Get-ToolRow $dotnet
-$identityPath = Join-Path $EoieRoot 'state/toolchain_identity.spi'
+$identityPath = Join-Path $KitRoot 'state/toolchain_identity.spi'
 $identity = [IO.File]::ReadAllText($identityPath)
 function Set-Identity([string]$Text, [string]$Function, $Row) {
     $pattern = "(?m)^(inl $Function \(\) : \w+ =\r?\n\s+\w+ \(\w+, EvidenceRef \()`"[^`"]*`", `"[0-9a-f]{64}`", \d+u64"
@@ -123,7 +123,7 @@ $shards = [int][Math]::Ceiling($owners.Count / $shardWidth)
 $normalization = "RUSTFLAGS=--remap-path-prefix=<cold-root>=/workspace -Cstrip=symbols" + $(if ($IsWindows) { ' -Clink-arg=/Brepro' } else { '' }) + ';CARGO_INCREMENTAL=0'
 function Get-GateSha([string]$Relative, [string]$Override) {
     if ($Override) { return (Get-Sha256 $Override) }
-    Get-Sha256 (Join-Path $EoieRoot $Relative)
+    Get-Sha256 (Join-Path $KitRoot $Relative)
 }
 $identityTemp = Join-Path $work 'toolchain_identity.spi'
 [IO.File]::WriteAllText($identityTemp, $identity, [Text.UTF8Encoding]::new($false))
@@ -154,7 +154,7 @@ $receipt = @(
     ''
     "inl contract_gate () : string * string = `"src/cold_rebuild_contract/model.spi`", `"$(Get-GateSha 'src/cold_rebuild_contract/model.spi')`""
     "inl bindings_gate () : string * string = `"src/cold_rebuild_contract/bindings.spi`", `"$(Get-GateSha 'src/cold_rebuild_contract/bindings.spi')`""
-    "inl matrix_gate () : string * string = `"src/eoie_cold_rebuild_matrix/main.spi`", `"$(Get-GateSha 'src/eoie_cold_rebuild_matrix/main.spi')`""
+    "inl matrix_gate () : string * string = `"src/kit_cold_rebuild_matrix/main.spi`", `"$(Get-GateSha 'src/kit_cold_rebuild_matrix/main.spi')`""
     "inl toolchain_gate () : string * string = `"state/toolchain_identity.spi`", `"$(Get-GateSha '' $identityTemp)`""
     ''
     'inl main () : i32 = 0i32'
@@ -166,8 +166,8 @@ Write-Host "cold renewal: receipt $receiptTemp, toolchain identity $identityTemp
 if ($maxOwnerMs -gt 15000 -or $gateMs -gt 30000) { throw "cold rebuild budget exceeded: owner_ms=$maxOwnerMs global_ms=$gateMs" }
 if ($Apply) {
     [IO.File]::Copy($identityTemp, $identityPath, $true)
-    [IO.File]::Copy($receiptTemp, (Join-Path $EoieRoot 'state/cold_rebuild.spi'), $true)
-    $published = Publish-EoieBinary -Source $productA -Destination (Join-Path $EoieRoot "eoie$suffix") -ValidationRoot $EoieRoot
+    [IO.File]::Copy($receiptTemp, (Join-Path $KitRoot 'state/cold_rebuild.spi'), $true)
+    $published = Publish-KitBinary -Source $productA -Destination (Join-Path $KitRoot "kit$suffix") -ValidationRoot $KitRoot
     Write-Host "cold renewal: applied (state/toolchain_identity.spi, state/cold_rebuild.spi); published=$published"
 }
 [pscustomobject]@{ Work = $work; Receipt = $receiptTemp; Identity = $identityTemp; Product = $productA; ProductSha = $productShaA; Owners = $owners.Count; MaxOwnerMs = $maxOwnerMs; GateMs = $gateMs }

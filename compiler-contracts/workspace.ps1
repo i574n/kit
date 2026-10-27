@@ -1,9 +1,9 @@
-function Resolve-EoieSpiralBundle {
+function Resolve-KitSpiralBundle {
     param([string]$CompilerBundle)
-    if (-not $CompilerBundle) { $CompilerBundle = $env:EOIE_SPIRAL_BUNDLE }
+    if (-not $CompilerBundle) { $CompilerBundle = $env:KIT_SPIRAL_BUNDLE }
     if (-not $CompilerBundle) { $CompilerBundle = Join-Path $PSScriptRoot '../../spiral/apps/compiler/tmp' }
     if (-not (Test-Path -LiteralPath (Join-Path $CompilerBundle 'scripts/env.ps1'))) {
-        throw "Spiral compiler bundle not found at $CompilerBundle. Clone https://github.com/i574n/spiral beside this repository or set EOIE_SPIRAL_BUNDLE to its apps/compiler/tmp."
+        throw "Spiral compiler bundle not found at $CompilerBundle. Clone https://github.com/i574n/spiral beside this repository or set KIT_SPIRAL_BUNDLE to its apps/compiler/tmp."
     }
     $bundle = (Resolve-Path -LiteralPath $CompilerBundle).Path
     if (-not $env:SPIRAL_COMPILER_PACKAGE_DIR) {
@@ -13,7 +13,7 @@ function Resolve-EoieSpiralBundle {
     $bundle
 }
 
-function Copy-EoieCompilerSnapshot {
+function Copy-KitCompilerSnapshot {
     param([Parameter(Mandatory)][string]$Compiler, [Parameter(Mandatory)][string]$Destination)
     if ([IO.Path]::GetExtension($Compiler) -ine '.dll') { return $Compiler }
     $source = Split-Path $Compiler -Parent
@@ -45,11 +45,11 @@ function Copy-EoieCompilerSnapshot {
         throw "Compiler files changed while taking snapshot: $source"
     }
     $manifest = $snapshot | Select-Object Relative, Hash | ConvertTo-Json
-    [IO.File]::WriteAllText((Join-Path $Destination 'eoie-compiler-snapshot.json'), $manifest, [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText((Join-Path $Destination 'kit-compiler-snapshot.json'), $manifest, [Text.UTF8Encoding]::new($false))
     return Join-Path $Destination ([IO.Path]::GetFileName($Compiler))
 }
 
-function Get-EoieCompilerSidecarGuards {
+function Get-KitCompilerSidecarGuards {
     param([Parameter(Mandatory)][object[]]$Rows)
     $comparer = if ($IsWindows) { [StringComparer]::OrdinalIgnoreCase } else { [StringComparer]::Ordinal }
     $targets = [Collections.Generic.HashSet[string]]::new($comparer)
@@ -65,7 +65,7 @@ function Get-EoieCompilerSidecarGuards {
     }
 }
 
-function Restore-EoieCompilerSidecars {
+function Restore-KitCompilerSidecars {
     param([Parameter(Mandatory)][string]$Root, [object[]]$Guards = @())
     $prefix = [IO.Path]::GetFullPath($Root).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
     $comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
@@ -87,7 +87,7 @@ function Restore-EoieCompilerSidecars {
     Write-Host "Removed $removed new compiler sidecars; restored $restored copied adapters."
 }
 
-function Set-EoieGeneratedFile {
+function Set-KitGeneratedFile {
     param([Parameter(Mandatory)][string]$Source, [Parameter(Mandatory)][string]$Destination)
     $content = [IO.File]::ReadAllText($Source).Replace("`r`n", "`n").TrimEnd() + "`n"
     if ([IO.File]::Exists($Destination) -and [IO.File]::ReadAllText($Destination) -ceq $content) {
@@ -105,7 +105,7 @@ function Set-EoieGeneratedFile {
     return $true
 }
 
-function Publish-EoieBinary {
+function Publish-KitBinary {
     param(
         [Parameter(Mandatory)][string]$Source,
         [Parameter(Mandatory)][string]$Destination,
@@ -123,7 +123,7 @@ function Publish-EoieBinary {
     [void][IO.Directory]::CreateDirectory($parent)
     $priorHash = if ([IO.File]::Exists($Destination)) { (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash } else { $null }
     $sourceHash = (Get-FileHash -LiteralPath $Source -Algorithm SHA256).Hash
-    $temporary = Join-Path $parent ('.release-eoie-candidate-' + [guid]::NewGuid().ToString('N') + $(if ($IsWindows) { '.exe' } else { '' }))
+    $temporary = Join-Path $parent ('.release-kit-candidate-' + [guid]::NewGuid().ToString('N') + $(if ($IsWindows) { '.exe' } else { '' }))
     try {
         [IO.File]::Copy($Source, $temporary, $false)
         if ((Get-FileHash -LiteralPath $temporary -Algorithm SHA256).Hash -cne $sourceHash) { throw 'Release executable changed during staging.' }
@@ -144,11 +144,11 @@ function Publish-EoieBinary {
                 $stderr = $process.StandardError.ReadToEndAsync()
                 if (-not $process.WaitForExit($TimeoutMs)) {
                     $process.Kill($true)
-                    if (-not $process.WaitForExit(5000)) { throw 'EOIE candidate did not exit after termination.' }
-                    throw "EOIE candidate $($check.Name) check timed out after $TimeoutMs ms."
+                    if (-not $process.WaitForExit(5000)) { throw 'KIT candidate did not exit after termination.' }
+                    throw "KIT candidate $($check.Name) check timed out after $TimeoutMs ms."
                 }
                 if (-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($stdout, $stderr), $TimeoutMs)) {
-                    throw 'EOIE candidate output streams did not close within the smoke budget.'
+                    throw 'KIT candidate output streams did not close within the smoke budget.'
                 }
                 $output = $stdout.GetAwaiter().GetResult()
                 $errorText = $stderr.GetAwaiter().GetResult()
@@ -156,16 +156,16 @@ function Publish-EoieBinary {
                     ($output.Trim() -split '\r?\n')[0] -ceq 'command-spec'
                 } else { $output -cmatch '(?m)^topology_limits_ok=true(?: |\r?$)' }
                 if ($process.ExitCode -ne 0 -or -not $validOutput) {
-                    throw "EOIE candidate $($check.Name) check failed (exit $($process.ExitCode)): $errorText"
+                    throw "KIT candidate $($check.Name) check failed (exit $($process.ExitCode)): $errorText"
                 }
             } finally { $process.Dispose() }
         }
         if ((Get-FileHash -LiteralPath $temporary -Algorithm SHA256).Hash -cne $sourceHash) { throw 'Release candidate changed during validation.' }
         $currentHash = if ([IO.File]::Exists($Destination)) { (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash } else { $null }
-        if ($currentHash -cne $priorHash) { throw 'Installed EOIE changed during candidate validation.' }
+        if ($currentHash -cne $priorHash) { throw 'Installed KIT changed during candidate validation.' }
         if ($currentHash -ceq $sourceHash) { return $false }
         if ($IsWindows -and [IO.File]::Exists($Destination)) {
-            $retiredRoot = Join-Path $env:LOCALAPPDATA 'eoie\retired'
+            $retiredRoot = Join-Path $env:LOCALAPPDATA 'kit\retired'
             [void][IO.Directory]::CreateDirectory($retiredRoot)
             Get-ChildItem -LiteralPath $retiredRoot -File | ForEach-Object { try { $_.Delete() } catch { } }
             $retired = Join-Path $retiredRoot "$([IO.Path]::GetFileNameWithoutExtension($Destination))-$(Get-Date -Format yyyyMMddHHmmssfff)$([IO.Path]::GetExtension($Destination))"
@@ -178,13 +178,13 @@ function Publish-EoieBinary {
     }
 }
 
-function Get-EoieOwners {
+function Get-KitOwners {
     param([Parameter(Mandatory)][string]$Root, [string[]]$Package = @(), [string]$Filter = '.*', [switch]$IncludeAuxiliary)
     $sourceRoot = (Resolve-Path -LiteralPath (Join-Path $Root 'src')).Path
     Push-Location $sourceRoot
     try {
         $metadataText = & cargo metadata --no-deps --format-version 1 --locked --offline
-        if ($LASTEXITCODE -ne 0) { throw 'Cannot read EOIE Cargo workspace metadata.' }
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot read KIT Cargo workspace metadata.' }
         $metadata = ($metadataText -join "`n") | ConvertFrom-Json -AsHashtable
     } finally {
         Pop-Location
@@ -199,7 +199,7 @@ function Get-EoieOwners {
         else { $name }
     })
     foreach ($name in $Package) {
-        if ($name -cnotin $available.name) { throw "Unknown EOIE package '$name'. Use dev.ps1 -List to see available names." }
+        if ($name -cnotin $available.name) { throw "Unknown KIT package '$name'. Use dev.ps1 -List to see available names." }
     }
     foreach ($item in $available) {
         if ($Package.Count -and $item.name -cnotin $Package) { continue }

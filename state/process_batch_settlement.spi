@@ -1,7 +1,7 @@
-union process_batch_evidence =
+:| process_batch_evidence =
     | ProcessBatchEvidence :: string * string * string * string * string * u32 -> process_batch_evidence
 
-inl settled_process_batch_plan () : process_batch_evidence =
+:= settled_process_batch_plan () : process_batch_evidence =
     ProcessBatchEvidence (
         "src/process_batch_plan_domain/model.spi",
         "src/process_batch_plan_policy_probe/main.spi",
@@ -11,5 +11,5 @@ inl settled_process_batch_plan () : process_batch_evidence =
         21u32
     )
 
-inl settled_capability_count () : u32 = 21u32
-inl main () : i32 = 0i32
+:= settled_capability_count () : u32 = 21u32
+:= main () : i32 = 0i32

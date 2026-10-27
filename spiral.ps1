@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory)][string]$InputPath,
     [Parameter(Mandatory)][string]$OutputPath,
     [ValidateSet('Rust', 'C', 'Fsharp', 'Delphi')][string]$Backend = 'Rust',
-    [string]$CompilerBundle = $env:EOIE_SPIRAL_BUNDLE,
+    [string]$CompilerBundle = $env:KIT_SPIRAL_BUNDLE,
     [string]$SourceRoot = $PSScriptRoot,
     [ValidateRange(1, 600)][int]$TimeoutSec = 60
 )
@@ -14,9 +14,9 @@ $outputFile = [IO.Path]::GetFullPath($OutputPath, $PWD.Path)
 $sourceDirectory = (Resolve-Path -LiteralPath $SourceRoot).Path
 $relativeInput = [IO.Path]::GetRelativePath($sourceDirectory, $inputFile)
 if ($relativeInput -eq '..' -or $relativeInput.StartsWith('../') -or $relativeInput.StartsWith('..\') -or [IO.Path]::IsPathRooted($relativeInput)) {
-    throw 'InputPath must be inside SourceRoot (the EOIE directory by default).'
+    throw 'InputPath must be inside SourceRoot (the KIT directory by default).'
 }
-$CompilerBundle = Resolve-EoieSpiralBundle $CompilerBundle
+$CompilerBundle = Resolve-KitSpiralBundle $CompilerBundle
 $previousWorkspace = $env:SPIRAL_WORKSPACE_ROOT
 $previousDotnet = $env:DOTNET_ROOT
 try {
@@ -24,7 +24,7 @@ try {
     $dotnet = Resolve-SpiralDotnet
     $compiler = Get-SpiralCompilerDll 'single-flight'
     if (-not (Test-Path -LiteralPath $compiler)) { throw "Build the compiler first: pwsh $CompilerBundle/scripts/build.ps1" }
-    $work = Join-Path (Get-SpiralCacheDir) ('eoie/' + [guid]::NewGuid().ToString('N'))
+    $work = Join-Path (Get-SpiralCacheDir) ('kit/' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $work -Force | Out-Null
     function Copy-SpiralSources([string]$From, [string]$To) {
         New-Item -ItemType Directory -Path $To -Force | Out-Null
@@ -47,13 +47,13 @@ try {
     foreach ($value in @($stagedInput, $stagedOutput)) {
         if ($value.Contains("`t") -or $value.Contains("`n")) { throw 'Compiler batch paths cannot contain tabs or newlines.' }
     }
-    "eoie`t$Backend`t$stagedInput`t$stagedOutput`t$($TimeoutSec * 1000)" | Set-Content -LiteralPath $jobs -Encoding utf8NoBOM
+    "kit`t$Backend`t$stagedInput`t$stagedOutput`t$($TimeoutSec * 1000)" | Set-Content -LiteralPath $jobs -Encoding utf8NoBOM
     $env:SPIRAL_WORKSPACE_ROOT = $CompilerBundle
     & $dotnet $compiler --batch $jobs $results --timeout-ms ($TimeoutSec * 1000)
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $stagedOutput)) {
         throw "Spiral compilation failed; diagnostics: $results"
     }
-    $changed = Set-EoieGeneratedFile -Source $stagedOutput -Destination $outputFile
+    $changed = Set-KitGeneratedFile -Source $stagedOutput -Destination $outputFile
     $action = if ($changed) { 'Generated' } else { 'Unchanged' }
     Write-Host "$action $outputFile (single-flight; staged sources: $work)"
 } finally {

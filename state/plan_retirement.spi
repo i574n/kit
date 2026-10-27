@@ -1,8 +1,8 @@
-nominal plan_active = ()
-nominal plan_applied = ()
-nominal plan_retired = ()
+:! plan_active = ()
+:! plan_applied = ()
+:! plan_retired = ()
 
-union spent_plan_id =
+:| spent_plan_id =
     | FinalizePatchPlan
     | CompilerPatchPlan
     | MutationMigrationPlan
@@ -24,42 +24,44 @@ union spent_plan_id =
     | MappingClippyFinalizePatch
     | FailureAccumulatorPatch
 
-union plan_transition from to =
+:| plan_transition from to =
     | ApplyPlan :: spent_plan_id -> plan_transition plan_active plan_applied
     | RetireAppliedPlan :: spent_plan_id -> plan_transition plan_applied plan_retired
 
-union rec retirement_witness from to =
-    | RetirementStep :: forall from to. plan_transition from to -> retirement_witness from to
-    | RetirementThen :: forall from to. (exists middle. retirement_witness from middle * retirement_witness middle to) -> retirement_witness from to
+:| ^ retirement_witness from to =
+    | RetirementStep :: \* from to. plan_transition from to -> retirement_witness from to
+    | RetirementThen :: \* from to.
+        (\? middle. retirement_witness from middle * retirement_witness middle to) ->
+        retirement_witness from to
 
-inl retire plan : retirement_witness plan_active plan_retired =
-    RetirementThen (exists (
+:= retire plan : retirement_witness plan_active plan_retired =
+    RetirementThen (\? (
         RetirementStep (ApplyPlan plan),
         RetirementStep (RetireAppliedPlan plan)
     ))
 
-inl retired_plan_count () : u32 = 20u32
-inl state_file_budget () : u32 = 24u32
+:= retired_plan_count () : u32 = 20u32
+:= state_file_budget () : u32 = 24u32
 
-inl main () : i32 =
-    inl _ = retire FinalizePatchPlan
-    inl _ = retire CompilerPatchPlan
-    inl _ = retire MutationMigrationPlan
-    inl _ = retire MutationLiteralPlan
-    inl _ = retire OwnedStringPatch
-    inl _ = retire OwnedCallPatch
-    inl _ = retire CompilerOwnedStringPatch
-    inl _ = retire CompilerScopedInteropPatch
-    inl _ = retire OwnedStringFinalizePatch
-    inl _ = retire ColdReceiptPatch
-    inl _ = retire ExplicitOwnedApiPatch
-    inl _ = retire PatchContextRuntimePatch
-    inl _ = retire PublicRestorationErrorPatch
-    inl _ = retire TransactionTestSplitPatch
-    inl _ = retire TransactionTestSupportFix
-    inl _ = retire TransactionSplitStatePatch
-    inl _ = retire BestEffortRestorationPatch
-    inl _ = retire BestEffortFinalizePatch
-    inl _ = retire MappingClippyFinalizePatch
-    inl _ = retire FailureAccumulatorPatch
+:= main () : i32 =
+    := _ = retire FinalizePatchPlan
+    := _ = retire CompilerPatchPlan
+    := _ = retire MutationMigrationPlan
+    := _ = retire MutationLiteralPlan
+    := _ = retire OwnedStringPatch
+    := _ = retire OwnedCallPatch
+    := _ = retire CompilerOwnedStringPatch
+    := _ = retire CompilerScopedInteropPatch
+    := _ = retire OwnedStringFinalizePatch
+    := _ = retire ColdReceiptPatch
+    := _ = retire ExplicitOwnedApiPatch
+    := _ = retire PatchContextRuntimePatch
+    := _ = retire PublicRestorationErrorPatch
+    := _ = retire TransactionTestSplitPatch
+    := _ = retire TransactionTestSupportFix
+    := _ = retire TransactionSplitStatePatch
+    := _ = retire BestEffortRestorationPatch
+    := _ = retire BestEffortFinalizePatch
+    := _ = retire MappingClippyFinalizePatch
+    := _ = retire FailureAccumulatorPatch
     0i32
