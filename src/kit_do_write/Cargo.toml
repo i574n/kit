@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "run.spi"
+output = "do_write.rs"
+
+[package]
+name = "kit-do-write"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_do_write"
+path = "do_write.rs"
+
+[dependencies]
+kit-do-file-steps = { path = "../kit_do_file_steps" }
+kit-do-read = { path = "../kit_do_read" }
+regex = "1.13.1"

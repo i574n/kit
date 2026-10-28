@@ -1,0 +1,61 @@
+///- --package .
+:# environment static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_jobs_doctor_model.model
+
+:~ ^ names_from (lines : array string) (at : i32) (found : list string) : list string =
+    ? at >= (am'.length lines : i32) ?> found
+    |:
+        := name = sm'.trim (sm'.split "=" (am'.index at lines) |> array |> am'.index 0i32)
+        names_from lines (at + 1i32) (? name = "" ?> found |: name :: found)
+
+:~ names_of_listing (~listing : string) : list string = names_from (sm'.nonempty_lines listing) 0i32 []
+
+:~ listing_command () : list string = ? platform.is_windows () ?> [ "cmd"; "/c"; "set" ] |: [ "env" ]
+
+:~ attached_names () : option (list string) =
+    ?= listing_command () ?|
+    | program :: args =>
+        process.try_capture_combined_list program args |> optionm.map \ (listing : string) => names_of_listing listing
+    | [] => None
+
+:~ detached_names () : option (list string) =
+    := program = env.current_executable ()
+    := start =
+        ? platform.is_windows ()
+        ?> [ "job"; "start"; "doctor-env"; "30000"; "cmd"; "/c"; "set" ]
+        |: [ "job"; "start"; "doctor-env"; "30000"; "env" ]
+    ?= process.try_capture_combined_list program start ?|
+    | None => None
+    | Some started =>
+        := at = sm'.index_of "id=job-" started
+        ? at < 0i32
+        ?> None
+        |:
+            := id =
+                sm'.substring (at + 3i32) ((sm'.length started : i32) - at - 3i32) started
+                |> sm'.split " "
+                |> array
+                |> am'.index 0i32
+                |> sm'.trim
+            ?= process.try_capture_combined_list program [ "job"; "wait"; id; "30000" ] ?|
+            | None => None
+            | Some _ => Some (names_of_listing (file_system.read_all_text (kit_jobs.jobs.job_file id "stdout.log")))
+
+:~ env_drift () : bool * string =
+    ?= attached_names (), detached_names () ?|
+    | Some caller, Some detached => !+, sm'.concat_list " " (drift caller detached)
+    | _, _ => !-, ""
+
+///> rust
+:# a_set_listing_reads_as_variable_names =
+    := names = names_of_listing "PATH=C:\\x;C:\\y\nKIT_WINDOWS_HOME=C:\\t\n\nCARGO_BUILD_JOBS=2\n"
+    expect ((listm.length names : i32) = 3i32) "three variables, blank line skipped"
+    expect
+        (
+            drift [ "PATH" ] names = [ "+KIT_WINDOWS_HOME"; "+CARGO_BUILD_JOBS" ]
+            || drift [ "PATH" ] names = [ "+CARGO_BUILD_JOBS"; "+KIT_WINDOWS_HOME" ]
+        )
+        "steering additions found"

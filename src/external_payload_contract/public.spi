@@ -1,0 +1,7 @@
+:~ external_payload_public_mask_binding (scope : i32) (mask : i32) : i32 =
+    ? scope < 0i32 ?> 0i32
+    |? 1i32 < scope ?> 0i32
+    |? scope < 1i32 ?>
+        ? mask < 7i32 ?> 0i32 |? 7i32 < mask ?> 0i32 |: 1i32
+    |:
+        ? mask < 15i32 ?> 0i32 |? 15i32 < mask ?> 0i32 |: 1i32

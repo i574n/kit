@@ -1,0 +1,84 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= cli_fixture () : fixture_root = fixture_root_create "cli ü"
+:= lease_drops () : cli_args = Arg ("KIT_LEASE_ROOT", Arg ("KIT_CONTROL_READ_ONLY", NoArgs))
+:= run_in (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run (fixture_text_of root) NoArgs (lease_drops ()) args
+:= ran (root : fixture_root) (args : cli_args) : string = succeeded (run_in root args)
+:= proxy (root : fixture_root) (~verb : string) (rest : cli_args) : cli_run =
+    run_in root (Arg ("proxy", Arg (verb, Arg (fixture_text_of root, rest))))
+
+:= cmd_run (root : fixture_root) (~timeout : string) (~line : string) : cli_run =
+    run_in root (Arg ("proxy", Arg ("run", Arg ("--cwd", Arg (fixture_text_of root, Arg ("--program", Arg ("cmd.exe",
+        Arg ("--timeout-ms", Arg (timeout, Arg ("--", Arg ("/d", Arg ("/c", Arg (line, NoArgs)))))))))))))
+
+:= write_refused (root : fixture_root) (~relative : string) : () =
+    expect
+        ((proxy root "fs-write" (Arg (relative, Arg ("bad", NoArgs)))).code <> 0i32)
+        (cat "fs-write accepted " relative)
+
+///> rust
+:# public_filesystem_roundtrip_and_guards =
+    ? on_windows ()
+    ?>
+        := root = cli_fixture ()
+        := _ = succeeded (proxy root "fs-write" (Arg ("value.txt", Arg ("first", NoArgs))))
+        := _ =
+            succeeded (proxy root "fs-write" (Arg ("value.txt", Arg ("--replace-existing", Arg ("--", Arg ("second",
+                NoArgs))))))
+        shows (succeeded (proxy root "fs-read" (Arg ("value.txt", NoArgs)))) "second"
+        same (decimal (byte_count (trimmed (succeeded (proxy root "hash" (Arg ("value.txt", NoArgs))))))) "64"
+        := _ = succeeded (proxy root "fs-copy" (Arg ("value.txt", Arg ("copy.txt", NoArgs))))
+        same (fixture_read root "copy.txt") "second"
+        := _ = succeeded (proxy root "fs-remove" (Arg ("copy.txt", NoArgs)))
+        write_refused root "../escape.txt"
+        write_refused root "file:stream"
+        write_refused root "NUL"
+        fixture_root_remove root
+    |: ()
+
+///> rust
+:# public_process_capture_timeout_and_failure =
+    ? on_windows ()
+    ?>
+        := root = cli_fixture ()
+        shows (succeeded (cmd_run root "10000" "echo windows")) "windows"
+        expect ((cmd_run root "10000" "exit /b 7").code <> 0i32) "a failing child was accepted"
+        := started = now_ms ()
+        expect ((cmd_run root "100" "ping -n 30 127.0.0.1 >nul").code <> 0i32) "a timed out child was accepted"
+        expect (now_ms () - started < 10000u64) "the timeout did not stop the child within 10 s"
+        := _ =
+            ran root (Arg ("proxy", Arg ("command-capture", Arg (fixture_text_of root, Arg ("receipt.spi",
+                Arg ("10000", Arg ("cmd.exe", Arg ("/d", Arg ("/c", Arg ("echo captured", NoArgs))))))))))
+        expect (path_exists (fixture_path root "receipt.spi")) "command-capture wrote no receipt"
+        fixture_root_remove root
+    |: ()
+
+///> rust
+:# generic_bundle_roundtrip =
+    ? on_windows ()
+    ?>
+        := root = cli_fixture ()
+        fixture_write root "source/value.txt" "roundtrip"
+        := archive = fixture_path root "bundle.zip"
+        := _ =
+            ran root (Arg ("bundle", Arg ("create", Arg (fixture_path root "source", Arg (archive, Arg ("generic",
+                NoArgs))))))
+        := _ = ran root (Arg ("bundle", Arg ("verify", Arg (archive, Arg ("generic", NoArgs)))))
+        := _ =
+            ran root (Arg ("bundle", Arg ("rehydrate", Arg (archive, Arg (fixture_path root "restored", Arg ("generic",
+                NoArgs))))))
+        same (fixture_read root "restored/value.txt") "roundtrip"
+        fixture_root_remove root
+    |: ()
+
+///> rust
+:# handoff_tolerates_a_reader_that_closes_stdout_early =
+    ? on_windows ()
+    ?>
+        := run =
+            kit_run_closing_stdout (kit_checkout ()) (Arg ("agile", Arg ("handoff", Arg (kit_checkout (), NoArgs))))
+        expect (run.code = 0i32) (cat "handoff failed: " run.stderr)
+        hides run.stderr "panicked"
+    |: ()

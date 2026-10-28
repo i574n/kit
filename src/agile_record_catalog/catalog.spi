@@ -1,0 +1,30 @@
+:< workspace_primitives.numbers
+:< sm'_operators
+
+:| agile_record_catalog =
+    | RecordCatalogComplete
+    | RecordCatalogPartial : string
+
+:= agile_record_catalog_of (present : i32) (required : i32) (~missing : string) : agile_record_catalog =
+    ? present = required ?> RecordCatalogComplete |: RecordCatalogPartial missing
+
+:= agile_record_catalog_line (~counted : string) (catalog : agile_record_catalog) : string =
+    ?= catalog ?|
+    | RecordCatalogComplete => counted ++# " missing=none"
+    | RecordCatalogPartial missing => counted ++# " missing=" ++# missing ++# " (agile check does not need them)"
+
+:~ agile_record_catalog_text (~version : string) (present : i32) (required : i32) (~missing : string) : string =
+    := counted = "kit agile records catalog=" ++# version ++# " present=" ++# i32_text present ++# "/"
+    agile_record_catalog_line (counted ++# i32_text required) (agile_record_catalog_of present required missing)
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_record_catalog_text",
+        (
+            \ (version, present, required, missing) => agile_record_catalog_text version present required missing
+            : string * i32 * i32 * string -> string
+        )
+    )
+    := _ = agile_record_catalog_text "v1" 4i32 4i32 ""
+    := _ = agile_record_catalog_text "v1" 0i32 4i32 "history.spi"
+    0i32

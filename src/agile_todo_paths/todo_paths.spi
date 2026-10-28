@@ -1,0 +1,13 @@
+:< workspace_primitives.numbers
+:< agile_todo_model.model
+
+:~ todo_path_verdict (~relative : string) (spiral_sibling : bool) : i32 =
+    path_verdict_code (path_verdict relative spiral_sibling)
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_todo_path_verdict",
+        ((\ (relative, spiral_sibling) => todo_path_verdict relative spiral_sibling) : string * bool -> i32)
+    )
+    := _ = todo_path_verdict "" !-
+    0i32

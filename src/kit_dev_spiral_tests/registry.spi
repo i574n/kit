@@ -1,0 +1,122 @@
+:< sm'_operators
+
+:== spiral_test_notebook = { package : string; relative : string }
+
+:= registered () : list spiral_test_notebook =
+    [
+        { package = "kit-ci-model"; relative = "src/kit_ci_model/tools.spi" }
+        { package = "kit-ci-probe"; relative = "src/kit_ci_probe/probe.spi" }
+        { package = "kit-ci-verdict"; relative = "src/kit_ci_verdict/verdict.spi" }
+        { package = "kit-ci-parity"; relative = "src/kit_ci_parity/parity.spi" }
+        { package = "kit-job-rechain"; relative = "src/kit_job_rechain/rechain.spi" }
+        { package = "kit-job-chain"; relative = "src/kit_job_chain/chain.spi" }
+        { package = "kit-jobs-doctor-env"; relative = "src/kit_jobs_doctor_env/environment.spi" }
+        { package = "kit-adoption-habits"; relative = "src/kit_adoption_habits/habits.spi" }
+        { package = "kit-log-sections"; relative = "src/kit_log_sections/section_model.spi" }
+        { package = "kit-log-sections"; relative = "src/kit_log_sections/section_scan.spi" }
+        { package = "agile-planning-rollup"; relative = "src/agile_planning_rollup/planning_cli.spi" }
+        { package = "agile-todo-scan"; relative = "src/agile_todo_model/model.spi" }
+        { package = "agile-todo-scan"; relative = "src/agile_todo_model/todo_cli.spi" }
+        { package = "kit-archive-tar-runtime"; relative = "src/kit_archive_tar_runtime/format.spi" }
+        { package = "kit-bundle-retention"; relative = "src/kit_bundle_retention/series.spi" }
+        { package = "kit-bundle-retention"; relative = "src/kit_bundle_retention/receipt.spi" }
+        { package = "kit-job-host"; relative = "src/kit_job_host/host_model.spi" }
+        { package = "kit-bundle-manifest"; relative = "src/kit_bundle_manifest/bundle_manifest.spi" }
+        { package = "kit-do-verbs"; relative = "src/kit_do_verbs/verbs.spi" }
+        { package = "kit-machine-crowding"; relative = "src/kit_machine_crowding/crowding.spi" }
+        { package = "kit-repo-affected"; relative = "src/kit_repo_affected/graph.spi" }
+        { package = "kit-log-sequences-model"; relative = "src/kit_log_sequences/sequence_model.spi" }
+        { package = "kit-log-sequences"; relative = "src/kit_log_sequences/sequences.spi" }
+        { package = "kit-process-ownership"; relative = "src/kit_process_table/ownership.spi" }
+        { package = "kit-table-sequences-cli"; relative = "src/kit_table_sequences/sequences_cli.spi" }
+        { package = "kit-mirror-model"; relative = "src/kit_mirror/mirror.spi" }
+        { package = "kit-mirror-cli"; relative = "src/kit_mirror/mirror_cli.spi" }
+        { package = "kit-env-pins-model"; relative = "src/kit_env_pins/pins.spi" }
+        { package = "kit-env-pins-cli"; relative = "src/kit_env_pins/env_cli.spi" }
+        { package = "kit-repo-accept-review"; relative = "src/kit_repo_accept_review/review.spi" }
+        { package = "command-spec-domain"; relative = "src/command_spec_domain/model.spi" }
+        { package = "canonical-plan-ir-domain"; relative = "src/canonical_plan_ir_domain/model.spi" }
+        { package = "agile-task-views"; relative = "src/agile_task_views/views_cli.spi" }
+        { package = "kit-do-edit"; relative = "src/kit_do_edit/edit_cli.spi" }
+        { package = "kit-dev-spiral-tests"; relative = "src/kit_dev_spiral_tests/failures.spi" }
+        { package = "kit-handoff-render"; relative = "src/kit_handoff_render/render.spi" }
+        { package = "authority-state-domain"; relative = "src/authority_state_domain/model.spi" }
+        { package = "agile-note-model"; relative = "src/agile_note_model/model.spi" }
+        { package = "kit-machine-watch"; relative = "src/kit_machine_watch_model/model.spi" }
+        { package = "kit-window-claim"; relative = "src/kit_tree_lease/lease.spi" }
+        { package = "kit-adoption"; relative = "src/kit_adoption/classify.spi" }
+        { package = "kit-process-table"; relative = "src/kit_process_table/ps_cli.spi" }
+        { package = "kit-cli"; relative = "src/kit_cli_model/model.spi" }
+        { package = "kit-cli"; relative = "src/kit_cli_model/argument_file.spi" }
+        { package = "kit-jobs"; relative = "src/kit_jobs/model.spi" }
+        { package = "kit-repo-state"; relative = "src/kit_repo_state/state.spi" }
+        { package = "kit-table-query"; relative = "src/kit_table_query/query.spi" }
+        { package = "kit-lcov"; relative = "src/kit_lcov/lcov.spi" }
+        { package = "kit-bundle-retention"; relative = "src/kit_bundle_retention/receipt_read.spi" }
+        { package = "kit-read-query"; relative = "src/kit_read_query/model.spi" }
+        { package = "kit-read-query"; relative = "src/kit_receipt/receipt.spi" }
+        { package = "kit-do-program"; relative = "src/kit_do_program/program.spi" }
+        { package = "kit-do-read"; relative = "src/kit_do_read/grammar.spi" }
+        { package = "kit-process-table"; relative = "src/kit_process_table/model.spi" }
+        { package = "kit-do-facts"; relative = "src/kit_do_facts/grammar.spi" }
+        { package = "kit-command-line"; relative = "src/kit_command_line/launch.spi" }
+        { package = "kit-do-process"; relative = "src/kit_do_process/grammar.spi" }
+        { package = "kit-do-tables"; relative = "src/kit_do_tables/grammar.spi" }
+        { package = "kit-do-write"; relative = "src/kit_do_write/grammar.spi" }
+        { package = "kit-do-git"; relative = "src/kit_do_git/grammar.spi" }
+        { package = "kit-do-jobs"; relative = "src/kit_do_jobs/grammar.spi" }
+        { package = "kit-do-lab"; relative = "src/kit_do_lab/grammar.spi" }
+        { package = "kit-cli"; relative = "src/workspace_primitives/toolchain.spi" }
+        { package = "kit-contracts"; relative = "src/agile_task_notes/notes_cli.spi" }
+        { package = "kit-contracts"; relative = "src/kit_contracts/receipts_cli.spi" }
+        { package = "kit-agile-contracts"; relative = "src/kit_agile_contracts/agile_cli.spi" }
+        { package = "kit-archive-contracts"; relative = "src/kit_archive_contracts/archive_cli.spi" }
+        { package = "kit-release-contracts"; relative = "src/kit_release_contracts/upgrade_cli.spi" }
+        { package = "kit-cli"; relative = "src/kit_cli/windows_cli.spi" }
+        { package = "kit-coverage-prune"; relative = "src/coverage_prune_model/model.spi" }
+        { package = "kit-coverage-prune"; relative = "src/kit_coverage_prune/coverage_cli.spi" }
+        { package = "kit-coverage-prune"; relative = "src/kit_coverage_prune/evidence_cli.spi" }
+        { package = "kit-release-contracts"; relative = "src/kit_release_contracts/hygiene_cli.spi" }
+        { package = "kit-proxy-search"; relative = "src/kit_proxy_search/hash_cli.spi" }
+        { package = "kit-jobs"; relative = "src/kit_jobs/stop_cli.spi" }
+        { package = "agile-task-query"; relative = "src/agile_task_query/query.spi" }
+        { package = "agile-task-next"; relative = "src/agile_task_next/ranking.spi" }
+        { package = "agile-task-next"; relative = "src/agile_task_next/next_cli.spi" }
+        { package = "agile-todo-scan"; relative = "src/agile_todo_model/roots.spi" }
+        { package = "agile-todo-roots"; relative = "src/agile_todo_roots/roots_cli.spi" }
+        { package = "kit-table-query"; relative = "src/kit_table_query/stats.spi" }
+        { package = "kit-table-query"; relative = "src/kit_table_query/table_cli.spi" }
+        { package = "agile-todo-record"; relative = "src/agile_todo_record/ledger.spi" }
+        { package = "agile-todo-record"; relative = "src/agile_todo_record/record_cli.spi" }
+        { package = "kit-standards"; relative = "src/kit_standards/rules.spi" }
+        { package = "kit-style-census"; relative = "src/kit_style_census/probes.spi" }
+        { package = "kit-style-census"; relative = "src/kit_style_census/census_cli.spi" }
+        { package = "kit-window-run"; relative = "src/kit_window_run/run_cli.spi" }
+        { package = "kit-table-test"; relative = "src/kit_table_test/table_test_cli.spi" }
+        { package = "kit-resume"; relative = "src/kit_resume/resume_cli.spi" }
+        { package = "kit-memory"; relative = "src/kit_memory/memory_cli.spi" }
+        { package = "kit-guide"; relative = "src/kit_guide/guide_cli.spi" }
+        { package = "kit-table-logs"; relative = "src/kit_table_logs/logs_model.spi" }
+        { package = "kit-table-logs"; relative = "src/kit_table_logs/logs_cli.spi" }
+        { package = "kit-experiments"; relative = "src/kit_experiment_stats/experiment_stats.spi" }
+        { package = "kit-experiments"; relative = "src/kit_experiments/experiment_plan.spi" }
+        { package = "kit-experiments"; relative = "src/kit_experiments/experiment_model.spi" }
+        { package = "kit-experiments"; relative = "src/kit_experiments/experiments_cli.spi" }
+        { package = "kit-machine-windows"; relative = "src/kit_machine_windows/window_model.spi" }
+        { package = "kit-machine-windows"; relative = "src/kit_machine_windows/windows_cli.spi" }
+        { package = "kit-standards"; relative = "src/kit_standards/standards_cli.spi" }
+        { package = "agile-memory-links"; relative = "src/agile_memory_links/links_model.spi" }
+        { package = "agile-memory-links"; relative = "src/agile_memory_links/links_cli.spi" }
+        { package = "kit-read-query"; relative = "src/kit_read_query/grep_cli.spi" }
+        { package = "kit-crate-gate"; relative = "src/kit_crate_gate/model.spi" }
+        { package = "kit-table-text"; relative = "src/kit_table_text/text.spi" }
+        { package = "kit-ci-parity"; relative = "src/kit_ci_parity/model.spi" }
+        { package = "kit-job-rechain"; relative = "src/kit_job_after_model/model.spi" }
+        { package = "kit-jobs-doctor"; relative = "src/kit_jobs_doctor_model/model.spi" }
+        { package = "kit-jobs-doctor-check"; relative = "src/kit_jobs_doctor/check.spi" }
+        { package = "kit-agile-records"; relative = "src/kit_agile_records/model.spi" }
+    ]
+
+:= selects (names : string) (separator : string) (package : string) : bool =
+    ? (names = "") ?> !+
+    |: sm'.contains (separator ++# package ++# separator) (separator ++# names ++# separator)

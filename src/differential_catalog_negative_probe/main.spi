@@ -1,0 +1,14 @@
+:< differential_catalog_bindings.bindings
+:< differential_catalog_contract.model
+
+:= main () : i32 =
+    := _ = differential_catalog_public_plan ()
+    := good_settlement = differential_catalog_settlement_binding 10i32 9i32 31i32
+    := good_catalog = differential_catalog_legacy_binding 36i32 36i32 1i32
+    := good_shape = differential_catalog_shape_binding 15i32 4i32
+    := bad_settlement = differential_catalog_settlement_binding 10i32 8i32 31i32
+    := bad_catalog = differential_catalog_legacy_binding 36i32 35i32 1i32
+    := bad_shape = differential_catalog_shape_binding 7i32 3i32
+    ? good_settlement = 1i32 && good_catalog = 1i32 && good_shape = 1i32 ?>
+        ? bad_settlement = 0i32 && bad_catalog = 0i32 && bad_shape = 0i32 ?> 0i32 |: 1i32
+    |: 1i32

@@ -1,0 +1,73 @@
+:< sm'_operators
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:= after_field (~text : string) (index : i32) : string =
+    := fields = sm'.split "\t" text |> array
+    ? index < (am'.length fields : i32) ?> sm'.trim (am'.index index fields) |: ""
+
+:| after_outcome =
+    | AfterCleared
+    | AfterHalted : i32
+
+:== awaited_end =
+    {
+        state : job_state
+        stopped : bool
+        after_text : string
+    }
+
+:~ ^ awaited (~id : string) (beat : u64) : awaited_end =
+    := after_text = text_or_empty (job_file id "after")
+    ? file_exists (job_file id "stop") ?> { state = Settled JobStopped; stopped = !+; after_text = after_text }
+    |:
+        := state = job_state_now (after_field after_text 0i32)
+        ? state_settled state ?> { state = state; stopped = !-; after_text = after_text }
+        |:
+            := now = now_ms ()
+            := next =
+                ? now > beat + 1000u64 ?>
+                    := _ = text_written (job_file id "heartbeat_ms") (decimal_text now)
+                    now
+                |: beat
+            sleep_ms 250u64
+            awaited id next
+
+:~ after_outcome_of (~id : string) : after_outcome =
+    := started = now_ms ()
+    := ended = awaited id 0u64
+    := other = after_field ended.after_text 0i32
+    ? ended.stopped
+    ?>
+        := _ =
+            text_written
+                (job_file id "exit")
+                (exit_line 143i32 (now_ms ()) JobStopped ("stopped on request while waiting for " ++# other))
+        AfterHalted 143i32
+    |? after_field ended.after_text 1i32 = "ok" && state_exit ended.state <> 0i32
+    ?>
+        := detail =
+            "--after-ok: "
+            ++# other
+            ++# " ended "
+            ++# state_word ended.state
+            ++# " exit "
+            ++# sm'.format (state_exit ended.state)
+        := _ = text_written (job_file id "exit") (exit_line 125i32 (now_ms ()) (JobSkipped "") detail)
+        AfterHalted 125i32
+    |:
+        := _ =
+            text_written
+                (job_file id "after-done")
+                (other ++# " " ++# state_word ended.state ++# " waited_ms=" ++# decimal_text (now_ms () - started))
+        AfterCleared
+
+:~ after_wait (~id : string) : i32 =
+    ?= after_outcome_of id ?|
+    | AfterHalted code => code
+    | AfterCleared => 0i32
+
+:= main () : i32 =
+    !!!!Export("kit_job_after_wait", ((\ id => after_wait id) : string -> i32))
+    0i32

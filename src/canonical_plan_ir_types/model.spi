@@ -1,0 +1,94 @@
+:! plan_raw = ()
+:! plan_canonical = ()
+:! plan_consumed = ()
+
+:| plan_stage from to =
+    | Canonicalize :: plan_stage plan_raw plan_canonical
+    | Consume :: plan_stage plan_canonical plan_consumed
+
+:| ^ typed_plan from to =
+    | PlanStep :: \* from to. plan_stage from to -> typed_plan from to
+    | PlanThen :: \* from to. (\? middle. typed_plan from middle * typed_plan middle to) -> typed_plan from to
+
+:| plan_effect =
+    | InspectEffect
+    | WriteEffect
+    | ProcessEffect
+    | ToolchainEffect
+
+:| plan_op =
+    | CreateFile : string * string
+    | ReplaceFile : string * string * string
+    | PatchExact : string * string * string
+    | MakeDir : string
+    | ToolchainAction : string
+    | CopyFile : string * string * string
+    | Chmod : string * string * string
+    | Symlink : string * string
+
+:| plan_kind =
+    | CreateKind
+    | ReplaceKind
+    | PatchExactKind
+    | MakeDirKind
+    | ToolchainKind
+    | CopyKind
+    | ChmodKind
+    | SymlinkKind
+
+:| field_rule =
+    | AnyField
+    | PresentField
+    | DashField
+
+:== kind_spec =
+    {
+        name : string
+        effect : plan_effect
+        expected : field_rule
+        payload : field_rule
+    }
+
+:= kind_spec_of = \|
+    | CreateKind => { name = "create"; effect = WriteEffect; expected = DashField; payload = AnyField }
+    | ReplaceKind => { name = "replace"; effect = WriteEffect; expected = PresentField; payload = AnyField }
+    | PatchExactKind => { name = "patch-exact"; effect = WriteEffect; expected = AnyField; payload = AnyField }
+    | MakeDirKind => { name = "mkdir"; effect = WriteEffect; expected = DashField; payload = DashField }
+    | ToolchainKind => { name = "toolchain"; effect = ToolchainEffect; expected = DashField; payload = DashField }
+    | CopyKind => { name = "copy"; effect = WriteEffect; expected = PresentField; payload = PresentField }
+    | ChmodKind => { name = "chmod"; effect = WriteEffect; expected = PresentField; payload = PresentField }
+    | SymlinkKind => { name = "symlink"; effect = WriteEffect; expected = DashField; payload = PresentField }
+
+:= op_kind = \|
+    | CreateFile _ => CreateKind
+    | ReplaceFile _ => ReplaceKind
+    | PatchExact _ => PatchExactKind
+    | MakeDir _ => MakeDirKind
+    | ToolchainAction _ => ToolchainKind
+    | CopyFile _ => CopyKind
+    | Chmod _ => ChmodKind
+    | Symlink _ => SymlinkKind
+
+:= effect_name = \|
+    | InspectEffect => "inspect"
+    | WriteEffect => "write"
+    | ProcessEffect => "process"
+    | ToolchainEffect => "toolchain"
+
+:= op_descriptor (op : plan_op) =
+    := spec = kind_spec_of (op_kind op)
+    := target, expected, payload =
+        ?= op ?|
+        | CreateFile (path, payload) => path, "-", payload
+        | ReplaceFile (path, expected, payload) => path, expected, payload
+        | PatchExact (path, expected, payload) => path, expected, payload
+        | MakeDir path => path, "-", "-"
+        | ToolchainAction action => action, "-", "-"
+        | CopyFile (source, expected, target) => target, expected, source
+        | Chmod (path, expected, replacement) => path, expected, replacement
+        | Symlink (path, target) => path, "-", target
+    spec.name, target, expected, payload, effect_name spec.effect
+
+:= emit_plan_op op : () =
+    := op, target, expected, payload, effect = op_descriptor op
+    $"RustPlanOp(!op,!target,!expected,!payload,!effect)" : ()

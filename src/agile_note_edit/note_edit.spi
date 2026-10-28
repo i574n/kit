@@ -1,0 +1,144 @@
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< agile_note_model.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+
+:= decimal_i32 (~text : string) : i32 = optionm'.default_value (-1i32) (convert.try_convert (sm'.trim text))
+
+:| note_change =
+    | ReplaceText
+    | AppendText
+
+:| note_guard =
+    | NoGuard
+    | ExpectedAt : string
+    | ExpectedPrefix : string
+
+:== edit_options =
+    {
+        editor : string
+        change : note_change
+        guard : note_guard
+        valid : bool
+    }
+
+:~ ^ options_from (index : i32) (options : edit_options) : edit_options =
+    := word = argument_owned index
+    ? word = "" ?> options
+    |? word = "--append" ?> options_from (index + 1i32) { options ?| change = AppendText }
+    |? word = "--as" && sm'.trim (argument_owned (index + 1i32)) <> "" ?>
+        options_from (index + 2i32) { options ?| editor = sm'.trim (argument_owned (index + 1i32)) }
+    |? word = "--expect-at" && sm'.trim (argument_owned (index + 1i32)) <> "" ?>
+        options_from (index + 2i32) { options ?| guard = ExpectedAt (sm'.trim (argument_owned (index + 1i32))) }
+    |? word = "--expect-prefix" && argument_owned (index + 1i32) <> "" ?>
+        options_from (index + 2i32) { options ?| guard = ExpectedPrefix (argument_owned (index + 1i32)) }
+    |: { options ?| valid = !- }
+
+:= changed_text (change : note_change) (~previous : string) (~body : string) : string =
+    ?= change ?|
+    | ReplaceText => body
+    | AppendText => previous ++# " " ++# body
+
+:= note_row_head (~id : string) (seq : i32) : string = "inl " ++# (note_binding id seq) ++# " () = "
+
+:= guard_problem (seq : i32) (guard : note_guard) (previous : task_note) : string =
+    ?= guard ?|
+    | NoGuard => ""
+    | ExpectedAt at =>
+        ? previous.at = at ?> "" |: "note " ++# i32_text seq ++# " was written at " ++# previous.at ++# ", not " ++# at
+    | ExpectedPrefix prefix =>
+        ? sm'.starts_with prefix previous.text
+        ?> ""
+        |: "note " ++# i32_text seq ++# " does not start with the expected text"
+
+:= note_edit_failure (~reason : string) (~id : string) : i32 =
+    stderr_failure ("agile note-edit " ++# id ++# " rejected: " ++# reason)
+
+:= note_edit_success
+    (~id : string) (seq : i32) (previous : task_note) (revised : task_note) (before : u64) (after : u64) (elapsed : u64)
+    : i32
+    =
+    := head = "kit agile note-edit ok id=" ++# id ++# " note=" ++# (i32_text seq) ++# " at="
+    := middle =
+        previous.at
+        ++# " author="
+        ++# spi_quoted previous.author
+        ++# " text_bytes="
+        ++# i32_text (byte_len previous.text)
+    stdout_line (
+        head ++# middle ++# "->" ++# (i32_text (byte_len revised.text)) ++# (measured_sizes before after elapsed)
+    )
+
+:~ note_edited
+    (~root : string) (~id : string) (seq : i32) (~body : string) (~editor : string) (change : note_change)
+    (guard : note_guard)
+    : i32
+    =
+    := started = unix_ms ()
+    := state = backlog_state_path root
+    ?= probe (unchecked state) ?|
+    | FileMissing _ => note_edit_failure "state/agile.spi is missing" id
+    | FileReadable file =>
+        := raw = loaded_string (read_text file)
+        := original = records_text raw
+        := row = byte_find original (note_row_head id seq)
+        ? row < 0i32
+        ?> note_edit_failure "no note with this number" id
+        |:
+            := previous = note_at original (row + byte_len (note_row_head id seq))
+            := refused = guard_problem seq guard previous
+            ? refused <> ""
+            ?> note_edit_failure refused id
+            |? editor = "" || previous.author = editor
+            ?>
+                := revised = { previous ?| text = changed_text change previous.text body }
+                := updated = spliced original row (line_end_after original row) (note_row id seq revised)
+                ?= state_written state raw updated ?|
+                | StateWritten =>
+                    note_edit_success id seq previous revised
+                        (text_bytes original)
+                        (text_bytes updated)
+                        (ms_since started)
+                | problem => note_edit_failure (state_write_problem problem) id
+            |:
+                note_edit_failure
+                    (
+                        "note "
+                        ++# i32_text seq
+                        ++# " was written by "
+                        ++# previous.author
+                        ++# "; only its author edits it"
+                    )
+                    id
+
+:~ note_edit_entry () : i32 =
+    := id = argument_owned 2i32
+    := seq = decimal_i32 (argument_owned 3i32)
+    := body = sm'.trim (argument_owned 4i32)
+    ? seq < 1i32
+    ?> note_edit_failure "the note number must be a positive integer" id
+    |? (body = "")
+    ?> note_edit_failure "the note text is empty" id
+    |:
+        := options = options_from 5i32 { editor = ""; change = ReplaceText; guard = NoGuard; valid = !+ }
+        ? options.valid
+        ?> note_edited (argument_owned 1i32) id seq body options.editor options.change options.guard
+        |:
+            note_edit_failure
+                (
+                    "usage: agile note-edit <root> <id> <note-number> <text> [--as <author>] [--append] "
+                    ^^ "[--expect-at <iso> | --expect-prefix <text>]"
+                )
+                id
+
+:= main () : i32 =
+    !!!!Export("kit_agile_note_edit_run", ((\ () => note_edit_entry ()) : () -> i32))
+    0i32

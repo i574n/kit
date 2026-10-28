@@ -1,0 +1,7 @@
+:= main () : i32 =
+    := parsed = receipt_parse (parser_fixture_source ())
+    := malformed = receipt_parse (parser_malformed_source ())
+    !!!!Export("kit_state_receipt_parse", ((\ value => receipt_parse value) : string -> string))
+    ? (=.) parsed (parser_fixture_table ()) ?>
+        ? (=.) malformed "" ?> 0i32 |: 2i32
+    |: 1i32

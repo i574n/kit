@@ -1,0 +1,195 @@
+///- --package .
+:# stats static =
+    :< rust_std_string.model
+
+:< rust_std_string.model
+
+:| aggregate =
+    | MeanOf
+    | SdOf
+    | SumOf
+    | MinOf
+    | MaxOf
+    | CountOf
+
+:| ^ measures =
+    | NoMeasures
+    | MeasureThen : aggregate * string * i32 * measures
+
+:| ^ cell_texts =
+    | NoCells
+    | CellThen : string * cell_texts
+
+:| ^ measure_stats =
+    | NoMeasureStats
+    | MeasureStatsThen : i32 * i32 * f64 * f64 * f64 * f64 * measure_stats
+
+:| ^ groups =
+    | NoGroups
+    | GroupThen : string * i32 * measure_stats * groups
+
+:= aggregate_word = \|
+    | MeanOf => "mean"
+    | SdOf => "sd"
+    | SumOf => "sum"
+    | MinOf => "min"
+    | MaxOf => "max"
+    | CountOf => "count"
+
+:= blank (~cell : string) : bool = $'(!cell).trim().is_empty()' : bool
+:= numeric (~cell : string) : bool =
+    $'(!cell).trim().parse::<f64>().map(|value| value.is_finite()).unwrap_or(false)' : bool
+:= number_of (~cell : string) : f64 = $'(!cell).trim().parse::<f64>().unwrap_or(0.0)' : f64
+:= as_f64 (count : i32) : f64 = (conv count : f64)
+:= square_root (value : f64) : f64 = $'(!value).max(0.0).sqrt()' : f64
+:~ decimal_text (value : f64) : string =
+    $'std::rc::Rc::<str>::from({ let text = format\!("{:.3}", !value); \
+        let trimmed = text.trim_end_matches(char::from(48u8)).trim_end_matches(char::from(46u8)); \
+        if trimmed == "-0" { "0".to_owned() } else { trimmed.to_owned() } }.as_str())' : string
+:= text_before (~left : string) (~right : string) : bool = $'(!left) < (!right)' : bool
+
+:~ ^ stats_empty (list : measures) : measure_stats =
+    ?= list ?|
+    | NoMeasures => NoMeasureStats
+    | MeasureThen (_, _, _, rest) => MeasureStatsThen (0i32, 0i32, 0.0f64, 0.0f64, 0.0f64, 0.0f64, stats_empty rest)
+
+:~ ^ stats_added (stats : measure_stats) (cells : cell_texts) : measure_stats =
+    ?= stats, cells ?|
+    | MeasureStatsThen (count, filled, sum, squares, low, high, rest), CellThen (cell, more) =>
+        := filled = ? blank cell ?> filled |: filled + 1i32
+        ? numeric cell
+        ?>
+            := value = number_of cell
+            := low = ? count = 0i32 || value < low ?> value |: low
+            := high = ? count = 0i32 || value > high ?> value |: high
+            MeasureStatsThen (
+                count + 1i32,
+                filled,
+                sum + value,
+                squares + value * value,
+                low,
+                high,
+                stats_added rest more
+            )
+        |: MeasureStatsThen (count, filled, sum, squares, low, high, stats_added rest more)
+    | _ => stats
+
+:~ ^ group_added (list : groups) (~key : string) (empty : measure_stats) (cells : cell_texts) : groups =
+    ?= list ?|
+    | NoGroups => GroupThen (key, 1i32, stats_added empty cells, NoGroups)
+    | GroupThen (name, rows, stats, rest) =>
+        ? name = key ?> GroupThen (name, rows + 1i32, stats_added stats cells, rest)
+        |: GroupThen (name, rows, stats, group_added rest key empty cells)
+
+:= ranks_before (rows : i32) (~name : string) (other_rows : i32) (~other_name : string) : bool =
+    ? rows = other_rows ?> text_before name other_name |: other_rows < rows
+
+:~ ^ group_inserted (~name : string) (rows : i32) (stats : measure_stats) (list : groups) : groups =
+    ?= list ?|
+    | NoGroups => GroupThen (name, rows, stats, NoGroups)
+    | GroupThen (other, other_rows, other_stats, rest) =>
+        ? ranks_before rows name other_rows other ?> GroupThen (name, rows, stats, list)
+        |: GroupThen (other, other_rows, other_stats, group_inserted name rows stats rest)
+
+:~ ^ groups_sorted (list : groups) (sorted : groups) : groups =
+    ?= list ?|
+    | NoGroups => sorted
+    | GroupThen (name, rows, stats, rest) => groups_sorted rest (group_inserted name rows stats sorted)
+
+:~ ^ group_count (list : groups) (counted : i32) : i32 =
+    ?= list ?|
+    | NoGroups => counted
+    | GroupThen (_, _, _, rest) => group_count rest (counted + 1i32)
+
+:~ measure_value
+    (kind : aggregate) (count : i32) (filled : i32) (sum : f64) (squares : f64) (low : f64) (high : f64)
+    : string
+    =
+    ?= kind ?|
+    | CountOf => decimal_text (as_f64 filled)
+    | MinOf => ? count = 0i32 ?> "" |: decimal_text low
+    | MaxOf => ? count = 0i32 ?> "" |: decimal_text high
+    | SumOf => decimal_text sum
+    | MeanOf => ? count = 0i32 ?> "" |: decimal_text (sum / as_f64 count)
+    | SdOf =>
+        ? count < 2i32 ?> (? count = 0i32 ?> "" |: "0")
+        |: decimal_text (square_root ((squares - sum * sum / as_f64 count) / as_f64 (count - 1i32)))
+
+:~ ^ measure_cells (list : measures) (stats : measure_stats) : string =
+    ?= list, stats ?|
+    | MeasureThen (kind, _, _, rest), MeasureStatsThen (count, filled, sum, squares, low, high, more) =>
+        concat5 "\t" (measure_value kind count filled sum squares low high) (measure_cells rest more) "" ""
+    | _ => ""
+
+:~ ^ measure_headers (list : measures) : string =
+    ?= list ?|
+    | NoMeasures => ""
+    | MeasureThen (kind, name, _, rest) => concat5 "\t" (aggregate_word kind) "_" name (measure_headers rest)
+
+
+:= two_measures () : measures = MeasureThen (MeanOf, "retries", 0i32, MeasureThen (SdOf, "retries", 0i32, NoMeasures))
+
+:= row_of (~cell : string) : cell_texts = CellThen (cell, CellThen (cell, NoCells))
+
+:~ ^ group_lines (list : measures) (sorted : groups) : string =
+    ?= sorted ?|
+    | NoGroups => ""
+    | GroupThen (name, rows, stats, rest) => concat5 name ":" ($'std::rc::Rc::<str>::from((!rows).to_string().as_str()\
+        )' : string) (measure_cells list stats) (concat5 "\n" (group_lines list rest) "" "" "")
+
+///> rust
+:# groups_keep_mean_and_sample_sd_and_skip_blank_cells =
+    := list = two_measures ()
+    := empty = stats_empty list
+    := grouped =
+        group_added
+            (
+                group_added
+                    (group_added (group_added NoGroups "a" empty (row_of "2")) "b" empty (row_of ""))
+                    "a"
+                    empty
+                    (row_of "4")
+            )
+            "a"
+            empty
+            (row_of "9")
+    := text = group_lines list (groups_sorted grouped NoGroups)
+    testing.expect (text = "a:3\t5\t3.606\nb:1\t\t\n") text
+    testing.expect (measure_headers list = "\tmean_retries\tsd_retries") (measure_headers list)
+
+:= triple (~cell : string) : cell_texts = CellThen (cell, CellThen (cell, CellThen (cell, NoCells)))
+
+///> rust
+:# extremes_skip_blanks_and_counts_take_every_filled_cell =
+    := list =
+        MeasureThen (MinOf, "hp", 0i32, MeasureThen (MaxOf, "hp", 0i32, MeasureThen (CountOf, "hp", 0i32, NoMeasures)))
+    := empty = stats_empty list
+    := grouped =
+        group_added
+            (
+                group_added
+                    (group_added (group_added NoGroups "a" empty (triple "7")) "a" empty (triple ""))
+                    "a"
+                    empty
+                    (triple "-2.5")
+            )
+            "a"
+            empty
+            (triple "timeout")
+    := text = group_lines list grouped
+    testing.expect (text = "a:4\t-2.5\t7\t3\n") text
+    testing.expect (measure_headers list = "\tmin_hp\tmax_hp\tcount_hp") (measure_headers list)
+
+///> rust
+:# ties_sort_by_name_and_numbers_print_trimmed =
+    := empty = stats_empty NoMeasures
+    := grouped =
+        group_added (group_added (group_added NoGroups "zeta" empty NoCells) "alpha" empty NoCells) "beta" empty NoCells
+    testing.expect
+        (group_lines NoMeasures (groups_sorted grouped NoGroups) = "alpha:1\nbeta:1\nzeta:1\n")
+        "name order on equal counts"
+    testing.expect (decimal_text 52240.0f64 = "52240") "integral"
+    testing.expect (decimal_text 2.5f64 = "2.5") "fraction"
+    testing.expect (decimal_text 0.0f64 = "0") "zero"
+    testing.expect (measure_value SumOf 2i32 2i32 7.25f64 0.0f64 0.0f64 0.0f64 = "7.25") "sum"
+    testing.expect (measure_value SdOf 1i32 1i32 3.0f64 9.0f64 3.0f64 3.0f64 = "0") "one value has no spread"

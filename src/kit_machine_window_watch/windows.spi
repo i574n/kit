@@ -1,0 +1,41 @@
+:< rust_std_string.model
+:< kit_machine_watch_model.model
+
+:= line_count (~text : string) : i32 = $'(&*!text).lines().filter(|line| \!line.is_empty()).count() as i32' : i32
+inl line_at (~text : string) (index : i32) : string = $'std::rc::Rc::<str>::from((&*!text).lines().filter(|line| \
+    \!line.is_empty()).nth(!index as usize).unwrap_or(""))' : string
+:= appended (~text : string) (~line : string) : string = ? text = "" ?> line |: concat5 text "\n" line "" ""
+:= job_state_word (~id : string) : string = $'kit_job_control::kit_job_state_word(&*!id)' : string
+inl tab_field (~row : string) (index : i32) : string = $'std::rc::Rc::<str>::from((&*!row).split(char::from(9u8)).nth(\
+    !index as usize).unwrap_or(""))' : string
+inl label_job (~label : string) : string = $'std::rc::Rc::<str>::from((&*!label).split("(kit job \
+    ").nth(1).and_then(|rest| rest.split(char::from(41u8)).next()).unwrap_or(""))' : string
+
+:~ ^ windows_watched (~windows : string) (index : i32) (~report : string) : string =
+    ? index >= line_count windows ?> report
+    |:
+        := row = line_at windows index
+        := job = label_job (tab_field row 3i32)
+        := state = ? job = "" ?> "" |: job_state_word job
+        := line =
+            concat5 "  " (tab_field row 0i32) "  " (tab_field row 1i32) (
+                concat5 "  " (tab_field row 2i32) "  " (tab_field row 3i32) (window_text (
+                window_health_of (tab_field row 2i32 = "held") state)))
+        windows_watched windows (index + 1i32) (appended report line)
+
+:~ gate_summary () : string =
+    $'{ let path = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).map(std::path::PathBuf::from).\
+        unwrap_or_default().join(".claude").join("autonomous").join("gate.log"); let text = \
+        std::fs::read_to_string(&path).unwrap_or_default(); let mut sessions: std::collections::BTreeMap<String, \
+        (u64, u64)> = std::collections::BTreeMap::new(); let lines = text.lines().collect::<Vec<_>>(); for line in \
+        lines.iter().rev().take(4000) { let fields = line.split_whitespace().collect::<Vec<_>>(); if fields.len() < 4 \
+        { continue; } let entry = sessions.entry(fields[2].to_owned()).or_insert((0, 0)); if fields[3] == "block" { \
+        entry.0 += 1; } else if line.contains("idle") && fields[3] == "pass" { entry.1 += 1; } } \
+        std::rc::Rc::<str>::from(sessions.into_iter().map(|(session, (blocks, idle))| format\!("  {session}: blocks \
+        {blocks}, idle passes {idle}{}", if idle > 0 { "  <- idled" } else { "" \
+        })).collect::<Vec<_>>().join("\n").as_str()) }' : string
+
+:= main () : i32 =
+    !!!!Export("kit_machine_windows_lines", ((\ windows => windows_watched windows 0i32 "") : string -> string))
+    !!!!Export("kit_machine_gate_summary", ((\ () => gate_summary ()) : () -> string))
+    0i32

@@ -1,0 +1,235 @@
+:! toolchain_idle = ()
+:! toolchain_running = ()
+:! toolchain_done = ()
+:! toolchain_mutator = ()
+
+:| toolchain_authority scope =
+    | ToolchainMutator :: toolchain_authority toolchain_mutator
+
+:| toolchain_action =
+    | CargoLock
+    | CargoFmtCheck
+    | CargoCheck
+    | CargoTest
+    | CargoClippy
+    | CargoBuild
+    | CargoVersion
+    | SpiralVersion
+
+:| toolchain_program_profile =
+    | SelectedTool
+    | CargoFmtSibling
+    | CargoClippySibling
+
+:| toolchain_argument_profile =
+    | GenerateLockfileOffline
+    | FormatAllCheck
+    | CheckAllTargetsOfflineLocked
+    | TestOfflineLocked
+    | ClippyAllTargetsOfflineLockedDenyWarnings
+    | BuildReleaseOfflineLocked
+    | VersionOnly
+
+:| toolchain_environment_profile =
+    | CargoEnvironment
+    | CleanEnvironment
+    | CargoEnvironmentWithSpiralAuthorities
+
+:| toolchain_timeout_policy =
+    | CallerPositiveMilliseconds
+
+:| toolchain_success_policy =
+    | RequireSuccessfulExit
+
+:| toolchain_resume_profile =
+    | CargoUtilityResume
+    | CargoCheckResume
+    | CargoTestResume
+    | CargoClippyResume
+    | CargoReleaseResume
+    | SpiralUtilityResume
+
+:| toolchain_resume_decision =
+    | ContinueReceipt
+    | RetryTimedOutReceipt
+
+:= toolchain_resume_profile_code = \|
+    | CargoUtilityResume => 0i32
+    | CargoCheckResume => 1i32
+    | CargoTestResume => 2i32
+    | CargoClippyResume => 3i32
+    | CargoReleaseResume => 4i32
+    | SpiralUtilityResume => 5i32
+
+:= toolchain_resume_decision_code = \|
+    | ContinueReceipt => 0i32
+    | RetryTimedOutReceipt => 1i32
+
+:| toolchain_command_spec =
+    | ToolchainCommandSpec ::
+        {
+            program : toolchain_program_profile
+            arguments : toolchain_argument_profile
+            environment : toolchain_environment_profile
+            timeout : toolchain_timeout_policy
+            success : toolchain_success_policy
+        } ->
+        toolchain_command_spec
+
+:| toolchain_op from to result =
+    | ToolchainRun ::
+        toolchain_authority toolchain_mutator * toolchain_action ->
+        toolchain_op toolchain_idle toolchain_running string
+    | ToolchainFinish :: toolchain_authority toolchain_mutator -> toolchain_op toolchain_running toolchain_done string
+
+:| ^ toolchain_plan from to =
+    | ToolchainStep :: \* from to. (\? result. toolchain_op from to result * result) -> toolchain_plan from to
+    | ToolchainThen :: \* from to.
+        (\? middle. toolchain_plan from middle * toolchain_plan middle to) ->
+        toolchain_plan from to
+
+:= toolchain_action_code (action : toolchain_action) : i32 =
+    ?= action ?|
+    | CargoLock => 0i32
+    | CargoFmtCheck => 1i32
+    | CargoCheck => 2i32
+    | CargoTest => 3i32
+    | CargoClippy => 4i32
+    | CargoBuild => 5i32
+    | CargoVersion => 6i32
+    | SpiralVersion => 7i32
+
+:= command_spec (action : toolchain_action) : toolchain_command_spec =
+    ?= action ?|
+    | CargoLock =>
+        ToolchainCommandSpec {
+            program = SelectedTool
+            arguments = GenerateLockfileOffline
+            environment = CargoEnvironment
+            timeout = CallerPositiveMilliseconds
+            success = RequireSuccessfulExit
+        }
+    | CargoFmtCheck =>
+        ToolchainCommandSpec {
+            program = CargoFmtSibling
+            arguments = FormatAllCheck
+            environment = CargoEnvironment
+            timeout = CallerPositiveMilliseconds
+            success = RequireSuccessfulExit
+        }
+    | CargoCheck =>
+        ToolchainCommandSpec {
+            program = SelectedTool
+            arguments = CheckAllTargetsOfflineLocked
+            environment = CargoEnvironment
+            timeout = CallerPositiveMilliseconds
+            success = RequireSuccessfulExit
+        }
+    | CargoTest =>
+        ToolchainCommandSpec {
+            program = SelectedTool
+            arguments = TestOfflineLocked
+            environment = CargoEnvironmentWithSpiralAuthorities
+            timeout = CallerPositiveMilliseconds
+            success = RequireSuccessfulExit
+        }
+    | CargoClippy =>
+        ToolchainCommandSpec {
+            program = CargoClippySibling
+            arguments = ClippyAllTargetsOfflineLockedDenyWarnings
+            environment = CargoEnvironment
+            timeout = CallerPositiveMilliseconds
+            success = RequireSuccessfulExit
+        }
+    | CargoBuild =>
+        ToolchainCommandSpec {
+            program = SelectedTool
+            arguments = BuildReleaseOfflineLocked
+            environment = CargoEnvironment
+            timeout = CallerPositiveMilliseconds
+            success = RequireSuccessfulExit
+        }
+    | CargoVersion =>
+        ToolchainCommandSpec {
+            program = SelectedTool
+            arguments = VersionOnly
+            environment = CargoEnvironment
+            timeout = CallerPositiveMilliseconds
+            success = RequireSuccessfulExit
+        }
+    | SpiralVersion =>
+        ToolchainCommandSpec {
+            program = SelectedTool
+            arguments = VersionOnly
+            environment = CleanEnvironment
+            timeout = CallerPositiveMilliseconds
+            success = RequireSuccessfulExit
+        }
+
+:= program_profile_code = \|
+    | SelectedTool => 0i32
+    | CargoFmtSibling => 1i32
+    | CargoClippySibling => 2i32
+
+:= argument_profile_code = \|
+    | GenerateLockfileOffline => 0i32
+    | FormatAllCheck => 1i32
+    | CheckAllTargetsOfflineLocked => 2i32
+    | TestOfflineLocked => 3i32
+    | ClippyAllTargetsOfflineLockedDenyWarnings => 4i32
+    | BuildReleaseOfflineLocked => 5i32
+    | VersionOnly => 6i32
+
+:= environment_profile_code = \|
+    | CargoEnvironment => 0i32
+    | CleanEnvironment => 1i32
+    | CargoEnvironmentWithSpiralAuthorities => 2i32
+
+:= timeout_policy_code = \|
+    | CallerPositiveMilliseconds => 0i32
+
+:= success_policy_code = \|
+    | RequireSuccessfulExit => 0i32
+
+:~ valid_action_code (action_code : i32) : i32 =
+    ? action_code < 0i32 ?> 0i32
+    |? 7i32 < action_code ?> 0i32
+    |: 1i32
+
+:~ program_profile_binding (action_code : i32) (unused : i32) : i32 =
+    ? valid_action_code action_code < 1i32 ?> -1i32
+    |? action_code = 1i32 ?> program_profile_code CargoFmtSibling
+    |? action_code = 4i32 ?> program_profile_code CargoClippySibling
+    |: program_profile_code SelectedTool
+
+:~ argument_profile_binding (action_code : i32) (unused : i32) : i32 =
+    ? valid_action_code action_code < 1i32 ?> -1i32
+    |? action_code = 7i32 ?> argument_profile_code VersionOnly
+    |: action_code
+
+:~ environment_profile_binding (action_code : i32) (unused : i32) : i32 =
+    ? valid_action_code action_code < 1i32 ?> -1i32
+    |? action_code = 3i32 ?> environment_profile_code CargoEnvironmentWithSpiralAuthorities
+    |? action_code = 7i32 ?> environment_profile_code CleanEnvironment
+    |: environment_profile_code CargoEnvironment
+
+:~ timeout_profile_binding (action_code : i32) (unused : i32) : i32 =
+    ? valid_action_code action_code < 1i32 ?> -1i32 |: timeout_policy_code CallerPositiveMilliseconds
+
+:~ success_profile_binding (action_code : i32) (unused : i32) : i32 =
+    ? valid_action_code action_code < 1i32 ?> -1i32 |: success_policy_code RequireSuccessfulExit
+
+:= toolchain_command_plan_probe_code () : i32 = 1012i32
+
+:= toolchain_command_negative_probe_code () : i32 = -2i32
+
+:= toolchain_mapping_probe_code () : i32 =
+    toolchain_action_code CargoVersion
+
+:= smoke_plan () : toolchain_plan toolchain_idle toolchain_done =
+    ToolchainThen (
+        \? (
+            ToolchainStep (\? (ToolchainRun (ToolchainMutator, CargoCheck), "checked")),
+            ToolchainStep (\? (ToolchainFinish ToolchainMutator, "done"))
+        )
+    )

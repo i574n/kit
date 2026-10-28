@@ -1,0 +1,128 @@
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< agile_note_model.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:~ argument_count () : i32 =
+    := user = env.command_line_argument_count ()
+    ? user > 0i32 ?> user - 1i32 |: 0i32
+
+:= ascii_upper_a () : i32 = 65i32
+:= ascii_upper_z () : i32 = 90i32
+:= ascii_zero () : i32 = 48i32
+:= ascii_nine () : i32 = 57i32
+:= ascii_dash () : i32 = 45i32
+
+:= negated (value : bool) : bool = ? value ?> !- |: !+
+
+:= id_byte (code : i32) : bool =
+    ? ascii_upper_a () <= code ?> code <= ascii_upper_z ()
+    |? ascii_zero () <= code ?> code <= ascii_nine ()
+    |: code = ascii_dash ()
+
+:~ ^ id_bytes_valid (~text : string) (~offset : i32) (~length : i32) : bool =
+    ? length <= offset ?> !+
+    |? id_byte (byte_at text offset) ?> id_bytes_valid text (offset + 1i32) length
+    |: !-
+
+:= id_well_formed (~id : string) : bool = ? byte_len id <= 0i32 ?> !- |: id_bytes_valid id 0i32 (byte_len id)
+
+:== rename_tally =
+    {
+        items : i32
+        deps_tasks : string
+        deps_count : i32
+        title_tasks : string
+        title_count : i32
+    }
+
+:~ binding_declared (~text : string) (~binding : string) : bool =
+    := needle = "\ninl " ++# binding ++# " ("
+    ? sm'.starts_with ("inl " ++# binding ++# " (") text ?> !+
+    |: negated (byte_find text needle < 0i32)
+
+:= starts_with_digit (~id : string) : bool =
+    := first = byte_at id 0i32
+    ? ascii_zero () <= first ?> first <= ascii_nine () |: !-
+
+:= renamed_text (~text : string) (~old : string) (~new : string) : string * rename_tally =
+    := updated, items, deps_count, deps_tasks, title_count, title_tasks =
+        $'agile_rename_rewrite::kit_agile_renamed_text(&*!text, &*!old, &*!new)'
+        : string * i32 * i32 * string * i32 * string
+    updated,
+    {
+        items = items
+        deps_tasks = deps_tasks
+        deps_count = deps_count
+        title_tasks = title_tasks
+        title_count = title_count
+    }
+:= rename_failure (~reason : string) (~old : string) : i32 =
+    stderr_failure ("agile rename " ++# old ++# " rejected: " ++# reason)
+
+:= dash_when_empty (~text : string) : string = ? (text = "") ?> "-" |: text
+
+:= rename_success
+    (~old : string) (~new : string) (tally : rename_tally) (before : u64) (after : u64) (elapsed : u64)
+    : i32
+    =
+    := head = "kit agile rename ok old=" ++# old ++# " new=" ++# new ++# " items="
+    := deps =
+        i32_text tally.items
+        ++# " deps_rewritten="
+        ++# i32_text tally.deps_count
+        ++# " deps_in="
+        ++# dash_when_empty tally.deps_tasks
+    := titles =
+        " titles_mentioning_old="
+        ++# i32_text tally.title_count
+        ++# " titles_in="
+        ++# dash_when_empty tally.title_tasks
+    stdout_line (head ++# deps ++# titles ++# (measured_sizes before after elapsed))
+
+:~ renamed (~root : string) (~old : string) (~new : string) : i32 =
+    := started = unix_ms ()
+    := state = backlog_state_path root
+    ?= probe (unchecked state) ?|
+    | FileMissing _ => rename_failure "state/agile.spi is missing" old
+    | FileReadable file =>
+        := raw = loaded_string (read_text file)
+        := original = records_text raw
+        ? negated (task_declared original old)
+        ?> rename_failure "no task with this id" old
+        |? task_declared original new
+        ?> rename_failure ("the id " ++# new ++# " is already taken") old
+        |? binding_declared original (item_binding new)
+        ?> rename_failure ("the name inl " ++# (item_binding new) ++# " is already declared") old
+        |? binding_declared original (planning_binding new)
+        ?> rename_failure ("the name inl " ++# (planning_binding new) ++# " is already declared") old
+        |:
+            := updated, tally = renamed_text original old new
+            ?= state_written state raw updated ?|
+            | StateWritten => rename_success old new tally (text_bytes original) (text_bytes updated) (ms_since started)
+            | problem => rename_failure (state_write_problem problem) old
+
+:~ rename_entry () : i32 =
+    := old = argument_owned 2i32
+    := new = argument_owned 3i32
+    ? negated (argument_count () = 4i32)
+    ?> rename_failure "usage: agile rename <root> <old-id> <new-id>" old
+    |? negated (id_well_formed new)
+    ?> rename_failure "a task id is upper-case letters, digits and -" old
+    |? starts_with_digit new
+    ?> rename_failure "the new id must start with a letter, so its inl name is a valid identifier" old
+    |? (old = new)
+    ?> rename_failure "the new id equals the old one" old
+    |: renamed (argument_owned 1i32) old new
+
+:= main () : i32 =
+    !!!!Export("kit_agile_rename_run", ((\ () => rename_entry ()) : () -> i32))
+    := _ = rename_entry ()
+    0i32

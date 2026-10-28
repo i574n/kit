@@ -1,0 +1,32 @@
+:= main () : i32 =
+    emit_plan_ir_transport ()
+    := _ = plan_schema_tag "schema"
+    := _ = plan_descriptor_by_index "0"
+    := _ = plan_manifest_header_projection "KIT-PLAN-IR\t1"
+    := _ = plan_manifest_header_projection "KIT-PLAN-IR\t2"
+    := _ = plan_manifest_row_hex_tuple "op\t01\t02\t03\t04\t05"
+    := _ = plan_manifest_row_hex_tuple "op\t01\t02\t03\t04\t05\t06"
+    := _ = plan_manifest_projection_witness ()
+    := _ = plan_provider_count ()
+    := _ = plan_stage_witness ()
+    := _ = plan_index_valid "0"
+    := _ = plan_decode_code "create" "state/example.spi" "-" "typed-payload" "write"
+    !!!!Export("kit_plan_ir_schema", ((\ value => plan_schema_tag value) : string -> string))
+    !!!!Export(
+        "kit_plan_ir_descriptor",
+        ((\ value => plan_descriptor_by_index value) : string -> string * string * string * string * string)
+    )
+    !!!!Export("kit_plan_ir_header_projection", ((\ value => plan_manifest_header_projection value) : string -> string))
+    !!!!Export(
+        "kit_plan_ir_row_hex_tuple",
+        ((\ value => plan_manifest_row_hex_tuple value) : string -> string * string * string * string * string)
+    )
+    !!!!Export("kit_plan_ir_projection_witness", ((\ () => plan_manifest_projection_witness ()) : () -> i32))
+    !!!!Export("kit_plan_ir_count", ((\ () => plan_provider_count ()) : () -> i32))
+    !!!!Export("kit_plan_ir_stage_witness", ((\ () => plan_stage_witness ()) : () -> i32))
+    !!!!Export("kit_plan_ir_index_valid", ((\ value => plan_index_valid value) : string -> u64))
+    !!!!Export(
+        "kit_plan_ir_decode_code",
+        ((\ (a, b, c, d, e) => plan_decode_code a b c d e) : string * string * string * string * string -> u64)
+    )
+    0i32

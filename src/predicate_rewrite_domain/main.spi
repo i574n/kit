@@ -1,0 +1,13 @@
+:< model
+
+:~ rewrite_result (source : string) (name : string) (kind : string) : bool * string =
+    ?= rewrite source name kind ?|
+    | Candidate text => !+, text
+    | Rejected reason => !-, reason
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_predicate_rewrite",
+        ((\ (source, name, kind) => rewrite_result source name kind) : string * string * string -> bool * string)
+    )
+    0i32

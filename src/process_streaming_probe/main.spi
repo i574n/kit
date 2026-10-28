@@ -1,0 +1,11 @@
+:< kit_process_observation.streaming_observation
+
+:= main () : i32 =
+    := launched : observation_plan observation_idle observation_running =
+        ObservationLaunch (ObservationInputText "observed-input", 5000u64)
+    := _ : observation_plan observation_running observation_done = ObservationFinish
+    := no_input : observation_plan observation_idle observation_running =
+        ObservationLaunch (ObservationNoInput, 10u64)
+    := _ = launched
+    := _ = no_input
+    0i32

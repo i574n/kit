@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "lint.spi"
+output = "lint.rs"
+
+[package]
+name = "kit-lint-macros"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_macros"
+path = "lint.rs"
+
+[dependencies]
+kit-lint-scan = { path = "../kit_lint_scan" }
+kit-lint-classify = { path = "../kit_lint_classify" }

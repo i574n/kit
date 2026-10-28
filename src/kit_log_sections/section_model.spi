@@ -1,0 +1,216 @@
+///- --package .
+:# section_model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| line_class =
+    | Header : string
+    | Carried
+    | Plain
+
+:== classified =
+    {
+        class : line_class
+        text : string
+    }
+
+:== placed =
+    {
+        section : string
+        text : string
+    }
+
+:| pick =
+    | First
+    | Last
+
+:== column_spec =
+    {
+        name : string
+        pick : pick
+    }
+
+:== observation =
+    {
+        section : string
+        name : string
+        id : string
+        value : string
+        at_ms : i64
+    }
+
+:== cell =
+    {
+        at_ms : i64
+        value : string
+    }
+
+:== section_row =
+    {
+        section : string
+        id : string
+        cells : list (string * cell)
+    }
+
+:~ ^ placed_from
+    (lines : list classified) (current : string) (carried : list string) (found : list placed)
+    : list placed
+    =
+    ?= lines ?|
+    | [] =>
+        := found =
+            carried
+            |> listm.rev
+            |> listm.fold (\ acc (text : string) => { section = current; text = text } :: acc) found
+        listm.rev found
+    | line :: rest =>
+        ?= line.class ?|
+        | Carried => placed_from rest current (line.text :: carried) found
+        | Header section =>
+            := found =
+                carried
+                |> listm.rev
+                |> listm.fold (\ acc (text : string) => { section = section; text = text } :: acc) found
+            placed_from rest section [] ({ section = section; text = line.text } :: found)
+        | Plain => placed_from rest current carried ({ section = current; text = line.text } :: found)
+
+:= sections_of (lines : list classified) : list placed = placed_from lines "-" [] []
+
+:= same_key (~section : string) (~id : string) (row : section_row) : bool = row.section = section && row.id = id
+
+:= kept (pick : pick) (existing : option cell) (next : cell) : cell =
+    ?= existing, pick ?|
+    | Some first, First => first
+    | _ => next
+
+:~ ^ cell_of (cells : list (string * cell)) (~name : string) : option cell =
+    ?= cells ?|
+    | [] => None
+    | (named, value) :: rest => ? named = name ?> Some value |: cell_of rest name
+
+:= cell_set (cells : list (string * cell)) (~name : string) (value : cell) : list (string * cell) =
+    (name, value) :: (cells |> listm'.filter \ ((named : string), (_ : cell)) => named <> name)
+
+:= pick_of (specs : list column_spec) (~name : string) : pick =
+    ?= specs |> listm'.try_find_ \ (spec : column_spec) => spec.name = name ?|
+    | Some spec => spec.pick
+    | None => First
+
+:~ ^ rows_from
+    (specs : list column_spec) (observations : list observation) (rows : list section_row)
+    : list section_row
+    =
+    ?= observations ?|
+    | [] => listm.rev rows
+    | seen :: rest =>
+        := next = { at_ms = seen.at_ms; value = seen.value }
+        := pick = pick_of specs seen.name
+        := rows =
+            ?= listm'.try_find_ (same_key seen.section seen.id) rows ?|
+            | None => { section = seen.section; id = seen.id; cells = cell_set [] seen.name next } :: rows
+            | Some _ =>
+                rows
+                |> listm.map \ (row : section_row) =>
+                    ? same_key seen.section seen.id row
+                    ?> { row ?| cells = cell_set row.cells seen.name (kept pick (cell_of row.cells seen.name) next) }
+                    |: row
+        rows_from specs rest rows
+
+:= header_text (specs : list column_spec) : string =
+    specs
+    |> listm.fold \ text (spec : column_spec) =>
+            text ++# "\t" ++# spec.name ++# "_time\t" ++# spec.name ++# "_value"
+        "section\tid"
+
+:= cell_text (row : section_row) (~text : string) (spec : column_spec) : string =
+    ?= cell_of row.cells spec.name ?|
+    | Some found => text ++# "\t" ++# sm'.format found.at_ms ++# "\t" ++# found.value
+    | None => text ++# "\t-\t-"
+
+:= row_text (specs : list column_spec) (row : section_row) : string =
+    listm.fold (cell_text row) (row.section ++# "\t" ++# row.id) specs
+
+
+:= classified_line (class : line_class) (~text : string) : classified = { class = class; text = text }
+
+:= observed (~section : string) (~name : string) (~id : string) (~value : string) (at_ms : i64) : observation =
+    { section = section; name = name; id = id; value = value; at_ms = at_ms }
+
+///> rust
+:# carried_lines_join_the_section_their_next_header_opens =
+    := lines =
+        [
+            classified_line Carried "monster 81 starts"
+            classified_line Carried "monster 82 starts"
+            classified_line (Header "030000") "run 030000"
+            classified_line Plain "think 81"
+            classified_line Carried "monster 71 starts"
+            classified_line (Header "030300") "run 030300"
+            classified_line Plain "move 71"
+        ]
+    := placed = sections_of lines
+    testing.expect
+        (
+            placed
+            |> listm.map \ (p : placed) =>
+                    p.section ++# ":" ++# p.text
+                =
+                [
+                    "030000:monster 81 starts"
+                    "030000:monster 82 starts"
+                    "030000:run 030000"
+                    "030000:think 81"
+                    "030300:monster 71 starts"
+                    "030300:run 030300"
+                    "030300:move 71"
+                ]
+        )
+        "carry follows the next header"
+
+///> rust
+:# case_45_first_moves_per_section_and_id =
+    := specs = [ { name = "move"; pick = First } ]
+    := rows =
+        rows_from specs
+            [
+                observed "20261023-030000" "move" "81" "1930,1352" 850i64
+                observed "20261023-030300" "move" "71" "1932,1352" 700i64
+            ]
+            []
+    testing.expect (header_text specs = "section\tid\tmove_time\tmove_value") "columns"
+    testing.expect
+        (
+            rows
+            |> listm.map (row_text specs)
+               = [ "20261023-030000\t81\t850\t1930,1352"; "20261023-030300\t71\t700\t1932,1352" ]
+        )
+        "rows"
+
+///> rust
+:# case_46_first_appear_and_last_think_side_by_side =
+    := specs = [ { name = "appear"; pick = First }; { name = "think"; pick = Last } ]
+    := observations =
+        [
+            observed "20261023-030000" "appear" "81" "1931,1352" (-1i64)
+            observed "20261023-030000" "appear" "82" "1931,1353" (-1i64)
+            observed "20261023-030000" "think" "81" "1931,1352" 600i64
+            observed "20261023-030000" "think" "82" "1931,1353" 300i64
+            observed "20261023-030000" "think" "82" "1931,1353" 1300i64
+            observed "20261023-030000" "think" "82" "1931,1353" 2300i64
+            observed "20261023-030300" "appear" "71" "1931,1352" (-1i64)
+            observed "20261023-030300" "appear" "72" "1931,1353" (-1i64)
+        ]
+    := rows = rows_from specs observations []
+    testing.expect
+        (
+            rows
+            |> listm.map (row_text specs)
+               = [
+                     "20261023-030000\t81\t-1\t1931,1352\t600\t1931,1352"
+                     "20261023-030000\t82\t-1\t1931,1353\t2300\t1931,1353"
+                     "20261023-030300\t71\t-1\t1931,1352\t-\t-"
+                     "20261023-030300\t72\t-1\t1931,1353\t-\t-"
+                 ]
+        )
+        "first kept for appear, last for think, '-' where unseen"

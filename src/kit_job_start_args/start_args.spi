@@ -1,0 +1,220 @@
+:< sm'_operators
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+:< kit_job_launch_model.shapes
+
+:| start_flag =
+    | MaxPrivateMb
+    | SlotWithin
+    | DoneWithin
+    | QuietStart
+    | QuietHold
+    | QuietWait
+    | MinFreeMb
+    | SettleMs
+    | FrontStart
+
+:= start_flag_word (flag : start_flag) : string =
+    ?= flag ?|
+    | MaxPrivateMb => "--max-private-mb"
+    | SlotWithin => "--slot-within"
+    | DoneWithin => "--done-within"
+    | QuietStart => "--quiet"
+    | QuietHold => "--quiet-hold"
+    | QuietWait => "--quiet-wait"
+    | MinFreeMb => "--min-free-mb"
+    | SettleMs => "--settle-ms"
+    | FrontStart => "--front"
+
+:= start_flag_width (flag : start_flag) : i32 =
+    ?= flag ?|
+    | QuietStart => 1i32
+    | FrontStart => 1i32
+    | _ => 2i32
+
+:| start_flag_parse =
+    | StartFlagKnown : start_flag
+    | StartFlagUnknown
+
+:~ start_flag_of (~text : string) : start_flag_parse =
+    union_reflection.cases.union_case_where
+        \ (flag : start_flag) => text = start_flag_word flag
+        \ flag => StartFlagKnown flag
+        StartFlagUnknown
+
+:== start_options =
+    {
+        capped : bool
+        cap_mb : u64
+        slot_limited : bool
+        slot_minutes : u64
+        done_limited : bool
+        done_minutes : u64
+        quiet : bool
+        held_given : bool
+        hold : u64
+        wait_given : bool
+        quiet_wait : u64
+        floored : bool
+        min_free : u64
+        settle_given : bool
+        settle_ms : u64
+        front : bool
+    }
+
+:= start_options_none () : start_options =
+    {
+        capped = !-
+        cap_mb = 0u64
+        slot_limited = !-
+        slot_minutes = 0u64
+        done_limited = !-
+        done_minutes = 0u64
+        quiet = !-
+        held_given = !-
+        hold = 0u64
+        wait_given = !-
+        quiet_wait = 0u64
+        floored = !-
+        min_free = 0u64
+        settle_given = !-
+        settle_ms = 0u64
+        front = !-
+    }
+
+:= start_option_set (options : start_options) (flag : start_flag) (value : u64) : start_options =
+    ?= flag ?|
+    | MaxPrivateMb => { options ?| capped = !+; cap_mb = value }
+    | SlotWithin => { options ?| slot_limited = !+; slot_minutes = value }
+    | DoneWithin => { options ?| done_limited = !+; done_minutes = value }
+    | QuietStart => { options ?| quiet = !+ }
+    | QuietHold => { options ?| held_given = !+; hold = value }
+    | QuietWait => { options ?| wait_given = !+; quiet_wait = value }
+    | MinFreeMb => { options ?| floored = !+; min_free = value }
+    | SettleMs => { options ?| settle_given = !+; settle_ms = value }
+    | FrontStart => { options ?| front = !+ }
+
+:= after_mode_of (~flag : string) : string = ? flag = "--after" ?> "any" |? flag = "--after-ok" ?> "ok" |: ""
+
+:== start_lead =
+    {
+        after_mode : string
+        after_job : string
+        shape : start_shape
+        repeated : string
+    }
+
+:~ ^ flags_read (at : i32) (lead : start_lead) (options : start_options) : i32 * start_lead * start_options =
+    := word = argument at
+    := mode = after_mode_of word
+    := shape = start_shape_of word
+    ? mode <> "" ?>
+        ? lead.after_mode <> "" ?> at, { lead ?| repeated = word }, options
+        |: flags_read (at + 2i32) { lead ?| after_mode = mode; after_job = argument (at + 1i32) } options
+    |? shape <> PlainStart ?>
+        ? lead.shape <> PlainStart ?> at, { lead ?| repeated = word }, options
+        |: flags_read (at + shape_offset shape) { lead ?| shape = shape } options
+    |:
+        ?= start_flag_of word ?|
+        | StartFlagUnknown => at, lead, options
+        | StartFlagKnown flag =>
+            := width = start_flag_width flag
+            := value = ? width = 2i32 ?> decimal_u64 (argument (at + 1i32)) |: 0u64
+            flags_read (at + width) lead (start_option_set options flag value)
+
+:= refusal
+    (~problem : string)
+    : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64 * bool
+    =
+    !-, problem, "", "", "", 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0i32, 0u64, !-
+
+:~ start_args ()
+    : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64 * bool
+    =
+    := lead_none = { after_mode = ""; after_job = ""; shape = PlainStart; repeated = "" }
+    := first, lead, options = flags_read 3i32 lead_none (start_options_none ())
+    := after_mode = lead.after_mode
+    := after_job = lead.after_job
+    := shape = lead.shape
+    := capped = options.capped
+    := cap_mb = options.cap_mb
+    := slot_limited = options.slot_limited
+    := slot_minutes = options.slot_minutes
+    := done_limited = options.done_limited
+    := done_minutes = options.done_minutes
+    := quiet = options.quiet
+    := held_given = options.held_given
+    := hold_minutes = ? held_given ?> options.hold |? quiet ?> 30u64 |: 0u64
+    := wait_given = options.wait_given
+    := quiet_wait = ? wait_given ?> options.quiet_wait |? quiet ?> 10u64 |: 0u64
+    := min_free = options.min_free
+    := missing_after =
+        ? after_mode = "" || (sm'.starts_with "job-" after_job && directory_exists (job_directory after_job))
+        ?> ""
+        |: after_job
+    ? argument_count () < first + 3i32
+    ?> refusal (job_usage ())
+    |? lead.repeated <> ""
+    ?> refusal (lead.repeated ++# " is given twice (one --after or --after-ok, one --heavy or --compile)")
+    |? missing_after <> ""
+    ?> refusal ("--after names no job: " ++# missing_after)
+    |? capped && cap_mb = 0u64
+    ?> refusal "--max-private-mb needs a positive number of MB"
+    |? slot_limited && slot_minutes = 0u64
+    ?> refusal "--slot-within needs a positive number of minutes"
+    |? done_limited && done_minutes = 0u64
+    ?> refusal "--done-within needs a positive number of minutes"
+    |? (held_given || wait_given) && quiet = !-
+    ?> refusal "--quiet-hold and --quiet-wait follow --quiet"
+    |? quiet && shape <> HeavyStart
+    ?> refusal "--quiet applies to --heavy jobs: it holds compiles off while the heavy work starts"
+    |? quiet && (hold_minutes = 0u64 || hold_minutes > 60u64)
+    ?> refusal "--quiet-hold takes 1 to 60 minutes (compiles wait at most that long)"
+    |? slot_limited && shape = PlainStart
+    ?> refusal "--slot-within applies to --heavy or --compile jobs, which wait for a slot or window"
+    |? options.floored && min_free = 0u64
+    ?> refusal "--min-free-mb needs a positive number of MB"
+    |? options.front && shape <> HeavyStart
+    ?> refusal "--front applies to --heavy jobs: it queues the job first in the heavy line"
+    |? options.floored && shape = PlainStart
+    ?> refusal "--min-free-mb applies to --heavy or --compile jobs, which wait for a window"
+    |? sm'.starts_with "--" (argument first)
+    ?> refusal ("unknown option " ++# argument first ++# "; " ++# job_usage ())
+    |? sm'.starts_with "--" (argument (first + 2i32))
+    ?>
+        refusal (
+            "the program cannot start with --, got " ++# argument (first + 2i32) ++# "; options go before the label"
+        )
+    |:
+        := timeout = decimal_u64 (argument (first + 1i32))
+        ? timeout = 0u64
+        ?> refusal "timeout-ms must be a positive integer"
+        |:
+            := settle_ms = ? options.settle_given ?> options.settle_ms |: 2000u64
+            !+,
+            "",
+            shape_word shape,
+            after_mode,
+            after_job,
+            cap_mb,
+            slot_minutes,
+            done_minutes,
+            hold_minutes,
+            quiet_wait,
+            min_free,
+            settle_ms,
+            first,
+            timeout,
+            options.front
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_job_start_args",
+        (
+            \ () => start_args ()
+            : () -> bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64
+            * bool
+        )
+    )
+    0i32

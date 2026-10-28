@@ -1,0 +1,43 @@
+:< filesystem_action_batch_contract.bindings
+
+
+:~ fs_action_mode_valid_binding (mode : i32) (reserved : i32) : i32 =
+    ? reserved <> 0i32 ?> 0i32
+    |? mode < 0i32 ?> 0i32
+    |? 4095i32 < mode ?> 0i32
+    |: 1i32
+
+:= main () : i32 =
+    fs_actions_terminal.emit_fs_actions_runtime ()
+    := _ = fs_action_shape_binding 1i32 0i32
+    := _ = fs_action_freshness_binding 0i32 1i32
+    := _ = fs_action_apply_binding 1i32 1i32
+    := _ = fs_action_verify_binding 1i32 1i32
+    := _ = fs_action_rollback_binding 1i32 1i32
+    !!!!Export(
+        "kit_fs_actions_shape_binding",
+        ((\ (first, second) => fs_action_shape_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_fs_actions_freshness_binding",
+        ((\ (first, second) => fs_action_freshness_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_fs_actions_apply_binding",
+        ((\ (first, second) => fs_action_apply_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_fs_actions_verify_binding",
+        ((\ (first, second) => fs_action_verify_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_fs_actions_rollback_binding",
+        ((\ (first, second) => fs_action_rollback_binding first second) : i32 * i32 -> i32)
+    )
+    := _ = fs_action_mode_valid_binding 493i32 0i32
+    !!!!Export(
+        "kit_fs_actions_mode_valid_binding",
+        ((\ (first, second) => fs_action_mode_valid_binding first second) : i32 * i32 -> i32)
+    )
+    global "#[cfg(test)] #[path = \"regression_tests.rs\"] mod regression_tests;"
+    0i32

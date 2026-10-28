@@ -1,0 +1,64 @@
+///- --package .
+:# largest static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== largest_function =
+    {
+        name : string
+        lines : i32
+    }
+
+:~ function_name (line : string) : string =
+    := lead = sm'.trim line
+    := size : i32 = sm'.length lead
+    := rest =
+        ? sm'.starts_with "pub fn " lead ?> sm'.substring 7i32 (size - 7i32) lead
+        |? sm'.starts_with "fn " lead ?> sm'.substring 3i32 (size - 3i32) lead
+        |: ""
+    := paren : i32 = sm'.index_of "(" rest
+    := angle : i32 = sm'.index_of "<" rest
+    := stop = ? angle >= 0i32 && (paren < 0i32 || angle < paren) ?> angle |: paren
+    ? stop <= 0i32 ?> "" |: sm'.substring 0i32 stop rest
+
+:~ longer (current : string) (start : i32) (stop : i32) (best : largest_function) : largest_function =
+    ? current <> "" && stop - start > best.lines ?> { name = current; lines = stop - start } |: best
+
+:~ ^ largest_from
+    (rows : array string) (index : i32) (current : string) (start : i32) (best : largest_function)
+    : largest_function
+    =
+    ? am'.length rows <= index
+    ?> longer current start index best
+    |:
+        := name = function_name (am'.index index rows)
+        ? name = ""
+        ?> largest_from rows (index + 1i32) current start best
+        |: largest_from rows (index + 1i32) name index (longer current start index best)
+
+:~ largest_function_of (text : string) : largest_function =
+    := rows = sm'.split "\n" (sm'.replace "\r" "" text) |> array
+    largest_from rows 0i32 "" 0i32 { name = ""; lines = 0i32 }
+
+:~ largest_text (text : string) : string =
+    := found = largest_function_of text
+    ? found.name = "" ?> "" |: " largest " ++# found.name ++# " " ++# sm'.format found.lines
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust
+:# the_largest_function_is_named_with_its_length =
+    := text = "use x;\nfn small() {\n}\npub fn big<T>(a: T) {\n    a;\n    a;\n}\nfn tail() {}\n"
+    := found = largest_function_of text
+    expect (found.name = "big" && found.lines = 4i32) "big spans four lines up to the next fn"
+    expect ((largest_function_of "no functions here").name = "") "no fn, no name"
+    expect (largest_text text = " largest big 4" && largest_text "x" = "") "the gate's suffix"
+
+///> _
+:= main () : i32 =
+    !!!!Export(
+        "kit_crate_largest",
+        ((\ text => largest_text text) : string -> string)
+    )
+    0i32

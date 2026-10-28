@@ -1,0 +1,124 @@
+:< sm'_operators
+:< kit_receipt.receipt
+:< search
+
+:| needle_hint =
+    | NoNeedleHint
+    | LiteralLooksLikePattern
+
+:= regex_syntax_in (needle : string) : bool =
+    sm'.contains "|" needle
+    || sm'.contains ".*" needle
+    || sm'.contains "[" needle
+    || sm'.starts_with "^" needle
+    || sm'.ends_with "$" needle
+
+:= needle_hint_of (regex : bool) (needle : string) : needle_hint =
+    ? regex |> not && regex_syntax_in needle ?> LiteralLooksLikePattern |: NoNeedleHint
+
+:= hint_text (hint : needle_hint) (total : i32) : string =
+    ? total <> 0i32 ?> ""
+    |:
+        ?= hint ?|
+        | NoNeedleHint => ""
+        | LiteralLooksLikePattern => "  hint: the needle is literal; pass --regex to use it as a pattern"
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
+:= stderr_line (~text : string) : () = console.write_error_line text
+:~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+
+:= rejected (~message : string) : i32 =
+    stderr_line ("kit error: " ++# message)
+    2i32
+
+:== search_options =
+    {
+        glob : string
+        context : u64
+        limit : u64
+        ignore_case : bool
+        regex : bool
+        json : bool
+    }
+
+:~ search_start () : search_options =
+    { glob = ""; context = 0u64; limit = 200u64; ignore_case = !-; regex = !-; json = !- }
+
+:~ ^ search_options_from (index : i32) (count : i32) (options : search_options) : search_options =
+    ? index < count ?>
+        := word = argument index
+        ? word = "--ignore-case" ?> search_options_from (index + 1i32) count { options ?| ignore_case = !+ }
+        |? word = "--json" ?> search_options_from (index + 1i32) count { options ?| json = !+ }
+        |? word = "--regex" ?> search_options_from (index + 1i32) count { options ?| regex = !+ }
+        |? index + 1i32 < count ?>
+            := value = argument (index + 1i32)
+            ? word = "--glob" ?> search_options_from (index + 2i32) count { options ?| glob = value }
+            |? word = "--context"
+            ?> search_options_from (index + 2i32) count { options ?| context = decimal_u64 value }
+            |? word = "--max" ?> search_options_from (index + 2i32) count { options ?| limit = decimal_u64 value }
+            |: search_options_from (index + 1i32) count options
+        |: options
+    |: options
+
+:~ search_receipt
+    (hits : search_hits) (json : bool) (context : i32) (limit : i32) (hint : needle_hint) (~started : u64)
+    : i32
+    =
+    := counts = files_rendered hits json context limit 0i32 (counts_start ())
+    := searched = decimal_text (searched_files hits)
+    := matched = i32_text (hit_files hits)
+    ? json ?>
+        := head =
+            "{\"files\":"
+            ++# searched
+            ++# ",\"matched\":"
+            ++# matched
+            ++# (",\"total\":" ++# (i32_text counts.total) ++# ",\"shown\":" ++# (i32_text counts.shown))
+        stdout_text (head ++# ",\"matches\":[" ++# counts.json ++# "]}")
+        0i32
+    |:
+        := summary =
+            "files " ++# searched ++# " searched  " ++# matched ++# (" matched  matches " ++# (i32_text counts.total))
+        receipt_line Succeeded
+            (
+                (? counts.shown < counts.total ?> summary ++# "  shown " ++# (i32_text counts.shown) |: summary)
+                ++# hint_text hint counts.total
+            )
+            started
+        0i32
+
+:~ grep_run () : i32 =
+    := started = now_ms ()
+    ? argument_count () < 4i32 ?> rejected (kit_read_query.model.read_usage ())
+    |:
+        := options = search_options_from 4i32 (argument_count ()) (search_start ())
+        := context = options.context
+        := limit = options.limit
+        := root = argument 2i32
+        := needle = argument 3i32
+        := kind =
+            ? options.regex ?> PatternNeedle options.ignore_case
+            |? options.ignore_case ?> CaselessNeedle
+            |: LiteralNeedle
+        := problem = ? options.regex ?> pattern_problem needle |: ""
+        ? problem <> "" ?> rejected ("grep: invalid --regex pattern: " ++# problem)
+        |:
+            ?= root_kind root ?|
+            | MissingRoot => rejected ("grep root not found: " ++# root)
+            | found =>
+                := files =
+                    ?= found ?|
+                    | FileRoot => file_alone root
+                    | _ => files_under root
+                search_receipt
+                    (hits_found root files (matcher_of kind needle) options.glob)
+                    options.json
+                    ((conv context : i32))
+                    ((conv limit : i32))
+                    (needle_hint_of options.regex needle)
+                    started
+
+:= main () : i32 =
+    !!!!Export("kit_grep_run", ((\ () => grep_run ()) : () -> i32))
+    0i32

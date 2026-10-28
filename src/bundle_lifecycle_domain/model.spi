@@ -1,0 +1,132 @@
+:! bundle_idle = ()
+:! bundle_root_validated = ()
+:! bundle_files_collected = ()
+:! bundle_archive_created = ()
+:! bundle_archive_verified = ()
+:! bundle_archive_extracted = ()
+:! bundle_rehydrated = ()
+
+:| bundle_lifecycle_step from to =
+    | ValidateRoot :: bundle_lifecycle_step bundle_idle bundle_root_validated
+    | CollectFiles :: bundle_lifecycle_step bundle_root_validated bundle_files_collected
+    | CreateArchive :: bundle_lifecycle_step bundle_files_collected bundle_archive_created
+    | VerifyArchive :: bundle_lifecycle_step bundle_archive_created bundle_archive_verified
+    | ExtractArchive :: bundle_lifecycle_step bundle_archive_verified bundle_archive_extracted
+    | ConfirmRehydration :: bundle_lifecycle_step bundle_archive_extracted bundle_rehydrated
+
+:| ^ bundle_lifecycle_plan from to =
+    | BundleLifecycleStep :: \* from to. bundle_lifecycle_step from to -> bundle_lifecycle_plan from to
+    | BundleLifecycleThen :: \* from to.
+        (\? middle. bundle_lifecycle_plan from middle * bundle_lifecycle_plan middle to) ->
+        bundle_lifecycle_plan from to
+
+:= lifecycle_plan () : bundle_lifecycle_plan bundle_idle bundle_rehydrated =
+    BundleLifecycleThen (\? (
+        BundleLifecycleStep ValidateRoot,
+        BundleLifecycleThen (\? (
+            BundleLifecycleStep CollectFiles,
+            BundleLifecycleThen (\? (
+                BundleLifecycleStep CreateArchive,
+                BundleLifecycleThen (\? (
+                    BundleLifecycleStep VerifyArchive,
+                    BundleLifecycleThen (\? (
+                        BundleLifecycleStep ExtractArchive,
+                        BundleLifecycleStep ConfirmRehydration
+                    ))
+                ))
+            ))
+        ))
+    ))
+
+:~ bundle_root_binding (expected_roots : i32) (observed_roots : i32) : i32 =
+    ? expected_roots < 1i32 ?> 0i32
+    |? observed_roots < 1i32 ?> 0i32
+    |? expected_roots < observed_roots ?> 0i32
+    |? observed_roots < expected_roots ?> 0i32
+    |: 1i32
+
+:! coverage_checkpoint_missing = ()
+:! coverage_checkpoint_durable = ()
+
+:| coverage_checkpoint_claim state =
+    | CoverageCheckpointClaimMissing :: coverage_checkpoint_claim coverage_checkpoint_missing
+    | CoverageCheckpointClaimDurable :: u32 * string -> coverage_checkpoint_claim coverage_checkpoint_durable
+
+:~ coverage_checkpoint_binding (declared_durable : i32) (evidence_code : i32) : i32 =
+    ? declared_durable < 0i32 ?> 0i32
+    |? 1i32 < declared_durable ?> 0i32
+    |? evidence_code < 0i32 ?> 0i32
+    |? 2i32 < evidence_code ?> 0i32
+    |? declared_durable < 1i32 ?> 1i32
+    |? evidence_code < 2i32 ?> 0i32
+    |: 1i32
+
+:~ bundle_entry_binding (expected_entries : i32) (observed_entries : i32) : i32 =
+    bundle_root_binding expected_entries observed_entries
+
+:~ bundle_size_binding (limit_bytes : i32) (observed_bytes : i32) : i32 =
+    ? limit_bytes < 1i32 ?> 0i32
+    |? observed_bytes < 1i32 ?> 0i32
+    |? limit_bytes < observed_bytes ?> 0i32
+    |: 1i32
+
+:~ bundle_extract_binding (expected_entries : i32) (extracted_entries : i32) : i32 =
+    bundle_entry_binding expected_entries extracted_entries
+
+:~ bundle_payload_count_binding (archive_entries : i32) (explicit_directories : i32) : i32 =
+    ? archive_entries < 1i32 ?> 0i32
+    |? explicit_directories < 0i32 ?> 0i32
+    |? archive_entries < explicit_directories ?> 0i32
+    |: archive_entries - explicit_directories
+
+:~ bundle_rehydration_binding (structure_ok : i32) (state_ok : i32) : i32 =
+    ? structure_ok < 1i32 ?> 0i32
+    |? 1i32 < structure_ok ?> 0i32
+    |? state_ok < 1i32 ?> 0i32
+    |? 1i32 < state_ok ?> 0i32
+    |: 1i32
+
+:~ bundle_complete_binding (archive_ok : i32) (rehydration_ok : i32) : i32 =
+    bundle_rehydration_binding archive_ok rehydration_ok
+
+:! bundle_rehydrate_idle = ()
+:! bundle_rehydrate_preflighted = ()
+:! bundle_rehydrate_extracted = ()
+:! bundle_rehydrate_validated = ()
+:! bundle_rehydrate_committed = ()
+
+:| bundle_rehydrate_step from to =
+    | RehydratePreflight :: bundle_rehydrate_step bundle_rehydrate_idle bundle_rehydrate_preflighted
+    | RehydrateExtract :: bundle_rehydrate_step bundle_rehydrate_preflighted bundle_rehydrate_extracted
+    | RehydrateValidate :: bundle_rehydrate_step bundle_rehydrate_extracted bundle_rehydrate_validated
+    | RehydrateCommit :: bundle_rehydrate_step bundle_rehydrate_validated bundle_rehydrate_committed
+
+:| ^ bundle_rehydrate_plan from to =
+    | BundleRehydrateStep :: \* from to. bundle_rehydrate_step from to -> bundle_rehydrate_plan from to
+    | BundleRehydrateThen :: \* from to.
+        (\? middle. bundle_rehydrate_plan from middle * bundle_rehydrate_plan middle to) ->
+        bundle_rehydrate_plan from to
+
+:= rehydrate_plan () : bundle_rehydrate_plan bundle_rehydrate_idle bundle_rehydrate_committed =
+    BundleRehydrateThen (\? (
+        BundleRehydrateStep RehydratePreflight,
+        BundleRehydrateThen (\? (
+            BundleRehydrateStep RehydrateExtract,
+            BundleRehydrateThen (\? (
+                BundleRehydrateStep RehydrateValidate,
+                BundleRehydrateStep RehydrateCommit
+            ))
+        ))
+    ))
+
+:~ bundle_rehydrate_preflight_binding (archive_verified : i32) (destination_absent : i32) : i32 =
+    bundle_rehydration_binding archive_verified destination_absent
+
+:~ bundle_rehydrate_extract_binding (entries_match : i32) (destination_created : i32) : i32 =
+    bundle_rehydration_binding entries_match destination_created
+
+:~ bundle_rehydrate_validate_binding (contract_ok : i32) (structure_ok : i32) : i32 =
+    bundle_rehydration_binding contract_ok structure_ok
+
+:~ bundle_rehydrate_receipt_binding (preflight_extract_ok : i32) (validate_ok : i32) : i32 =
+    bundle_complete_binding preflight_extract_ok validate_ok

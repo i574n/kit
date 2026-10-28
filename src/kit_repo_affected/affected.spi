@@ -1,0 +1,68 @@
+:< sm'_operators
+:< graph
+
+:~ directory_names (~src : string) : list string =
+    ? file_system.directory_exists src ?>
+        file_system.read_dir_names src
+        |> resultm.unwrap'
+        |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) Nil
+        |> listm.rev
+    |: Nil
+
+:~ node_at (~src : string) (~name : string) : option package_node =
+    := project = src ++# "/" ++# name ++# "/package.spiproj"
+    ? file_system.file_exists project
+    ?>
+        Some {
+            name = name
+            uses = project_uses (file_system.read_all_text project)
+            crate = file_system.file_exists (src ++# "/" ++# name ++# "/Cargo.toml")
+        }
+    |: None
+
+:~ ^ nodes_of (~src : string) (names : list string) (acc : list package_node) : list package_node =
+    ?= names ?|
+    | Nil => listm.rev acc
+    | (name :: rest) =>
+        ?= node_at src name ?|
+        | Some found => nodes_of src rest (found :: acc)
+        | None => nodes_of src rest acc
+
+:~ ^ arguments_from (index : i32) (count : i32) (acc : list string) : list string =
+    ? index >= count ?> listm.rev acc
+    |: arguments_from (index + 1i32) count (optionm'.default_value "" (env.try_command_line_argument index) :: acc)
+
+:~ ^ lines_printed (names : list string) (count : i32) : i32 =
+    ?= names ?|
+    | Nil => count
+    | (name :: rest) =>
+        console.write_line name
+        lines_printed rest (count + 1i32)
+
+:~ affected_run () : i32 =
+    := count = env.command_line_argument_count ()
+    := src = optionm'.default_value "" (env.try_command_line_argument 2i32)
+    := changed = arguments_from 3i32 count Nil
+    ?= changed ?|
+    | Nil =>
+        console.write_line (
+            "kit error: repo usage: repo affected <src> <package>... (crates whose package graph reaches a changed "
+            ^^ "package)"
+        )
+        2i32
+    | _ =>
+        := nodes = nodes_of src (directory_names src) Nil
+        := printed = lines_printed (affected_crates nodes nodes changed Nil) 0i32
+        console.write_line (
+            "kit repo affected ok crates="
+            ++# sm'.format printed
+            ++# " packages="
+            ++# sm'.format (listm.length nodes : i32)
+            ++# " src="
+            ++# src
+        )
+        0i32
+
+:= main () : i32 =
+    !!!!Export("kit_repo_affected_run", ((\ () => affected_run ()) : () -> i32))
+    0i32

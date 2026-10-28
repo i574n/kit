@@ -1,0 +1,8 @@
+:~ patch_entry_public () : i32 = patch_mutation_contract.model.patch_entry ()
+
+:= emit () : () =
+    mutation_terminal.emit_runtime ()
+    !!!!Export("kit_patch_run", ((\ () => patch_entry_public ()) : () -> i32))
+    := _ = patch_mutation_contract.model.typed_patch_plan ()
+    := _ = patch_entry_public ()
+    ()

@@ -1,0 +1,153 @@
+:= create_dir (path : string) : bool =
+    $'std::fs::create_dir_all(&*!path).is_ok()' : bool
+
+:= cleanup_tree (path : string) : bool =
+    $'std::fs::remove_dir_all(&*!path).is_ok() || \!std::path::Path::new(&*!path).exists()' : bool
+
+:= remove_file (path : string) : bool =
+    $'std::fs::remove_file(&*!path).is_ok() || \!std::path::Path::new(&*!path).exists()' : bool
+
+:= write_text (path : string) (text : string) : bool =
+    $'std::fs::write(&*!path, &*!text).is_ok()' : bool
+
+:= file_exists (path : string) : bool =
+    $'std::path::Path::new(&*!path).is_file()' : bool
+
+:= path_missing (path : string) : bool =
+    $'\!std::path::Path::new(&*!path).exists()' : bool
+
+:= output_outside_root (root : string) (candidate : string) : bool =
+    $'\!std::path::Path::new(&*!candidate).starts_with(std::path::Path::new(&*!root))' : bool
+
+:! policy_owner = string
+:! agile_owner = string
+:! output_pending owner = owner
+:! output_root_ready owner = owner
+:! output_preflight_accepted owner = owner
+:! output_archive_created owner = owner
+:! output_archive_verified owner = owner
+:! output_cleaned owner = owner
+
+:| bundle_output_transition from to =
+    | PrepareOutputRoot :: \* owner. string -> bundle_output_transition (output_pending owner) (output_root_ready owner)
+    | ValidateOutputOutsideRoot :: \* owner.
+        string ->
+        bundle_output_transition (output_root_ready owner) (output_preflight_accepted owner)
+    | MaterializeOutputArchive :: \* owner.
+        string ->
+        bundle_output_transition (output_preflight_accepted owner) (output_archive_created owner)
+    | VerifyOutputArchive :: \* owner.
+        string ->
+        bundle_output_transition (output_archive_created owner) (output_archive_verified owner)
+    | CleanupOutputFixture :: \* owner.
+        string ->
+        bundle_output_transition (output_archive_verified owner) (output_cleaned owner)
+
+:| ^ bundle_output_plan from to =
+    | BundleOutputStep :: \* from to. bundle_output_transition from to -> bundle_output_plan from to
+    | BundleOutputThen :: \* from to.
+        (\? middle. bundle_output_plan from middle * bundle_output_plan middle to) ->
+        bundle_output_plan from to
+
+:| bundle_output_outcome =
+    | BundleOutputAccepted : string
+    | BundleOutputRejected : string
+    | BundleOutputFailed : string
+
+:~ preflight_binding (outside_root : i32) (output_absent : i32) : i32 =
+    ? outside_root < 1i32 ?> 0i32
+    |? 1i32 < outside_root ?> 0i32
+    |? output_absent < 1i32 ?> 0i32
+    |? 1i32 < output_absent ?> 0i32
+    |: 1i32
+
+:~ complete_binding (outside_root : i32) (output_file : i32) : i32 =
+    preflight_binding outside_root output_file
+
+:= binding_passed (value : i32) : bool =
+    ? value < 1i32 ?> !-
+    |? 1i32 < value ?> !-
+    |: !+
+
+:= prepare_step \* owner. () : bundle_output_plan (output_pending owner) (output_root_ready owner) =
+    BundleOutputStep (PrepareOutputRoot "prepare-output-root")
+
+:= preflight_step \* owner. () : bundle_output_plan (output_root_ready owner) (output_preflight_accepted owner) =
+    BundleOutputStep (ValidateOutputOutsideRoot "validate-output-outside-root")
+
+:= materialize_step \* owner. () : bundle_output_plan (output_preflight_accepted owner) (output_archive_created owner) =
+    BundleOutputStep (MaterializeOutputArchive "materialize-output-archive")
+
+:= verify_step \* owner. () : bundle_output_plan (output_archive_created owner) (output_archive_verified owner) =
+    BundleOutputStep (VerifyOutputArchive "verify-output-archive")
+
+:= cleanup_step \* owner. () : bundle_output_plan (output_archive_verified owner) (output_cleaned owner) =
+    BundleOutputStep (CleanupOutputFixture "cleanup-output-fixture")
+
+:= full_plan \* owner. () : bundle_output_plan (output_pending owner) (output_cleaned owner) =
+    BundleOutputThen (\? (
+        prepare_step (),
+        BundleOutputThen (\? (
+            preflight_step (),
+            BundleOutputThen (\? (
+                materialize_step (),
+                BundleOutputThen (\? (
+                    verify_step (),
+                    cleanup_step ()
+                ))
+            ))
+        ))
+    ))
+
+:= policy_plan () : bundle_output_plan (output_pending policy_owner) (output_cleaned policy_owner) = full_plan ()
+:= agile_plan () : bundle_output_plan (output_pending agile_owner) (output_cleaned agile_owner) = full_plan ()
+
+:= cleanup_path (path : string) : bool =
+    ? cleanup_tree path ?> path_missing path
+    |? remove_file path ?> path_missing path
+    |: !-
+
+:= cleanup_pair (root : string) (candidate : string) : bool =
+    ? cleanup_path candidate ?> cleanup_path root |: !-
+
+:= policy_output (root : string) (candidate : string) : bundle_output_outcome =
+    := _ = policy_plan ()
+    ? cleanup_pair root candidate ?>
+        ? create_dir root ?>
+            := outside = output_outside_root root candidate
+            := absent = path_missing candidate
+            ? binding_passed (preflight_binding (? outside ?> 1i32 |: 0i32) (? absent ?> 1i32 |: 0i32)) ?>
+                ? write_text candidate "bundle-output-placeholder" ?>
+                    := output_file = file_exists candidate
+                    ? binding_passed (complete_binding (? outside ?> 1i32 |: 0i32) (? output_file ?> 1i32 |: 0i32)) ?>
+                        ? cleanup_pair root candidate
+                        ?> BundleOutputAccepted "bundle-output-outside-root-accepted"
+                        |: BundleOutputFailed "bundle-output-cleanup-failed"
+                    |:
+                        ? cleanup_pair root candidate
+                        ?> BundleOutputRejected "bundle-output-completion-rejected"
+                        |: BundleOutputFailed "bundle-output-completion-cleanup-failed"
+                |: BundleOutputFailed "bundle-output-materialization-failed"
+            |:
+                ? cleanup_pair root candidate
+                ?> BundleOutputRejected "bundle-output-preflight-rejected"
+                |: BundleOutputFailed "bundle-output-preflight-cleanup-failed"
+        |: BundleOutputFailed "bundle-output-root-create-failed"
+    |: BundleOutputFailed "bundle-output-ensure-clean-failed"
+
+:= agile_rejection (root : string) (candidate : string) : bundle_output_outcome =
+    := _ = agile_plan ()
+    ? cleanup_pair root candidate ?>
+        ? create_dir root ?>
+            := outside = output_outside_root root candidate
+            := absent = path_missing candidate
+            ? binding_passed (preflight_binding (? outside ?> 1i32 |: 0i32) (? absent ?> 1i32 |: 0i32)) ?>
+                ? cleanup_pair root candidate
+                ?> BundleOutputFailed "bundle-output-inside-root-was-accepted"
+                |: BundleOutputFailed "bundle-output-negative-cleanup-failed"
+            |:
+                ? cleanup_pair root candidate
+                ?> BundleOutputRejected "bundle-output-inside-root-rejected"
+                |: BundleOutputFailed "bundle-output-rejection-cleanup-failed"
+        |: BundleOutputFailed "bundle-output-negative-root-create-failed"
+    |: BundleOutputFailed "bundle-output-negative-ensure-clean-failed"

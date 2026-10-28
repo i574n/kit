@@ -1,0 +1,112 @@
+:| replace_count =
+    | Once
+    | Every
+    | Exactly : u64
+
+:| rule_matcher =
+    | Literal
+    | Pattern
+
+:== rule =
+    {
+        anchor : string
+        replacement : string
+        count : replace_count
+        matcher : rule_matcher
+    }
+
+:| ^ rule_list =
+    | NoRules
+    | Rule : rule * rule_list
+
+:| expectation =
+    | Unchecked
+    | Expected : u64 * u64
+
+:| write_mode =
+    | Apply
+    | Preview
+
+:== edit_block =
+    {
+        target : string
+        mode : write_mode
+        expectation : expectation
+        excluded : string
+        rules : rule_list
+    }
+
+:| query_verb =
+    | Search
+    | ReadAround
+    | ListFiles
+    | Head
+    | Tail
+    | Wait
+
+:= query_verb_word (verb : query_verb) : string =
+    ?= verb ?|
+    | Search => "search"
+    | ReadAround => "read"
+    | ListFiles => "files"
+    | Head => "head"
+    | Tail => "tail"
+    | Wait => "wait"
+
+:= query_verb_named (~word : string) : option query_verb =
+    union_reflection.cases.union_case_where
+        \ (verb : query_verb) => word = query_verb_word verb
+        \ verb => Some verb
+        None
+
+:== query =
+    {
+        verb : query_verb
+        needle : string
+        literal : bool
+        target : string
+        before : u64
+        after : u64
+        first : u64
+        include : string
+        exclude : string
+        paths_only : bool
+        count : u64
+        timeout_ms : u64
+    }
+
+:| program_family =
+    | Edits
+    | Reads
+    | Facts
+    | Runs
+    | Writes
+    | Git
+    | Jobs
+    | Labs
+
+:= program_family_word (family : program_family) : string =
+    ?= family ?|
+    | Edits => "edits"
+    | Reads => "reads"
+    | Facts => "facts"
+    | Runs => "runs"
+    | Writes => "writes"
+    | Git => "git"
+    | Jobs => "jobs"
+    | Labs => "labs"
+
+:~ program_family_named (~word : string) : option program_family =
+    union_reflection.cases.union_case_where
+        \ (family : program_family) => word = program_family_word family
+        \ family => Some family
+        None
+
+:| step =
+    | EditStep : edit_block
+    | ShowStep : string
+    | QueryStep : string * string
+
+:| ^ steps =
+    | Done
+    | Step : step * steps

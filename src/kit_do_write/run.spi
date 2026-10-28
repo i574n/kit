@@ -1,0 +1,195 @@
+:< sm'_operators
+:< kit_receipt.receipt
+:< kit_do_write_host.host
+:< grammar
+:< kit_do_records.records
+
+:== write_tally =
+    {
+        report : string
+        failed : bool
+        appended_files : u64
+        appended : u64
+        copied : u64
+        skipped : u64
+        bytes : u64
+        appends : u64
+        copies : u64
+        moved : u64
+        moves : u64
+        written : u64
+        writes : u64
+    }
+
+:~ empty_write_tally () : write_tally =
+    {
+        report = ""
+        failed = !-
+        appended_files = 0u64
+        appended = 0u64
+        copied = 0u64
+        skipped = 0u64
+        bytes = 0u64
+        appends = 0u64
+        copies = 0u64
+        moved = 0u64
+        moves = 0u64
+        written = 0u64
+        writes = 0u64
+    }
+
+:~ lines_joined (~left : string) (~right : string) : string =
+    ? right = "" ?> left |? left = "" ?> right |: left ++# "\n" ++# right
+
+:~ counted (~count : u64) (~one : string) (~many : string) : string =
+    (decimal_text count) ++# " " ++# (? count = 1u64 ?> one |: many)
+
+:~ append_run (~root : string) (~path : string) (~line : string) (~state : write_tally) : write_tally =
+    := row, failed, lines, bytes =
+        $'kit_do_file_steps::kit_do_append_step(&*!root, &*!path, &*!line)' : string * bool * u64 * u64
+    ? failed ?> { state ?| report = lines_joined state.report row; failed = !+; appends = state.appends + 1u64 }
+    |:
+        { state ?|
+            report = lines_joined state.report row
+            appended_files = state.appended_files + 1u64
+            appended = state.appended + lines
+            bytes = state.bytes + bytes
+            appends = state.appends + 1u64
+        }
+
+:~ copy_run
+    (~root : string) (~source : string) (~destination : string) (~excluded : string) (~state : write_tally)
+    : write_tally
+    =
+    := report, failed, copied, skipped, bytes =
+        $'kit_do_file_steps::kit_do_copy_step(&*!root, &*!source, &*!destination, &*!excluded)'
+        : string * bool * u64 * u64 * u64
+    { state ?|
+        report = lines_joined state.report report
+        failed = state.failed || failed
+        copied = state.copied + copied
+        skipped = state.skipped + skipped
+        bytes = state.bytes + bytes
+        copies = state.copies + 1u64
+    }
+:~ move_run (~root : string) (~source : string) (~destination : string) (~state : write_tally) : write_tally =
+    := problem = moved root source destination
+    ? problem = "" ?>
+        { state ?|
+            report = lines_joined state.report ("move " ++# source ++# " -> " ++# destination)
+            moved = state.moved + 1u64
+            moves = state.moves + 1u64
+        }
+    |: { state ?| report = lines_joined state.report problem; failed = !+; moves = state.moves + 1u64 }
+
+:= rooted (~root : string) (~path : string) : string =
+    ? sm'.starts_with "/" path || sm'.index_of ":" path = 1i32 ?> path |: root ++# "/" ++# path
+
+:~ write_run
+    (~root : string) (~path : string) (~text : string) (mode : write_mode) (~state : write_tally)
+    : write_tally
+    =
+    := full = rooted root path
+    := existed = file_system.file_exists full
+    ?= mode, existed ?|
+    | CreateOnly, !+ =>
+        := problem = "write " ++# path ++# ": already exists; write " ++# path ++# " overwrite <<< ... >>> replaces it"
+        { state ?| report = lines_joined state.report problem; failed = !+; writes = state.writes + 1u64 }
+    | _ =>
+        := parent = optionm'.default_value' "" (file_system.directory_get_parent full)
+        ? parent <> "" ?> file_system.create_dir_all parent |> ignore |: ()
+        file_system.write_all_text full text
+        := bytes = text_bytes text
+        := row =
+            (? existed ?> "overwrite " |: "write ")
+            ++# path
+            ++# "  "
+            ++# (counted (line_count text) "line" "lines")
+            ++# "  "
+            ++# (counted bytes "byte" "bytes")
+        { state ?|
+            report = lines_joined state.report row
+            written = state.written + 1u64
+            bytes = state.bytes + bytes
+            writes = state.writes + 1u64
+        }
+
+:~ read_run (~root : string) (~records : record_list) (~record : i32) (~state : write_tally) : write_tally =
+    := outcome = read_report root (record_alone records record)
+    { state ?|
+        report = lines_joined state.report (part_at outcome 0i32)
+        failed = state.failed || part_at outcome 1i32 = "1"
+    }
+
+:~ step_run
+    (~root : string) (~records : record_list) (~record : i32) (step : write_step) (~state : write_tally)
+    : write_tally
+    =
+    ?= step ?|
+    | AppendLine (path, line) => append_run root path line state
+    | CopyTree (source, destination, excluded) => copy_run root source destination excluded state
+    | MovePath (source, destination) => move_run root source destination state
+    | WriteFile (path, text, mode) => write_run root path text mode state
+    | ReadAfter => read_run root records record state
+    | Blank => state
+
+:~ ^ writes_run (~root : string) (~records : record_list) (~index : i32) (~state : write_tally) : write_tally =
+    ? index < record_count records ?>
+        ?= write_parsed records index ?|
+        | WriteParsed step => writes_run root records (index + 1i32) (step_run root records index step state)
+        | WriteRejected _ => writes_run root records (index + 1i32) state
+    |: state
+
+:~ read_rejected (~records : record_list) (~record : i32) (step : write_step) : string =
+    ?= step ?|
+    | ReadAfter => read_rejection (record_alone records record)
+    | _ => ""
+
+:~ ^ first_rejection (~records : record_list) (~index : i32) : string =
+    ? index < record_count records ?>
+        ?= write_parsed records index ?|
+        | WriteRejected message => message
+        | WriteParsed step =>
+            := message = read_rejected records index step
+            ? message = "" ?> first_rejection records (index + 1i32) |: message
+    |: ""
+
+:~ written_counts (~state : write_tally) : string =
+    := appends = "files " ++# (decimal_text state.appended_files) ++# "  appended " ++# (decimal_text state.appended)
+    := head =
+        ? state.copies = 0u64 ?> appends
+        |? state.appends = 0u64 ?> "files " ++# (decimal_text state.copied) ++# " copied"
+        |: appends ++# "  copied " ++# (decimal_text state.copied)
+    := with_bytes = head ++# "  bytes " ++# (decimal_text state.bytes)
+    ? state.copies = 0u64 ?> with_bytes |: with_bytes ++# "  skipped " ++# (decimal_text state.skipped)
+
+:~ receipt_counts (~state : write_tally) : string =
+    ? state.writes > 0u64 && state.appends = 0u64 && state.copies = 0u64 && state.moves = 0u64 ?>
+        "files " ++# (decimal_text state.written) ++# " written  bytes " ++# (decimal_text state.bytes)
+    |? state.appends = 0u64 && state.copies = 0u64 ?> "files " ++# (decimal_text state.moved) ++# " moved"
+    |:
+        := written = written_counts state
+        ? state.moves = 0u64 ?> written |: written ++# "  moved " ++# (decimal_text state.moved)
+
+:~ write_program_run (~root : string) (~encoded : string) : i32 =
+    := started = now_ms ()
+    := records = records_of encoded
+    := rejection = first_rejection records 1i32
+    ? rejection = "" ?>
+        := state = writes_run root records 1i32 (empty_write_tally ())
+        := report = state.report
+        ? report = "" ?> () |: stdout_line report
+        ? state.failed ?>
+            receipt_line Failed (receipt_counts state) started
+            1i32
+        |:
+            receipt_line Succeeded (receipt_counts state) started
+            0i32
+    |:
+        stdout_line ("program rejected: " ++# rejection)
+        receipt_line Failed "files 0" started
+        2i32
+
+:= main () : i32 =
+    !!!!Export("kit_do_write_run", ((\ (root, encoded) => write_program_run root encoded) : string * string -> i32))
+    0i32

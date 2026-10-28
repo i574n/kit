@@ -1,0 +1,73 @@
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< agile_planning_model.model
+
+:| planning_filter =
+    | AnyPlanning
+    | ExactPlanning : i32
+    | RejectedPlanningFilter
+
+:= any_filter_text () : string = "all"
+
+:~ load_filter_of (~value : string) : planning_filter =
+    ? value = any_filter_text () ?> AnyPlanning
+    |:
+        ?= parse_planned_load value ?|
+        | Valid load => ExactPlanning (planned_load_code load)
+        | Invalid => RejectedPlanningFilter
+
+:~ assignee_filter_of (~value : string) : planning_filter =
+    ? value = any_filter_text () ?> AnyPlanning
+    |:
+        ?= parse_planned_assignee value ?|
+        | Valid assignee => ExactPlanning (planned_assignee_code assignee)
+        | Invalid => RejectedPlanningFilter
+
+:= filter_holds (filter : planning_filter) (code : i32) : bool =
+    ?= filter ?|
+    | AnyPlanning => !+
+    | ExactPlanning wanted => (wanted = code)
+    | RejectedPlanningFilter => !-
+
+:= filter_accepted (filter : planning_filter) : bool =
+    ?= filter ?|
+    | RejectedPlanningFilter => !-
+    | _ => !+
+
+:~ planning_filters_valid (~load : string) (~assignee : string) : bool =
+    ? filter_accepted (load_filter_of load) ?> filter_accepted (assignee_filter_of assignee) |: !-
+
+:~ plan_selected (plan : task_planning) (~load : string) (~assignee : string) : bool =
+    ? filter_holds (load_filter_of load) (planned_load_code plan.load)
+    ?> filter_holds (assignee_filter_of assignee) (planned_assignee_code plan.assignee)
+    |: !-
+
+:~ planning_selected (~text : string) (~id : string) (~load : string) (~assignee : string) : bool =
+    plan_selected (planning_of text id) load assignee
+
+:~ planning_selected_near (~text : string) (~id : string) (start : i32) (~load : string) (~assignee : string) : bool =
+    plan_selected (planning_near text id start) load assignee
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_planning_filters_valid",
+        ((\ (load, assignee) => planning_filters_valid load assignee) : string * string -> bool)
+    )
+    !!!!Export(
+        "kit_agile_planning_selected",
+        (
+            \ (text, id, load, assignee) => planning_selected text id load assignee
+            : string * string * string * string -> bool
+        )
+    )
+    !!!!Export(
+        "kit_agile_planning_selected_near",
+        (
+            \ (text, id, start, load, assignee) => planning_selected_near text id start load assignee
+            : string * string * i32 * string * string -> bool
+        )
+    )
+    := _ = planning_filters_valid "heavy" "all"
+    := _ = planning_selected "" "ID" "heavy" "agent"
+    := _ = planning_selected_near "" "ID" 0i32 "heavy" "agent"
+    0i32

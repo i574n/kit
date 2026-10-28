@@ -1,0 +1,7 @@
+:< filesystem_copy_contract.model
+
+:= main () : i32 =
+    ?= policy_copy "/tmp/kit-copy-source.txt" "/tmp/kit-copy-target.txt" "copy-exact" ?|
+    | CopyAccepted _ => 0i32
+    | CopyRejected _ => 1i32
+    | CopyFailed _ => 2i32

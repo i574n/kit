@@ -1,0 +1,132 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: iggy
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: iggy-data
+  namespace: iggy
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iggy
+  namespace: iggy
+  labels:
+    app: iggy
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: iggy
+  template:
+    metadata:
+      labels:
+        app: iggy
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: iggy
+          image: apache/iggy:0.9.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: IGGY_TCP_ADDRESS
+              value: 0.0.0.0:8090
+            - name: IGGY_HTTP_ADDRESS
+              value: 0.0.0.0:3000
+            - name: IGGY_QUIC_ADDRESS
+              value: 0.0.0.0:8080
+            - name: IGGY_WEBSOCKET_ADDRESS
+              value: 0.0.0.0:8092
+            - name: IGGY_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: iggy-root
+                  key: username
+            - name: IGGY_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: iggy-root
+                  key: password
+          ports:
+            - name: tcp
+              containerPort: 8090
+              protocol: TCP
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: quic
+              containerPort: 8080
+              protocol: UDP
+            - name: websocket
+              containerPort: 8092
+              protocol: TCP
+          securityContext:
+            seccompProfile:
+              type: Unconfined
+            capabilities:
+              add: [SYS_NICE]
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              memory: 3Gi
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 3000
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            failureThreshold: 4
+          volumeMounts:
+            - name: data
+              mountPath: /app/local_data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: iggy-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iggy
+  namespace: iggy
+spec:
+  selector:
+    app: iggy
+  ports:
+    - name: tcp
+      port: 8090
+      targetPort: 8090
+      protocol: TCP
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: quic
+      port: 8080
+      targetPort: 8080
+      protocol: UDP
+    - name: websocket
+      port: 8092
+      targetPort: 8092
+      protocol: TCP

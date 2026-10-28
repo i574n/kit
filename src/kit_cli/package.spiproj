@@ -1,0 +1,6 @@
+packages:
+    |core-
+    kit_cli_model
+    kit_cli_routing
+modules:
+    main

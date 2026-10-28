@@ -1,0 +1,5 @@
+:< model
+
+:= main () : i32 =
+    !!!!Export("kit_agile_records_as_lines", ((\ text => records_as_lines text) : string -> string))
+    0i32

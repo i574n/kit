@@ -1,0 +1,184 @@
+:! bundle_idle = ()
+:! bundle_hygiene_pruned = ()
+:! bundle_root_validated = ()
+:! bundle_files_collected = ()
+:! bundle_archive_created = ()
+:! bundle_archive_verified = ()
+:! bundle_archive_extracted = ()
+:! bundle_archive_links_validated = ()
+
+:| bundle_profile =
+    | AutoBundleProfile
+    | GenericBundleProfile
+    | KitBundleProfile
+
+:= bundle_profile_model () : bundle_profile = AutoBundleProfile
+
+:~ bundle_profile_resolve_binding (requested : i32) (kit_signature : i32) : i32 =
+    ? requested = 0i32 ?>
+        ? kit_signature = 1i32 ?> 2i32 |: 1i32
+    |? requested = 1i32 ?> 1i32
+    |? requested = 2i32 ?> 2i32
+    |: -1i32
+
+:| bundle_op from to =
+    | PruneCompilerSidecars :: bundle_op bundle_idle bundle_hygiene_pruned
+    | ValidatePrunedBundleRoot :: bundle_op bundle_hygiene_pruned bundle_root_validated
+    | ValidateBundleRoot :: bundle_op bundle_idle bundle_root_validated
+    | CollectBundleFiles :: bundle_op bundle_root_validated bundle_files_collected
+    | CreateFlatArchive :: bundle_op bundle_files_collected bundle_archive_created
+    | VerifyFlatArchive :: bundle_op bundle_archive_created bundle_archive_verified
+    | ExtractFlatArchive :: bundle_op bundle_archive_verified bundle_archive_extracted
+    | ValidateConfinedArchiveLinks :: bundle_op bundle_archive_extracted bundle_archive_links_validated
+
+:| ^ bundle_plan from to =
+    | BundleStep :: \* from to. bundle_op from to -> bundle_plan from to
+    | BundleThen :: \* from to. (\? middle. bundle_plan from middle * bundle_plan middle to) -> bundle_plan from to
+
+:= check_plan () : bundle_plan bundle_idle bundle_root_validated = BundleStep ValidateBundleRoot
+
+:= create_plan () : bundle_plan bundle_idle bundle_archive_verified =
+    BundleThen (\? (
+        BundleStep PruneCompilerSidecars,
+        BundleThen (\? (
+            BundleStep ValidatePrunedBundleRoot,
+            BundleThen (\? (
+                BundleStep CollectBundleFiles,
+                BundleThen (\? (
+                    BundleStep CreateFlatArchive,
+                    BundleStep VerifyFlatArchive
+                ))
+            ))
+        ))
+    ))
+
+:= extract_plan () : bundle_plan bundle_archive_created bundle_archive_links_validated =
+    BundleThen (\? (
+        BundleStep VerifyFlatArchive,
+        BundleThen (\? (
+            BundleStep ExtractFlatArchive,
+            BundleStep ValidateConfinedArchiveLinks
+        ))
+    ))
+
+:~ flat_preflight_binding (root_directory : i32) (output_outside_root : i32) : i32 =
+    flat_bundle_contract.model.preflight_binding root_directory output_outside_root
+
+:~ flat_manifest_binding (entries_positive : i32) (canonical_order : i32) : i32 =
+    flat_bundle_contract.model.manifest_binding entries_positive canonical_order
+
+:~ flat_size_binding (limit_positive : i32) (within_limit : i32) : i32 =
+    flat_bundle_contract.model.size_binding limit_positive within_limit
+
+:~ flat_compression_binding (deterministic : i32) (method_code : i32) : i32 =
+    flat_bundle_contract.model.compression_binding deterministic method_code
+
+:~ flat_complete_binding (manifest_valid : i32) (size_valid : i32) : i32 =
+    flat_bundle_contract.model.complete_binding manifest_valid size_valid
+
+:~ bundle_manifest_authority_binding (manifest_parsed : i32) (members_bijective : i32) : i32 =
+    bundle_policy_domain.policy.bundle_manifest_mapping_binding manifest_parsed members_bijective
+
+:~ bundle_archive_root_shape_binding (binary_evidence_mask : i32) (source_state_mask : i32) : i32 =
+    ? binary_evidence_mask = 3i32 && source_state_mask = 3i32 ?> 1i32 |: 0i32
+
+:~ ^ bundle_workspace_members_loop
+    (body : string) (at : i32) (body_len : i32) (seen : string) (out : string) : string =
+    ? (=.) at body_len ?> out
+    |:
+        := quote_at = find_char body at '"'
+        ? (=.) quote_at body_len ?> out
+        |:
+            := value_from = (+.) quote_at 1i32
+            := value_near_to = find_char body value_from '"'
+            ? (=.) value_near_to body_len ?> codec_empty ()
+            |:
+                := member = slice_exclusive body value_from value_near_to
+                ? (=.) member "" ?> codec_empty ()
+                |:
+                    := marker = sm.concat "\n" (sm.concat member "\n")
+                    := seen_len = sm.length seen : i32
+                    ? (<) (find_text seen 0i32 marker) seen_len ?> codec_empty ()
+                    |:
+                        bundle_workspace_members_loop
+                            body
+                            ((+.) value_near_to 1i32)
+                            body_len
+                            (sm.concat seen (sm.concat member "\n"))
+                            (sm.concat out (sm.concat member "\n"))
+
+:~ bundle_workspace_members_parse (source : string) : string =
+    := source_len = sm.length source : i32
+    := members_at = find_text source 0i32 "members"
+    ? (=.) members_at source_len ?> codec_empty ()
+    |:
+        := open_at = find_char source members_at '['
+        ? (=.) open_at source_len ?> codec_empty ()
+        |:
+            := body_from = (+.) open_at 1i32
+            := body_near_to = find_char source body_from ']'
+            ? (=.) body_near_to source_len ?> codec_empty ()
+            |:
+                := body = slice_exclusive source body_from body_near_to
+                bundle_workspace_members_loop body 0i32 (sm.length body : i32) "\n" ""
+
+:= main () : i32 =
+    := _ = filesystem_directory_contract.model.policy_plan ()
+    := _ = bundle_output_contract.model.policy_plan ()
+    := _ = bundle_verify_contract.model.verify_policy_plan ()
+    := _ = crate_growth_contract.model.current_plan ()
+    := _ = flat_bundle_contract.model.policy_plan ()
+    := _ = flat_preflight_binding 1i32 1i32
+    := _ = flat_manifest_binding 1i32 1i32
+    := _ = flat_size_binding 1i32 1i32
+    := _ = flat_compression_binding 1i32 1i32
+    := _ = flat_complete_binding 1i32 1i32
+    := _ = bundle_profile_resolve_binding 0i32 0i32
+    := _ = bundle_profile_resolve_binding 0i32 1i32
+    := _ = bundle_profile_resolve_binding 1i32 1i32
+    := _ = bundle_profile_resolve_binding 2i32 0i32
+    := _ = bundle_policy_domain.policy.bundle_manifest_authority_plan ()
+    := _ = bundle_manifest_authority_binding 1i32 1i32
+    := _ = bundle_manifest_authority_binding 1i32 0i32
+    := _ = bundle_archive_root_shape_binding 3i32 3i32
+    := _ = bundle_archive_root_shape_binding 3i32 1i32
+    := _ = bundle_workspace_members_parse "members=[\"a\"]"
+
+    archive_terminal.emit_runtime ()
+    !!!!Export(
+        "kit_flat_bundle_preflight_binding",
+        ((\ (first, second) => flat_preflight_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_flat_bundle_manifest_binding",
+        ((\ (first, second) => flat_manifest_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_flat_bundle_size_binding",
+        ((\ (first, second) => flat_size_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_flat_bundle_compression_binding",
+        ((\ (first, second) => flat_compression_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_flat_bundle_complete_binding",
+        ((\ (first, second) => flat_complete_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_profile_resolve_binding",
+        ((\ (first, second) => bundle_profile_resolve_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_manifest_mapping_binding",
+        ((\ (first, second) => bundle_manifest_authority_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_archive_root_shape_binding",
+        ((\ (first, second) => bundle_archive_root_shape_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_workspace_members_parse",
+        ((\ value => bundle_workspace_members_parse value) : string -> string)
+    )
+    0i32

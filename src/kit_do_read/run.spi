@@ -1,0 +1,182 @@
+:< sm'_operators
+:< kit_receipt.receipt
+:< kit_do_model.model
+:< host
+:< grammar
+:< kit_do_records.records
+
+:== query_tally =
+    {
+        report : string
+        failed : bool
+        searched : u64
+        matched : u64
+        matches : u64
+        lines : u64
+        bytes : u64
+        searches : u64
+        arounds : u64
+        listings : u64
+        waits : u64
+        timed_out : u64
+    }
+
+:~ empty_query_tally () : query_tally =
+    {
+        report = ""
+        failed = !-
+        searched = 0u64
+        matched = 0u64
+        matches = 0u64
+        lines = 0u64
+        bytes = 0u64
+        searches = 0u64
+        arounds = 0u64
+        listings = 0u64
+        waits = 0u64
+        timed_out = 0u64
+    }
+
+:~ lines_joined (~left : string) (~right : string) : string =
+    ? right = "" ?> left |? left = "" ?> right |: left ++# "\n" ++# right
+
+:~ query_step (~root : string) (~touched : touched_files) (~q : query) (~git : bool) : query_outcome =
+    := target = q.target
+    := paths = files_matching root target q.include q.exclude
+    touched_with touched paths
+    ?= q.verb ?|
+    | Search =>
+        ? git
+        ?> git_hits root paths q.needle q.literal
+        |: searched root paths q.needle q.literal q.before q.after q.first q.paths_only
+    | ReadAround => around root target q.needle q.before q.after
+    | ListFiles => listing root paths
+    | Head => edge_lines root paths q.count !-
+    | Tail => edge_lines root paths q.count !+
+    | Wait => waited root target q.needle q.timeout_ms
+
+:~ outcome_merged (~state : query_tally) (~verb : query_verb) (~outcome : query_outcome) : query_tally =
+    := report = lines_joined state.report (outcome_report outcome)
+    := failed = state.failed || outcome_failed outcome
+    := first = outcome_counter outcome 0u64
+    := second = outcome_counter outcome 1u64
+    := third = outcome_counter outcome 2u64
+    ?= verb ?|
+    | Search =>
+        { state ?|
+            report = report
+            failed = failed
+            searched = (state.searched + first)
+            matched = (state.matched + second)
+            matches = (state.matches + third)
+            searches = (state.searches + 1u64)
+        }
+    | ReadAround =>
+        { state ?|
+            report = report
+            failed = failed
+            matches = (state.matches + second)
+            lines = (state.lines + third)
+            arounds = (state.arounds + 1u64)
+        }
+    | ListFiles =>
+        { state ?|
+            report = report
+            failed = failed
+            bytes = (state.bytes + second)
+            listings = (state.listings + 1u64)
+        }
+    | Wait =>
+        { state ?|
+            report = report
+            failed = failed
+            waits = (state.waits + 1u64)
+            timed_out = (state.timed_out + second)
+        }
+    | _ => { state ?| report = report; failed = failed }
+
+:~ ^ queries_run
+    (~root : string) (~touched : touched_files) (~records : record_list) (~index : i32) (~state : query_tally)
+    : query_tally
+    =
+    ? index < record_count records
+    ?>
+        ?= query_parsed records index ?|
+        | QueryParsed q =>
+            queries_run root touched records (index + 1i32) (outcome_merged state q.verb (query_step root touched q (
+                git_marked records index)))
+        | QueryRejected _ => queries_run root touched records (index + 1i32) state
+    |: state
+
+:= mixed (~records : record_list) : bool =
+    $'!records.iter().skip(1).any(|fields| fields.first().map(|kind| \!kind.is_empty() && &**kind \!= \
+        "query").unwrap_or(false))' : bool
+
+:~ ^ first_rejection (~records : record_list) (~index : i32) : string =
+    ? index < record_count records ?>
+        ?= query_parsed records index ?|
+        | QueryRejected message => message
+        | QueryParsed _ => first_rejection records (index + 1i32)
+    |: ""
+
+:~ receipt_counts (~state : query_tally) (~touched : u64) : string =
+    := head =
+        ? state.searches > 0u64
+        ?>
+            "files "
+            ++# decimal_text state.searched
+            ++# " searched  "
+            ++# decimal_text state.matched
+            ++# (" matched  matches " ++# (decimal_text state.matches))
+        |: "files " ++# (decimal_text touched)
+    := with_matches =
+        ? state.searches = 0u64 && state.arounds > 0u64
+        ?> head ++# "  matches " ++# (decimal_text state.matches)
+        |: head
+    := with_lines = ? state.arounds > 0u64 ?> with_matches ++# "  lines " ++# (decimal_text state.lines) |: with_matches
+    := with_bytes = ? state.listings > 0u64 ?> with_lines ++# "  bytes " ++# (decimal_text state.bytes) |: with_lines
+    := waits = "waits " ++# (decimal_text state.waits)
+    ? state.waits = 0u64 ?> with_bytes
+    |? state.timed_out = 0u64 ?> waits
+    |: waits ++# "  timed out " ++# (decimal_text state.timed_out) ++# "  exit 3"
+
+:~ read_run (~root : string) (~encoded : string) : i32 =
+    := started = now_ms ()
+    := records = records_of encoded
+    := rejection =
+        ? mixed records
+        ?> "edit and query statements cannot share one program yet; run them as two calls"
+        |: first_rejection records 1i32
+    ? rejection = "" ?>
+        := touched = touched_new ()
+        := state = queries_run root touched records 1i32 (empty_query_tally ())
+        := report = state.report
+        ? report = "" ?> () |: stdout_line report
+        := counts = receipt_counts state (touched_count touched)
+        ? state.failed ?>
+            receipt_line Failed counts started
+            ? state.timed_out > 0u64 ?> 3i32 |: 1i32
+        |:
+            receipt_line Succeeded counts started
+            0i32
+    |:
+        stdout_line ("program rejected: " ++# rejection)
+        receipt_line Failed "files 0" started
+        2i32
+
+:~ report_text (~root : string) (~encoded : string) : string =
+    := records = records_of encoded
+    := state = queries_run root (touched_new ()) records 1i32 (empty_query_tally ())
+    := mark = $'std::rc::Rc::<str>::from(char::from(30u8).to_string())' : string
+    state.report ++# mark ++# (? state.failed ?> "1" |: "0")
+
+:~ matching_text (~root : string) (~target : string) : string =
+    := paths = files_matching root target "" ""
+    $'std::rc::Rc::<str>::from(!paths.iter().map(|path| path.to_string()).collect::<Vec<_>>().join("\n"))' : string
+
+:= main () : i32 =
+    !!!!Export("kit_do_read_run", ((\ (root, encoded) => read_run root encoded) : string * string -> i32))
+    !!!!Export("kit_do_read_matching", ((\ (root, target) => matching_text root target) : string * string -> string))
+    !!!!Export("kit_do_read_rejection", ((\ encoded => first_rejection (records_of encoded) 1i32) : string -> string))
+    !!!!Export("kit_do_read_report", ((\ (root, encoded) => report_text root encoded) : string * string -> string))
+    0i32

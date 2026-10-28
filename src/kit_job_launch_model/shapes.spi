@@ -1,0 +1,20 @@
+:| start_shape =
+    | PlainStart
+    | HeavyStart
+    | CompileStart
+
+:= start_shape_of (~flag : string) : start_shape =
+    ? flag = "--heavy" ?> HeavyStart |? flag = "--compile" ?> CompileStart |: PlainStart
+
+:= shape_offset = \|
+    | PlainStart => 0i32
+    | HeavyStart => 1i32
+    | CompileStart => 1i32
+
+:= shape_word = \|
+    | PlainStart => "plain"
+    | HeavyStart => "heavy"
+    | CompileStart => "compile"
+
+:~ shape_of_word (~word : string) : start_shape =
+    ? word = "heavy" ?> HeavyStart |? word = "compile" ?> CompileStart |: PlainStart

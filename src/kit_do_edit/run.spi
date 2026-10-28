@@ -1,0 +1,360 @@
+:< rust_std_string.model
+:< sm'_operators
+:< kit_receipt.receipt
+:< kit_do_model.model
+:< host
+:< decode
+:< kit_do_records.records
+
+:== tally =
+    {
+        blocks : u64
+        failed : u64
+        files : u64
+        expanded : u64
+        replacements : u64
+        previewed : u64
+        globbed : bool
+        counts_differ : bool
+        report : string
+        failures : string
+    }
+
+:== file_pass =
+    {
+        text : string
+        replacements : u64
+        marks : string
+        problem : string
+        sites : string
+    }
+
+:== block_pass =
+    {
+        matched : u64
+        found : u64
+        problems : u64
+        sites : string
+        tally : tally
+    }
+
+:~ empty_tally () : tally =
+    {
+        blocks = 0u64
+        failed = 0u64
+        files = 0u64
+        expanded = 0u64
+        replacements = 0u64
+        previewed = 0u64
+        globbed = !-
+        counts_differ = !-
+        report = ""
+        failures = ""
+    }
+
+:~ opened_file (~text : string) : file_pass = { text = text; replacements = 0u64; marks = ""; problem = ""; sites = "" }
+
+:~ opened_block (~tally : tally) : block_pass =
+    { matched = 0u64; found = 0u64; problems = 0u64; sites = ""; tally = tally }
+
+:~ joined_with (~separator : string) (~left : string) (~right : string) : string =
+    ? right = "" ?> left |? left = "" ?> right |: concat5 left separator right "" ""
+
+:~ lines_joined (~left : string) (~right : string) : string = joined_with "\n" left right
+
+:~ row2 (~first : string) (~second : string) : string = concat5 first (column ()) second "" ""
+
+:~ row4 (~first : string) (~second : string) (~third : string) (~fourth : string) : string =
+    := separator = column ()
+    concat5 first separator second separator (concat5 third separator fourth "" "")
+
+:~ counted (~count : u64) (~one : string) (~many : string) : string =
+    concat5 (decimal_text count) " " (? count = 1u64 ?> one |: many) "" ""
+
+:~ mismatch (~anchor : string) (~found : u64) (~wanted : string) : string =
+    ? found = 0u64
+    ?> concat5 "anchor not found: " (quoted anchor) " (0 matches, expected " wanted ")"
+    |:
+        concat5
+            "anchor matched "
+            (decimal_text found)
+            " times: "
+            (quoted anchor)
+            (concat5 " (expected " wanted ")" "" "")
+
+:~ count_problem (~count : replace_count) (~found : u64) (~globbed : bool) (~anchor : string) : string =
+    := absent_in_glob = found = 0u64 && globbed
+    ?= count ?|
+    | Once => ? found = 1u64 || absent_in_glob ?> "" |: mismatch anchor found "1"
+    | Exactly wanted => ? found = wanted || absent_in_glob ?> "" |: mismatch anchor found (decimal_text wanted)
+    | Every => ? found = 0u64 && globbed = !- ?> mismatch anchor 0u64 "at least 1" |: ""
+
+:~ ^ rules_over (~rules : rule_list) (~globbed : bool) (~path : string) (~pass : file_pass) : file_pass =
+    ?= rules ?|
+    | NoRules => pass
+    | Rule (rule, rest) =>
+        ? pass.problem = ""
+        ?>
+            := anchor = rule.anchor
+            := before = pass.text
+            := outcome =
+                ?= rule.matcher ?|
+                | Literal => replaced_in before anchor rule.replacement
+                | Pattern => replaced_by_pattern before anchor rule.replacement
+            := invalid = ?= rule.matcher ?| | Literal => "" | Pattern => pattern_problem anchor
+            := found = outcome_count outcome
+            := next =
+                {
+                    text = outcome_text outcome
+                    replacements = pass.replacements + found
+                    marks = joined_with "," pass.marks (outcome_marks outcome)
+                    problem =
+                        ? invalid = ""
+                        ?> count_problem rule.count found globbed anchor
+                        |: concat5 "invalid pattern " (quoted anchor) ": " invalid ""
+                    sites =
+                        lines_joined pass.sites (
+                            ?= rule.matcher ?|
+                            | Literal => sites_of before anchor path
+                            | Pattern => pattern_sites_of before anchor path
+                        )
+                }
+            rules_over rest globbed path next
+        |: pass
+
+:| file_outcome =
+    | Untouched
+    | Refused : string
+    | Changed : string * string * u64 * string
+
+:~ emptied_problem (~before : string) : string =
+    := bytes = $'!before.len() as u64' : u64
+    concat5
+        "the edits would leave the file empty (was "
+        (decimal_text bytes)
+        " bytes); empty it with kit proxy fs-write --expect-hash"
+        ""
+        ""
+
+:== file_result =
+    {
+        outcome : file_outcome
+        sites : string
+    }
+
+:~ file_result_of
+    (~root : string) (~pending : pending_writes) (~rules : rule_list) (~globbed : bool) (~path : string)
+    : file_result
+    =
+    := read = text_now pending root path
+    ? read_ok read ?>
+        := before = read_text read
+        := edited = rules_over rules globbed path (opened_file before)
+        := problem = edited.problem
+        := count = edited.replacements
+        := outcome =
+            ? problem <> "" ?> Refused problem
+            |? count = 0u64 ?> Untouched
+            |? edited.text = "" && before <> "" ?> Refused (emptied_problem before)
+            |: Changed (before, edited.text, count, edited.marks)
+        { outcome = outcome; sites = edited.sites }
+    |: { outcome = Refused (read_error read); sites = "" }
+
+:~ pass_with
+    (~pending : pending_writes) (~mode : write_mode) (~path : string) (~result : file_result) (~pass : block_pass)
+    : block_pass
+    =
+    := head = "edit " ++# path
+    := state = pass.tally
+    := sites = lines_joined pass.sites result.sites
+    ?= result.outcome ?|
+    | Untouched => { pass ?| sites = sites }
+    | Refused problem =>
+        { pass ?|
+            problems = (pass.problems + 1u64)
+            sites = sites
+            tally = { state ?| failures = lines_joined state.failures (row2 head problem) }
+        }
+    | Changed (before, after, count, marks) =>
+        := fourth =
+            ?= mode ?|
+            | Apply =>
+                staged pending path after
+                concat5 "sha256 " (sha256_of before) " -> " (sha256_of after) ""
+            | Preview => "dry run, nothing written"
+        := row = row4 head (counted count "replacement" "replacements") (lines_label marks) fourth
+        := tally =
+            ?= mode ?|
+            | Apply =>
+                { state ?|
+                    files = (state.files + 1u64)
+                    replacements = (state.replacements + count)
+                    report = lines_joined state.report row
+                }
+            | Preview =>
+                { state ?|
+                    previewed = (state.previewed + count)
+                    report = lines_joined (lines_joined state.report row) (preview_of before after)
+                }
+        { pass ?| matched = (pass.matched + 1u64); found = (pass.found + count); sites = sites; tally = tally }
+
+:~ ^ files_run
+    (~root : string) (~pending : pending_writes) (~block : edit_block) (~globbed : bool) (~paths : path_list)
+    (~index : i32) (~pass : block_pass)
+    : block_pass
+    =
+    ? index < path_count paths
+    ?>
+        := path = path_at paths index
+        files_run root pending block globbed paths
+            (index + 1i32)
+            (pass_with pending block.mode path (file_result_of root pending block.rules globbed path) pass)
+    |: pass
+
+:~ block_run (~root : string) (~pending : pending_writes) (~block : edit_block) (~state : tally) : tally =
+    := target = block.target
+    := globbed = contains target "*"
+    := paths = ? block.excluded = "" ?> target_paths root target |: paths_kept (target_paths root target) block.excluded
+    := expanded = $'!paths.len() as u64' : u64
+    := opened =
+        { state ?|
+            blocks = (state.blocks + 1u64)
+            expanded = (state.expanded + expanded)
+            globbed = (state.globbed || globbed)
+        }
+    := pass = files_run root pending block globbed paths 0i32 (opened_block opened)
+    := tally = pass.tally
+    := head = "edit " ++# target
+    ? pass.problems = 0u64
+    ?>
+        ?= block.expectation ?|
+        | Expected (files, count) =>
+            ? files = pass.matched && count = pass.found
+            ?> tally
+            |:
+                := wanted = concat5 "expected files " (decimal_text files) " replacements " (decimal_text count) ", "
+                := got =
+                    concat5 "found files " (decimal_text pass.matched) " replacements " (decimal_text pass.found) ""
+                { tally ?|
+                    counts_differ = !+
+                    failures =
+                        lines_joined (lines_joined tally.failures (row2 head (wanted ++# got))) pass.sites
+                }
+        | Unchecked =>
+            ? pass.matched = 0u64
+            ?>
+                { tally ?|
+                    failed = (tally.failed + 1u64)
+                    failures = lines_joined tally.failures (row2 head "no file matched")
+                }
+            |: tally
+    |: { tally ?| failed = (tally.failed + 1u64) }
+
+:~ ^ steps_run (~root : string) (~pending : pending_writes) (~steps : steps) (~state : tally) : tally =
+    ?= steps ?|
+    | Done => state
+    | Step (step, rest) =>
+        ?= step ?|
+        | EditStep block => steps_run root pending rest (block_run root pending block state)
+        | ShowStep path =>
+            steps_run root pending rest { state ?| report = lines_joined state.report (shown_file pending root path) }
+        | QueryStep _ => steps_run root pending rest state
+
+:~ printed (~text : string) : () = ? text = "" ?> () |: stdout_line text
+
+:~ success_counts (~state : tally) : string =
+    := files = decimal_text state.files
+    := replacements = decimal_text state.replacements
+    := previewed = decimal_text state.previewed
+    ? state.previewed = 0u64
+    ?>
+        ? state.globbed
+        ?>
+            concat5
+                "files "
+                files
+                " of "
+                (decimal_text state.expanded)
+                (" matched  replacements " ++# replacements)
+        |: concat5 "files " files "  replacements " replacements ""
+    |? state.replacements = 0u64
+    ?> concat5 "files 0 written  replacements " previewed " previewed" "" ""
+    |: concat5 "files " files " written  replacements " replacements ("  previewed " ++# previewed)
+
+:~ refused (~message : string) (~code : i32) (~started : u64) : i32 =
+    stdout_line message
+    receipt_line Failed "files 0  replacements 0" started
+    code
+
+:= run_rejection (~encoded : string) : string = $'kit_do_process::kit_do_process_rejection(&*!encoded)' : string
+
+:= runs_after_edits (~root : string) (~encoded : string) : string =
+    $'kit_do_process::kit_do_process_after_edits(&*!root, &*!encoded)' : string
+
+:~ part_at (~text : string) (~index : i32) : string =
+    $'std::rc::Rc::<str>::from(!text.split(char::from(30u8)).nth(!index as usize).unwrap_or(""))' : string
+
+:~ edits_refused (~final : tally) (~started : u64) : i32 =
+    printed (aligned final.failures)
+    refused
+        (
+            ? final.failed = 0u64
+            ?> "nothing written: the counts differ"
+            |:
+                concat5
+                    "nothing written: "
+                    (decimal_text final.failed)
+                    " of "
+                    (decimal_text final.blocks)
+                    " edits failed validation"
+        )
+        1i32
+        started
+
+:| edits_outcome =
+    | EditsCommitted : string
+    | EditsStopped : i32
+
+:~ edits_applied (~root : string) (~dry : bool) (~steps : steps) (~started : u64) : edits_outcome =
+    := pending = pending_new ()
+    := final = steps_run root pending steps (empty_tally ())
+    ? final.failed = 0u64 && final.counts_differ = !- ?>
+        := problem = ? dry ?> "" |: committed pending root
+        ? problem = "" ?>
+            printed (aligned final.report)
+            EditsCommitted (success_counts final ++# (? dry ?> "  dry run, nothing written" |: ""))
+        |: EditsStopped (refused ("nothing written: " ++# problem) 1i32 started)
+    |: EditsStopped (edits_refused final started)
+
+:~ finished (~failed : bool) (~counts : string) (~started : u64) : i32 =
+    receipt_line (? failed ?> Failed |: Succeeded) counts started
+    ? failed ?> 1i32 |: 0i32
+
+:= runs_skipped () : string =
+    $'std::rc::Rc::<str>::from(format\!("{0}runs not started{0}0", char::from(30u8)))' : string
+
+:~ edits_then_runs (~root : string) (~dry : bool) (~steps : steps) (~encoded : string) (~started : u64) : i32 =
+    := rejection = run_rejection encoded
+    ? rejection <> "" ?> refused ("program rejected: " ++# rejection) 2i32 started
+    |:
+        ?= edits_applied root dry steps started ?|
+        | EditsStopped code => code
+        | EditsCommitted counts =>
+            := outcome = ? dry ?> runs_skipped () |: runs_after_edits root encoded
+            printed (part_at outcome 0i32)
+            finished (part_at outcome 2i32 = "1") (counts ++# "  " ++# part_at outcome 1i32) started
+
+:~ edit_program_run (~root : string) (~encoded : string) : i32 =
+    := started = now_ms ()
+    := records = records_of encoded
+    := steps = steps_decoded records 1i32
+    := dry = field_at records 0i32 0i32 = "dry"
+    ? runs_in encoded ?> edits_then_runs root dry steps encoded started
+    |:
+        ?= edits_applied root dry steps started ?|
+        | EditsCommitted counts => finished !- counts started
+        | EditsStopped code => code
+
+:= main () : i32 =
+    !!!!Export("kit_do_edit_run", ((\ (root, encoded) => edit_program_run root encoded) : string * string -> i32))
+    0i32

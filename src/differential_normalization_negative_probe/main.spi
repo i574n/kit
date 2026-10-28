@@ -1,0 +1,14 @@
+:< differential_normalization_contract.model
+
+:= main () : i32 =
+    := bad_normalize = normalization_binding 0i32 1i32
+    := mismatch = comparison_binding 0i32 1i32
+    := invalid_mismatch = comparison_binding 0i32 0i32
+    := bad_receipt = receipt_binding mismatch 1i32
+    ? bad_normalize = 0i32 ?>
+        ? mismatch = 2i32 ?>
+            ? invalid_mismatch = 0i32 ?>
+                ? bad_receipt = 0i32 ?> 0i32 |: 1i32
+            |: 1i32
+        |: 1i32
+    |: 1i32

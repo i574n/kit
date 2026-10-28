@@ -1,0 +1,65 @@
+:= union_cases_fold \* union_type state. (step : state -> union_type -> state) (initial : state) : state =
+    ~>
+        !!!!UnionToRecord(`union_type, \* union_record. =>
+            !!!!RecordTypeFold(
+                (\ acc case_key => \* payload. => step acc (!!!!NominalCreate((case_key, ()), `union_type))),
+                initial,
+                `union_record
+            )
+        )
+
+:= union_cases_joined \* union_type. (render : union_type -> string) (separator : string) : string =
+    := _, joined =
+        union_cases_fold
+            \ (between, joined) (member : union_type) =>
+                separator, !!!!StaticStringConcat(joined, !!!!StaticStringConcat(between, render member))
+            ("", "")
+    joined
+
+:= union_case_suffix \* union_type. (prefix : string) (value : union_type) : string =
+    ~>
+        !!!!Unbox(value, \ (case_key, _) =>
+            := name = !!!!SymbolToString(case_key)
+            !!!!StringSlice(name, !!!!StringLength(`i32, prefix), !!!!Sub(!!!!StringLength(`i32, name), 1i32))
+        )
+
+:= union_case_index \* union_type. (value : union_type) : i32 =
+    ~>
+        !!!!Unbox(value, \ (case_key, _) =>
+            := wanted = !!!!SymbolToString(case_key)
+            !!!!UnionToRecord(`union_type, \* union_record. =>
+                := found, _ =
+                    !!!!RecordTypeFold(
+                        (\ (found, index) key => \* payload. => (? !!!!EQ(!!!!SymbolToString(key), wanted) ?> index |: found), !!!!Add(index, 1i32)),
+                        (0i32, 1i32),
+                        `union_record
+                    )
+                found
+            )
+        )
+:= union_case_at \* union_type. (code : i32) (fallback : union_type) : union_type =
+    ~>
+        !!!!UnionToRecord(`union_type, \* union_record. =>
+            := _, pick =
+                !!!!RecordTypeFoldBack(
+                    (\ key => \* payload. => \ (index, rest) => !!!!Sub(index, 1i32), (\ () => ? !!!!EQ(code, index) ?> !!!!NominalCreate((key, ()), `union_type) |: rest ())),
+                    (!!!!RecordTypeLength(`union_record), (\ () => fallback)),
+                    `union_record
+                )
+            pick ()
+        )
+
+:= union_case_where \* union_type result.
+    (picked : union_type -> bool) (found : union_type -> result) (missing : result)
+    : result
+    =
+    ~>
+        !!!!UnionToRecord(`union_type, \* union_record. =>
+            := pick =
+                !!!!RecordTypeFoldBack(
+                    (\ key => \* payload. => \ rest => (\ () => ? picked (!!!!NominalCreate((key, ()), `union_type)) ?> found (!!!!NominalCreate((key, ()), `union_type)) |: rest ())),
+                    (\ () => missing),
+                    `union_record
+                )
+            pick ()
+        )

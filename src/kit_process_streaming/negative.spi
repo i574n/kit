@@ -1,0 +1,27 @@
+:< streaming
+
+:| streaming_negative_fixture =
+    | ZeroTimeoutFixture
+    | SpawnRejectedFixture
+    | CallbackRejectedFixture
+    | ClosedInputFixture
+
+
+:= fixtures_are_closed () =
+    ?= ZeroTimeoutFixture, SpawnRejectedFixture, CallbackRejectedFixture, ClosedInputFixture ?|
+    | ZeroTimeoutFixture, SpawnRejectedFixture, CallbackRejectedFixture, ClosedInputFixture => !+
+
+:= zero_timeout_plan () = StreamingLaunch (ProcessNoInput, 0u64)
+
+:= main () : i32 =
+    global "#![allow(clippy::needless_return)]"
+    := _ = zero_timeout_plan ()
+    := _ = fixtures_are_closed ()
+    := zero_limit = streaming_policy_export 2i32 0i32
+    := over_limit = streaming_policy_export 2i32 67108865i32
+    := non_unix = streaming_policy_export 0i32 0i32
+    ? zero_limit = (-1i32) ?>
+        ? over_limit = (-1i32) ?>
+            ? non_unix = 0i32 ?> 0i32 |: -1i32
+        |: -1i32
+    |: -1i32

@@ -1,0 +1,54 @@
+///- --package .
+:# ceremonies static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| ceremony =
+    | Backlog
+    | Story
+    | Standup
+
+:= ceremony_word (value : ceremony) : string =
+    ?= value ?|
+    | Backlog => "backlog"
+    | Story => "story"
+    | Standup => "standup"
+
+:= backlog_verbs () : list string =
+    [ "list"; "next"; "plan"; "views"; "view"; "view-add"; "roots"; "check"; "todos"; "links" ]
+:= story_verbs () : list string =
+    [ "add"; "edit"; "show"; "set"; "rename"; "migrate-tags"; "note"; "note-edit"; "notes" ]
+:= standup_verbs () : list string = [ "status"; "handoff" ]
+
+:~ ceremony_of_subcommand (~subcommand : string) : option ceremony =
+    ? listm'.contains subcommand (backlog_verbs ()) ?> Some Backlog
+    |? listm'.contains subcommand (story_verbs ()) ?> Some Story
+    |? listm'.contains subcommand (standup_verbs ()) ?> Some Standup
+    |: None
+
+:~ refused (~subcommand : string) (~instead : string) : bool =
+    console.write_error_line ("kit: " ++# subcommand ++# " is not a verb of this ceremony; use: " ++# instead)
+    !-
+
+:~ ceremony_admits (~word : string) (~subcommand : string) : bool =
+    ?= ceremony_of_subcommand subcommand ?|
+    | Some owner =>
+        ? ceremony_word owner = word ?> !+ |: refused subcommand ("kit " ++# ceremony_word owner ++# " " ++# subcommand)
+    | None => refused subcommand ("kit agile " ++# subcommand)
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust
+:# every_agile_verb_has_at_most_one_ceremony =
+    expect (ceremony_of_subcommand "list" = Some Backlog && ceremony_of_subcommand "note" = Some Story) "owners"
+    expect (ceremony_of_subcommand "handoff" = Some Standup) "standup owns handoff"
+    expect (ceremony_of_subcommand "lease" = None && ceremony_of_subcommand "begin" = None) "leases stay agile"
+
+///> _
+:= main () : i32 =
+    !!!!Export(
+        "kit_ceremony_admits",
+        ((\ (word, subcommand) => ceremony_admits word subcommand) : string * string -> bool)
+    )
+    0i32

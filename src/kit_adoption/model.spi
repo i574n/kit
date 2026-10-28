@@ -1,0 +1,32 @@
+:| shell_call =
+    | KitCall
+    | HabitCall
+    | OtherCall
+
+:| agent_client =
+    | ClaudeCode
+    | Codex
+
+:= client_word = \|
+    | ClaudeCode => "claude"
+    | Codex => "codex"
+
+:== day_tally =
+    {
+        shell : u64
+        kit : u64
+        habit : u64
+    }
+
+:= empty_tally () : day_tally = { shell = 0u64; kit = 0u64; habit = 0u64 }
+
+:= counted (call : shell_call) (tally : day_tally) : day_tally =
+    ?= call ?|
+    | KitCall => { tally ?| shell = tally.shell + 1u64; kit = tally.kit + 1u64 }
+    | HabitCall => { tally ?| shell = tally.shell + 1u64; habit = tally.habit + 1u64 }
+    | OtherCall => { tally ?| shell = tally.shell + 1u64 }
+
+:~ kit_share (tally : day_tally) : f64 =
+    := kit = tally.kit
+    := shell = tally.shell
+    ? shell = 0u64 ?> 0.0f64 |: $'(!kit as f64) / (!shell as f64)' : f64

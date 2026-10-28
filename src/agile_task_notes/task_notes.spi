@@ -1,0 +1,152 @@
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< agile_note_model.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:~ argument_count () : i32 =
+    := user = env.command_line_argument_count ()
+    ? user > 0i32 ?> user - 1i32 |: 0i32
+
+:= default_author () : string = "user"
+
+:| note_author_choice =
+    | AuthorDefault
+    | AuthorNamed : string
+    | AuthorUnnamedAgent
+    | AuthorMalformed
+
+:= variable_set (name : string) : bool =
+    ? ((sm'.trim (rust_std_env.model.variable_or_empty name)) = "") ?> !- |: !+
+
+:= unnamed_choice () : note_author_choice =
+    ? variable_set "KIT_AUTHOR" ?> AuthorNamed (sm'.trim (rust_std_env.model.variable_or_empty "KIT_AUTHOR"))
+    |? variable_set "AI_AGENT" || variable_set "CLAUDECODE" ?> AuthorUnnamedAgent
+    |: AuthorDefault
+
+:== note_request =
+    {
+        body : string
+        author : note_author_choice
+    }
+
+:= named_author (~named : string) : note_author_choice =
+    ? sm'.trim named = "" ?> AuthorMalformed |: AuthorNamed (sm'.trim named)
+
+:= note_request_of () : note_request =
+    := count = argument_count ()
+    ? count = 4i32
+    ?> { body = sm'.trim (argument_owned 3i32); author = unnamed_choice () }
+    |? count = 6i32 && argument_owned 4i32 = "--as"
+    ?> { body = sm'.trim (argument_owned 3i32); author = named_author (argument_owned 5i32) }
+    |? count = 6i32 && argument_owned 3i32 = "--as"
+    ?> { body = sm'.trim (argument_owned 5i32); author = named_author (argument_owned 4i32) }
+    |: { body = sm'.trim (argument_owned 3i32); author = AuthorMalformed }
+
+:= note_failure (~reason : string) (~id : string) : i32 =
+    stderr_failure ("agile note " ++# id ++# " rejected: " ++# reason)
+
+:= note_success (~id : string) (seq : i32) (note : task_note) (before : u64) (after : u64) (elapsed : u64) : i32 =
+    := head = "kit agile note ok id=" ++# id ++# " note=" ++# (i32_text seq) ++# " at="
+    := middle =
+        note.at ++# " author=" ++# (spi_quoted note.author) ++# " text_bytes=" ++# (i32_text (byte_len note.text))
+    stdout_line (head ++# middle ++# (measured_sizes before after elapsed))
+
+:~ note_added (~root : string) (~id : string) (~author : string) (~body : string) : i32 =
+    := started = unix_ms ()
+    := state = backlog_state_path root
+    ?= probe (unchecked state) ?|
+    | FileMissing _ => note_failure "state/agile.spi is missing" id
+    | FileReadable file =>
+        := raw = loaded_string (read_text file)
+        := original = records_text raw
+        ? task_declared original id ?>
+            := schema_ready = note_schema_ensured original
+            := seq = note_count schema_ready id + 1i32
+            := note = { at = utc_stamp started; author = author; text = body }
+            := updated = notes_appended schema_ready id (note_row id seq note)
+            ?= state_written state raw updated ?|
+            | StateWritten => note_success id seq note (text_bytes original) (text_bytes updated) (ms_since started)
+            | problem => note_failure (state_write_problem problem) id
+        |: note_failure "no task with this id" id
+
+:~ note_entry () : i32 =
+    := id = argument_owned 2i32
+    := request = note_request_of ()
+    := body = request.body
+    ? (body = "")
+    ?> note_failure "the note text is empty" id
+    |:
+        ?= request.author ?|
+        | AuthorDefault => note_added (argument_owned 1i32) id (default_author ()) body
+        | AuthorNamed author => note_added (argument_owned 1i32) id author body
+        | AuthorUnnamedAgent =>
+            note_failure
+                (
+                    "an agent session must name the note's author: agile note <root> <id> <text> --as <author> (or "
+                    ^^ "set KIT_AUTHOR)"
+                )
+                id
+        | AuthorMalformed => note_failure "usage: agile note <root> <id> <text> [--as <author>]" id
+
+:| groomed =
+    | GroomedText : string
+    | GroomedRefused : string
+
+:= groomed_from (code, detail) : groomed = ? code = 0i32 ?> GroomedText detail |: GroomedRefused detail
+
+:~ planned (step : groomed) (~id : string) (~field_name : string) (~value : string) : groomed =
+    ?= step ?|
+    | GroomedRefused _ => step
+    | GroomedText text =>
+        ? value = ""
+        ?> step
+        |:
+            ?=
+                groomed_from (
+                    $'agile_planning_values::kit_agile_planning_value_token(&*!field_name, &*!value)' : i32 * string
+                )
+            ?|
+            | GroomedRefused reason => GroomedRefused reason
+            | GroomedText token =>
+                groomed_from (
+                    $'agile_planning_rewrite::kit_agile_planning_rewrite(&*!text, &*!id, &*!field_name, &*!token)'
+                    : i32 * string
+                )
+
+:~ groomed_text
+    (~text : string) (~id : string) (~estimate : string) (~load : string) (~assignee : string) (~body : string)
+    (~author : string)
+    : i32 * string
+    =
+    ?= planned (planned (planned (GroomedText text) id "estimate" estimate) id "load" load) id "assignee" assignee ?|
+    | GroomedRefused reason => 1i32, reason
+    | GroomedText planned_text =>
+        ? body = ""
+        ?> 0i32, planned_text
+        |:
+            0i32,
+            notes_appended
+                (note_schema_ensured planned_text)
+                id
+                (note_row id 1i32 { at = utc_stamp (unix_ms ()); author = author; text = body })
+
+:= main () : i32 =
+    !!!!Export("kit_agile_note_run", ((\ () => note_entry ()) : () -> i32))
+    !!!!Export(
+        "kit_agile_groomed",
+        (
+            \ (text, id, estimate, load, assignee, body, author) =>
+                groomed_text text id estimate load assignee body author
+            : string * string * string * string * string * string * string -> i32 * string
+        )
+    )
+    !!!!Export("kit_utc_stamp", ((\ stamped => utc_stamp stamped) : u64 -> string))
+    := _ = note_entry ()
+    0i32

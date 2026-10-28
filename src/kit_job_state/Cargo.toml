@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "state.spi"
+output = "state.rs"
+
+[package]
+name = "kit-job-state"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_state"
+path = "state.rs"

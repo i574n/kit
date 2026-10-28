@@ -1,0 +1,36 @@
+:~ toolchain_argument_token_high_binding (action_code : i32) (position : i32) : i32 =
+    ? action_code < 4i32
+    ?> -1i32
+    |? 7i32 < action_code
+    ?> -1i32
+    |? position < 0i32
+    ?> -1i32
+    |? action_code = 4i32
+    ?>
+        ? position = 0i32
+        ?> 6i32
+        |? position = 1i32
+        ?> 1i32
+        |? position = 2i32
+        ?> 7i32
+        |? position = 3i32
+        ?> 3i32
+        |? position = 4i32
+        ?> 9i32
+        |? position = 5i32
+        ?> 10i32
+        |: -1i32
+    |? action_code = 5i32
+    ?>
+        ? position = 0i32
+        ?> 11i32
+        |? position = 1i32
+        ?> 13i32
+        |? position = 2i32
+        ?> 1i32
+        |? position = 3i32
+        ?> 7i32
+        |: -1i32
+    |? position = 0i32
+    ?> 12i32
+    |: -1i32

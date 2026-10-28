@@ -1,0 +1,13 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+    kit_machine_watch
+    kit_machine_watch_model
+    kit_jobs
+modules:
+    ownership
+    model
+    host
+    listing
+    run

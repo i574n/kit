@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+modules:
+    host_model
+    queue
+    host_run

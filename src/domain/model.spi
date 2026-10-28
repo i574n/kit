@@ -1,0 +1,76 @@
+:! requested = ()
+:! paused = ()
+:! compiled = ()
+:! e2e_proven = ()
+:! bundled = ()
+
+:! spiral_candidate = ()
+:! primary_fallback = ()
+:! secondary_fallback = ()
+
+:| binary_authority authority =
+    | SpiralCandidate :: binary_authority spiral_candidate
+    | StablePrimary :: binary_authority primary_fallback
+    | StableSecondary :: binary_authority secondary_fallback
+
+:| bootstrap_op from to result =
+    | PauseWork :: string -> bootstrap_op requested paused string
+    | ExecuteCandidate :: binary_authority spiral_candidate * string -> bootstrap_op paused compiled string
+    | SelfPatchCandidate :: binary_authority spiral_candidate * string -> bootstrap_op paused compiled string
+    | PatchWithPrimaryFallback :: binary_authority primary_fallback * string -> bootstrap_op paused compiled string
+    | PatchWithSecondaryFallback :: binary_authority secondary_fallback * string -> bootstrap_op paused compiled string
+    | ProveE2E :: string -> bootstrap_op compiled e2e_proven string
+    | BundleCandidate :: string -> bootstrap_op e2e_proven bundled string
+
+:| ^ bootstrap_plan from to =
+    | BootstrapStep :: \* from to. (\? result. bootstrap_op from to result * result) -> bootstrap_plan from to
+    | BootstrapThen :: \* from to.
+        (\? middle. bootstrap_plan from middle * bootstrap_plan middle to) ->
+        bootstrap_plan from to
+
+:= pause_step () : bootstrap_plan requested paused =
+    BootstrapStep (\? (PauseWork "stash-before-capability-gap", "paused"))
+:= candidate_step () : bootstrap_plan paused compiled =
+    BootstrapStep (\? (ExecuteCandidate (SpiralCandidate, "candidate-capable"), "compiled"))
+:= self_patch_step () : bootstrap_plan paused compiled =
+    BootstrapStep (\? (SelfPatchCandidate (SpiralCandidate, "candidate-heals-itself"), "compiled"))
+:= primary_fallback_step () : bootstrap_plan paused compiled =
+    BootstrapStep (\? (PatchWithPrimaryFallback (StablePrimary, "primary-stable-fallback"), "compiled"))
+:= secondary_fallback_step () : bootstrap_plan paused compiled =
+    BootstrapStep (\? (PatchWithSecondaryFallback (StableSecondary, "secondary-stable-fallback"), "compiled"))
+:= prove_step () : bootstrap_plan compiled e2e_proven =
+    BootstrapStep (\? (ProveE2E "cold-tests-before-dogfood", "proven"))
+:= bundle_step () : bootstrap_plan e2e_proven bundled =
+    BootstrapStep (\? (BundleCandidate "flat-root-bundle", "bundled"))
+
+:= route_plan (route : bootstrap_plan paused compiled) : bootstrap_plan requested bundled =
+    := pause = pause_step ()
+    := prove = prove_step ()
+    := bundle = bundle_step ()
+    BootstrapThen (\? (pause, BootstrapThen (\? (route, BootstrapThen (\? (prove, bundle))))))
+
+:= candidate_plan () : bootstrap_plan requested bundled = route_plan (candidate_step ())
+:= self_patch_plan () : bootstrap_plan requested bundled = route_plan (self_patch_step ())
+:= primary_fallback_plan () : bootstrap_plan requested bundled = route_plan (primary_fallback_step ())
+:= secondary_fallback_plan () : bootstrap_plan requested bundled = route_plan (secondary_fallback_step ())
+
+:= ^ terminal \* from to. (plan : bootstrap_plan from to) : i32 =
+    ?= plan ?|
+    | BootstrapStep payload =>
+        := \? result. op, _ = payload
+        ?= op ?|
+        | PauseWork _ => 6i32
+        | ExecuteCandidate _ => 2i32
+        | SelfPatchCandidate _ => 3i32
+        | PatchWithPrimaryFallback _ => 4i32
+        | PatchWithSecondaryFallback _ => 5i32
+        | ProveE2E _ => 1i32
+        | BundleCandidate _ => 0i32
+    | BootstrapThen payload =>
+        := \? middle. _, right = payload
+        terminal right
+
+:= bootstrap_probe_result () : i32 = terminal (candidate_plan ())
+:= policy_probe_result () : i32 = terminal (self_patch_plan ())
+:= primary_fallback_probe_result () : i32 = terminal (primary_fallback_plan ())
+:= secondary_fallback_probe_result () : i32 = terminal (secondary_fallback_plan ())

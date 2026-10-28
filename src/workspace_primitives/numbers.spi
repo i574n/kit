@@ -1,0 +1,8 @@
+:= i32_eq a b : bool = (a = b)
+:= i32_le a b : bool = (a <= b)
+:= i32_next value : i32 = $"!value + 1"
+:= i32_prev value : i32 = $"!value - 1"
+:= i32_negative value : bool = $"!value < 0"
+:= i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= u64_span (earlier : u64) (later : u64) : u64 = $'(!later).saturating_sub(!earlier)' : u64
+:= u64_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string

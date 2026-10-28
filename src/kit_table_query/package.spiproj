@@ -1,0 +1,12 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    union_reflection
+modules:
+    query
+    stats
+    cells
+    lines
+    wheres
+    table

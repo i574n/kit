@@ -1,0 +1,62 @@
+:< rust_std_string.model
+:< kit_do_model.model
+:< program
+
+:= record_separator () : string = $'std::rc::Rc::<str>::from(char::from(30u8).to_string())' : string
+:= separator_free (~text : string) : bool = $'\!!text.contains(char::from(30u8)) && \
+    \!!text.contains(char::from(31u8))' : bool
+:~ decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+
+:~ fields (~a : string) (~b : string) (~c : string) (~d : string) (~e : string) : string =
+    $'std::rc::Rc::<str>::from([&*!a, &*!b, &*!c, &*!d, &*!e].join(&char::from(31u8).to_string()))' : string
+
+:~ records_joined (~text : string) (~record : string) : string =
+    ? text = "" ?> record |: concat5 text (record_separator ()) record "" ""
+
+:~ rule_record (~rule : rule) : string =
+    := anchor = rule.anchor
+    := replacement = rule.replacement
+    := kind = ?= rule.matcher ?| | Literal => "replace" | Pattern => "pattern"
+    ?= rule.count ?|
+    | Once => fields kind "once" "1" anchor replacement
+    | Every => fields kind "all" "0" anchor replacement
+    | Exactly wanted => fields kind "times" (decimal_text wanted) anchor replacement
+
+:~ ^ rules_encoded (~rules : rule_list) (~text : string) : string =
+    ?= rules ?|
+    | NoRules => text
+    | Rule (rule, rest) => rules_encoded rest (records_joined text (rule_record rule))
+
+:~ edit_record (~block : edit_block) : string =
+    := target = block.target
+    := mode = ?= block.mode ?| | Apply => "apply" | Preview => "preview"
+    ?= block.expectation ?|
+    | Unchecked => fields "edit" target mode "-" "-"
+    | Expected (files, count) => fields "edit" target mode (decimal_text files) (decimal_text count)
+
+:~ excluded_encoded (~excluded : string) (~text : string) : string =
+    ? excluded = "" ?> text |: records_joined text (fields "except" excluded "" "" "")
+
+:~ ^ steps_encoded (~steps : steps) (~text : string) : string =
+    ?= steps ?|
+    | Done => text
+    | Step (step, rest) =>
+        ?= step ?|
+        | EditStep block =>
+            steps_encoded rest (rules_encoded block.rules (excluded_encoded block.excluded (records_joined text (
+                edit_record block))))
+        | ShowStep path => steps_encoded rest (records_joined text (fields "show" path "" "" ""))
+        | QueryStep (verb, words) => steps_encoded rest (records_joined text (fields "query" verb words "" ""))
+
+:~ verb_family_word (~word : string) : string = $'kit_do_verbs::kit_do_verb_family(&*!word)' : string
+
+:~ compiled (~text : string) : string =
+    ? separator_free text ?>
+        ?= program_of (\ word => verb_family_word word <> "") text ?|
+        | Rejected message => concat5 "rejected" (record_separator ()) message "" ""
+        | Parsed (steps, _) => concat5 "ok" (record_separator ()) (steps_encoded steps "") "" ""
+    |: concat5 "rejected" (record_separator ()) "control characters 30 and 31 are reserved" "" ""
+
+:= main () : i32 =
+    !!!!Export("kit_do_program_compiled", ((\ text => compiled text) : string -> string))
+    0i32

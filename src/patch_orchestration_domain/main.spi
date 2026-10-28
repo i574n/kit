@@ -1,0 +1,128 @@
+:! patch_orchestration_idle = ()
+:! patch_orchestration_witnessed = ()
+:! patch_orchestration_operations_complete = ()
+:! patch_orchestration_guards_complete = ()
+:! patch_orchestration_stages_complete = ()
+:! patch_orchestration_promotions_complete = ()
+:! patch_orchestration_complete = ()
+
+:| patch_orchestration_step from to =
+    | BindOrchestrationWitness :: patch_orchestration_step patch_orchestration_idle patch_orchestration_witnessed
+    | BindOrchestrationOperations ::
+        patch_orchestration_step patch_orchestration_witnessed patch_orchestration_operations_complete
+    | BindOrchestrationGuards ::
+        patch_orchestration_step patch_orchestration_operations_complete patch_orchestration_guards_complete
+    | BindOrchestrationStages ::
+        patch_orchestration_step patch_orchestration_guards_complete patch_orchestration_stages_complete
+    | BindOrchestrationPromotions ::
+        patch_orchestration_step patch_orchestration_stages_complete patch_orchestration_promotions_complete
+    | CompleteOrchestration ::
+        patch_orchestration_step patch_orchestration_promotions_complete patch_orchestration_complete
+
+:| ^ patch_orchestration_plan from to =
+    | PatchOrchestrationStep :: \* from to. patch_orchestration_step from to -> patch_orchestration_plan from to
+    | PatchOrchestrationThen :: \* from to.
+        (\? middle. patch_orchestration_plan from middle * patch_orchestration_plan middle to) ->
+        patch_orchestration_plan from to
+
+:= native_patch_orchestration_plan () : patch_orchestration_plan patch_orchestration_idle patch_orchestration_complete =
+    PatchOrchestrationThen (\? (
+        PatchOrchestrationStep BindOrchestrationWitness,
+        PatchOrchestrationThen (\? (
+            PatchOrchestrationStep BindOrchestrationOperations,
+            PatchOrchestrationThen (\? (
+                PatchOrchestrationStep BindOrchestrationGuards,
+                PatchOrchestrationThen (\? (
+                    PatchOrchestrationStep BindOrchestrationStages,
+                    PatchOrchestrationThen (\? (
+                        PatchOrchestrationStep BindOrchestrationPromotions,
+                        PatchOrchestrationStep CompleteOrchestration
+                    ))
+                ))
+            ))
+        ))
+    ))
+
+:~ orchestration_witness_binding (validated : i32) (parsed : i32) : i32 =
+    := control = patch_control_domain.patch_witness_authorized validated parsed
+    := result = patch_driver_domain.patch_driver_witness_binding control parsed
+    ? result < 0i32 ?> -1i32 |: result
+
+:~ orchestration_operation_binding (cursor : i32) (observed : i32) : i32 =
+    := authorized = patch_control_domain.patch_operation_authorized cursor observed
+    ? authorized < 1i32 ?> -1i32
+    |: patch_driver_domain.patch_driver_operation_binding cursor observed
+
+:~ orchestration_guard_identity (operation : i32) (path_slot : i32) : i32 =
+    patch_effect_domain.patch_guard_identity operation path_slot
+
+:~ orchestration_guard_needle_binding (identity : i32) (needle_bytes : i32) : i32 =
+    patch_effect_domain.patch_guard_needle_binding identity needle_bytes
+
+:~ orchestration_guard_match_binding (identity : i32) (observed_matches : i32) : i32 =
+    := effect_identity = patch_effect_domain.patch_guard_match_binding identity observed_matches
+    := control_authorized = patch_control_domain.patch_match_authorized observed_matches 1i32
+    := result = patch_effect_domain.patch_guard_operation_binding effect_identity control_authorized
+    ? result < 0i32 ?> -1i32 |: result
+
+:~ orchestration_stage_binding (expected : i32) (observed : i32) : i32 =
+    patch_driver_domain.patch_driver_stage_count_binding expected observed
+
+:~ orchestration_promotion_binding (cursor : i32) (observed : i32) : i32 =
+    patch_driver_domain.patch_driver_promotion_binding cursor observed
+
+:~ orchestration_complete_binding (expected : i32) (observed : i32) : i32 =
+    := driver = patch_driver_domain.patch_driver_complete_binding expected observed
+    := control = patch_control_domain.patch_commit_authorized expected observed
+    ? driver < 1i32 ?> 0i32
+    |? control < 1i32 ?> 0i32
+    |: 1i32
+
+
+
+:= main () : i32 =
+    := _ = native_patch_orchestration_plan ()
+    := _ = orchestration_witness_binding 2i32 2i32
+    := op1 = orchestration_operation_binding 0i32 0i32
+    := _ = orchestration_operation_binding op1 1i32
+    := guard = orchestration_guard_identity 1i32 4i32
+    := guard = orchestration_guard_needle_binding guard 3i32
+    := _ = orchestration_guard_match_binding guard 1i32
+    := _ = orchestration_stage_binding 2i32 2i32
+    := promotion1 = orchestration_promotion_binding 0i32 0i32
+    := _ = orchestration_promotion_binding promotion1 1i32
+    := _ = orchestration_complete_binding 2i32 2i32
+    !!!!Export(
+        "kit_patch_orchestration_witness_binding",
+        ((\ (first, second) => orchestration_witness_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_orchestration_operation_binding",
+        ((\ (first, second) => orchestration_operation_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_orchestration_guard_identity",
+        ((\ (first, second) => orchestration_guard_identity first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_orchestration_guard_needle_binding",
+        ((\ (first, second) => orchestration_guard_needle_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_orchestration_guard_match_binding",
+        ((\ (first, second) => orchestration_guard_match_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_orchestration_stage_binding",
+        ((\ (first, second) => orchestration_stage_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_orchestration_promotion_binding",
+        ((\ (first, second) => orchestration_promotion_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_orchestration_complete_binding",
+        ((\ (first, second) => orchestration_complete_binding first second) : i32 * i32 -> i32)
+    )
+
+    0i32

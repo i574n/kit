@@ -1,0 +1,14 @@
+
+:= invalid_binary (value : i32) : bool =
+    ? value < 1i32 ?> !+
+    |? 1i32 < value ?> !+
+    |: !-
+
+:= main () : i32 =
+    global "#![allow(clippy::needless_return, clippy::needless_late_init)]"
+    := _ = native_extract_plan ()
+    ? invalid_binary (archive_extract_preflight_binding 0i32 1i32) ?> 1i32
+    |? invalid_binary (archive_extract_process_binding 1i32 1i32) ?> 1i32
+    |? invalid_binary (archive_extract_complete_binding 7i32 7i32) ?> 1i32
+    |? invalid_binary (archive_extract_receipt_binding 1i32 1i32) ?> 1i32
+    |: 0i32

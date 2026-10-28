@@ -1,0 +1,8 @@
+:= main () : i32 =
+    := _ = semantic_closeout_verdict_binding 63i32 7i32
+    emit_runtime ()
+    !!!!Export(
+        "kit_semantic_closeout_verdict",
+        ((\ (first, second) => semantic_closeout_verdict_binding first second) : i32 * i32 -> i32)
+    )
+    0i32

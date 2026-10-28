@@ -1,0 +1,99 @@
+:< sm'_operators
+
+:| planning_load =
+    | LightLoad
+    | MediumLoad
+    | HeavyLoad
+
+:| marker_field =
+    | KindField : string
+    | LoadField : planning_load
+    | EstimateMinutes : i32
+    | AssigneeField : string
+    | PriorityField : string
+    | UnknownField : string
+
+:= load_word (load : planning_load) : string =
+    ?= load ?|
+    | LightLoad => "light"
+    | MediumLoad => "medium"
+    | HeavyLoad => "heavy"
+
+:= one_of (~choices : string) (~value : string) : bool = sm'.contains ("|" ++# value ++# "|") ("|" ++# choices ++# "|")
+
+:~ load_of (~value : string) : option planning_load =
+    ? value = "light" ?> Some LightLoad
+    |? value = "medium" ?> Some MediumLoad
+    |? value = "heavy" ?> Some HeavyLoad
+    |: None
+
+:~ minutes_of (~value : string) : option i32 =
+    := length = sm'.length value : i32
+    ? length > 1i32 && sm'.ends_with "m" value ?> convert.try_convert (sm'.substring 0i32 (length - 1i32) value) |: None
+
+:~ typed_field (~key : string) (~value : string) (~word : string) : marker_field =
+    ? key = "kind" && one_of "Epic|Feature|Story|TaskKind" value ?> KindField value
+    |? key = "who" && one_of "agent|pair|user" value ?> AssigneeField value
+    |? key = "prio" && one_of "P0|P1|P2|P3|P4|P5" value ?> PriorityField value
+    |? key = "load"
+    ?>
+        ?= load_of value ?|
+        | Some load => LoadField load
+        | None => UnknownField word
+    |? key = "est"
+    ?>
+        ?= minutes_of value ?|
+        | Some minutes => EstimateMinutes minutes
+        | None => UnknownField word
+    |: UnknownField word
+
+:~ field_of (~word : string) : option marker_field =
+    := equals = sm'.index_of "=" word : i32
+    := length = sm'.length word : i32
+    ? equals < 1i32
+    ?> None
+    |:
+        := key = sm'.substring 0i32 equals word
+        := value = sm'.substring (equals + 1i32) (length - equals - 1i32) word
+        Some (typed_field key value word)
+
+:~ marker_fields (~tail : string) : list marker_field =
+    := words : array string = array (sm'.split " " tail)
+    := count = am'.length words : i32
+    :~ ^ walk (index : i32) (found : list marker_field) : list marker_field =
+        ? index >= count
+        ?> found
+        |:
+            ?= field_of (am'.index index words) ?|
+            | Some field => walk (index + 1i32) (field :: found)
+            | None => found
+    walk 0i32 []
+
+:~ field_json (field : marker_field) : string =
+    ?= field ?|
+    | KindField value => "\"kind\":\"" ++# value ++# "\""
+    | LoadField load => "\"load\":\"" ++# load_word load ++# "\""
+    | EstimateMinutes minutes => "\"est\":" ++# sm'.show minutes
+    | AssigneeField value => "\"who\":\"" ++# value ++# "\""
+    | PriorityField value => "\"prio\":\"" ++# value ++# "\""
+    | UnknownField word => "\"unknown\":\"" ++# (word |> sm'.replace "\\" "\\\\" |> sm'.replace "\"" "\\\"") ++# "\""
+
+:~ fields_json (fields : list marker_field) : string =
+    :~ ^ joined (rest : list marker_field) (acc : string) : string =
+        ?= rest ?|
+        | field :: more => joined more (? acc = "" ?> field_json field |: field_json field ++# "," ++# acc)
+        | [] => acc
+    "{" ++# joined fields "" ++# "}"
+
+:~ unknown_count (fields : list marker_field) : i32 =
+    :~ ^ counted (rest : list marker_field) (count : i32) : i32 =
+        ?= rest ?|
+        | UnknownField _ :: more => counted more (count + 1i32)
+        | _ :: more => counted more count
+        | [] => count
+    counted fields 0i32
+
+:~ tail_after (~id : string) (~comment : string) : string =
+    := at = sm'.index_of (id ++# " ") comment : i32
+    := start = at + (sm'.length id : i32) + 1i32
+    ? at < 0i32 ?> "" |: sm'.substring start ((sm'.length comment : i32) - start) comment

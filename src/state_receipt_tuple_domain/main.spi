@@ -1,0 +1,31 @@
+:= main () : i32 =
+    := snapshot_kind, snapshot_value, snapshot_extra0, snapshot_extra1, snapshot_extra2 =
+        receipt_row_tuple "snapshot\t42"
+    := tuple_kind, tuple_path, tuple_bytes, tuple_fingerprint, tuple_attestation =
+        receipt_row_tuple "module\talpha.spi\t12\t34\tbuild:99"
+    := bad_kind, _, _, _, _ = receipt_row_tuple "module\talpha.spi\t12\t34\tbuild:99\textra"
+    !!!!Export(
+        "kit_state_receipt_row_tuple",
+        ((\ value => receipt_row_tuple value) : string -> string * string * string * string * string)
+    )
+    ? (=.) snapshot_kind "snapshot" ?>
+        ? (=.) snapshot_value "42" ?>
+            ? (=.) snapshot_extra0 "" ?>
+                ? (=.) snapshot_extra1 "" ?>
+                    ? (=.) snapshot_extra2 "" ?>
+                        ? (=.) tuple_kind "module" ?>
+                            ? (=.) tuple_path "alpha.spi" ?>
+                                ? (=.) tuple_bytes "12" ?>
+                                    ? (=.) tuple_fingerprint "34" ?>
+                                        ? (=.) tuple_attestation "build:99" ?>
+                                            ? (=.) bad_kind "" ?> 0i32 |: 11i32
+                                        |: 10i32
+                                    |: 9i32
+                                |: 8i32
+                            |: 7i32
+                        |: 6i32
+                    |: 5i32
+                |: 4i32
+            |: 3i32
+        |: 2i32
+    |: 1i32

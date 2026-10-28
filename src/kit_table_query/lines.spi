@@ -1,0 +1,8 @@
+:< cells
+
+:= row_text (cells : table_cells) (row : i32) (indexes : list i32) : string =
+    csv.tsv_line (listm.map (cell_at cells row) indexes)
+
+:= group_line (count : i32) (value : string) : string = csv.tsv_line [ i32_text count; value ]
+
+:= group_header (group : string) : string = csv.tsv_line [ "count"; group ]

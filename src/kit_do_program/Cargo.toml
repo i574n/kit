@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "compiled.spi"
+output = "do_program.rs"
+
+[package]
+name = "kit-do-program"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_do_program"
+path = "do_program.rs"
+
+[dependencies]
+kit-do-verbs = { path = "../kit_do_verbs" }

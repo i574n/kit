@@ -1,0 +1,157 @@
+:< sm'_operators
+:< kit_receipt.receipt
+:< host
+:< grammar
+:< kit_do_records.records
+
+:== lab_tally =
+    {
+        report : string
+        failed : bool
+        labs : u64
+        keep : u64
+        orphan : u64
+        retired : u64
+        stale : u64
+        portability : u64
+        ignored : u64
+    }
+
+:~ empty_lab_tally () : lab_tally =
+    {
+        report = ""
+        failed = !-
+        labs = 0u64
+        keep = 0u64
+        orphan = 0u64
+        retired = 0u64
+        stale = 0u64
+        portability = 0u64
+        ignored = 0u64
+    }
+
+:~ lines_joined (~left : string) (~right : string) : string =
+    ? right = "" ?> left |? left = "" ?> right |: left ++# "\n" ++# right
+
+:~ row (~cells : string) (~next : string) : string = cells ++# (column ()) ++# next
+
+:| lab_verdict =
+    | Keep
+    | Orphan : string
+    | DoneItem
+    | Stale : u64
+
+:~ verdict_of (~item : string) (~id : string) (~days : u64) : lab_verdict =
+    ? item = "" ?> Orphan id
+    |? tab_part item 1i32 = "Done" ?> DoneItem
+    |? days > 14u64 ?> Stale days
+    |: Keep
+
+:~ verdict_text (verdict : lab_verdict) : string =
+    ?= verdict ?|
+    | Keep => "keep"
+    | Orphan id => "orphan: no backlog item " ++# id
+    | DoneItem => "done: promote or delete"
+    | Stale days => "stale: no note for " ++# (decimal_text days) ++# " days"
+
+:~ counted (~state : lab_tally) (verdict : lab_verdict) : lab_tally =
+    ?= verdict ?|
+    | Keep => { state ?| labs = state.labs + 1u64; keep = state.keep + 1u64 }
+    | Orphan _ => { state ?| labs = state.labs + 1u64; orphan = state.orphan + 1u64 }
+    | DoneItem => { state ?| labs = state.labs + 1u64; retired = state.retired + 1u64 }
+    | Stale _ => { state ?| labs = state.labs + 1u64; stale = state.stale + 1u64 }
+
+:~ ^ labs_rows
+    (~root : string) (~folder : string) (~items : string) (~names : string) (~index : u64) (~rows : string)
+    (~state : lab_tally)
+    : lab_tally
+    =
+    ? index < line_count names
+    ?>
+        := name = line_at names index
+        := path = folder ++# "/" ++# name
+        := id = item_id_of name
+        := item = item_of items id
+        := verdict = verdict_of item id (note_age_days (tab_part item 3i32))
+        := shown =
+            ? item = ""
+            ?> row path (row "-" (row "-" (row "-" (verdict_text verdict))))
+            |: row path (row id (row (tab_part item 1i32) (row (tab_part item 2i32) (verdict_text verdict))))
+        labs_rows root folder items names (index + 1u64) (lines_joined rows shown) (counted state verdict)
+    |: { state ?| report = lines_joined state.report (aligned rows) }
+
+:~ audit_run (~root : string) (~folder : string) (~backlog : string) (~state : lab_tally) : lab_tally =
+    := items = backlog_items root backlog
+    ? sm'.starts_with "error: " items
+    ?> { state ?| report = lines_joined state.report ("lab audit: " ++# items); failed = !+ }
+    |:
+        := audited =
+            labs_rows root folder items
+                (lab_directories root folder)
+                0u64
+                (row "lab" (row "item" (row "status" (row "progress" "verdict"))))
+                state
+        := portability = non_portable root folder
+        := ignored = ignored_paths root folder
+        { audited ?|
+            report = lines_joined (lines_joined audited.report portability) ignored
+            portability = audited.portability + line_count portability
+            ignored = audited.ignored + line_count ignored
+        }
+
+:~ step_run (~root : string) (step : lab_step) (~state : lab_tally) : lab_tally =
+    ?= step ?|
+    | LabAudit (folder, backlog) => audit_run root folder backlog state
+    | Blank => state
+
+:~ ^ labs_run (~root : string) (~records : record_list) (~index : i32) (~state : lab_tally) : lab_tally =
+    ? index < record_count records ?>
+        ?= lab_parsed records index ?|
+        | LabParsed step => labs_run root records (index + 1i32) (step_run root step state)
+        | LabRejected _ => labs_run root records (index + 1i32) state
+    |: state
+
+:~ ^ first_rejection (~records : record_list) (~index : i32) : string =
+    ? index < record_count records ?>
+        ?= lab_parsed records index ?|
+        | LabRejected message => message
+        | LabParsed _ => first_rejection records (index + 1i32)
+    |: ""
+
+:~ receipt_counts (~state : lab_tally) : string =
+    := verdicts =
+        "labs "
+        ++# decimal_text state.labs
+        ++# "  keep "
+        ++# decimal_text state.keep
+        ++# ("  orphan " ++# (decimal_text state.orphan) ++# "  done " ++# (decimal_text state.retired))
+    := findings =
+        verdicts
+        ++# "  stale "
+        ++# decimal_text state.stale
+        ++# "  non-portable "
+        ++# decimal_text state.portability
+    ? state.ignored = 0u64 ?> findings |: findings ++# "  ignored " ++# (decimal_text state.ignored)
+
+:~ lab_program_run (~root : string) (~encoded : string) : i32 =
+    := started = now_ms ()
+    := records = records_of encoded
+    := rejection = first_rejection records 1i32
+    ? rejection = "" ?>
+        := state = labs_run root records 1i32 (empty_lab_tally ())
+        := report = state.report
+        ? report = "" ?> () |: stdout_line report
+        ? state.failed || state.orphan + state.retired + state.stale + state.portability + state.ignored > 0u64 ?>
+            receipt_line Failed (receipt_counts state) started
+            1i32
+        |:
+            receipt_line Succeeded (receipt_counts state) started
+            0i32
+    |:
+        stdout_line ("program rejected: " ++# rejection)
+        receipt_line Failed "labs 0" started
+        2i32
+
+:= main () : i32 =
+    !!!!Export("kit_do_lab_run", ((\ (root, encoded) => lab_program_run root encoded) : string * string -> i32))
+    0i32

@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "reports.spi"
+output = "reports.rs"
+
+[package]
+name = "kit-do-git-reports"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_do_git_reports"
+path = "reports.rs"

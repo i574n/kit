@@ -1,0 +1,236 @@
+:< agile_mutation_policy.model
+:< rust_std_fs.model
+:< agile_task_text.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+
+:= argument_len index : i32 = rust_std_env.model.argument_len index
+:= argument_byte index offset : i32 = rust_std_env.model.argument_byte index offset
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:= i32_positive value : bool = $"0 < !value"
+:= i32_digit value : bool = ? 48i32 <= value ?> value <= 57i32 |: !-
+:= i32_upper_letter value : bool = ? 65i32 <= value ?> value <= 90i32 |: !-
+:= task_id_byte_allowed value : bool =
+    ? i32_upper_letter value ?> !+
+    |? i32_digit value ?> !+
+    |: value = 45i32
+:~ ^ task_id_bytes_allowed (offset : i32) (length : i32) : bool =
+    ? offset = length ?> !+
+    |? task_id_byte_allowed (argument_byte 2i32 offset) ?> task_id_bytes_allowed (offset + 1i32) length
+    |: !-
+:= validate_task_id () : validation_result string =
+    := length = argument_len 2i32
+    ? i32_positive length ?>
+        ? task_id_bytes_allowed 0i32 length ?> Valid (argument_owned 2i32) |: Invalid
+    |: Invalid
+
+:= task_binding (~id : string) : string = ascii_lowercase (rust_std_string.model.replace id "-" "_")
+:| add_flag =
+    | FlagEstimate
+    | FlagLoad
+    | FlagAssignee
+    | FlagDeps
+    | FlagNote
+    | FlagAs
+
+:= flag_word (flag : add_flag) : string =
+    rust_std_string.model.concat5 "--" (ascii_lowercase (union_reflection.cases.union_case_suffix "Flag" flag)) "" "" ""
+
+:= flag_words () : string = union_reflection.cases.union_cases_joined flag_word ", "
+
+:== add_extras =
+    {
+        estimate : string
+        load : string
+        assignee : string
+        deps : string
+        note : string
+        author : string
+    }
+
+:= no_extras () : add_extras = { estimate = ""; load = ""; assignee = ""; deps = ""; note = ""; author = "" }
+
+:= extras_with (flag : add_flag) (~value : string) (extras : add_extras) : add_extras =
+    ?= flag ?|
+    | FlagEstimate => { extras ?| estimate = value }
+    | FlagLoad => { extras ?| load = value }
+    | FlagAssignee => { extras ?| assignee = value }
+    | FlagDeps => { extras ?| deps = value }
+    | FlagNote => { extras ?| note = rust_std_string.model.trim value }
+    | FlagAs => { extras ?| author = rust_std_string.model.trim value }
+
+:| flag_parse =
+    | FlagKnown : add_flag
+    | FlagUnknown
+
+:| extras_read =
+    | ExtrasRead : add_extras
+    | ExtrasRefused : string
+
+:~ flag_of_word (~word : string) : flag_parse =
+    union_reflection.cases.union_case_where
+        \ (flag : add_flag) => word = flag_word flag
+        \ flag => FlagKnown flag
+        FlagUnknown
+
+:~ ^ extras_from (index : i32) (count : i32) (extras : add_extras) : extras_read =
+    ? count <= index
+    ?> ExtrasRead extras
+    |:
+        := word = argument_owned index
+        ?= flag_of_word word ?|
+        | FlagKnown flag =>
+            ? count <= index + 1i32 ?> ExtrasRefused (rust_std_string.model.concat5 word " needs a value" "" "" "")
+            |: extras_from (index + 2i32) count (extras_with flag (argument_owned (index + 1i32)) extras)
+        | FlagUnknown =>
+            ExtrasRefused (rust_std_string.model.concat5 "unknown option " word " (expected " (flag_words ()) ")")
+
+:= author_settled (extras : add_extras) : add_extras =
+    ? extras.author = ""
+    ?> { extras ?| author = rust_std_string.model.trim (rust_std_env.model.variable_or_empty "KIT_AUTHOR") }
+    |: extras
+
+:~ extras_checked (read : extras_read) : extras_read =
+    ?= read ?|
+    | ExtrasRefused _ => read
+    | ExtrasRead given =>
+        := extras = author_settled given
+        ? extras.note = "" ?>
+            ? given.author = "" ?> ExtrasRead extras |: ExtrasRefused "--as names the author of --note; give --note too"
+        |? extras.author = "" ?> ExtrasRefused "a note needs its author: --as <author> (or set KIT_AUTHOR)"
+        |: ExtrasRead extras
+
+:= task_line (~id : string) kind priority difficulty (~title : string) (~tags : string) (~deps : string) : string =
+    := head = rust_std_string.model.concat5 "inl " (task_binding id) " () = Task (" (spi_quoted id) ", "
+    := middle =
+        rust_std_string.model.concat5 (spi_quoted title) ", " (agile_case_text kind) ", " (agile_case_text priority)
+    := tail =
+        rust_std_string.model.concat5
+            ", "
+            (agile_case_text difficulty)
+            ", 0u32, Planned, "
+            (spi_quoted deps)
+            (rust_std_string.model.concat5 ", " (spi_quoted tags) ", \"current\", \"current\")" "" "")
+    rust_std_string.model.concat5 head middle tail "" ""
+
+:| added_text =
+    | AddedText : string
+    | AddedRefused : string
+
+:~ extras_applied (~text : string) (~id : string) (extras : add_extras) : added_text =
+    := estimate, load, assignee, body, author =
+        extras.estimate, extras.load, extras.assignee, extras.note, extras.author
+    := code, detail = $'agile_task_notes::kit_agile_groomed(&*!text, &*!id, &*!estimate, &*!load, &*!assignee, \
+        &*!body, &*!author)' : i32 * string
+    ? code = 0i32 ?> AddedText detail |: AddedRefused detail
+
+:= extras_receipt (extras : add_extras) : string =
+    := deps = ? extras.deps = "" ?> "" |: rust_std_string.model.concat5 " deps=" extras.deps "" "" ""
+    := planning =
+        rust_std_string.model.concat5
+            (? extras.estimate = "" ?> "" |: " estimate")
+            (? extras.load = "" ?> "" |: " load")
+            (? extras.assignee = "" ?> "" |: " assignee")
+            ""
+            ""
+    rust_std_string.model.concat5 deps
+        (
+            ? planning = ""
+            ?> ""
+            |:
+                rust_std_string.model.concat5
+                    " planned="
+                    (rust_std_string.model.replace (rust_std_string.model.trim planning) " " ",")
+                    ""
+                    ""
+                    ""
+        )
+        (? extras.note = "" ?> "" |: " notes=1")
+        ""
+        ""
+
+:= agile_add_failure (~reason : string) (~id : string) : i32 =
+    stderr_failure (rust_std_string.model.concat5 "agile add " id " rejected: " reason "")
+:= agile_add_success
+    (~id : string) (~binding : string) (extras : add_extras) (before : u64) (after : u64) (elapsed : u64)
+    : i32
+    =
+    := head =
+        rust_std_string.model.concat5
+            "kit agile add ok id="
+            id
+            " binding="
+            binding
+            (rust_std_string.model.concat5 " status=Planned progress=0" (extras_receipt extras) "" "" "")
+    stdout_line (rust_std_string.model.concat5 head (measured_sizes before after elapsed) "" "" "")
+:= task_listed (~id : string) (~original : string) : bool =
+    rust_std_string.model.contains original (rust_std_string.model.concat5 "Task (\"" id "\"," "" "")
+:= agile_add
+    (~root : string) (~id : string) kind priority difficulty (~title : string) (~tags : string) (extras : add_extras)
+    : i32
+    =
+    := started = unix_ms ()
+    := state = backlog_state_path root
+    ?= probe (unchecked state) ?|
+    | FileMissing _ => agile_add_failure "state/agile.spi is missing" id
+    | FileReadable file =>
+        := original = records_text (loaded_string (read_text file))
+        ? task_listed id original
+        ?> agile_add_failure "a task with this id already exists" id
+        |:
+            := appended =
+                rust_std_string.model.concat5
+                    (rust_std_string.model.trim_end_matches original "\n")
+                    "\n"
+                    (task_line id kind priority difficulty title tags extras.deps)
+                    "\n"
+                    ""
+            ?= extras_applied appended id extras ?|
+            | AddedRefused reason => agile_add_failure reason id
+            | AddedText updated =>
+                ?= replace_file_checked state updated ?|
+                | Replaced =>
+                    agile_add_success id
+                        (task_binding id)
+                        extras
+                        (text_bytes original)
+                        (text_bytes updated)
+                        (ms_since started)
+                | problem => agile_add_failure (file_replacement_problem problem) id
+:~ agile_add_entry () : i32 =
+    ? i32_digit (argument_byte 2i32 0i32)
+    ?> agile_add_failure "the id must start with a letter, so its inl name is a valid identifier" (argument_owned 2i32)
+    |:
+        ?=
+            validate_task_id (),
+            parse_task_kind (argument_owned 3i32),
+            parse_priority (argument_owned 4i32),
+            parse_difficulty (argument_owned 5i32)
+        ?|
+        | Valid id, Valid kind, Valid priority, Valid difficulty =>
+            ?= extras_checked (extras_from 8i32 ($'std::env::args().skip(2).count() as i32' : i32) (no_extras ())) ?|
+            | ExtrasRead extras =>
+                agile_add
+                    (argument_owned 1i32)
+                    id
+                    kind
+                    priority
+                    difficulty
+                    (argument_owned 6i32)
+                    (argument_owned 7i32)
+                    extras
+            | ExtrasRefused reason => agile_add_failure reason id
+        | Invalid, _, _, _ =>
+            agile_add_failure "the id must be uppercase letters, digits and dashes" (argument_owned 2i32)
+        | _, Invalid, _, _ => agile_add_failure "kind must be Epic, Feature, Story or TaskKind" (argument_owned 2i32)
+        | _, _, Invalid, _ => agile_add_failure "priority must be P0..P5" (argument_owned 2i32)
+        | _, _, _, Invalid => agile_add_failure "difficulty must be D0..D8" (argument_owned 2i32)
+
+:= main () : i32 =
+    !!!!Export("kit_agile_add_run", ((\ () => agile_add_entry ()) : () -> i32))
+    := _ = agile_add_entry ()
+    0i32

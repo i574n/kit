@@ -1,0 +1,69 @@
+:! batch_idle = ()
+:! batch_spawned = ()
+:! batch_running = ()
+:! batch_linked = ()
+:! batch_timed_out = ()
+:! batch_complete = ()
+
+:| batch_step from to =
+    | BatchSpawn :: string -> batch_step batch_idle batch_spawned
+    | BatchRun :: batch_step batch_spawned batch_running
+    | BatchLink :: string -> batch_step batch_running batch_linked
+    | BatchTimeout :: u32 -> batch_step batch_running batch_timed_out
+    | BatchComplete :: i32 -> batch_step batch_linked batch_complete
+    | BatchTimeoutComplete :: batch_step batch_timed_out batch_complete
+
+:| batch_checkpoint =
+    | BatchNotStarted
+    | BatchSpawnCommitted
+    | BatchRunCommitted
+    | BatchLinkCommitted
+    | BatchTimeoutCommitted
+    | BatchCompletionCommitted
+
+:| batch_event =
+    | SpawnEvent
+    | RunEvent
+    | LinkEvent
+    | TimeoutEvent
+    | CompletionEvent
+
+:= checkpoint_code = \|
+    | BatchNotStarted => 0i32
+    | BatchSpawnCommitted => 1i32
+    | BatchRunCommitted => 2i32
+    | BatchLinkCommitted => 3i32
+    | BatchTimeoutCommitted => 4i32
+    | BatchCompletionCommitted => 5i32
+
+:= event_code = \|
+    | SpawnEvent => 0i32
+    | RunEvent => 1i32
+    | LinkEvent => 2i32
+    | TimeoutEvent => 3i32
+    | CompletionEvent => 4i32
+
+:= checkpoint_from_code code : batch_checkpoint =
+    ? code = 0i32 ?> BatchNotStarted
+    |? code = 1i32 ?> BatchSpawnCommitted
+    |? code = 2i32 ?> BatchRunCommitted
+    |? code = 3i32 ?> BatchLinkCommitted
+    |? code = 4i32 ?> BatchTimeoutCommitted
+    |: BatchCompletionCommitted
+
+:= event_from_code code : batch_event =
+    ? code = 0i32 ?> SpawnEvent
+    |? code = 1i32 ?> RunEvent
+    |? code = 2i32 ?> LinkEvent
+    |? code = 3i32 ?> TimeoutEvent
+    |: CompletionEvent
+
+:= valid_checkpoint_code code : bool =
+    ? code < 0i32 ?> !-
+    |? 5i32 < code ?> !-
+    |: !+
+
+:= valid_event_code code : bool =
+    ? code < 0i32 ?> !-
+    |? 4i32 < code ?> !-
+    |: !+

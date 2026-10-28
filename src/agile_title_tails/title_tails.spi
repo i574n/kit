@@ -1,0 +1,164 @@
+:< agile_task_text.model
+:< sm'_operators
+:< agile_note_model.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+
+:= tail_separator () : string = "; "
+:= migrated_author () : string = "migrated"
+
+:= ascii_zero () : i32 = 48i32
+:= ascii_nine () : i32 = 57i32
+:= ascii_dash () : i32 = 45i32
+:= ascii_colon () : i32 = 58i32
+:= ascii_space () : i32 = 32i32
+
+:= digit_at (text : string) (offset : i32) : bool =
+    := code = byte_at text offset
+    ? ascii_zero () <= code ?> code <= ascii_nine () |: !-
+
+:~ ^ digits_in (text : string) (start : i32) (stop : i32) : bool =
+    ? stop <= start ?> !+
+    |? digit_at text start ?> digits_in text (start + 1i32) stop
+    |: !-
+
+:= byte_is (text : string) (offset : i32) (code : i32) : bool = byte_at text offset = code
+
+:= word_ends_at (text : string) (offset : i32) : bool =
+    ? byte_len text = offset ?> !+ |: byte_is text offset (ascii_space ())
+
+:~ dated_clock (text : string) : bool =
+    ? 16i32 <= byte_len text ?>
+        ? digits_in text 0i32 4i32 ?>
+            ? byte_is text 4i32 (ascii_dash ()) ?>
+                ? digits_in text 5i32 7i32 ?>
+                    ? byte_is text 7i32 (ascii_dash ()) ?>
+                        ? digits_in text 8i32 10i32 ?>
+                            ? byte_is text 10i32 (ascii_space ()) ?>
+                                ? digits_in text 11i32 13i32 ?>
+                                    ? byte_is text 13i32 (ascii_colon ()) ?>
+                                        ? digits_in text 14i32 16i32 ?> word_ends_at text 16i32 |: !-
+                                    |: !-
+                                |: !-
+                            |: !-
+                        |: !-
+                    |: !-
+                |: !-
+            |: !-
+        |: !-
+    |: !-
+
+:~ bare_clock (text : string) : bool =
+    ? 5i32 <= byte_len text ?>
+        ? digits_in text 0i32 2i32 ?>
+            ? byte_is text 2i32 (ascii_colon ()) ?>
+                ? digits_in text 3i32 5i32 ?> word_ends_at text 5i32 |: !-
+            |: !-
+        |: !-
+    |: !-
+
+:~ dated_day (text : string) : bool =
+    ? 10i32 <= byte_len text ?>
+        ? digits_in text 0i32 4i32 ?>
+            ? byte_is text 4i32 (ascii_dash ()) ?>
+                ? digits_in text 5i32 7i32 ?>
+                    ? byte_is text 7i32 (ascii_dash ()) ?>
+                        ? digits_in text 8i32 10i32 ?> word_ends_at text 10i32 |: !-
+                    |: !-
+                |: !-
+            |: !-
+        |: !-
+    |: !-
+
+:= starts_with_stamp (text : string) : bool =
+    ? dated_clock text ?> !+
+    |? dated_day text ?> !+
+    |: bare_clock text
+
+:= stamp_window () : i32 = 17i32
+
+:~ ^ stamped_separator_from (~title : string) (~offset : i32) : i32 =
+    := found = byte_find_from title (tail_separator ()) offset
+    ? found < 0i32 ?> found
+    |:
+        := start = (found + 2i32)
+        := window_end = (start + (stamp_window ()))
+        := stop = ? byte_len title <= window_end ?> byte_len title |: window_end
+        ? starts_with_stamp (byte_slice title start stop) ?> found
+        |: stamped_separator_from title start
+
+:== stamped_piece =
+    {
+        at : string
+        day : string
+        body : string
+    }
+
+:= rest_from (text : string) (offset : i32) : string = sm'.trim (byte_slice text offset (byte_len text))
+
+:~ stamped (~piece : string) (~day : string) (~previous : string) (~fallback : string) : stamped_piece =
+    ? dated_clock piece
+    ?> { at = byte_slice piece 0i32 16i32; day = byte_slice piece 0i32 10i32; body = rest_from piece 16i32 }
+    |? dated_day piece
+    ?> { at = byte_slice piece 0i32 10i32; day = byte_slice piece 0i32 10i32; body = rest_from piece 10i32 }
+    |? bare_clock piece
+    ?>
+        := clock = byte_slice piece 0i32 5i32
+        := at = ? (day = "") ?> clock |: day ++# " " ++# clock
+        { at = at; day = day; body = rest_from piece 5i32 }
+    |:
+        := at = ? (previous = "") ?> fallback |: previous
+        { at = at; day = day; body = piece }
+
+:== moved_notes =
+    {
+        rows : string
+        moved : i32
+    }
+
+:~ ^ moved_from
+    (~title : string) (~offset : i32) (~length : i32) (~id : string) (~seq : i32) (~day : string) (~previous : string)
+    (~fallback : string) (~moved : moved_notes)
+    : moved_notes
+    =
+    ? length <= offset
+    ?> moved
+    |:
+        := found = stamped_separator_from title offset
+        := stop = ? found < 0i32 ?> length |: found
+        := next = ? found < 0i32 ?> length |: (found + 2i32)
+        := piece = sm'.trim (byte_slice title offset stop)
+        ? (piece = "")
+        ?> moved_from title next length id seq day previous fallback moved
+        |:
+            := stamp = stamped piece day previous fallback
+            := body = ? (stamp.body = "") ?> piece |: stamp.body
+            := row = note_row id seq { at = stamp.at; author = migrated_author (); text = body }
+            := joint = ? (moved.rows = "") ?> "" |: "\n"
+            moved_from title next length id (seq + 1i32) stamp.day stamp.at fallback {
+                rows = moved.rows ++# joint ++# row
+                moved = (moved.moved + 1i32)
+            }
+
+:~ tail_rows (~title : string) (~id : string) (~seq : i32) (~fallback : string) : i32 * string =
+    := first = stamped_separator_from title 0i32
+    ? first < 0i32
+    ?> 0i32, ""
+    |:
+        := moved =
+            moved_from title ((first + 2i32)) (byte_len title) id seq "" "" fallback { rows = ""; moved = 0i32 }
+        moved.moved, moved.rows
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_title_tail_rows",
+        (
+            \ (title, id, seq, fallback) => tail_rows title id seq fallback
+            : string * string * i32 * string -> i32 * string
+        )
+    )
+    !!!!Export("kit_agile_title_kept_end", ((\ title => stamped_separator_from title 0i32) : string -> i32))
+    := _ = tail_rows "a; 03:10 b" "X" 1i32 "now"
+    := _ = tail_rows "a (b; c); 2026-10-12 d; e" "X" 1i32 "now"
+    0i32

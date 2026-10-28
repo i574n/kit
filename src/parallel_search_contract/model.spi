@@ -1,0 +1,119 @@
+:! parallel_search_raw = ()
+:! parallel_search_rooted = ()
+:! parallel_search_scanned = ()
+:! parallel_search_sorted = ()
+:! parallel_search_reported = ()
+
+:| parallel_search_policy =
+    | RejectUnsafeRoot
+    | RejectEmptyNeedle
+    | EnforcePositiveLimit
+    | UseRayonWorkers
+    | CompareSerialAndParallel
+    | SortDeterministically
+    | TagRelativePaths
+    | MaterializeConsumerOutput
+
+:| parallel_search_op from to =
+    | ValidateParallelSearch :: parallel_search_op parallel_search_raw parallel_search_rooted
+    | ScanParallelSearch :: parallel_search_op parallel_search_rooted parallel_search_scanned
+    | SortParallelSearch :: parallel_search_op parallel_search_scanned parallel_search_sorted
+    | ReportParallelSearch :: parallel_search_op parallel_search_sorted parallel_search_reported
+
+:| ^ parallel_search_plan from to =
+    | ParallelSearchStep :: \* from to. parallel_search_op from to -> parallel_search_plan from to
+    | ParallelSearchThen :: \* from to.
+        (\? middle. parallel_search_plan from middle * parallel_search_plan middle to) ->
+        parallel_search_plan from to
+
+:= parallel_search_public_plan () : parallel_search_plan parallel_search_raw parallel_search_reported =
+    ParallelSearchThen (\? (
+        ParallelSearchStep ValidateParallelSearch,
+        ParallelSearchThen (\? (
+            ParallelSearchStep ScanParallelSearch,
+            ParallelSearchThen (\? (
+                ParallelSearchStep SortParallelSearch,
+                ParallelSearchStep ReportParallelSearch
+            ))
+        ))
+    ))
+
+:~ parallel_search_request_binding (flags : i32) (limit : i32) : i32 =
+    ? flags < 0i32 ?> 0i32
+    |? 0i32 < flags ?> 0i32
+    |? limit < 1i32 ?> 0i32
+    |: 1i32
+
+:~ parallel_search_worker_binding (workers : i32) (available : i32) : i32 =
+    ? workers < 1i32 ?> 0i32
+    |? available < workers ?> 0i32
+    |: 1i32
+
+:~ parallel_search_parity_binding (serial_count : i32) (parallel_count : i32) : i32 =
+    ? serial_count < 0i32 ?> 0i32
+    |? parallel_count < 0i32 ?> 0i32
+    |? serial_count = parallel_count ?> 1i32
+    |: 0i32
+
+:~ parallel_manifest_order_binding (is_sorted : i32) (is_unique : i32) : i32 =
+    ? is_sorted < 1i32 ?> 0i32
+    |? is_unique < 1i32 ?> 0i32
+    |: 1i32
+
+:~ parallel_manifest_parity_binding (serial_fingerprint : i32) (parallel_fingerprint : i32) : i32 =
+    ? serial_fingerprint = parallel_fingerprint ?> 1i32
+    |: 0i32
+
+:~ parallel_consumer_mode_binding (mode : i32) (output_segments : i32) : i32 =
+    ? mode < 0i32 ?> 0i32
+    |? 1i32 < mode ?> 0i32
+    |? output_segments < 1i32 ?> 0i32
+    |: 1i32
+
+:~ parallel_consumer_output_binding (expected_fingerprint : i32) (output_fingerprint : i32) : i32 =
+    ? expected_fingerprint = output_fingerprint ?> 1i32 |: 0i32
+
+:| search_scope =
+    | SearchWholeRoot
+    | SearchRootedEntry
+
+:= names_the_root (~relative : string) : bool = $'&*!relative == "."' : bool
+
+:= search_scope_of (~relative : string) : search_scope =
+    ? names_the_root relative ?> SearchWholeRoot |: SearchRootedEntry
+
+:= search_scope_code = \|
+    | SearchWholeRoot => 0i32
+    | SearchRootedEntry => 1i32
+
+:| search_directory =
+    | SourceDirectory
+    | BuildOutputDirectory
+    | VersionControlDirectory
+    | PackageInstallDirectory
+    | SymlinkEntry
+
+:= entry_name (~path : string) : string =
+    $'std::rc::Rc::<str>::from(std::path::Path::new(&*!path).file_name().and_then(|name| \
+        name.to_str()).unwrap_or(""))' : string
+:= names_equal (~name : string) (~expected : string) : bool = $'(&*!name) == (&*!expected)' : bool
+:= is_symlink (~path : string) : bool = $'std::fs::symlink_metadata(&*!path).map(|meta| \
+    meta.file_type().is_symlink()).unwrap_or(false)' : bool
+:= holds_file (~path : string) (~marker : string) : bool =
+    $'std::path::Path::new(&*!path).join(&*!marker).is_file()' : bool
+
+:= search_directory_of (~path : string) : search_directory =
+    := name = entry_name path
+    ? is_symlink path ?> SymlinkEntry
+    |? names_equal name ".git" ?> VersionControlDirectory
+    |? names_equal name "node_modules" ?> PackageInstallDirectory
+    |? holds_file path "CACHEDIR.TAG" ?> BuildOutputDirectory
+    |? holds_file path ".rustc_info.json" ?> BuildOutputDirectory
+    |: SourceDirectory
+
+:= search_descends_into = \|
+    | SourceDirectory => !+
+    | BuildOutputDirectory => !-
+    | VersionControlDirectory => !-
+    | PackageInstallDirectory => !-
+    | SymlinkEntry => !-

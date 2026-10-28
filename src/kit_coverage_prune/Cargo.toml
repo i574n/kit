@@ -1,0 +1,29 @@
+[package.metadata.kit]
+test-requires-cli = true
+
+[package.metadata.spiral]
+entry = "coverage.spi"
+output = "coverage.rs"
+
+[package]
+name = "kit-coverage-prune"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_coverage_prune"
+path = "coverage.rs"
+
+[dependencies]
+kit-lcov = { path = "../kit_lcov" }
+kit-process = { path = "../kit_process" }
+kit-process-observation = { path = "../kit_process_observation" }
+kit-coverage-smoke = { path = "../kit_coverage_smoke" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-rust-std-fs-mutation = { path = "../rust_std_fs_mutation" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kit_coverage)'] }

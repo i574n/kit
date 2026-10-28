@@ -1,0 +1,95 @@
+:< sm'_operators
+
+:== file_table =
+    {
+        text : string
+        rows : u64
+    }
+
+:~ ^ data_rows (lines : array string) (index : i32) (acc : file_table) : file_table =
+    ? index >= am'.length lines ?> acc
+    |:
+        := line = am'.index index lines
+        ? line = "" || sm'.starts_with "#" line ?> data_rows lines (index + 1i32) acc
+        |: data_rows lines (index + 1i32) { text = acc.text ++# line ++# "\n"; rows = acc.rows + 1u64 }
+
+:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:~ split_pair (~text : string) (~separator : string) : string * string =
+    := at = sm'.index_of separator text
+    ? at < 0
+    ?> text, ""
+    |:
+        sm'.substring 0i32 at text,
+        sm'.substring (at + sm'.length separator) (sm'.length text - at - sm'.length separator) text
+
+:~ ^ value_after (~flag : string) (index : i32) (count : i32) : string =
+    ? index + 1i32 >= count
+    ?> ""
+    |? argument index = flag
+    ?> argument (index + 1i32)
+    |: value_after flag (index + 1i32) count
+
+:~ decimal (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+
+:~ known_flag (~word : string) : bool =
+    sm'.listed
+        "|"
+        word
+        (
+            "--time|--interval|--window|--order|--latency|--between|--from|--to|--ms|--modulo|--out|--section-on|--"
+            ^^ "carry|--first|--last"
+        )
+
+:~ ^ paths_from (index : i32) (count : i32) (acc : list string) (~refusal : string) : list string * string =
+    ? index >= count ?> listm.rev acc, refusal
+    |:
+        := word = argument index
+        ? sm'.starts_with "--" word ?>
+            ? known_flag word ?> paths_from (index + 2i32) count acc refusal
+            |: paths_from count count acc (? refusal = "" ?> "unknown option " ++# word |: refusal)
+        |: paths_from (index + 1i32) count (word :: acc) refusal
+
+:~ ^ has_columns (index : i32) (count : i32) : bool =
+    ? index >= count ?> !-
+    |? argument index = "--first" || argument index = "--last" ?> !+
+    |: has_columns (index + 1i32) count
+
+:~ ^ named_files (~path : string) (names : array string) (index : i32) (acc : list string) : list string =
+    ? index < 0i32 ?> acc
+    |:
+        := file = path ++# "/" ++# am'.index index names
+        named_files path names (index - 1i32) (? file_system.file_exists file ?> (file :: acc) |: acc)
+
+:~ ^ files_in (paths : list string) (acc : list string) : list string =
+    ?= paths ?|
+    | Nil => listm.rev acc
+    | (path :: rest) =>
+        ? file_system.directory_exists path
+        ?>
+            := names =
+                file_system.read_dir_names path
+                |> resultm.unwrap'
+                |> am'.from_vec_base
+                |> am'.map_base sm'.from_std_string
+                |> array
+                |> am'.sort_by id
+            files_in rest (
+                listm.fold (\ kept file => (file :: kept)) acc (named_files path names (am'.length names - 1i32) Nil)
+            )
+        |: files_in rest (path :: acc)
+
+:~ ^ missing_path (paths : list string) : string =
+    ?= paths ?|
+    | Nil => ""
+    | (path :: rest) =>
+        ? file_system.file_exists path || file_system.directory_exists path ?> missing_path rest |: path
+:= usage () : string =
+    "usage: table sequences <file|dir>... --time <regex with (?<ms>digits)> (--interval name=A [--between B] "
+    ^^ "[--modulo ms] | --window name=A --from M --ms lo..hi | --order name=A,B | --latency name=A --to B | "
+    ^^ "[--section-on <regex with (?<section>)>] [--carry <regex>] (--first|--last) name=<regex with (?<id>) and "
+    ^^ "(?<value>)>...) [--out file.tsv]"
+
+:~ refused (~reason : string) : i32 =
+    console.write_error_line ("kit error: table sequences " ++# reason ++# "; " ++# usage ())
+    2i32

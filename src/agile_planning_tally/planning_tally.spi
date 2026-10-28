@@ -1,0 +1,134 @@
+:< agile_task_text.model
+:< agile_planning_model.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+
+:= i32_sum (a : i32) (b : i32) : i32 = (a + b)
+
+:== rollup_task =
+    {
+        id : string
+        status : string
+        deps : string
+        plan : task_planning
+    }
+
+:== planning_tally =
+    {
+        tasks : i32
+        open_tasks : i32
+        estimated : i32
+        minutes : i32
+        open_minutes : i32
+    }
+
+:| rollup_bucket =
+    | EveryTask
+    | StatusBucket : string
+    | LoadBucket : i32
+    | AssigneeBucket : i32
+    | EpicBucket : string
+    | UnknownBucket
+
+:= unquoted (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
+
+:~ rollup_task_at (text : string) (arguments : i32) (length : i32) : rollup_task =
+    := field = tuple_field text arguments length
+    := id = unquoted (field 0i32)
+    { id = id; status = field 6i32; deps = unquoted (field 7i32); plan = planning_of text id }
+
+:= empty_tally () : planning_tally =
+    { tasks = 0i32; open_tasks = 0i32; estimated = 0i32; minutes = 0i32; open_minutes = 0i32 }
+
+:= task_unfinished (task : rollup_task) : bool = ? (task.status = "Done") ?> !- |: !+
+:= counted (flag : bool) : i32 = ? flag ?> 1i32 |: 0i32
+:= counted_minutes (flag : bool) (minutes : i32) : i32 = ? flag ?> minutes |: 0i32
+
+:~ tally_with (tally : planning_tally) (task : rollup_task) : planning_tally =
+    := minutes = planned_minutes task.plan.estimate
+    := unfinished = task_unfinished task
+    {
+        tasks = (tally.tasks + 1i32)
+        open_tasks = (tally.open_tasks + counted unfinished)
+        estimated = (tally.estimated + counted (estimate_known task.plan.estimate))
+        minutes = (tally.minutes + minutes)
+        open_minutes = (tally.open_minutes + counted_minutes unfinished minutes)
+    }
+
+:= depends_on (~deps : string) (~id : string) : bool = sm'.listed "," id deps
+
+:~ bucket_holds (bucket : rollup_bucket) (task : rollup_task) : bool =
+    ?= bucket ?|
+    | EveryTask => !+
+    | StatusBucket status => (status = task.status)
+    | LoadBucket code => (code = planned_load_code task.plan.load)
+    | AssigneeBucket code => (code = planned_assignee_code task.plan.assignee)
+    | EpicBucket epic => ? (epic = task.id) ?> !+ |: depends_on task.deps epic
+    | UnknownBucket => !-
+
+:~ ^ tally_from
+    (text : string) (offset : i32) (length : i32) (bucket : rollup_bucket) (tally : planning_tally)
+    : planning_tally
+    =
+    := found = byte_find_from text (task_marker ()) offset
+    ? found < 0i32 ?> tally
+    |:
+        := arguments = (found + (task_arguments_offset ()))
+        ? declared_task text found ?>
+            := task = rollup_task_at text arguments length
+            ? bucket_holds bucket task ?> tally_from text arguments length bucket (tally_with tally task)
+            |: tally_from text arguments length bucket tally
+        |: tally_from text arguments length bucket tally
+
+:= load_bucket (~value : string) : rollup_bucket =
+    ?= parse_planned_load value ?|
+    | Valid load => LoadBucket (planned_load_code load)
+    | Invalid => UnknownBucket
+
+:= assignee_bucket (~value : string) : rollup_bucket =
+    ?= parse_planned_assignee value ?|
+    | Valid assignee => AssigneeBucket (planned_assignee_code assignee)
+    | Invalid => UnknownBucket
+
+:| rollup_group =
+    | AllGroup
+    | StatusGroup
+    | LoadGroup
+    | AssigneeGroup
+    | EpicGroup
+
+:= rollup_group_name = \|
+    | AllGroup => "all"
+    | StatusGroup => "status"
+    | LoadGroup => "load"
+    | AssigneeGroup => "assignee"
+    | EpicGroup => "epic"
+
+:= bucket_for (group : rollup_group) (~value : string) : rollup_bucket =
+    ?= group ?|
+    | AllGroup => EveryTask
+    | StatusGroup => StatusBucket value
+    | LoadGroup => load_bucket value
+    | AssigneeGroup => assignee_bucket value
+    | EpicGroup => EpicBucket value
+
+:~ bucket_of (~group : string) (~value : string) : rollup_bucket =
+    union_reflection.cases.union_cases_fold
+        \ found (candidate : rollup_group) =>
+            ? (group = (rollup_group_name candidate)) ?> bucket_for candidate value |: found
+        UnknownBucket
+:~ planning_tally (~text : string) (~group : string) (~value : string) : i32 * i32 * i32 * i32 * i32 =
+    := tally = tally_from text 0i32 (byte_len text) (bucket_of group value) (empty_tally ())
+    tally.tasks, tally.open_tasks, tally.estimated, tally.minutes, tally.open_minutes
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_planning_tally",
+        (
+            \ (text, group, value) => planning_tally text group value
+            : string * string * string -> i32 * i32 * i32 * i32 * i32
+        )
+    )
+    := _ = planning_tally "" "status" "Planned"
+    0i32

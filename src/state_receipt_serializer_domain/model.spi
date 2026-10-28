@@ -1,0 +1,134 @@
+:~ ^ escape_path_loop (path : string) (at : i32) (path_len : i32) (out : string) : string =
+    ? (=.) at path_len ?> out
+    |:
+        := current = sm.index path at
+        := encoded =
+            ? (=.) current (char_backslash ()) ?> "\\\\"
+            |? (=.) current (char_quote ()) ?> "\\\""
+            |? (=.) current (char_newline ()) ?> "\\n"
+            |? (=.) current (char_carriage_return ()) ?> "\\r"
+            |? (=.) current (char_tab ()) ?> "\\t"
+            |: char_text path at
+        escape_path_loop path ((+.) at 1i32) path_len (sm.concat out encoded)
+
+:= escape_path (path : string) : string =
+    escape_path_loop path 0i32 (sm.length path : i32) ""
+
+:= digit_text (digit : i32) : string =
+    sm.slice "0123456789" { from = digit; to = digit }
+
+:= padded_index (index : i32) : string =
+    := thousands = (/.) index 1000i32
+    := hundreds = (/.) ((%.) index 1000i32) 100i32
+    := tens = (/.) ((%.) index 100i32) 10i32
+    := ones = (%.) index 10i32
+    sm.concat (digit_text thousands) (sm.concat (digit_text hundreds) (sm.concat (digit_text tens) (digit_text ones)))
+
+:= serialize_snapshot_row (line : string) : string =
+    := prefix = sm.concat (receipt_row_kind_text "1") "\t"
+    := value = slice_exclusive line (sm.length prefix : i32) (sm.length line : i32)
+    sm.concat "inl snapshot () : state_check_snapshot = StateCheckSnapshot " (sm.concat value "u64\n")
+
+:~ ^ digits_valid_loop (text : string) (at : i32) (text_len : i32) : bool =
+    ? (=.) at text_len ?> !+
+    |:
+        := digit_at = find_text "0123456789" 0i32 (char_text text at)
+        ? (<) digit_at 10i32 ?> digits_valid_loop text ((+.) at 1i32) text_len |: !-
+
+:= serialize_attestation (attestation : string) : string =
+    := kind = receipt_attestation_kind_code attestation
+    ? (=.) kind 1u64 ?> "RuntimeAttestation"
+    |? (=.) kind 2u64 ?>
+        := digits = receipt_attestation_build_payload attestation
+        := digits_len = sm.length digits : i32
+        ? (=.) digits_len 0i32 ?> codec_empty ()
+        |? digits_valid_loop digits 0i32 digits_len ?> sm.concat "BuildAttestation " (sm.concat digits "u64")
+        |: codec_empty ()
+    |: codec_empty ()
+
+:= serialize_module_row (line : string) (index : i32) : string =
+    := prefix = sm.concat (receipt_row_kind_text "2") "\t"
+    := line_len = sm.length line : i32
+    := path_from = sm.length prefix : i32
+    := first_tab = find_char line path_from (char_tab ())
+    ? (=.) first_tab line_len
+    ?> codec_empty ()
+    |:
+        := second_tab = find_char line ((+.) first_tab 1i32) (char_tab ())
+        ? (=.) second_tab line_len
+        ?> codec_empty ()
+        |:
+            := third_tab = find_char line ((+.) second_tab 1i32) (char_tab ())
+            ? (=.) third_tab line_len
+            ?> codec_empty ()
+            |:
+                := path = slice_exclusive line path_from first_tab
+                := bytes = slice_exclusive line ((+.) first_tab 1i32) second_tab
+                := fingerprint = slice_exclusive line ((+.) second_tab 1i32) third_tab
+                := attestation = serialize_attestation (slice_exclusive line ((+.) third_tab 1i32) line_len)
+                ? (=.) attestation ""
+                ?> codec_empty ()
+                |:
+                    := start =
+                        sm.concat
+                            "inl receipt_"
+                            (
+                                sm.concat
+                                    (padded_index index)
+                                    " () : module_typecheck_receipt = ModuleTypecheckReceipt (\""
+                            )
+                    := middle = sm.concat (escape_path path) (sm.concat "\", " (sm.concat bytes "u64, "))
+                    := finish = sm.concat fingerprint (sm.concat "u64, " (sm.concat attestation ")\n"))
+                    sm.concat start (sm.concat middle finish)
+
+:~ ^ serialize_rows_loop (table : string) (at : i32) (table_len : i32) (module_index : i32) (out : string) : string =
+    ? (=.) at table_len ?> out
+    |:
+        := line_near_to = find_char_loop table at table_len (char_newline ())
+        := line = slice_exclusive table at line_near_to
+        := snapshot_prefix = sm.concat (receipt_row_kind_text "1") "\t"
+        := module_prefix = sm.concat (receipt_row_kind_text "2") "\t"
+        := is_snapshot = starts_with_at line 0i32 snapshot_prefix
+        := is_module = starts_with_at line 0i32 module_prefix
+        := rendered =
+            ? is_snapshot ?> serialize_snapshot_row line
+            |? is_module ?> serialize_module_row line module_index
+            |: codec_empty ()
+        := next_index = ? is_module ?> (+.) module_index 1i32 |: module_index
+        := next = ? (=.) line_near_to table_len ?> table_len |: (+.) line_near_to 1i32
+        serialize_rows_loop table next table_len next_index (sm.concat out rendered)
+
+:= receipt_header () : string =
+    """
+        union state_check_snapshot = | StateCheckSnapshot :: u64 -> state_check_snapshot
+        union module_attestation = | RuntimeAttestation | BuildAttestation :: u64 -> module_attestation
+        union module_typecheck_receipt = | ModuleTypecheckReceipt :: string * u64 * u64 * module_attestation -> module_typecheck_receipt
+
+
+        """
+
+:= receipt_footer () : string =
+    "inl main () : i32 = 0i32\n"
+
+:~ receipt_serialize (table : string) : string =
+    := body = serialize_rows_loop table 0i32 (sm.length table : i32) 0i32 ""
+    sm.concat (receipt_header ()) (sm.concat body (receipt_footer ()))
+
+:= serializer_fixture_table () : string =
+    "snapshot\t42\nmodule\talpha.spi\t12\t34\truntime\nmodule\tb\\c.spi\t56\t78\tbuild:99\n"
+
+:= serializer_fixture_source () : string =
+    """
+        union state_check_snapshot = | StateCheckSnapshot :: u64 -> state_check_snapshot
+        union module_attestation = | RuntimeAttestation | BuildAttestation :: u64 -> module_attestation
+        union module_typecheck_receipt = | ModuleTypecheckReceipt :: string * u64 * u64 * module_attestation -> module_typecheck_receipt
+
+        inl snapshot () : state_check_snapshot = StateCheckSnapshot 42u64
+        inl receipt_0000 () : module_typecheck_receipt = ModuleTypecheckReceipt ("alpha.spi", 12u64, 34u64, RuntimeAttestation)
+        inl receipt_0001 () : module_typecheck_receipt = ModuleTypecheckReceipt ("b\\c.spi", 56u64, 78u64, BuildAttestation 99u64)
+        inl main () : i32 = 0i32
+
+        """
+
+:= serializer_malformed_table () : string =
+    "module\tmissing-fields\n"

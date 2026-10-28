@@ -1,0 +1,7 @@
+:< bundle_verify_contract.model
+
+:= main () : i32 =
+    ?= verify_policy_fixture "/tmp/kit-bundle-verify-policy.zip" ?|
+    | BundleVerifyAccepted _ => 0i32
+    | BundleVerifyRejected _ => 1i32
+    | BundleVerifyFailed _ => 2i32

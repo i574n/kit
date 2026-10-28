@@ -1,0 +1,150 @@
+///- --package .
+///> _
+:# sequences static =
+    :< sm'_operators
+    :< sequence_model
+
+:< sm'_operators
+:< sequence_model
+
+:= field (index : i32) (parts : array string) : string = optionm'.default_value "" (am'.try_item index parts)
+
+:= event_of (~text : string) : option event =
+    := parts = sm'.split "\t" text |> array
+    ? am'.length parts < 3i32
+    ?> None
+    |:
+        Some {
+            role = field 0i32 parts
+            line = optionm'.default_value 0u64 (convert.try_convert (field 1i32 parts))
+            at_ms = optionm'.default_value 0u64 (convert.try_convert (field 2i32 parts))
+        }
+
+:~ ^ events_of (lines : array string) (index : i32) (events : list event) : list event =
+    ? index < 0i32 ?> events
+    |:
+        ?= event_of (am'.index index lines) ?|
+        | Some event => events_of lines (index - 1i32) (event :: events)
+        | None => events_of lines (index - 1i32) events
+
+:= parsed_events (~text : string) : list event =
+    := lines = sm'.split "\n" text |> array
+    events_of lines (am'.length lines - 1i32) Nil
+
+:= outcome_rows (~file : string) (outcome : measure_outcome) : string =
+    rows_text file outcome.rows "" ++# "#unpaired\t" ++# sm'.format outcome.unpaired
+
+:= interval_fold_of (modulo : u64) : interval_fold = ? modulo = 0u64 ?> AsRows |: Modulo modulo
+
+:= optional_role (~role : string) : option string = ? role = "" ?> None |: Some role
+
+:~ interval_text (~file : string) (~events : string) (~marked : string) (~between : string) (modulo : u64) : string =
+    outcome_rows file (
+        measured
+            (Interval { marked = marked; between = optional_role between; fold = interval_fold_of modulo })
+            (parsed_events events)
+    )
+
+:~ window_text
+    (~file : string) (~events : string) (~counted : string) (~marker : string) (low : u64) (high : u64)
+    : string
+    =
+    outcome_rows file (
+        measured
+            (Window { counted = counted; marker = marker; range = { low = low; high = high } })
+            (parsed_events events)
+    )
+
+:~ order_text (~file : string) (~events : string) (~first : string) (~second : string) : string =
+    outcome_rows file (measured (Order { first = first; second = second }) (parsed_events events))
+
+:~ latency_text (~file : string) (~events : string) (~starting : string) (~ending : string) : string =
+    outcome_rows file (measured (Latency { starting = starting; ending = ending }) (parsed_events events))
+
+:~ matches_in (~line : string) (pattern : sm'.regex) : u64 =
+    sm'.regex_captures line pattern |> am'.vec_len |> convert.u64
+
+:~ stamp_in (~line : string) (pattern : sm'.regex) : u64 =
+    sm'.regex_captures line pattern
+    |> am'.vec_fold' \ found captures =>
+            ? found <> "" ?> found |: optionm'.default_value' found (mapm.get "ms" captures)
+        ""
+    |> \ text => optionm'.default_value 0u64 (convert.try_convert text)
+
+:~ compiled (~pattern : string) : sm'.regex = sm'.new_regex pattern |> resultm.unwrap'
+
+:~ event_row (~role : string) (number : u64) (at : u64) : string =
+    role ++# "\t" ++# sm'.format number ++# "\t" ++# sm'.format at ++# "\n"
+
+:~ ^ events_in
+    (lines : array string) (index : i32) (time : sm'.regex) (first : sm'.regex) (second : option sm'.regex)
+    (~text : string)
+    : string
+    =
+    ? index >= am'.length lines ?> text
+    |:
+        := line = am'.index index lines
+        := at = stamp_in line time
+        := number = convert.u64 (index + 1i32)
+        := text = ? matches_in line first > 0u64 ?> text ++# event_row "first" number at |: text
+        := text =
+            ?= second ?|
+            | Some pattern => ? matches_in line pattern > 0u64 ?> text ++# event_row "second" number at |: text
+            | None => text
+        events_in lines (index + 1i32) time first second text
+
+:~ events_text (~log : string) (~time : string) (~first : string) (~second : string) : string =
+    := lines = sm'.split "\n" log |> array
+    events_in lines 0i32 (compiled time) (compiled first) (? second = "" ?> None |: Some (compiled second)) ""
+
+
+///> rust
+:# the_text_boundary_reads_role_line_and_time_rows =
+    := events = "request\t1\t1000\nreply\t2\t1250\n\nrequest\t3\t2000\nbroken row\nreply\t4\t2600\n"
+    testing.expect
+        (latency_text "b.log" events "request" "reply" = "b.log\t1\t250\nb.log\t3\t600\n#unpaired\t0")
+        (latency_text "b.log" events "request" "reply")
+    testing.expect
+        (interval_text "b.log" events "request" "" 0u64 = "b.log\t3\t1000\n#unpaired\t0")
+        (interval_text "b.log" events "request" "" 0u64)
+    testing.expect
+        (order_text "b.log" "" "request" "reply" = "b.log\t0\tmissing\n#unpaired\t0")
+        "an empty log has no first occurrence"
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_sequence_interval",
+        (
+            \ (file, events, marked, between, modulo) => interval_text file events marked between modulo
+            : string * string * string * string * u64 -> string
+        )
+    )
+    !!!!Export(
+        "kit_sequence_window",
+        (
+            \ (file, events, counted, marker, low, high) => window_text file events counted marker low high
+            : string * string * string * string * u64 * u64 -> string
+        )
+    )
+    !!!!Export(
+        "kit_sequence_order",
+        (
+            \ (file, events, first, second) => order_text file events first second
+            : string * string * string * string -> string
+        )
+    )
+    !!!!Export(
+        "kit_sequence_latency",
+        (
+            \ (file, events, starting, ending) => latency_text file events starting ending
+            : string * string * string * string -> string
+        )
+    )
+    !!!!Export(
+        "kit_sequence_events",
+        (
+            \ (log, time, first, second) => events_text log time first second
+            : string * string * string * string -> string
+        )
+    )
+    0i32

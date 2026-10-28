@@ -1,0 +1,21 @@
+:< sm'_operators
+:< kit_jobs.host
+:< kit_jobs.jobs
+:< kit_job_host.queue
+
+:~ queue_decide (~id : string) : i32 =
+    := step = step_of (queued_of id)
+    ?= step ?|
+    | StartSupervisor =>
+        := slotted = $'kit_job_slot::kit_job_slot_held_step(&*!id)' : i32
+        ? slotted <> 0i32 ?> slotted |: $'kit_job_gate::kit_job_gate_held_step(&*!id)' : i32
+    | KeepWaiting => 1i32
+    | _ =>
+        settled_in_queue id step
+        $'kit_job_slot::kit_job_slot_ticket_dropped(&*!id)' : ()
+        $'kit_job_gate::kit_job_gate_window_dropped(&*!id)' : ()
+        2i32
+
+:= main () : i32 =
+    !!!!Export("kit_job_queue_decide", ((\ id => queue_decide id) : string -> i32))
+    0i32

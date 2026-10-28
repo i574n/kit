@@ -1,0 +1,128 @@
+:= length (text : string) : i32 = sm.length text
+:= at (text : string) (index : i32) : char = sm.index text index
+:= cut (text : string) (first : i32) (last : i32) : string = slice_exclusive text first last
+:= append (left : string) (right : string) : string = sm.concat left right
+:= starts (text : string) (index : i32) (prefix : string) : bool = starts_with_at text index prefix
+:= space (byte : char) : bool =
+    ? (=.) byte ' ' ?> !+
+    |? (=.) byte '\t' ?> !+
+    |? (=.) byte '\n' ?> !+
+    |: (=.) byte '\r'
+:= letter (byte : char) : bool =
+    ? !!!!LTE('a', byte) && !!!!LTE(byte, 'z') ?> !+
+    |? !!!!LTE('A', byte) && !!!!LTE(byte, 'Z') ?> !+
+    |: (=.) byte '_'
+:= word (byte : char) : bool = letter byte || (!!!!LTE('0', byte) && !!!!LTE(byte, '9'))
+:~ ^ word_end (text : string) (index : i32) : i32 =
+    ? (<) index (length text) && word (at text index) ?> word_end text ((+.) index 1i32)
+    |: index
+:~ ^ quoted_end (text : string) (index : i32) (quote : char) : i32 =
+    ? (>=) index (length text) ?> -1i32
+    |? (=.) (at text index) '\\' ?> quoted_end text ((+.) index 2i32) quote
+    |? (=.) (at text index) quote ?> (+.) index 1i32
+    |: quoted_end text ((+.) index 1i32) quote
+:~ ^ block_end (text : string) (index : i32) (depth : i32) : i32 =
+    ? (>=) index (length text) ?> -1i32
+    |? starts text index "/*" ?>
+        ? (=.) depth 256i32 ?> -1i32 |: block_end text ((+.) index 2i32) ((+.) depth 1i32)
+    |? starts text index "*/" ?>
+        ? (=.) depth 1i32 ?> (+.) index 2i32 |: block_end text ((+.) index 2i32) ((-.) depth 1i32)
+    |: block_end text ((+.) index 1i32) depth
+:~ ^ skip (text : string) (index : i32) : i32 =
+    ? (>=) index (length text) ?> index
+    |? space (at text index) ?> skip text ((+.) index 1i32)
+    |? starts text index "//" ?> skip text (find_char text index '\n')
+    |? starts text index "/*" ?>
+        := after = block_end text ((+.) index 2i32) 1i32
+        ? (<) after 0i32 ?> after |: skip text after
+    |: index
+:~ ^ raw_end (text : string) (index : i32) (hashes : string) : i32 =
+    ? (>=) index (length text) ?> -1i32
+    |? (=.) (at text index) '#' ?> raw_end text ((+.) index 1i32) (append hashes "#")
+    |? (=.) (at text index) '"' ?>
+        := suffix = append "\"" hashes
+        := close = find_text text ((+.) index 1i32) suffix
+        ? (=.) close (length text) ?> -1i32 |: (+.) close (length suffix)
+    |: -1i32
+
+:~ token (text : string) (cursor : i32) : i32 * i32 * string * bool =
+    := first = skip text cursor
+    := size = length text
+    ? (<) first 0i32
+    ?> first, first, "", !-
+    |? (=.) first size
+    ?> first, first, "", !+
+    |:
+        := byte = at text first
+        := raw_prefix =
+            ? starts text first "r\"" || starts text first "r#"
+            ?> 1i32
+            |?
+                starts text first "br\""
+                || starts text first "br#"
+                || starts text first "cr\""
+                || starts text first "cr#"
+            ?> 2i32
+            |: 0i32
+        := last =
+            ? (>) raw_prefix 0i32 ?> raw_end text ((+.) first raw_prefix) ""
+            |? (=.) byte '"' ?> quoted_end text ((+.) first 1i32) byte
+            |? (=.) byte '\'' ?>
+                := next = (+.) first 1i32
+                ? (<) next size && letter (at text next) ?>
+                    := end_word = word_end text next
+                    ? (<) end_word size && (=.) (at text end_word) '\'' ?> (+.) end_word 1i32 |: end_word
+                |: quoted_end text next byte
+            |? word byte ?> word_end text first
+            |? !!!!GT(byte, '~') ?> -1i32
+            |: (+.) first 1i32
+        ? (<) last 0i32 ?> first, first, "", !-
+        |: first, last, cut text first last, !+
+
+:~ ^ canonical_loop (text : string) (cursor : i32) (out : string) : string * bool =
+    := _, after, part, ok = token text cursor
+    ? (=.) ok !- ?> "", !-
+    |? (=.) part "" ?> out, !+
+    |: canonical_loop text after (append (append out part) "\n")
+:= canonical (text : string) : string * bool = canonical_loop text 0i32 ""
+
+:~ ^ literal_loop (text : string) (index : i32) (run : i32) (out : string) : string * i32 * bool =
+    ? (>=) index (length text) ?> "", index, !-
+    |? (=.) (at text index) '"' ?> append out (cut text run index), (+.) index 1i32, !+
+    |? (=.) (at text index) '\\' ?>
+        := next = (+.) index 1i32
+        ? (>=) next (length text) ?> "", index, !-
+        |:
+            := escaped = at text next
+            := decoded =
+                ? (=.) escaped 'n' ?> "\n"
+                |? (=.) escaped 'r' ?> "\r"
+                |? (=.) escaped 't' ?> "\t"
+                |? (=.) escaped '"' ?> "\""
+                |? (=.) escaped '\\' ?> "\\"
+                |: ""
+            ? (=.) decoded "" ?> "", index, !-
+            |:
+                := after = (+.) index 2i32
+                literal_loop text after after (append (append out (cut text run index)) decoded)
+    |: literal_loop text ((+.) index 1i32) run out
+:= literal (text : string) (index : i32) : string * i32 * bool =
+    ? (<=) 0i32 index && (<) index (length text) && (=.) (at text index) '"' ?>
+        literal_loop text ((+.) index 1i32) ((+.) index 1i32) ""
+    |: "", index, !-
+
+:~ ^ encode_loop (text : string) (index : i32) (run : i32) (out : string) : string =
+    ? (=.) index (length text) ?> append (append out (cut text run index)) "\""
+    |:
+        := byte = at text index
+        := escaped =
+            ? (=.) byte '"' ?> "\\\""
+            |? (=.) byte '\\' ?> "\\\\"
+            |? (=.) byte '\n' ?> "\\n"
+            |? (=.) byte '\r' ?> "\\r"
+            |? (=.) byte '\t' ?> "\\t"
+            |: ""
+        := next = (+.) index 1i32
+        ? (=.) escaped "" ?> encode_loop text next run out
+        |: encode_loop text next next (append (append out (cut text run index)) escaped)
+:= encode (text : string) : string = encode_loop text 0i32 0i32 "\""

@@ -1,0 +1,93 @@
+:< bundle_output_contract.model
+
+:= file_nonempty (path : string) : bool =
+    $'{ match std::fs::metadata(&*!path) { Ok(value) => value.is_file() && value.len() > 0, Err(_) => false } }' : bool
+
+:= truncate_archive (path : string) : bool =
+    $'{ let mut bytes = std::fs::read(&*!path).unwrap_or_default(); let len = bytes.len(); \
+        if len > 4 { bytes.truncate(len - 4); std::fs::write(&*!path, bytes).is_ok() } else { false } }' : bool
+
+:! verify_policy_owner = string
+:! verify_negative_owner = string
+:! verify_pending owner = owner
+:! verify_archive_created owner = owner
+:! verify_archive_checked owner = owner
+:! verify_cleaned owner = owner
+
+:| bundle_verify_transition from to =
+    | CreateVerifyArchive :: \* owner.
+        string ->
+        bundle_verify_transition (verify_pending owner) (verify_archive_created owner)
+    | CheckVerifyArchive :: \* owner.
+        string ->
+        bundle_verify_transition (verify_archive_created owner) (verify_archive_checked owner)
+    | CleanupVerifyArchive :: \* owner.
+        string ->
+        bundle_verify_transition (verify_archive_checked owner) (verify_cleaned owner)
+
+:| ^ bundle_verify_plan from to =
+    | BundleVerifyStep :: \* from to. bundle_verify_transition from to -> bundle_verify_plan from to
+    | BundleVerifyThen :: \* from to.
+        (\? middle. bundle_verify_plan from middle * bundle_verify_plan middle to) ->
+        bundle_verify_plan from to
+
+:| bundle_verify_outcome =
+    | BundleVerifyAccepted : string
+    | BundleVerifyRejected : string
+    | BundleVerifyFailed : string
+
+:~ preflight_binding (archive_file : i32) (bytes_positive : i32) : i32 =
+    bundle_output_contract.model.preflight_binding archive_file bytes_positive
+:~ complete_binding (entries_positive : i32) (size_ok : i32) : i32 =
+    bundle_output_contract.model.complete_binding entries_positive size_ok
+
+:= verify_plan \* owner. () : bundle_verify_plan (verify_pending owner) (verify_cleaned owner) =
+    BundleVerifyThen (\? (
+        BundleVerifyStep (CreateVerifyArchive "create-verify-archive"),
+        BundleVerifyThen (\? (
+            BundleVerifyStep (CheckVerifyArchive "check-verify-archive"),
+            BundleVerifyStep (CleanupVerifyArchive "cleanup-verify-archive")
+        ))
+    ))
+
+:= verify_policy_plan
+    ()
+    : bundle_verify_plan (verify_pending verify_policy_owner) (verify_cleaned verify_policy_owner)
+    =
+    verify_plan ()
+:= verify_negative_plan
+    ()
+    : bundle_verify_plan (verify_pending verify_negative_owner) (verify_cleaned verify_negative_owner)
+    =
+    verify_plan ()
+
+:= cleanup_archive (archive : string) : bool =
+    ? bundle_output_contract.model.remove_file archive ?> bundle_output_contract.model.path_missing archive |: !-
+
+:= verify_policy_fixture (archive : string) : bundle_verify_outcome =
+    := _ = verify_policy_plan ()
+    ? cleanup_archive archive ?>
+        ? bundle_output_contract.model.write_text archive "PK0304-valid-bundle-fixture" ?>
+            := valid = file_nonempty archive
+            := cleanup = cleanup_archive archive
+            ? valid ?>
+                ? cleanup ?> BundleVerifyAccepted "bundle-verify-valid-accepted"
+                |: BundleVerifyFailed "bundle-verify-valid-cleanup-failed"
+            |: BundleVerifyRejected "bundle-verify-valid-rejected"
+        |: BundleVerifyFailed "bundle-verify-fixture-write-failed"
+    |: BundleVerifyFailed "bundle-verify-fixture-initial-cleanup-failed"
+
+:= verify_corrupt_fixture (archive : string) : bundle_verify_outcome =
+    := _ = verify_negative_plan ()
+    ? cleanup_archive archive ?>
+        ? bundle_output_contract.model.write_text archive "PK0304-corrupt-bundle-fixture" ?>
+            ? truncate_archive archive ?>
+                := corrupt = file_nonempty archive
+                := cleanup = cleanup_archive archive
+                ? corrupt ?>
+                    ? cleanup ?> BundleVerifyRejected "bundle-verify-corruption-rejected"
+                    |: BundleVerifyFailed "bundle-verify-corruption-cleanup-failed"
+                |: BundleVerifyFailed "bundle-verify-corruption-empty"
+            |: BundleVerifyFailed "bundle-verify-fixture-truncate-failed"
+        |: BundleVerifyFailed "bundle-verify-corrupt-write-failed"
+    |: BundleVerifyFailed "bundle-verify-corrupt-initial-cleanup-failed"

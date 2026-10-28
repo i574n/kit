@@ -1,0 +1,98 @@
+:< sm'_operators
+:< kit_table_sequence_args.args
+
+:== sections_table =
+    {
+        table : file_table
+        sections : u64
+    }
+
+:~ ^ columns_from (index : i32) (count : i32) (~text : string) : string =
+    ? index + 1i32 >= count ?> text
+    |:
+        := word = argument index
+        := pick = ? word = "--first" ?> "first" |? word = "--last" ?> "last" |: ""
+        ? pick = "" ?> columns_from (index + 1i32) count text
+        |:
+            := name, pattern = split_pair (argument (index + 1i32)) "="
+            columns_from (index + 2i32) count (text ++# pick ++# "\t" ++# name ++# "\t" ++# pattern ++# "\n")
+
+:~ ^ sections_counted (lines : array string) (index : i32) (count : u64) : u64 =
+    ? index >= am'.length lines
+    ?> count
+    |:
+        := line = am'.index index lines
+        sections_counted lines
+            (index + 1i32)
+            (? sm'.starts_with "#sections\t" line ?> count + decimal (sm'.replace "#sections\t" "" line) |: count)
+
+:~ sections_of_file
+    (~path : string) (~time : string) (~section_on : string) (~carry : string) (~columns : string)
+    : sections_table
+    =
+    := log = file_system.read_all_text path
+    := text = $'kit_log_sections::kit_sequence_sections(&*!log, &*!time, &*!section_on, &*!carry, &*!columns)' : string
+    := lines = sm'.split "\n" text |> array
+    { table = data_rows lines 0i32 { text = ""; rows = 0u64 }; sections = sections_counted lines 0i32 0u64 }
+
+:~ ^ sections_of_files
+    (files : list string) (~time : string) (~section_on : string) (~carry : string) (~columns : string)
+    (acc : sections_table)
+    : sections_table
+    =
+    ?= files ?|
+    | Nil => acc
+    | (path :: rest) =>
+        := found = sections_of_file path time section_on carry columns
+        sections_of_files rest time section_on carry columns {
+            table = { text = acc.table.text ++# found.table.text; rows = acc.table.rows + found.table.rows }
+            sections = acc.sections + found.sections
+        }
+
+:~ sections_written (~columns : string) (~out : string) (files : list string) (found : sections_table) : i32 =
+    := header = $'kit_log_sections::kit_sequence_sections_header(&*!columns)' : string
+    := table = header ++# "\n" ++# found.table.text
+    := receipt =
+        "kit table sequences ok files="
+        ++# sm'.format (listm.length files : i32)
+        ++# " sections="
+        ++# sm'.format found.sections
+        ++# " rows="
+        ++# sm'.format found.table.rows
+    ? out = "" ?>
+        console.write_line (sm'.trim_end_suffix "\n" table)
+        console.write_error_line receipt
+    |:
+        file_system.write_all_text out table
+        console.write_error_line (receipt ++# " out=" ++# out)
+    0i32
+
+:~ sections_run () : i32 =
+    := count = env.command_line_argument_count ()
+    := paths, refusal = paths_from 2i32 count Nil ""
+    := time = value_after "--time" 2i32 count
+    := columns = columns_from 2i32 count ""
+    ? refusal <> ""
+    ?> refused refusal
+    |? time = ""
+    ?> refused "needs --time and a measure name"
+    |:
+        ?= paths ?|
+        | Nil => refused "needs at least one file or directory"
+        | Cons _ =>
+            := missing = missing_path paths
+            ? missing <> ""
+            ?> refused ("no such file or directory: " ++# missing)
+            |:
+                := files = files_in paths Nil
+                := section_on = value_after "--section-on" 2i32 count
+                := carry = value_after "--carry" 2i32 count
+                := empty = { table = { text = ""; rows = 0u64 }; sections = 0u64 }
+                sections_written columns
+                    (value_after "--out" 2i32 count)
+                    files
+                    (sections_of_files files time section_on carry columns empty)
+
+:= main () : i32 =
+    !!!!Export("kit_table_sections_run", ((\ () => sections_run ()) : () -> i32))
+    0i32

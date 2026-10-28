@@ -1,0 +1,13 @@
+:! contract_cold = ()
+:! contract_identified = ()
+:! contract_mutated = ()
+:! contract_bundled = ()
+:! contract_evidenced = ()
+:! contract_closed = ()
+
+:| contract_subject =
+    | PublicSurface :: contract_subject
+    | RootedFilesystem :: contract_subject
+    | TypedMutation :: contract_subject
+    | FlatBundle :: contract_subject
+    | CoveragePruning :: contract_subject

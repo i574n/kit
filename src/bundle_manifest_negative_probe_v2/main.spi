@@ -1,0 +1,7 @@
+:< bundle_manifest_contract.model
+
+:= main () : i32 =
+    := _ = deterministic_plan ()
+    ? executable_mode_passed (manifest_executable_mode_binding 1i32 0i32) ?> 1i32
+    |? parity_passed (manifest_parity_binding 1i32 0i32) ?> 1i32
+    |: 0i32

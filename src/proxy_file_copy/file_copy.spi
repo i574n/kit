@@ -1,0 +1,51 @@
+:< workspace_primitives.numbers
+:< sm'_operators
+:< workspace_primitives.clock
+:< workspace_primitives.rooted
+
+:| copy_outcome =
+    | CopyReceipt : string
+    | CopyRejected : string
+
+:= copy_problem (~source : string) (~target : string) : string =
+    $'std::rc::Rc::<str>::from(kit_rust_std_fs::copy_regular_atomic_preserve(std::path::Path::new(&*!source), \
+        std::path::Path::new(&*!target)).err().unwrap_or_default().as_str())' : string
+:= copied_bytes (~path : string) : u64 = $'std::fs::symlink_metadata(&*!path).map(|meta| meta.len()).unwrap_or(0)' : u64
+
+:= copy_receipt (~source : string) (~target : string) (started : u64) : copy_outcome =
+    := head = "kit proxy fs-copy ok source=" ++# source ++# " target=" ++# target ++# " bytes="
+    CopyReceipt (head ++# (u64_text (copied_bytes target)) ++# " elapsed_ms=" ++# (u64_text (ms_since started)))
+
+:= copy_between (~source : string) (~target : string) (started : u64) : copy_outcome =
+    := problem = copy_problem source target
+    ? (problem = "") ?> copy_receipt source target started
+    |: CopyRejected ("fs-copy failed: " ++# problem)
+
+:= copy_rooted (~root : string) (~source : string) (~target : string) (started : u64) : copy_outcome =
+    := source_problem = rooted_path_problem root source
+    := target_problem = rooted_path_problem root target
+    ? (source_problem = "") ?>
+        ? (target_problem = "") ?> copy_between (rooted_path root source) (rooted_path root target) started
+        |: CopyRejected target_problem
+    |: CopyRejected source_problem
+
+:~ file_copy_outcome (operands : i32) (~root : string) (~source : string) (~target : string) : copy_outcome =
+    := started = unix_ms ()
+    ? operands = 4i32 ?> copy_rooted root source target started
+    |: CopyRejected "fs-copy expects root, source, target"
+
+:~ file_copy_report (operands : i32) (~root : string) (~source : string) (~target : string) : i32 * string =
+    ?= file_copy_outcome operands root source target ?|
+    | CopyReceipt text => 0i32, text
+    | CopyRejected text => 2i32, text
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_file_copy_outcome",
+        (
+            \ (operands, root, source, target) => file_copy_report operands root source target
+            : i32 * string * string * string -> i32 * string
+        )
+    )
+    := _ = file_copy_report 4i32 "." "a" "b"
+    0i32

@@ -1,0 +1,16 @@
+:~ toolchain_execution_gate_binding (checkpoint : i32) (reserved : i32) : i32 =
+    ? reserved < 0i32 ?> -1i32
+    |? 0i32 < reserved ?> -1i32
+    |? checkpoint < 0i32 ?> -1i32
+    |? 5i32 < checkpoint ?> -1i32
+    |? checkpoint = 1i32 ?> 1i32
+    |: 0i32
+
+:~ toolchain_observed_outcome_binding (timed_out : i32) (success : i32) : i32 =
+    ? timed_out < 0i32 ?> -1i32
+    |? 1i32 < timed_out ?> -1i32
+    |? success < 0i32 ?> -1i32
+    |? 1i32 < success ?> -1i32
+    |? timed_out = 1i32 ?> 3i32
+    |? success = 1i32 ?> 1i32
+    |: 2i32

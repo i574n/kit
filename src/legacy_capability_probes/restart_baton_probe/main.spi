@@ -1,0 +1,26 @@
+:< rust_std_env.model
+
+:= preflight (~a : i32) (~b : i32) : i32 =
+    $'legacy_capability_domain::kit_restart_baton_preflight_binding(!a, !b)' : i32
+
+:= migration (~a : i32) (~b : i32) : i32 =
+    $'legacy_capability_domain::kit_restart_baton_migration_binding(!a, !b)' : i32
+
+:= fault (~a : i32) (~b : i32) : i32 =
+    $'legacy_capability_domain::kit_restart_baton_fault_binding(!a, !b)' : i32
+
+:= complete (~a : i32) (~b : i32) : i32 =
+    $'legacy_capability_domain::kit_restart_baton_complete_binding(!a, !b)' : i32
+
+:= main () : i32 =
+    := prepared = preflight 1i32 1i32
+    := exact = migration 290i32 290i32
+    := mismatch = migration 290i32 275i32
+    := second_fault = fault 2i32 2i32
+    := completed = complete 1i32 1i32
+    ? prepared < 1i32 ?> 1i32
+    |? exact < 1i32 ?> 2i32
+    |? 0i32 < mismatch ?> 3i32
+    |? second_fault < 1i32 ?> 4i32
+    |? completed < 1i32 ?> 5i32
+    |: 0i32

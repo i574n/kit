@@ -1,0 +1,164 @@
+:! process_idle_state = ()
+:! process_running_state = ()
+:! process_complete_state = ()
+:! process_timeout_state = ()
+:! process_rejected_state = ()
+:! process_terminated_state = ()
+:! process_stream_captured_state = ()
+
+:! process_exit_code = i32
+:! process_elapsed_ms = u64
+:! process_timeout_ms = u64
+:! process_stream_word = u64
+
+:| bounded_process_event from to =
+    | ProcessSpawned :: bounded_process_event process_idle_state process_running_state
+    | ProcessSucceeded :: process_elapsed_ms -> bounded_process_event process_running_state process_complete_state
+    | ProcessExited ::
+        process_exit_code * process_elapsed_ms ->
+        bounded_process_event process_running_state process_complete_state
+    | ProcessTimedOut ::
+        process_timeout_ms * process_elapsed_ms ->
+        bounded_process_event process_running_state process_timeout_state
+    | ProcessSpawnRejected :: bounded_process_event process_idle_state process_rejected_state
+    | ProcessTerminated :: process_elapsed_ms -> bounded_process_event process_running_state process_terminated_state
+    | ProcessStreamsCaptured ::
+        process_stream_word ->
+        bounded_process_event process_running_state process_stream_captured_state
+
+:! bounded_process_receipt from to = bounded_process_event from to
+
+:= i32_eq (~a : i32) (~b : i32) : bool = (a = b)
+:= u64_eq (~a : u64) (~b : u64) : bool = (a = b)
+:= u64_gte (~a : u64) (~b : u64) : bool = (a >= b)
+:= u64_lte (~a : u64) (~b : u64) : bool = (a <= b)
+:= all2 a b = ? a ?> b |: !-
+:= all3 a b c = ? a ?> ? b ?> c |: !- |: !-
+:= all4 a b c d = ? a ?> ? b ?> ? c ?> d |: !- |: !- |: !-
+:= all5 a b c d e = ? a ?> ? b ?> ? c ?> ? d ?> e |: !- |: !- |: !- |: !-
+
+:= stream_receipt ~word : bounded_process_receipt process_running_state process_stream_captured_state =
+    bounded_process_receipt (ProcessStreamsCaptured (process_stream_word word))
+
+:= stream_word
+    (bounded_process_receipt event : bounded_process_receipt process_running_state process_stream_captured_state)
+    : u64
+    =
+    ?= event ?|
+    | ProcessStreamsCaptured (process_stream_word word) => word
+
+:= stream_word_exit_code (~word : u64) : u64 =
+    $"!word & 255u64"
+
+:= stream_exit_code receipt : u64 =
+    := word = stream_word receipt
+    stream_word_exit_code word
+
+:= stream_stdout_len receipt : u64 =
+    := ~word = stream_word receipt
+    $"(!word >> 8) & 65535u64"
+
+:= stream_stderr_len receipt : u64 =
+    := ~word = stream_word receipt
+    $"(!word >> 24) & 65535u64"
+
+:= stdout_capture_ok receipt : bool =
+    all3
+        (u64_eq (stream_exit_code receipt) 0u64)
+        (u64_eq (stream_stdout_len receipt) 8u64)
+        (u64_eq (stream_stderr_len receipt) 0u64)
+
+:= stderr_capture_ok receipt : bool =
+    all3
+        (u64_eq (stream_exit_code receipt) 2u64)
+        (u64_eq (stream_stdout_len receipt) 0u64)
+        (u64_gte (stream_stderr_len receipt) 1u64)
+
+:= spawned_receipt () : bounded_process_receipt process_idle_state process_running_state =
+    bounded_process_receipt ProcessSpawned
+
+:= success_receipt elapsed : bounded_process_receipt process_running_state process_complete_state =
+    bounded_process_receipt (ProcessSucceeded (process_elapsed_ms elapsed))
+
+:= exit_receipt code elapsed : bounded_process_receipt process_running_state process_complete_state =
+    bounded_process_receipt (ProcessExited (process_exit_code code, process_elapsed_ms elapsed))
+
+:= timeout_receipt budget elapsed : bounded_process_receipt process_running_state process_timeout_state =
+    bounded_process_receipt (ProcessTimedOut (process_timeout_ms budget, process_elapsed_ms elapsed))
+
+:= rejected_receipt () : bounded_process_receipt process_idle_state process_rejected_state =
+    bounded_process_receipt ProcessSpawnRejected
+
+:= terminated_receipt elapsed : bounded_process_receipt process_running_state process_terminated_state =
+    bounded_process_receipt (ProcessTerminated (process_elapsed_ms elapsed))
+
+:= receipt_code \* from to. (bounded_process_receipt event : bounded_process_receipt from to) : i32 =
+    ?= event ?|
+    | ProcessSpawned => 10i32
+    | ProcessSucceeded _ => 0i32
+    | ProcessExited (process_exit_code code, _) => code
+    | ProcessTimedOut _ => 124i32
+    | ProcessSpawnRejected => 127i32
+    | ProcessTerminated _ => 137i32
+    | ProcessStreamsCaptured (process_stream_word word) =>
+        := code = stream_word_exit_code word
+        ? u64_eq code 0u64 ?> 0i32
+        |? u64_eq code 2u64 ?> 2i32
+        |: 127i32
+
+:= receipt_elapsed \* from to. (bounded_process_receipt event : bounded_process_receipt from to) : u64 =
+    ?= event ?|
+    | ProcessSpawned => 0u64
+    | ProcessSucceeded (process_elapsed_ms elapsed) => elapsed
+    | ProcessExited (_, process_elapsed_ms elapsed) => elapsed
+    | ProcessTimedOut (_, process_elapsed_ms elapsed) => elapsed
+    | ProcessSpawnRejected => 0u64
+    | ProcessTerminated (process_elapsed_ms elapsed) => elapsed
+    | ProcessStreamsCaptured _ => 0u64
+
+:= receipt_within_budget \* from to. (bounded_process_receipt event : bounded_process_receipt from to) : bool =
+    ?= event ?|
+    | ProcessTimedOut (process_timeout_ms budget, process_elapsed_ms elapsed) => u64_gte elapsed budget
+    | ProcessSucceeded _ => !+
+    | ProcessExited _ => !+
+    | ProcessSpawned => !+
+    | ProcessSpawnRejected => !+
+    | ProcessTerminated _ => !+
+    | ProcessStreamsCaptured _ => !+
+
+:= success_probe_result () : i32 =
+    := started = spawned_receipt ()
+    := completed = success_receipt 8u64
+    ? all4
+        (receipt_code started = 10i32)
+        (receipt_code completed = 0i32)
+        (u64_eq (receipt_elapsed completed) 8u64)
+        (receipt_within_budget completed)
+    ?> 0i32
+    |: 61i32
+
+:= failure_probe_result () : i32 =
+    := exited = exit_receipt 7i32 12u64
+    := timed_out = timeout_receipt 10u64 11u64
+    := rejected = rejected_receipt ()
+    ? all5
+        (receipt_code exited = 7i32)
+        (u64_eq (receipt_elapsed exited) 12u64)
+        (receipt_code timed_out = 124i32)
+        (receipt_within_budget timed_out)
+        (receipt_code rejected = 127i32)
+    ?> 0i32
+    |: 62i32
+
+:= termination_probe_result () : i32 =
+    := terminated = terminated_receipt 4u64
+    ? all3
+        (receipt_code terminated = 137i32)
+        (u64_eq (receipt_elapsed terminated) 4u64)
+        (receipt_within_budget terminated)
+    ?> 0i32
+    |: 63i32
+
+:= success_probe_ok () : bool = success_probe_result () = 0i32
+:= failure_probe_ok () : bool = failure_probe_result () = 0i32
+:= termination_probe_ok () : bool = termination_probe_result () = 0i32

@@ -1,0 +1,26 @@
+[package.metadata.spiral]
+entry = "main.spi"
+output = "batch_write.rs"
+
+[package]
+name = "kit-batch-write"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_batch_write"
+path = "batch_write.rs"
+
+[dependencies]
+canonical-plan-ir-domain = { path = "../canonical_plan_ir_domain" }
+kit-patch-control-domain = { path = "../patch_control_domain" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-patch-driver-domain = { path = "../patch_driver_domain" }
+kit-process = { path = "../kit_process" }
+
+[lints.clippy]
+needless_return = "allow"
+needless_late_init = "allow"

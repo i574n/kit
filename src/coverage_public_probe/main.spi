@@ -1,0 +1,74 @@
+:< rust_std_env.model
+:< rust_std_process.model
+:< rust_std_fs.model
+:< rust_std_fs.rooted_effects
+:< sm'_operators
+
+:! probe_start = ()
+:! probe_fixtures = ()
+:! probe_union = ()
+:! probe_assess_ok = ()
+:! probe_assess_floor = ()
+:! probe_assess_parse = ()
+:! probe_done = ()
+
+:| coverage_public_probe from to =
+    | PrepareCoverageFixtures :: coverage_public_probe probe_start probe_fixtures
+    | UnionCoverage :: coverage_public_probe probe_fixtures probe_union
+    | AssessCoverage :: coverage_public_probe probe_union probe_assess_ok
+    | RejectCoverageFloor :: coverage_public_probe probe_assess_ok probe_assess_floor
+    | RejectCoverageParse :: coverage_public_probe probe_assess_floor probe_assess_parse
+    | FinishCoverageProbe :: coverage_public_probe probe_assess_parse probe_done
+
+:= main () : i32 =
+    := kit = argument_owned 0i32
+    := base = "/mnt/data/kit-coverage-public-probe"
+    := first = "/mnt/data/kit-coverage-public-probe/first.lcov"
+    := second = "/mnt/data/kit-coverage-public-probe/second.lcov"
+    := merged = "/mnt/data/kit-coverage-public-probe/merged.lcov"
+    := comma = ","
+    inl first_text = """
+        TN:
+        SF:src/example.rs
+        DA:1
+        """ ++# comma ++# "1\nDA:2" ++# comma ++# """
+        0
+        LF:2
+        LH:1
+        end_of_record
+
+        """
+    inl second_text = """
+        TN:
+        SF:src/example.rs
+        DA:1
+        """ ++# comma ++# "0\nDA:2" ++# comma ++# """
+        2
+        LF:2
+        LH:1
+        end_of_record
+
+        """
+    := _ = cleanup_tree base
+    := _ : coverage_public_probe probe_start probe_fixtures = PrepareCoverageFixtures
+    ? create_dir base && write_text first first_text && write_text second second_text ?>
+        := _ : coverage_public_probe probe_fixtures probe_union = UnionCoverage
+        := union_code = status_code5 kit "proxy" "coverage-union" merged first second
+        ? union_code = 0i32 ?>
+            := _ : coverage_public_probe probe_union probe_assess_ok = AssessCoverage
+            := assess_ok = status_code7 kit "proxy" "coverage-assess" first second "500" "500" "1000"
+            ? assess_ok = 0i32 ?>
+                := _ : coverage_public_probe probe_assess_ok probe_assess_floor = RejectCoverageFloor
+                := assess_floor = status_code7 kit "proxy" "coverage-assess" first second "1000" "1000" "1000"
+                ? assess_floor <> 0i32 ?>
+                    := _ : coverage_public_probe probe_assess_floor probe_assess_parse = RejectCoverageParse
+                    := assess_parse = status_code7 kit "proxy" "coverage-assess" first second "bad" "500" "500"
+                    ? assess_parse <> 0i32 ?>
+                        := _ : coverage_public_probe probe_assess_parse probe_done = FinishCoverageProbe
+                        := _ = cleanup_tree base
+                        0i32
+                    |: 51i32
+                |: 41i32
+            |: 31i32
+        |: 21i32
+    |: 11i32

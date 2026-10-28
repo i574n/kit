@@ -1,0 +1,71 @@
+:< workspace_primitives.numbers
+:< sm'_operators
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.rooted
+
+:| listing_scope =
+    | WholeRoot
+    | RootedDirectory : string
+
+:| listing_outcome =
+    | ListingShown : string
+    | ListingRejected : string
+
+:= root_scope_marker () : string = "."
+
+:= listing_scope_of (~relative : string) : listing_scope =
+    ? (relative = (root_scope_marker ())) ?> WholeRoot |: RootedDirectory relative
+
+:= listing_path (~root : string) (scope : listing_scope) : string =
+    ?= scope ?|
+    | WholeRoot => root
+    | RootedDirectory relative => rooted_path root relative
+
+:= listing_problem (~path : string) : string =
+    $'std::rc::Rc::<str>::from(kit_rust_std_fs::rooted_list_names(std::path::Path::new(&*!path)).err().unwrap_or_defau\
+        lt().as_str())' : string
+:= listed_names (~path : string) : string =
+    $'std::rc::Rc::<str>::from(kit_rust_std_fs::rooted_list_names(std::path::Path::new(&*!path)).unwrap_or_default().j\
+        oin(&char::from(10u8).to_string()).as_str())' : string
+:= line_breaks (~text : string) : u64 = $'!text.matches(char::from(10u8)).count() as u64' : u64
+
+:= entry_count (~names : string) : u64 =
+    ? (names = "") ?> 0u64 |: $"!(line_breaks names) + 1" : u64
+
+:= print_names (~names : string) : i32 =
+    ? (names = "") ?> 0i32 |: stdout_line names
+
+:= listing_receipt (~path : string) (entries : u64) (started : u64) : listing_outcome =
+    := head = "kit proxy fs-list ok path=" ++# path ++# " entries=" ++# (u64_text entries) ++# " elapsed_ms="
+    ListingShown (head ++# (u64_text (ms_since started)))
+
+:= list_directory (~path : string) (started : u64) : listing_outcome =
+    := problem = listing_problem path
+    ? (problem = "") ?>
+        := names = listed_names path
+        := _ = print_names names
+        listing_receipt path (entry_count names) started
+    |: ListingRejected ("fs-list failed: " ++# problem)
+
+:= list_scope (~root : string) (~relative : string) (started : u64) : listing_outcome =
+    := path = listing_path root (listing_scope_of relative)
+    ? (path = "") ?> ListingRejected ("fs-list path rejected: " ++# (rooted_path_problem root relative))
+    |: list_directory path started
+
+:~ directory_listing_outcome () : listing_outcome =
+    := started = unix_ms ()
+    := operands = proxy_argument_count ()
+    ? $"!operands == 2" ?> list_scope (proxy_argument 1i32) (root_scope_marker ()) started
+    |? $"!operands == 3" ?> list_scope (proxy_argument 1i32) (proxy_argument 2i32) started
+    |: ListingRejected "fs-list expects <root> [relative]"
+
+:~ directory_listing_report () : i32 * string =
+    ?= directory_listing_outcome () ?|
+    | ListingShown text => 0i32, text
+    | ListingRejected text => 2i32, text
+
+:= main () : i32 =
+    !!!!Export("kit_directory_listing_outcome", ((\ () => directory_listing_report ()) : () -> i32 * string))
+    := _ = directory_listing_outcome ()
+    0i32

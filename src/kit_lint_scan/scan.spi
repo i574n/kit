@@ -1,0 +1,54 @@
+:< kit_lint_model.model
+
+:~ filled \* t. (default : t) (fn : host_macro -> t) (items : list host_macro) : array t =
+    := out : array t = create (listm.length items)
+    := _ =
+        items
+        |> listm.fold
+            \ index (item : host_macro) =>
+                set out index (fn item)
+                index + 1i32
+            0i32
+    out
+
+:~ scanned (text : string) : array i32 * array string * array string * array bool * array i32 * array i32 =
+    := items = file_macros text
+    filled 0i32 (\ item => item.line) items,
+    filled "" (\ item => item.name) items,
+    filled "" (\ item => item.text) items,
+    filled !- (\ item => item.closed) items,
+    filled 0i32 (\ item => place_code item.place) items,
+    filled 0i32 (\ item => origin_code item.origin) items
+
+:~ row_of (width : i32) (~file : string) (line : i32) (~name : string) (class : i32) (~text : string) : string =
+    ?= class_of_code class ?|
+    | Some value => violation_row width { file = file; line = line; name = name; class = value; text = text }
+    | None => ""
+
+:~ tally_text (files : i32) (macros : i32) (violations : i32) (fresh : i32) : string =
+    tally_head { files = files; macros = macros; violations = violations; fresh = fresh }
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_lint_scan",
+        (
+            (\ text => scanned text)
+            : string -> array i32 * array string * array string * array bool * array i32 * array i32
+        )
+    )
+    !!!!Export("kit_lint_added_text", ((\ diff => added_text diff) : string -> string))
+    !!!!Export(
+        "kit_lint_row",
+        (
+            (\ (width, file, line, name, class, text) => row_of width file line name class text)
+            : i32 * string * i32 * string * i32 * string -> string
+        )
+    )
+    !!!!Export(
+        "kit_lint_tally",
+        (
+            (\ (files, macros, violations, fresh) => tally_text files macros violations fresh)
+            : i32 * i32 * i32 * i32 -> string
+        )
+    )
+    0i32

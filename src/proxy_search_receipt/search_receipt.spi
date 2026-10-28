@@ -1,0 +1,183 @@
+:< workspace_primitives.numbers
+:< sm'_operators
+:< workspace_primitives.clock
+:< workspace_primitives.console
+
+:~ search_clock_ms () : u64 = unix_ms ()
+
+:| receipt_stream =
+    | AfterContent
+    | BesideDigest
+
+:= emit_receipt (stream : receipt_stream) (~text : string) : i32 =
+    ?= stream ?|
+    | AfterContent => stdout_line text
+    | BesideDigest => stderr_line text
+
+:= elapsed_text (started : u64) : string = " elapsed_ms=" ++# (u64_text (ms_since started))
+
+:= phases_text (started : u64) (serial_done : u64) (parallel_done : u64) : string =
+    " serial_ms="
+    ++# u64_text (u64_span started serial_done)
+    ++# " parallel_ms="
+    ++# u64_text (u64_span serial_done parallel_done)
+
+:| hit_budget =
+    | AllHitsShown
+    | HitsTruncated
+
+:= hit_budget_of (found : i32) (limit : i32) : hit_budget = ? (found > limit) ?> HitsTruncated |: AllHitsShown
+
+:= hits_text (found : i32) (limit : i32) (budget : hit_budget) : string =
+    ?= budget ?|
+    | AllHitsShown => " hits=" ++# (i32_text found)
+    | HitsTruncated => " hits=" ++# (i32_text limit) ++# " truncated=true found_at_least=" ++# (i32_text found)
+
+:~ parallel_search_receipt_text
+    (workers : i32) (found : i32) (limit : i32) (started : u64) (serial_done : u64) (parallel_done : u64)
+    : string
+    =
+    := head =
+        "kit proxy parallel-search ok workers="
+        ++# i32_text workers
+        ++# hits_text found limit (hit_budget_of found limit)
+        ++# " parity=exact ordering=deterministic excludes=.git,node_modules,build-output,symlinks"
+    head ++# (phases_text started serial_done parallel_done) ++# (elapsed_text started)
+
+:~ fs_search_receipt_text (found : i32) (limit : i32) (started : u64) : string =
+    "kit proxy fs-search ok"
+    ++# hits_text found limit (hit_budget_of found limit)
+    ++# " excludes=.git,node_modules,build-output,symlinks"
+    ++# elapsed_text started
+
+:| slice_extent =
+    | SliceFilled
+    | SliceReachedEnd
+
+:= slice_extent_of (shown : u64) (requested : u64) : slice_extent =
+    ? (shown < requested) ?> SliceReachedEnd |: SliceFilled
+
+:= slice_extent_text (extent : slice_extent) : string =
+    ?= extent ?|
+    | SliceFilled => ""
+    | SliceReachedEnd => " end_of_file=true"
+
+:~ fs_slice_receipt_text (start : u64) (shown : u64) (requested : u64) (started : u64) : string =
+    := head = "kit proxy fs-slice ok start=" ++# (u64_text start) ++# " lines=" ++# (u64_text shown) ++# " requested="
+    head ++# (u64_text requested) ++# (slice_extent_text (slice_extent_of shown requested)) ++# (elapsed_text started)
+
+:~ fs_context_receipt_text (offset : u64) (window : u64) (file_bytes : u64) (started : u64) : string =
+    := head =
+        "kit proxy fs-context ok offset="
+        ++# u64_text offset
+        ++# " window_bytes="
+        ++# u64_text window
+        ++# " file_bytes="
+    head ++# (u64_text file_bytes) ++# (elapsed_text started)
+
+:= regular_file_bytes (~path : string) : u64 = $'std::fs::metadata(&*!path).map(|meta| meta.len()).unwrap_or(0)' : u64
+
+:~ hash_receipt_text (~path : string) (started : u64) : string =
+    "kit proxy hash ok bytes=" ++# (u64_text (regular_file_bytes path)) ++# (elapsed_text started)
+
+:~ hash_tree_receipt_text (~relative : string) (started : u64) : string =
+    "kit proxy hash-tree ok relative=" ++# relative ++# (elapsed_text started)
+
+:~ parallel_manifest_receipt_text
+    (workers : i32) (entries : i32) (~digest : string) (started : u64) (serial_done : u64) (parallel_done : u64)
+    : string
+    =
+    := head =
+        "kit proxy parallel-manifest ok workers="
+        ++# i32_text workers
+        ++# " entries="
+        ++# i32_text entries
+        ++# " sha256="
+    head
+    ++# digest
+    ++# " parity=exact ordering=deterministic"
+    ++# phases_text started serial_done parallel_done
+    ++# elapsed_text started
+
+:~ parallel_search_receipt
+    (workers : i32) (found : i32) (limit : i32) (started : u64) (serial_done : u64) (parallel_done : u64)
+    : i32
+    =
+    emit_receipt AfterContent (parallel_search_receipt_text workers found limit started serial_done parallel_done)
+
+:~ fs_search_receipt (found : i32) (limit : i32) (started : u64) : i32 =
+    emit_receipt AfterContent (fs_search_receipt_text found limit started)
+
+:~ fs_slice_receipt (start : u64) (shown : u64) (requested : u64) (started : u64) : i32 =
+    emit_receipt AfterContent (fs_slice_receipt_text start shown requested started)
+
+:~ fs_context_receipt (offset : u64) (window : u64) (file_bytes : u64) (started : u64) : i32 =
+    emit_receipt AfterContent (fs_context_receipt_text offset window file_bytes started)
+
+:~ hash_receipt (~path : string) (started : u64) : i32 = emit_receipt BesideDigest (hash_receipt_text path started)
+
+:~ hash_tree_receipt (~relative : string) (started : u64) : i32 =
+    emit_receipt BesideDigest (hash_tree_receipt_text relative started)
+
+:~ parallel_manifest_receipt
+    (workers : i32) (entries : i32) (~digest : string) (started : u64) (serial_done : u64) (parallel_done : u64)
+    : i32
+    =
+    emit_receipt AfterContent (parallel_manifest_receipt_text workers entries digest started serial_done parallel_done)
+
+:= main () : i32 =
+    !!!!Export("kit_search_clock_ms", ((\ () => search_clock_ms ()) : () -> u64))
+    !!!!Export(
+        "kit_parallel_search_receipt",
+        (
+            \ (workers, found, limit, started, serial_done, parallel_done) =>
+                parallel_search_receipt workers found limit started serial_done parallel_done
+            : i32 * i32 * i32 * u64 * u64 * u64 -> i32
+        )
+    )
+    !!!!Export(
+        "kit_fs_search_receipt",
+        ((\ (found, limit, started) => fs_search_receipt found limit started) : i32 * i32 * u64 -> i32)
+    )
+    !!!!Export(
+        "kit_fs_slice_receipt",
+        (
+            \ (start, shown, requested, started) => fs_slice_receipt start shown requested started
+            : u64 * u64 * u64 * u64 -> i32
+        )
+    )
+    !!!!Export(
+        "kit_fs_context_receipt",
+        (
+            \ (offset, window, file_bytes, started) => fs_context_receipt offset window file_bytes started
+            : u64 * u64 * u64 * u64 -> i32
+        )
+    )
+    !!!!Export("kit_hash_receipt", ((\ (path, started) => hash_receipt path started) : string * u64 -> i32))
+    !!!!Export(
+        "kit_hash_tree_receipt",
+        ((\ (relative, started) => hash_tree_receipt relative started) : string * u64 -> i32)
+    )
+    !!!!Export(
+        "kit_parallel_manifest_receipt",
+        (
+            \ (workers, entries, digest, started, serial_done, parallel_done) =>
+                parallel_manifest_receipt workers entries digest started serial_done parallel_done
+            : i32 * i32 * string * u64 * u64 * u64 -> i32
+        )
+    )
+    := started = search_clock_ms ()
+    := _ = parallel_search_receipt_text 56i32 7i32 50i32 started started started
+    := _ = parallel_search_receipt_text 56i32 51i32 50i32 started started started
+    := _ = fs_search_receipt_text 7i32 50i32 started
+    := _ = fs_slice_receipt_text 1u64 3u64 5u64 started
+    := _ = fs_context_receipt_text 10u64 20u64 40u64 started
+    := _ = hash_receipt_text "search_receipt.spi" started
+    := _ = hash_tree_receipt_text "src" started
+    := _ =
+        parallel_manifest_receipt_text 56i32 3i32
+            "0000000000000000000000000000000000000000000000000000000000000000"
+            started
+            started
+            started
+    0i32

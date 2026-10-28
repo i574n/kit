@@ -1,0 +1,124 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:| agile_call =
+    | RootThen : string * string
+    | ModeThenRoot : string * string
+
+:= with_arg (~left : string) (~right : string) : string = cat (cat left (unit_mark ())) right
+:= path_then (~path : string) (~rest : string) : string = ? rest = "" ?> path |: with_arg path rest
+:= count_of (~text : string) (~part : string) : i32 = $'!text.matches(&*!part).count() as i32' : i32
+:= offset_of (~text : string) (~part : string) : i32 = $'!text.find(&*!part).map_or(-1, |offset| offset as i32)' : i32
+:= id_symbol (~id : string) : string =
+    sm'.replace "-" "_" (sm'.to_lower id)
+
+
+:= task_header () : string =
+    """
+        union task_kind =
+            | Epic :: task_kind
+            | TaskKind :: task_kind
+
+        union agile_item =
+            | Task :: string * string * task_kind * u32 -> agile_item
+
+        """
+
+:= task_row (id : string) (kind : string) (status : string) (deps : string) (tags : string) : string =
+    := head = cat (cat (cat "inl task_" (id_symbol id)) " () = Task (\"") id
+    := title = cat (cat (cat (cat head "\", \"Title of ") id) "\", ") kind
+    := planning = cat (cat title ", P1, D3, 0u32, ") status
+    cat (cat (cat (cat (cat planning ", \"") deps) "\", \"") tags) "\", \"current\", \"current\")\n"
+
+:= state_read (root : fixture_root) : string = fixture_read root "state/agile.spi"
+
+:= fixture (label : string) (rows : string) : fixture_root =
+    := root = fixture_root_create label
+    fixture_write root "state/agile.spi" (cat (cat (task_header ()) rows) "inl main () : i32 = 0i32\n")
+    root
+
+:= agile (root : fixture_root) (call : agile_call) : cli_run =
+    := path = fixture_text_of root
+    := args =
+        ?= call ?|
+        | RootThen (verb, rest) => Arg ("agile", Arg (verb, Arg (path_then path rest, NoArgs)))
+        | ModeThenRoot (verb, mode) => Arg ("agile", Arg (verb, Arg (mode, Arg (path, NoArgs))))
+    kit_run (temp_directory ()) NoArgs NoArgs args
+
+:= epic_deps_line_counts_two (~text : string) : bool = $'!text.lines().any(|line| line.starts_with("epic+deps") && \
+    line.contains("ID-A") && line.split_whitespace().nth(2) == Some("2"))' : bool
+
+:= accepted (run : cli_run) (~part : string) : () = shows (succeeded run) part
+
+///> rust
+:# planning_edit_validates_and_renders_typed_fields =
+    := root = fixture "edit" (task_row "ID-A" "TaskKind" "Planned" "" "kit,agile")
+    := before = state_read root
+    failed_with (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "estimate") "abc"))) "estimate must be"
+    failed_with
+        (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "estimate") "20000h")))
+        "at most 999999 minutes"
+    failed_with (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "estimate") "-5"))) "estimate must be"
+    failed_with (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "load") "huge"))) "load must be"
+    failed_with (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "assignee") "bot"))) "assignee must be"
+    failed_with (agile root (RootThen ("edit", with_arg (with_arg "NO-SUCH" "load") "heavy"))) "no task with this id"
+    same (state_read root) before
+    accepted
+        (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "estimate") "6h")))
+        "estimate=360m load=- assignee=-"
+    accepted (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "load") "Heavy"))) "load=heavy"
+    accepted
+        (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "assignee") "pair")))
+        "estimate=360m load=heavy assignee=pair"
+    := state = state_read root
+    expect (count_of state "union task_planning =" = 1) state
+    shows state "inl planning_of_id_a () = Planning (\"ID-A\", Minutes 360u32, Load Heavy, Assigned Pair)"
+    expect (offset_of state "-> agile_item" < offset_of state "union task_load") state
+    accepted (agile root (RootThen ("show", "ID-A"))) "planning: estimate=360m load=heavy assignee=pair"
+    accepted
+        (agile root (RootThen ("show", with_arg "ID-A" "--json")))
+        "\"estimate_minutes\":360,\"load\":\"heavy\",\"assignee\":\"pair\",\"notes\":[],\"elapsed_ms\""
+    accepted (agile root (RootThen ("edit", with_arg (with_arg "ID-A" "load") "none"))) "load=-"
+    shows (state_read root) "Planning (\"ID-A\", Minutes 360u32, LoadUnset, Assigned Pair)"
+    fixture_root_remove root
+
+///> rust
+:# tag_migration_is_previewed_applied_once_and_keeps_rejected_tags =
+    := a = task_row "ID-A" "Epic" "Active" "" "kit,est:300m,load:heavy,agent:yes"
+    := b = task_row "ID-B" "TaskKind" "Planned" "ID-A" "est:abc,load:light,agent:no,web"
+    := c = task_row "ID-C" "TaskKind" "Done" "" "plain"
+    := root = fixture "migrate" (cat (cat a b) c)
+    := before = state_read root
+    := preview = agile root (ModeThenRoot ("migrate-tags", "preview"))
+    accepted preview "ID-A moved=3 estimate=300m load=heavy assignee=agent tags=kit"
+    accepted preview "ID-B moved=2 estimate=- load=light assignee=user tags=est:abc,web rejected=est:abc"
+    accepted preview "kit agile migrate-tags preview tasks=2 tags_moved=5 rejected=1"
+    same (state_read root) before
+    accepted (agile root (ModeThenRoot ("migrate-tags", "apply"))) "kit agile migrate-tags ok tasks=2"
+    := migrated = state_read root
+    shows migrated "\"kit\", \"current\""
+    shows migrated "\"est:abc,web\""
+    shows migrated "Planning (\"ID-B\", Unestimated, Load Light, Assigned User)"
+    accepted (agile root (ModeThenRoot ("migrate-tags", "apply"))) "ok unchanged tasks=0 tags_moved=0 rejected=1"
+    same (state_read root) migrated
+    := heavy = agile root (RootThen ("list", with_arg "--load" "heavy"))
+    accepted heavy "shown=1 filter=all load=heavy assignee=all"
+    shows heavy.stdout "ID-A"
+    hides heavy.stdout "ID-B"
+    := users = agile root (RootThen ("list", with_arg (with_arg (with_arg "Planned" "--assignee") "user") "--json"))
+    accepted users "\"id\":\"ID-B\""
+    accepted users "\"estimate_minutes\":null,\"load\":\"light\",\"assignee\":\"user\"}"
+    := table = agile root (RootThen ("list", ""))
+    accepted table "EST    LOAD   WHO"
+    accepted table "300m   heavy  agent"
+    failed_with (agile root (RootThen ("list", with_arg "--load" "huge"))) "invalid planning filter"
+    := plan = agile root (RootThen ("plan", ""))
+    accepted plan "kit agile plan ok tasks=3 open=2 estimated=1 minutes=300 open_minutes=300"
+    expect (epic_deps_line_counts_two plan.stdout) plan.stdout
+    accepted
+        (agile root (RootThen ("plan", "--json")))
+        (
+            "{\"group\":\"load\",\"value\":\"heavy\",\"tasks\":1,\"open_tasks\":1,\"estimated\":1,\"minutes\":300,\""
+            ^^ "open_minutes\":300}"
+        )
+    fixture_root_remove root

@@ -1,0 +1,25 @@
+[package.metadata.spiral]
+entry = "main.spi"
+output = "compat_driver.rs"
+
+[package]
+name = "kit-patch-compat-driver"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_patch_compat_driver"
+path = "compat_driver.rs"
+
+[features]
+test-support = []
+
+[dependencies]
+kit-backup-domain = { path = "../backup_domain" }
+kit-patch-control-domain = { path = "../patch_control_domain" }
+kit-patch-effect-domain = { path = "../patch_effect_domain" }
+kit-patch-orchestration-domain = { path = "../patch_orchestration_domain" }
+kit-patch-source-adapter = { path = "../patch_source_adapter" }
+kit-rust-std-fs = { path = "../rust_std_fs" }

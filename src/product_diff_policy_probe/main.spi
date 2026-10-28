@@ -1,0 +1,13 @@
+:< product_diff_contract.model
+
+:= main () : i32 =
+    := _ = product_diff_public_plan ()
+    ?= product_diff_request_binding 1i32 1i32 ?|
+    | 1 =>
+        ?= product_diff_summary_binding 0i32 1i32 ?|
+        | 1 =>
+            ?= product_diff_summary_binding 3i32 7i32 ?|
+            | 1 => 0i32
+            | _ => 3i32
+        | _ => 2i32
+    | _ => 1i32

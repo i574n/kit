@@ -1,0 +1,79 @@
+:< sm'_operators
+:< kit_experiments.experiment_model
+:< kit_experiments.ledger_host
+
+:~ amended () : i32 =
+    := ledger = argument 3i32
+    := id = argument 4i32
+    := plan = plan_text ledger id
+    ? plan = ""
+    ?> failed ("amend: no registration for " ++# id ++# " in " ++# ledger)
+    |:
+        := field = option_value "--field"
+        ?= amend_checked field (option_value "--reason") (looked_at ledger id) ?|
+        | AmendRefused reason => failed ("amend: " ++# reason)
+        | AmendAccepted =>
+            := at = agile_note_model.model.utc_stamp (now_ms ())
+            := change =
+                (field_line "amended" at)
+                ++# (field_line "reason" (option_value "--reason"))
+                ++# field_line field (option_value "--value")
+                ++# (field_line "registered_local" (local_stamp ()))
+            := next = plan ++# change
+            ?= test_of (field_of next "test") ?|
+            | TestUnknown =>
+                failed (
+                    "amend: --test must be " ++# (test_words ()) ++# ", received '" ++# (field_of next "test") ++# "'"
+                )
+            | TestKnown kind =>
+                ?=
+                    plan_checked kind
+                        (field_of next "arms")
+                        (field_of next "group")
+                        (decimal_i32 (field_of next "runs"))
+                        (field_of next "prediction")
+                        (field_of next "metric")
+                        (field_of next "decision")
+                ?|
+                | PlanRejected reason => failed ("amend: the amended plan is incomplete: " ++# reason)
+                | PlanAccepted =>
+                    := problem = text_appended (record_path ledger id "amendments") change
+                    ? problem <> ""
+                    ?> failed ("amend: " ++# problem)
+                    |:
+                        stdout_line (
+                            "kit experiment amend ok id="
+                            ++# id
+                            ++# " field="
+                            ++# field
+                            ++# (" value=" ++# (option_value "--value") ++# " amended=" ++# at)
+                        )
+                        0i32
+
+:~ addended () : i32 =
+    := ledger = argument 3i32
+    := id = argument 4i32
+    := note = argument 5i32
+    ? plan_text ledger id = ""
+    ?> failed ("addendum: no registration for " ++# id ++# " in " ++# ledger)
+    |? note = ""
+    ?> failed "addendum: the text is the post-hoc note, kept apart from the verdict"
+    |:
+        := at = agile_note_model.model.utc_stamp (now_ms ())
+        := problem = text_appended (record_path ledger id "addenda") (at ++# "\t" ++# (field_line "note" note))
+        ? problem <> ""
+        ?> failed ("addendum: " ++# problem)
+        |:
+            stdout_line (
+                "kit experiment addendum ok id="
+                ++# id
+                ++# " at="
+                ++# at
+                ++# (? looked_at ledger id ?> " after_look=yes" |: " after_look=no")
+            )
+            0i32
+
+:= main () : i32 =
+    !!!!Export("kit_experiment_amend_run", ((\ () => amended ()) : () -> i32))
+    !!!!Export("kit_experiment_addendum_run", ((\ () => addended ()) : () -> i32))
+    0i32

@@ -1,0 +1,95 @@
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+:< agile_mutation_policy.model
+:< rust_std_fs.model
+
+:= parse_agile_case \* t. (~text : string) : validation_result t =
+    union_reflection.cases.union_cases_fold
+        \ parsed (case_value : t) =>
+            ? rust_std_string.model.equals text (agile_case_text case_value) ?> Valid case_value |: parsed
+        Invalid
+:= parse_task_kind text : validation_result agile_task_kind = parse_agile_case text
+:= parse_priority text : validation_result agile_priority = parse_agile_case text
+:= parse_difficulty text : validation_result agile_difficulty = parse_agile_case text
+:| scan_state =
+    | ScanPlain
+    | ScanQuoted
+    | ScanEscaped
+
+:= quote_byte () = 34i32
+:= backslash_byte () = 92i32
+:= comma_byte () = 44i32
+:= close_paren_byte () = 41i32
+:= space_byte () = 32i32
+
+:= next_scan_state (state : scan_state) (byte : i32) : scan_state =
+    ?= state ?|
+    | ScanEscaped => ScanQuoted
+    | ScanQuoted =>
+        ? byte = backslash_byte () ?> ScanEscaped
+        |? byte = quote_byte () ?> ScanPlain
+        |: ScanQuoted
+    | ScanPlain => ? byte = quote_byte () ?> ScanQuoted |: ScanPlain
+
+:= ends_field (state : scan_state) (byte : i32) : bool =
+    ?= state ?|
+    | ScanPlain => ? byte = comma_byte () ?> !+ |: byte = close_paren_byte ()
+    | _ => !-
+
+:~ ^ field_end (text : string) (offset : i32) (length : i32) (~state : scan_state) : i32 =
+    ? length <= offset ?> length
+    |:
+        := byte = byte_at text offset
+        ? ends_field state byte ?> offset
+        |: field_end text (offset + 1i32) length (next_scan_state state byte)
+
+:~ ^ skip_spaces (text : string) (offset : i32) : i32 =
+    ? byte_at text offset = space_byte () ?> skip_spaces text (offset + 1i32) |: offset
+
+:~ ^ field_start (text : string) (offset : i32) (length : i32) (position : i32) : i32 =
+    ? position = 0i32 ?> offset
+    |: field_start text (skip_spaces text (field_end text offset length ScanPlain + 1i32)) length (position - 1i32)
+
+:= spi_escaped (~value : string) : string =
+    := value = rust_std_string.model.replace value "\\" "\\\\"
+    := value = rust_std_string.model.replace value "\"" "\\\""
+    := value = rust_std_string.model.replace value "\n" "\\n"
+    := value = rust_std_string.model.replace value "\r" "\\r"
+    rust_std_string.model.replace value "\t" "\\t"
+:= spi_quoted (~value : string) : string = rust_std_string.model.concat5 "\"" (spi_escaped value) "\"" "" ""
+
+:= records_text (~text : string) : string = $'kit_agile_records::kit_agile_records_as_lines(&*!text)' : string
+:= backlog_state_path (~root : string) : string = rust_std_string.model.concat5 root "/state/agile.spi" "" "" ""
+
+:= task_marker () : string = "Task (\""
+:= task_arguments_offset () : i32 = 6i32
+:= task_field_count () : i32 = 11i32
+:= declared_task (text : string) (found : i32) : bool =
+    := start = line_start_before text found
+    rust_std_string.model.starts_with (byte_slice text start found) "inl "
+
+:~ ^ top_level_field_count (text : string) (offset : i32) (length : i32) (counted : i32) : i32 =
+    := stop = field_end text offset length ScanPlain
+    ? length <= stop ?> -1i32
+    |? byte_at text stop = close_paren_byte () ?> counted + 1i32
+    |: top_level_field_count text (skip_spaces text (stop + 1i32)) length (counted + 1i32)
+
+:~ ^ first_malformed_task (text : string) (offset : i32) (length : i32) : i32 =
+    := found = byte_find_from text (task_marker ()) offset
+    ? found < 0i32
+    ?> -1i32
+    |:
+        := arguments = (found + (task_arguments_offset ()))
+        ? declared_task text found
+        ?>
+            ? top_level_field_count text arguments length 0i32 = task_field_count ()
+            ?> first_malformed_task text arguments length
+            |: found
+        |: first_malformed_task text arguments length
+:= tuple_field (text : string) (arguments : i32) (length : i32) (position : i32) : string =
+    := start = field_start text arguments length position
+    byte_slice text start (field_end text start length ScanPlain)

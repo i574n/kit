@@ -1,0 +1,19 @@
+:< cold_proof_bindings.bindings
+:< cold_rebuild_contract.bindings
+
+:= main () : i32 =
+    native_binary_tests.emit_tests ()
+    := _ = cold_proof_equal_binding 1i32 1i32
+    := _ = cold_rebuild_expected_shards_binding 90i32 2i32
+    emit_runtime ()
+    emit_cold_rebuild_runtime ()
+    !!!!Export(
+        "kit_cold_proof_equal_binding",
+        ((\ (first, second) => cold_proof_equal_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export("kit_cold_proof_binary_binding", ((\ presence => cold_proof_binary_binding presence) : i32 -> i32))
+    !!!!Export(
+        "kit_cold_rebuild_expected_shards",
+        ((\ (first, second) => cold_rebuild_expected_shards_binding first second) : i32 * i32 -> i32)
+    )
+    0i32

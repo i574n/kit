@@ -1,0 +1,7 @@
+:= main () : i32 =
+    := _ = toolchain_argument_token_high_binding 4i32 5i32
+    !!!!Export(
+        "kit_toolchain_argument_token_high",
+        ((\ (first, second) => toolchain_argument_token_high_binding first second) : i32 * i32 -> i32)
+    )
+    0i32

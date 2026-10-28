@@ -1,0 +1,31 @@
+:< sm'_operators
+
+:| family = | Sha256 | ReceiptText | Unsupported
+:= equal (a : string) (b : string) : bool = (a = b)
+:= append (a : string) (b : string) : string = a ++# b
+:= family_of (name : string) : family =
+    ? equal name "sha256" ?> Sha256
+    |? equal name "receipt-text" ?> ReceiptText
+    |: Unsupported
+:= body (kind : family) (value : string) (byte : string) : string =
+    ?= kind ?|
+    | Sha256 =>
+        := prefix = "{" ++# value ++# ".len()==64&&" ++# value ++# ".bytes().all(|"
+        append prefix (byte ++# "|" ++# byte ++# ".is_ascii_hexdigit())}")
+    | ReceiptText =>
+        := prefix = "{!" ++# value ++# ".is_empty()&&" ++# value ++# ".bytes().all(|"
+        := middle = byte ++# "|" ++# byte ++# ".is_ascii_alphanumeric()||matches!(" ++# byte
+        append prefix (append middle ",b'.'|b'_'|b'-'|b'/'))}")
+    | Unsupported => ""
+:~ expected (kind : string) (name : string) (value : string) (byte : string) : string =
+    := expression = body (family_of kind) value byte
+    ? equal expression "" ?> ""
+    |: append ("fn " ++# name ++# "(" ++# value ++# ":&str)->bool") expression
+:~ wrapper (kind : string) (name : string) (literal : string) : string =
+    := constructor =
+        ?= family_of kind ?|
+        | Sha256 => "lift_sha256"
+        | ReceiptText => "lift_receipt_text"
+        | Unsupported => "unsupported"
+    := head = "(typed_predicate.model." ++# constructor ++# " \"" ++# name ++# "\" "
+    append head (append literal ")")

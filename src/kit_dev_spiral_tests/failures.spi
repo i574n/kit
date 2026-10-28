@@ -1,0 +1,45 @@
+:< sm'_operators
+
+///- --package .
+:# failures static =
+    :< notebook
+
+:| ^ failed_notebooks =
+    | NoFailures
+    | FailedThen : string * i32 * failed_notebooks
+
+:~ ^ failures_of (~listed : string) (index : i32) (code : i32) (failures : failed_notebooks) : failed_notebooks =
+    ? index < notebook.line_count listed
+    ?> failures_of listed (index + 1i32) code (FailedThen (notebook.line_at listed index, code, failures))
+    |: failures
+
+:~ ^ failure_list (failures : failed_notebooks) (~acc : string) : string =
+    ?= failures ?|
+    | NoFailures => acc
+    | FailedThen (relative, _, rest) => failure_list rest (? acc = "" ?> relative |: relative ++# ", " ++# acc)
+
+:~ ^ first_code (failures : failed_notebooks) (code : i32) : i32 =
+    ?= failures ?|
+    | NoFailures => code
+    | FailedThen (_, failed, rest) => first_code rest failed
+
+:~ ^ failure_count (failures : failed_notebooks) (count : i32) : i32 =
+    ?= failures ?|
+    | NoFailures => count
+    | FailedThen (_, _, rest) => failure_count rest (count + 1i32)
+
+
+///> rust
+:# every_failure_is_listed_in_run_order_and_the_first_code_wins =
+    := failures = FailedThen ("src/c.spi", 3i32, FailedThen ("src/a.spi", 2i32, NoFailures))
+    testing.expect (failure_list failures "" = "src/a.spi, src/c.spi") (failure_list failures "")
+    testing.expect (first_code failures 1i32 = 2i32) "the earliest failure's code"
+    testing.expect (failure_count failures 0i32 = 2i32) "two failures"
+    testing.expect (first_code NoFailures 0i32 = 0i32) "no failures"
+
+///> rust
+:# batch_failures_keep_run_order_and_carry_the_batch_code =
+    := failures = failures_of "src/a.spi\nsrc/c.spi" 0i32 3i32 NoFailures
+    testing.expect (failure_list failures "" = "src/a.spi, src/c.spi") (failure_list failures "")
+    testing.expect (first_code failures 1i32 = 3i32) "the batch code"
+    testing.expect (failure_count (failures_of "" 0i32 1i32 NoFailures) 0i32 = 0i32) "nothing failed"

@@ -1,0 +1,117 @@
+:= write_text (path : string) (text : string) : bool =
+    $'std::fs::write(&*!path, &*!text).is_ok()' : bool
+
+:= rename (to : string) (path : string) : bool =
+    $'std::fs::rename(&*!path, &*!to).is_ok()' : bool
+
+:= remove_file (path : string) : bool =
+    $'std::fs::remove_file(&*!path).is_ok() || \!std::path::Path::new(&*!path).exists()' : bool
+
+:= text_equals (expected : string) (path : string) : bool =
+    $'std::fs::read_to_string(&*!path).is_ok_and(|value| value == *!expected)' : bool
+
+:= file_exists (path : string) : bool =
+    $'std::path::Path::new(&*!path).is_file()' : bool
+
+:= file_missing (path : string) : bool =
+    $'\!std::path::Path::new(&*!path).is_file()' : bool
+
+:! patch_text = string
+:! original_text = string
+:! staged_path = string
+:! target_path = string
+
+:! backup_ready = { target : target_path; original : original_text }
+:| backup_restored =
+    | BackupRestored
+
+:| restoration_transition from to =
+    | RestoreBackup :: restoration_transition backup_ready backup_restored
+
+:| restoration_result state =
+    | RestorationSucceeded :: restoration_result backup_restored
+    | RestorationFailed :: \* state. restoration_result state
+
+:= restoration_succeeded \* state. (result : restoration_result state) : bool =
+    ?= result ?|
+    | RestorationSucceeded => !+
+    | RestorationFailed => !-
+
+:= backup (target : target_path) (original : original_text) : backup_ready =
+    backup_ready { target original }
+
+:= patch_body (text : string) : patch_text = patch_text text
+:= original_body (text : string) : original_text = original_text text
+:= staged (path : string) : staged_path = staged_path path
+:= target (path : string) : target_path = target_path path
+
+:= stage (target_path target) (patch_text text) : staged_path =
+    staged ($'kit_rust_std_fs::stage_text(std::path::Path::new(&*!target), \
+        &!text).unwrap().display().to_string().into()' : string)
+
+:= promote (target_path target) (staged_path temporary) : bool =
+    rename target temporary
+
+:= restore (target_path target) (original_text text) : bool =
+    $'kit_rust_std_fs::restore_text(std::path::Path::new(&*!target), &!text).is_ok()' : bool
+
+:| restoration_authority =
+    | RestorationAuthority
+
+:= grant_restoration () : restoration_authority = RestorationAuthority
+
+:= require_restoration (authority : restoration_authority) : () =
+    ?= authority ?|
+    | RestorationAuthority => ()
+
+:= execute_restoration \* from to.
+    (authority : restoration_authority)
+    (transition : restoration_transition from to)
+    (snapshot : from)
+    : restoration_result to =
+    require_restoration authority
+    ?= transition, snapshot ?|
+    | RestoreBackup, backup_ready { target original } =>
+        ? restore target original ?> RestorationSucceeded
+        |: RestorationFailed
+
+:= discard (staged_path temporary) : bool =
+    $'kit_rust_std_fs::discard_stage(std::path::Path::new(&*!temporary)).is_ok()' : bool
+
+:= staged_missing (staged_path temporary) : bool = file_missing temporary
+
+:! unchecked_path = string
+:! readable_file = string
+:! missing_path = string
+:! loaded_text = string
+
+:| file_probe =
+    | FileReadable : readable_file
+    | FileMissing : missing_path
+
+:= unchecked (path : string) : unchecked_path = unchecked_path path
+
+:= probe (unchecked_path path) : file_probe =
+    ? file_exists path
+    ?> FileReadable (readable_file path)
+    |: FileMissing (missing_path path)
+
+:= read_text (readable_file path) : loaded_text =
+    loaded_text ($'std::fs::read_to_string(&*!path).unwrap_or_default().into()' : string)
+
+:= snapshot (path : readable_file) : loaded_text = read_text path
+
+:= loaded_nonempty (loaded_text text) : bool =
+    $'\!!text.is_empty()' : bool
+
+:= missing_path_nonempty (missing_path path) : bool =
+    $'\!!path.is_empty()' : bool
+
+:= readable_path (readable_file path) : string = path
+:= missing_value (missing_path path) : string = path
+
+:= text_contains (needle : string) (path : string) : bool =
+    $'std::fs::read_to_string(&*!path).is_ok_and(|value| value.contains(!needle.as_ref()))' : bool
+
+:= text_excludes (needle : string) (path : string) : bool =
+    $'std::fs::read_to_string(&*!path).is_ok_and(|value| \!value.contains(!needle.as_ref()))' : bool

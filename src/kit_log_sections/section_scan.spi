@@ -1,0 +1,156 @@
+///- --package .
+:# section_scan static =
+    :< sm'_operators
+    :< section_model
+
+:< sm'_operators
+:< section_model
+
+:== column_pattern =
+    {
+        spec : column_spec
+        pattern : sm'.regex
+    }
+
+:~ group_in (~line : string) (pattern : sm'.regex) (~group : string) : string =
+    sm'.regex_captures line pattern
+    |> am'.vec_fold' \ found captures =>
+            ? found <> "" ?> found |: optionm'.default_value' found (mapm.get group captures)
+        ""
+
+:~ matched_in (~line : string) (pattern : sm'.regex) : bool =
+    (sm'.regex_captures line pattern |> am'.vec_len |> convert.u64) > 0u64
+
+:~ signed_ms_in (~line : string) (time : sm'.regex) : i64 =
+    optionm'.default_value 0i64 (convert.try_convert (group_in line time "ms"))
+
+:~ compiled_pattern (~pattern : string) : sm'.regex = sm'.new_regex pattern |> resultm.unwrap'
+
+:= optional_pattern (~pattern : string) : option sm'.regex = ? pattern = "" ?> None |: Some (compiled_pattern pattern)
+
+:~ class_of (~line : string) (section_on : option sm'.regex) (carry : option sm'.regex) : line_class =
+    := section =
+        ?= section_on ?|
+        | Some pattern => group_in line pattern "section"
+        | None => ""
+    ? section <> "" ?> Header section
+    |:
+        ?= carry ?|
+        | Some pattern => ? matched_in line pattern ?> Carried |: Plain
+        | None => Plain
+
+:~ ^ classified_from
+    (lines : array string) (index : i32) (section_on : option sm'.regex) (carry : option sm'.regex)
+    (found : list classified)
+    : list classified
+    =
+    ? index < 0i32
+    ?> found
+    |:
+        := text = am'.index index lines
+        classified_from lines
+            (index - 1i32)
+            section_on
+            carry
+            ({ class = class_of text section_on carry; text = text } :: found)
+
+:= part (index : i32) (parts : array string) : string = optionm'.default_value "" (am'.try_item index parts)
+
+:= column_of (~text : string) : option column_pattern =
+    := parts = sm'.split "\t" text |> array
+    ? am'.length parts < 3i32 ?> None
+    |:
+        := pick = ? part 0i32 parts = "last" ?> Last |: First
+        Some { spec = { name = part 1i32 parts; pick = pick }; pattern = compiled_pattern (part 2i32 parts) }
+
+:~ ^ columns_from (lines : array string) (index : i32) (found : list column_pattern) : list column_pattern =
+    ? index < 0i32 ?> found
+    |:
+        ?= column_of (am'.index index lines) ?|
+        | Some column => columns_from lines (index - 1i32) (column :: found)
+        | None => columns_from lines (index - 1i32) found
+
+:= columns_of (~text : string) : list column_pattern =
+    := lines = sm'.split "\n" text |> array
+    columns_from lines (am'.length lines - 1i32) []
+
+:= observed_in (line : placed) (at_ms : i64) (found : list observation) (column : column_pattern) : list observation =
+    := id = group_in line.text column.pattern "id"
+    ? id = ""
+    ?> found
+    |:
+        {
+            section = line.section
+            name = column.spec.name
+            id = id
+            value = group_in line.text column.pattern "value"
+            at_ms = at_ms
+        }
+        :: found
+
+:= observations_of (placed : list placed) (columns : list column_pattern) (time : sm'.regex) : list observation =
+    := line_step (found : list observation) (line : placed) : list observation =
+        listm.fold (observed_in line (signed_ms_in line.text time)) found columns
+    listm.rev (listm.fold line_step [] placed)
+
+:= header_step (count : u64) (line : classified) : u64 =
+    ?= line.class ?|
+    | Header _ => count + 1u64
+    | _ => count
+
+:= header_count (lines : list classified) : u64 = listm.fold header_step 0u64 lines
+
+:~ sections_text
+    (~log : string) (~time : string) (~section_on : string) (~carry : string) (~columns : string)
+    : string
+    =
+    := lines = sm'.split "\n" log |> array
+    := classified =
+        classified_from lines (am'.length lines - 1i32) (optional_pattern section_on) (optional_pattern carry) []
+    := patterns = columns_of columns
+    := specs = patterns |> listm.map \ (column : column_pattern) => column.spec
+    := rows = rows_from specs (observations_of (sections_of classified) patterns (compiled_pattern time)) []
+    := table = rows |> listm.fold (\ text (row : section_row) => text ++# row_text specs row ++# "\n") ""
+    table ++# "#sections\t" ++# sm'.format (header_count classified)
+
+:~ sections_header (~columns : string) : string =
+    header_text (columns_of columns |> listm.map \ (column : column_pattern) => column.spec)
+
+:= trace () : string =
+    "lead-trace monster 81 Hunter starts at 1931,1352 @knight+-1\n"
+    ^^ "lead-trace monster 82 Hunter starts at 1931,1353 @knight+-1\n"
+    ^^ "lead-trace run 20261023-030000 knight seen at 1932,1349 @knight+0\n"
+    ^^ "lead-trace think 81 at 1931,1352 @knight+600\nlead-trace think 82 at 1931,1353 @knight+300\n"
+    ^^ "lead-trace monster 81 moved to 1930,1352 @knight+850\nlead-trace think 82 at 1931,1353 @knight+1300\n"
+    ^^ "lead-trace think 82 at 1931,1353 @knight+2300\nlead-trace knight targets 82 @knight+2500\n"
+    ^^ "lead-trace knight gone @knight+90000\nlead-trace monster 71 Hunter starts at 1931,1352 @knight+-1\n"
+    ^^ "lead-trace monster 72 Hunter starts at 1931,1353 @knight+-1\n"
+    ^^ "lead-trace run 20261023-030300 knight seen at 1932,1349 @knight+0\n"
+    ^^ "lead-trace monster 71 moved to 1932,1352 @knight+700\nlead-trace knight targets 72 @knight+2500\n"
+    ^^ "lead-trace knight gone @knight+90000\n"
+
+:= scan_expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust -d regex
+:# case_45_rows_from_the_trace_text =
+    := columns = "first\tmove\tmonster (?<id>\\d+) moved to (?<value>\\S+)\n"
+    := text = sections_text (trace ()) "@knight\\+(?<ms>-?\\d+)" "run (?<section>\\S+)" "@knight\\+-1" columns
+    scan_expect (sections_header columns = "section\tid\tmove_time\tmove_value") (sections_header columns)
+    scan_expect (text = "20261023-030000\t81\t850\t1930,1352\n20261023-030300\t71\t700\t1932,1352\n#sections\t2") text
+
+///> rust -d regex
+:# case_46_rows_from_the_trace_text =
+    := columns =
+        "first\tappear\tmonster (?<id>\\d+) Hunter starts at (?<value>\\S+)\n"
+        ^^ "last\tthink\tthink (?<id>\\d+) at (?<value>\\S+)\n"
+    := text = sections_text (trace ()) "@knight\\+(?<ms>-?\\d+)" "run (?<section>\\S+)" "@knight\\+-1" columns
+    scan_expect
+        (
+            text
+            = (
+                "20261023-030000\t81\t-1\t1931,1352\t600\t1931,1352\n"
+                ^^ "20261023-030000\t82\t-1\t1931,1353\t2300\t1931,1353\n20261023-030300\t71\t-1\t1931,1352\t-\t-\n"
+                ^^ "20261023-030300\t72\t-1\t1931,1353\t-\t-\n#sections\t2"
+            )
+        )
+        text

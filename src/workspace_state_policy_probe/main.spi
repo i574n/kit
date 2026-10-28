@@ -1,0 +1,7 @@
+:< workspace_state_contract.model
+
+:= main () : i32 =
+    := _ = build_authority_plan ()
+    ?= authority_status () ?|
+    | 1 => 0i32
+    | _ => 1i32

@@ -1,0 +1,142 @@
+:< rust_std_string.model
+:< kit_machine_watch_model.model
+:< host
+:< jobs_watch
+
+inl argument (~index : i32) : string = $'std::rc::Rc::<str>::from(std::env::args().nth(!index as \
+    usize).unwrap_or_default())' : string
+:= argument_count () : i32 = $'std::env::args().count() as i32' : i32
+:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= decimal_u64 (~text : string) : u64 = $'!text.trim().parse::<u64>().unwrap_or(0)' : u64
+:= u64_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+inl free_megabytes () : u64 = $'{ let mut system = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing()\
+    .with_memory(sysinfo::MemoryRefreshKind::nothing().with_ram())); system.refresh_memory(); \
+    system.available_memory() / 1048576 }' : u64
+inl now_text () : string = $'std::rc::Rc::<str>::from(format\!("{}", std::time::SystemTime::now().duration_since(std::\
+    time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0)))' : string
+
+:~ ^ option_value (~name : string) (index : i32) : string =
+    ? index + 1i32 >= argument_count () ?> ""
+    |? argument index = name ?> argument (index + 1i32)
+    |: option_value name (index + 1i32)
+
+:~ ^ busy_lines (~rows : process_rows) (at : i32) (~acc : string) (total : f64) : string * f64 =
+    ? at >= row_count rows ?> acc, total
+    |:
+        := cores = row_cores rows at
+        ? cores < 0.1f64 ?> busy_lines rows (at + 1i32) acc total
+        |:
+            := busy = busy_at rows at
+            := line =
+                concat5
+                    (u64_text busy.pid)
+                    "\t"
+                    busy.name
+                    "\t"
+                    (
+                        concat5
+                            (cores_text cores)
+                            "\t"
+                            (u64_text busy.age_minutes)
+                            "\t"
+                            (concat5 (u64_text busy.cpu_minutes) "\t" (owner_text busy.owner) "" "")
+                    )
+            busy_lines rows (at + 1i32) (? acc = "" ?> line |: concat5 acc "\n" line "" "") (total + cores)
+
+:~ ^ rogue_lines (limits : watch_limits) (~rows : process_rows) (at : i32) (~acc : string) : string =
+    ? at >= row_count rows ?> acc
+    |:
+        := busy = busy_at rows at
+        ? rogue limits busy ?>
+            := line =
+                concat5
+                    "  pid "
+                    (u64_text busy.pid)
+                    " "
+                    busy.name
+                    (
+                        concat5
+                            " "
+                            (cores_text busy.cores)
+                            " cores, age "
+                            (u64_text busy.age_minutes)
+                            (concat5 " min, owner " (owner_text busy.owner) "" "" "")
+                    )
+            rogue_lines limits rows (at + 1i32) (? acc = "" ?> line |: concat5 acc "\n" line "" "")
+        |: rogue_lines limits rows (at + 1i32) acc
+
+:~ ^ hog_lines (limits : watch_limits) (~rows : process_rows) (at : i32) (~acc : string) : string =
+    ? at >= row_count rows ?> acc
+    |? row_megabytes rows at >= limits.hog_megabytes ?>
+        := line =
+            concat5
+                "  pid "
+                (u64_text (row_pid rows at))
+                " "
+                (row_name rows at)
+                (concat5 " " (u64_text (row_megabytes rows at)) " MB, owner " (owner_text (owner_of rows at)) "")
+        hog_lines limits rows (at + 1i32) (? acc = "" ?> line |: concat5 acc "\n" line "" "")
+    |: hog_lines limits rows (at + 1i32) acc
+
+inl sorted_busy (~lines : string) : string = $'{ let mut rows = (&*!lines).lines().collect::<Vec<_>>(); \
+    rows.sort_by(|left, right| { let cores = |row: &str| row.split(char::from(9u8)).nth(2).and_then(|value| \
+    value.parse::<f64>().ok()).unwrap_or(0.0); cores(right).total_cmp(&cores(left)) }); \
+    std::rc::Rc::<str>::from(rows.into_iter().take(12).map(|row| format\!("  {}", row.replace(char::from(9u8), "  \
+    "))).collect::<Vec<_>>().join("\n")) }' : string
+:= line_total (~lines : string) : u64 = $'(&*!lines).lines().filter(|line| \!line.is_empty()).count() as u64' : u64
+
+:= notebook_batch_line (~command : string) (age_minutes : u64) : string =
+    $'kit_notebook_progress::kit_notebook_batch_line(&*!command, !age_minutes)' : string
+
+:~ ^ notebook_lines (~rows : process_rows) (at : i32) (~acc : string) : string =
+    ? at >= row_count rows ?> acc
+    |:
+        := line = notebook_batch_line (row_command rows at) (row_age rows at)
+        := shown = ? line = "" ?> "" |: concat5 "  pid " (u64_text (row_pid rows at)) " " line ""
+        notebook_lines rows
+            (at + 1i32)
+            (? shown = "" ?> acc |? acc = "" ?> shown |: concat5 acc "\n" shown "" "")
+
+:~ watch_run () : i32 =
+    := limits = default_limits ()
+    := given = decimal_u64 (option_value "--sample-seconds" 2i32)
+    := seconds = ? given = 0u64 ?> 10u64 |: given
+    := rows = process_rows_sampled (seconds * 1000u64)
+    := busy, total = busy_lines rows 0i32 "" 0.0f64
+    := rogues = rogue_lines limits rows 0i32 ""
+    := hogs = hog_lines limits rows 0i32 ""
+    stdout_line (
+        concat5
+            "== machine: "
+            (cores_text total)
+            " cores busy over "
+            (u64_text seconds)
+            (concat5 " s, " (u64_text (free_megabytes ())) " MB free" "" "")
+    )
+    stdout_line (sorted_busy busy)
+    stdout_line (concat5 "== rogue candidates: " (u64_text (line_total rogues)) "" "" "")
+    := _ = ? rogues = "" ?> () |: stdout_line rogues
+    stdout_line (concat5 "== memory hogs (>= " (u64_text limits.hog_megabytes) " MB): " (u64_text (line_total hogs)) "")
+    := _ = ? hogs = "" ?> () |: stdout_line hogs
+    := notebooks = notebook_lines rows 0i32 ""
+    := _ = ? notebooks = "" ?> () |: stdout_line (concat5 "== notebook batches:\n" notebooks "" "" "")
+    stdout_line (jobs_and_windows limits rows)
+    stdout_line (
+        concat5
+            "kit machine watch ok processes="
+            (u64_text ($'!(row_count rows) as u64' : u64))
+            " rogues="
+            (u64_text (line_total rogues))
+            (concat5 " hogs=" (u64_text (line_total hogs)) " unix=" (now_text ()) "")
+    )
+    0i32
+
+:~ machine_run () : i32 =
+    ? argument 2i32 = "watch" ?> watch_run ()
+    |:
+        := _ = $'eprintln\!("kit error: machine: usage: machine watch [--sample-seconds n]")' : ()
+        2i32
+
+:= main () : i32 =
+    !!!!Export("kit_machine_watch_run", ((\ () => machine_run ()) : () -> i32))
+    0i32

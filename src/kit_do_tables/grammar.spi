@@ -1,0 +1,46 @@
+///- --package .
+:# grammar static =
+    :< sm'_operators
+    :< host
+    :< kit_do_records.records
+
+:< sm'_operators
+:< host
+:< kit_do_records.records
+
+:| table_step =
+    | TablesDiffed : string * string * string * string
+
+:| table_parse =
+    | TableParsed : table_step
+    | TableRejected : string
+
+:~ table_parsed (~records : record_list) (~record : i32) : table_parse =
+    := verb = field_at records record 1i32
+    := left = body_at records record 2i32
+    := right = body_at records record 3i32
+    := by_at = field_index records record "by"
+    := on_at = field_index records record "on"
+    ? verb <> "diff"
+    ?> TableRejected (verb ++# " cannot share one program with diff yet; run it as its own call")
+    |? left = "" || right = "" || right = "by"
+    ?> TableRejected "diff: expected two tables"
+    |? by_at < 0i32
+    ?> TableRejected "diff: expected by <key,...>"
+    |:
+        := keys = items_span records record (by_at + 1i32) (? on_at < 0i32 ?> (-1i32) |: on_at)
+        := columns = ? on_at < 0i32 ?> "" |: items_span records record (on_at + 1i32) (-1i32)
+        ? keys = ""
+        ?> TableRejected "by: expected a value after it"
+        |: TableParsed (TablesDiffed (left, right, keys, columns))
+
+
+///> rust
+:# diff_statements_name_two_tables_keys_and_columns =
+    ?= table_parsed (records_from_bars "ok\nquery|diff|wa.tsv|wb.tsv|wby|wid,|wbackend|won|wcompile,|wexit") 1i32 ?|
+    | TableParsed (TablesDiffed (left, right, keys, columns)) =>
+        testing.expect (left = "a.tsv" && right = "b.tsv" && keys = "id\nbackend" && columns = "compile\nexit") "diff parts"
+    | TableRejected message => testing.expect !- message
+    ?= table_parsed (records_from_bars "ok\nquery|diff|wa.tsv|wb.tsv") 1i32 ?|
+    | TableRejected message => testing.expect (message = "diff: expected by <key,...>") "missing keys"
+    | TableParsed _ => testing.expect !- "keys are required"

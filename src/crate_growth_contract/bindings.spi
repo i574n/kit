@@ -1,0 +1,28 @@
+:< model
+
+:~ crate_growth_partition_binding (cargo_crates : i32) (spiral_only_packages : i32) : i32 =
+    ? cargo_crates < 0i32 ?> 0i32
+    |? spiral_only_packages < 1i32 ?> 0i32
+    |: 1i32
+
+:~ crate_growth_default_binding (observed_cargo_crates : i32) (exception_authorized : i32) : i32 =
+    ? observed_cargo_crates < 0i32 ?> 0i32
+    |? observed_cargo_crates < 75i32 ?> 1i32
+    |? exception_authorized < 1i32 ?> 0i32
+    |: 1i32
+
+:~ crate_growth_exception_binding (reason_present : i32) (ticket_present : i32) : i32 =
+    ? reason_present < 1i32 ?> 0i32
+    |? ticket_present < 1i32 ?> 0i32
+    |: 1i32
+
+:~ crate_growth_unit_binding (previous_owner_lines : i32) (observed_owner_lines : i32) : i32 =
+    ? previous_owner_lines < 0i32 ?> 0i32
+    |? observed_owner_lines < 0i32 ?> 0i32
+    |? previous_owner_lines < observed_owner_lines ?> 0i32
+    |: 1i32
+
+:~ owner_growth_compensation_binding (growth_lines : i32) (retired_lines : i32) : i32 =
+    ? growth_lines < 0i32 ?> 0i32
+    |? retired_lines < growth_lines ?> 0i32
+    |: 1i32

@@ -1,0 +1,154 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:== spiral_manifest =
+    {
+        entry : string
+        output : string
+    }
+
+:| manifest_read =
+    | SpiralCrate : spiral_manifest
+    | NotSpiralCrate
+
+:== crate_measure =
+    {
+        crate : string
+        output : string
+        lines : i32
+        largest : string
+    }
+
+:| crate_verdict =
+    | CrateWithin
+    | CrateOver
+    | CrateUnbuilt
+
+:~ quoted_value (line : string) : string =
+    := pieces = sm'.split "\"" line |> array
+    ? am'.length pieces >= 3i32 ?> am'.index 1i32 pieces |: ""
+
+:~ ^ section_fields (lines : array string) (at : i32) (entry : string) (output : string) : manifest_read =
+    ? am'.length lines <= at
+    ?> ? entry <> "" && output <> "" ?> SpiralCrate { entry = entry; output = output } |: NotSpiralCrate
+    |:
+        := line = sm'.trim (am'.index at lines)
+        ? sm'.starts_with "[" line ?> section_fields lines (am'.length lines) entry output
+        |? sm'.starts_with "entry" line ?> section_fields lines (at + 1i32) (quoted_value line) output
+        |? sm'.starts_with "output" line ?> section_fields lines (at + 1i32) entry (quoted_value line)
+        |: section_fields lines (at + 1i32) entry output
+
+:~ ^ manifest_from (lines : array string) (at : i32) : manifest_read =
+    ? am'.length lines <= at ?> NotSpiralCrate
+    |? sm'.trim (am'.index at lines) = "[package.metadata.spiral]" ?> section_fields lines (at + 1i32) "" ""
+    |: manifest_from lines (at + 1i32)
+
+:~ manifest_of (text : string) : manifest_read =
+    manifest_from (sm'.split "\n" (sm'.replace "\r" "" text) |> array) 0i32
+
+:~ line_count (text : string) : i32 =
+    ? text = "" ?> 0i32
+    |:
+        := pieces = am'.length (sm'.split "\n" text |> array)
+        ? sm'.ends_with "\n" text ?> pieces - 1i32 |: pieces
+
+:~ verdict_of (limit : i32) (measure : crate_measure) : crate_verdict =
+    ? measure.lines < 0i32 ?> CrateUnbuilt |? measure.lines > limit ?> CrateOver |: CrateWithin
+
+:~ verdict_text (limit : i32) (measure : crate_measure) : string =
+    ?= verdict_of limit measure ?|
+    | CrateWithin => "ok"
+    | CrateOver => "OVER " ++# sm'.format limit
+    | CrateUnbuilt => "no generated output yet"
+
+:~ measure_line (limit : i32) (measure : crate_measure) : string =
+    "gate / "
+    ++# measure.crate
+    ++# " "
+    ++# measure.output
+    ++# " "
+    ++# sm'.format measure.lines
+    ++# " lines "
+    ++# verdict_text limit measure
+    ++# measure.largest
+
+:~ over_count (limit : i32) (measures : list crate_measure) : i32 =
+    measures |> listm.fold (\ count (m : crate_measure) => ?= verdict_of limit m ?| | CrateOver => count + 1i32 | _ => count) 0i32
+
+:| gate_outcome =
+    | GatePassed
+    | GateFailedOver : i32
+    | GateFailedMissing : i32
+    | GateFailedVacuous
+
+:~ missing_count (limit : i32) (measures : list crate_measure) : i32 =
+    measures |> listm.fold (\ count (m : crate_measure) => ?= verdict_of limit m ?| | CrateUnbuilt => count + 1i32 | _ => count) 0i32
+
+:~ gate_outcome_of (enforce : bool) (limit : i32) (measures : list crate_measure) : gate_outcome =
+    := over = over_count limit measures
+    := missing = missing_count limit measures
+    ? enforce && listm.length measures = 0i32 ?> GateFailedVacuous
+    |? enforce && over > 0i32 ?> GateFailedOver over
+    |? enforce && missing > 0i32 ?> GateFailedMissing missing
+    |: GatePassed
+
+///> rust
+:# a_spiral_manifest_yields_entry_and_output =
+    := text = "[package.metadata.spiral]\r\nentry = \"run.spi\"\noutput = \"watch.rs\"\n\n[package]\nname = \"x\"\n"
+    expect
+        (
+            ?= manifest_of text ?|
+            | SpiralCrate m => m.entry = "run.spi" && m.output = "watch.rs"
+            | NotSpiralCrate => !-
+        )
+        "entry and output"
+    expect
+        ?= manifest_of "[package]\nname = \"plain\"\n" ?|
+        | SpiralCrate _ => !-
+        | NotSpiralCrate => !+
+        "a plain crate is skipped"
+    expect
+        (
+            ?= manifest_of "[package.metadata.spiral]\nentry = \"a.spi\"\n[package]\noutput = \"b.rs\"\n" ?|
+            | SpiralCrate _ => !-
+            | NotSpiralCrate => !+
+        )
+        "fields stop at the next section"
+
+///> rust
+:# lines_verdicts_and_the_vacuity_rule =
+    expect (line_count "a\nb\nc\n" = 3i32 && line_count "a\nb" = 2i32 && line_count "" = 0i32) "line counts"
+    := small = { crate = "small"; output = "s.rs"; lines = 900i32; largest = "" }
+    := big = { crate = "big"; output = "b.rs"; lines = 1200i32; largest = "" }
+    := unbuilt = { crate = "new"; output = "n.rs"; lines = -1i32; largest = "" }
+    := named = { crate = "big"; output = "b.rs"; lines = 1200i32; largest = " largest run 300" }
+    expect (measure_line 1000i32 named = "gate / big b.rs 1200 lines OVER 1000 largest run 300") "largest fn named"
+    expect (measure_line 1000i32 big = "gate / big b.rs 1200 lines OVER 1000") "over line"
+    expect (measure_line 1000i32 small = "gate / small s.rs 900 lines ok") "ok line"
+    expect (verdict_of 1000i32 unbuilt = CrateUnbuilt) "missing output is not counted as over"
+    expect
+        ?= gate_outcome_of !+ 1000i32 [ small; big; unbuilt ] ?|
+        | GateFailedOver n => n = 1i32
+        | _ => !-
+        "enforce fails on one crate over"
+    expect
+        ?= gate_outcome_of !+ 1000i32 [] ?|
+        | GateFailedVacuous => !+
+        | _ => !-
+        "enforce fails when nothing was measured"
+    expect (?= gate_outcome_of !- 1000i32 [ big ] ?| | GatePassed => !+ | _ => !-) "report-only passes"
+    expect
+        ?= gate_outcome_of !+ 1000i32 [ small; unbuilt ] ?|
+        | GateFailedMissing n => n = 1i32
+        | _ => !-
+        "enforce fails on a missing output"
+    expect
+        ?= gate_outcome_of !- 1000i32 [ unbuilt ] ?|
+        | GatePassed => !+
+        | _ => !-
+        "report-only keeps a missing output as a report"

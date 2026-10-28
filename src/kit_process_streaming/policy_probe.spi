@@ -1,0 +1,17 @@
+:< streaming
+
+
+:= main () : i32 =
+    global "#![allow(clippy::needless_return)]"
+    := _ = smoke_plan ()
+    := default_limit = streaming_policy_export 1i32 0i32
+    := ceiling_limit = streaming_policy_export 2i32 67108864i32
+    := tree_allowed = streaming_policy_export 0i32 1i32
+    ? default_limit = 16777216i32 ?>
+        ? ceiling_limit = 67108864i32 ?>
+            ? tree_allowed = 1i32 ?>
+                ?= ProcessStdoutStream, ProcessStderrStream ?|
+                | ProcessStdoutStream, ProcessStderrStream => 0i32
+            |: -1i32
+        |: -1i32
+    |: -1i32

@@ -1,0 +1,258 @@
+:< sm'_operators
+
+:| agile_state_mutation_target_decision =
+    | RejectEscapedStateRoot
+    | RejectNonPackageOwnedModule
+    | PermitPackageOwnedMutation
+
+:= agile_state_mutation_target_decision_code = \|
+    | RejectEscapedStateRoot => 0i32
+    | RejectNonPackageOwnedModule => 1i32
+    | PermitPackageOwnedMutation => 2i32
+
+:~ agile_state_mutation_target_decision_binding (parent_is_state : i32) (package_owned : i32) : i32 =
+    ? parent_is_state = 1i32 ?>
+        ? package_owned = 1i32 ?> agile_state_mutation_target_decision_code PermitPackageOwnedMutation
+        |: agile_state_mutation_target_decision_code RejectNonPackageOwnedModule
+    |: agile_state_mutation_target_decision_code RejectEscapedStateRoot
+
+:| agile_lease_budget_decision =
+    | RejectLeaseBudget
+    | PermitLeaseBudget
+
+:= agile_lease_budget_decision_code = \|
+    | RejectLeaseBudget => 0i32
+    | PermitLeaseBudget => 1i32
+
+:~ agile_lease_budget_decision_binding (budget_positive : i32) (guard_less_than_budget : i32) : i32 =
+    ? budget_positive = 1i32 ?>
+        ? guard_less_than_budget = 1i32 ?> agile_lease_budget_decision_code PermitLeaseBudget
+        |: agile_lease_budget_decision_code RejectLeaseBudget
+    |: agile_lease_budget_decision_code RejectLeaseBudget
+
+:~ agile_lease_readback_decision_binding (started_equal : i32) (deadline_equal : i32) : i32 =
+    ? started_equal = 1i32 ?>
+        ? deadline_equal = 1i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:| agile_prompt_title_class =
+    | EmptyPromptTitle
+    | NonEmptyPromptTitle
+
+:= agile_prompt_title_class_code = \|
+    | EmptyPromptTitle => 0u64
+    | NonEmptyPromptTitle => 1u64
+
+:~ agile_prompt_title_code (~title : string) : u64 =
+    ? (title = "") ?> agile_prompt_title_class_code EmptyPromptTitle
+    |: agile_prompt_title_class_code NonEmptyPromptTitle
+
+:| agile_task_line_class =
+    | NonTaskStateLine
+    | TaskStateLine
+
+:= agile_task_line_class_code = \|
+    | NonTaskStateLine => 0u64
+    | TaskStateLine => 1u64
+
+:~ agile_task_line_candidate_code (~line : string) : u64 =
+    := line = sm'.trim line
+    ? sm'.starts_with "inl " line ?>
+        ? sm'.contains "Task (" line ?> agile_task_line_class_code TaskStateLine
+        |: agile_task_line_class_code NonTaskStateLine
+    |: agile_task_line_class_code NonTaskStateLine
+
+:~ agile_receipt_row_kind_code (~kind : string) : u64 =
+    receipt_row_kind_code kind
+
+:~ agile_receipt_row_kind_text (~code : string) : string =
+    receipt_row_kind_text code
+
+:~ agile_receipt_attestation_kind_code (~attestation : string) : u64 =
+    receipt_attestation_kind_code attestation
+
+:~ agile_receipt_attestation_text (~build_fingerprint : string) : string =
+    receipt_attestation_text build_fingerprint
+
+:| agile_prompt_lease_status =
+    | UnknownPromptLeaseStatus
+    | ActivePromptLeaseStatus
+
+:= agile_prompt_lease_status_code_value = \|
+    | UnknownPromptLeaseStatus => 0u64
+    | ActivePromptLeaseStatus => 1u64
+
+:~ agile_prompt_lease_status_code (~status : string) : u64 =
+    ? (status = "LeaseActive") ?> agile_prompt_lease_status_code_value ActivePromptLeaseStatus
+    |: agile_prompt_lease_status_code_value UnknownPromptLeaseStatus
+
+:~ agile_prompt_lease_marker_text (~code : string) : string =
+    ? (code = "1") ?> "PromptLease (" |: ""
+
+:~ agile_prompt_lease_shape_binding (field_count : i32) (active_status : i32) : i32 =
+    ? field_count = 7i32 ?> ? active_status = 1i32 ?> 1i32 |: 0i32 |: 0i32
+
+:| agile_lease_clock_phase =
+    | LeaseClockWork
+    | LeaseClockWrap
+    | LeaseClockYield
+
+:= agile_lease_clock_phase_code = \|
+    | LeaseClockWork => 0i32
+    | LeaseClockWrap => 1i32
+    | LeaseClockYield => 2i32
+
+:~ agile_lease_clock_phase_binding (at_or_after_wrap : i32) (at_or_after_deadline : i32) : i32 =
+    ? at_or_after_deadline = 1i32 ?> agile_lease_clock_phase_code LeaseClockYield
+    |? at_or_after_wrap = 1i32 ?> agile_lease_clock_phase_code LeaseClockWrap
+    |: agile_lease_clock_phase_code LeaseClockWork
+
+:| agile_lease_policy =
+    | BoundedLeasePolicy
+    | RenewingLeasePolicy
+
+:= agile_lease_policy_code = \|
+    | BoundedLeasePolicy => 0u64
+    | RenewingLeasePolicy => 1u64
+
+:~ agile_lease_policy_from_text (~value : string) : u64 =
+    ? ((sm'.trim value) = "renewing") ?> agile_lease_policy_code RenewingLeasePolicy
+    |: agile_lease_policy_code BoundedLeasePolicy
+
+:~ agile_lease_effective_phase_binding (renewing : i32) (phase : i32) : i32 =
+    ? renewing = 1i32 ?> agile_lease_clock_phase_code LeaseClockWork
+    |: phase
+:~ agile_status_text (~code : string) : string =
+    union_reflection.cases.union_cases_fold
+        (\ text (status : agile_mutation_policy.model.agile_status) =>
+            := status_code = agile_mutation_policy.model.agile_status_code status
+            := status_code_text = $'std::rc::Rc::<str>::from((!status_code).to_string())' : string
+            ? (code = status_code_text) ?> agile_mutation_policy.model.agile_case_text status |: text)
+        ""
+:= status_named (~value : string) (status : agile_mutation_policy.model.agile_status) : bool =
+    (agile_mutation_policy.model.agile_case_text status) = value
+:= status_wire_code (status : agile_mutation_policy.model.agile_status) : u64 =
+    $'!(agile_mutation_policy.model.agile_status_code status) as u64' : u64
+:~ agile_status_name_code (~value : string) : u64 =
+    union_reflection.cases.union_case_where (status_named value) status_wire_code ($'u64::MAX' : u64)
+
+:~ agile_spi_escape_text (~value : string) : string =
+    := value = sm'.replace "\\" "\\\\" value
+    := value = sm'.replace "\"" "\\\"" value
+    := value = sm'.replace "\n" "\\n" value
+    sm'.replace "\r" "\\r" value
+
+:| agile_state_package_line_kind =
+    | IgnoreStatePackageLine
+    | StatePackageModulesHeader
+    | StatePackageModuleCandidate
+    | StatePackageTopLevelBoundary
+
+:= agile_state_package_line_kind_code = \|
+    | IgnoreStatePackageLine => 0u64
+    | StatePackageModulesHeader => 1u64
+    | StatePackageModuleCandidate => 2u64
+    | StatePackageTopLevelBoundary => 3u64
+
+:~ agile_state_package_line_code (~raw : string) : u64 =
+    := trimmed = sm'.trim raw
+    ? (trimmed = "modules:") ?> agile_state_package_line_kind_code StatePackageModulesHeader
+    |? sm'.starts_with " " raw || sm'.starts_with "\t" raw ?>
+        ? (trimmed = "") || sm'.starts_with "//" trimmed ?> agile_state_package_line_kind_code IgnoreStatePackageLine
+        |: agile_state_package_line_kind_code StatePackageModuleCandidate
+    |: agile_state_package_line_kind_code StatePackageTopLevelBoundary
+
+:~ agile_state_package_module_name (~raw : string) : string =
+    := name = sm'.trim raw
+    := name = sm'.trim_end_suffix "*" name
+    := name = sm'.trim_end_suffix "-" name
+    := name = sm'.trim name
+    ? (name = "") || sm'.contains "/" name || sm'.contains "\\" name ?> ""
+    |: name ++# ".spi"
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_state_mutation_target_decision_binding",
+        ((\ (first, second) => agile_state_mutation_target_decision_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_agile_lease_budget_decision_binding",
+        ((\ (first, second) => agile_lease_budget_decision_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_agile_lease_readback_decision_binding",
+        ((\ (first, second) => agile_lease_readback_decision_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export("kit_agile_prompt_title_code", ((\ value => agile_prompt_title_code value) : string -> u64))
+    !!!!Export("kit_agile_status_name_code", ((\ value => agile_status_name_code value) : string -> u64))
+    !!!!Export(
+        "kit_agile_task_line_candidate_code",
+        ((\ value => agile_task_line_candidate_code value) : string -> u64)
+    )
+    !!!!Export("kit_agile_receipt_row_kind_code", ((\ value => agile_receipt_row_kind_code value) : string -> u64))
+    !!!!Export(
+        "kit_agile_receipt_row_kind_text",
+        ((\ value => agile_receipt_row_kind_text value) : string -> string)
+    )
+    !!!!Export(
+        "kit_agile_receipt_attestation_kind_code",
+        ((\ value => agile_receipt_attestation_kind_code value) : string -> u64)
+    )
+    !!!!Export(
+        "kit_agile_receipt_attestation_text",
+        ((\ value => agile_receipt_attestation_text value) : string -> string)
+    )
+    !!!!Export(
+        "kit_agile_prompt_lease_status_code",
+        ((\ value => agile_prompt_lease_status_code value) : string -> u64)
+    )
+    !!!!Export(
+        "kit_agile_prompt_lease_marker_text",
+        ((\ value => agile_prompt_lease_marker_text value) : string -> string)
+    )
+    !!!!Export(
+        "kit_agile_prompt_lease_shape_binding",
+        ((\ (first, second) => agile_prompt_lease_shape_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_agile_lease_clock_phase_binding",
+        ((\ (first, second) => agile_lease_clock_phase_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export("kit_agile_lease_policy_from_text", ((\ value => agile_lease_policy_from_text value) : string -> u64))
+    !!!!Export(
+        "kit_agile_lease_effective_phase_binding",
+        ((\ (first, second) => agile_lease_effective_phase_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export("kit_agile_status_text", ((\ value => agile_status_text value) : string -> string))
+    !!!!Export("kit_agile_spi_escape_text", ((\ value => agile_spi_escape_text value) : string -> string))
+    !!!!Export(
+        "kit_agile_state_package_line_code",
+        ((\ value => agile_state_package_line_code value) : string -> u64)
+    )
+    !!!!Export(
+        "kit_agile_state_package_module_name",
+        ((\ value => agile_state_package_module_name value) : string -> string)
+    )
+    := _ = agile_state_mutation_target_decision_binding 1i32 1i32
+    := _ = agile_lease_budget_decision_binding 1i32 1i32
+    := _ = agile_lease_readback_decision_binding 1i32 1i32
+    := _ = agile_prompt_title_code "active-prompt"
+    := _ = agile_task_line_candidate_code "inl runtime_drift () = Task ("
+    := _ = agile_receipt_row_kind_code "snapshot"
+    := _ = agile_receipt_row_kind_text "2"
+    := _ = agile_receipt_attestation_kind_code "build:99"
+    := _ = agile_receipt_attestation_text "99"
+    := _ = agile_prompt_lease_status_code "LeaseActive"
+    := _ = agile_prompt_lease_marker_text "1"
+    := _ = agile_prompt_lease_shape_binding 7i32 1i32
+    := _ = agile_lease_clock_phase_binding 1i32 0i32
+    := _ = agile_lease_policy_from_text "renewing"
+    := _ = agile_lease_effective_phase_binding 1i32 2i32
+    := _ = agile_status_text "1"
+    := _ = agile_spi_escape_text "a\\b\"c\nd\r"
+    := _ = agile_state_package_line_code "modules:"
+    := _ = agile_state_package_line_code "    ratings-"
+    := _ = agile_state_package_line_code "packages:"
+    := _ = agile_state_package_module_name "    ratings-"
+    := _ = agile_state_package_module_name "    invalid/path"
+    0i32

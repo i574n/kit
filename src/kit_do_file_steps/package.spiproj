@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+    kit_do_model
+    kit_do_records
+    kit_do_write_host
+modules:
+    steps

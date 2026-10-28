@@ -1,0 +1,109 @@
+:< sm'_operators
+
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:= argument_count () : i32 =
+    := count = env.host_argument_count ()
+    ? count > 2i32 ?> count - 2i32 |: 0i32
+
+:= query_flag_width (~argument : string) (~value : string) : i32 = $'agile_task_query::kit_query_flag_width(&*!argument\
+    , &*!value)' : i32
+:= query_flag_refusal (~argument : string) (~value : string) : string =
+    $'agile_task_query::kit_query_flag_refusal(&*!argument, &*!value)' : string
+:= query_usage () : string = $'agile_task_query::kit_query_usage()' : string
+:= query_appended (~query : string) (~argument : string) (~value : string) : string =
+    query ++# (? query = "" ?> "" |: " ") ++# argument ++# (? value = "" ?> "" |: " ") ++# value
+
+:= planning_filters_valid (~load : string) (~assignee : string) : bool =
+    $'agile_planning_filters::kit_agile_planning_filters_valid(&*!load, &*!assignee)' : bool
+
+:~ status_word_known (~text : string) : bool =
+    text = "all"
+    || union_reflection.cases.union_case_where
+           \ (status : agile_mutation_policy.model.agile_status) =>
+               text = agile_mutation_policy.model.agile_case_text status
+           \ _ => !+
+           !-
+
+:= sort_known (~word : string) : bool = word = "priority" || word = "difficulty" || word = "progress"
+
+:== list_args =
+    {
+        status : string
+        load : string
+        assignee : string
+        json : bool
+        query : string
+        sort : string
+    }
+
+:| list_parse =
+    | ListParsed : list_args
+    | ListRejected : string
+
+:= invalid_filter_reason (~argument : string) : string =
+        "invalid agile status filter: "
+        ++# argument
+        ++# " (expected all, Planned, Active, Blocked, Paused or Done; or "
+        ++# (query_usage ())
+        ++# ", --sort priority|difficulty|progress)"
+
+:= planning_filter_reason () : string =
+    "invalid planning filter (expected --load light|medium|heavy|none and --assignee agent|pair|user|none)"
+
+:~ ^ list_args_from (index : i32) (count : i32) (request : list_args) : list_parse =
+    ? count <= index
+    ?>
+        ? planning_filters_valid request.load request.assignee ?> ListParsed request
+        |: ListRejected (planning_filter_reason ())
+    |:
+        := argument = argument_owned index
+        ? argument = "--json"
+        ?> list_args_from (index + 1i32) count { request ?| json = !+ }
+        |? argument = "--load"
+        ?> list_args_from (index + 2i32) count { request ?| load = argument_owned (index + 1i32) }
+        |? argument = "--assignee"
+        ?> list_args_from (index + 2i32) count { request ?| assignee = argument_owned (index + 1i32) }
+        |? argument = "--sort"
+        ?>
+            := word = argument_owned (index + 1i32)
+            ? sort_known word
+            ?> list_args_from (index + 2i32) count { request ?| sort = word }
+            |:
+                ListRejected (
+                    "--sort expects priority|difficulty|progress, got " ++# word
+                )
+        |:
+            := value = argument_owned (index + 1i32)
+            := width = query_flag_width argument value
+            ? width > 0i32
+            ?>
+                list_args_from (index + width) count { request ?|
+                    query = query_appended request.query argument (? width = 2i32 ?> value |: "")
+                }
+            |? width < 0i32
+            ?> ListRejected (query_flag_refusal argument value)
+            |? status_word_known argument
+            ?> list_args_from (index + 1i32) count { request ?| status = argument }
+            |: ListRejected (invalid_filter_reason argument)
+
+:~ list_request () : bool * string * string * string * string * bool * string * string =
+    ?=
+        list_args_from 2i32 (argument_count ()) {
+            status = "all"
+            load = "all"
+            assignee = "all"
+            json = !-
+            query = ""
+            sort = "priority"
+        }
+    ?|
+    | ListParsed request =>
+        !+, "", request.status, request.load, request.assignee, request.json, request.query, request.sort
+    | ListRejected reason => !-, reason, "", "", "", !-, "", ""
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_list_request",
+        ((\ () => list_request ()) : () -> bool * string * string * string * string * bool * string * string)
+    )
+    0i32

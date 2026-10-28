@@ -1,0 +1,32 @@
+[package.metadata.kit]
+developer-tool = true
+
+[package.metadata.spiral]
+entry = "main.spi"
+output = "dev.rs"
+
+[[package.metadata.spiral.auxiliary]]
+entry = "selected_tests.spi"
+output = "selected_tests.rs"
+
+[[test]]
+name = "selected_workflow"
+path = "selected_tests.rs"
+
+[package]
+name = "kit-dev"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "kit-dev"
+path = "dev.rs"
+
+[dependencies]
+kit-process = { path = "../kit_process" }
+predicate-lex-domain = { path = "../predicate_lex_domain" }
+predicate-literal-domain = { path = "../predicate_literal_domain" }
+developer-metadata-domain = { path = "../developer_metadata_domain" }
+kit-dev-spiral-tests = { path = "../kit_dev_spiral_tests" }

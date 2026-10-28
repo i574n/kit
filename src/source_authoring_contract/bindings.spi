@@ -1,0 +1,42 @@
+:< model
+
+:~ source_authoring_shape_binding (target_safe : i32) (template_safe : i32) : i32 =
+    ? target_safe < 1i32 ?> 0i32
+    |? template_safe < 1i32 ?> 0i32
+    |: 1i32
+
+:~ source_authoring_template_binding (expected_match : i32) (template_nonempty : i32) : i32 =
+    ? expected_match < 1i32 ?> 0i32
+    |? template_nonempty < 1i32 ?> 0i32
+    |: 1i32
+
+:~ source_authoring_render_binding (binding_count : i32) (unresolved_count : i32) : i32 =
+    ? binding_count < 1i32 ?> 0i32
+    |? unresolved_count < 0i32 ?> 0i32
+    |? 0i32 < unresolved_count ?> 0i32
+    |: 1i32
+
+:~ source_authoring_freshness_binding (expected_code : i32) (observed_code : i32) : i32 =
+    ? expected_code < 0i32 ?> 0i32
+    |? observed_code < 0i32 ?> 0i32
+    |? 1i32 < expected_code ?> 0i32
+    |? 1i32 < observed_code ?> 0i32
+    |? expected_code < observed_code ?> 0i32
+    |? observed_code < expected_code ?> 0i32
+    |: 1i32
+
+:~ source_authoring_mode_binding (mode_code : i32) (write_count : i32) : i32 =
+    ? mode_code < 0i32 ?> 0i32
+    |? 1i32 < mode_code ?> 0i32
+    |? write_count < 0i32 ?> 0i32
+    |? mode_code < 1i32 ?>
+        ? write_count < 1i32 ?> 1i32 |: 0i32
+    |:
+        ? write_count < 1i32 ?> 0i32
+        |? 1i32 < write_count ?> 0i32
+        |: 1i32
+
+:~ source_authoring_commit_binding (write_ok : i32) (verify_ok : i32) : i32 =
+    ? write_ok < 1i32 ?> 0i32
+    |? verify_ok < 1i32 ?> 0i32
+    |: 1i32

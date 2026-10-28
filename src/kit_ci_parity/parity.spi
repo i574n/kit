@@ -1,0 +1,82 @@
+///- --package .
+:# parity static =
+    :< sm'_operators
+
+:< sm'_operators
+:< file_system_operators
+:< kit_ci_model.tools
+:< model
+
+:~ workflow_file (name : string) : bool = sm'.ends_with ".yml" name || sm'.ends_with ".yaml" name
+
+:~ names_in (directory : string) : list string =
+    ? file_system.directory_exists directory |> not ?> []
+    |:
+        file_system.read_dir_names directory
+        |> resultm.unwrap'
+        |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) Nil
+
+:~ workflows_text (directory : string) : string =
+    names_in directory
+    |> listm'.filter workflow_file
+    |> listm.fold \ text (name : string) =>
+            text ++# "\n- uses: workflow-boundary\n" ++# file_system.read_all_text (directory </> name)
+        ""
+
+:~ workflow_and_file_pins (repo : string) (directory : string) : list tool_pin =
+    := pins = workflow_pins (workflows_text directory)
+    := pinned_rust = listm'.try_find_ (\ (pin : tool_pin) => pin.tool = ToolRust) pins <> None
+    ?= repo_toolchain repo ?|
+    | Some channel => ? pinned_rust ?> pins |: listm.rev ({ tool = ToolRust; version = channel } :: listm.rev pins)
+    | None => pins
+
+:~ ^ rows_printed (row_of : tool_pin -> string * bool) (pins : list tool_pin) (differing : i32) : i32 =
+    ?= pins ?|
+    | Nil => differing
+    | (pin :: rest) =>
+        := line, differs = row_of pin
+        console.write_line line
+        rows_printed row_of rest (? differs ?> differing + 1i32 |: differing)
+
+:~ probe_row (repo : string) (pin : tool_pin) : string * bool =
+    := name = tool_name pin.tool
+    := ci = pin.version
+    $'kit_ci_verdict::kit_ci_parity_row(&*!name, &*!ci, &*!repo)' : string * bool
+
+:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:~ parity_run () : i32 =
+    := repo = argument 2i32
+    := directory = repo </> ".github" </> "workflows"
+    ? argument 1i32 <> "parity" || repo = "" ?>
+        console.write_line ("kit error: ci usage: " ++# usage ())
+        2i32
+    |? file_system.directory_exists directory |> not ?>
+        console.write_line ("kit ci parity refused: no workflow folder at " ++# directory)
+        1i32
+    |:
+        := pins = workflow_and_file_pins repo directory
+        := differing = rows_printed (probe_row repo) pins 0i32
+        := count = (listm.length pins : i32)
+        := summary = " tools=" ++# sm'.format count ++# " differs=" ++# sm'.format differing ++# " repo=" ++# repo
+        ? count = 0i32 ?>
+            console.write_line ("kit ci parity refused: no setup-* or rust-toolchain pin found;" ++# summary)
+            1i32
+        |? differing > 0i32 ?>
+            console.write_line (
+                "kit ci parity refused: " ++# sm'.format differing ++# " tool(s) differ from CI;" ++# summary
+            )
+            1i32
+        |:
+            console.write_line ("kit ci parity ok" ++# summary)
+            0i32
+
+///> rust
+:# workflow_files_and_rows =
+    expect
+        (workflow_file "ci.yml" && workflow_file "pages.yaml" && workflow_file "notes.md" = !-)
+        "workflow file names"
+    expect (names_in "C:/kit-ci-parity-no-such-folder" = []) "a missing folder lists nothing"
+    := stand_in (pin : tool_pin) : string * bool = tool_name pin.tool ++# " " ++# pin.version, pin.tool = ToolZig
+    := pins = [ { tool = ToolRust; version = "nightly" }; { tool = ToolZig; version = "0.17.0" } ]
+    expect (rows_printed stand_in pins 0i32 = 1i32) "one stand-in row differs"

@@ -1,0 +1,30 @@
+:~ cold_proof_equal_binding (expected : i32) (observed : i32) : i32 =
+    ? expected = observed ?> 1i32 |: 0i32
+
+:~ cold_proof_binary_binding (presence : i32) : i32 =
+    ? presence = 1i32 ?> 1i32
+    |? presence = 2i32 ?> 2i32
+    |: 0i32
+
+:= cold_proof_header_binding (schema : i32) (status : i32) : i32 =
+    ? schema = 4i32 ?>
+        ? status = 1i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:= cold_proof_shape_binding (gate_mask : i32) (gate_count : i32) : i32 =
+    ? gate_mask = 31i32 ?>
+        ? gate_count = 5i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:= cold_proof_evidence_binding (observed_mask : i32) (expected_mask : i32) : i32 =
+    ? observed_mask = 7i32 ?>
+        ? expected_mask = 7i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:= cold_proof_count_binding (expected : i32) (observed : i32) : i32 =
+    ? expected = observed ?> 1i32 |: 0i32
+
+:= cold_proof_replay_binding (observed_flags : i32) (expected_flags : i32) : i32 =
+    ? observed_flags = 15i32 ?>
+        ? expected_flags = 15i32 ?> 1i32 |: 0i32
+    |: 0i32

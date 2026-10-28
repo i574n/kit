@@ -1,0 +1,42 @@
+///- --package .
+:# classify static =
+    :< sm'_operators
+
+:< sm'_operators
+:< model
+:< host
+
+:~ call_of_command (habit_any : string -> bool) (~command : string) : shell_call =
+    ? kit_named command ?> KitCall
+    |? habit_any command ?> HabitCall
+    |: OtherCall
+
+:= call_word (call : shell_call) : string =
+    ?= call ?|
+    | KitCall => "kit"
+    | HabitCall => "habit"
+    | OtherCall => "other"
+
+:= expect_call (~command : string) (wanted : shell_call) : () =
+    := stand_in (text : string) : bool = sm'.contains "Get-Content" text || sm'.contains "python3" text
+    testing.expect (call_word (call_of_command stand_in command) = call_word wanted) ("call kind of: " ++# command)
+
+///> rust
+:# tallies_count_every_shell_call_and_split_kit_from_habits =
+    := tally = counted OtherCall (counted HabitCall (counted KitCall (counted KitCall (empty_tally ()))))
+    testing.expect (tally.shell = 4u64 && tally.kit = 2u64 && tally.habit = 1u64) "four calls, two kit, one habit"
+    testing.expect (kit_share tally = 0.5f64) "half of the shell calls are kit"
+    testing.expect (kit_share (empty_tally ()) = 0.0f64) "no calls, no share"
+    testing.expect (client_word Codex = "codex") "client words"
+
+///> rust
+:# commands_split_into_kit_habit_and_other_calls =
+    expect_call "kit read src/x.spi" KitCall
+    expect_call "C:\\work\\tools\\kit.exe job list" KitCall
+    expect_call "cd C:\\work\\repo && cargo build" OtherCall
+    expect_call "Get-Content C:\\work\\x.txt -TotalCount 5" HabitCall
+    expect_call "git -C C:\\work\\repo status" OtherCall
+    expect_call "python3 -I lab/x.py" HabitCall
+    expect_call "& kit do edit a.spi" KitCall
+    expect_call "& \"C:\\work\\tools\\kit.exe\" window list" KitCall
+    expect_call "Set-Location C:\\work\\repo; dir" OtherCall

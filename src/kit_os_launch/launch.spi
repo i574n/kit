@@ -1,0 +1,140 @@
+:= shell_parented_started (~executable : string) (~args : string) : string =
+    global """
+#[cfg(windows)]
+pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, u64) {
+    use std::os::windows::ffi::OsStrExt;
+    #[repr(C)]
+    struct StartupInfo { cb: u32, reserved: *mut u16, desktop: *mut u16, title: *mut u16, x: u32, y: u32, x_size: u32, y_size: u32, x_chars: u32, y_chars: u32, fill: u32, flags: u32, show: u16, reserved2_len: u16, reserved2: *mut u8, input: *mut std::ffi::c_void, output: *mut std::ffi::c_void, error: *mut std::ffi::c_void }
+    #[repr(C)]
+    struct StartupInfoEx { startup: StartupInfo, attributes: *mut std::ffi::c_void }
+    #[repr(C)]
+    struct ProcessInfo { process: *mut std::ffi::c_void, thread: *mut std::ffi::c_void, pid: u32, tid: u32 }
+    unsafe extern "system" {
+        fn CreateProcessW(app: *const u16, line: *mut u16, process_attributes: *mut std::ffi::c_void, thread_attributes: *mut std::ffi::c_void, inherit: i32, flags: u32, environment: *mut std::ffi::c_void, cwd: *const u16, startup: *mut StartupInfo, info: *mut ProcessInfo) -> i32;
+        fn CloseHandle(handle: *mut std::ffi::c_void) -> i32;
+        fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void;
+        fn InitializeProcThreadAttributeList(list: *mut std::ffi::c_void, count: u32, flags: u32, size: *mut usize) -> i32;
+        fn UpdateProcThreadAttribute(list: *mut std::ffi::c_void, flags: u32, attribute: usize, value: *mut std::ffi::c_void, size: usize, previous: *mut std::ffi::c_void, returned: *mut usize) -> i32;
+        fn DeleteProcThreadAttributeList(list: *mut std::ffi::c_void);
+    }
+    #[link(name = "user32")]
+    unsafe extern "system" {
+        fn GetShellWindow() -> *mut std::ffi::c_void;
+        fn GetWindowThreadProcessId(window: *mut std::ffi::c_void, pid: *mut u32) -> u32;
+    }
+    let quote = char::from(34u8);
+    let quoted = |arg: &str| if arg.is_empty() || arg.contains(char::from(32u8)) || arg.contains(quote) { format!("{quote}{}{quote}", arg.replace(quote, &format!("{}{quote}", char::from(92u8)))) } else { arg.to_owned() };
+    let line = std::iter::once(quoted(executable)).chain(args.iter().map(|arg| quoted(arg))).collect::<Vec<_>>().join(" ").encode_utf16().chain(std::iter::once(0u16)).collect::<Vec<u16>>();
+    let cwd = std::env::temp_dir().as_os_str().encode_wide().chain(std::iter::once(0u16)).collect::<Vec<u16>>();
+    let mut shell = owner;
+    if shell == 0 {
+        let window = unsafe { GetShellWindow() };
+        if !window.is_null() { unsafe { GetWindowThreadProcessId(window, &mut shell) }; }
+    }
+    let parent = if shell == 0 { std::ptr::null_mut() } else { unsafe { OpenProcess(0x0080, 0, shell) } };
+    let mut size = 0usize;
+    unsafe { InitializeProcThreadAttributeList(std::ptr::null_mut(), 1, 0, &mut size) };
+    let mut list = vec![0u8; size.max(64)];
+    let list_ptr = list.as_mut_ptr() as *mut std::ffi::c_void;
+    let mut value = parent;
+    let attributed = !parent.is_null() && unsafe { InitializeProcThreadAttributeList(list_ptr, 1, 0, &mut size) } != 0 && unsafe { UpdateProcThreadAttribute(list_ptr, 0, 0x0002_0000, &mut value as *mut *mut std::ffi::c_void as *mut std::ffi::c_void, std::mem::size_of::<*mut std::ffi::c_void>(), std::ptr::null_mut(), std::ptr::null_mut()) } != 0;
+    let start = |flags: u32, with_parent: bool| -> u64 {
+        let mut line = line.clone();
+        let mut startup: StartupInfoEx = unsafe { std::mem::zeroed() };
+        startup.startup.cb = (if with_parent { std::mem::size_of::<StartupInfoEx>() } else { std::mem::size_of::<StartupInfo>() }) as u32;
+        if with_parent { startup.attributes = list_ptr; }
+        let mut info: ProcessInfo = unsafe { std::mem::zeroed() };
+        let flags = if with_parent { flags | 0x0008_0000 } else { flags };
+        if unsafe { CreateProcessW(std::ptr::null(), line.as_mut_ptr(), std::ptr::null_mut(), std::ptr::null_mut(), 0, flags, std::ptr::null_mut(), cwd.as_ptr(), &mut startup as *mut StartupInfoEx as *mut StartupInfo, &mut info) } == 0 { 0 } else { unsafe { CloseHandle(info.thread); CloseHandle(info.process); } info.pid as u64 }
+    };
+    let tries = [(0x0100_0228u32, true), (0x0000_0228u32, true), (0x0100_0228u32, false), (0x0000_0228u32, false)];
+    let mut parent_pid = 0u64;
+    let mut pid = 0u64;
+    for (flags, with_parent) in tries.iter() {
+        if *with_parent && !attributed { continue; }
+        pid = start(*flags, *with_parent);
+        if pid != 0 { parent_pid = if *with_parent { shell as u64 } else { 0 }; break; }
+    }
+    if attributed { unsafe { DeleteProcThreadAttributeList(list_ptr) }; }
+    if !parent.is_null() { unsafe { CloseHandle(parent) }; }
+    (pid, parent_pid)
+}
+
+#[cfg(windows)]
+pub fn kit_shell_parented_start(executable: &str, args: &[&str]) -> (u64, u64) { kit_parented_start(executable, args, 0) }
+
+#[cfg(windows)]
+pub fn kit_process_started_ms(pid: u64) -> u64 {
+    unsafe extern "system" {
+        fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void;
+        fn CloseHandle(handle: *mut std::ffi::c_void) -> i32;
+        fn GetProcessTimes(process: *mut std::ffi::c_void, creation: *mut u64, exit: *mut u64, kernel: *mut u64, user: *mut u64) -> i32;
+        fn GetExitCodeProcess(process: *mut std::ffi::c_void, code: *mut u32) -> i32;
+    }
+    if pid == 0 { return 0; }
+    let handle = unsafe { OpenProcess(0x1000, 0, pid as u32) };
+    if handle.is_null() { return 0; }
+    let (mut creation, mut exit, mut kernel, mut user, mut code) = (0u64, 0u64, 0u64, 0u64, 0u32);
+    let timed = unsafe { GetProcessTimes(handle, &mut creation, &mut exit, &mut kernel, &mut user) } != 0;
+    let running = unsafe { GetExitCodeProcess(handle, &mut code) } != 0 && code == 259;
+    unsafe { CloseHandle(handle) };
+    if timed && running { creation / 10_000 - 11_644_473_600_000 } else { 0 }
+}
+
+#[cfg(windows)]
+pub fn kit_ancestry_text() -> String {
+    #[repr(C)]
+    struct Entry { size: u32, usage: u32, pid: u32, heap: usize, module: u32, threads: u32, parent: u32, base_priority: i32, flags: u32, exe: [u16; 260] }
+    unsafe extern "system" {
+        fn CreateToolhelp32Snapshot(flags: u32, pid: u32) -> *mut std::ffi::c_void;
+        fn Process32FirstW(snapshot: *mut std::ffi::c_void, entry: *mut Entry) -> i32;
+        fn Process32NextW(snapshot: *mut std::ffi::c_void, entry: *mut Entry) -> i32;
+        fn CloseHandle(handle: *mut std::ffi::c_void) -> i32;
+    }
+    let snapshot = unsafe { CreateToolhelp32Snapshot(2, 0) };
+    if snapshot.is_null() || snapshot as isize == -1 { return String::new(); }
+    let mut table = std::collections::HashMap::new();
+    let mut entry: Entry = unsafe { std::mem::zeroed() };
+    entry.size = std::mem::size_of::<Entry>() as u32;
+    let mut more = unsafe { Process32FirstW(snapshot, &mut entry) } != 0;
+    while more {
+        let length = entry.exe.iter().position(|unit| *unit == 0).unwrap_or(entry.exe.len());
+        table.insert(entry.pid, (entry.parent, String::from_utf16_lossy(&entry.exe[..length])));
+        more = unsafe { Process32NextW(snapshot, &mut entry) } != 0;
+    }
+    unsafe { CloseHandle(snapshot) };
+    let mut rows = Vec::new();
+    let mut child = std::process::id();
+    let mut child_started = kit_process_started_ms(child as u64);
+    for _ in 0..64 {
+        let Some((parent, _)) = table.get(&child).cloned() else { break };
+        let Some((_, name)) = table.get(&parent).cloned() else { break };
+        let started = kit_process_started_ms(parent as u64);
+        if started == 0 || (child_started != 0 && started > child_started) { break; }
+        rows.push(format!("{parent}|{name}|{started}"));
+        child = parent;
+        child_started = started;
+    }
+    rows.join("\n")
+}
+
+#[cfg(unix)]
+pub fn kit_parented_start(executable: &str, args: &[&str], _owner: u32) -> (u64, u64) { kit_shell_parented_start(executable, args) }
+
+#[cfg(unix)]
+pub fn kit_process_started_ms(_pid: u64) -> u64 { 0 }
+
+#[cfg(unix)]
+pub fn kit_ancestry_text() -> String { String::new() }
+
+#[cfg(unix)]
+pub fn kit_shell_parented_start(executable: &str, args: &[&str]) -> (u64, u64) {
+    use std::os::unix::process::CommandExt;
+    let mut command = std::process::Command::new(executable);
+    command.args(args).current_dir(std::env::temp_dir()).stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).process_group(0);
+    (command.spawn().map(|child| child.id() as u64).unwrap_or(0), 0)
+}
+
+pub fn kit_shell_parented_start_text(executable: &str, args: &str) -> String { let parts: Vec<&str> = args.split(char::from(9u8)).filter(|arg| !arg.is_empty()).collect(); let (pid, parent) = kit_shell_parented_start(executable, &parts); format!("pid={pid} parent={parent}") }
+"""
+    $'std::rc::Rc::<str>::from(kit_shell_parented_start_text(&*!executable, &*!args).as_str())' : string

@@ -1,0 +1,2 @@
+:= main () : i32 =
+    ? typed_predicate.model.evaluate (typed_predicate.model.sha256_text ()) 1u64 ?> 0i32 |: 1i32

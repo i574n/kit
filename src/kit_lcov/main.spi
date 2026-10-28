@@ -1,0 +1,4 @@
+:= main () : i32 =
+    !!!!Export("kit_lcov_error", ((\ text => lcov.lcov_error text) : string -> string))
+    !!!!Export("kit_lcov_rows", ((\ text => lcov.lcov_rows text) : string -> string))
+    0i32

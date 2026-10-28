@@ -1,0 +1,166 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| kit_role =
+    | JobHost
+    | JobSupervisor : string
+    | JobWaiter : string
+    | WindowHolder
+    | OtherCall
+
+:== process_fact =
+    {
+        pid : u64
+        parent_alive : bool
+        role : kit_role
+    }
+
+:| job_standing =
+    | JobLive
+    | JobSettled
+    | JobMissing
+
+:== chain_fact =
+    {
+        job : string
+        predecessor : string
+        standing : job_standing
+    }
+
+:| finding =
+    | IdleOrphanHost : u64
+    | SettledButSupervised : u64 * string
+    | WaitOnSettled : u64 * string
+    | WaitOnMissing : u64 * string
+    | ChainToMissing : string * string
+    | HostEnvironmentDiffers : string
+
+:= word_after (~marker : string) (~line : string) : string =
+    := at = sm'.index_of marker line
+    ? at < 0i32
+    ?> ""
+    |:
+        := rest =
+            sm'.substring
+                (at + (sm'.length marker : i32))
+                ((sm'.length line : i32) - at - (sm'.length marker : i32))
+                line
+        sm'.split " " (sm'.trim rest) |> array |> am'.index 0i32 |> sm'.replace "\"" ""
+
+:= role_of (~command : string) : kit_role =
+    ? sm'.contains " job host" command ?> JobHost
+    |? sm'.contains " job supervise " command ?> JobSupervisor (word_after " job supervise " command)
+    |? sm'.contains " job wait " command ?> JobWaiter (word_after " job wait " command)
+    |? sm'.contains " window run " command ?> WindowHolder
+    |: OtherCall
+
+:= hosted_jobs (processes : list process_fact) : i32 =
+    processes
+    |> listm.fold
+        \ count (process : process_fact) =>
+            ?= process.role ?|
+            | JobSupervisor _ => count + 1i32
+            | _ => count
+        0i32
+
+:= process_findings (processes : list process_fact) (standing : string -> job_standing) : list finding =
+    := busy = hosted_jobs processes > 0i32
+    processes
+    |> listm.fold \ found (process : process_fact) =>
+            ?= process.role ?|
+            | JobHost => ? process.parent_alive || busy ?> found |: IdleOrphanHost process.pid :: found
+            | JobSupervisor job =>
+                ? standing job = JobSettled ?> SettledButSupervised (process.pid, job) :: found |: found
+            | JobWaiter job =>
+                ?= standing job ?|
+                | JobSettled => WaitOnSettled (process.pid, job) :: found
+                | JobMissing => WaitOnMissing (process.pid, job) :: found
+                | JobLive => found
+            | _ => found
+        []
+    |> listm.rev
+
+:= chain_findings (chains : list chain_fact) : list finding =
+    chains
+    |> listm.fold
+        \ found (chain : chain_fact) =>
+            ?= chain.standing ?|
+            | JobMissing => ChainToMissing (chain.job, chain.predecessor) :: found
+            | _ => found
+        []
+    |> listm.rev
+
+:= steering (~name : string) : bool =
+    sm'.starts_with "KIT_" name || sm'.starts_with "SPIRAL_" name || sm'.starts_with "CARGO_" name
+    || sm'.starts_with "RUSTUP_" name
+
+:= drift (~caller : list string) (~detached : list string) : list string =
+    := missing_from (names : list string) (name : string) =
+        listm'.try_find_ (\ (known : string) => known = name) names = None
+    := added =
+        detached
+        |> listm'.filter \ (name : string) =>
+            steering name && missing_from caller name && not (sm'.starts_with "KIT_JOB_" name)
+    := dropped = caller |> listm'.filter \ (name : string) => steering name && missing_from detached name
+    := plus = added |> listm.map \ (name : string) => "+" ++# name
+    := minus = dropped |> listm.map \ (name : string) => "-" ++# name
+    minus |> listm.fold (\ (joined : list string) (name : string) => name :: joined) (listm.rev plus) |> listm.rev
+
+:= finding_line (item : finding) : string =
+    ?= item ?|
+    | IdleOrphanHost pid => "idle-orphan-host pid=" ++# sm'.format pid ++# " (its parent is gone and it serves no job)"
+    | SettledButSupervised (pid, job) => "settled-but-supervised pid=" ++# sm'.format pid ++# " job=" ++# job
+    | WaitOnSettled (pid, job) => "wait-on-settled pid=" ++# sm'.format pid ++# " job=" ++# job
+    | WaitOnMissing (pid, job) => "wait-on-missing pid=" ++# sm'.format pid ++# " job=" ++# job
+    | ChainToMissing (job, predecessor) => "chain-to-missing job=" ++# job ++# " after=" ++# predecessor
+    | HostEnvironmentDiffers names => "host-environment-differs " ++# names
+
+:= usage () : string =
+    "job doctor [--env] (audits kit processes, job files and after-chains; --env also compares a detached job's "
+    ^^ "environment with this shell's; exit 1 on a finding)"
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust
+:# todays_census_is_clean_while_the_old_host_drains =
+    := standing (job : string) : job_standing =
+        ? job = "job-9-done" ?> JobSettled |? job = "job-0-gone" ?> JobMissing |: JobLive
+    := draining =
+        [
+            { pid = 34888u64; parent_alive = !-; role = JobHost }
+            { pid = 133960u64; parent_alive = !+; role = JobSupervisor "job-1-review" }
+        ]
+    expect
+        (process_findings draining standing = [])
+        "a dead-parent host that still serves a job is draining, not a finding"
+    := idle = [ { pid = 34888u64; parent_alive = !-; role = JobHost } ]
+    expect (process_findings idle standing = [ IdleOrphanHost 34888u64 ]) "an orphan host with no job is a finding"
+    := stale =
+        [
+            { pid = 7u64; parent_alive = !+; role = JobWaiter "job-9-done" }
+            { pid = 8u64; parent_alive = !+; role = JobWaiter "job-0-gone" }
+            { pid = 9u64; parent_alive = !+; role = JobSupervisor "job-9-done" }
+        ]
+    expect
+        ((listm.length (process_findings stale standing) : i32) = 3i32)
+        "two stale waiters and a supervisor of a settled job"
+
+///> rust
+:# role_and_chain_and_environment_drift =
+    expect (role_of "\"C:\\x\\kit-1.exe\" job supervise job-17-a" = JobSupervisor "job-17-a") "supervisor role"
+    expect (role_of "C:\\x\\kit.exe job wait job-17-a 30000" = JobWaiter "job-17-a") "waiter role"
+    expect (role_of "C:\\x\\kit-1.exe job host" = JobHost) "host role"
+    expect
+        (
+            chain_findings [ { job = "job-2-b"; predecessor = "job-1-a"; standing = JobMissing } ]
+            = [ ChainToMissing ("job-2-b", "job-1-a") ]
+        )
+        "a chain to a missing job"
+    := caller = [ "KIT_LEASE_POLICY"; "PATH"; "SPIRAL_CC" ]
+    := detached = [ "PATH"; "SPIRAL_CC"; "KIT_WINDOWS_HOME"; "CARGO_BUILD_JOBS"; "KIT_JOB_WATCH" ]
+    expect
+        (drift caller detached = [ "+KIT_WINDOWS_HOME"; "+CARGO_BUILD_JOBS"; "-KIT_LEASE_POLICY" ])
+        "today's 10:4x leak, read as drift"

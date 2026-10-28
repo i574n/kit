@@ -1,0 +1,7 @@
+:< bundle_output_contract.model
+
+:= main () : i32 =
+    ?= policy_output "/tmp/kit-bundle-output-root" "/tmp/kit-bundle-output.zip" ?|
+    | BundleOutputAccepted _ => 0i32
+    | BundleOutputRejected _ => 1i32
+    | BundleOutputFailed _ => 2i32

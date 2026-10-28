@@ -1,0 +1,27 @@
+:< model
+
+:~ cold_rebuild_expected_shards_binding (owners : i32) (shard_width : i32) : i32 =
+    ? owners < 1i32 ?> -1i32
+    |? shard_width = 1i32 ?> owners
+    |? shard_width = 2i32 ?> (owners - 1i32) / 2i32 + 1i32
+    |? shard_width = 4i32 ?> (owners - 1i32) / 4i32 + 1i32
+    |: -1i32
+
+:~ cold_rebuild_shape_binding (owners : i32) (shard_width : i32) (shards : i32) : i32 =
+    := expected = cold_rebuild_expected_shards_binding owners shard_width
+    ? expected < 1i32 ?> 0i32
+    |? shards < 1i32 ?> 0i32
+    |? shards = expected ?> 1i32
+    |: 0i32
+
+:~ cold_rebuild_gate_binding (flags : i32) : i32 =
+    ? flags < 63i32 ?> 0i32
+    |? 63i32 < flags ?> 0i32
+    |: 1i32
+
+:~ cold_rebuild_product_binding (source_equal : i32) (product_equal : i32) : i32 =
+    ? source_equal < 1i32 ?> 0i32
+    |? 1i32 < source_equal ?> 0i32
+    |? product_equal < 1i32 ?> 0i32
+    |? 1i32 < product_equal ?> 0i32
+    |: 1i32

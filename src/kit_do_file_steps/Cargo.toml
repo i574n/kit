@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "steps.spi"
+output = "steps.rs"
+
+[package]
+name = "kit-do-file-steps"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_do_file_steps"
+path = "steps.rs"
+
+[dependencies]
+kit-do-read = { path = "../kit_do_read" }
+regex = "1.13.1"

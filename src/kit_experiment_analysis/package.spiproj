@@ -1,0 +1,9 @@
+packages:
+    |core-
+    rust_std_string
+    union_reflection
+    kit_table_query
+    agile_note_model
+    kit_experiments
+modules:
+    analysis

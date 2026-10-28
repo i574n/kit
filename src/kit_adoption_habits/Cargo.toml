@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "habits.rs"
+
+[package]
+name = "kit-adoption-habits"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_adoption_habits"
+path = "habits.rs"

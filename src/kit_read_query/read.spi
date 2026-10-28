@@ -1,0 +1,149 @@
+:< sm'_operators
+:< model
+:< kit_receipt.receipt
+:< slice
+
+:! host_tally = $'[u64; 4]'
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
+:= stderr_line (~text : string) : () = console.write_error_line text
+:~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+:= tally_at (~tally : host_tally) (~index : u64) : u64 = $'!tally[!index as usize]' : u64
+:= unsigned_of (~value : i64) : u64 = (conv value : u64)
+
+:= rejected (~message : string) : i32 =
+    stderr_line ("kit error: " ++# message)
+    2i32
+
+:== read_tally =
+    {
+        files : u64
+        unreadable : u64
+        lines : u64
+        json : string
+    }
+
+:~ slice_tallied (~path : string) (range : line_range) (limit : u64) (json : bool) (tally : read_tally) : read_tally =
+    := view = file_slice path range limit json
+    := files = tally.files + 1u64
+    := items = ? tally.json = "" ?> view.json |: tally.json ++# "," ++# view.json
+    ? view.shown < 0i64 ?> { tally ?| files = files; unreadable = (tally.unreadable + 1u64); json = items }
+    |: { tally ?| files = files; lines = (tally.lines + unsigned_of view.shown); json = items }
+
+:~ ^ globbed_from
+    (~paths : string) (index : i32) (range : line_range) (limit : u64) (json : bool) (tally : read_tally)
+    : read_tally
+    =
+    := path = nth_path paths index
+    ? path = "" ?> tally
+    |: globbed_from paths (index + 1i32) range limit json (slice_tallied path range limit json tally)
+
+:~ spec_tallied (spec : read_spec) (limit : u64) (json : bool) (tally : read_tally) : read_tally =
+    := paths = glob_paths spec.path
+    ? paths = "" ?> slice_tallied spec.path spec.range limit json tally
+    |: globbed_from paths 0i32 spec.range limit json tally
+
+:~ ^ read_from (index : i32) (count : i32) (limit : u64) (json : bool) (tally : read_tally) : read_tally =
+    ? index < count ?>
+        := word = argument index
+        ? word = "--max-lines" ?> read_from (index + 2i32) count limit json tally
+        |? word = "--json" ?> read_from (index + 1i32) count limit json tally
+        |: read_from (index + 1i32) count limit json (spec_tallied (read_spec_of word) limit json tally)
+    |: tally
+:~ ^ max_lines_from (index : i32) (count : i32) : u64 =
+    ? index + 1i32 < count ?>
+        ? argument index = "--max-lines" ?> decimal_u64 (argument (index + 1i32)) |: max_lines_from (index + 1i32) count
+    |: 400u64
+
+:~ read_receipt (tally : read_tally) (json : bool) (~started : u64) : i32 =
+    := files = decimal_text tally.files
+    := unreadable = tally.unreadable
+    := lines = decimal_text tally.lines
+    ? json
+    ?>
+        stdout_text (
+            "{\"files\":["
+            ++# tally.json
+            ++# "],\"lines\":"
+            ++# lines
+            ++# (",\"unreadable\":" ++# (decimal_text unreadable) ++# "}")
+        )
+        ? unreadable = 0u64 ?> 0i32 |: 2i32
+    |? unreadable = 0u64
+    ?>
+        receipt_line Succeeded ("files " ++# files ++# "  lines " ++# lines) started
+        0i32
+    |:
+        receipt_line Failed
+            ("files " ++# files ++# "  unreadable " ++# (decimal_text unreadable) ++# ("  lines " ++# lines))
+            started
+        2i32
+
+:~ read_start () : read_tally = { files = 0u64; unreadable = 0u64; lines = 0u64; json = "" }
+
+:= json_flag () : bool = rust_std_env.model.argument_flag_present 2i32 "--json"
+:~ lines_counted (~patterns : string) : host_tally =
+    $'(|| -> [u64; 4] { let mut rows = Vec::new(); for shown in (&*!patterns).lines().filter(|line| \
+        \!line.is_empty()) { rows.push((shown.to_owned(), std::fs::read(shown).map(|bytes| (bytes.len() as u64, \
+        String::from_utf8_lossy(&bytes).lines().count() as u64)).map_err(|error| error.to_string()))); \
+        } let path_width = rows.iter().map(|row| row.0.len()).max().unwrap_or(0).max(4); \
+        let bytes_width = rows.iter().map(|row| row.1.as_ref().map(|counts| \
+        counts.0.to_string().len()).unwrap_or(1)).max().unwrap_or(0).max(5); \
+        println\!("{:<path_width$}  {:<bytes_width$}  {}", "path", "bytes", "lines"); let mut tally = [0u64; 4]; \
+        for (shown, counts) in &rows { tally[0] += 1; match counts { Ok((bytes, lines)) => { tally[1] += bytes; \
+        tally[2] += lines; println\!("{:<path_width$}  {:<bytes_width$}  {}", shown, bytes, lines); \
+        } Err(error) => { tally[3] += 1; println\!("{:<path_width$}  {:<bytes_width$}  -  (unreadable: {error})", \
+        shown, "-"); } } } tally })()' : host_tally
+
+:~ lines_receipt (tally : host_tally) (~started : u64) : i32 =
+    := files = decimal_text (tally_at tally 0u64)
+    := bytes = decimal_text (tally_at tally 1u64)
+    := lines = decimal_text (tally_at tally 2u64)
+    := unreadable = tally_at tally 3u64
+    := counts = "files " ++# files ++# ("  bytes " ++# bytes ++# "  lines " ++# lines)
+    ? unreadable = 0u64 ?>
+        receipt_line Succeeded counts started
+        0i32
+    |:
+        receipt_line Failed (counts ++# "  unreadable " ++# (decimal_text unreadable)) started
+        2i32
+
+:~ ^ patterns_from (index : i32) (count : i32) (~acc : string) : string =
+    ? index < count
+    ?> patterns_from (index + 1i32) count (? acc = "" ?> argument index |: acc ++# "\n" ++# (argument index))
+    |: acc
+
+:~ ^ expanded_from (~patterns : string) (index : i32) (~acc : string) : string =
+    := pattern = nth_path patterns index
+    ? path_count patterns <= index ?> acc
+    |? pattern = "" ?> expanded_from patterns (index + 1i32) acc
+    |:
+        := paths = glob_paths pattern
+        expanded_from patterns (index + 1i32) (? paths = "" ?> acc |? acc = "" ?> paths |: acc ++# "\n" ++# paths)
+
+:~ read_run () : i32 =
+    := started = now_ms ()
+    ?= read_command_of (argument 1i32) ?|
+    | ReadFiles =>
+        ? argument_count () < 3i32
+        ?> rejected (read_usage ())
+        |:
+            read_receipt
+                (
+                    read_from 2i32
+                        (argument_count ())
+                        (max_lines_from 2i32 (argument_count ()))
+                        (json_flag ())
+                        (read_start ())
+                )
+                (json_flag ())
+                started
+    | CountLines =>
+        ? argument_count () < 3i32 ?> rejected (read_usage ())
+        |: lines_receipt (lines_counted (expanded_from (patterns_from 2i32 (argument_count ()) "") 0i32 "")) started
+    | ReadUnknown => rejected (read_usage ())
+
+:= main () : i32 =
+    !!!!Export("kit_read_run", ((\ () => read_run ()) : () -> i32))
+    0i32

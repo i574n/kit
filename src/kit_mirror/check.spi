@@ -1,0 +1,102 @@
+:< sm'_operators
+:< mirror
+
+:= argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:= under (~root : string) (~relative : string) : string = ? relative = "" ?> root |: root ++# "/" ++# relative
+
+:= child (~relative : string) (~name : string) : string = ? relative = "" ?> name |: relative ++# "/" ++# name
+
+:~ sorted_names (~path : string) : array string =
+    file_system.read_dir_names path
+    |> resultm.unwrap'
+    |> am'.from_vec_base
+    |> am'.map_base sm'.from_std_string
+    |> array
+    |> am'.sort_by id
+
+:~ ^ children_pushed (~relative : string) (names : array string) (index : i32) (pending : list string) : list string =
+    ? index < 0i32 ?> pending
+    |: children_pushed relative names (index - 1i32) (child relative (am'.index index names) :: pending)
+
+:~ ^ files_under (~root : string) (pending : list string) (acc : list string) : list string =
+    ?= pending ?|
+    | Nil => acc
+    | (relative :: rest) =>
+        := full = under root relative
+        ? file_system.directory_exists full ?>
+            := names = sorted_names full
+            files_under root (children_pushed relative names (am'.length names - 1i32) rest) acc
+        |? file_system.file_exists full ?> files_under root rest (relative :: acc)
+        |: files_under root rest acc
+
+:~ ^ merged (extra : list string) (acc : list string) : list string =
+    ?= extra ?|
+    | Nil => acc
+    | (path :: rest) => merged rest (? listm'.contains path acc ?> acc |: (path :: acc))
+
+:= side_of (~path : string) : file_side =
+    ? file_system.file_exists path
+    ?> Present (file_system.read_all_text path, file_system.last_write_ms path)
+    |: Missing
+
+:~ ^ mirrored (~left : string) (~right : string) (paths : list string) (acc : list mirrored_file) : list mirrored_file =
+    ?= paths ?|
+    | Nil => listm.rev acc
+    | (path :: rest) =>
+        mirrored left right rest (
+            { path = path; left = side_of (under left path); right = side_of (under right path) } :: acc
+        )
+
+:~ ^ drift_lines (files : list mirrored_file) (~text : string) (count : u64) : string * u64 =
+    ?= files ?|
+    | Nil => text, count
+    | (file :: rest) =>
+        ?= drift_of file ?|
+        | SameOnBoth => drift_lines rest text count
+        | drift => drift_lines rest (text ++# drift_word drift ++# "\t" ++# file.path ++# "\n") (count + 1u64)
+
+:~ ^ paths_from (index : i32) (count : i32) (~left : string) (~right : string) (acc : list string) : list string =
+    ? index >= count ?> acc
+    |:
+        := path = argument index
+        := on_left = listm.rev (files_under left (path :: Nil) Nil)
+        := on_right = listm.rev (files_under right (path :: Nil) Nil)
+        paths_from (index + 1i32) count left right (merged on_right (merged on_left acc))
+
+:= usage () : string =
+    "usage: mirror check <left-root> <right-root> <path>... (paths relative to both roots; a directory stands for "
+    ^^ "every file under it)"
+
+:~ mirror_run () : i32 =
+    := count = env.command_line_argument_count ()
+    := left = argument 2i32
+    := right = argument 3i32
+    ? argument 1i32 <> "check" || count < 5i32
+    ?>
+        console.write_error_line ("kit error: mirror " ++# usage ())
+        2i32
+    |? file_system.directory_exists left = !- || file_system.directory_exists right = !-
+    ?>
+        console.write_error_line (
+            "kit error: mirror check needs two existing roots, received " ++# left ++# " and " ++# right
+        )
+        2i32
+    |:
+        := files = mirrored left right (listm.rev (paths_from 4i32 count left right Nil)) Nil
+        := lines, differing = drift_lines files "" 0u64
+        := state = mirror_state_of files "" ""
+        ? lines <> "" ?> console.write_line (sm'.trim_end_suffix "\n" lines)
+        console.write_error_line (
+            "kit mirror check "
+            ++# state_word state
+            ++# " files="
+            ++# sm'.format (listm.length files : i32)
+            ++# " differing="
+            ++# sm'.format differing
+        )
+        ? refuses_commit state ?> 1i32 |: 0i32
+
+:= main () : i32 =
+    !!!!Export("kit_mirror_run", ((\ () => mirror_run ()) : () -> i32))
+    0i32

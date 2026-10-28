@@ -1,0 +1,109 @@
+///- --package .
+:# grammar static =
+    :< sm'_operators
+    :< host
+    :< kit_do_records.records
+
+:< sm'_operators
+:< host
+:< kit_do_records.records
+
+:| job_step =
+    | JobStart : string * string * string * bool
+    | JobWait : string * u64
+    | JobStop : string
+    | Blank
+
+:| job_parse =
+    | JobParsed : job_step
+    | JobRejected : string
+
+:~ start_parsed (~records : record_list) (~record : i32) : job_parse =
+    := as_at = field_index records record "as"
+    := timeout_at = field_index records record "timeout"
+    := command = words_between records record 3i32 as_at
+    ? as_at < 0i32 || command = ""
+    ?> JobRejected "job start: expected job start <command> as <name> timeout <duration> [notify]"
+    |? timeout_at < 0i32 || duration_ms (body_at records record (timeout_at + 1i32)) = 0u64
+    ?> JobRejected "job start: expected timeout <duration> such as 30s or 5m"
+    |:
+        := name = body_at records record (as_at + 1i32)
+        ? name = "" || name = "timeout"
+        ?> JobRejected "as: expected a job name after it"
+        |:
+            JobParsed (
+                JobStart (
+                    name,
+                    command,
+                    body_at records record (timeout_at + 1i32),
+                    field_index records record "notify" > 0i32
+                )
+            )
+
+:~ wait_parsed (~records : record_list) (~record : i32) : job_parse =
+    := name = body_at records record 3i32
+    := timeout_at = field_index records record "timeout"
+    ? name = "" || name = "timeout"
+    ?> JobRejected "job wait: expected job wait <name> [timeout <duration>]"
+    |:
+        JobParsed (
+            JobWait (name, ? timeout_at < 0i32 ?> 0u64 |: duration_ms (body_at records record (timeout_at + 1i32)))
+        )
+
+:~ stop_parsed (~records : record_list) (~record : i32) : job_parse =
+    := name = body_at records record 3i32
+    ? name = "" ?> JobRejected "job stop: expected job stop <name>" |: JobParsed (JobStop name)
+
+:~ job_parsed (~records : record_list) (~record : i32) : job_parse =
+    := kind = field_at records record 0i32
+    := action = body_at records record 2i32
+    ? kind = ""
+    ?> JobParsed Blank
+    |? kind <> "query" || field_at records record 1i32 <> "job"
+    ?> JobRejected ((field_at records record 1i32) ++# " cannot share one program with job yet; run it as its own call")
+    |? action = "start"
+    ?> start_parsed records record
+    |? action = "wait"
+    ?> wait_parsed records record
+    |? action = "stop"
+    ?> stop_parsed records record
+    |: JobRejected ("job: unknown action " ++# action ++# "; expected start, wait or stop")
+
+
+:= rejection_at (~records : record_list) (~record : i32) : string =
+    ?= job_parsed records record ?|
+    | JobRejected message => message
+    | JobParsed _ => ""
+
+///> rust
+:# job_statements_parse_into_one_domain =
+    := records =
+        records_from_bars
+            "ok\nquery|job|wstart|wslow.cmd|warg|was|wj1|wtimeout|w2s|wnotify\nquery|job|wwait|wj1|wtimeout|w30s"
+    ?= job_parsed records 1i32 ?|
+    | JobParsed (JobStart (name, command, timeout, notify)) =>
+        testing.expect (name = "j1" && command = "slow.cmd arg" && timeout = "2s" && notify) "start parts"
+    | _ => testing.expect !- "start"
+    ?= job_parsed records 2i32 ?|
+    | JobParsed (JobWait (name, wait_ms)) => testing.expect (name = "j1" && wait_ms = 30000u64) "wait parts"
+    | _ => testing.expect !- "wait"
+    := stop_records = records_from_bars "ok\nquery|job|wstop|wj1"
+    ?= job_parsed stop_records 1i32 ?|
+    | JobParsed (JobStop name) => testing.expect (name = "j1") "stop name"
+    | _ => testing.expect !- "stop"
+
+///> rust
+:# incomplete_job_statements_are_rejected =
+    := records =
+        records_from_bars
+            "ok\nquery|job|wstart|wslow.cmd|wtimeout|w2s\nquery|job|wstart|wslow.cmd|was|wj1\nquery|job|wkill|wj1"
+    testing.expect
+        (rejection_at records 1i32 = "job start: expected job start <command> as <name> timeout <duration> [notify]")
+        "start without a name"
+    testing.expect
+        (rejection_at records 2i32 = "job start: expected timeout <duration> such as 30s or 5m")
+        "start without a timeout"
+    testing.expect (rejection_at records 3i32 = "job: unknown action kill; expected start, wait or stop") "unknown action"
+    testing.expect
+        (duration_text 2000u64 = "2s" && duration_text 1500u64 = "1.5s" && duration_text 250u64 = "250ms")
+        "durations"

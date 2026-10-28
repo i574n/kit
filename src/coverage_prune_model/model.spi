@@ -1,0 +1,89 @@
+:! coverage_idle = ()
+:~ coverage_jobs_binding (requested : i32) (available : i32) : i32 =
+    ? requested = 0i32 ?>
+        ? available < 2i32 ?> 1i32 |: 2i32
+    |? requested < 1i32 || 256i32 < requested ?> -1i32
+    |: requested
+
+:! coverage_profiles_loaded = ()
+:! coverage_assessed = ()
+:! prune_candidate_verified = ()
+:! prune_staged = ()
+:! prune_committed = ()
+
+:| coverage_op from to =
+    | LoadCoverageProfiles :: coverage_op coverage_idle coverage_profiles_loaded
+    | AssessCoverageFloors :: coverage_op coverage_profiles_loaded coverage_assessed
+    | VerifyPruneCandidate :: coverage_op coverage_idle prune_candidate_verified
+    | StagePruneCandidate :: coverage_op prune_candidate_verified prune_staged
+    | CommitPruneReceipt :: coverage_op prune_staged prune_committed
+
+:| ^ coverage_plan from to =
+    | CoverageStep :: \* from to. coverage_op from to -> coverage_plan from to
+    | CoverageThen :: \* from to.
+        (\? middle. coverage_plan from middle * coverage_plan middle to) ->
+        coverage_plan from to
+
+:= assess_plan () : coverage_plan coverage_idle coverage_assessed =
+    CoverageThen (\? (
+        CoverageStep LoadCoverageProfiles,
+        CoverageStep AssessCoverageFloors
+    ))
+
+:= prune_plan () : coverage_plan coverage_idle prune_committed =
+    CoverageThen (\? (
+        CoverageStep VerifyPruneCandidate,
+        CoverageThen (\? (
+            CoverageStep StagePruneCandidate,
+            CoverageStep CommitPruneReceipt
+        ))
+    ))
+
+:! coverage_run_idle = ()
+:! coverage_run_configured = ()
+:! coverage_binary_instrumented = ()
+:! coverage_contracts_executed = ()
+:! coverage_profiles_emitted = ()
+
+:| coverage_contract_scope =
+    | PublicContracts :: coverage_contract_scope
+    | WorkspaceContracts :: coverage_contract_scope
+    | SmokePublic :: coverage_contract_scope
+
+:| coverage_run_op from to =
+    | ConfigureCoverageRun :: coverage_contract_scope -> coverage_run_op coverage_run_idle coverage_run_configured
+    | BuildInstrumentedBinary :: coverage_run_op coverage_run_configured coverage_binary_instrumented
+    | ExecuteInstrumentedContracts :: coverage_run_op coverage_binary_instrumented coverage_contracts_executed
+    | EmitCoverageProfiles :: coverage_run_op coverage_contracts_executed coverage_profiles_emitted
+
+:| ^ coverage_run_plan from to =
+    | CoverageRunStep :: \* from to. coverage_run_op from to -> coverage_run_plan from to
+    | CoverageRunThen :: \* from to.
+        (\? middle. coverage_run_plan from middle * coverage_run_plan middle to) ->
+        coverage_run_plan from to
+
+:= instrumented_workspace_plan () : coverage_run_plan coverage_run_idle coverage_profiles_emitted =
+    CoverageRunThen (\? (
+        CoverageRunStep (ConfigureCoverageRun WorkspaceContracts),
+        CoverageRunThen (\? (
+            CoverageRunStep BuildInstrumentedBinary,
+            CoverageRunThen (\? (
+                CoverageRunStep ExecuteInstrumentedContracts,
+                CoverageRunStep EmitCoverageProfiles
+            ))
+        ))
+    ))
+
+///> rust
+:# coverage_jobs_default_is_bounded_and_explicit_jobs_are_validated =
+    := jobs_are (requested : i32) (available : i32) (expected : i32) : () =
+        ? coverage_jobs_binding requested available = expected
+        ?> ()
+        |: failwith "coverage_jobs_binding returned an unexpected job count"
+    jobs_are 0i32 1i32 1i32
+    jobs_are 0i32 64i32 2i32
+    jobs_are 1i32 64i32 1i32
+    jobs_are 56i32 64i32 56i32
+    jobs_are 256i32 64i32 256i32
+    jobs_are 257i32 64i32 -1i32
+    jobs_are -1i32 64i32 -1i32

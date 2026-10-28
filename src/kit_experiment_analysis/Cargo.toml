@@ -1,0 +1,20 @@
+[package.metadata.spiral]
+entry = "analysis.spi"
+output = "analysis.rs"
+
+[package]
+name = "kit-experiment-analysis"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_experiment_analysis"
+path = "analysis.rs"
+
+[dependencies]
+kit-table-text = { path = "../kit_table_text" }
+agile-task-notes = { path = "../agile_task_notes" }
+kit-experiment-stats = { path = "../kit_experiment_stats" }
+kit-table-query = { path = "../kit_table_query" }

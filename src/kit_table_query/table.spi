@@ -1,0 +1,75 @@
+:< rust_std_string.model
+:< query
+:< cells
+:< stats
+:< wheres
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
+
+:~ ^ options_from (index : i32) (count : i32) (request : table_request) : option_step =
+    ? index < count ?>
+        ? argument index = "--quiet" ?> options_from (index + 1i32) count { request ?| quiet = !+ }
+        |? index + 1i32 < count ?>
+            ?= option_applied request (argument index) (argument (index + 1i32)) ?|
+            | StepTaken next => options_from (index + 2i32) count next
+            | StepRejected reason => StepRejected reason
+        |: StepRejected (concat5 "option " (argument index) " has no value" "" "")
+    |: StepTaken request
+
+:~ plain_query (~file : string) (request : table_request) : i32 =
+    := wheres, cols, group, limit, quiet = request.wheres, request.cols, request.group, request.limit, request.quiet
+    $'kit_table_plain::kit_table_plain(&*!file, &*!wheres, &*!cols, &*!group, !limit, !quiet)' : i32
+
+:= measured (request : table_request) : bool = request.measured <> ""
+
+:~ measured_query (~file : string) (request : table_request) : i32 =
+    := wheres, group, measures, limit, quiet =
+        request.wheres, request.group, request.measured, request.limit, request.quiet
+    $'kit_table_measures::kit_table_measured(&*!file, &*!wheres, &*!group, &*!measures, !limit, !quiet)' : i32
+
+:~ table_run () : i32 =
+    ?= table_command_of (argument 2i32) ?|
+    | TableQuery =>
+        ? argument_count () < 4i32 ?> rejected (table_usage ())
+        |:
+            ?= options_from 4i32 (argument_count ()) (no_request ()) ?|
+            | StepTaken request =>
+                ? measured request ?> measured_query (argument 3i32) request
+                |: plain_query (argument 3i32) request
+            | StepRejected reason => rejected reason
+    | TableDiff =>
+        ? argument_count () < 5i32 ?> rejected (table_usage ())
+        |:
+            ?= options_from 5i32 (argument_count ()) (no_request ()) ?|
+            | StepTaken request =>
+                := left = argument 3i32
+                := right = argument 4i32
+                := key = request.key
+                := cols = request.cols
+                := latest = request.latest
+                := limit = request.limit
+                $'kit_table_diff::kit_table_diff_run(&*!left, &*!right, &*!key, &*!cols, &*!latest, !limit)' : i32
+            | StepRejected reason => rejected reason
+    | TableUnknown => rejected (table_usage ())
+
+:~ ^ kept_mask (list : filters) (cells : table_cells) (row : i32) (total : i32) (~acc : string) : string =
+    ? row > total
+    ?> acc
+    |:
+        kept_mask list cells
+            (row + 1i32)
+            total
+            (rust_std_string.model.concat5 acc (? row_passes list cells row ?> "1" |: "0") "" "" "")
+
+:~ rows_kept (~path : string) (~wheres : string) : bool * string =
+    ?= table_read path ?|
+    | TableUnreadable problem => !-, problem
+    | TableLoaded cells =>
+        := list, missing = filters_from cells wheres
+        ? missing <> "" ?> !-, missing
+        |: !+, kept_mask list cells 1i32 (row_total cells) "-"
+:= main () : i32 =
+    !!!!Export("kit_table_run", ((\ () => table_run ()) : () -> i32))
+    !!!!Export("kit_table_rows_kept", ((\ (path, wheres) => rows_kept path wheres) : string * string -> bool * string))
+    0i32

@@ -1,0 +1,30 @@
+:< rust_std_env.model
+
+:= preflight (~a : i32) (~b : i32) : i32 =
+    $'legacy_capability_domain::kit_self_install_preflight_binding(!a, !b)' : i32
+
+:= target (~a : i32) (~b : i32) : i32 =
+    $'legacy_capability_domain::kit_self_install_target_binding(!a, !b)' : i32
+
+:= fault (~a : i32) (~b : i32) : i32 =
+    $'legacy_capability_domain::kit_self_install_fault_binding(!a, !b)' : i32
+
+:= complete (~a : i32) (~b : i32) : i32 =
+    $'legacy_capability_domain::kit_self_install_complete_binding(!a, !b)' : i32
+
+:= main () : i32 =
+    := invalid_source = preflight 0i32 1i32
+    := absent_link = target 1i32 0i32
+    := symlink_link = target 1i32 1i32
+    := regular_link = target 1i32 2i32
+    := directory_link = target 1i32 3i32
+    := third_fault = fault 3i32 3i32
+    := completed = complete 1i32 1i32
+    ? 0i32 < invalid_source ?> 1i32
+    |? absent_link < 1i32 ?> 1i32
+    |? symlink_link < 1i32 ?> 1i32
+    |? regular_link < 1i32 ?> 1i32
+    |? 0i32 < directory_link ?> 1i32
+    |? third_fault < 1i32 ?> 1i32
+    |? completed < 1i32 ?> 1i32
+    |: 0i32

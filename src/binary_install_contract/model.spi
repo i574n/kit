@@ -1,0 +1,46 @@
+:! binary_install_raw = ()
+:! binary_install_inspected = ()
+:! binary_install_staged = ()
+:! binary_install_verified = ()
+:! binary_install_promoted = ()
+:! binary_install_recorded = ()
+
+:| binary_install_policy =
+    | RejectUnsafeInstallPath
+    | RejectStaleInstallSource
+    | RejectStaleInstallDestination
+    | RejectStaleInstallProvenance
+    | RejectNonExecutableMode
+    | RejectPreviewMutation
+    | RejectRunningExecutableDestination
+    | AuthorizeStagedPromotion
+    | RollbackFailedPromotion
+    | RecordTypedProvenance
+
+:| binary_install_op from to =
+    | InspectBinaryInstall :: binary_install_op binary_install_raw binary_install_inspected
+    | StageBinaryPayload :: binary_install_op binary_install_inspected binary_install_staged
+    | VerifyBinaryStage :: binary_install_op binary_install_staged binary_install_verified
+    | PromoteBinaryStage :: binary_install_op binary_install_verified binary_install_promoted
+    | PersistBinaryProvenance :: binary_install_op binary_install_promoted binary_install_recorded
+
+:| ^ binary_install_plan from to =
+    | BinaryInstallStep :: \* from to. binary_install_op from to -> binary_install_plan from to
+    | BinaryInstallThen :: \* from to.
+        (\? middle. binary_install_plan from middle * binary_install_plan middle to) ->
+        binary_install_plan from to
+
+:= binary_install_public_plan () : binary_install_plan binary_install_raw binary_install_recorded =
+    BinaryInstallThen (\? (
+        BinaryInstallStep InspectBinaryInstall,
+        BinaryInstallThen (\? (
+            BinaryInstallStep StageBinaryPayload,
+            BinaryInstallThen (\? (
+                BinaryInstallStep VerifyBinaryStage,
+                BinaryInstallThen (\? (
+                    BinaryInstallStep PromoteBinaryStage,
+                    BinaryInstallStep PersistBinaryProvenance
+                ))
+            ))
+        ))
+    ))

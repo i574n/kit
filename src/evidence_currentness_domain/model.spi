@@ -1,0 +1,78 @@
+:! evidence_declared = ()
+:! evidence_observed = ()
+:! evidence_verified = ()
+
+:| evidence_transition from to =
+    | ObserveEvidence :: () -> evidence_transition evidence_declared evidence_observed
+    | VerifyEvidence :: () -> evidence_transition evidence_observed evidence_verified
+
+:| ^ evidence_plan from to =
+    | EvidenceStep :: \* from to. evidence_transition from to -> evidence_plan from to
+    | EvidenceThen :: \* from to.
+        (\? middle. evidence_plan from middle * evidence_plan middle to) -> evidence_plan from to
+
+:= currentness_plan () : evidence_plan evidence_declared evidence_verified =
+    EvidenceThen (\? (EvidenceStep (ObserveEvidence ()), EvidenceStep (VerifyEvidence ())))
+
+:= transition_admits \* from to. (transition : evidence_transition from to) (regular : bool) (identical : bool) : bool =
+    ?= transition ?|
+    | ObserveEvidence _ => regular
+    | VerifyEvidence _ => identical
+
+:= transition_stage \* from to. (transition : evidence_transition from to) : i32 =
+    ?= transition ?|
+    | ObserveEvidence _ => 1i32
+    | VerifyEvidence _ => 2i32
+
+:= ^ plan_stage \* from to.
+    (plan : evidence_plan from to) (regular : bool) (identical : bool) (reached : i32)
+    : bool * i32
+    =
+    ?= plan ?|
+    | EvidenceStep transition =>
+        ? transition_admits transition regular identical ?> (!+, transition_stage transition) |: (!-, reached)
+    | EvidenceThen payload =>
+        := \? middle. left, right = payload
+        := advanced, reached = plan_stage left regular identical reached
+        ? advanced ?> plan_stage right regular identical reached |: (!-, reached)
+
+:~ evidence_row_stage (regular : i32) (identical : i32) : i32 =
+    := _, stage = plan_stage (currentness_plan ()) (regular = 1i32) (identical = 1i32) 0i32
+    stage
+
+:| rust_tool =
+    | Rustc
+    | Cargo
+    | Rustdoc
+    | Rustfmt
+
+:= rust_tool_identity = \|
+    | Rustc => "rustc"
+    | Cargo => "cargo"
+    | Rustdoc => "rustdoc"
+    | Rustfmt => "rustfmt"
+
+:= rust_tool_environment = \|
+    | Rustc => "RUSTC"
+    | Cargo => "CARGO"
+    | Rustdoc => "RUSTDOC"
+    | Rustfmt => "RUSTFMT"
+
+:~ rust_tool_environment_binding (relative : string) : string =
+    := check tool next =
+        := identity = rust_tool_identity tool
+        ? relative = identity ?> rust_tool_environment tool |: next
+    check Rustc (check Cargo (check Rustdoc (check Rustfmt "")))
+
+:| public_binary =
+    | UnixPublicBinary
+    | WindowsPublicBinary
+
+:= public_binary_name = \|
+    | UnixPublicBinary => "kit"
+    | WindowsPublicBinary => "kit.exe"
+
+:~ evidence_public_binary_binding (unix : i32) (windows : i32) : string =
+    ? unix = 1i32 && windows = 0i32 ?> public_binary_name UnixPublicBinary
+    |? unix = 0i32 && windows = 1i32 ?> public_binary_name WindowsPublicBinary
+    |: ""

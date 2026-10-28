@@ -1,0 +1,204 @@
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:~ argument_count () : i32 =
+    := user = env.command_line_argument_count ()
+    ? user > 0i32 ?> user - 1i32 |: 0i32
+:= i32_sum (a : i32) (b : i32) : i32 = (a + b)
+
+:| migration_mode =
+    | MigrationDryRun
+    | MigrationApply
+
+:| planning_step =
+    | StepText : string
+    | StepRejected : string
+
+:= step_from (code, detail) : planning_step = ? code = 0i32 ?> StepText detail |: StepRejected detail
+
+:~ value_token (~field_name : string) (~value : string) : planning_step =
+    step_from ($'agile_planning_values::kit_agile_planning_value_token(&*!field_name, &*!value)' : i32 * string)
+
+:~ rewritten (~text : string) (~id : string) (~field_name : string) (~token : string) : planning_step =
+    step_from (
+        $'agile_planning_rewrite::kit_agile_planning_rewrite(&*!text, &*!id, &*!field_name, &*!token)' : i32 * string
+    )
+
+:= legacy_agent_value (~value : string) : string =
+    $'agile_planning_values::kit_agile_planning_legacy_agent_value(&*!value)' : string
+:= planning_summary (~text : string) (~id : string) : string =
+    $'agile_planning_fields::kit_agile_planning_summary(&*!text, &*!id)' : string
+
+:| tag_kind =
+    | PlainTag
+    | PlanningTag : string * string
+
+:= tag_rest (~tag : string) (~prefix : string) : string = byte_slice tag (byte_len prefix) (byte_len tag)
+
+:~ tag_kind_of (~tag : string) : tag_kind =
+    ? sm'.starts_with "est:" tag ?> PlanningTag ("estimate", tag_rest tag "est:")
+    |? sm'.starts_with "load:" tag ?> PlanningTag ("load", tag_rest tag "load:")
+    |? sm'.starts_with "agent:" tag ?> PlanningTag ("assignee", legacy_agent_value (tag_rest tag "agent:"))
+    |: PlainTag
+
+:== tag_pass =
+    {
+        text : string
+        kept : string
+        moved : i32
+        rejected : string
+        rejections : i32
+    }
+
+:= joined (~list : string) (~item : string) : string =
+    ? (list = "") ?> item |: list ++# "," ++# item
+
+:~ fresh_tag_pass (~text : string) : tag_pass =
+    { text = text; kept = ""; moved = 0i32; rejected = ""; rejections = 0i32 }
+
+:= tag_kept (pass : tag_pass) (~tag : string) : tag_pass = { pass ?| kept = joined pass.kept tag }
+:= tag_rejected (pass : tag_pass) (~tag : string) : tag_pass =
+    { pass ?| kept = joined pass.kept tag; rejected = joined pass.rejected tag; rejections = (pass.rejections + 1i32) }
+
+:~ tag_moved (pass : tag_pass) (~id : string) (~tag : string) (~field_name : string) (~token : string) : tag_pass =
+    ?= rewritten pass.text id field_name token ?|
+    | StepText updated => { pass ?| text = updated; moved = (pass.moved + 1i32) }
+    | StepRejected _ => tag_rejected pass tag
+
+:~ tag_applied (pass : tag_pass) (~id : string) (~tag : string) : tag_pass =
+    ?= tag_kind_of tag ?|
+    | PlainTag => tag_kept pass tag
+    | PlanningTag (field_name, value) =>
+        ?= value_token field_name value ?|
+        | StepText token => tag_moved pass id tag field_name token
+        | StepRejected _ => tag_rejected pass tag
+
+:~ ^ tags_applied (pass : tag_pass) (~id : string) (~tags : string) (offset : i32) : tag_pass =
+    ? byte_len tags <= offset ?> pass
+    |:
+        := comma = byte_find_from tags "," offset
+        := stop = ? comma < 0i32 ?> byte_len tags |: comma
+        := tag = byte_slice tags offset stop
+        := continued = ? byte_len tag = 0i32 ?> pass |: tag_applied pass id tag
+        tags_applied continued id tags (stop + 1i32)
+
+:= unquoted (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
+:= tags_position () : i32 = 8i32
+:= task_anchor (~id : string) : string = "Task (\"" ++# id ++# "\","
+
+:~ tags_replaced (~text : string) (~id : string) (~tags : string) : string =
+    := length = byte_len text
+    := found = byte_find text (task_anchor id)
+    := start = field_start text ((found + (task_arguments_offset ()))) length (tags_position ())
+    := stop = field_end text start length ScanPlain
+    (byte_slice text 0i32 start) ++# (spi_quoted tags) ++# (byte_slice text stop length)
+
+:= task_line_end (~text : string) (~id : string) : i32 =
+    := found = byte_find_from text "\n" (byte_find text (task_anchor id))
+    ? found < 0i32 ?> byte_len text |: found
+
+:== migration_pass =
+    {
+        state : string
+        tasks : i32
+        moved : i32
+        rejections : i32
+    }
+
+:~ fresh_migration (~text : string) : migration_pass = { state = text; tasks = 0i32; moved = 0i32; rejections = 0i32 }
+
+:= rejection_note (pass : tag_pass) : string =
+    ? pass.rejections = 0i32 ?> "" |: " rejected=" ++# pass.rejected
+
+:~ task_report (~id : string) (pass : tag_pass) : i32 =
+    := head = id ++# " moved=" ++# (i32_text pass.moved) ++# " " ++# (planning_summary pass.text id)
+    stdout_line (head ++# " tags=" ++# pass.kept ++# (rejection_note pass))
+
+:~ task_migrated (migration : migration_pass) (~id : string) (pass : tag_pass) : migration_pass =
+    := updated = tags_replaced pass.text id pass.kept
+    := _ = task_report id { pass ?| text = updated }
+    {
+        state = updated
+        tasks = (migration.tasks + 1i32)
+        moved = (migration.moved + pass.moved)
+        rejections = (migration.rejections + pass.rejections)
+    }
+
+:~ task_with_rejections (migration : migration_pass) (~id : string) (pass : tag_pass) : migration_pass =
+    := _ = task_report id pass
+    { migration ?| rejections = (migration.rejections + pass.rejections) }
+
+:~ ^ migrated_from (migration : migration_pass) (offset : i32) : migration_pass =
+    := text = migration.state
+    := length = byte_len text
+    := found = byte_find_from text (task_marker ()) offset
+    ? found < 0i32 ?> migration
+    |:
+        := arguments = (found + (task_arguments_offset ()))
+        ? declared_task text found ?>
+            := field = tuple_field text arguments length
+            := id = unquoted (field 0i32)
+            := pass = tags_applied (fresh_tag_pass text) id (unquoted (field 8i32)) 0i32
+            ? 1i32 <= pass.moved ?>
+                := next = task_migrated migration id pass
+                migrated_from next (task_line_end next.state id)
+            |? 1i32 <= pass.rejections ?> migrated_from (task_with_rejections migration id pass) arguments
+            |: migrated_from migration arguments
+        |: migrated_from migration arguments
+
+:= migration_counts (migration : migration_pass) : string =
+    := counts =
+        " tasks=" ++# (i32_text migration.tasks) ++# " tags_moved=" ++# (i32_text migration.moved) ++# " rejected="
+    counts ++# (i32_text migration.rejections)
+
+:~ migration_receipt (~verdict : string) (migration : migration_pass) (~original : string) (started : u64) : i32 =
+    := head = "kit agile migrate-tags " ++# verdict ++# (migration_counts migration)
+    stdout_line (head ++# (measured_sizes (text_bytes original) (text_bytes migration.state) (ms_since started)))
+
+:= migration_failure (~reason : string) : i32 = stderr_failure ("agile migrate-tags rejected: " ++# reason)
+
+:~ migration_written (~path : string) (migration : migration_pass) (~original : string) (started : u64) : i32 =
+    ? migration.tasks = 0i32 ?> migration_receipt "ok unchanged" migration original started
+    |:
+        ?= replace_file_checked path migration.state ?|
+        | Replaced => migration_receipt "ok" migration original started
+        | problem => migration_failure (file_replacement_problem problem)
+
+:~ tags_migration (~root : string) (mode : migration_mode) : i32 =
+    := started = unix_ms ()
+    := path = backlog_state_path root
+    ?= probe (unchecked path) ?|
+    | FileMissing _ => migration_failure "state/agile.spi is missing"
+    | FileReadable file =>
+        := original = records_text (loaded_string (read_text file))
+        ? first_malformed_task original 0i32 (byte_len original) < 0i32 ?>
+            := migration = migrated_from (fresh_migration original) 0i32
+            ?= mode ?|
+            | MigrationDryRun => migration_receipt "preview" migration original started
+            | MigrationApply => migration_written path migration original started
+        |: migration_failure "malformed Task fields"
+
+:= migration_mode_of (~mode : string) : validation_result migration_mode =
+    ? (mode = "apply") ?> Valid MigrationApply
+    |? (mode = "preview") ?> Valid MigrationDryRun
+    |: Invalid
+
+:~ tags_migration_entry () : i32 =
+    ? argument_count () = 3i32 ?>
+        ?= migration_mode_of (argument_owned 1i32) ?|
+        | Valid mode => tags_migration (argument_owned 2i32) mode
+        | Invalid => migration_failure "migrate-tags expects preview <root> or apply <root>"
+    |: migration_failure "migrate-tags expects preview <root> or apply <root>"
+
+:= main () : i32 =
+    !!!!Export("kit_agile_migrate_tags_run", ((\ () => tags_migration_entry ()) : () -> i32))
+    := _ = tags_migration_entry ()
+    0i32

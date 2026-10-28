@@ -1,0 +1,52 @@
+:= main () : i32 =
+    := _ = toolchain_program_profile_binding 1i32 0i32
+    := _ = toolchain_argument_profile_binding 1i32 0i32
+    := _ = toolchain_environment_profile_binding 7i32 0i32
+    := _ = toolchain_timeout_profile_binding 2i32 0i32
+    := _ = toolchain_success_profile_binding 2i32 0i32
+    := _ = toolchain_execution_plan_binding 4i32 0i32
+    := _ = toolchain_resume_profile_binding 5i32 0i32
+    := _ = toolchain_resume_retry_binding 4i32 3i32
+    := _ = toolchain_environment_entry_count_binding 3i32 0i32
+    := _ = toolchain_environment_entry_binding 3i32 7i32
+    !!!!Export(
+        "kit_toolchain_program_profile",
+        ((\ (first, second) => toolchain_program_profile_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_argument_profile",
+        ((\ (first, second) => toolchain_argument_profile_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_environment_profile",
+        ((\ (first, second) => toolchain_environment_profile_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_timeout_profile",
+        ((\ (first, second) => toolchain_timeout_profile_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_success_profile",
+        ((\ (first, second) => toolchain_success_profile_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_execution_plan",
+        ((\ (first, second) => toolchain_execution_plan_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_resume_profile",
+        ((\ (first, second) => toolchain_resume_profile_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_resume_retry",
+        ((\ (first, second) => toolchain_resume_retry_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_environment_entry_count",
+        ((\ (first, second) => toolchain_environment_entry_count_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_toolchain_environment_entry",
+        ((\ (first, second) => toolchain_environment_entry_binding first second) : i32 * i32 -> i32)
+    )
+    0i32

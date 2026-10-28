@@ -1,0 +1,14 @@
+:< rooted_domain
+
+:| rooted_negative_fixture =
+    | RemoveDirectoryAsRegular
+    | RemoveRegularAsDirectory
+    | CopyMissingSource
+    | RemoveRootItself
+
+:= fixtures_are_closed () : bool =
+    ?= RemoveDirectoryAsRegular, RemoveRegularAsDirectory, CopyMissingSource, RemoveRootItself ?|
+    | RemoveDirectoryAsRegular, RemoveRegularAsDirectory, CopyMissingSource, RemoveRootItself => !+
+
+:= main () : i32 =
+    ? fixtures_are_closed () ?> 0i32 |: 1i32

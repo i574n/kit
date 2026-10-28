@@ -1,0 +1,119 @@
+:! patch_plan_parsed = ()
+:! patch_plan_witnessed = ()
+:! patch_operation_ordered = ()
+:! patch_guard_authorized = ()
+:! patch_commit_authorized = ()
+
+:| patch_control_step from to =
+    | WitnessPatchPlan :: patch_control_step patch_plan_parsed patch_plan_witnessed
+    | AuthorizePatchOperation :: patch_control_step patch_plan_witnessed patch_operation_ordered
+    | AuthorizePatchGuard :: patch_control_step patch_operation_ordered patch_guard_authorized
+    | AuthorizePatchCommit :: patch_control_step patch_guard_authorized patch_commit_authorized
+
+:| ^ patch_control_plan from to =
+    | PatchControlStep :: \* from to. patch_control_step from to -> patch_control_plan from to
+    | PatchControlThen :: \* from to.
+        (\? middle. patch_control_plan from middle * patch_control_plan middle to) ->
+        patch_control_plan from to
+
+:= native_patch_control_plan () : patch_control_plan patch_plan_parsed patch_commit_authorized =
+    PatchControlThen (\? (
+        PatchControlStep WitnessPatchPlan,
+        PatchControlThen (\? (
+            PatchControlStep AuthorizePatchOperation,
+            PatchControlThen (\? (
+                PatchControlStep AuthorizePatchGuard,
+                PatchControlStep AuthorizePatchCommit
+            ))
+        ))
+    ))
+
+:~ patch_witness_authorized (validated : i32) (parsed : i32) : i32 =
+    ? validated < 1i32 ?> 0i32
+    |? parsed < 1i32 ?> 0i32
+    |? validated < parsed ?> 0i32
+    |? parsed < validated ?> 0i32
+    |: 1i32
+
+:~ patch_operation_authorized (expected : i32) (observed : i32) : i32 =
+    ? expected < 0i32 ?> 0i32
+    |? observed < 0i32 ?> 0i32
+    |? expected < observed ?> 0i32
+    |? observed < expected ?> 0i32
+    |: 1i32
+
+:~ patch_operation_next (cursor : i32) (total : i32) : i32 =
+    ? cursor < 0i32 ?> -1i32
+    |? total < 1i32 ?> -1i32
+    |? cursor < total ?> cursor + 1i32
+    |: -1i32
+
+:~ patch_match_authorized (count : i32) (operation_authorized : i32) : i32 =
+    ? operation_authorized < 1i32 ?> 0i32
+    |? 1i32 < operation_authorized ?> 0i32
+    |? count < 1i32 ?> 0i32
+    |? 1i32 < count ?> 0i32
+    |: 1i32
+
+:~ patch_commit_authorized (expected : i32) (committed : i32) : i32 =
+    patch_witness_authorized expected committed
+
+:! restoration_attempt_pending = ()
+:! restoration_attempt_recorded = ()
+
+:| restoration_attempt_outcome =
+    | RestorationSucceeded
+    | RestorationFailed
+
+:| restoration_attempt_step from to =
+    | RecordRestorationSuccess :: restoration_attempt_step restoration_attempt_pending restoration_attempt_recorded
+    | RecordRestorationFailure :: restoration_attempt_step restoration_attempt_pending restoration_attempt_recorded
+
+:= restoration_attempt_witness
+    outcome
+    : restoration_attempt_step restoration_attempt_pending restoration_attempt_recorded
+    =
+    ?= outcome ?|
+    | RestorationSucceeded => RecordRestorationSuccess
+    | RestorationFailed => RecordRestorationFailure
+
+:~ restoration_payload_identity (selected : i32) (observed_stage : i32) : i32 =
+    ? selected < 0i32 ?> -1i32
+    |? observed_stage < 0i32 ?> -1i32
+    |? selected < observed_stage ?> -1i32
+    |? observed_stage < selected ?> -1i32
+    |: selected
+
+:~ restoration_payload_slot_binding (identity : i32) (slot_authorized : i32) : i32 =
+    ? identity < 0i32 ?> -1i32
+    |? slot_authorized < 1i32 ?> -1i32
+    |? 1i32 < slot_authorized ?> -1i32
+    |: identity
+
+:~ restoration_payload_outcome_binding (identity : i32) (outcome : i32) : i32 =
+    ? identity < 0i32 ?> -1i32
+    |? outcome < 1i32 ?> -1i32
+    |? 2i32 < outcome ?> -1i32
+    |: identity
+
+:| patch_plan_failure =
+    | PatchPlanEmpty
+    | PatchPlanMalformed
+    | PatchPlanOversized
+    | PatchPlanUnavailable
+    | PatchPlanInvalidWitness
+
+:= patch_plan_failure_message = \|
+    | PatchPlanEmpty => "typed patch plan contains no PatchExact values"
+    | PatchPlanMalformed => "typed patch plan is malformed"
+    | PatchPlanOversized => "typed patch plan exceeds 256 KiB"
+    | PatchPlanUnavailable => "typed patch plan source is unavailable"
+    | PatchPlanInvalidWitness => "typed patch plan returned an invalid witness"
+
+:~ patch_plan_failure_binding (code : i32) : string =
+    := malformed, oversized, unavailable = -1i32, -2i32, -3i32
+    ? code = 0i32 ?> patch_plan_failure_message PatchPlanEmpty
+    |? code = malformed ?> patch_plan_failure_message PatchPlanMalformed
+    |? code = oversized ?> patch_plan_failure_message PatchPlanOversized
+    |? code = unavailable ?> patch_plan_failure_message PatchPlanUnavailable
+    |: patch_plan_failure_message PatchPlanInvalidWitness

@@ -1,0 +1,36 @@
+:= main () : i32 =
+    := _ = candidate_plan ()
+    := _ = primary_fallback_plan ()
+    := _ = secondary_fallback_plan ()
+    := _ = patch_route_role_binding 0i32 0i32
+    := _ = patch_route_forward_binding 0i32 1i32
+    := _ = patch_route_restore_binding 0i32 1i32
+    := _ = patch_route_hash_binding 1i32 1i32
+    := _ = patch_route_complete_binding 0i32 1i32
+    := _ = patch_route_agreement_binding 1i32 1i32
+    !!!!Export(
+        "kit_patch_route_role_binding",
+        ((\ (first, second) => patch_route_role_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_route_forward_binding",
+        ((\ (first, second) => patch_route_forward_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_route_restore_binding",
+        ((\ (first, second) => patch_route_restore_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_route_hash_binding",
+        ((\ (first, second) => patch_route_hash_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_route_complete_binding",
+        ((\ (first, second) => patch_route_complete_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_patch_route_agreement_binding",
+        ((\ (first, second) => patch_route_agreement_binding first second) : i32 * i32 -> i32)
+    )
+
+    0i32

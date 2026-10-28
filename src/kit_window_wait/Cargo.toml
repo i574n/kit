@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "wait.spi"
+output = "wait.rs"
+
+[package]
+name = "kit-window-wait"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_window_wait"
+path = "wait.rs"
+
+[dependencies]
+kit-window-admission = { path = "../kit_window_admission" }

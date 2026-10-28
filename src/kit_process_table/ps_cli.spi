@@ -1,0 +1,52 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+///> rust
+:# ps_lists_cores_and_mine_scopes_to_the_calling_session =
+    := root = fixture_root_create "ps cores"
+    := every = succeeded (kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("ps", Arg ("kit", NoArgs))))
+    shows every "mem_mb  cores  command"
+    shows every "ok  processes "
+    := mine = kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("ps", Arg ("--mine", NoArgs)))
+    ? mine.code = 0i32 ?> shows mine.stdout "  session "
+    |:
+        expect (mine.code = 2i32) (run_text mine)
+        shows mine.stdout "ps --mine: no claude or codex process above this kit"
+    := bad = kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("ps", Arg ("(", NoArgs)))
+    expect (bad.code = 2i32) (run_text bad)
+    shows bad.stdout "ps: invalid pattern"
+    fixture_root_remove root
+
+///> rust
+:# kill_with_mine_refuses_another_authors_job_unless_it_is_named =
+    := root = fixture_root_create "kill mine"
+    := home = cat "KIT_JOBS_HOME=" (fixture_path root "jobs")
+    := sleepy = rustc_program root "sleepy" "fn main() { std::thread::sleep(std::time::Duration::from_secs(120)); }"
+    := started =
+        succeeded (
+            kit_run
+                (fixture_text_of root)
+                (Arg (home, Arg ("KIT_AUTHOR=alpha", NoArgs)))
+                (Arg ("KIT_JOB_RELAUNCHED", Arg ("KIT_JOB_WATCH", NoArgs)))
+                (Arg ("job", Arg ("start", Arg ("owned", Arg ("120000", Arg (sleepy, NoArgs))))))
+        )
+    := job = word_after started "id="
+    expect
+        (path_appears (fixture_path root (cat (cat "jobs/" job) "/pid")) 20000u64)
+        (cat "the job child never started: " started)
+    same (trimmed (fixture_read root (cat (cat "jobs/" job) "/author"))) "alpha"
+    := child = trimmed (fixture_read root (cat (cat "jobs/" job) "/pid"))
+    := refused =
+        kit_run (fixture_text_of root) (Arg (home, Arg ("KIT_AUTHOR=beta", NoArgs))) NoArgs (Arg ("kill",
+            Arg ("--mine", Arg (child, NoArgs))))
+    expect (refused.code = 1i32) (run_text refused)
+    shows refused.stdout (cat (cat "it belongs to job " job) " by alpha; pass --theirs ")
+    := stopped =
+        kit_run (fixture_text_of root) (Arg (home, Arg ("KIT_AUTHOR=beta", NoArgs))) NoArgs (Arg ("kill",
+            Arg ("--mine", Arg ("--theirs", Arg (job, Arg (child, NoArgs))))))
+    expect (stopped.code = 0i32) (run_text stopped)
+    shows stopped.stdout "stopped 1  failed 0"
+    := _ =
+        kit_run (fixture_text_of root) (Arg (home, NoArgs)) NoArgs (Arg ("job", Arg ("wait", Arg (job, Arg ("30000",
+            NoArgs)))))
+    fixture_root_remove root

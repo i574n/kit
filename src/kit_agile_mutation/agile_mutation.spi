@@ -1,0 +1,178 @@
+:< agile_mutation_policy.model
+:< sm'_operators
+:< agile_subcommand_domain.subcommand
+:< workspace_primitives.outcome
+
+:= agile_mutation_error (~message : string) : i32 = workspace_primitives.console.stderr_failure message
+
+:! agile_idle = ()
+:! agile_arguments_ready = ()
+:! agile_validated = ()
+:! agile_locked = ()
+:! agile_committed = ()
+
+:| agile_op from to =
+    | CollectAgileArguments :: agile_op agile_idle agile_arguments_ready
+    | ValidateAgileProtocol :: agile_op agile_arguments_ready agile_validated
+    | LockAgileState :: agile_op agile_validated agile_locked
+    | CommitAgileMutation :: agile_op agile_locked agile_committed
+:| ^ agile_plan from to =
+    | AgileStep :: \* from to. agile_op from to -> agile_plan from to
+    | AgileThen :: \* from to. (\? middle. agile_plan from middle * agile_plan middle to) -> agile_plan from to
+
+:= typed_agile_plan () : agile_plan agile_idle agile_committed =
+    AgileThen (
+        \? (
+            AgileStep CollectAgileArguments,
+            AgileThen (
+                \? (
+                    AgileStep ValidateAgileProtocol,
+                    AgileThen (\? (AgileStep LockAgileState, AgileStep CommitAgileMutation))
+                )
+            )
+        )
+    )
+
+:= args_len_is expected : bool = rust_std_env.model.args_len_is expected
+:= argument_len index : i32 = rust_std_env.model.argument_len index
+:= argument_byte index offset : i32 = rust_std_env.model.argument_byte index offset
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:= argument_equals index expected : bool = rust_std_env.model.argument_equals index expected
+:= i32_eq a b : bool = (a = b)
+:= i32_le a b : bool = (a <= b)
+:= i32_nonnegative value : bool = $"0 <= !value"
+:= i32_positive value : bool = $"0 < !value"
+:= i32_digit value : bool = ? 48i32 <= value ?> value <= 57i32 |: !-
+:= i32_digit_value value : i32 = $"!value - 48"
+:= i32_pair_value a b : i32 = $"!a * 10 + !b"
+:= i32_triple_value a b c : i32 = $"!a * 100 + !b * 10 + !c"
+:= invalid_i32 () : i32 = $"-1"
+:= all2 a b = ? a ?> b |: !-
+:= all3 a b c = ? a ?> ? b ?> c |: !- |: !-
+:= all4 a b c d = ? a ?> ? b ?> ? c ?> d |: !- |: !- |: !-
+
+:~ agile_usage_error () : i32 = $'kit_agile_routes::kit_agile_usage_error()' : i32
+:= agile_edit_route () : i32 = $'kit_agile_routes::kit_agile_edit_route()' : i32
+:= agile_begin_route () : i32 = $'kit_agile_routes::kit_agile_begin_route()' : i32
+:= agile_set_route () : i32 = $'kit_agile_routes::kit_agile_set_route()' : i32
+:= agile_check (~root : string) : i32 = $"kit_agile_state::agile_check_owned(!root.as_ref())"
+:= agile_lease_status (~root : string) : i32 = $"kit_agile_state::agile_lease_status_owned(!root.as_ref())"
+:= agile_handoff (~root : string) : i32 = $"kit_handoff_render::handoff_render_owned(!root.as_ref())"
+:= agile_record (~root : string) : i32 = $"kit_agile_state::agile_record_owned(!root.as_ref())"
+:= agile_argument_count () : i32 =
+    := count = env.host_argument_count ()
+    ? count > 2i32 ?> count - 2i32 |: 0i32
+
+:= agile_root_only (run : string -> i32) : i32 = ? args_len_is 2i32 ?> run (argument_owned 1i32) |: agile_usage_error ()
+:= agile_with_root (route : () -> i32) : i32 = ? 2i32 <= agile_argument_count () ?> route () |: agile_usage_error ()
+:= agile_arity_route (accepted : bool) (route : () -> i32) : i32 = ? accepted ?> route () |: agile_usage_error ()
+:= agile_either_arity a b : bool = ? args_len_is a ?> !+ |: args_len_is b
+:= set_with_author () : bool = ? args_len_is 7i32 ?> ((argument_owned 5i32) = "--as") |: !-
+:= agile_set_author_error () : i32 =
+    := message =
+            "agile set records no author (only agile note does); drop --as "
+            ++# (argument_owned 6i32)
+            ++# ", or add a note with --as to say who moved "
+            ++# (argument_owned 2i32)
+    agile_mutation_error message
+:= todos_recording () : bool = rust_std_env.model.argument_flag_present 4i32 "--record"
+:~ state_lock_taken (~root : string) : bool =
+    $'{ let state = std::path::Path::new(&*!root).join("state"); let lock = state.join("agile.spi.lock"); \
+        let started = std::time::Instant::now(); loop { if std::fs::create_dir(&lock).is_ok() { break true; \
+        } if \!state.is_dir() { break true; } let stale = std::fs::metadata(&lock).and_then(|meta| \
+        meta.modified()).ok().and_then(|time| time.elapsed().ok()).map(|age| age.as_secs() >= 10).unwrap_or(false); \
+        if stale { let _ = std::fs::remove_dir(&lock); continue; \
+        } if started.elapsed() >= std::time::Duration::from_secs(30) { break false; \
+        } std::thread::sleep(std::time::Duration::from_millis(25)); } }' : bool
+
+:~ state_lock_released (~root : string) : () = $'{ let _ = std::fs::remove_dir(std::path::Path::new(&*!root).join("sta\
+    te").join("agile.spi.lock")); }' : ()
+
+:~ state_lock_held (writes : bool) (~root : string) : bool = ? writes ?> state_lock_taken root |: !+
+
+:~ state_lock_done (writes : bool) (~root : string) : () = ? writes ?> state_lock_released root |: ()
+
+:~ state_lock_refused () : i32 =
+    := message = "agile state/agile.spi stayed locked by another writer for 30 s; nothing written, run the call again"
+    agile_mutation_error message
+
+:= agile_writes (subcommand : agile_subcommand) : bool =
+    ?= subcommand ?|
+    | AgileInit => !-
+    | AgileLease => !-
+    | AgileStatus => !-
+    | AgileHandoff => !-
+    | AgileList => !-
+    | AgileCheck => !-
+    | AgileShow => !-
+    | AgilePlan => !-
+    | AgileNext => !-
+    | AgileLinks => !-
+    | AgileBegin => !+
+    | AgileRecord => !+
+    | AgileSet => !+
+    | AgileAdd => !+
+    | AgileEdit => !+
+    | AgileMigrateTags => !+
+    | AgileNote => !+
+    | AgileNoteEdit => !+
+    | AgileNotes => !+
+    | AgileRename => !+
+    | AgileTodos => !+
+    | AgileRoots => !+
+    | AgileViews => !-
+    | AgileView => !-
+    | AgileViewAdd => !+
+:= agile_route (subcommand : agile_subcommand) : i32 =
+    ?= subcommand ?|
+    | AgileInit => agile_root_only \ _ => $"agile_backlog_scaffold::kit_agile_init_run()"
+    | AgileBegin => agile_arity_route (args_len_is 3i32) agile_begin_route
+    | AgileLease | AgileStatus => agile_root_only agile_lease_status
+    | AgileHandoff => agile_root_only agile_handoff
+    | AgileList => agile_with_root \ () => $"agile_task_listing::kit_agile_list_run()"
+    | AgileCheck => agile_root_only agile_check
+    | AgileRecord => agile_root_only agile_record
+    | AgileSet =>
+        ? set_with_author () ?> agile_set_author_error () |: agile_arity_route (args_len_is 5i32) agile_set_route
+    | AgileAdd =>
+        agile_arity_route (8i32 <= agile_argument_count ()) \ () =>
+            $"agile_task_creation::kit_agile_add_run()"
+    | AgileEdit => agile_arity_route (args_len_is 5i32) agile_edit_route
+    | AgileShow => agile_with_root \ () => $"agile_task_inspection::kit_agile_show_run()"
+    | AgilePlan => agile_with_root \ () => $"agile_planning_rollup::kit_agile_planning_rollup_run()"
+    | AgileMigrateTags => agile_with_root \ () => $"agile_planning_migration::kit_agile_migrate_tags_run()"
+    | AgileNote => agile_arity_route (agile_either_arity 4i32 6i32) \ () => $"agile_task_notes::kit_agile_note_run()"
+    | AgileNoteEdit => agile_with_root \ () => $"agile_note_edit::kit_agile_note_edit_run()"
+    | AgileNotes => agile_arity_route (args_len_is 4i32) \ () => $"agile_title_notes::kit_agile_notes_from_title_run()"
+    | AgileRename => agile_arity_route (args_len_is 4i32) \ () => $"agile_task_rename::kit_agile_rename_run()"
+    | AgileTodos =>
+        agile_with_root \ () =>
+            ? todos_recording ()
+            ?> $"agile_todo_record::kit_agile_todos_record_run()"
+            |: $"agile_todo_scan::kit_agile_todos_run()"
+    | AgileNext => agile_with_root \ () => $"agile_task_next::kit_agile_next_run()"
+    | AgileRoots => agile_with_root \ () => $"agile_todo_roots::kit_agile_roots_run()"
+    | AgileLinks => agile_with_root \ () => $"agile_memory_links::kit_agile_links_run()"
+    | AgileViews | AgileView | AgileViewAdd => agile_with_root \ () => $"agile_task_views::kit_agile_views_run()"
+
+:~ agile_entry () : i32 =
+    ?= agile_subcommand_of (argument_owned 0i32) ?|
+    | AgileKnown subcommand =>
+        ?= agile_root_operand (argument_owned (agile_root_index subcommand)) ?|
+        | RootFlagged flag =>
+            := name = argument_owned 0i32
+            agile_mutation_error ($'kit_command_help::kit_agile_root_flag_refusal(&*!name, &*!flag)' : string)
+        | RootNamed root =>
+            := writes = agile_writes subcommand
+            ? state_lock_held writes root ?>
+                := code = agile_route subcommand
+                state_lock_done writes root
+                code
+            |: state_lock_refused ()
+    | AgileUnknownName => agile_usage_error ()
+
+:= main () : i32 =
+    !!!!Export("kit_agile_run", ((\ () => agile_entry ()) : () -> i32))
+    := _ = typed_agile_plan ()
+    := _ = agile_entry ()
+    0i32

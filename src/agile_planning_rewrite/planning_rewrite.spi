@@ -1,0 +1,24 @@
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< agile_planning_model.model
+
+:~ field_token_rewrite (~text : string) (~id : string) (field : planning_field) (~token : string) : i32 * string =
+    ?= planning_upserted (planning_schema_ensured text) id (tokens_with field token (planning_tokens_of text id)) ?|
+    | Valid updated => 0i32, updated
+    | Invalid => 2i32, "no task with this id"
+
+:~ planning_rewrite (~text : string) (~id : string) (~field_name : string) (~token : string) : i32 * string =
+    ?= parse_planning_field field_name ?|
+    | Valid field => field_token_rewrite text id field token
+    | Invalid => 1i32, "field must be estimate, load or assignee"
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_agile_planning_rewrite",
+        (
+            \ (text, id, field_name, token) => planning_rewrite text id field_name token
+            : string * string * string * string -> i32 * string
+        )
+    )
+    := _ = planning_rewrite "" "ID" "load" "Load Heavy"
+    0i32

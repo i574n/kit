@@ -1,0 +1,356 @@
+:< toolchain_command_domain.model
+
+:| toolchain_checkpoint =
+    | NotStartedCheckpoint
+    | SpawnCommittedCheckpoint
+    | RunCommittedCheckpoint
+    | LinkCommittedCheckpoint
+    | TimeoutCommittedCheckpoint
+    | CompletionCommittedCheckpoint
+
+:| toolchain_environment_key =
+    | RustLogKey
+    | CargoKey
+    | CargoTermColorKey
+    | RustcKey
+    | RustdocKey
+    | SpiralCompileKey
+    | SpiralDotnetKey
+    | DotnetRootKey
+    | CargoTargetDirKey
+
+:| toolchain_environment_mode =
+    | RemoveEnvironment
+    | ToolEnvironment
+    | NeverEnvironment
+    | SiblingRustcEnvironment
+    | SiblingRustdocEnvironment
+    | RequireCurrentEnvironment
+    | InheritCurrentEnvironment
+
+:| toolchain_receipt_protocol_field =
+    | ReceiptMarkerField
+    | ReceiptPathField
+    | BundleStateMarkerField
+    | ReceiptStagePrefixField
+
+:| toolchain_identity_excluded_directory =
+    | TargetExcludedDirectory
+    | VendorExcludedDirectory
+    | GitExcludedDirectory
+
+:| toolchain_identity_file_name =
+    | CargoTomlIdentityFile
+    | CargoLockIdentityFile
+    | PackageSpiprojIdentityFile
+
+:| toolchain_identity_extension =
+    | RustIdentityExtension
+    | SpiIdentityExtension
+    | SpirIdentityExtension
+    | TomlIdentityExtension
+    | SpiprojIdentityExtension
+
+:| toolchain_identity_hash_file =
+    | CargoTomlHashFile
+    | CargoLockHashFile
+    | CargoConfigHashFile
+
+:| toolchain_identity_scalar =
+    | IdentityRootMarker
+    | IdentityRootFallback
+    | IdentityTargetFallback
+
+:= toolchain_receipt_protocol_field_label = \|
+    | ReceiptMarkerField => "// toolchain-process-receipt|"
+    | ReceiptPathField => "state/toolchain_process_receipt.spi"
+    | BundleStateMarkerField => "state/package.spiproj"
+    | ReceiptStagePrefixField => ".toolchain-receipt-"
+
+:= toolchain_identity_excluded_directory_label = \|
+    | TargetExcludedDirectory => "target"
+    | VendorExcludedDirectory => "vendor"
+    | GitExcludedDirectory => ".git"
+
+:= toolchain_identity_file_name_label = \|
+    | CargoTomlIdentityFile => "Cargo.toml"
+    | CargoLockIdentityFile => "Cargo.lock"
+    | PackageSpiprojIdentityFile => "package.spiproj"
+
+:= toolchain_identity_extension_label = \|
+    | RustIdentityExtension => "rs"
+    | SpiIdentityExtension => "spi"
+    | SpirIdentityExtension => "spir"
+    | TomlIdentityExtension => "toml"
+    | SpiprojIdentityExtension => "spiproj"
+
+:= toolchain_identity_hash_file_label = \|
+    | CargoTomlHashFile => "Cargo.toml"
+    | CargoLockHashFile => "Cargo.lock"
+    | CargoConfigHashFile => ".cargo/config.toml"
+
+:= toolchain_identity_scalar_label = \|
+    | IdentityRootMarker => "Cargo.toml"
+    | IdentityRootFallback => "src"
+    | IdentityTargetFallback => "target"
+
+:= toolchain_action_name_label = \|
+    | CargoLock => "cargo-lock"
+    | CargoFmtCheck => "cargo-fmt-check"
+    | CargoCheck => "cargo-check"
+    | CargoTest => "cargo-test"
+    | CargoClippy => "cargo-clippy"
+    | CargoBuild => "cargo-build"
+    | CargoVersion => "cargo-version"
+    | SpiralVersion => "spiral-version"
+
+:= toolchain_action_ctor_label = \|
+    | CargoLock => "CargoLockProcess"
+    | CargoFmtCheck => "CargoFmtCheckProcess"
+    | CargoCheck => "CargoCheckProcess"
+    | CargoTest => "CargoTestProcess"
+    | CargoClippy => "CargoClippyProcess"
+    | CargoBuild => "CargoBuildProcess"
+    | CargoVersion => "CargoVersionProcess"
+    | SpiralVersion => "SpiralVersionProcess"
+
+:= toolchain_checkpoint_label = \|
+    | NotStartedCheckpoint => "ToolchainNotStarted"
+    | SpawnCommittedCheckpoint => "ToolchainSpawnCommitted"
+    | RunCommittedCheckpoint => "ToolchainRunCommitted"
+    | LinkCommittedCheckpoint => "ToolchainLinkCommitted"
+    | TimeoutCommittedCheckpoint => "ToolchainTimeoutCommitted"
+    | CompletionCommittedCheckpoint => "ToolchainCompletionCommitted"
+
+:= toolchain_profile_label = \|
+    | CargoUtilityResume => "CargoUtilityProcess"
+    | CargoCheckResume => "CargoCheckProcessProfile"
+    | CargoTestResume => "CargoTestProcessProfile"
+    | CargoClippyResume => "CargoClippyProcessProfile"
+    | CargoReleaseResume => "CargoReleaseProcessProfile"
+    | SpiralUtilityResume => "SpiralUtilityProcess"
+
+:= toolchain_program_label = \|
+    | SelectedTool => "self"
+    | CargoFmtSibling => "cargo-fmt"
+    | CargoClippySibling => "cargo-clippy"
+
+:= toolchain_environment_key_label = \|
+    | RustLogKey => "RUST_LOG"
+    | CargoKey => "CARGO"
+    | CargoTermColorKey => "CARGO_TERM_COLOR"
+    | RustcKey => "RUSTC"
+    | RustdocKey => "RUSTDOC"
+    | SpiralCompileKey => "KIT_SPIRAL_COMPILE"
+    | SpiralDotnetKey => "SPIRAL_DOTNET"
+    | DotnetRootKey => "DOTNET_ROOT"
+    | CargoTargetDirKey => "CARGO_TARGET_DIR"
+
+:= toolchain_environment_mode_label = \|
+    | RemoveEnvironment => "remove"
+    | ToolEnvironment => "tool"
+    | NeverEnvironment => "never"
+    | SiblingRustcEnvironment => "sibling-rustc"
+    | SiblingRustdocEnvironment => "sibling-rustdoc"
+    | RequireCurrentEnvironment => "require-current"
+    | InheritCurrentEnvironment => "inherit-current"
+
+:| toolchain_outcome =
+    | PendingOutcome
+    | PassedOutcome
+    | FailedOutcome
+    | TimedOutOutcome
+
+:| toolchain_outcome_payload =
+    | NoOutcomePayload
+    | StatusOutcomePayload
+    | ElapsedOutcomePayload
+
+:= toolchain_outcome_payload_for = \|
+    | PendingOutcome => NoOutcomePayload
+    | PassedOutcome => StatusOutcomePayload
+    | FailedOutcome => StatusOutcomePayload
+    | TimedOutOutcome => ElapsedOutcomePayload
+
+:= toolchain_outcome_payload_label = \|
+    | NoOutcomePayload => "none"
+    | StatusOutcomePayload => "status"
+    | ElapsedOutcomePayload => "elapsed"
+
+:= toolchain_outcome_payload_line (prefix : string) outcome : string =
+    sm.concat prefix (sm.concat (toolchain_outcome_payload_label (toolchain_outcome_payload_for outcome)) "\n")
+
+:= toolchain_outcome_payload_catalog () : string =
+    := pending = toolchain_outcome_payload_line "outcome-payload:0=" PendingOutcome
+    := passed = toolchain_outcome_payload_line "outcome-payload:1=" PassedOutcome
+    := failed = toolchain_outcome_payload_line "outcome-payload:2=" FailedOutcome
+    := timed_out = toolchain_outcome_payload_line "outcome-payload:3=" TimedOutOutcome
+    sm.concat pending (sm.concat passed (sm.concat failed timed_out))
+
+:= toolchain_outcome_label = \|
+    | PendingOutcome => "ToolchainPending"
+    | PassedOutcome => "ToolchainPassed"
+    | FailedOutcome => "ToolchainFailed"
+    | TimedOutOutcome => "ToolchainTimedOut"
+
+:= toolchain_catalog_line (prefix : string) (value : string) : string =
+    sm.concat prefix (sm.concat value "\n")
+
+:= toolchain_action_name_catalog () : string =
+    := a0 = toolchain_catalog_line "action-name:0=" (toolchain_action_name_label CargoLock)
+    := a1 = toolchain_catalog_line "action-name:1=" (toolchain_action_name_label CargoFmtCheck)
+    := a2 = toolchain_catalog_line "action-name:2=" (toolchain_action_name_label CargoCheck)
+    := a3 = toolchain_catalog_line "action-name:3=" (toolchain_action_name_label CargoTest)
+    := a4 = toolchain_catalog_line "action-name:4=" (toolchain_action_name_label CargoClippy)
+    := a5 = toolchain_catalog_line "action-name:5=" (toolchain_action_name_label CargoBuild)
+    := a6 = toolchain_catalog_line "action-name:6=" (toolchain_action_name_label CargoVersion)
+    := a7 = toolchain_catalog_line "action-name:7=" (toolchain_action_name_label SpiralVersion)
+    sm.concat a0 (sm.concat a1 (sm.concat a2 (sm.concat a3 (sm.concat a4 (sm.concat a5 (sm.concat a6 a7))))))
+
+:= toolchain_action_ctor_catalog () : string =
+    := a0 = toolchain_catalog_line "action-ctor:0=" (toolchain_action_ctor_label CargoLock)
+    := a1 = toolchain_catalog_line "action-ctor:1=" (toolchain_action_ctor_label CargoFmtCheck)
+    := a2 = toolchain_catalog_line "action-ctor:2=" (toolchain_action_ctor_label CargoCheck)
+    := a3 = toolchain_catalog_line "action-ctor:3=" (toolchain_action_ctor_label CargoTest)
+    := a4 = toolchain_catalog_line "action-ctor:4=" (toolchain_action_ctor_label CargoClippy)
+    := a5 = toolchain_catalog_line "action-ctor:5=" (toolchain_action_ctor_label CargoBuild)
+    := a6 = toolchain_catalog_line "action-ctor:6=" (toolchain_action_ctor_label CargoVersion)
+    := a7 = toolchain_catalog_line "action-ctor:7=" (toolchain_action_ctor_label SpiralVersion)
+    sm.concat a0 (sm.concat a1 (sm.concat a2 (sm.concat a3 (sm.concat a4 (sm.concat a5 (sm.concat a6 a7))))))
+
+:= toolchain_checkpoint_catalog () : string =
+    := c0 = toolchain_catalog_line "checkpoint:0=" (toolchain_checkpoint_label NotStartedCheckpoint)
+    := c1 = toolchain_catalog_line "checkpoint:1=" (toolchain_checkpoint_label SpawnCommittedCheckpoint)
+    := c2 = toolchain_catalog_line "checkpoint:2=" (toolchain_checkpoint_label RunCommittedCheckpoint)
+    := c3 = toolchain_catalog_line "checkpoint:3=" (toolchain_checkpoint_label LinkCommittedCheckpoint)
+    := c4 = toolchain_catalog_line "checkpoint:4=" (toolchain_checkpoint_label TimeoutCommittedCheckpoint)
+    := c5 = toolchain_catalog_line "checkpoint:5=" (toolchain_checkpoint_label CompletionCommittedCheckpoint)
+    sm.concat c0 (sm.concat c1 (sm.concat c2 (sm.concat c3 (sm.concat c4 c5))))
+
+:= toolchain_outcome_catalog () : string =
+    := o0 = toolchain_catalog_line "outcome:0=" (toolchain_outcome_label PendingOutcome)
+    := o1 = toolchain_catalog_line "outcome:1=" (toolchain_outcome_label PassedOutcome)
+    := o2 = toolchain_catalog_line "outcome:2=" (toolchain_outcome_label FailedOutcome)
+    := o3 = toolchain_catalog_line "outcome:3=" (toolchain_outcome_label TimedOutOutcome)
+    sm.concat o0 (sm.concat o1 (sm.concat o2 o3))
+
+:= toolchain_profile_catalog () : string =
+    := p0 = toolchain_catalog_line "profile:0=" (toolchain_profile_label CargoUtilityResume)
+    := p1 = toolchain_catalog_line "profile:1=" (toolchain_profile_label CargoCheckResume)
+    := p2 = toolchain_catalog_line "profile:2=" (toolchain_profile_label CargoTestResume)
+    := p3 = toolchain_catalog_line "profile:3=" (toolchain_profile_label CargoClippyResume)
+    := p4 = toolchain_catalog_line "profile:4=" (toolchain_profile_label CargoReleaseResume)
+    := p5 = toolchain_catalog_line "profile:5=" (toolchain_profile_label SpiralUtilityResume)
+    sm.concat p0 (sm.concat p1 (sm.concat p2 (sm.concat p3 (sm.concat p4 p5))))
+
+:= toolchain_program_catalog () : string =
+    := p0 = toolchain_catalog_line "program:0=" (toolchain_program_label SelectedTool)
+    := p1 = toolchain_catalog_line "program:1=" (toolchain_program_label CargoFmtSibling)
+    := p2 = toolchain_catalog_line "program:2=" (toolchain_program_label CargoClippySibling)
+    sm.concat p0 (sm.concat p1 p2)
+
+:= toolchain_environment_key_catalog () : string =
+    := e0 = toolchain_catalog_line "env-key:0=" (toolchain_environment_key_label RustLogKey)
+    := e1 = toolchain_catalog_line "env-key:1=" (toolchain_environment_key_label CargoKey)
+    := e2 = toolchain_catalog_line "env-key:2=" (toolchain_environment_key_label CargoTermColorKey)
+    := e3 = toolchain_catalog_line "env-key:3=" (toolchain_environment_key_label RustcKey)
+    := e4 = toolchain_catalog_line "env-key:4=" (toolchain_environment_key_label RustdocKey)
+    := e5 = toolchain_catalog_line "env-key:5=" (toolchain_environment_key_label SpiralCompileKey)
+    := e6 = toolchain_catalog_line "env-key:6=" (toolchain_environment_key_label SpiralDotnetKey)
+    := e7 = toolchain_catalog_line "env-key:7=" (toolchain_environment_key_label DotnetRootKey)
+    := e8 = toolchain_catalog_line "env-key:8=" (toolchain_environment_key_label CargoTargetDirKey)
+    sm.concat e0 (
+        sm.concat e1 (sm.concat e2 (sm.concat e3 (sm.concat e4 (sm.concat e5 (sm.concat e6 (sm.concat e7 e8))))))
+    )
+
+:= toolchain_environment_mode_catalog () : string =
+    := e0 = toolchain_catalog_line "env-mode:0=" (toolchain_environment_mode_label RemoveEnvironment)
+    := e1 = toolchain_catalog_line "env-mode:1=" (toolchain_environment_mode_label ToolEnvironment)
+    := e2 = toolchain_catalog_line "env-mode:2=" (toolchain_environment_mode_label NeverEnvironment)
+    := e3 = toolchain_catalog_line "env-mode:3=" (toolchain_environment_mode_label SiblingRustcEnvironment)
+    := e4 = toolchain_catalog_line "env-mode:4=" (toolchain_environment_mode_label SiblingRustdocEnvironment)
+    := e5 = toolchain_catalog_line "env-mode:5=" (toolchain_environment_mode_label RequireCurrentEnvironment)
+    := e6 = toolchain_catalog_line "env-mode:6=" (toolchain_environment_mode_label InheritCurrentEnvironment)
+    sm.concat e0 (sm.concat e1 (sm.concat e2 (sm.concat e3 (sm.concat e4 (sm.concat e5 e6)))))
+
+:= toolchain_receipt_protocol_catalog () : string =
+    := marker = toolchain_catalog_line "receipt-marker=" (toolchain_receipt_protocol_field_label ReceiptMarkerField)
+    := path = toolchain_catalog_line "receipt-path=" (toolchain_receipt_protocol_field_label ReceiptPathField)
+    := bundle_marker =
+        toolchain_catalog_line "bundle-state-marker=" (toolchain_receipt_protocol_field_label BundleStateMarkerField)
+    := stage_prefix =
+        toolchain_catalog_line "receipt-stage-prefix=" (toolchain_receipt_protocol_field_label ReceiptStagePrefixField)
+    sm.concat marker (sm.concat path (sm.concat bundle_marker stage_prefix))
+
+:= toolchain_identity_excluded_directories () : string =
+    sm.concat
+        (toolchain_identity_excluded_directory_label TargetExcludedDirectory)
+        (
+            sm.concat "," (sm.concat (toolchain_identity_excluded_directory_label VendorExcludedDirectory) (
+                sm.concat "," (toolchain_identity_excluded_directory_label GitExcludedDirectory)))
+        )
+
+:= toolchain_identity_file_names () : string =
+    sm.concat
+        (toolchain_identity_file_name_label CargoTomlIdentityFile)
+        (
+            sm.concat "," (sm.concat (toolchain_identity_file_name_label CargoLockIdentityFile) (sm.concat "," (
+                toolchain_identity_file_name_label PackageSpiprojIdentityFile)))
+        )
+
+:= toolchain_identity_extensions () : string =
+    sm.concat
+        (toolchain_identity_extension_label RustIdentityExtension)
+        (
+            sm.concat "," (sm.concat (toolchain_identity_extension_label SpiIdentityExtension) (sm.concat "," (
+                sm.concat (toolchain_identity_extension_label SpirIdentityExtension) (sm.concat "," (
+                sm.concat (toolchain_identity_extension_label TomlIdentityExtension) (sm.concat "," (
+                toolchain_identity_extension_label SpiprojIdentityExtension)))))))
+        )
+
+:= toolchain_identity_hash_files () : string =
+    sm.concat
+        (toolchain_identity_hash_file_label CargoTomlHashFile)
+        (
+            sm.concat "," (sm.concat (toolchain_identity_hash_file_label CargoLockHashFile) (sm.concat "," (
+                toolchain_identity_hash_file_label CargoConfigHashFile)))
+        )
+
+:= toolchain_identity_catalog () : string =
+    := excluded = toolchain_catalog_line "identity-exclude-dirs=" (toolchain_identity_excluded_directories ())
+    := names = toolchain_catalog_line "identity-file-names=" (toolchain_identity_file_names ())
+    := extensions = toolchain_catalog_line "identity-exts=" (toolchain_identity_extensions ())
+    := root_marker = toolchain_catalog_line "identity-root-marker=" (toolchain_identity_scalar_label IdentityRootMarker)
+    := root_fallback =
+        toolchain_catalog_line "identity-root-fallback=" (toolchain_identity_scalar_label IdentityRootFallback)
+    := hash_files = toolchain_catalog_line "identity-hash-files=" (toolchain_identity_hash_files ())
+    := target_fallback =
+        toolchain_catalog_line "identity-target-fallback=" (toolchain_identity_scalar_label IdentityTargetFallback)
+    sm.concat excluded (sm.concat names (sm.concat extensions (sm.concat root_marker (sm.concat root_fallback (
+        sm.concat hash_files target_fallback)))))
+
+:= toolchain_typed_catalog () : string =
+    sm.concat
+        (toolchain_action_name_catalog ())
+        (sm.concat
+            (toolchain_action_ctor_catalog ())
+            (sm.concat
+                (toolchain_checkpoint_catalog ())
+                (sm.concat
+                    (toolchain_outcome_catalog ())
+                    (sm.concat
+                        (toolchain_outcome_payload_catalog ())
+                        (sm.concat
+                            (toolchain_profile_catalog ())
+                            (sm.concat
+                                (toolchain_program_catalog ())
+                                (sm.concat
+                                    (toolchain_environment_key_catalog ())
+                                    (toolchain_environment_mode_catalog ()))))))))
+
+:~ toolchain_receipt_catalog (~query : string) : string =
+    ? (=.) query "v1" ?>
+        sm.concat
+            (toolchain_typed_catalog ())
+            (sm.concat (toolchain_receipt_protocol_catalog ()) (toolchain_identity_catalog ()))
+    |: ""

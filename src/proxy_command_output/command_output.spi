@@ -1,0 +1,35 @@
+:< workspace_primitives.numbers
+:< sm'_operators
+
+:| child_outcome =
+    | ChildSucceeded
+    | ChildFailed : i32
+
+:= child_outcome_of (status : i32) : child_outcome = ? status = 0i32 ?> ChildSucceeded |: ChildFailed status
+
+:= outcome_word = \|
+    | ChildSucceeded => "ok"
+    | ChildFailed _ => "child-failed"
+
+:~ command_output_receipt_text (status : i32) (elapsed : u64) (stdout_bytes : u64) (stderr_bytes : u64) : string =
+    := head =
+        "kit proxy command-output "
+        ++# outcome_word (child_outcome_of status)
+        ++# " status="
+        ++# i32_text status
+        ++# " elapsed_ms="
+    := sizes = " stdout_bytes=" ++# u64_text stdout_bytes ++# " stderr_bytes=" ++# u64_text stderr_bytes
+    head ++# u64_text elapsed ++# sizes
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_command_output_receipt",
+        (
+            \ (status, elapsed, stdout_bytes, stderr_bytes) =>
+                command_output_receipt_text status elapsed stdout_bytes stderr_bytes
+            : i32 * u64 * u64 * u64 -> string
+        )
+    )
+    := _ = command_output_receipt_text 0i32 12u64 40u64 0u64
+    := _ = command_output_receipt_text 3i32 12u64 0u64 9u64
+    0i32

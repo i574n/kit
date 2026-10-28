@@ -1,0 +1,308 @@
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< agile_todo_model.model
+
+:== scan_state =
+    {
+        tally : scan_tally
+        json : bool
+        quiet : bool
+        emitted : bool
+        collected : string
+        backlog : string
+        only : string
+        stale : i32
+        unknown : i32
+        wide : i32
+    }
+
+:| entry_kind =
+    | RegularFile
+    | Directory
+    | LinkedEntry
+    | AbsentEntry
+
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:~ argument_count () : i32 =
+    := user = env.command_line_argument_count ()
+    ? user > 0i32 ?> user - 1i32 |: 0i32
+:= json_requested () : bool = rust_std_env.model.argument_flag_present 4i32 "--json"
+:= filter_text () : string = $'std::rc::Rc::<str>::from({ let args = std::env::args().skip(4).collect::<Vec<_>>(); \
+    match args.iter().position(|argument| argument == "--id") { Some(at) => args.get(at + \
+    1).cloned().unwrap_or_default(), None => if args.iter().any(|argument| argument == "--tagged") { "*".to_owned() } \
+    else { String::new() } } })' : string
+:= flag_width (~argument : string) : i32 =
+    ? argument = "--id" ?> 2i32 |? argument = "--tagged" || argument = "--json" ?> 1i32 |: 0i32
+:= nul_text () : string = $'std::rc::Rc::<str>::from(char::from(0u8).to_string())' : string
+
+:= path_is_link (~path : string) : bool = $'std::fs::symlink_metadata(&*!path).map(|metadata| \
+    metadata.file_type().is_symlink()).unwrap_or(false)' : bool
+:= path_is_dir (~path : string) : bool = file_system.directory_exists path
+:= path_is_file (~path : string) : bool = file_system.file_exists path
+
+:= entry_kind_of (~path : string) : entry_kind =
+    ? path_is_link path ?> LinkedEntry
+    |? path_is_dir path ?> Directory
+    |? path_is_file path ?> RegularFile
+    |: AbsentEntry
+
+:= file_size (~path : string) : u64 = $'std::fs::metadata(&*!path).map(|metadata| metadata.len()).unwrap_or(0)' : u64
+:= spiral_sibling_present (~path : string) : bool =
+    $'std::path::Path::new(&*!path).with_extension("spi").is_file()' : bool
+:= read_content (~path : string) : bool * string =
+    $'match std::fs::read(&*!path) { Ok(bytes) => (bytes.contains(&0u8), \
+        std::rc::Rc::<str>::from(String::from_utf8_lossy(&bytes).as_ref())), Err(_) => (true, \
+        std::rc::Rc::<str>::from("")) }' : bool * string
+
+:= forward_slashes (~path : string) : string = rust_std_string.model.replace path "\\" "/"
+
+:= joined_path (~base : string) (~relative : string) : string =
+    ? rust_std_string.model.equals relative "" ?> base
+    |? rust_std_string.model.equals base "" ?> relative
+    |? rust_std_string.model.ends_with base "/" ?> rust_std_string.model.concat5 base relative "" "" ""
+    |: rust_std_string.model.concat5 base "/" relative "" ""
+
+:| todo_standing =
+    | OpenTodo
+    | StaleTodo
+    | UnknownTodo
+
+:= state_text (~root : string) : string =
+    := _, text = read_content (rust_std_string.model.concat5 root "/state/agile.spi" "" "" "")
+    $'kit_agile_records::kit_agile_records_as_lines(&*!text)' : string
+
+:= standing_of (~text : string) (~id : string) : todo_standing =
+    := status = $'agile_task_census::kit_agile_task_status(&*!text, &*!id)' : string
+    ? rust_std_string.model.equals status "" ?> UnknownTodo
+    |? rust_std_string.model.equals status "Done" ?> StaleTodo
+    |: OpenTodo
+
+:= standing_label = \|
+    | OpenTodo => ""
+    | StaleTodo => "stale (item is Done): "
+    | UnknownTodo => "unknown (no backlog item): "
+
+:~ ^ standings_from (state : scan_state) (~rendered : string) (offset : i32) : scan_state =
+    ? byte_len rendered <= offset
+    ?> state
+    |:
+        := newline = byte_find_from rendered "\n" offset
+        := stop = ? newline < 0i32 ?> byte_len rendered |: newline
+        := line = byte_slice rendered offset stop
+        := backlog = state.backlog
+        := id = $'agile_todo_lines::kit_agile_todo_id(&*!backlog, &*!line)' : string
+        := next_state =
+            ? rust_std_string.model.equals id ""
+            ?> state
+            |:
+                ?= standing_of state.backlog id ?|
+                | OpenTodo => state
+                | standing =>
+                    := _ =
+                        ? state.json || state.quiet
+                        ?> 0i32
+                        |: stdout_line (rust_std_string.model.concat5 (standing_label standing) id " at " line "")
+                    ?= standing ?|
+                    | StaleTodo => { state ?| stale = (state.stale + 1i32) }
+                    | _ => { state ?| unknown = (state.unknown + 1i32) }
+        standings_from next_state rendered (stop + 1i32)
+
+:= standing_receipt (state : scan_state) : string =
+    rust_std_string.model.concat5
+        " stale="
+        (i32_text state.stale)
+        " unknown="
+        (i32_text state.unknown)
+        (rust_std_string.model.concat5 " wide=" (i32_text state.wide) "" "" "")
+
+:= crate_path_verdict (~relative : string) (spiral_sibling : bool) : path_verdict =
+    path_verdict_of_code ($'agile_todo_paths::kit_agile_todo_path_verdict(&*!relative, !spiral_sibling)' : i32)
+
+:= crate_findings
+    (syntax : comment_syntax) (~only : string) (~backlog : string) (~text : string) (~display : string) (json : bool)
+    : string * i32 * string
+    =
+    := code = case_index syntax
+    $'agile_todo_lines::kit_agile_todo_findings(!code, &*!only, &*!backlog, &*!text, &*!display, !json)'
+    : string * i32 * string
+:= emitted_findings (state : scan_state) (~rendered : string) : scan_state =
+    ? state.quiet
+    ?> { state ?| emitted = !+; collected = rust_std_string.model.concat5 state.collected rendered "\n" "" "" }
+    |:
+        := line = ? both state.json state.emitted ?> rust_std_string.model.concat5 "," rendered "" "" "" |: rendered
+        := _ = stdout_line line
+        { state ?| emitted = !+ }
+
+:~ ^ widened (state : scan_state) (~wides : string) (offset : i32) : scan_state =
+    ? byte_len wides <= offset
+    ?> state
+    |:
+        := newline = byte_find_from wides "\n" offset
+        := stop = ? newline < 0i32 ?> byte_len wides |: newline
+        := _ =
+            ? state.json || state.quiet
+            ?> 0i32
+            |:
+                stdout_line (
+                    rust_std_string.model.concat5
+                        "wide (over 120 columns, the Spiral formatter rewraps it): "
+                        (byte_slice wides offset stop)
+                        ""
+                        ""
+                        ""
+                )
+        := next = { state ?| wide = (state.wide + 1i32) }
+        widened next wides (stop + 1i32)
+
+:= read_and_scanned
+    (state : scan_state) (tally : scan_tally) (syntax : comment_syntax) (~display : string) (~absolute : string)
+    : scan_state
+    =
+    := has_nul, text = read_content absolute
+    ?= bytes_verdict has_nul ?|
+    | ScanContent =>
+        := rendered, count, wides = crate_findings syntax state.only state.backlog text display state.json
+        := tallied = { state ?| tally = counted_todos (counted_content tally ScanContent) count }
+        := counted = widened tallied wides 0i32
+        ? count <= 0i32 ?> counted |: standings_from (emitted_findings counted rendered) rendered 0i32
+    | verdict => { state ?| tally = counted_content tally verdict }
+
+:~ scanned_file (state : scan_state) (~display : string) (~absolute : string) (~relative : string) : scan_state =
+    ?= entry_kind_of absolute ?|
+    | RegularFile =>
+        := verdict = crate_path_verdict relative (spiral_sibling_present absolute)
+        := tally = counted_path state.tally verdict
+        ?= verdict ?|
+        | ScanPath syntax =>
+            ?= size_verdict (file_size absolute) ?|
+            | SkipLarge => { state ?| tally = counted_content tally SkipLarge }
+            | _ => read_and_scanned state tally syntax display absolute
+        | _ => { state ?| tally = tally }
+    | LinkedEntry => { state ?| tally = counted_path state.tally (SkipPath SkipLinkedEntry) }
+    | _ =>
+        := verdict = crate_path_verdict relative !-
+        := tally = counted_path state.tally verdict
+        ?= verdict ?|
+        | ScanPath _ => { state ?| tally = counted_content tally SkipUnreadable }
+        | _ => { state ?| tally = tally }
+
+:~ ^ listed_files
+    (state : scan_state) (~base : string) (~display : string) (~listing : string) (~offset : i32)
+    : scan_state
+    =
+    ? byte_len listing <= offset
+    ?> state
+    |:
+        := nul = byte_find_from listing (nul_text ()) offset
+        := stop = ? nul < 0i32 ?> byte_len listing |: nul
+        := relative = byte_slice listing offset stop
+        := next = stop + 1i32
+        ? rust_std_string.model.equals relative ""
+        ?> listed_files state base display listing next
+        |:
+            listed_files
+                (scanned_file state (joined_path display relative) (joined_path base relative) relative)
+                base
+                display
+                listing
+                next
+
+:~ scanned_root (state : scan_state) (~path : string) : scan_state =
+    := display = forward_slashes path
+    ?= entry_kind_of path ?|
+    | RegularFile => scanned_file state display path (forward_slashes path)
+    | Directory =>
+        := listed, listing = $'agile_todo_sources::kit_agile_todo_sources(&*!path)' : bool * string
+        ? listed ?> listed_files state path display listing 0i32 |: state
+    | _ => state
+
+:~ ^ scanned_arguments (state : scan_state) (index : i32) (count : i32) (roots : i32) : scan_state * i32 =
+    ? count <= index ?> state, roots
+    |:
+        := argument = argument_owned index
+        := width = flag_width argument
+        ? 0i32 < width ?> scanned_arguments state (index + width) count roots
+        |: scanned_arguments (scanned_root state argument) (index + 1i32) count (roots + 1i32)
+
+:~ ^ scanned_listed_roots (state : scan_state) (~listing : string) (offset : i32) (roots : i32) : scan_state * i32 =
+    ? byte_len listing <= offset ?> state, roots
+    |:
+        := newline = byte_find_from listing "\n" offset
+        := stop = ? newline < 0i32 ?> byte_len listing |: newline
+        scanned_listed_roots (scanned_root state (byte_slice listing offset stop)) listing (stop + 1i32) (roots + 1i32)
+
+:~ scanned_default_roots (state : scan_state) (~root : string) : scan_state * i32 =
+    := listing = agile_todo_model.roots.harvest_roots state.backlog
+    ? listing = "" ?> scanned_root state root, 1i32 |: scanned_listed_roots state listing 0i32 0i32
+
+:~ scan_start (~json : bool) (~quiet : bool) (~backlog : string) (~only : string) : scan_state =
+    {
+        tally = empty_tally ()
+        json = json
+        quiet = quiet
+        emitted = !-
+        collected = ""
+        backlog = backlog
+        only = only
+        stale = 0i32
+        unknown = 0i32
+        wide = 0i32
+    }
+
+:~ todo_sites (~root : string) (~id : string) : string =
+    := finished, _ = scanned_default_roots (scan_start !- !+ (state_text root) id) root
+    finished.collected
+
+:= todos_failure (~reason : string) : i32 =
+    stderr_failure (rust_std_string.model.concat5 "agile todos rejected: " reason "" "" "")
+
+:~ todos_entry () : i32 =
+    := started = unix_ms ()
+    := count = argument_count ()
+    ? count <= 1i32
+    ?> todos_failure "usage: agile todos <root> [<path>...] [--json] [--tagged | --id <ID>]"
+    |:
+        := root = argument_owned 1i32
+        ?= entry_kind_of root ?|
+        | Directory =>
+            := json = json_requested ()
+            := _ = ? json ?> stdout_line "{\"todos\":[" |: 0i32
+            := initial = scan_start json !- (state_text root) (filter_text ())
+            := scanned, roots = scanned_arguments initial 2i32 count 0i32
+            := finished, total = ? roots = 0i32 ?> scanned_default_roots scanned root |: scanned, roots
+            ? json
+            ?>
+                := tail = tally_json_tail total finished.tally (ms_since started)
+                := tail_head = byte_slice tail 0i32 (byte_len tail - 1i32)
+                stdout_line (
+                    rust_std_string.model.concat5 tail_head
+                        ",\"stale\":"
+                        (i32_text finished.stale)
+                        ",\"unknown\":"
+                        (
+                            rust_std_string.model.concat5
+                                (i32_text finished.unknown)
+                                ",\"wide\":"
+                                (i32_text finished.wide)
+                                "}"
+                                ""
+                        )
+                )
+            |:
+                stdout_line (
+                    rust_std_string.model.concat5
+                        (tally_receipt total finished.tally (ms_since started))
+                        (standing_receipt finished)
+                        ""
+                        ""
+                        ""
+                )
+        | _ => todos_failure (rust_std_string.model.concat5 "the backlog root " root " is not a directory" "" "")
+
+:= main () : i32 =
+    !!!!Export("kit_agile_todos_run", ((\ () => todos_entry ()) : () -> i32))
+    !!!!Export("kit_agile_todo_sites", ((\ (root, id) => todo_sites root id) : string * string -> string))
+    := _ = todos_entry ()
+    0i32

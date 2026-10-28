@@ -1,0 +1,156 @@
+:< sm'_operators
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+:< kit_job_launch_model.shapes
+
+:= new_job_id (~label : string) : string = "job-" ++# (decimal_text (now_ms ())) ++# "-" ++# (label_safe label)
+
+:= heavy_wrapper (~gate : string) (~inner : string) (~label : string) (~id : string) (~timeout : u64) : string =
+    $'kit_machine_windows::kit_heavy_wrapper(&*!gate, &*!inner, &*!label, &*!id, !timeout)' : string
+
+:= heavy_argv (~wrapper : string) : string = "pwsh\n-NoProfile\n-File\n" ++# wrapper
+
+:~ job_argv (shape : start_shape) (~id : string) (~label : string) (~inner : string) (~timeout : u64) : string =
+    ?= shape ?|
+    | PlainStart => inner
+    | CompileStart =>
+        := _ = text_written (job_file id "window-class") "compile"
+        inner
+    | HeavyStart =>
+        := gate = heavy_gate_script ()
+        ? gate = "" ?> ""
+        |:
+            := _ = text_written (job_file id "argv.inner") inner
+            := wrapper = job_file id "heavy-wrapper.ps1"
+            := _ = text_written wrapper (heavy_wrapper gate (job_file id "argv.inner") label id timeout)
+            heavy_argv wrapper
+
+:| launch =
+    | Launched : string * string
+    | LaunchRefused : string
+
+:~ job_launched
+    (shape : start_shape) (~after_mode : string) (~after_job : string) (attached : bool) (~cap_mb : u64)
+    (~slot_minutes : u64) (~done_minutes : u64) (~hold_minutes : u64) (~quiet_wait : u64) (~min_free : u64)
+    (front : bool) (~label : string) (~timeout : u64) (~inner : string) (~cwd : string)
+    : launch
+    =
+    := id = new_job_id label
+    := problem = directory_created (job_directory id)
+    ? problem <> ""
+    ?> LaunchRefused problem
+    |:
+        := argv = job_argv shape id label inner timeout
+        ? argv = ""
+        ?>
+            LaunchRefused (
+                "--heavy needs spiral's scripts/heavy.ps1: set KIT_HEAVY_GATE or run from inside a tree that has a "
+                ^^ "spiral checkout"
+            )
+        |:
+            := writes =
+                    (text_written (job_file id "label") label)
+                    ++# (text_written (job_file id "timeout_ms") (decimal_text timeout))
+                    ++# (text_written (job_file id "cwd") cwd)
+                    ++# (text_written (job_file id "argv") argv)
+                    ++# (text_written (job_file id "started_ms") (decimal_text (now_ms ())))
+                    ++# (text_written (job_file id "env") (env.environment_snapshot ()))
+            := after_written =
+                ? after_mode = "" ?> "" |: text_written (job_file id "after") (after_job ++# "\t" ++# after_mode)
+            := cap_written = ? cap_mb = 0u64 ?> "" |: text_written (job_file id "memory_cap_mb") (decimal_text cap_mb)
+            := queue_minutes =
+                ? slot_minutes = 0u64
+                ?> done_minutes
+                |? done_minutes = 0u64 || slot_minutes < done_minutes
+                ?> slot_minutes
+                |: done_minutes
+            := slot_written =
+                ? queue_minutes = 0u64
+                ?> ""
+                |: text_written (job_file id "slot_by_ms") (decimal_text (now_ms () + queue_minutes * 60000u64))
+            := done_written =
+                ? done_minutes = 0u64
+                ?> ""
+                |: text_written (job_file id "done_by_ms") (decimal_text (now_ms () + done_minutes * 60000u64))
+            := quiet_written =
+                ? hold_minutes = 0u64
+                ?> ""
+                |:
+                    text_written (job_file id "quiet_hold_min") (decimal_text hold_minutes)
+                    ++# text_written (job_file id "quiet_wait_min") (decimal_text quiet_wait)
+            := floor_written =
+                ? min_free = 0u64 ?> "" |: text_written (job_file id "min_free_mb") (decimal_text min_free)
+            := front_written = ? front ?> text_written (job_file id "front") "1" |: ""
+            := author = env.get_environment_variable "KIT_AUTHOR"
+            := author_written = ? author = "" ?> "" |: text_written (job_file id "author") author
+            ?
+                writes <> ""
+                || after_written <> ""
+                || cap_written <> ""
+                || slot_written <> ""
+                || done_written <> ""
+                || quiet_written <> ""
+                || floor_written <> ""
+                || front_written <> ""
+                || author_written <> ""
+            ?>
+                LaunchRefused (
+                    floor_written
+                    ++# writes
+                    ++# after_written
+                    ++# cap_written
+                    ++# slot_written
+                    ++# (done_written ++# quiet_written ++# front_written ++# author_written)
+                )
+            |:
+                := supervisor =
+                    ? attached
+                    ?> $'std::rc::Rc::<str>::from(std::process::id().to_string().as_str())' : string
+                    |: supervisor_launched id
+                ? sm'.starts_with "error:" supervisor ?> LaunchRefused supervisor |: Launched (id, supervisor)
+
+:~ job_created
+    (~shape : string) (~after_mode : string) (~after_job : string) (attached : bool) (~cap_mb : u64)
+    (~slot_minutes : u64)
+    (~done_minutes : u64) (~hold_minutes : u64) (~quiet_wait : u64) (~min_free : u64) (front : bool) (~label : string)
+    (~timeout : u64) (~inner : string) (~cwd : string)
+    : string * string * string
+    =
+    ?=
+        job_launched
+            (shape_of_word shape)
+            after_mode
+            after_job
+            attached
+            cap_mb
+            slot_minutes
+            done_minutes
+            hold_minutes
+            quiet_wait
+            min_free
+            front
+            label
+            timeout
+            inner
+            cwd
+    ?|
+    | Launched (id, supervisor) => id, supervisor, ""
+    | LaunchRefused problem => "", "", problem
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_job_create",
+        (
+            \ (
+                shape, after_mode, after_job, attached, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait,
+                min_free, front, label, timeout, inner, cwd
+            ) =>
+                job_created
+                    shape after_mode after_job attached cap_mb slot_minutes done_minutes hold_minutes quiet_wait
+                    min_free front label timeout inner cwd
+            : string * string * string * bool * u64 * u64 * u64 * u64 * u64 * u64 * bool * string * u64 * string
+            * string -> string * string * string
+        )
+    )
+    0i32

@@ -1,0 +1,156 @@
+:< sm'_operators
+:< model
+:< host
+:< classify
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
+:~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+:= u64_text (value : u64) : string = (sm'.show value)
+:= share_text (value : f64) : string = $'std::rc::Rc::<str>::from(format\!("{:.3}", !value))' : string
+:= written (~path : string) (~text : string) : string =
+    $'std::rc::Rc::<str>::from(std::fs::write(&*!path, (&*!text).as_bytes()).err().map(|error| format\!("write {}: \
+        {error}", &*!path)).unwrap_or_default().as_str())'
+    : string
+
+:| ^ day_tallies =
+    | NoDays
+    | DayThen : string * day_tally * day_tallies
+
+:~ ^ tally_added (~key : string) (call : shell_call) (days : day_tallies) : day_tallies =
+    ?= days ?|
+    | NoDays => DayThen (key, counted call (empty_tally ()), NoDays)
+    | DayThen (found, tally, rest) =>
+        ? found = key ?> DayThen (found, counted call tally, rest)
+        |: DayThen (found, tally, tally_added key call rest)
+
+:| tally_mode =
+    | ByDay
+    | ByHabit
+
+:~ habit_any (command : string) : bool = $'kit_adoption_habits::kit_adoption_habit_any(&*!command)' : bool
+
+:~ habit_words (command : string) : string = $'kit_adoption_habits::kit_adoption_habit_words(&*!command)' : string
+
+:~ ^ words_added (~words : string) (start : u64) (days : day_tallies) : day_tallies =
+    ? start >= text_length words ?> days
+    |:
+        := stop = line_end words start
+        := word = slice_of words start stop
+        words_added words (stop + 1u64) (? word = "" ?> days |: tally_added word HabitCall days)
+
+:~ row_tallied (mode : tally_mode) (~key : string) (~command : string) (days : day_tallies) : day_tallies =
+    ?= mode ?|
+    | ByDay => tally_added key (call_of_command habit_any command) days
+    | ByHabit => words_added (habit_words command) 0u64 days
+
+:~ ^ calls_tallied
+    (mode : tally_mode) (client : agent_client) (~calls : string) (start : u64) (days : day_tallies)
+    : day_tallies
+    =
+    ? start >= text_length calls ?> days
+    |:
+        := stop = line_end calls start
+        := row = slice_of calls start stop
+        := key = (client_word client) ++# "\t" ++# (field_at row 0i32)
+        calls_tallied mode client calls
+            (stop + 1u64)
+            (? row = "" ?> days |: row_tallied mode key (field_at row 1i32) days)
+
+:~ ^ files_tallied
+    (mode : tally_mode) (client : agent_client) (~files : string) (~cutoff : string) (start : u64) (days : day_tallies)
+    : day_tallies
+    =
+    ? start >= text_length files ?> days
+    |:
+        := stop = line_end files start
+        := path = slice_of files start stop
+        files_tallied mode client files cutoff
+            (stop + 1u64)
+            (? path = "" ?> days |: calls_tallied mode client (file_calls path client cutoff) 0u64 days)
+
+:= client_tallied (mode : tally_mode) (days_back : u64) (client : agent_client) (days : day_tallies) : day_tallies =
+    files_tallied mode client (session_files (client_root client) days_back) (cutoff_day days_back) 0u64 days
+
+:= row_line (~key : string) (tally : day_tally) : string =
+    key ++# "\t" ++# (u64_text tally.shell) ++# "\t" ++# (
+        (u64_text tally.kit) ++# "\t" ++# (u64_text tally.habit) ++# "\t" ++# (share_text (kit_share tally)))
+
+:~ ^ rows_of (days : day_tallies) (~acc : string) (total : day_tally) : string * day_tally =
+    ?= days ?|
+    | NoDays => acc, total
+    | DayThen (key, tally, rest) =>
+        rows_of rest (? acc = "" ?> row_line key tally |: acc ++# "\n" ++# (row_line key tally)) {
+            shell = total.shell + tally.shell
+            kit = total.kit + tally.kit
+            habit = total.habit + tally.habit
+        }
+
+inl sorted_lines (~text : string) : string = $'{ let mut lines = (&*!text).lines().filter(|line| \
+    \!line.is_empty()).collect::<Vec<_>>(); lines.sort(); std::rc::Rc::<str>::from(lines.join("\n")) }' : string
+
+:~ ^ option_value (~name : string) (index : i32) : string =
+    ? index + 1i32 >= argument_count () ?> ""
+    |? argument index = name ?> argument (index + 1i32)
+    |: option_value name (index + 1i32)
+
+:= receipt_of (days_back : u64) (total : day_tally) (~out : string) : string =
+    := counts =
+        " shell_calls=" ++# (u64_text total.shell) ++# " kit_calls=" ++# (u64_text total.kit) ++# (
+            " habit_calls=" ++# (u64_text total.habit) ++# " kit_share=" ++# (share_text (kit_share total)))
+    "kit adoption ok days_back=" ++# (u64_text days_back) ++# counts ++# (? out = "" ?> "" |: " out=") ++# out
+
+:~ ^ flag_present (~name : string) (index : i32) : bool =
+    ? index >= argument_count () ?> !- |? argument index = name ?> !+ |: flag_present name (index + 1i32)
+
+:~ ^ max_habit (days : day_tallies) (~best_key : string) (best : u64) : string * u64 =
+    ?= days ?|
+    | NoDays => best_key, best
+    | DayThen (key, tally, rest) =>
+        ? tally.habit > best ?> max_habit rest key tally.habit |: max_habit rest best_key best
+
+:~ ^ without_key (~key : string) (days : day_tallies) : day_tallies =
+    ?= days ?|
+    | NoDays => NoDays
+    | DayThen (found, tally, rest) => ? found = key ?> rest |: DayThen (found, tally, without_key key rest)
+
+:~ ^ habit_lines (days : day_tallies) (~acc : string) (shown : u64) : string * u64 =
+    := key, calls = max_habit days "" 0u64
+    ? key = "" ?> acc, shown
+    |: habit_lines (without_key key days) (acc ++# key ++# "\t" ++# u64_text calls ++# "\n") (shown + 1u64)
+
+:~ adoption_run () : i32 =
+    := spelled = option_value "--days-back" 2i32
+    := asked = decimal_u64 (? spelled <> "" ?> spelled |: option_value "--days" 2i32)
+    := days_back = ? asked = 0u64 ?> 7u64 |: asked
+    := out = option_value "--out" 2i32
+    := mode = ? flag_present "--habits" 2i32 ?> ByHabit |: ByDay
+    := days = client_tallied mode days_back Codex (client_tallied mode days_back ClaudeCode NoDays)
+    := rows, total = rows_of days "" (empty_tally ())
+    := habit_table, habit_count = habit_lines days "" 0u64
+    := table =
+        ?= mode ?|
+        | ByDay => "client\tday\tshell_calls\tkit_calls\thabit_calls\tkit_share\n" ++# (sorted_lines rows) ++# "\n"
+        | ByHabit => "habit\tcalls\n" ++# habit_table
+    := problem = ? out = "" ?> "" |: written out table
+    ? problem <> "" ?>
+        := _ = $'eprintln\!("kit error: adoption: {}", &*!problem)' : ()
+        2i32
+    |:
+        := _ = ? out = "" ?> $'print\!("{}", &*!table)' : () |: ()
+        := receipt =
+            ?= mode ?|
+            | ByDay => receipt_of days_back total out
+            | ByHabit =>
+                "kit adoption ok mode=habits days="
+                ++# u64_text days_back
+                ++# " habits="
+                ++# u64_text habit_count
+                ++# (? out = "" ?> "" |: " out=")
+                ++# out
+        := _ = console.write_line receipt
+        0i32
+
+:= main () : i32 =
+    !!!!Export("kit_adoption_run", ((\ () => adoption_run ()) : () -> i32))
+    0i32

@@ -1,0 +1,69 @@
+:< agile_mutation_policy.model
+:< sm'_operators
+:< rust_std_fs.model
+:< agile_task_text.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+
+:~ argument_owned (index : i32) : string = rust_std_env.model.argument_owned index
+
+:= edit_field_position (~field_name : string) : i32 =
+    $'agile_field_rendering::kit_agile_edit_field_position(&*!field_name)' : i32
+:= edit_field_token (~field_name : string) (~current : string) (~value : string) : string =
+    $'agile_field_rendering::kit_agile_edit_field_token(&*!field_name, &*!current, &*!value)' : string
+:= edit_field_rule (~field_name : string) : string =
+    $'agile_field_rendering::kit_agile_edit_field_rule(&*!field_name)' : string
+
+:| field_token =
+    | TokenRendered : string
+    | TokenRejected
+
+:= field_token_of (~token : string) : field_token = ? (token = "") ?> TokenRejected |: TokenRendered token
+
+:~ agile_edit_failure (~reason : string) (~id : string) : i32 =
+    stderr_failure ("agile edit " ++# id ++# " rejected: " ++# reason)
+
+:= agile_edit_success (~id : string) (~field : string) (before : u64) (after : u64) (elapsed : u64) : i32 =
+    := head = "kit agile edit ok id=" ++# id ++# " field=" ++# field
+    stdout_line (head ++# (measured_sizes before after elapsed))
+
+:= task_anchor (~id : string) : string = "Task (\"" ++# id ++# "\","
+:= task_arguments_offset () : i32 = 6i32
+
+:= agile_edit (~root : string) (~id : string) (position : i32) (~field_name : string) (~value : string) : i32 =
+    := started = unix_ms ()
+    := state = backlog_state_path root
+    ?= probe (unchecked state) ?|
+    | FileMissing _ => agile_edit_failure "state/agile.spi is missing" id
+    | FileReadable file =>
+        := original = records_text (loaded_string (read_text file))
+        := anchor = byte_find original (task_anchor id)
+        ? anchor < 0i32
+        ?> agile_edit_failure "no task with this id" id
+        |:
+            := length = byte_len original
+            := start = field_start original ((anchor + (task_arguments_offset ()))) length position
+            := stop = field_end original start length ScanPlain
+            ?= field_token_of (edit_field_token field_name (byte_slice original start stop) value) ?|
+            | TokenRejected => agile_edit_failure (edit_field_rule field_name) id
+            | TokenRendered token =>
+                := updated = (byte_slice original 0i32 start) ++# token ++# (byte_slice original stop length)
+                ?= replace_file_checked state updated ?|
+                | Replaced =>
+                    agile_edit_success id field_name (text_bytes original) (text_bytes updated) (ms_since started)
+                | problem => agile_edit_failure (file_replacement_problem problem) id
+
+:~ agile_edit_entry () : i32 =
+    := field_name = argument_owned 3i32
+    := position = edit_field_position field_name
+    ? position < 0i32 ?> agile_edit_failure (edit_field_rule field_name) (argument_owned 2i32)
+    |: agile_edit (argument_owned 1i32) (argument_owned 2i32) position field_name (argument_owned 4i32)
+
+:= main () : i32 =
+    !!!!Export("kit_agile_edit_run", ((\ () => agile_edit_entry ()) : () -> i32))
+    := _ = agile_edit_entry ()
+    0i32

@@ -1,0 +1,17 @@
+:< legacy_cpp_bundle_writer_contract.model
+
+:= one_is (value : i32) : bool =
+    ? value < 1i32 ?> !-
+    |? 1i32 < value ?> !-
+    |: !+
+
+:= main () : i32 =
+    := _ = policy_plan ()
+    := source_ok = source_comparison_binding 1i32 1i32
+    := order_ok = ordering_binding 1i32 1i32
+    := count_ok = count_binding 1i32 1i32
+    := nested_ok =
+        nested_policy_binding (nested_zip_policy_code LegacyExcludeNested) (nested_zip_policy_code CurrentRejectNested)
+    := epoch_ok = epoch_binding 1i32 1i32
+    := deterministic_ok = determinism_binding 1i32 1i32
+    ? one_is (complete_binding source_ok order_ok count_ok nested_ok epoch_ok deterministic_ok) ?> 0i32 |: 1i32

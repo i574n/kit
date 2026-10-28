@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+    kit_job_host
+modules:
+    decide

@@ -1,0 +1,108 @@
+
+
+:~ bundle_output_preflight_binding (outside_root : i32) (output_absent : i32) : i32 =
+    bundle_output_contract.model.preflight_binding outside_root output_absent
+
+:~ bundle_output_complete_binding (outside_root : i32) (output_file : i32) : i32 =
+    bundle_output_contract.model.complete_binding outside_root output_file
+
+:~ bundle_verify_preflight_binding (archive_file : i32) (bytes_positive : i32) : i32 =
+    bundle_verify_contract.model.preflight_binding archive_file bytes_positive
+
+:~ bundle_verify_complete_binding (entries_positive : i32) (size_ok : i32) : i32 =
+    bundle_verify_contract.model.complete_binding entries_positive size_ok
+
+:= main () : i32 =
+    global "#![allow(clippy::needless_late_init)]"
+    := _ = lifecycle_plan ()
+    := _ = rehydrate_plan ()
+    := _ = bundle_rehydrate_preflight_binding 1i32 1i32
+    := _ = bundle_rehydrate_extract_binding 1i32 1i32
+    := _ = bundle_rehydrate_validate_binding 1i32 1i32
+    := _ = bundle_rehydrate_receipt_binding 1i32 1i32
+    := _ = native_extract_plan ()
+    := _ = archive_extract_preflight_binding 0i32 1i32
+    := _ = archive_extract_process_binding 1i32 1i32
+    := _ = archive_extract_complete_binding 1i32 1i32
+    := _ = archive_extract_receipt_binding 1i32 1i32
+    := _ = bundle_output_contract.model.policy_plan ()
+    := _ = bundle_output_preflight_binding 1i32 1i32
+    := _ = bundle_output_complete_binding 1i32 1i32
+    := _ = bundle_verify_contract.model.verify_policy_plan ()
+    := _ = bundle_verify_preflight_binding 1i32 1i32
+    := _ = bundle_verify_complete_binding 1i32 1i32
+    !!!!Export("kit_bundle_root_binding", ((\ (first, second) => bundle_root_binding first second) : i32 * i32 -> i32))
+    !!!!Export(
+        "kit_bundle_coverage_checkpoint_binding",
+        ((\ (first, second) => coverage_checkpoint_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_entry_binding",
+        ((\ (first, second) => bundle_entry_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export("kit_bundle_size_binding", ((\ (first, second) => bundle_size_binding first second) : i32 * i32 -> i32))
+    !!!!Export(
+        "kit_bundle_extract_binding",
+        ((\ (first, second) => bundle_extract_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_payload_count_binding",
+        ((\ (first, second) => bundle_payload_count_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_rehydration_binding",
+        ((\ (first, second) => bundle_rehydration_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_complete_binding",
+        ((\ (first, second) => bundle_complete_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_rehydrate_preflight_binding",
+        ((\ (first, second) => bundle_rehydrate_preflight_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_rehydrate_extract_binding",
+        ((\ (first, second) => bundle_rehydrate_extract_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_rehydrate_validate_binding",
+        ((\ (first, second) => bundle_rehydrate_validate_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_rehydrate_receipt_binding",
+        ((\ (first, second) => bundle_rehydrate_receipt_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_archive_extract_preflight_binding",
+        ((\ (first, second) => archive_extract_preflight_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_archive_extract_process_binding",
+        ((\ (first, second) => archive_extract_process_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_archive_extract_complete_binding",
+        ((\ (first, second) => archive_extract_complete_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_archive_extract_receipt_binding",
+        ((\ (first, second) => archive_extract_receipt_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_output_preflight_binding",
+        ((\ (first, second) => bundle_output_preflight_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_output_complete_binding",
+        ((\ (first, second) => bundle_output_complete_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_verify_preflight_binding",
+        ((\ (first, second) => bundle_verify_preflight_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_bundle_verify_complete_binding",
+        ((\ (first, second) => bundle_verify_complete_binding first second) : i32 * i32 -> i32)
+    )
+    0i32

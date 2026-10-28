@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "progress.spi"
+output = "progress.rs"
+
+[package]
+name = "kit-notebook-progress"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_notebook_progress"
+path = "progress.rs"

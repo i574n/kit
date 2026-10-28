@@ -1,0 +1,182 @@
+:< patch_model.model
+
+
+:! patch_source = string
+:! patch_root = string
+:! patch_context = { root : patch_root; source : patch_source }
+
+:= context (root : string) (source : string) : patch_context =
+    patch_context { root = patch_root root; source = patch_source source }
+
+:= root (patch_context value) : string = := (patch_root root) = value.root ;; root
+:= source (patch_context value) : string = := (patch_source source) = value.source ;; source
+
+:| quoted_result = | QuotedOk : i32 | QuotedError
+:| separator_result = | SeparatorOk : i32 | SeparatorError
+:| parsed_patch = | ParsedPatch : i32 | InvalidPatch
+
+:= source_len (~source : string) : i32 =
+    $'i32::try_from(!source.len()).unwrap_or(i32::MAX)' : i32
+
+:= source_byte (~source : string) (~index : i32) : i32 =
+    $'usize::try_from(!index).ok().and_then(|index| !source.as_bytes().get(index).copied()).map_or(-1, i32::from)' : i32
+
+:= canonical_plan_count (~source : string) : i32 =
+    $'canonical_plan_ir_domain::plan_ir_manifest_count(&!source)' : i32
+
+:= i32_eq (a : i32) (b : i32) : bool = (a = b)
+:= i32_lt (a : i32) (b : i32) : bool = (a < b)
+:= i32_le (a : i32) (b : i32) : bool = (a <= b)
+:= i32_add (a : i32) (b : i32) : i32 = (a + b)
+:= i32_sub (a : i32) (b : i32) : i32 = (a - b)
+:= i32_positive (value : i32) : bool = (0i32 < value)
+
+:= allowed_escape byte : bool =
+    ? byte = 110i32 ?> !+
+    |? byte = 114i32 ?> !+
+    |? byte = 116i32 ?> !+
+    |? byte = 92i32 ?> !+
+    |: byte = 34i32
+
+:~ ^ skip_spaces source index length : i32 =
+    ? i32_lt index length ?>
+        := byte = source_byte source index
+        ? byte = 32i32 ?> skip_spaces source (i32_add index 1i32) length
+        |? byte = 9i32 ?> skip_spaces source (i32_add index 1i32) length
+        |: index
+    |: index
+
+:~ ^ scan_quoted source index length : quoted_result =
+    ? i32_lt index length ?>
+        := byte = source_byte source index
+        ? byte = 34i32 ?> QuotedOk (i32_add index 1i32)
+        |? byte = 92i32 ?>
+            := escaped_index = i32_add index 1i32
+            ? i32_lt escaped_index length ?>
+                := escaped = source_byte source escaped_index
+                ? allowed_escape escaped ?> scan_quoted source (i32_add index 2i32) length
+                |: QuotedError
+            |: QuotedError
+        |: scan_quoted source (i32_add index 1i32) length
+    |: QuotedError
+
+:= parse_quoted source index length : quoted_result =
+    ? i32_lt index length ?>
+        ? source_byte source index = 34i32 ?> scan_quoted source (i32_add index 1i32) length
+        |: QuotedError
+    |: QuotedError
+
+:= parse_separator source index length : separator_result =
+    := index = skip_spaces source index length
+    ? i32_lt index length ?>
+        ? source_byte source index = 44i32 ?> SeparatorOk (skip_spaces source (i32_add index 1i32) length)
+        |: SeparatorError
+    |: SeparatorError
+
+:= safe_segment source start near_to : bool =
+    := length = i32_sub near_to start
+    ? i32_positive length ?>
+        ? length = 1i32 ?> ? source_byte source start = 46i32 ?> !- |: !+
+        |? length = 2i32 ?>
+            ? source_byte source start = 46i32 ?> ? source_byte source (i32_add start 1i32) = 46i32 ?> !- |: !+
+            |: !+
+        |: !+
+    |: !-
+
+:~ ^ safe_path_loop source index near_to segment_start : bool =
+    ? i32_lt index near_to
+    ?>
+        := byte = source_byte source index
+        ? byte = 92i32
+        ?> !-
+        |? byte = 47i32
+        ?>
+            ? safe_segment source segment_start index
+            ?> safe_path_loop source (i32_add index 1i32) near_to (i32_add index 1i32)
+            |: !-
+        |: safe_path_loop source (i32_add index 1i32) near_to segment_start
+    |: safe_segment source segment_start near_to
+
+:= safe_path source quoted_start quoted_after : bool =
+    := content_start = i32_add quoted_start 1i32
+    := content_end = i32_sub quoted_after 1i32
+    := content_length = i32_sub content_end content_start
+    ? i32_positive content_length ?>
+        := first = source_byte source content_start
+        ? first = 47i32 ?> !-
+        |? first = 92i32 ?> !-
+        |: safe_path_loop source content_start content_end content_start
+    |: !-
+
+:= parse_patch source marker_index length : parsed_patch =
+    := first_quote = skip_spaces source (i32_add marker_index 12i32) length
+    ?= parse_quoted source first_quote length ?|
+    | QuotedOk after_path =>
+        ? safe_path source first_quote after_path ?>
+            ?= parse_separator source after_path length ?|
+            | SeparatorOk second_quote =>
+                ?= parse_quoted source second_quote length ?|
+                | QuotedOk after_before =>
+                    ?= parse_separator source after_before length ?|
+                    | SeparatorOk third_quote =>
+                        ?= parse_quoted source third_quote length ?|
+                        | QuotedOk after_after =>
+                            := end_index = skip_spaces source after_after length
+                            ? i32_lt end_index length ?>
+                                ? source_byte source end_index = 41i32 ?> ParsedPatch (i32_add end_index 1i32)
+                                |: InvalidPatch
+                            |: InvalidPatch
+                        | QuotedError => InvalidPatch
+                    | SeparatorError => InvalidPatch
+                | QuotedError => InvalidPatch
+            | SeparatorError => InvalidPatch
+        |: InvalidPatch
+    | QuotedError => InvalidPatch
+
+:= byte_at_is source index offset expected : bool =
+    source_byte source (i32_add index offset) = expected
+
+:= marker_at source index : bool =
+    ? byte_at_is source index 0i32 80i32 ?>
+        ? byte_at_is source index 1i32 97i32 ?>
+            ? byte_at_is source index 2i32 116i32 ?>
+                ? byte_at_is source index 3i32 99i32 ?>
+                    ? byte_at_is source index 4i32 104i32 ?>
+                        ? byte_at_is source index 5i32 69i32 ?>
+                            ? byte_at_is source index 6i32 120i32 ?>
+                                ? byte_at_is source index 7i32 97i32 ?>
+                                    ? byte_at_is source index 8i32 99i32 ?>
+                                        ? byte_at_is source index 9i32 116i32 ?>
+                                            ? byte_at_is source index 10i32 32i32 ?> byte_at_is source index 11i32 40i32
+                                            |: !-
+                                        |: !-
+                                    |: !-
+                                |: !-
+                            |: !-
+                        |: !-
+                    |: !-
+                |: !-
+            |: !-
+        |: !-
+    |: !-
+
+:~ ^ scan_plan source index length count : patch_validation =
+    ? i32_lt index length ?>
+        ? marker_at source index ?>
+            ?= parse_patch source index length ?|
+            | ParsedPatch next_index => scan_plan source next_index length (i32_add count 1i32)
+            | InvalidPatch => PatchPlanMalformed
+        |: scan_plan source (i32_add index 1i32) length count
+    |: ? i32_positive count ?> PatchPlanValid count |: PatchPlanEmpty
+
+:= validate_source (patch_source source) : patch_validation =
+    := canonical_count = canonical_plan_count source
+    ? i32_positive canonical_count ?> PatchPlanValid canonical_count
+    |? i32_lt canonical_count 0i32 ?> PatchPlanMalformed
+    |:
+        := length = source_len source
+        ? i32_lt length 0i32 ?> PatchPlanUnavailable
+        |? length <= 262144i32 ?> scan_plan source 0i32 length 0i32
+        |: PatchPlanTooLarge
+
+:= validate_context (patch_context value) : patch_validation = validate_source value.source

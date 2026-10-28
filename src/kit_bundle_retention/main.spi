@@ -1,0 +1,17 @@
+:= main () : i32 =
+    !!!!Export("kit_retention_series_error", ((\ current => series.series_error current) : string -> string))
+    !!!!Export("kit_retention_series_prefix", ((\ current => series.series_prefix current) : string -> string))
+    !!!!Export("kit_retention_series_alpha", ((\ current => series.series_alpha current) : string -> u64))
+    !!!!Export("kit_retention_receipt_error", ((\ text => receipt_read.receipt_error text) : string -> string))
+    !!!!Export("kit_retention_receipt_row", ((\ text => receipt_read.receipt_row text) : string -> string))
+    !!!!Export(
+        "kit_retention_receipt_source",
+        (
+            \ (fingerprint, current, candidates, deletes, remaining, status) =>
+                receipt.receipt_source fingerprint current candidates deletes remaining status
+            : string * string * u64 * u64 * u64 * string -> string
+        )
+    )
+    global "#![allow(clippy::collapsible_if)]"
+    emit_runtime ()
+    0i32

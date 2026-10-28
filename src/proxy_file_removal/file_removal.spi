@@ -1,0 +1,74 @@
+:< agile_task_text.model
+:< sm'_operators
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+:< workspace_primitives.rooted
+
+:| removed_entry =
+    | RemovedFile
+    | RemovedSymlink
+    | MissingEntry
+    | DirectoryEntry
+
+:| removal_outcome =
+    | RemovalReceipt : string
+    | RemovalRejected : string
+
+
+:= entry_code (~path : string) : i32 =
+    $'std::fs::symlink_metadata(&*!path).map(|meta| if meta.file_type().is_symlink() { 1 } else if meta.is_dir() { 3 \
+        } else { 0 }).unwrap_or(2)' : i32
+:= entry_bytes (~path : string) : u64 = $'std::fs::symlink_metadata(&*!path).map(|meta| meta.len()).unwrap_or(0)' : u64
+:= unlink_error (~path : string) : string =
+    $'std::rc::Rc::<str>::from(kit_rust_std_fs::rooted_unlink_nondirectory(std::path::Path::new(&*!path)).err().unwrap\
+        _or_default().as_str())' : string
+
+:= removed_entry_of (code : i32) : removed_entry =
+    ?= code ?|
+    | 0i32 => RemovedFile
+    | 1i32 => RemovedSymlink
+    | 3i32 => DirectoryEntry
+    | _ => MissingEntry
+
+:= entry_kind_text = \|
+    | RemovedFile => "file"
+    | RemovedSymlink => "symlink"
+    | MissingEntry => "missing"
+    | DirectoryEntry => "directory"
+
+:= removal_receipt (~path : string) (entry : removed_entry) (bytes : u64) (started : u64) : removal_outcome =
+    := head = "kit proxy fs-remove ok path=" ++# path ++# " kind=" ++# (entry_kind_text entry) ++# " bytes="
+    RemovalReceipt (head ++# (u64_text bytes) ++# " elapsed_ms=" ++# (u64_text (ms_since started)))
+
+:= remove_entry (~path : string) (entry : removed_entry) (started : u64) : removal_outcome =
+    := bytes = entry_bytes path
+    := problem = unlink_error path
+    ? (problem = "") ?> removal_receipt path entry bytes started
+    |: RemovalRejected ("fs-remove failed: " ++# problem)
+
+:~ file_removal_outcome () : removal_outcome =
+    := started = unix_ms ()
+    := operands = proxy_argument_count ()
+    ? $"!operands == 3" ?>
+        := path = rooted_path (proxy_argument 1i32) (proxy_argument 2i32)
+        ? (path = "") ?> RemovalRejected "fs-remove target escapes the root"
+        |:
+            ?= removed_entry_of (entry_code path) ?|
+            | MissingEntry => RemovalRejected ("fs-remove target is missing: " ++# path)
+            | DirectoryEntry => RemovalRejected ("fs-remove target is a directory (use fs-remove-tree): " ++# path)
+            | entry => remove_entry path entry started
+    |: RemovalRejected "fs-remove expects <root> <relative>"
+
+:~ file_removal_report () : i32 * string =
+    ?= file_removal_outcome () ?|
+    | RemovalReceipt text => 0i32, text
+    | RemovalRejected text => 2i32, text
+
+:= main () : i32 =
+    !!!!Export("kit_file_removal_outcome", ((\ () => file_removal_report ()) : () -> i32 * string))
+    := _ = file_removal_outcome ()
+    0i32

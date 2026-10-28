@@ -1,0 +1,8 @@
+:~ patch_gated_entry_public () : i32 = patch_mutation_contract.model.patch_gated_entry ()
+
+:= emit () : () =
+    gated_terminal.emit_runtime ()
+    !!!!Export("kit_patch_gated_run", ((\ () => patch_gated_entry_public ()) : () -> i32))
+    := _ = patch_mutation_contract.model.typed_patch_plan ()
+    := _ = patch_gated_entry_public ()
+    ()

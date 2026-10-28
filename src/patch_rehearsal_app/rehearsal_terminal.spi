@@ -1,0 +1,11 @@
+
+inl emit_runtime () : () = global """
+    use kit_patch_compat_driver::{patch_plan_error, patch_prepare_source_owned, patch_rehearse_context_owned};
+
+    #[must_use]
+    fn patch_mutation_error(message: &str) -> i32 {
+        eprintln!("kit error: {message}");
+        2
+    }
+
+    """

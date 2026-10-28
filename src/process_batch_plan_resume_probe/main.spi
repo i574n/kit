@@ -1,0 +1,44 @@
+:< rust_std_env.model
+
+:= advance (~checkpoint : i32) (~event : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_plan_advance(!checkpoint, !event)' : i32
+
+:= row_policy (~required : i32) (~policy : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_row_policy(!required, !policy)' : i32
+
+:= dependency (~has_dependency : i32) (~dependency_passed : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_dependency(!has_dependency, !dependency_passed)' : i32
+
+:= observed (~required : i32) (~exit_code : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_observed_accept(!required, !exit_code)' : i32
+
+:= resume (~accepted : i32) (~policy : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_resume_action(!accepted, !policy)' : i32
+
+:= main () : i32 =
+    := timeout_event = 3i32
+    := timeout_checkpoint = advance 2i32 timeout_event
+    := completion_event = 4i32
+    := completion_checkpoint = advance timeout_checkpoint completion_event
+    := invalid_row = row_policy 2i32 0i32
+    := missing_dep = dependency 1i32 0i32
+    := rejected_pass = observed 0i32 1i32
+    := tolerate = resume 0i32 1i32
+    := rerun = resume 0i32 0i32
+    ? timeout_event = 3i32 ?>
+        ? timeout_checkpoint = 4i32 ?>
+            ? completion_event = 4i32 ?>
+                ? completion_checkpoint = 5i32 ?>
+                    ? invalid_row < 0i32 ?>
+                        ? missing_dep = 0i32 ?>
+                            ? rejected_pass = 0i32 ?>
+                                ? tolerate = 1i32 ?>
+                                    ? rerun = 2i32 ?> 0i32 |: 1i32
+                                |: 1i32
+                            |: 1i32
+                        |: 1i32
+                    |: 1i32
+                |: 1i32
+            |: 1i32
+        |: 1i32
+    |: 1i32

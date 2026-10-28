@@ -1,0 +1,153 @@
+///- --package .
+:# grammar static =
+    :< sm'_operators
+    :< kit_do_write_host.host
+    :< kit_do_records.records
+
+:< sm'_operators
+:< kit_do_write_host.host
+:< kit_do_records.records
+
+:| write_mode =
+    | CreateOnly
+    | Overwrite
+
+:| write_step =
+    | AppendLine : string * string
+    | WriteFile : string * string * write_mode
+    | CopyTree : string * string * string
+    | MovePath : string * string
+    | ReadAfter
+    | Blank
+
+:| write_parse =
+    | WriteParsed : write_step
+    | WriteRejected : string
+
+:~ append_parsed (~records : record_list) (~record : i32) : write_parse =
+    := path = body_at records record 2i32
+    ? path = "" || quoted_at records record 2i32 ?> WriteRejected "append: expected a file, then the quoted line"
+    |? quoted_at records record 3i32 = !- ?> WriteRejected "append: expected the quoted line after the file"
+    |: WriteParsed (AppendLine (path, body_at records record 3i32))
+
+:~ copy_parsed (~records : record_list) (~record : i32) : write_parse =
+    := source = body_at records record 2i32
+    := to_at = field_index records record "to"
+    := except_at = field_index records record "except"
+    ? source = "" || source = "to" ?> WriteRejected "copy: expected copy <glob> to <folder> [except <glob,...>]"
+    |? to_at < 0i32 ?> WriteRejected "copy: expected to <folder>"
+    |:
+        := destination = body_at records record (to_at + 1i32)
+        := excluded = ? except_at < 0i32 ?> "" |: words_span records record (except_at + 1i32) (-1i32)
+        ? destination = "" || destination = "except" ?> WriteRejected "to: expected a folder after it"
+        |? except_at > 0i32 && excluded = "" ?> WriteRejected "except: expected a glob after it"
+        |: WriteParsed (CopyTree (source, destination, excluded))
+
+:~ move_parsed (~records : record_list) (~record : i32) : write_parse =
+    := source = body_at records record 2i32
+    := to_at = field_index records record "to"
+    ? source = "" || source = "to" ?> WriteRejected "move: expected move <path> to <path>"
+    |? to_at < 0i32 ?> WriteRejected "move: expected to <path>"
+    |:
+        := destination = body_at records record (to_at + 1i32)
+        ? destination = "" ?> WriteRejected "to: expected a path after it"
+        |: WriteParsed (MovePath (source, destination))
+
+:~ file_write_parsed (~records : record_list) (~record : i32) : write_parse =
+    := path = body_at records record 2i32
+    := overwrite = quoted_at records record 3i32 = !- && body_at records record 3i32 = "overwrite"
+    := text_at = ? overwrite ?> 4i32 |: 3i32
+    ? path = "" || quoted_at records record 2i32 ?> WriteRejected "write: expected a file, then a <<< block"
+    |? quoted_at records record text_at = !- ?> WriteRejected "write: expected the <<< block after the file"
+    |: WriteParsed (WriteFile (path, body_at records record text_at, ? overwrite ?> Overwrite |: CreateOnly))
+
+:~ write_parsed (~records : record_list) (~record : i32) : write_parse =
+    := kind = field_at records record 0i32
+    := verb = field_at records record 1i32
+    ? kind = "" ?> WriteParsed Blank
+    |? kind <> "query"
+    ?> WriteRejected "edit and write statements cannot share one program yet; run them as two calls"
+    |? verb = "append" ?> append_parsed records record
+    |? verb = "copy" ?> copy_parsed records record
+    |? verb = "move" ?> move_parsed records record
+    |? verb = "write" ?> file_write_parsed records record
+    |:
+        ?= kit_do_model.model.query_verb_named verb ?|
+        | Some _ => WriteParsed ReadAfter
+        | None =>
+            WriteRejected (verb ++# " cannot share one program with append, copy or move yet; run it as its own call")
+
+
+:= rejection_at (~records : record_list) (~record : i32) : string =
+    ?= write_parsed records record ?|
+    | WriteRejected message => message
+    | WriteParsed _ => ""
+
+///> rust
+:# write_statements_parse_into_one_domain =
+    := records =
+        records_from_bars (
+            "ok\nquery|append|wBOARD.md|q- {clock:HH:mm} lane 3: done\n"
+            ^^ "query|copy|wsrc/**|wto|wbackup|wexcept|w*.tmp,|w*.log\nquery|tail|wBOARD.md|w2"
+        )
+    ?= write_parsed records 1i32 ?|
+    | WriteParsed (AppendLine (path, text)) =>
+        testing.expect (path = "BOARD.md" && text = "- {clock:HH:mm} lane 3: done") "append parts"
+    | _ => testing.expect !- "append"
+    ?= write_parsed records 2i32 ?|
+    | WriteParsed (CopyTree (source, destination, excluded)) =>
+        testing.expect (source = "src/**" && destination = "backup" && excluded = "*.tmp\n*.log") "copy parts"
+    | _ => testing.expect !- "copy"
+    testing.expect (rejection_at records 3i32 = "") "a read after the writes"
+
+///> rust
+:# incomplete_write_statements_are_rejected =
+    := records =
+        records_from_bars
+            "ok\nquery|append|wBOARD.md\nquery|copy|wsrc/**|wbackup\nquery|hash|wa,|wb\nedit|a.txt|apply|-|-"
+    testing.expect (rejection_at records 1i32 = "append: expected the quoted line after the file") "append without a line"
+    testing.expect (rejection_at records 2i32 = "copy: expected to <folder>") "copy without to"
+    testing.expect
+        (
+            rejection_at records 3i32
+            = "hash cannot share one program with append, copy or move yet; run it as its own call"
+        )
+        "foreign family"
+    testing.expect
+        (rejection_at records 4i32 = "edit and write statements cannot share one program yet; run them as two calls")
+        "edits"
+
+///> rust
+:# globs_name_their_base_and_exclusions =
+    testing.expect (glob_base "src/**" = "src") "base before the wildcard"
+    testing.expect (glob_base "proj/sub/*.spi" = "proj/sub") "nested base"
+    testing.expect (relative_under "src" "src/sub/c.spi" = "sub/c.spi") "relative path"
+
+///> rust
+:# move_statements_name_both_paths =
+    := records =
+        records_from_bars
+            "ok\nquery|move|wsrc/old.spi|wto|wsrc/new.spi\nquery|move|wsrc/old.spi|wsrc/new.spi\nquery|move|wto|wx"
+    ?= write_parsed records 1i32 ?|
+    | WriteParsed (MovePath (source, destination)) =>
+        testing.expect (source = "src/old.spi" && destination = "src/new.spi") "move parts"
+    | _ => testing.expect !- "move"
+    testing.expect (rejection_at records 2i32 = "move: expected to <path>") "move without to"
+    testing.expect (rejection_at records 3i32 = "move: expected move <path> to <path>") "move without a source"
+
+///> rust
+:# write_statements_name_the_file_its_text_and_whether_it_may_overwrite =
+    := records =
+        records_from_bars (
+            "ok\nquery|write|wnotes/a.md|qhello\nquery|write|wa.md|woverwrite|q\nquery|write|wa.md\n"
+            ^^ "query|write|qa.md|qx"
+        )
+    ?= write_parsed records 1i32 ?|
+    | WriteParsed (WriteFile (path, text, CreateOnly)) => testing.expect (path = "notes/a.md" && text = "hello") "create parts"
+    | _ => testing.expect !- "create"
+    ?= write_parsed records 2i32 ?|
+    | WriteParsed (WriteFile (path, text, Overwrite)) =>
+        testing.expect (path = "a.md" && text = "") "overwrite with an empty block"
+    | _ => testing.expect !- "overwrite"
+    testing.expect (rejection_at records 3i32 = "write: expected the <<< block after the file") "write without text"
+    testing.expect (rejection_at records 4i32 = "write: expected a file, then a <<< block") "write without a file"

@@ -1,0 +1,148 @@
+:< sm'_operators
+
+:= equal (left : string) (right : string) : bool = (left = right)
+:~ append (left : string) (right : string) : string = left ++# right
+:~ arg (left : string) (right : string) : string = left ++# (host.separator ()) ++# right
+:= empty (value : string) : bool = equal value ""
+:= not (value : bool) : bool = ? value ?> !- |: !+
+:= flag_name (name : string) : bool =
+    ? equal name "--test" ?> !+
+    |? equal name "--skip-release" ?> !+
+    |? equal name "--offline" ?> !+
+    |? equal name "--compiler-contracts" ?> !+
+    |? equal name "--dry-run" ?> !+
+    |: equal name "--help"
+:= value_name (name : string) : bool =
+    ? equal name "--root" ?> !+
+    |? equal name "--package" ?> !+
+    |? equal name "--target-dir" ?> !+
+    |? equal name "--compiler" ?> !+
+    |: equal name "--timeout-ms"
+
+:~ ^ validate (index : i32) (length : i32) : bool =
+    ? index = length ?> !+
+    |:
+        := name = host.argument index
+        ? flag_name name ?> validate (index + 1i32) length
+        |? value_name name ?>
+            := next = index + 1i32
+            ? next < length ?>
+                := value = host.argument next
+                ? empty value ?> !-
+                |? sm'.starts_with "--" value ?> !-
+                |: validate (index + 2i32) length
+            |: !-
+        |: !-
+
+:~ ^ has_from (index : i32) (length : i32) (name : string) : bool =
+    ? index = length ?> !-
+    |:
+        := current = host.argument index
+        ? equal name current ?> !+
+        |:
+            := width = ? value_name current ?> 2i32 |: 1i32
+            has_from (index + width) length name
+
+:~ ^ value_from (index : i32) (length : i32) (name : string) (fallback : string) : string =
+    ? index = length ?> fallback
+    |:
+        := current = host.argument index
+        := width = ? value_name current ?> 2i32 |: 1i32
+        := next_value = ? equal name current ?> host.argument (index + 1i32) |: fallback
+        value_from (index + width) length name next_value
+
+:~ ^ packages_from (index : i32) (length : i32) (out : string) (with_flags : bool) : string =
+    ? index = length ?> out
+    |:
+        := current = host.argument index
+        := width = ? value_name current ?> 2i32 |: 1i32
+        := next =
+            ? equal current "--package" ?>
+                := name = host.argument (index + 1i32)
+                ? with_flags ?> arg (arg out "--package") name
+                |? empty out ?> name |: arg out name
+            |: out
+        packages_from (index + width) length next with_flags
+
+:= has (name : string) : bool = has_from 1i32 (host.count ()) name
+:= value (name : string) (fallback : string) : string = value_from 1i32 (host.count ()) name fallback
+
+:~ ^ quoted_arguments (args : string) (cursor : i32) (separator : char) : string =
+    := next = find_char args cursor separator
+    := current = predicate_lex.model.encode (slice_exclusive args cursor next)
+    ? (=.) next (sm.length args : i32) ?> current
+    |: current ++# " " ++# (quoted_arguments args ((+.) next 1i32) separator)
+:= show (args : string) : () =
+    := text = quoted_arguments args 0i32 (sm.index (host.separator ()) 0i32)
+    host.print ("cargo " ++# text ++# "\n")
+
+:| request result =
+    | Cargo :: string -> request i32
+    | Message :: string -> request ()
+:= execute \* result.
+    (root : string) (compiler : string) (timeout : u64) (dry : bool) (operation : request result)
+    : result
+    =
+    ?= operation ?|
+    | Message text => host.print text
+    | Cargo args =>
+        ? dry ?>
+            show args
+            0i32
+        |: host.cargo root args compiler timeout
+:= reject (message : string) : i32 =
+    host.print (append message "\n")
+    2i32
+
+:= run () : i32 =
+    := length = host.count ()
+    ? validate 1i32 length ?>
+        ? has "--help" ?>
+            host.print """
+                kit-dev [--test] [--skip-release] [--package NAME] [--offline] [--root PATH] [--target-dir PATH] [--compiler-contracts] [--compiler PATH] [--timeout-ms N] [--dry-run]
+                Builds a candidate; installation remains a separately validated operation.
+
+                """
+            0i32
+        |:
+            := test = has "--test"
+            := skip = has "--skip-release"
+            := contracts = has "--compiler-contracts"
+            := names = packages_from 1i32 length "" !-
+            := requested = value "--compiler" ""
+            := compiler = ? empty requested ?> host.compiler_environment () |: host.compiler_path requested
+            := timeout = host.parse_u64 (value "--timeout-ms" "900000")
+            := root = host.absolute (value "--root" ".")
+            := target = host.absolute (value "--target-dir" (append root "/src/target"))
+            := dry = has "--dry-run"
+            ? not test && (skip || contracts || not (empty names)) ?> reject "--skip-release, --package and --compiler-contracts require --test"
+            |? not (empty requested) && empty compiler ?> reject "--compiler must identify an existing file"
+            |? contracts && empty compiler ?> reject "--compiler-contracts requires --compiler or KIT_SPIRAL_COMPILE"
+            |? timeout = 0u64 || timeout > 3600000u64 ?> reject "--timeout-ms must be between 1 and 3600000"
+            |? not (host.valid_root root) ?> reject "--root must contain src/Cargo.toml"
+            |? not dry && host.running_from target ?> reject "The workflow executable is running from the build target; bootstrap kit-dev with a separate --target-dir"
+            |:
+                := offline = has "--offline"
+                := common = arg (arg "--locked" "--target-dir") target
+                := common = ? offline ?> arg common "--offline" |: common
+                := request_cli = ? empty names ?> 1i32 |: metadata.requirements root names offline timeout
+                ? request_cli < 0i32 ?> 2i32
+                |:
+                    := build_cli =
+                        ? test && request_cli = 1i32 ?> execute root compiler timeout dry (Cargo (arg (arg (arg "build" common) "--package") "kit-cli"))
+                        |: 0i32
+                    ? build_cli = 0i32 ?>
+                        := tested =
+                            ? test ?>
+                                := args = arg "test" common
+                                := args = ? empty names ?> arg args "--workspace" |: packages_from 1i32 length args !+
+                                := args = ? contracts ?> arg (arg args "--") "--include-ignored" |: args
+                                := cargo_tested = execute root compiler timeout dry (Cargo args)
+                                ? cargo_tested = 0i32 ?> host.spiral_tests root target names dry timeout |: cargo_tested
+                            |: 0i32
+                        ? tested = 0i32 ?>
+                            ? skip ?> 0i32
+                            |: execute root compiler timeout dry (Cargo (arg (arg (arg (arg "build" common) "--release") "--package") "kit-cli"))
+                        |: tested
+                    |: build_cli
+    |: reject "Invalid option or missing value; use --help"

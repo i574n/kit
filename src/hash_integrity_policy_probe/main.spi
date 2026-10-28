@@ -1,0 +1,12 @@
+:< hash_integrity_contract.model
+
+:= main () : i32 =
+    := plan = public_integrity_plan ()
+    := _ = plan
+    := file_ok = file_hash_binding 1i32 0i32 1i32
+    := tree_ok = tree_parity_binding 2i32 2i32 1i32
+    := shadow_ok = shadow_deletion_binding 2i32 1i32 1i32
+    := symlink_ok = symlink_rejection_binding 1i32 1i32
+    ?= integrity_settlement_binding file_ok tree_ok shadow_ok symlink_ok ?|
+    | 1 => 0i32
+    | _ => 1i32

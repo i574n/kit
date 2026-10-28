@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "sequences.spi"
+output = "sequences.rs"
+
+[package]
+name = "kit-log-sequences"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_log_sequences"
+path = "sequences.rs"
+
+[dependencies]
+regex = "1.13.1"

@@ -1,0 +1,42 @@
+///- --package .
+:# files static =
+    :< sm'_operators
+
+:< rust_std_fs.model
+:< sm'_operators
+:< numbers
+
+:= text_bytes (~text : string) : u64 = $'!text.len() as u64' : u64
+:= loaded_string (loaded_text text) : string = text
+
+:| file_replacement =
+    | Replaced
+    | TemporaryWriteFailed
+    | RenameFailed
+    | RenameFailedTemporaryKept
+    | ReadbackMismatch
+
+:= file_replacement_problem = \|
+    | Replaced => ""
+    | TemporaryWriteFailed => "could not write the replacement file"
+    | RenameFailed => "could not move the replacement file into place"
+    | RenameFailedTemporaryKept => "could not move the replacement file into place or remove its .pending copy"
+    | ReadbackMismatch => "readback did not match the written file"
+
+:= pending_path (~path : string) : string = path ++# ".pending"
+
+///> rust
+:# every_writer_of_one_file_shares_one_pending_copy =
+    ? pending_path "state/agile.spi" = "state/agile.spi.pending" ?> () |: failwith "one pending copy per file"
+
+:= replace_file_checked (~path : string) (~text : string) : file_replacement =
+    := temporary = pending_path path
+    ? write_text temporary text ?>
+        ? rename path temporary ?>
+            ? text_equals text path ?> Replaced |: ReadbackMismatch
+        |? remove_file temporary ?> RenameFailed
+        |: RenameFailedTemporaryKept
+    |: TemporaryWriteFailed
+
+:= measured_sizes (before : u64) (after : u64) (elapsed : u64) : string =
+    " bytes_before=" ++# u64_text before ++# " bytes_after=" ++# u64_text after ++# " elapsed_ms=" ++# u64_text elapsed

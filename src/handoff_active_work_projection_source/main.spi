@@ -1,0 +1,11 @@
+:= main () : i32 =
+    inl active_ok = (=.) (handoff_active_work_projection (fixture_agile ())) """
+        ok
+        P0 Active 55% ACTIVE-WORK — Do u32 active work
+        P1 Blocked 7% BLOCKED-WORK — Wait for evidence
+        """
+    !!!!Export(
+        "kit_handoff_active_work_projection",
+        ((\ value => handoff_active_work_projection value) : string -> string)
+    )
+    ? active_ok ?> 0i32 |: 1i32

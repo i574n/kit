@@ -1,0 +1,70 @@
+
+:< model
+:< bridge
+:< matrix
+:< terminal
+
+:= main () : i32 =
+    global "#![allow(clippy::bool_comparison)]"
+    := _ = BatchSpawn "process-batch"
+    := _ = BatchRun
+    := _ = BatchLink "receipt"
+    := _ = BatchTimeout 1u32
+    := _ = BatchComplete 0i32
+    := _ = BatchTimeoutComplete
+    := _ = batch_plan_accept_binding 0i32 0i32
+    := _ = batch_plan_advance_binding 0i32 0i32
+    := _ = batch_plan_next_policy 2i32 0i32
+    := _ = matrix_authority_status ()
+    := _ = matrix_row_policy_binding 0i32 0i32
+    := _ = matrix_dependency_binding 0i32 0i32
+    := _ = matrix_observed_accept_binding 0i32 0i32
+    := _ = matrix_resume_action_binding 1i32 0i32
+    := _ = matrix_workspace_policy_binding 2i32 1i32
+    := _ = matrix_auto_budget_status ()
+    := _ = matrix_auto_chain_budget_binding 60000i32 14000i32
+    := _ = matrix_auto_chain_action_policy 6i32
+    := _ = matrix_auto_checkpoint_binding 0i32 1i32
+    := _ = matrix_auto_checkpoint_binding 1i32 1i32
+    emit_matrix_runtime ()
+    !!!!Export(
+        "kit_batch_plan_accept",
+        ((\ (first, second) => batch_plan_accept_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_plan_advance",
+        ((\ (first, second) => batch_plan_advance_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_matrix_row_policy",
+        ((\ (first, second) => matrix_row_policy_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_matrix_dependency",
+        ((\ (first, second) => matrix_dependency_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_matrix_observed_accept",
+        ((\ (first, second) => matrix_observed_accept_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_matrix_resume_action",
+        ((\ (first, second) => matrix_resume_action_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_matrix_workspace_policy",
+        ((\ (first, second) => matrix_workspace_policy_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_matrix_auto_chain_budget",
+        ((\ (first, second) => matrix_auto_chain_budget_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_matrix_auto_checkpoint",
+        ((\ (first, second) => matrix_auto_checkpoint_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_batch_matrix_complete",
+        ((\ (first, second) => matrix_complete_binding first second) : i32 * i32 -> i32)
+    )
+    0i32

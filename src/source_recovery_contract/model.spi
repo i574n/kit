@@ -1,0 +1,50 @@
+:! source_recovery_raw = ()
+:! source_recovery_classified = ()
+:! source_recovery_indexed = ()
+:! source_recovery_compared = ()
+:! source_recovery_reported = ()
+
+:| source_recovery_provenance =
+    | Authored
+    | Generated
+    | CompilerSidecar
+
+:| source_recovery_op from to =
+    | ClassifySource :: source_recovery_op source_recovery_raw source_recovery_classified
+    | IndexSource :: source_recovery_op source_recovery_classified source_recovery_indexed
+    | CompareSource :: source_recovery_op source_recovery_indexed source_recovery_compared
+    | ReportSource :: source_recovery_op source_recovery_compared source_recovery_reported
+
+:| ^ source_recovery_plan from to =
+    | SourceRecoveryStep :: \* from to. source_recovery_op from to -> source_recovery_plan from to
+    | SourceRecoveryThen :: \* from to.
+        (\? middle. source_recovery_plan from middle * source_recovery_plan middle to) ->
+        source_recovery_plan from to
+
+:~ source_recovery_provenance_binding (sidecar : i32) (generated : i32) : i32 =
+    ? sidecar < 0i32 ?> 0i32
+    |? 1i32 < sidecar ?> 0i32
+    |? generated < 0i32 ?> 0i32
+    |? 1i32 < generated ?> 0i32
+    |? sidecar = 1i32 ?>
+        ? generated = 1i32 ?> 0i32 |: 3i32
+    |? generated = 1i32 ?> 2i32
+    |: 1i32
+
+:~ source_recovery_warning_binding (missing_large : i32) (authored : i32) : i32 =
+    ? missing_large < 0i32 ?> 0i32
+    |? authored < 0i32 ?> 0i32
+    |? authored < missing_large ?> 0i32
+    |: 1i32
+
+:= source_recovery_public_plan () : source_recovery_plan source_recovery_raw source_recovery_reported =
+    SourceRecoveryThen (\? (
+        SourceRecoveryStep ClassifySource,
+        SourceRecoveryThen (\? (
+            SourceRecoveryStep IndexSource,
+            SourceRecoveryThen (\? (
+                SourceRecoveryStep CompareSource,
+                SourceRecoveryStep ReportSource
+            ))
+        ))
+    ))

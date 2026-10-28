@@ -1,0 +1,16 @@
+:< exact_replace_contract.model
+
+:= one_is (value : i32) : bool =
+    ? value < 1i32 ?> !-
+    |? 1i32 < value ?> !-
+    |: !+
+
+:= main () : i32 =
+    := _ = policy_plan ()
+    ? one_is (preflight_binding 1i32 1i32 1i32) ?>
+        ? one_is (unique_match_binding 1i32) ?>
+            ? one_is (mode_binding 1i32 1i32) ?>
+                ? one_is (verification_binding 1i32 0i32 1i32) ?> 0i32 |: 4i32
+            |: 3i32
+        |: 2i32
+    |: 1i32

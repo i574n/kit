@@ -1,0 +1,74 @@
+:~ legacy_surface_status_export (family_code : i32) (status_code : i32) : i32 =
+    legacy_capability_model.catalog.legacy_surface_status_binding family_code status_code
+
+:~ legacy_surface_summary_export (equivalent_families : i32) (fallback_required : i32) : i32 =
+    legacy_capability_model.catalog.legacy_surface_summary_binding equivalent_families fallback_required
+
+:= main () : i32 =
+    := _ = self_install_complete_plan ()
+    := _ = self_install_link_state_code LinkAbsent
+    := _ = self_install_link_state_code LinkSymlink
+    := _ = self_install_link_state_code LinkRegularFile
+    := _ = self_install_link_state_code LinkDirectory
+    := _ = self_install_fault_code NoSelfInstallFault
+    := _ = restart_baton_complete_plan ()
+    := _ = restart_baton_fault_code NoRestartBatonFault
+    := _ = restart_baton_receipt_shape ()
+    := _ = self_install_preflight_binding 1i32 1i32
+    := _ = self_install_target_binding 1i32 0i32
+    := _ = self_install_target_binding 1i32 1i32
+    := _ = self_install_target_binding 1i32 2i32
+    := _ = self_install_target_binding 1i32 3i32
+    := _ = self_install_fault_binding 1i32 1i32
+    := _ = self_install_fault_binding 3i32 3i32
+    := _ = self_install_complete_binding 1i32 1i32
+    := _ = restart_baton_preflight_binding 1i32 1i32
+    := _ = restart_baton_migration_binding 290i32 290i32
+    := _ = restart_baton_fault_binding 1i32 1i32
+    := _ = restart_baton_complete_binding 1i32 1i32
+    := _ = legacy_capability_model.catalog.legacy_surface_model_witness ()
+    := _ = legacy_surface_status_export 0i32 2i32
+    := _ = legacy_surface_summary_export 9i32 0i32
+    legacy_terminal.emit_runtime ()
+    legacy_terminal.emit_self_install_runtime ()
+    !!!!Export(
+        "kit_self_install_preflight_binding",
+        ((\ (first, second) => self_install_preflight_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_self_install_target_binding",
+        ((\ (first, second) => self_install_target_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_self_install_fault_binding",
+        ((\ (first, second) => self_install_fault_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_self_install_complete_binding",
+        ((\ (first, second) => self_install_complete_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_restart_baton_preflight_binding",
+        ((\ (first, second) => restart_baton_preflight_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_restart_baton_migration_binding",
+        ((\ (first, second) => restart_baton_migration_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_restart_baton_fault_binding",
+        ((\ (first, second) => restart_baton_fault_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_restart_baton_complete_binding",
+        ((\ (first, second) => restart_baton_complete_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_legacy_surface_status_binding",
+        ((\ (first, second) => legacy_surface_status_export first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_legacy_surface_summary_binding",
+        ((\ (first, second) => legacy_surface_summary_export first second) : i32 * i32 -> i32)
+    )
+    0i32

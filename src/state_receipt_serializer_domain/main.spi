@@ -1,0 +1,7 @@
+:= main () : i32 =
+    := serialized = receipt_serialize (serializer_fixture_table ())
+    := malformed = receipt_serialize (serializer_malformed_table ())
+    !!!!Export("kit_state_receipt_serialize", ((\ value => receipt_serialize value) : string -> string))
+    ? (=.) serialized (serializer_fixture_source ()) ?>
+        ? (=.) malformed (sm.concat (receipt_header ()) (receipt_footer ())) ?> 0i32 |: 2i32
+    |: 1i32

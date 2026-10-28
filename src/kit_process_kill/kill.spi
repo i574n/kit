@@ -1,0 +1,76 @@
+:< sm'_operators
+:< kit_receipt.receipt
+:< kit_process_table.model
+:< kit_process_table.host
+:< kit_process_table.listing
+
+:~ ^ value_after (~flag : string) (~index : i32) (~count : i32) : string =
+    ? index + 1i32 < count
+    ?> ? argument index = flag ?> argument (index + 1i32) |: value_after flag (index + 1i32) count
+    |: ""
+
+:~ stop_once (~word : string) (~pid : u64) (~tree : bool) : bool =
+    := tally = process_stopped pid tree
+    := result = stop_result_of (tally_stopped tally) (tally_total tally)
+    stdout_line (stop_text word result)
+    stop_complete result
+
+:~ ^ stops_from
+    (~index : i32) (~count : i32) (~tree : bool) (guard : stop_guard) (~own : u64) (~ancestors : string)
+    (~stopped : u64) (~failed : u64)
+    : u64 * u64
+    =
+    ? index < count
+    ?>
+        := word = argument index
+        ? word = "--tree" || word = "--mine"
+        ?> stops_from (index + 1i32) count tree guard own ancestors stopped failed
+        |? word = "--theirs"
+        ?> stops_from (index + 2i32) count tree guard own ancestors stopped failed
+        |:
+            ?= stop_refusal_of word own ancestors ?|
+            | Allowed pid =>
+                ?= guard_refusal guard pid ?|
+                | Some reason =>
+                    stdout_line (refusal_text word (NotYours reason))
+                    stops_from (index + 1i32) count tree guard own ancestors stopped (failed + 1u64)
+                | None =>
+                    ? stop_once word pid tree
+                    ?> stops_from (index + 1i32) count tree guard own ancestors (stopped + 1u64) failed
+                    |: stops_from (index + 1i32) count tree guard own ancestors stopped (failed + 1u64)
+            | refusal =>
+                stdout_line (refusal_text word refusal)
+                stops_from (index + 1i32) count tree guard own ancestors stopped (failed + 1u64)
+    |: stopped, failed
+
+:~ stop_run (~started : u64) : i32 =
+    := count = argument_count ()
+    ? count < 3i32
+    ?>
+        stdout_line ("usage: kit " ++# (process_usage ()))
+        2i32
+    |:
+        := own = own_pid ()
+        := guard =
+            ? flag_present "--mine" 2i32 count
+            ?>
+                MineOnly {
+                    rows = kit_machine_watch.host.process_rows_sampled 100u64
+                    own = own
+                    author = env.get_environment_variable "KIT_AUTHOR"
+                    theirs = value_after "--theirs" 2i32 count
+                }
+            |: AnyProcess
+        := stopped, failed =
+            stops_from 2i32 count (flag_present "--tree" 2i32 count) guard own (ancestor_pids ()) 0u64 0u64
+        := counts = "stopped " ++# (decimal_text stopped) ++# "  failed " ++# (decimal_text failed)
+        ? failed = 0u64 ?>
+            receipt_line Succeeded counts started
+            0i32
+        |:
+            receipt_line Failed counts started
+            1i32
+
+:= main () : i32 =
+    !!!!Export("kit_process_kill_run", ((\ () => stop_run (now_ms ())) : () -> i32))
+    0i32

@@ -1,0 +1,15 @@
+
+:= emit_atomic_write () : () =
+    global "pub use kit_rust_std_fs_mutation::atomic_write;"
+
+:= emit_runtime () : () =
+    global """
+        #[rustfmt::skip]
+        mod dense {
+        """
+    global "use std::path::{Path, PathBuf};"
+    global (
+        "pub use kit_rust_std_fs_mutation::{discard_stage, mutation_boundary_capability, promote_stage, "
+        ^^ "promote_stage_receipted, restore_text, stage_new_text, stage_text, stage_text_receipted, "
+        ^^ "stage_text_receipted_bound, PromotionReceipt, StagedWriteReceipt};"
+    )

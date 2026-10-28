@@ -1,0 +1,414 @@
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< workspace_primitives.outcome
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:= argument_count () : i32 = $'std::env::args().skip(2).count() as i32' : i32
+
+:== task_row =
+    {
+        id : string
+        title : string
+        kind : string
+        priority : string
+        difficulty : string
+        progress : string
+        status : string
+        deps : string
+        tags : string
+        at : i32
+    }
+
+:| status_filter =
+    | AllStatuses
+    | OnlyStatus : string
+
+:~ status_text (status : agile_mutation_policy.model.agile_status) : string =
+    agile_mutation_policy.model.agile_case_text status
+
+:~ status_selected (filter : status_filter) (~status : string) : bool =
+    ?= filter ?|
+    | AllStatuses => !+
+    | OnlyStatus wanted => wanted = status
+
+:= unquoted (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
+:= progress_digits (~token : string) : string = sm'.replace "u32" "" token
+:= padded (~text : string) (width : i32) : string =
+    $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); \
+        std::rc::Rc::<str>::from(text.to_string() + &" ".repeat(filler)) }' : string
+:= right_aligned (~text : string) (width : i32) : string =
+    $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); \
+        std::rc::Rc::<str>::from(" ".repeat(filler) + &*text) }' : string
+:= clipped (~text : string) (width : i32) : string =
+    $'{ let text = !text; if text.chars().count() <= !width as usize { text } else { \
+        std::rc::Rc::<str>::from(text.chars().take((!width as usize).saturating_sub(3)).collect::<String>() + "...") \
+        } }' : string
+
+:~ task_row_at (text : string) (arguments : i32) (length : i32) : task_row =
+    := field = tuple_field text arguments length
+    {
+        id = unquoted (field 0i32)
+        title = unquoted (field 1i32)
+        kind = field 2i32
+        priority = field 3i32
+        difficulty = field 4i32
+        progress = progress_digits (field 5i32)
+        status = field 6i32
+        deps = unquoted (field 7i32)
+        tags = unquoted (field 8i32)
+        at = arguments
+    }
+
+:= id_width () = 26i32
+:= title_width () = 96i32
+
+:= planning_header () : string = $'agile_planning_fields::kit_agile_planning_header()' : string
+:= planning_columns (~text : string) (~id : string) (at : i32) : string = $'agile_planning_fields::kit_agile_planning_\
+    columns_near(&*!text, &*!id, !at)' : string
+:= planning_json (~text : string) (~id : string) (at : i32) : string = $'agile_planning_fields::kit_agile_planning_jso\
+    n_near(&*!text, &*!id, !at)' : string
+
+:= table_header () : string =
+        (padded "ID" (id_width ()))
+        ++# " P  D     %  "
+        ++# (padded "STATUS" 8i32)
+        ++# (padded "KIND" 9i32)
+        ++# ((planning_header ()) ++# "TITLE")
+
+:~ table_line (row : task_row) (~planning : string) : string =
+    := head = (padded row.id (id_width ())) ++# " " ++# row.priority ++# " " ++# row.difficulty
+    := middle =
+            " "
+            ++# (right_aligned row.progress 4i32)
+            ++# "  "
+            ++# (padded row.status 8i32)
+            ++# (padded row.kind 9i32)
+    head ++# middle ++# planning ++# (clipped row.title (title_width ()))
+
+:| listing_format =
+    | TableFormat
+    | JsonFormat
+
+:! note_index = $'std::rc::Rc<std::collections::HashMap<String, (u32, String)>>'
+
+:~ note_index_of (~text : string) : note_index =
+    $'std::rc::Rc::new(!text.lines().filter(|line| line.starts_with("inl note_of_")).filter_map(|line| { let body = \
+        line.split_once("= Note (")?.1; let mut fields = body.splitn(4, ", "); \
+        let id = fields.next()?.trim_matches(char::from(34u8)).to_owned(); let _seq = fields.next()?; \
+        let at = fields.next()?.trim_matches(char::from(34u8)).to_owned(); \
+        Some((id, at)) }).fold(std::collections::HashMap::new(), |mut index, (id, \
+        at)| { let entry = index.entry(id).or_insert((0u32, String::new())); entry.0 += 1; entry.1 = at; index }))'
+    : note_index
+
+:= empty_note_index () : note_index = $'std::rc::Rc::new(std::collections::HashMap::new())' : note_index
+
+:== planning_index = dictm.dict string string
+
+:~ planning_id (~line : string) : string =
+    := marker = "= Planning ("
+    := at = sm'.index_of marker line
+    ? at < 0i32 ?> ""
+    |:
+        := from = at + sm'.length marker
+        := rest = sm'.trim_start [ '"' ] (sm'.substring from (sm'.length line - from) line)
+        := stop = sm'.index_of "\"" rest
+        ? stop < 0i32 ?> rest |: sm'.substring 0i32 stop rest
+
+:~ ^ planning_entries (lines : array string) (at : i32) (index : planning_index) : planning_index =
+    ? am'.length lines <= at ?> index
+    |:
+        := line = am'.index at lines
+        := id = ? sm'.starts_with "inl planning_of_" line ?> planning_id line |: ""
+        planning_entries lines (at + 1i32) (? id = "" ?> index |: dictm.insert id line index)
+
+:~ planning_index_of (~text : string) : planning_index = planning_entries (sm'.lines text) 0i32 (dictm.empty ())
+
+:= empty_planning_index () : planning_index = dictm.empty ()
+
+:= planning_row_in (index : planning_index) (~id : string) : string = optionm'.default_value "" (dictm.find id index)
+
+:= note_count_in (index : note_index) (~id : string) : u32 =
+    $'!index.get(&*!id).map(|entry| entry.0).unwrap_or(0)' : u32
+
+:= last_note_in (index : note_index) (~id : string) : string = $'std::rc::Rc::<str>::from(!index.get(&*!id).map(|entry\
+    | entry.1.as_str()).unwrap_or(""))' : string
+
+:| list_sort =
+    | SortPriority
+    | SortDifficulty
+    | SortProgress
+
+:= sort_word (sort : list_sort) : string =
+    ?= sort ?|
+    | SortPriority => "priority"
+    | SortDifficulty => "difficulty"
+    | SortProgress => "progress"
+
+:= sort_of_word (~word : string) : list_sort =
+    ? word = "difficulty" ?> SortDifficulty |? word = "progress" ?> SortProgress |: SortPriority
+
+:== list_request =
+    {
+        status : status_filter
+        load : string
+        assignee : string
+        format : listing_format
+        notes : note_index
+        planning : planning_index
+        query : string
+        sort : list_sort
+        unsettled : string
+    }
+
+:= json_string (~text : string) : string = "\"" ++# text ++# "\""
+:= json_field (~name : string) (~value : string) : string = "\"" ++# name ++# "\":" ++# value
+
+:~ json_line (row : task_row) (~planning : string) (notes : note_index) (first : bool) : string =
+    := separator = ? first ?> "" |: ","
+    := head =
+            separator
+            ++# "{"
+            ++# (json_field "id" (json_string row.id))
+            ++# ","
+            ++# (json_field "title" (json_string row.title))
+    := middle =
+            ","
+            ++# (json_field "kind" (json_string row.kind))
+            ++# ","
+            ++# (json_field "priority" (json_string row.priority))
+            ++# ","
+    := tail =
+            (json_field "difficulty" (json_string row.difficulty))
+            ++# ","
+            ++# (json_field "progress" row.progress)
+            ++# ","
+            ++# (json_field "status" (json_string row.status))
+    := count_text = $'std::rc::Rc::<str>::from((!(note_count_in notes row.id)).to_string())' : string
+    := extra =
+            (json_field "deps" (json_string row.deps))
+            ++# ","
+            ++# (json_field "tags" (json_string row.tags))
+            ++# ","
+            ++# (
+                    (json_field "notes" count_text)
+                    ++# ","
+                    ++# (json_field "last_note" (json_string (last_note_in notes row.id)))
+                    ++# ","
+            )
+    head ++# middle ++# tail ++# "," ++# (extra ++# planning ++# "}")
+
+:~ row_line (text : string) (request : list_request) (row : task_row) (first : bool) : string =
+    := planning = planning_row_in request.planning row.id
+    ?= request.format ?|
+    | TableFormat => table_line row (planning_columns planning row.id 0i32)
+    | JsonFormat => json_line row (planning_json planning row.id 0i32) request.notes first
+
+:= any_planning (~filter : string) : bool = (filter = "all")
+
+:= planning_selected (~text : string) (~id : string) (at : i32) (~load : string) (~assignee : string) : bool =
+    $'agile_planning_filters::kit_agile_planning_selected_near(&*!text, &*!id, !at, &*!load, &*!assignee)' : bool
+
+:= query_passes
+    (~query : string) (~id : string) (~title : string) (~tags : string) (~status : string) (settled : bool)
+    : bool
+    =
+    ? query = ""
+    ?> !+
+    |: $'agile_task_query::kit_query_passes(&*!query, &*!id, &*!title, &*!tags, &*!status, !settled)' : bool
+:= query_reads_deps (~query : string) : bool = ? query = "" ?> !- |: $'agile_task_query::kit_query_reads_deps(&*!query\
+    )' : bool
+:= deps_settled (~unsettled : string) (~deps : string) : bool = $'(!deps).split(char::from(44u8)).map(|dep| \
+    dep.trim()).filter(|dep| (!unsettled).lines().any(|line| line == *dep)).next().is_none()' : bool
+:= query_shown (~query : string) : string = $'agile_task_query::kit_query_shown(&*!query)' : string
+:= query_usage () : string = $'agile_task_query::kit_query_usage()' : string
+:= query_appended (~query : string) (~argument : string) (~value : string) : string =
+    query ++# (? query = "" ?> "" |: " ") ++# argument ++# (? value = "" ?> "" |: " ") ++# value
+
+:= planning_filters_valid (~load : string) (~assignee : string) : bool =
+    $'agile_planning_filters::kit_agile_planning_filters_valid(&*!load, &*!assignee)' : bool
+
+:~ row_selected (text : string) (request : list_request) (row : task_row) : bool =
+    ?
+        status_selected request.status row.status
+        && query_passes request.query row.id row.title row.tags row.status (deps_settled request.unsettled row.deps)
+    ?>
+        ? any_planning request.load ?>
+            ? any_planning request.assignee ?> !+
+            |: planning_selected (planning_row_in request.planning row.id) row.id 0i32 request.load request.assignee
+        |: planning_selected (planning_row_in request.planning row.id) row.id 0i32 request.load request.assignee
+    |: !-
+
+:= level_of (~token : string) : i32 =
+    $'(!token).get(1..).and_then(|digits| digits.parse::<i32>().ok()).unwrap_or(9)' : i32
+:= percent_of (~token : string) : i32 = $'(!token).trim().parse::<i32>().unwrap_or(0).clamp(0, 100)' : i32
+
+:= row_key (sort : list_sort) (row : task_row) : i32 =
+    := priority = level_of row.priority
+    ?= sort ?|
+    | SortPriority => priority
+    | SortDifficulty => level_of row.difficulty * 10i32 + priority
+    | SortProgress => (100i32 - percent_of row.progress) * 10i32 + priority
+
+:| ^ row_list =
+    | NoRows
+    | RowThen : i32 * task_row * row_list
+
+:~ ^ row_inserted (key : i32) (row : task_row) (list : row_list) : row_list =
+    ?= list ?|
+    | NoRows => RowThen (key, row, NoRows)
+    | RowThen (head_key, head, rest) =>
+        ? key < head_key ?> RowThen (key, row, list) |: RowThen (head_key, head, row_inserted key row rest)
+
+:~ ^ rows_from (text : string) (offset : i32) (length : i32) (request : list_request) (list : row_list) : row_list =
+    := found = byte_find_from text (task_marker ()) offset
+    ? found < 0i32
+    ?> list
+    |:
+        := arguments = (found + (task_arguments_offset ()))
+        ? declared_task text found
+        ?>
+            := row = task_row_at text arguments length
+            ? row_selected text request row
+            ?> rows_from text arguments length request (row_inserted (row_key request.sort row) row list)
+            |: rows_from text arguments length request list
+        |: rows_from text arguments length request list
+
+:~ ^ rows_printed (text : string) (request : list_request) (list : row_list) (shown : i32) : i32 =
+    ?= list ?|
+    | NoRows => shown
+    | RowThen (_, row, rest) =>
+        := _ = stdout_line (row_line text request row (shown = 0i32))
+        rows_printed text request rest (shown + 1i32)
+
+:= i32_sum a b : i32 = (a + b)
+
+:~ filter_text (filter : status_filter) : string =
+    ?= filter ?|
+    | AllStatuses => "all"
+    | OnlyStatus status => status
+
+:= agile_list_failure (~reason : string) : i32 =
+    stderr_failure ("agile list rejected: " ++# reason)
+
+:~ print_rows (text : string) (length : i32) (request : list_request) : i32 =
+    rows_printed text request (rows_from text 0i32 length request NoRows) 0i32
+
+:~ query_text (request : list_request) : string =
+    := sorted = ?= request.sort ?|
+                 | SortPriority => ""
+                 | sort => " sort=" ++# (sort_word sort)
+    (? request.query = "" ?> "" |: query_shown request.query) ++# sorted
+:= unsettled_ids (text : string) : string = $"agile_task_census::kit_agile_unsettled_ids(&!text)" : string
+:= status_counts (text : string) (length : i32) : string =
+    $"agile_task_census::kit_agile_status_counts(&!text)" : string
+:= status_counts_json (text : string) (length : i32) : string =
+    $"agile_task_census::kit_agile_status_counts_json(&!text)" : string
+
+:= planning_filter_text (request : list_request) : string =
+    ? any_planning request.load ?>
+        ? any_planning request.assignee ?> "" |: " assignee=" ++# request.assignee
+    |: " load=" ++# request.load ++# " assignee=" ++# request.assignee
+
+:= planning_filter_json (request : list_request) : string =
+    ? any_planning request.load
+    ?>
+        ? any_planning request.assignee
+        ?> ""
+        |: ",\"assignee\":" ++# (json_string request.assignee)
+    |:
+            ",\"load\":"
+            ++# (json_string request.load)
+            ++# ",\"assignee\":"
+            ++# (json_string request.assignee)
+
+:~ listing_header (format : listing_format) : string =
+    ?= format ?|
+    | TableFormat => table_header ()
+    | JsonFormat => "{\"tasks\":["
+
+:~ table_footer (text : string) (length : i32) (request : list_request) (shown : i32) (~elapsed : string) : string =
+    := head =
+            "kit agile list ok shown="
+            ++# (i32_text shown)
+            ++# " filter="
+            ++# (filter_text request.status)
+            ++# ((planning_filter_text request) ++# (query_text request))
+    head ++# (status_counts text length) ++# " elapsed_ms=" ++# elapsed
+
+:~ json_footer (text : string) (length : i32) (request : list_request) (shown : i32) (~elapsed : string) : string =
+    := query = query_text request
+    := query_json =
+        ? query = ""
+        ?> ""
+        |: ",\"query\":" ++# (json_string (sm'.trim query))
+    := head =
+            "],\"shown\":"
+            ++# (i32_text shown)
+            ++# ",\"filter\":"
+            ++# (json_string (filter_text request.status))
+            ++# ((planning_filter_json request) ++# query_json)
+    head ++# (status_counts_json text length) ++# ",\"elapsed_ms\":" ++# elapsed ++# "}"
+
+:~ print_listing (text : string) (length : i32) (request : list_request) (started : u64) : i32 =
+    := _ = stdout_line (listing_header request.format)
+    := shown = print_rows text length request
+    := elapsed = u64_text (ms_since started)
+    ?= request.format ?|
+    | TableFormat => stdout_line (table_footer text length request shown elapsed)
+    | JsonFormat => stdout_line (json_footer text length request shown elapsed)
+
+:= malformed_task_failure (offset : i32) : i32 =
+    agile_list_failure (
+            "malformed Task fields at byte "
+            ++# (i32_text offset)
+            ++# " (expected "
+            ++# (i32_text (task_field_count ()))
+            ++# " fields)"
+    )
+
+:~ agile_list (~root : string) (request : list_request) : i32 =
+    := started = unix_ms ()
+    ?= probe (unchecked (backlog_state_path root)) ?|
+    | FileMissing _ => agile_list_failure "state/agile.spi is missing"
+    | FileReadable file =>
+        := text = records_text (loaded_string (read_text file))
+        := length = byte_len text
+        := malformed = $'agile_task_census::kit_agile_first_malformed_task(&*!text)' : i32
+        ? malformed < 0i32 ?>
+            := unsettled = ? query_reads_deps request.query ?> unsettled_ids text |: ""
+            := noted = { request ?| notes = note_index_of text; unsettled = unsettled }
+            print_listing text length { noted ?| planning = planning_index_of text } started
+        |: malformed_task_failure malformed
+
+:~ agile_list_entry () : i32 =
+    := ok, reason, status, load, assignee, json, query, sort =
+        $'kit_agile_list_args::kit_agile_list_request()'
+        : bool * string * string * string * string * bool * string * string
+    ? ok
+    ?>
+        := filter = ? status = "all" ?> AllStatuses |: OnlyStatus status
+        := format = ? json ?> JsonFormat |: TableFormat
+        := request =
+            {
+                status = filter
+                load = load
+                assignee = assignee
+                format = format
+                notes = empty_note_index ()
+                planning = empty_planning_index ()
+                query = query
+                sort = sort_of_word sort
+                unsettled = ""
+            }
+        agile_list (argument_owned 1i32) request
+    |: agile_list_failure reason
+:= main () : i32 =
+    !!!!Export("kit_agile_list_run", ((\ () => agile_list_entry ()) : () -> i32))
+    := _ = agile_list_entry ()
+    0i32

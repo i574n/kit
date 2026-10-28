@@ -1,0 +1,213 @@
+:< sm'_operators
+:< kit_jobs.host
+:< kit_jobs.jobs
+:< host_model
+:< queue
+
+:! supervisor_children = $'std::rc::Rc<std::cell::RefCell<Vec<std::process::Child>>>'
+
+:~ no_children () : supervisor_children =
+    $'std::rc::Rc::new(std::cell::RefCell::new(Vec::new()))' : supervisor_children
+
+:~ own_pid () : u64 = $'std::process::id() as u64' : u64
+
+:~ host_home_directory (~home : string) : string =
+    ? home = "" ?> joined (jobs_root ()) "shell-host" |: joined (joined (jobs_root ()) "hosts") home
+
+:~ requests_directory (~home : string) : string = joined (host_home_directory home) "requests"
+
+:~ host_pid_file (~home : string) : string = joined (host_home_directory home) "pid"
+
+:~ owner_ended_file (~home : string) : string = joined (host_home_directory home) "owner-ended"
+
+:~ request_removed (~path : string) : bool = $'std::fs::remove_file(&*!path).is_ok()' : bool
+
+:~ next_request (~dir : string) : string =
+    $'std::rc::Rc::<str>::from(std::fs::read_dir(&*!dir).into_iter().flatten().flatten().map(|entry| \
+        entry.file_name().to_string_lossy().into_owned()).filter(|name| \
+        name.ends_with(".start")).min().unwrap_or_default())' : string
+
+:~ supervisor_child_started (~children : supervisor_children) (~executable : string) (~id : string) : bool =
+    $'{ let mut command = std::process::Command::new(&*!executable); \
+        command.arg("job").arg("supervise").arg(&*!id).stdin(std::process::Stdio::null()).stdout(std::process::Stdio::\
+        null()).stderr(std::process::Stdio::null()); \#[cfg(windows)] { use std::os::windows::process::CommandExt; \
+        const DETACHED_PROCESS: u32 = 0x0000_0008; command.creation_flags(DETACHED_PROCESS); } match command.spawn() \
+        { Ok(child) => { (!children).borrow_mut().push(child); true } Err(_) => false } }' : bool
+
+:~ live_children (~children : supervisor_children) : u64 =
+    $'{ let mut kids = (!children).borrow_mut(); kids.retain_mut(|child| matches\!(child.try_wait(), Ok(None))); \
+        kids.len() as u64 }' : u64
+
+:~ detached_started (~executable : string) (~args : string) : u64 =
+    $'kit_os_launch::kit_shell_parented_start(&*!executable, &(!args).split(char::from(31u8)).filter(|arg| \
+        \!arg.is_empty()).collect::<Vec<_>>()).0' : u64
+
+:~ queue_decide (~id : string) : i32 = $'kit_job_queue::kit_job_queue_decide(&*!id)' : i32
+
+:~ owner_parented_started (~executable : string) (~args : string) (owner_pid : u64) : u64 =
+    $'kit_os_launch::kit_parented_start(&*!executable, &(!args).split(char::from(31u8)).filter(|arg| \
+        \!arg.is_empty()).collect::<Vec<_>>(), !owner_pid as u32).0' : u64
+
+:~ caller_owner () : string * u64 * u64 = $'kit_os_launch::kit_caller_owner()' : string * u64 * u64
+
+:~ owner_present (pid : u64) (started : u64) : bool = $'kit_os_launch::kit_owner_present(!pid, !started)' : bool
+
+:~ owner_home_of (pid : u64) (started : u64) : string =
+    ? pid = 0u64 ?> "" |: decimal_text pid ++# "-" ++# decimal_text started
+
+:~ request_served (~children : supervisor_children) (~executable : string) (~id : string) : () =
+    := decided = queue_decide id
+    ? decided = 0i32 ?>
+        := _ = supervisor_child_started children executable id
+        ()
+    |? decided = 1i32 ?> held_recorded id executable
+    |: ()
+
+:~ ^ held_from
+    (~children : supervisor_children) (~home : string) (names : array string) (index : i32) (held : u64)
+    : u64
+    =
+    ? index >= am'.length names
+    ?> held
+    |? held_owned_by (am'.index index names) home = !-
+    ?> held_from children home names (index + 1i32) held
+    |:
+        := id = am'.index index names
+        := decided = queue_decide id
+        ? decided = 1i32 ?>
+            held_beat id
+            held_from children home names (index + 1i32) (held + 1u64)
+        |? decided = 0i32 ?>
+            := executable = text_or_empty (held_file id)
+            held_released id
+            := _ = supervisor_child_started children executable id
+            held_from children home names (index + 1i32) held
+        |:
+            held_released id
+            held_from children home names (index + 1i32) held
+:~ held_served (~children : supervisor_children) (~home : string) : u64 =
+    held_from children home (held_names ()) 0i32 0u64
+
+:~ ^ held_stopped_from (~home : string) (names : array string) (index : i32) : () =
+    ? index >= am'.length names
+    ?> ()
+    |:
+        := id = am'.index index names
+        := _ =
+            ? held_owned_by id home
+            ?>
+                settled_in_queue id (SettleStopped (owner_ended_detail ()))
+                held_released id
+            |: ()
+        held_stopped_from home names (index + 1i32)
+
+:~ home_of (~home : string) : host_home = ? directory_exists (requests_directory home) ?> HomePresent |: HomeGone
+
+:~ args_mark () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
+
+:~ ^ host_served
+    (~children : supervisor_children) (~home : string) (owner_pid : u64) (owner_start : u64) (~idle_since : u64)
+    : i32
+    =
+    := dir = requests_directory home
+    := name = next_request dir
+    ? name <> "" ?>
+        := path = joined dir name
+        := executable = text_or_empty path
+        := _ = request_removed path
+        := _ = request_served children executable (request_id name)
+        host_served children home owner_pid owner_start (now_ms ())
+    |:
+        := present = owner_present owner_pid owner_start
+        := _ = ? present ?> () |: held_stopped_from home (held_names ()) 0i32
+        := live = live_children children + held_served children home
+        := now = now_ms ()
+        ?= host_step_of live idle_since now (home_of home) present ?|
+        | HostIdleExit =>
+            := _ =
+                ? decimal_u64 (text_or_empty (host_pid_file home)) = own_pid ()
+                ?> request_removed (host_pid_file home)
+                |: !-
+            0i32
+        | HostDraining =>
+            := _ = text_written (owner_ended_file home) (decimal_text now)
+            sleep_ms 500u64
+            host_served children home owner_pid owner_start idle_since
+        | KeepServing =>
+            sleep_ms 500u64
+            host_served children home owner_pid owner_start (? live > 0u64 ?> now |: idle_since)
+
+:~ host_run () : i32 =
+    := owner_pid = decimal_u64 (argument 3i32)
+    := owner_start = decimal_u64 (argument 4i32)
+    := home = owner_home_of owner_pid owner_start
+    := recorded = decimal_u64 (text_or_empty (host_pid_file home))
+    ?= host_claim_of recorded (own_pid ()) (process_alive recorded) ?|
+    | OtherHostServes _ => 0i32
+    | HostOwns =>
+        := _ = directory_created (requests_directory home)
+        := _ = text_written (host_pid_file home) (decimal_text (own_pid ()))
+        host_served (no_children ()) home owner_pid owner_start (now_ms ())
+
+:~ host_started (~executable : string) (owner_pid : u64) (owner_start : u64) : u64 =
+    ? owner_pid = 0u64
+    ?> detached_started executable ("job" ++# args_mark () ++# "host")
+    |:
+        := tail = args_mark () ++# decimal_text owner_pid ++# args_mark () ++# decimal_text owner_start
+        := args = "job" ++# args_mark () ++# "host" ++# tail
+        := pid = owner_parented_started executable args owner_pid
+        ? pid = 0u64 ?> detached_started executable args |: pid
+
+:~ ^ supervisor_awaited (~id : string) (~deadline : u64) : supervisor_wait =
+    ?= supervisor_wait_of (decimal_u64 (text_or_empty (job_file id "supervisor"))) (now_ms ()) deadline ?|
+    | Some wait => wait
+    | None =>
+        ? file_exists (held_file id) ?> SupervisorHeld "held"
+        |? file_exists (job_file id "exit") ?> SupervisorHeld "settled"
+        |:
+            sleep_ms 50u64
+            supervisor_awaited id deadline
+
+:~ supervisor_requested (~id : string) : string =
+    := executable = supervisor_executable (jobs_root ())
+    := home, owner_pid, owner_start = caller_owner ()
+    := dir = requests_directory home
+    := _ = directory_created dir
+    := _ = text_written (job_file id "host-home") home
+    := request = joined dir (request_name id)
+    := _ = text_written request executable
+    := host = decimal_u64 (text_or_empty (host_pid_file home))
+    := _ =
+        ?= host_state_of host (process_alive host) ?|
+        | HostRunning _ => 0u64
+        | HostMissing => host_started executable owner_pid owner_start
+    ?= supervisor_awaited id (now_ms () + 5000u64) ?|
+    | SupervisorUp pid => decimal_text pid
+    | SupervisorHeld word => word ++# " host_home=" ++# (? home = "" ?> "shared" |: home)
+    | SupervisorLate =>
+        ? request_removed request ?>
+            := pid = detached_started executable ("job" ++# args_mark () ++# "supervise" ++# args_mark () ++# id)
+            ? pid = 0u64 ?> "error: neither the job host nor a detached start launched the supervisor"
+            |: decimal_text pid
+        |:
+            ?= supervisor_awaited id (now_ms () + 60000u64) ?|
+            | SupervisorUp pid => decimal_text pid
+            | SupervisorHeld word => word
+            | SupervisorLate => "error: the job host took the request but the supervisor never recorded its pid"
+
+:~ held_revived () : string =
+    ? am'.length (held_names ()) = 0i32 ?> "idle"
+    |:
+        := home, owner_pid, owner_start = caller_owner ()
+        := recorded = decimal_u64 (text_or_empty (host_pid_file home))
+        ?= host_state_of recorded (process_alive recorded) ?|
+        | HostRunning _ => "running"
+        | HostMissing =>
+            := pid = host_started (supervisor_executable (jobs_root ())) owner_pid owner_start
+            ? pid = 0u64 ?> "error: held jobs wait and no job host could be started" |: "revived"
+
+:= main () : i32 =
+    !!!!Export("kit_job_host_run", ((\ () => host_run ()) : () -> i32))
+    !!!!Export("kit_job_host_revive", ((\ () => held_revived ()) : () -> string))
+    !!!!Export("kit_job_host_request", ((\ id => supervisor_requested id) : string -> string))
+    0i32

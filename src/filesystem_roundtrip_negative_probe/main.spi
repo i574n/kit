@@ -1,0 +1,8 @@
+:= main () : i32 =
+    := outcome =
+        filesystem_roundtrip_contract.model.agile_rejection
+            "/tmp/kit-roundtrip-negative.txt"
+            "expected-roundtrip"
+            "actual-roundtrip"
+    ? filesystem_roundtrip_contract.model.rejected outcome
+    ?> 0i32 |: 1i32

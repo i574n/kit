@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+    kit_machine_watch
+    kit_jobs
+    kit_process_table
+modules:
+    kill

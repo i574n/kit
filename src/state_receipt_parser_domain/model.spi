@@ -1,0 +1,164 @@
+:= parse_snapshot_line (line : string) : string =
+    := marker = "= StateCheckSnapshot "
+    := line_len = sm.length line : i32
+    := marker_at = find_text line 0i32 marker
+    ? (=.) marker_at line_len ?> codec_empty ()
+    |:
+        := value_from = (+.) marker_at (sm.length marker : i32)
+        := value_near_to = find_text line value_from "u64"
+        ? (=.) value_near_to line_len ?> codec_empty ()
+        |: sm.concat "snapshot\t" (sm.concat (slice_exclusive line value_from value_near_to) "\n")
+
+:= parse_module_attestation (line : string) (at : i32) (line_len : i32) : string =
+    := at = skip_spaces line at
+    ? (=.) at line_len ?> "runtime"
+    |? starts_with_at line at "RuntimeAttestation" ?> "runtime"
+    |? starts_with_at line at "BuildAttestation" ?>
+        := digits_from = skip_spaces line ((+.) at (sm.length "BuildAttestation" : i32))
+        := digits_near_to = find_text line digits_from "u64"
+        ? (=.) digits_near_to line_len ?> codec_empty ()
+        |: sm.concat "build:" (slice_exclusive line digits_from digits_near_to)
+    |? starts_with_at line at "build:" ?>
+        := digits_from = (+.) at (sm.length "build:" : i32)
+        := digits_near_to = find_text line digits_from "u64"
+        ? (=.) digits_near_to line_len ?> codec_empty ()
+        |: sm.concat "build:" (slice_exclusive line digits_from digits_near_to)
+    |? (=.) (sm.index line at) ')' ?> "runtime"
+    |: codec_empty ()
+
+:= parse_module_line (line : string) : string =
+    := marker = "= ModuleTypecheckReceipt ("
+    := line_len = sm.length line : i32
+    := marker_at = find_text line 0i32 marker
+    ? (=.) marker_at line_len
+    ?> codec_empty ()
+    |:
+        := path_from = (+.) marker_at (sm.length marker : i32)
+        := path, after_path, path_ok = parse_quoted line path_from
+        ? (=.) path_ok !-
+        ?> codec_empty ()
+        |:
+            := first_comma = find_char line after_path ','
+            ? (=.) first_comma line_len
+            ?> codec_empty ()
+            |:
+                := bytes_from = skip_spaces line ((+.) first_comma 1i32)
+                := bytes_near_to = find_text line bytes_from "u64"
+                ? (=.) bytes_near_to line_len
+                ?> codec_empty ()
+                |:
+                    := second_comma = find_char line ((+.) bytes_near_to 3i32) ','
+                    ? (=.) second_comma line_len
+                    ?> codec_empty ()
+                    |:
+                        := fingerprint_from = skip_spaces line ((+.) second_comma 1i32)
+                        := fingerprint_u64 = find_text line fingerprint_from "u64"
+                        ? (=.) fingerprint_u64 line_len
+                        ?> codec_empty ()
+                        |:
+                            := legacy_tab = find_char line fingerprint_from (char_tab ())
+                            := legacy_attestation = (<) legacy_tab fingerprint_u64
+                            := fingerprint_near_to = ? legacy_attestation ?> legacy_tab |: fingerprint_u64
+                            := bytes = slice_exclusive line bytes_from bytes_near_to
+                            := fingerprint = slice_exclusive line fingerprint_from fingerprint_near_to
+                            := attestation_from =
+                                ? legacy_attestation
+                                ?> skip_spaces line ((+.) legacy_tab 1i32)
+                                |:
+                                    := after_fingerprint = skip_spaces line ((+.) fingerprint_u64 3i32)
+                                    ? (=.) after_fingerprint line_len
+                                    ?> after_fingerprint
+                                    |? (=.) (sm.index line after_fingerprint) ','
+                                    ?> skip_spaces line ((+.) after_fingerprint 1i32)
+                                    |: after_fingerprint
+                            := attestation = parse_module_attestation line attestation_from line_len
+                            ? (=.) attestation ""
+                            ?> codec_empty ()
+                            |:
+                                sm.concat "module\t" (sm.concat path (sm.concat "\t" (sm.concat bytes (sm.concat "\t" (
+                                    sm.concat fingerprint (sm.concat "\t" (sm.concat attestation "\n")))))))
+
+:= parse_receipt_line (line : string) : string =
+    := snapshot = parse_snapshot_line line
+    ? (=.) snapshot "" ?> parse_module_line line |: snapshot
+
+:~ ^ parse_source_loop (source : string) (at : i32) (source_len : i32) (out : string) : string =
+    ? (=.) at source_len ?> out
+    |:
+        := line_near_to = find_char_loop source at source_len (char_newline ())
+        := line = slice_exclusive source at line_near_to
+        := out = sm.concat out (parse_receipt_line line)
+        := next = ? (=.) line_near_to source_len ?> source_len |: (+.) line_near_to 1i32
+        parse_source_loop source next source_len out
+
+:~ receipt_parse (source : string) : string =
+    parse_source_loop source 0i32 (sm.length source : i32) ""
+
+:~ receipt_row_fields (line : string) : string =
+    := line_len = sm.length line : i32
+    := first = find_char line 0i32 (char_tab ())
+    ? (=.) first line_len
+    ?> codec_empty ()
+    |:
+        := kind = slice_exclusive line 0i32 first
+        ? (=.) kind "snapshot"
+        ?>
+            := second = find_char line ((+.) first 1i32) (char_tab ())
+            ? (<) second line_len ?> codec_empty ()
+            |:
+                := value = slice_exclusive line ((+.) first 1i32) line_len
+                ? (=.) value "" ?> codec_empty ()
+                |: sm.concat "snapshot\n" (sm.concat value "\n")
+        |? (=.) kind "module"
+        ?>
+            := second = find_char line ((+.) first 1i32) (char_tab ())
+            ? (=.) second line_len
+            ?> codec_empty ()
+            |:
+                := third = find_char line ((+.) second 1i32) (char_tab ())
+                ? (=.) third line_len
+                ?> codec_empty ()
+                |:
+                    := fourth = find_char line ((+.) third 1i32) (char_tab ())
+                    ? (=.) fourth line_len
+                    ?> codec_empty ()
+                    |:
+                        := fifth = find_char line ((+.) fourth 1i32) (char_tab ())
+                        ? (<) fifth line_len
+                        ?> codec_empty ()
+                        |:
+                            := path = slice_exclusive line ((+.) first 1i32) second
+                            := bytes = slice_exclusive line ((+.) second 1i32) third
+                            := fingerprint = slice_exclusive line ((+.) third 1i32) fourth
+                            := attestation = slice_exclusive line ((+.) fourth 1i32) line_len
+                            ? (=.) path ""
+                            ?> codec_empty ()
+                            |? (=.) bytes ""
+                            ?> codec_empty ()
+                            |? (=.) fingerprint ""
+                            ?> codec_empty ()
+                            |? (=.) attestation ""
+                            ?> codec_empty ()
+                            |:
+                                sm.concat "module\n" (sm.concat path (sm.concat "\n" (sm.concat bytes (sm.concat "\n" (
+                                    sm.concat fingerprint (sm.concat "\n" (sm.concat attestation "\n")))))))
+        |: codec_empty ()
+
+:= parser_fixture_table () : string =
+    "snapshot\t42\nmodule\talpha.spi\t12\t34\truntime\nmodule\tb\\c.spi\t56\t78\tbuild:99\n"
+
+:= parser_fixture_source () : string =
+    """
+        union state_check_snapshot = | StateCheckSnapshot :: u64 -> state_check_snapshot
+        union module_attestation = | RuntimeAttestation | BuildAttestation :: u64 -> module_attestation
+        union module_typecheck_receipt = | ModuleTypecheckReceipt :: string * u64 * u64 * module_attestation -> module_typecheck_receipt
+
+        inl snapshot () : state_check_snapshot = StateCheckSnapshot 42u64
+        inl receipt_0000 () : module_typecheck_receipt = ModuleTypecheckReceipt ("alpha.spi", 12u64, 34u64, RuntimeAttestation)
+        inl receipt_0001 () : module_typecheck_receipt = ModuleTypecheckReceipt ("b\\c.spi", 56u64, 78u64, BuildAttestation 99u64)
+        inl main () : i32 = 0i32
+
+        """
+
+:= parser_malformed_source () : string =
+    "inl receipt_bad () = ModuleTypecheckReceipt (\"unterminated, 12u64, 34u64)\n"

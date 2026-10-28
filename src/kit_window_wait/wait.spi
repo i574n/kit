@@ -1,0 +1,77 @@
+:< sm'_operators
+:< kit_jobs.host
+:< kit_machine_windows.window_model
+:< kit_machine_windows.windows
+:< settle
+
+:~ ^ rows_busy (~words : string) (~rows : string) : bool =
+    ? rows = ""
+    ?> !-
+    |:
+        sm'.index_of ("," ++# tab_field (first_row rows) 1i32 ++# ",") ("," ++# words ++# ",") >= 0
+        || rows_busy words (other_rows rows)
+
+:~ ^ waited
+    (~words : string) (terms : settle_terms) (progress : settle_progress) (every : u64)
+    : settle_verdict * settle_progress
+    =
+    := root = windows_root ()
+    := next = observed progress (rows_busy words (live_rows root (stored_rows root) (now_ms ()) ""))
+    ?= verdict_of terms next ?|
+    | KeepWaiting =>
+        sleep_ms every
+        waited words terms next every
+    | finished => finished, next
+
+:= unknown_class (~word : string) : bool =
+    ?= class_of word ?|
+    | ClassUnknown => !+
+    | ClassKnown _ => !-
+
+:= contention_text (progress : settle_progress) : string =
+    ?= contention_of progress ?|
+    | Quiet => "quiet"
+    | Contended busy => "contended busy_samples=" ++# number_text busy
+
+:= option_or (~flag : string) (fallback : u64) : u64 =
+    ? option_value flag = "" ?> fallback |: decimal_of (option_value flag)
+
+:~ window_wait_cleared () : i32 =
+    := words = argument 3i32
+    := every = option_or "--every" 30u64 * 1000u64
+    ? words = "" || sm'.starts_with "--" words || (sm'.split "," words |> am'.any (\ word => unknown_class word))
+    ?>
+        refused (
+            (
+                "wait-clear: give known window classes separated by commas, e.g. window wait-clear "
+                ^^ "live-gui,compiler-install --settle 2 --max 120; classes "
+            )
+            ++# class_words ()
+        )
+    |? every = 0u64
+    ?> refused "wait-clear: --every needs a positive number of seconds"
+    |:
+        := terms =
+            {
+                clear_samples_needed = option_or "--settle" 2u64
+                max_samples = option_or "--max" 60u64 * 60000u64 / every + 1u64
+            }
+        := verdict, progress = waited words terms (progress_start ()) every
+        := tail =
+            " classes="
+            ++# words
+            ++# " samples="
+            ++# number_text progress.samples_taken
+            ++# " "
+            ++# contention_text progress
+        ?= verdict ?|
+        | ClearNow =>
+            stdout_line ("kit window wait-clear ok" ++# tail)
+            0i32
+        | _ =>
+            stdout_line ("kit window wait-clear gave-up" ++# tail)
+            1i32
+
+:= main () : i32 =
+    !!!!Export("kit_window_wait_run", ((\ () => window_wait_cleared ()) : () -> i32))
+    0i32

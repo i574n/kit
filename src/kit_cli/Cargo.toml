@@ -1,0 +1,79 @@
+[package.metadata.spiral]
+entry = "main.spi"
+output = "kit.rs"
+
+[package]
+name = "kit-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "kit"
+path = "kit.rs"
+
+[dependencies]
+kit-jobs = { path = "../kit_jobs" }
+kit-repo-state = { path = "../kit_repo_state" }
+kit-repo-affected = { path = "../kit_repo_affected" }
+kit-repo-accept-review = { path = "../kit_repo_accept_review" }
+kit-table-query = { path = "../kit_table_query" }
+kit-standards = { path = "../kit_standards" }
+kit-machine-windows = { path = "../kit_machine_windows" }
+kit-experiments = { path = "../kit_experiments" }
+kit-table-logs = { path = "../kit_table_logs" }
+kit-env-pins = { path = "../kit_env_pins" }
+kit-mirror = { path = "../kit_mirror" }
+kit-ceremonies = { path = "../kit_ceremonies" }
+kit-evidence = { path = "../kit_evidence" }
+kit-lint-macros = { path = "../kit_lint_macros" }
+kit-table-sequences = { path = "../kit_table_sequences" }
+kit-guide = { path = "../kit_guide" }
+kit-machine-watch = { path = "../kit_machine_watch" }
+kit-adoption = { path = "../kit_adoption" }
+kit-memory = { path = "../kit_memory" }
+kit-resume = { path = "../kit_resume" }
+kit-ci-parity = { path = "../kit_ci_parity" }
+kit-os-launch = { path = "../kit_os_launch" }
+kit-crate-gate = { path = "../kit_crate_gate" }
+kit-table-test = { path = "../kit_table_test" }
+kit-grep-query = { path = "../kit_grep_query" }
+kit-read-query = { path = "../kit_read_query" }
+kit-do = { path = "../kit_do" }
+kit-process-table = { path = "../kit_process_table" }
+bootstrap-authority-status = { path = "../bootstrap_authority_status" }
+kit-patch-mutation = { path = "../kit_patch_mutation" }
+kit-patch-rehearsal = { path = "../kit_patch_rehearsal" }
+kit-patch-driver-domain = { path = "../patch_driver_domain" }
+kit-batch-write = { path = "../kit_batch_write" }
+kit-fs-actions = { path = "../kit_fs_actions" }
+kit-agile-mutation = { path = "../kit_agile_mutation" }
+kit-agile-state = { path = "../kit_agile_state" }
+kit-agile-lease = { path = "../kit_agile_lease" }
+kit-process-observation = { path = "../kit_process_observation" }
+kit-legacy-operations = { path = "../kit_legacy_operations" }
+kit-toolchain-proxy = { path = "../kit_toolchain_proxy" }
+kit-release-hygiene = { path = "../kit_release_hygiene" }
+kit-coverage-prune = { path = "../kit_coverage_prune" }
+kit-bundle-retention = { path = "../kit_bundle_retention" }
+bundle-retention-domain = { path = "../bundle_retention_domain" }
+kit-handoff = { path = "../kit_handoff" }
+legacy-capability-domain = { path = "../legacy_capability_domain" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-product-diff = { path = "../kit_product_diff" }
+archive-deflate-domain = { path = "../archive_deflate_domain" }
+kit-bundle-manifest = { path = "../kit_bundle_manifest" }
+process-batch-plan-domain = { path = "../process_batch_plan_domain" }
+evidence-currentness-domain = { path = "../evidence_currentness_domain" }
+kit-compiler-discovery = { path = "../kit_compiler_discovery" }
+authority-state-domain = { path = "../authority_state_domain" }
+semantic-evidence-domain = { path = "../semantic_evidence_domain" }
+cold-proof-domain = { path = "../cold_proof_domain" }
+command-spec-domain = { path = "../command_spec_domain" }
+kit-command-help = { path = "../kit_command_help" }
+canonical-plan-ir-domain = { path = "../canonical_plan_ir_domain" }
+
+[lints.clippy]
+needless_return = "allow"
+needless_late_init = "allow"

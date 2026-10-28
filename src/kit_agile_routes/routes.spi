@@ -1,0 +1,124 @@
+:< agile_mutation_policy.model
+:< sm'_operators
+:< agile_subcommand_domain.subcommand
+:< workspace_primitives.outcome
+
+:= agile_mutation_error (~message : string) : i32 = workspace_primitives.console.stderr_failure message
+
+:= args_len_is expected : bool = rust_std_env.model.args_len_is expected
+:= argument_len index : i32 = rust_std_env.model.argument_len index
+:= argument_byte index offset : i32 = rust_std_env.model.argument_byte index offset
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+:= argument_equals index expected : bool = rust_std_env.model.argument_equals index expected
+:= i32_eq a b : bool = (a = b)
+:= i32_le a b : bool = (a <= b)
+:= i32_nonnegative value : bool = $"0 <= !value"
+:= i32_positive value : bool = $"0 < !value"
+:= i32_digit value : bool = ? 48i32 <= value ?> value <= 57i32 |: !-
+:= i32_digit_value value : i32 = $"!value - 48"
+:= i32_pair_value a b : i32 = $"!a * 10 + !b"
+:= i32_triple_value a b c : i32 = $"!a * 100 + !b * 10 + !c"
+:= invalid_i32 () : i32 = $"-1"
+:= all2 a b = ? a ?> b |: !-
+:= all3 a b c = ? a ?> ? b ?> c |: !- |: !-
+:= all4 a b c d = ? a ?> ? b ?> ? c ?> d |: !- |: !- |: !-
+
+:= agile_full_usage_error () : i32 =
+    := ~message =
+        !!!!StaticStringConcat("agile supports ", agile_subcommand_domain.subcommand.agile_subcommand_usage ", ")
+    agile_mutation_error message
+:= received_operands () : string = $'std::rc::Rc::<str>::from(std::env::args().skip(3).count().to_string())' : string
+:= agile_shape_error (~subcommand : string) (~shape : string) : i32 =
+    := head = "agile " ++# subcommand ++# " expects " ++# shape ++# ", received "
+    := message = head ++# (received_operands ()) ++# " operands; see kit agile --help"
+    agile_mutation_error message
+:~ agile_usage_error () : i32 =
+    := subcommand = argument_owned 0i32
+    := shape = agile_subcommand_domain.subcommand.agile_subcommand_shape subcommand
+    ? (shape = "") ?> agile_full_usage_error () |: agile_shape_error subcommand shape
+:= agile_title_error () : i32 = agile_mutation_error "begin title must contain 3..7 visible words"
+:= agile_slot_error (~slot : string) (~expected : string) (index : i32) : i32 =
+    := message =
+            "agile set: "
+            ++# slot
+            ++# (" must be " ++# expected ++# ", received '" ++# (argument_owned index) ++# "'")
+            ++# "; usage: agile set <root> <id> <progress> <Planned|Active|Blocked|Paused|Done>"
+    agile_mutation_error message
+:= agile_progress_error () : i32 = agile_slot_error "progress" "a whole number 0..100" 3i32
+:= agile_status_error () : i32 = agile_slot_error "status" "Planned, Active, Blocked, Paused or Done" 4i32
+:= agile_check (~root : string) : i32 = $"kit_agile_state::agile_check_owned(!root.as_ref())"
+:= agile_lease_status (~root : string) : i32 = $"kit_agile_state::agile_lease_status_owned(!root.as_ref())"
+:= agile_handoff (~root : string) : i32 = $"kit_handoff_render::handoff_render_owned(!root.as_ref())"
+:= agile_record (~root : string) : i32 = $"kit_agile_state::agile_record_owned(!root.as_ref())"
+:= agile_begin (~root : string) (~title : string) words : i32 =
+    := _ = words
+    $"kit_agile_state::agile_begin_owned(!root.as_ref(), !title.as_ref())"
+:= agile_set (~root : string) (~id : string) (agile_progress progress) status : i32 =
+    := code = agile_status_code status
+    $"kit_agile_state::agile_set_validated_owned(!root.as_ref(), !id.as_ref(), !progress, !code)"
+
+:= digit_value index offset : i32 =
+    := value = argument_byte index offset
+    ? i32_digit value ?> i32_digit_value value |: invalid_i32 ()
+:= validate_progress () : validation_result agile_progress =
+    := length = argument_len 3i32
+    := a = digit_value 3i32 0i32
+    := b = digit_value 3i32 1i32
+    := c = digit_value 3i32 2i32
+    ? all2 (length = 1i32) (i32_nonnegative a) ?> Valid (agile_progress a)
+    |? all3 (length = 2i32) (i32_nonnegative a) (i32_nonnegative b) ?> Valid (agile_progress (i32_pair_value a b))
+    |? all4 (length = 3i32) (i32_nonnegative a) (i32_nonnegative b) (i32_nonnegative c) ?>
+        := value = i32_triple_value a b c
+        ? value <= 100i32 ?> Valid (agile_progress value) |: Invalid
+    |: Invalid
+:= validate_status () : validation_result agile_status =
+    := text = argument_owned 4i32
+    union_reflection.cases.union_cases_fold
+        \ parsed (status : agile_status) =>
+            ? (text = (union_reflection.cases.union_case_suffix "Agile" status))
+            ?> Valid status
+            |: parsed
+        Invalid
+
+:~ planning_field_named (~name : string) : bool =
+    union_reflection.cases.union_case_where
+        \ (field : agile_planning_model.model.planning_field) =>
+            name = agile_planning_model.model.planning_field_name field
+        \ _ => !+
+        !-
+:= agile_edit_route () : i32 =
+    ? planning_field_named (argument_owned 3i32) ?> $"agile_planning_revision::kit_agile_planning_edit_run()"
+    |: $"agile_task_revision::kit_agile_edit_run()"
+:= agile_begin_route () : i32 =
+    := root = argument_owned 1i32
+    := title = argument_owned 2i32
+    := words : i32 = $"kit_agile_lease::kit_lease_title_words()"
+    ? i32_positive words ?> agile_begin root title words |: agile_title_error ()
+:= agile_done_route (~root : string) (~id : string) progress : i32 =
+    := sites = $'std::rc::Rc::<str>::from(agile_todo_scan::kit_agile_todo_sites(&*!root, &*!id).trim_end())' : string
+    ? (sites = "")
+    ?> agile_set root id progress AgileDone
+    |:
+        := message =
+                "agile set "
+                ++# id
+                ++# " rejected: TODO blocks still name it; cut them or keep the item open:\n"
+                ++# sites
+        agile_mutation_error message
+:= agile_set_route () : i32 =
+    := root = argument_owned 1i32
+    := id = argument_owned 2i32
+    ?= validate_progress (), validate_status () ?|
+    | Valid progress, Valid status =>
+        ?= status ?|
+        | AgileDone => agile_done_route root id progress
+        | _ => agile_set root id progress status
+    | Invalid, _ => agile_progress_error ()
+    | _, Invalid => agile_status_error ()
+
+:= main () : i32 =
+    !!!!Export("kit_agile_usage_error", ((\ () => agile_usage_error ()) : () -> i32))
+    !!!!Export("kit_agile_begin_route", ((\ () => agile_begin_route ()) : () -> i32))
+    !!!!Export("kit_agile_set_route", ((\ () => agile_set_route ()) : () -> i32))
+    !!!!Export("kit_agile_edit_route", ((\ () => agile_edit_route ()) : () -> i32))
+    0i32

@@ -1,0 +1,296 @@
+///- --package .
+:# launch static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| command_word =
+    | Bare : string
+    | Quoted : string
+
+:| ^ command_words =
+    | NoMoreWords
+    | WordThen : command_word * command_words
+
+:! direct = ()
+:! shelled = ()
+
+:| shell_reason =
+    | ShellSyntax : string
+    | ShellBuiltin : string
+    | ScriptProgram : string
+    | ProgramMissing : string
+
+:| launch kind =
+    | DirectLaunch :: string * command_words -> launch direct
+    | ShellLaunch :: shell_reason * command_words -> launch shelled
+
+:! any_launch = \? kind. launch kind
+
+:| cmd_builtin =
+    | BuiltinAssoc
+    | BuiltinBreak
+    | BuiltinCall
+    | BuiltinCd
+    | BuiltinChdir
+    | BuiltinCls
+    | BuiltinColor
+    | BuiltinCopy
+    | BuiltinDate
+    | BuiltinDel
+    | BuiltinDir
+    | BuiltinEcho
+    | BuiltinEndlocal
+    | BuiltinErase
+    | BuiltinExit
+    | BuiltinFor
+    | BuiltinFtype
+    | BuiltinGoto
+    | BuiltinIf
+    | BuiltinMd
+    | BuiltinMkdir
+    | BuiltinMklink
+    | BuiltinMove
+    | BuiltinPath
+    | BuiltinPause
+    | BuiltinPopd
+    | BuiltinPrompt
+    | BuiltinPushd
+    | BuiltinRd
+    | BuiltinRem
+    | BuiltinRen
+    | BuiltinRename
+    | BuiltinRmdir
+    | BuiltinSet
+    | BuiltinSetlocal
+    | BuiltinShift
+    | BuiltinStart
+    | BuiltinTime
+    | BuiltinTitle
+    | BuiltinType
+    | BuiltinVer
+    | BuiltinVerify
+    | BuiltinVol
+
+:~ lowered (~word : string) : string = sm'.to_lower word
+:~ any_letter_of (~word : string) (~letters : string) : bool = $'(!word).chars().any(|letter| \
+    (!letters).contains(letter))' : bool
+:~ first_line (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split(char::from(10u8)).next().unwrap_o\
+    r(""))' : string
+:~ rest_lines (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split_once(char::from(10u8)).map(|(_, \
+    rest)| rest).unwrap_or(""))' : string
+:~ is_file (~path : string) : bool = file_system.path_buf_is_file (file_system.new_path_buf (sm'.to_std_string path))
+:~ path_joined (~dir : string) (~name : string) (~extension : string) : string =
+    $'std::rc::Rc::<str>::from(std::path::Path::new(&*!dir).join(format\!("{}{}", &*!name, \
+        &*!extension)).to_string_lossy().as_ref())' : string
+:~ names_dir (~name : string) : bool =
+    $'(!name).contains(char::from(47u8)) || (!name).contains(char::from(92u8))' : bool
+:~ path_entries (~separator : string) : string =
+    $'std::rc::Rc::<str>::from(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).map(|dir| \
+        dir.to_string_lossy().into_owned()).collect::<Vec<_>>().join(&*!separator))' : string
+:~ has_extension (~name : string) : bool = $'std::path::Path::new(&*!name).extension().is_some()' : bool
+:~ pathext () : string = env.get_environment_variable "PATHEXT"
+:~ named_in (~word : string) (~names : string) : bool = $'(!names).split(char::from(124u8)).any(|name| \
+    name.eq_ignore_ascii_case(&*!word))' : bool
+:= on_windows () : bool = $'cfg\!(windows)' : bool
+
+:= search_dirs (~cwd : string) (~name : string) : string =
+    ? names_dir name ?> cwd
+    |? on_windows () ?> cwd ++# "\n" ++# (path_entries "\n")
+    |: path_entries "\n"
+
+:= extensions_of (~name : string) : string =
+    ? on_windows () && has_extension name = !- ?>
+        := listed = pathext ()
+        sm'.replace ";" "\n" (? listed = "" ?> ".COM;.EXE;.BAT;.CMD" |: listed)
+    |: ""
+
+:= builtin_names () : string =
+    union_reflection.cases.union_cases_joined
+        \ (builtin : cmd_builtin) => union_reflection.cases.union_case_suffix "Builtin" builtin
+        "|"
+
+:= builtin_named (~word : string) : bool = named_in word (builtin_names ())
+
+:= shell_letters () : string = ? on_windows () ?> "|&<>^%()\n" |: "|&<>;$`*?~(){}[]'\"\\\n"
+:= quoted_shell_letters () : string = ? on_windows () ?> "%\"\n" |: "$`\"\\\n"
+
+:~ word_needs_shell (word : command_word) : bool =
+    ?= word ?|
+    | Bare text => any_letter_of text (shell_letters ())
+    | Quoted text => any_letter_of text (quoted_shell_letters ())
+
+:= word_text (word : command_word) : string =
+    ?= word ?|
+    | Bare text => text
+    | Quoted text => text
+
+:= word_shown (word : command_word) : string =
+    ?= word ?|
+    | Bare text => text
+    | Quoted text => "\"" ++# text ++# "\""
+
+:~ byte_at (~text : string) (index : i32) : i32 = $'(!text).as_bytes().get(!index as usize).map(|byte| *byte as \
+    i32).unwrap_or(-1)' : i32
+:~ text_between (~text : string) (start : i32) (stop : i32) : string = $'std::rc::Rc::<str>::from((!text).get(!start \
+    as usize..!stop as usize).unwrap_or(""))' : string
+
+:~ ^ word_end (~text : string) (index : i32) (closing : i32) : i32 =
+    := byte = byte_at text index
+    ? byte < 0i32 || byte = closing ?> index |: word_end text (index + 1i32) closing
+
+:~ ^ words_scanned (~text : string) (index : i32) (acc : command_words) : command_words =
+    := byte = byte_at text index
+    ? byte < 0i32 ?> acc
+    |? byte = 32i32 ?> words_scanned text (index + 1i32) acc
+    |? byte = 34i32 ?>
+        := stop = word_end text (index + 1i32) 34i32
+        words_scanned text (stop + 1i32) (WordThen (Quoted (text_between text (index + 1i32) stop), acc))
+    |:
+        := stop = word_end text index 32i32
+        words_scanned text stop (WordThen (Bare (text_between text index stop), acc))
+
+:~ ^ words_flipped (words : command_words) (acc : command_words) : command_words =
+    ?= words ?|
+    | NoMoreWords => acc
+    | WordThen (word, rest) => words_flipped rest (WordThen (word, acc))
+
+:= words_of_line (~line : string) : command_words = words_flipped (words_scanned line 0i32 NoMoreWords) NoMoreWords
+
+:~ ^ words_joined
+    (words : command_words) (~separator : string) (shown : command_word -> string) (~acc : string)
+    : string
+    =
+    ?= words ?|
+    | NoMoreWords => acc
+    | WordThen (word, rest) =>
+        words_joined rest separator shown (? acc = "" ?> shown word |: acc ++# separator ++# (shown word))
+
+:= command_line (words : command_words) : string = words_joined words " " word_shown ""
+
+:~ ^ syntax_word (words : command_words) : string =
+    ?= words ?|
+    | NoMoreWords => ""
+    | WordThen (word, rest) => ? word_needs_shell word ?> word_text word |: syntax_word rest
+
+:~ ^ candidate_in (~dir : string) (~name : string) (~extensions : string) : string =
+    := path = path_joined dir name (first_line extensions)
+    ? is_file path ?> path
+    |? rest_lines extensions = "" ?> ""
+    |: candidate_in dir name (rest_lines extensions)
+
+:~ ^ program_in (~dirs : string) (~name : string) (~extensions : string) : string =
+    ? dirs = "" ?> ""
+    |:
+        := dir = first_line dirs
+        := found = ? dir = "" ?> "" |: candidate_in dir name extensions
+        ? found <> "" ?> found |: program_in (rest_lines dirs) name extensions
+
+:= program_found (~cwd : string) (~name : string) : string = program_in (search_dirs cwd name) name (extensions_of name)
+
+:= native_program (~path : string) : bool =
+    ? on_windows () ?>
+        := key = lowered path
+        sm'.ends_with ".exe" key || sm'.ends_with ".com" key
+    |: !+
+
+:= launch_of \* result. (~cwd : string) (words : command_words) (on : any_launch -> result) : result =
+    ?= words ?|
+    | NoMoreWords => on (any_launch (\? (ShellLaunch (ProgramMissing "", words))))
+    | WordThen (program, arguments) =>
+        := syntax = syntax_word words
+        := name = word_text program
+        ? syntax <> "" ?> on (any_launch (\? (ShellLaunch (ShellSyntax syntax, words))))
+        |? on_windows () && builtin_named name ?> on (any_launch (\? (ShellLaunch (ShellBuiltin name, words))))
+        |:
+            := path = program_found cwd name
+            ? path = "" ?> on (any_launch (\? (ShellLaunch (ProgramMissing name, words))))
+            |? native_program path ?> on (any_launch (\? (DirectLaunch (path, arguments))))
+            |: on (any_launch (\? (ShellLaunch (ScriptProgram path, words))))
+
+:= launch_argv (any_launch l : any_launch) : string =
+    := \? kind. which = l
+    ?= which ?|
+    | DirectLaunch (path, arguments) => words_joined (WordThen (Bare path, arguments)) "\n" word_text ""
+    | ShellLaunch (_, words) =>
+        ? on_windows () ?> "cmd.exe\n/c\n" ++# (command_line words) |: "sh\n-c\n" ++# (command_line words)
+
+:= shell_line (any_launch l : any_launch) : string =
+    := \? kind. which = l
+    ?= which ?|
+    | DirectLaunch _ => ""
+    | ShellLaunch (_, words) => command_line words
+
+:= launch_mode (any_launch l : any_launch) : string =
+    := \? kind. which = l
+    ?= which ?|
+    | DirectLaunch _ => "direct"
+    | ShellLaunch (ShellSyntax word, _) => "shell (syntax " ++# word ++# ")"
+    | ShellLaunch (ShellBuiltin word, _) => "shell (builtin " ++# word ++# ")"
+    | ShellLaunch (ScriptProgram _, _) => "shell (script)"
+    | ShellLaunch (ProgramMissing _, _) => "shell (not found)"
+
+:== launch_parts =
+    {
+        argv : string
+        line : string
+    }
+
+:~ launch_parts_of (~cwd : string) (words : command_words) : launch_parts =
+    launch_of cwd words (\ started => { argv = launch_argv started; line = shell_line started })
+
+
+:~ scratch_path () : string = $'std::rc::Rc::<str>::from(std::env::temp_dir().join(format\!("kit-launch-{}", \
+    std::process::id())).to_string_lossy().as_ref())' : string
+:~ file_planted (~dir : string) (~name : string) (~text : string) : () = $'{ let _ = std::fs::create_dir_all(&*!dir); \
+    let _ = std::fs::write(std::path::Path::new(&*!dir).join(&*!name), &*!text); }' : ()
+:~ scratch_removed (~dir : string) : () = $'{ let _ = std::fs::remove_dir_all(&*!dir); }' : ()
+
+:= scratch_dir () : string =
+    := dir = scratch_path ()
+    file_planted dir "job.cmd" "@echo job"
+    dir
+
+///> rust
+:# a_command_line_becomes_typed_words_and_back =
+    := words = words_of_line "cargo build \"-p kit\" timeout"
+    testing.expect (command_line words = "cargo build \"-p kit\" timeout") (command_line words)
+    testing.expect (command_line (words_of_line "  a   b ") = "a b") "runs of spaces separate words"
+    testing.expect (syntax_word (words_of_line "a \"b c\" d") = "") "spaces inside quotes are not syntax"
+
+///> rust
+:# shell_syntax_and_builtins_keep_the_shell_and_name_why =
+    := dir = scratch_dir ()
+    testing.expect (launch_of dir (words_of_line "build.cmd > out.txt") launch_mode = "shell (syntax >)") "redirect"
+    testing.expect (launch_of dir (words_of_line "no-such-program-kit") launch_mode = "shell (not found)") "missing"
+    testing.expect (sm'.starts_with "Assoc|Break|Call|Cd|" (builtin_names ())) (builtin_names ())
+    ? on_windows ()
+    ?>
+        testing.expect (launch_of dir (words_of_line "ECHO hi") launch_mode = "shell (builtin ECHO)") "builtin"
+        testing.expect (launch_of dir (words_of_line "job.cmd arg") launch_mode = "shell (script)") "cwd script"
+        testing.expect (launch_of dir (words_of_line "job arg") launch_mode = "shell (script)") "PATHEXT finds job.cmd"
+        testing.expect
+            (launch_of dir (words_of_line "cmd \"%PATH%\"") launch_mode = "shell (syntax %PATH%)")
+            "percent in quotes expands"
+    scratch_removed dir
+
+///> rust
+:# native_programs_start_directly_with_their_resolved_path =
+    := dir = scratch_dir ()
+    := program = ? on_windows () ?> "where.exe" |: "ls"
+    := words = words_of_line (program ++# " \"-a b\" c")
+    := mode = launch_of dir words launch_mode
+    testing.expect (mode = "direct") mode
+    := parts = launch_parts_of dir words
+    testing.expect (parts.line = "") "no shell line"
+    := argv = parts.argv
+    testing.expect (sm'.ends_with "\n-a b\nc" argv) argv
+    testing.expect (is_file (first_line argv)) (first_line argv)
+    testing.expect
+        (
+            sm'.starts_with
+                (? on_windows () ?> "cmd.exe\n/c\njob.cmd arg" |: "sh\n-c\n")
+                (launch_of dir (words_of_line "job.cmd arg") launch_argv)
+        )
+        "shell argv"
+    scratch_removed dir

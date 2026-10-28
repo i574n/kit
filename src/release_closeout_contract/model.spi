@@ -1,0 +1,55 @@
+:! release_closeout_raw = ()
+:! release_closeout_inspected = ()
+:! release_closeout_verified = ()
+:! release_closeout_sealed = ()
+:! release_closeout_attested = ()
+
+:| release_closeout_gate =
+    | StateGate
+    | WorkspaceGate
+    | ContractsGate
+    | BundleGate
+    | ColdReplayGate
+    | MigrationGate
+
+:| release_closeout_policy =
+    | RejectMissingGate
+    | RejectDuplicateGate
+    | RejectUnsafeEvidence
+    | RejectStaleEvidence
+    | RejectMigrationMismatch
+    | RejectPreviewMutation
+    | AuthorizeCloseoutSeal
+    | RefreshCloseoutEvidence
+    | RefreshColdProofEvidence
+    | RefreshCargoLockEvidence
+    | RefreshBinaryEvidence
+    | RefreshSourceTreeEvidence
+    | RefreshStateTreeEvidence
+    | VerifyRefreshedEvidence
+    | ResealAttestedCloseout
+    | RollbackFailedSeal
+
+:| release_closeout_op from to =
+    | InspectReleaseCloseout :: release_closeout_op release_closeout_raw release_closeout_inspected
+    | VerifyReleaseEvidence :: release_closeout_op release_closeout_inspected release_closeout_verified
+    | SealReleaseCloseout :: release_closeout_op release_closeout_verified release_closeout_sealed
+    | AttestReleaseCloseout :: release_closeout_op release_closeout_sealed release_closeout_attested
+
+:| ^ release_closeout_plan from to =
+    | ReleaseCloseoutStep :: \* from to. release_closeout_op from to -> release_closeout_plan from to
+    | ReleaseCloseoutThen :: \* from to.
+        (\? middle. release_closeout_plan from middle * release_closeout_plan middle to) ->
+        release_closeout_plan from to
+
+:= release_closeout_public_plan () : release_closeout_plan release_closeout_raw release_closeout_attested =
+    ReleaseCloseoutThen (\? (
+        ReleaseCloseoutStep InspectReleaseCloseout,
+        ReleaseCloseoutThen (\? (
+            ReleaseCloseoutStep VerifyReleaseEvidence,
+            ReleaseCloseoutThen (\? (
+                ReleaseCloseoutStep SealReleaseCloseout,
+                ReleaseCloseoutStep AttestReleaseCloseout
+            ))
+        ))
+    ))

@@ -1,0 +1,11 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    kit_receipt
+    kit_do_model
+    kit_do_records
+modules:
+    host
+    decode
+    run

@@ -1,0 +1,208 @@
+:! workstream_draft = ()
+:! workstream_validated = ()
+:! workstream_executed = ()
+:! workstream_receipted = ()
+
+:! merge_unchecked = ()
+:! merge_validated = ()
+:! merge_committed = ()
+
+:! owner_search = ()
+:! owner_agile = ()
+:! owner_handoff = ()
+:! owner_nil = ()
+:! owner_cons head tail = ()
+
+:| owner_distinct left right =
+    | SearchDistinctAgile :: owner_distinct owner_search owner_agile
+    | SearchDistinctHandoff :: owner_distinct owner_search owner_handoff
+    | AgileDistinctSearch :: owner_distinct owner_agile owner_search
+    | AgileDistinctHandoff :: owner_distinct owner_agile owner_handoff
+    | HandoffDistinctSearch :: owner_distinct owner_handoff owner_search
+    | HandoffDistinctAgile :: owner_distinct owner_handoff owner_agile
+
+:| ^ owner_absent owner owners =
+    | OwnerAbsentNil :: \* owner. owner_absent owner owner_nil
+    | OwnerAbsentCons :: \* owner head tail.
+        owner_distinct owner head * owner_absent owner tail ->
+        owner_absent owner (owner_cons head tail)
+
+:| workstream_outcome =
+    | WorkstreamPassed
+    | WorkstreamFailed
+    | WorkstreamCancelled
+
+:! workstream_coordinator_running = ()
+:! workstream_coordinator_failed = ()
+:! workstream_sibling_running = ()
+:! workstream_sibling_staged = ()
+:! workstream_sibling_promoted = ()
+:! workstream_sibling_cancelled = ()
+
+:| workstream_coordinator_op from to =
+    | ObserveSiblingFailure :: workstream_coordinator_op workstream_coordinator_running workstream_coordinator_failed
+
+:| workstream_sibling_op coordinator owner from to =
+    | StageSiblingOutput :: \* coordinator owner.
+        workstream_sibling_op coordinator owner workstream_sibling_running workstream_sibling_staged
+    | PromoteSiblingOutput :: \* owner.
+        workstream_sibling_op workstream_coordinator_running owner workstream_sibling_staged workstream_sibling_promoted
+    | CancelSiblingOutput :: \* owner.
+        workstream_sibling_op workstream_coordinator_failed owner workstream_sibling_staged workstream_sibling_cancelled
+
+:| workstream_cancellation_plan owner =
+    | CancelAfterFailure :: \* owner.
+        workstream_sibling_op
+            workstream_coordinator_running owner workstream_sibling_running workstream_sibling_staged *
+        workstream_coordinator_op workstream_coordinator_running workstream_coordinator_failed *
+        workstream_sibling_op
+            workstream_coordinator_failed owner workstream_sibling_staged workstream_sibling_cancelled ->
+        workstream_cancellation_plan owner
+
+:| workstream_receipt baseline owner =
+    | WorkstreamReceipt :: \* baseline owner. u64 * u64 * u32 * workstream_outcome -> workstream_receipt baseline owner
+
+:| ^ workstream_batch baseline owners =
+    | WorkstreamNil :: \* baseline. workstream_batch baseline owner_nil
+    | WorkstreamCons :: \* baseline owner tail.
+        owner_absent owner tail * workstream_receipt baseline owner * workstream_batch baseline tail ->
+        workstream_batch baseline (owner_cons owner tail)
+
+:| workstream_op baseline owner from to =
+    | ValidateOwnerWorkstream :: \* baseline owner. workstream_op baseline owner workstream_draft workstream_validated
+    | ExecuteOwnerWorkstream :: \* baseline owner. workstream_op baseline owner workstream_validated workstream_executed
+    | CommitOwnerReceipt :: \* baseline owner. workstream_op baseline owner workstream_executed workstream_receipted
+
+:| ^ workstream_plan baseline owner from to =
+    | WorkstreamStep :: \* baseline owner from to.
+        workstream_op baseline owner from to ->
+        workstream_plan baseline owner from to
+    | WorkstreamThen :: \* baseline owner from to.
+        (\? middle. workstream_plan baseline owner from middle * workstream_plan baseline owner middle to) ->
+        workstream_plan baseline owner from to
+
+:| merge_op baseline owners from to =
+    | ValidateWorkstreamBatch :: \* baseline owners.
+        workstream_batch baseline owners ->
+        merge_op baseline owners merge_unchecked merge_validated
+    | CommitWorkstreamBatch :: \* baseline owners.
+        workstream_batch baseline owners ->
+        merge_op baseline owners merge_validated merge_committed
+
+:| ^ merge_plan baseline owners from to =
+    | MergeStep :: \* baseline owners from to. merge_op baseline owners from to -> merge_plan baseline owners from to
+    | MergeThen :: \* baseline owners from to.
+        (\? middle. merge_plan baseline owners from middle * merge_plan baseline owners middle to) ->
+        merge_plan baseline owners from to
+
+:~ workstream_receipt_binding
+    (baseline_match : i32) (owner_scope_match : i32) (exit_status : i32) (elapsed_ms : i32)
+    : i32
+    =
+    ? baseline_match < 1i32 ?> 0i32
+    |? 1i32 < baseline_match ?> 0i32
+    |? owner_scope_match < 1i32 ?> 0i32
+    |? 1i32 < owner_scope_match ?> 0i32
+    |? exit_status < 0i32 ?> 0i32
+    |? elapsed_ms < 0i32 ?> 0i32
+    |: 1i32
+
+:~ workstream_parallel_binding
+    (requested_workers : i32) (available_workers : i32) (started : i32) (completed : i32)
+    : i32
+    =
+    ? requested_workers < 2i32 ?> 0i32
+    |? available_workers < requested_workers ?> 0i32
+    |? started < 1i32 ?> 0i32
+    |? completed < 0i32 ?> 0i32
+    |? started < completed ?> 0i32
+    |: 1i32
+
+:~ workstream_concurrency_binding (owners : i32) (outer_ms : i32) (sum_owner_ms : i32) (max_owner_ms : i32) : i32 =
+    ? owners < 2i32 ?> 0i32
+    |? outer_ms < max_owner_ms ?> 0i32
+    |? sum_owner_ms < outer_ms ?> 0i32
+    |? sum_owner_ms = outer_ms ?> 0i32
+    |: 1i32
+
+:~ workstream_completion_binding
+    (expected : i32) (started : i32) (passed : i32) (failed : i32) (cancelled : i32) (receipts : i32)
+    : i32
+    =
+    := partial = passed + failed
+    := total = partial + cancelled
+    ? expected < 1i32 ?> 0i32
+    |? started < 0i32 ?> 0i32
+    |? passed < 0i32 ?> 0i32
+    |? failed < 0i32 ?> 0i32
+    |? cancelled < 0i32 ?> 0i32
+    |? receipts < 0i32 ?> 0i32
+    |? started < expected ?> 0i32
+    |? expected < started ?> 0i32
+    |? receipts < expected ?> 0i32
+    |? expected < receipts ?> 0i32
+    |? total = expected ?> 1i32
+    |: 0i32
+
+:~ workstream_merge_binding
+    (receipts : i32) (expected : i32) (baseline_match : i32) (owners_unique : i32) (outputs_verified : i32)
+    : i32
+    =
+    ? receipts < 1i32 ?> 0i32
+    |? receipts < expected ?> 0i32
+    |? expected < receipts ?> 0i32
+    |? baseline_match < 1i32 ?> 0i32
+    |? 1i32 < baseline_match ?> 0i32
+    |? owners_unique < 1i32 ?> 0i32
+    |? 1i32 < owners_unique ?> 0i32
+    |? outputs_verified < 1i32 ?> 0i32
+    |? 1i32 < outputs_verified ?> 0i32
+    |: 1i32
+
+:~ workstream_merge_authorization_binding
+    (expected : i32) (passed : i32) (failed : i32) (cancelled : i32) (receipts : i32) (baseline_match : i32)
+    (owners_unique : i32) (outputs_verified : i32)
+    : i32
+    =
+    := completion = workstream_completion_binding expected expected passed failed cancelled receipts
+    ? completion < 1i32 ?> 0i32
+    |? 1i32 < completion ?> 0i32
+    |? passed < expected ?> 0i32
+    |? expected < passed ?> 0i32
+    |? failed < 0i32 ?> 0i32
+    |? 0i32 < failed ?> 0i32
+    |? cancelled < 0i32 ?> 0i32
+    |? 0i32 < cancelled ?> 0i32
+    |: workstream_merge_binding receipts expected baseline_match owners_unique outputs_verified
+
+:~ workstream_failure_binding (passed : i32) (failed : i32) (cancelled : i32) (merge_attempted : i32) : i32 =
+    ? passed < 0i32 ?> 0i32
+    |? failed < 0i32 ?> 0i32
+    |? cancelled < 0i32 ?> 0i32
+    |? merge_attempted < 0i32 ?> 0i32
+    |? 1i32 < merge_attempted ?> 0i32
+    |? 0i32 < failed ?> ? merge_attempted < 1i32 ?> 1i32 |: 0i32
+    |? 0i32 < cancelled ?> ? merge_attempted < 1i32 ?> 1i32 |: 0i32
+    |? passed < 1i32 ?> 0i32
+    |: 1i32
+
+:~ workstream_cancel_before_promotion_binding
+    (failure_observed : i32) (siblings_in_flight : i32) (cancel_requested : i32) (staged_after_failure : i32)
+    (promoted_after_cancel : i32) (canonical_changes : i32) (staging_discarded : i32)
+    : i32
+    =
+    ? failure_observed < 1i32 ?> 0i32
+    |? 1i32 < failure_observed ?> 0i32
+    |? siblings_in_flight < 1i32 ?> 0i32
+    |? cancel_requested < 1i32 ?> 0i32
+    |? 1i32 < cancel_requested ?> 0i32
+    |? staged_after_failure < 0i32 ?> 0i32
+    |? siblings_in_flight < staged_after_failure ?> 0i32
+    |? promoted_after_cancel < 0i32 ?> 0i32
+    |? 0i32 < promoted_after_cancel ?> 0i32
+    |? canonical_changes < 0i32 ?> 0i32
+    |? 0i32 < canonical_changes ?> 0i32
+    |? siblings_in_flight < staging_discarded ?> 0i32
+    |? staging_discarded < staged_after_failure ?> 0i32
+    |? staged_after_failure < staging_discarded ?> 0i32
+    |: 1i32

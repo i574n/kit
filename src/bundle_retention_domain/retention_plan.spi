@@ -1,0 +1,70 @@
+:! retention_idle = ()
+:! retention_candidates_collected = ()
+:! retention_current_confirmed = ()
+:! retention_window_planned = ()
+:! retention_dry_run_verified = ()
+:! retention_delete_authorized = ()
+:! retention_complete = ()
+
+:| retention_op from to =
+    | CollectVersionCandidates :: retention_op retention_idle retention_candidates_collected
+    | ConfirmCurrentIsLatest :: retention_op retention_candidates_collected retention_current_confirmed
+    | KeepCurrentAndTwoPrior :: retention_op retention_current_confirmed retention_window_planned
+    | VerifyDryRun :: retention_op retention_window_planned retention_dry_run_verified
+    | AuthorizeExplicitDelete :: retention_op retention_dry_run_verified retention_delete_authorized
+    | ConfirmRetentionWindow :: retention_op retention_delete_authorized retention_complete
+
+:| ^ retention_plan from to =
+    | RetentionStep :: \* from to. retention_op from to -> retention_plan from to
+    | RetentionThen :: \* from to.
+        (\? middle. retention_plan from middle * retention_plan middle to) ->
+        retention_plan from to
+
+:= current_plus_two_plan () : retention_plan retention_idle retention_complete =
+    RetentionThen (\? (
+        RetentionStep CollectVersionCandidates,
+        RetentionThen (\? (
+            RetentionStep ConfirmCurrentIsLatest,
+            RetentionThen (\? (
+                RetentionStep KeepCurrentAndTwoPrior,
+                RetentionThen (\? (
+                    RetentionStep VerifyDryRun,
+                    RetentionThen (\? (
+                        RetentionStep AuthorizeExplicitDelete,
+                        RetentionStep ConfirmRetentionWindow
+                    ))
+                ))
+            ))
+        ))
+    ))
+
+:~ retention_window_binding (candidate_count : i32) (keep_count : i32) : i32 =
+    ? candidate_count < 1i32 ?> -1i32
+    |? keep_count < 3i32 ?> -1i32
+    |? 3i32 < keep_count ?> -1i32
+    |? candidate_count < keep_count ?> 0i32
+    |: candidate_count - keep_count
+
+:~ retention_current_binding (current_is_latest : i32) (series_matches : i32) : i32 =
+    ? current_is_latest < 1i32 ?> 0i32
+    |? 1i32 < current_is_latest ?> 0i32
+    |? series_matches < 1i32 ?> 0i32
+    |? 1i32 < series_matches ?> 0i32
+    |: 1i32
+
+:~ retention_dry_run_binding (planned_deletes : i32) (observed_deletes : i32) : i32 =
+    ? planned_deletes < 0i32 ?> 0i32
+    |? observed_deletes < 0i32 ?> 0i32
+    |? planned_deletes < observed_deletes ?> 0i32
+    |? observed_deletes < planned_deletes ?> 0i32
+    |: 1i32
+
+:~ retention_apply_binding (dry_run_verified : i32) (explicit_apply : i32) : i32 =
+    retention_current_binding dry_run_verified explicit_apply
+
+:~ retention_complete_binding (expected_remaining : i32) (observed_remaining : i32) : i32 =
+    ? expected_remaining < 1i32 ?> 0i32
+    |? observed_remaining < 1i32 ?> 0i32
+    |? expected_remaining < observed_remaining ?> 0i32
+    |? observed_remaining < expected_remaining ?> 0i32
+    |: 1i32

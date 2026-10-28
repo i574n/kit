@@ -1,0 +1,7 @@
+:< compiler_session_contract.model
+
+:= main () : i32 =
+    := _ = build_session_plan ()
+    ?= authority_status () ?|
+    | 1 => 0i32
+    | _ => 1i32

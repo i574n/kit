@@ -1,0 +1,117 @@
+:= create_dir (path : string) : bool =
+    $'std::fs::create_dir_all(&*!path).is_ok()' : bool
+
+:= cleanup_tree (path : string) : bool =
+    $'std::fs::remove_dir_all(&*!path).is_ok() || \!std::path::Path::new(&*!path).exists()' : bool
+
+:= directory_exists (path : string) : bool =
+    $'std::path::Path::new(&*!path).is_dir()' : bool
+
+:= directory_missing (path : string) : bool =
+    $'\!std::path::Path::new(&*!path).is_dir()' : bool
+
+:= write_text (path : string) (text : string) : bool =
+    $'std::fs::write(&*!path, &*!text).is_ok()' : bool
+
+:= remove_file (path : string) : bool =
+    $'std::fs::remove_file(&*!path).is_ok() || \!std::path::Path::new(&*!path).exists()' : bool
+
+:= file_exists (path : string) : bool =
+    $'std::path::Path::new(&*!path).is_file()' : bool
+
+:= file_missing (path : string) : bool =
+    $'\!std::path::Path::new(&*!path).is_file()' : bool
+
+:= tree_missing (path : string) : bool =
+    $'\!std::path::Path::new(&*!path).exists()' : bool
+
+:! policy_owner = string
+:! agile_owner = string
+:! directory_pending owner = owner
+:! directory_absent owner = owner
+:! directory_created owner = owner
+:! directory_verified owner = owner
+:! directory_cleaned owner = owner
+
+:| directory_transition from to =
+    | EnsureDirectoryAbsent :: \* owner.
+        string ->
+        directory_transition (directory_pending owner) (directory_absent owner)
+    | CreateDirectory :: \* owner. string -> directory_transition (directory_absent owner) (directory_created owner)
+    | VerifyDirectory :: \* owner. string -> directory_transition (directory_created owner) (directory_verified owner)
+    | CleanupDirectory :: \* owner. string -> directory_transition (directory_verified owner) (directory_cleaned owner)
+
+:| ^ directory_plan from to =
+    | DirectoryStep :: \* from to. directory_transition from to -> directory_plan from to
+    | DirectoryThen :: \* from to.
+        (\? middle. directory_plan from middle * directory_plan middle to) ->
+        directory_plan from to
+
+:| directory_outcome =
+    | DirectoryAccepted : string
+    | DirectoryRejected : string
+    | DirectoryFailed : string
+
+:= ensure_absent_step \* owner. () : directory_plan (directory_pending owner) (directory_absent owner) =
+    DirectoryStep (EnsureDirectoryAbsent "ensure-directory-absent")
+
+:= create_step \* owner. () : directory_plan (directory_absent owner) (directory_created owner) =
+    DirectoryStep (CreateDirectory "create-directory")
+
+:= verify_step \* owner. () : directory_plan (directory_created owner) (directory_verified owner) =
+    DirectoryStep (VerifyDirectory "verify-directory")
+
+:= cleanup_step \* owner. () : directory_plan (directory_verified owner) (directory_cleaned owner) =
+    DirectoryStep (CleanupDirectory "cleanup-directory")
+
+:= full_plan \* owner. () : directory_plan (directory_pending owner) (directory_cleaned owner) =
+    DirectoryThen (
+        \? (
+            ensure_absent_step (),
+            DirectoryThen (
+                \? (
+                    create_step (),
+                    DirectoryThen (
+                        \? (
+                            verify_step (),
+                            cleanup_step ()))))))
+
+:= policy_plan () : directory_plan (directory_pending policy_owner) (directory_cleaned policy_owner) = full_plan ()
+:= agile_plan () : directory_plan (directory_pending agile_owner) (directory_cleaned agile_owner) = full_plan ()
+
+:= cleanup (path : string) : bool =
+    ? cleanup_tree path ?> tree_missing path && file_missing path
+    |? remove_file path ?> tree_missing path && file_missing path
+    |: !-
+
+:= policy_directory (path : string) : directory_outcome =
+    := _ = policy_plan ()
+    ? cleanup path ?>
+        ? create_dir path ?>
+            ? directory_exists path ?>
+                ? cleanup path
+                ?> DirectoryAccepted "directory-lifecycle-accepted"
+                |: DirectoryFailed "directory-cleanup-failed"
+            |:
+                ? cleanup path
+                ?> DirectoryRejected "directory-create-not-observed"
+                |: DirectoryFailed "directory-rejection-cleanup-failed"
+        |: DirectoryFailed "directory-create-failed"
+    |: DirectoryFailed "directory-ensure-absent-failed"
+
+:= agile_rejection (path : string) : directory_outcome =
+    := _ = agile_plan ()
+    ? cleanup path ?>
+        ? write_text path "occupied-by-file" ?>
+            ? create_dir path ?>
+                ? cleanup path
+                ?> DirectoryFailed "directory-create-accepted-file-occupancy"
+                |: DirectoryFailed "directory-negative-cleanup-failed"
+            |:
+                ? file_exists path && directory_missing path ?>
+                    ? cleanup path
+                    ?> DirectoryRejected "directory-file-occupancy-rejected"
+                    |: DirectoryFailed "directory-rejection-cleanup-failed"
+                |: DirectoryFailed "directory-negative-observation-failed"
+        |: DirectoryFailed "directory-negative-fixture-write-failed"
+    |: DirectoryFailed "directory-negative-ensure-absent-failed"

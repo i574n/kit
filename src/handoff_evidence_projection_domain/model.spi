@@ -1,0 +1,115 @@
+:~ ^ projection_find_digit_loop (text : string) (at : i32) (text_len : i32) : i32 =
+    ? (=.) at text_len ?> text_len
+    |:
+        := digit = codec_decimal_digit_value (sm.index text at)
+        ? (<) digit 10u64 ?> at
+        |: projection_find_digit_loop text ((+.) at 1i32) text_len
+
+:= projection_line (source : string) (marker : string) : string =
+    := source_len = sm.length source : i32
+    := marker_at = find_text source 0i32 marker
+    ? (=.) marker_at source_len ?> codec_empty ()
+    |:
+        := line_near_to = find_char source marker_at (char_newline ())
+        slice_exclusive source marker_at line_near_to
+
+:= projection_u32 (source : string) (marker : string) : string =
+    := line = projection_line source marker
+    := line_len = sm.length line : i32
+    ? (=.) line_len 0i32 ?> codec_empty ()
+    |:
+        := equals_at = find_char line 0i32 '='
+        ? (=.) equals_at line_len ?> codec_empty ()
+        |:
+            := digit_from = projection_find_digit_loop line ((+.) equals_at 1i32) line_len
+            ? (=.) digit_from line_len ?> codec_empty ()
+            |:
+                := digit_near_to = find_text line digit_from "u32"
+                ? (=.) digit_near_to line_len ?> codec_empty ()
+                |: codec_u64_decimal_normalize (slice_exclusive line digit_from digit_near_to)
+
+:= projection_two_quoted (line : string) : string * string * i32 * bool =
+    := line_len = sm.length line : i32
+    := first_at = find_char line 0i32 (char_quote ())
+    ? (=.) first_at line_len ?> codec_empty (), codec_empty (), line_len, !-
+    |:
+        := first, after_first, first_ok = parse_quoted line first_at
+        ? (=.) first_ok !- ?> codec_empty (), codec_empty (), line_len, !-
+        |:
+            := second_at = find_char line after_first (char_quote ())
+            ? (=.) second_at line_len ?> codec_empty (), codec_empty (), line_len, !-
+            |:
+                := second, after_second, second_ok = parse_quoted line second_at
+                first, second, after_second, second_ok
+
+:~ handoff_toolchain_projection (source : string) : string =
+    := line = projection_line source "SpiralCompilerEntrypoint, EvidenceRef ("
+    := line_len = sm.length line : i32
+    ? (=.) line_len 0i32
+    ?> codec_empty ()
+    |:
+        := name, hash, after_hash, fields_ok = projection_two_quoted line
+        ? (=.) fields_ok !-
+        ?> codec_empty ()
+        |:
+            := digit_from = projection_find_digit_loop line after_hash line_len
+            ? (=.) digit_from line_len
+            ?> codec_empty ()
+            |:
+                := digit_near_to = find_text line digit_from "u64"
+                ? (=.) digit_near_to line_len
+                ?> codec_empty ()
+                |:
+                    := bytes = codec_u64_decimal_normalize (slice_exclusive line digit_from digit_near_to)
+                    ? (=.) bytes ""
+                    ?> codec_empty ()
+                    |:
+                        sm.concat "spiral_compiler=" (sm.concat name (sm.concat " sha256=" (sm.concat hash (
+                            sm.concat " bytes=" bytes))))
+
+:= handoff_public_binary (name : string) : bool =
+    ? (=.) name "kit" ?> !+ |: (=.) name "kit.exe"
+
+:~ handoff_cold_projection (source : string) : string =
+    := source_len = sm.length source : i32
+    := closed_at = find_text source 0i32 "ColdReceiptClosed"
+    := pending_at = find_text source 0i32 "ColdReceiptPending"
+    := status = ? (<) closed_at source_len ?> "closed" |? (<) pending_at source_len ?> "pending" |: "other"
+    := flags = projection_u32 source "inl current_cold_replay_flags"
+    := binary_line = projection_line source "inl binary_gate"
+    := binary_line_len = sm.length binary_line : i32
+    := binary_name, binary_hash, after_hash, binary_ok = projection_two_quoted binary_line
+    ? (=.) flags ""
+    ?> codec_empty ()
+    |? (=.) binary_ok !-
+    ?> codec_empty ()
+    |? (<) binary_line_len after_hash
+    ?> codec_empty ()
+    |? handoff_public_binary binary_name
+    ?>
+        ? (=.) binary_hash ""
+        ?> codec_empty ()
+        |:
+            sm.concat "cold_proof=" (sm.concat status (sm.concat " replay_flags=" (sm.concat flags (
+                sm.concat " binary_sha256=" binary_hash))))
+    |: codec_empty ()
+
+:= fixture_toolchain () : string =
+    "inl compiler_entry () = ToolIdentity (SpiralCompilerEntrypoint, EvidenceRef (\"spiral-compile\", \"abcdef\", "
+    ^^ "67952u64, Required))\n"
+
+:= fixture_cold () : string =
+    """
+        inl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed
+        inl current_cold_replay_flags () : u32 = 15u32
+        inl binary_gate () = EvidenceRef ("kit", "deadbeef")
+
+        """
+
+:= fixture_cold_windows () : string =
+    """
+        inl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed
+        inl current_cold_replay_flags () : u32 = 15u32
+        inl binary_gate () = EvidenceRef ("kit.exe", "deadbeef")
+
+        """

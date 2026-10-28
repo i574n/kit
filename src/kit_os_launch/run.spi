@@ -1,0 +1,32 @@
+:< sm'_operators
+:< launch
+:< owner
+
+:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:~ ^ joined_args (index : i32) (count : i32) (acc : string) : string =
+    ? count <= index ?> acc |: joined_args (index + 1i32) count (acc ++# argument index ++# "\t")
+
+:~ process_run () : i32 =
+    := count = env.command_line_argument_count ()
+    := program = argument 2i32
+    ? argument 1i32 <> "start-under-shell" || program = "" ?>
+        console.write_line (
+            "kit error: process usage: process start-under-shell <program> [args...] (detached, with the user "
+            ^^ "shell as its live parent, no inherited handles, no caller job)"
+        )
+        2i32
+    |:
+        := started = shell_parented_started program (joined_args 3i32 count "")
+        ? sm'.starts_with "pid=0 " started ?>
+            console.write_line ("kit error: process start-under-shell: could not start " ++# program)
+            1i32
+        |:
+            console.write_line ("kit process start-under-shell ok " ++# started ++# " program=" ++# program)
+            0i32
+
+:= main () : i32 =
+    !!!!Export("kit_process_launch_run", ((\ () => process_run ()) : () -> i32))
+    !!!!Export("kit_caller_owner", ((\ () => caller_owner ()) : () -> string * u64 * u64))
+    !!!!Export("kit_owner_present", ((\ (pid, started) => owner_present pid started) : u64 * u64 -> bool))
+    0i32

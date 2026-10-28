@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "memory.spi"
+output = "memory.rs"
+
+[package]
+name = "kit-memory"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_memory"
+path = "memory.rs"
+
+[dependencies]
+kit-memory-query = { path = "../kit_memory_query" }
+kit-memory-import = { path = "../kit_memory_import" }

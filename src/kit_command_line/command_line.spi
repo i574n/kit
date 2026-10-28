@@ -1,0 +1,12 @@
+:< launch
+
+:~ launch_argv_of (~cwd : string) (~line : string) : string = (launch_parts_of cwd (words_of_line line)).argv
+
+:~ shell_line_of (~cwd : string) (~line : string) : string = (launch_parts_of cwd (words_of_line line)).line
+
+:= main () : i32 =
+    !!!!Export("kit_launch_argv", ((\ (cwd, line) => launch_argv_of cwd line) : string * string -> string))
+    !!!!Export("kit_launch_line", ((\ (cwd, line) => shell_line_of cwd line) : string * string -> string))
+    := _ = launch_argv_of "." "where.exe"
+    := _ = shell_line_of "." "where.exe"
+    0i32

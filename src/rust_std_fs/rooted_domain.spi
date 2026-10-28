@@ -1,0 +1,35 @@
+:! unknown_path = string
+:! regular_path = string
+:! directory_path = string
+:! absent_path = string
+
+:| rooted_transition from to =
+    | DiscoverRegular :: rooted_transition unknown_path regular_path
+    | DiscoverDirectory :: rooted_transition unknown_path directory_path
+    | DiscoverAbsent :: rooted_transition unknown_path absent_path
+    | CopyRegular :: rooted_transition (regular_path * absent_path) regular_path
+    | RemoveRegular :: rooted_transition regular_path absent_path
+    | RemoveDirectory :: rooted_transition directory_path absent_path
+
+:| rooted_policy_result state =
+    | RootedPolicyAccepted :: \* state. rooted_policy_result state
+    | RootedPolicyRejected :: \* state. rooted_policy_result state
+
+:= unknown (path : string) : unknown_path = unknown_path path
+:= regular (path : string) : regular_path = regular_path path
+:= directory (path : string) : directory_path = directory_path path
+:= absent (path : string) : absent_path = absent_path path
+
+:= transition_allowed \* from to. (transition : rooted_transition from to) : rooted_policy_result to =
+    ?= transition ?|
+    | DiscoverRegular => RootedPolicyAccepted
+    | DiscoverDirectory => RootedPolicyAccepted
+    | DiscoverAbsent => RootedPolicyAccepted
+    | CopyRegular => RootedPolicyAccepted
+    | RemoveRegular => RootedPolicyAccepted
+    | RemoveDirectory => RootedPolicyAccepted
+
+:= policy_accepted \* state. (result : rooted_policy_result state) : bool =
+    ?= result ?|
+    | RootedPolicyAccepted => !+
+    | RootedPolicyRejected => !-

@@ -1,0 +1,95 @@
+///- --package .
+:# wheres static =
+    :< sm'_operators
+
+:< sm'_operators
+:< query
+:< cells
+
+:| where_op =
+    | WhereEqual
+    | WhereNotEqual
+    | WhereGreater
+    | WhereGreaterEqual
+    | WhereLess
+    | WhereLessEqual
+
+:= where_op_of (text : string) : where_op =
+    ? text = "!=" ?> WhereNotEqual
+    |? text = ">" ?> WhereGreater
+    |? text = ">=" ?> WhereGreaterEqual
+    |? text = "<" ?> WhereLess
+    |? text = "<=" ?> WhereLessEqual
+    |: WhereEqual
+
+:= operator_char (c : char) : bool = c = '<' || c = '>' || c = '=' || c = '!'
+
+:= clause_length (clause : string) : i32 = sm'.length clause
+
+:~ ^ operator_from (clause : string) (i : i32) : i32 =
+    ? i >= clause_length clause ?> -1i32
+    |? operator_char (sm'.index i clause) ?> i
+    |: operator_from clause (i + 1i32)
+
+:= operator_width (clause : string) (at : i32) : i32 =
+    := doubled = at + 1i32 < clause_length clause && sm'.index (at + 1i32) clause = '='
+    ? doubled && sm'.index at clause <> '=' ?> 2i32 |: 1i32
+
+:== clause = { name : string; op : where_op; value : string }
+
+:= clause_at (text : string) (at : i32) : clause =
+    := width = operator_width text at
+    := name, symbol = sm'.substring 0i32 at text, sm'.substring at width text
+    { name = name; op = where_op_of symbol; value = sm'.substring (at + width) (clause_length text - at - width) text }
+
+:= clause_of (text : string) : option clause =
+    := at = operator_from text 0i32
+    ? at < 0i32 ?> None |: Some (clause_at text at)
+
+:= ordered_holds (op : where_op) (a : f64) (b : f64) : bool =
+    ?= op ?|
+    | WhereGreater => a > b
+    | WhereGreaterEqual => a >= b
+    | WhereLess => a < b
+    | WhereLessEqual => a <= b
+    | _ => !-
+
+:= cell_passes (op : where_op) (cell : string) (value : string) : bool =
+    ?= op ?|
+    | WhereEqual => cell = value
+    | WhereNotEqual => cell <> value
+    | ordered =>
+        ?= float_native.try_parse_f64 cell, float_native.try_parse_f64 value ?|
+        | Some a, Some b => ordered_holds ordered a b
+        | _ => !-
+
+///> rust
+:# an_empty_or_text_cell_fails_every_numeric_comparison =
+    := empty = cell_passes WhereLessEqual "" "1000", cell_passes WhereLess "" "1001", cell_passes WhereGreater "" "1000"
+    (empty, cell_passes WhereLessEqual "999" "1000", cell_passes WhereLess "abc" "abd")
+    |> testing._assert_eq ((!-, !-, !-), !+, !-)
+
+///> rust
+:# equality_stays_text_and_numbers_compare_as_numbers =
+    (cell_passes WhereEqual "" "", cell_passes WhereNotEqual "a" "", cell_passes WhereGreater "10" "9.5")
+    |> testing._assert_eq (!+, !+, !+)
+
+:| ^ filters =
+    | NoFilters
+    | FilterThen : i32 * where_op * string * filters
+
+:~ ^ filters_from (cells : table_cells) (wheres : string) : filters * string =
+    ? wheres = "" ?> NoFilters, ""
+    |:
+        := rest, missing = filters_from cells (tail_of wheres "\n")
+        ?= clause_of (head_of wheres "\n") ?|
+        | None => rest, missing
+        | Some c =>
+            := index = column_of cells c.name
+            ? index < 0i32 ?> rest, listed c.name missing |: FilterThen (index, c.op, c.value, rest), missing
+
+:~ ^ row_passes (list : filters) (cells : table_cells) (row : i32) : bool =
+    ?= list ?|
+    | NoFilters => !+
+    | FilterThen (index, op, value, rest) =>
+        ? cell_passes op (cell_at cells row index) value ?> row_passes rest cells row |: !-

@@ -1,0 +1,83 @@
+:~ ^ projection_find_digit_loop (text : string) (at : i32) (text_len : i32) : i32 =
+    ? (=.) at text_len ?> text_len
+    |:
+        := digit = codec_decimal_digit_value (sm.index text at)
+        ? (<) digit 10u64 ?> at
+        |: projection_find_digit_loop text ((+.) at 1i32) text_len
+
+:~ ^ projection_digit_start_loop (text : string) (at : i32) : i32 =
+    ? (=.) at 0i32 ?> 0i32
+    |:
+        := before = (-.) at 1i32
+        := digit = codec_decimal_digit_value (sm.index text before)
+        ? (<) digit 10u64 ?> projection_digit_start_loop text before |: at
+
+:= projection_first_u32_literal (line : string) (from : i32) : string =
+    := line_len = sm.length line : i32
+    := marker_at = find_text line from "u32"
+    ? (=.) marker_at line_len ?> codec_empty ()
+    |:
+        := digit_from = projection_digit_start_loop line marker_at
+        ? (=.) digit_from marker_at ?> codec_empty ()
+        |: codec_u64_decimal_normalize (slice_exclusive line digit_from marker_at)
+
+:= projection_active_item (line : string) : string =
+    := line_len = sm.length line : i32
+    := quote0 = find_char line 0i32 (char_quote ())
+    ? (=.) quote0 line_len ?> codec_empty ()
+    |:
+        := task_id, after_id, id_ok = parse_quoted line quote0
+        ? id_ok ?>
+            := quote1 = find_char line after_id (char_quote ())
+            ? (=.) quote1 line_len ?> codec_empty ()
+            |:
+                := title, after_title, title_ok = parse_quoted line quote1
+                ? title_ok && (<=) after_title line_len ?>
+                    := progress = projection_first_u32_literal line after_title
+                    ? (=.) progress "" ?> codec_empty ()
+                    |:
+                        := priority =
+                            ? (<) (find_text line 0i32 ", P0,") line_len ?> "P0"
+                            |? (<) (find_text line 0i32 ", P1,") line_len ?> "P1"
+                            |? (<) (find_text line 0i32 ", P2,") line_len ?> "P2"
+                            |: "P3+"
+                        := status = ? (<) (find_text line 0i32 ", Blocked,") line_len ?> "Blocked" |: "Active"
+                        := out0 = sm.concat priority " "
+                        := out1 = sm.concat out0 status
+                        := out2 = sm.concat out1 " "
+                        := out3 = sm.concat out2 progress
+                        := out4 = sm.concat out3 "% "
+                        := out5 = sm.concat out4 task_id
+                        := out6 = sm.concat out5 " — "
+                        sm.concat out6 title
+                |: codec_empty ()
+        |: codec_empty ()
+
+:~ ^ handoff_active_work_projection_loop (source : string) (at : i32) (source_len : i32) (out : string) : string =
+    ? (=.) at source_len ?> out
+    |:
+        := line_near_to = find_char source at (char_newline ())
+        := line = slice_exclusive source at line_near_to
+        := line_len = sm.length line : i32
+        := next_at = ? (=.) line_near_to source_len ?> source_len |: (+.) line_near_to 1i32
+        := is_task = (<) (find_text line 0i32 "Task (") line_len
+        := is_active = (<) (find_text line 0i32 ", Active,") line_len
+        := is_blocked = (<) (find_text line 0i32 ", Blocked,") line_len
+        ? is_task && (is_active || is_blocked) ?>
+            := item = projection_active_item line
+            ? (=.) item "" ?> codec_empty ()
+            |:
+                := with_newline = sm.concat out "\n"
+                handoff_active_work_projection_loop source next_at source_len (sm.concat with_newline item)
+        |: handoff_active_work_projection_loop source next_at source_len out
+
+:~ handoff_active_work_projection (source : string) : string =
+    handoff_active_work_projection_loop source 0i32 (sm.length source : i32) "ok"
+
+:= fixture_agile () : string =
+    """
+        inl active () = Task ("ACTIVE-WORK", "Do u32 active work", TaskKind, P0, D4, 55u32, Active, "", "x", "current", "current")
+        inl done () = Task ("DONE-WORK", "Done work", TaskKind, P0, D4, 100u32, Done, "", "x", "current", "settled")
+        inl blocked () = Task ("BLOCKED-WORK", "Wait for evidence", TaskKind, P1, D6, 7u32, Blocked, "", "x", "current", "current")
+
+        """

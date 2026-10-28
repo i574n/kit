@@ -1,0 +1,77 @@
+:! integrity_raw = ()
+:! integrity_file_verified = ()
+:! integrity_tree_verified = ()
+:! integrity_shadow_verified = ()
+:! integrity_settled = ()
+
+:! hash_equal = ()
+:! hash_changed = ()
+:! hash_rejected = ()
+
+:| hash_relation relation =
+    | HashEqual :: hash_relation hash_equal
+    | HashChanged :: hash_relation hash_changed
+    | HashRejected :: hash_relation hash_rejected
+
+:| integrity_op from to =
+    | VerifyFileHash :: integrity_op integrity_raw integrity_file_verified
+    | VerifyTreeParity :: hash_relation hash_equal -> integrity_op integrity_file_verified integrity_tree_verified
+    | VerifyShadowDeletion ::
+        hash_relation hash_changed ->
+        integrity_op integrity_tree_verified integrity_shadow_verified
+    | VerifySymlinkRejection :: hash_relation hash_rejected -> integrity_op integrity_shadow_verified integrity_settled
+
+:| ^ integrity_plan from to =
+    | IntegrityStep :: \* from to. integrity_op from to -> integrity_plan from to
+    | IntegrityThen :: \* from to.
+        (\? middle. integrity_plan from middle * integrity_plan middle to) ->
+        integrity_plan from to
+
+:= public_integrity_plan () : integrity_plan integrity_raw integrity_settled =
+    IntegrityThen (\? (
+        IntegrityStep VerifyFileHash,
+        IntegrityThen (\? (
+            IntegrityStep (VerifyTreeParity HashEqual),
+            IntegrityThen (\? (
+                IntegrityStep (VerifyShadowDeletion HashChanged),
+                IntegrityStep (VerifySymlinkRejection HashRejected)
+            ))
+        ))
+    ))
+
+:~ file_hash_binding (regular_file : i32) (symlink : i32) (known_vector_match : i32) : i32 =
+    ? regular_file < 1i32 ?> 0i32
+    |? 1i32 < regular_file ?> 0i32
+    |? symlink < 0i32 ?> 0i32
+    |? 0i32 < symlink ?> 0i32
+    |? known_vector_match < 1i32 ?> 0i32
+    |? 1i32 < known_vector_match ?> 0i32
+    |: 1i32
+
+:~ tree_request_binding (root_valid : i32) (relative_segments : i32) : i32 =
+    ? root_valid = 1i32 ?>
+        ? relative_segments < 1i32 ?> 0i32 |: 1i32
+    |: 0i32
+
+:~ tree_parity_binding (source_entries : i32) (copy_entries : i32) (hash_equal : i32) : i32 =
+    ? source_entries < 1i32 ?> 0i32
+    |? copy_entries < 1i32 ?> 0i32
+    |? source_entries = copy_entries ?>
+        ? hash_equal = 1i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:~ shadow_deletion_binding (before_entries : i32) (after_entries : i32) (hash_changed : i32) : i32 =
+    ? after_entries < 0i32 ?> 0i32
+    |? after_entries < before_entries ?>
+        ? hash_changed = 1i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:~ symlink_rejection_binding (symlink_present : i32) (hash_rejected : i32) : i32 =
+    ? symlink_present = 1i32 ?>
+        ? hash_rejected = 1i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:~ integrity_settlement_binding (file_ok : i32) (tree_ok : i32) (shadow_ok : i32) (symlink_ok : i32) : i32 =
+    := gate0 = file_ok * tree_ok
+    := gate1 = gate0 * shadow_ok
+    (gate1 * symlink_ok)

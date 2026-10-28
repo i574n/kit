@@ -1,0 +1,112 @@
+:! boundary_start = ()
+:! boundary_zero_timeout = ()
+:! boundary_callback = ()
+:! boundary_reap = ()
+:! boundary_budget = ()
+:! boundary_session = ()
+:! boundary_done = ()
+
+:| process_boundary_probe from to =
+    | ProveZeroTimeout :: process_boundary_probe boundary_start boundary_zero_timeout
+    | ProveCallbackFailure :: process_boundary_probe boundary_zero_timeout boundary_callback
+    | ProveTimeoutReap :: process_boundary_probe boundary_callback boundary_reap
+    | ProveCompilerBudget :: process_boundary_probe boundary_reap boundary_budget
+    | ProveSessionScope :: process_boundary_probe boundary_budget boundary_session
+    | FinishBoundaryProbe :: process_boundary_probe boundary_session boundary_done
+
+:= streaming_zero_timeout_rejected (~timeout_ms : u64) : i32 =
+    $'{ let mut command = std::process::Command::new("/bin/true"); \
+        if run_bounded_streaming(&mut command, !timeout_ms, None, |_, _| Ok(())).is_err() { 1i32 } else { 0i32 } }'
+    : i32
+
+:= streaming_callback_failure_propagated (~timeout_ms : u64) : i32 =
+    $'{ let mut command = std::process::Command::new("/bin/sh"); command.args(["-c", "printf chunk; sleep 1"]); \
+        if run_bounded_streaming(&mut command, !timeout_ms, None, |_, \
+        _| Err("callback rejected chunk".to_owned())).is_err() { 1i32 } else { 0i32 } }' : i32
+
+:= bounded_timeout_reaped (~timeout_ms : u64) : i32 =
+    $'{ let mut command = std::process::Command::new("/bin/sleep"); command.arg("1"); \
+        if run_bounded(&mut command, !timeout_ms).is_err() { 1i32 } else { 0i32 } }' : i32
+
+:= compiler_budget_outcome (~segmented_timeout_ms : u64) (~timeout_ms : u64) : i32 =
+    $'{ match compile_spiral("/bin/true", std::path::Path::new("input.spi"), std::path::Path::new("output.rs"), \
+        "Rust", !segmented_timeout_ms, !timeout_ms) { Err(_) => 1i32, Ok(status) if status.success() => 2i32, \
+        Ok(_) => 3i32 } }' : i32
+
+:= session_scope_match (~scope : string) (~executable : string) (~mode : string) (~socket : string) : i32 =
+    $'{ let executable = std::path::Path::new(&*!executable); let field_count = 3i32; \
+        let server_flag = i32::from(&*!mode == "--server"); let runner_flag = \
+        i32::from(executable.file_name().and_then(|value| value.to_str()) == Some("SpiralHelloRunner")); \
+        let scope_flag = i32::from(executable.starts_with(std::path::Path::new(&*!scope))); \
+        let packed_flags = server_flag | (runner_flag << 1) | (scope_flag << 2); let _ = &!socket; \
+        kit_process_session_match_binding(field_count, packed_flags) }' : i32
+
+:~ timeout_policy_export (positive_flag : i32) (reserved : i32) : i32 =
+    process.process_timeout_valid_export positive_flag reserved
+
+:~ compiler_budget_policy_export (segmented_positive : i32) (timeout_positive : i32) : i32 =
+    process.process_compiler_budget_valid_export segmented_positive timeout_positive
+
+:~ session_policy_export (field_count : i32) (packed_flags : i32) : i32 =
+    process.process_session_match_export field_count packed_flags
+
+:= main () : i32 =
+    global
+        "use kit_process::{compile_spiral, kit_process_session_match_binding, run_bounded, run_bounded_streaming};"
+    := policy_zero = timeout_policy_export 0i32 0i32
+    := policy_positive = timeout_policy_export 1i32 0i32
+    := policy_budget_zero = compiler_budget_policy_export 0i32 1i32
+    := policy_budget_positive = compiler_budget_policy_export 1i32 1i32
+    := policy_session = session_policy_export 3i32 7i32
+    ? policy_zero <> 0i32
+    ?> 10i32
+    |? policy_positive <> 1i32
+    ?> 11i32
+    |? policy_budget_zero <> 0i32
+    ?> 12i32
+    |? policy_budget_positive <> 1i32
+    ?> 13i32
+    |? policy_session <> 1i32
+    ?> 14i32
+    |:
+        := _ : process_boundary_probe boundary_start boundary_zero_timeout = ProveZeroTimeout
+        := zero_timeout = streaming_zero_timeout_rejected 0u64
+        ? zero_timeout <> 1i32
+        ?> 21i32
+        |:
+            := _ : process_boundary_probe boundary_zero_timeout boundary_callback = ProveCallbackFailure
+            := callback = streaming_callback_failure_propagated 5000u64
+            ? callback <> 1i32
+            ?> 22i32
+            |:
+                := _ : process_boundary_probe boundary_callback boundary_reap = ProveTimeoutReap
+                := reaped = bounded_timeout_reaped 10u64
+                ? reaped <> 1i32
+                ?> 23i32
+                |:
+                    := _ : process_boundary_probe boundary_reap boundary_budget = ProveCompilerBudget
+                    := rejected_budget = compiler_budget_outcome 0u64 1u64
+                    := accepted_budget = compiler_budget_outcome 1u64 1u64
+                    ? rejected_budget <> 1i32
+                    ?> 24i32
+                    |? accepted_budget <> 2i32
+                    ?> 25i32
+                    |:
+                        := _ : process_boundary_probe boundary_budget boundary_session = ProveSessionScope
+                        := matching_scope =
+                            session_scope_match
+                                "/opt/spiral"
+                                "/opt/spiral/compiler-session/lib/SpiralHelloRunner"
+                                "--server"
+                                "/tmp/lane.sock"
+                        := other_scope =
+                            session_scope_match
+                                "/other"
+                                "/opt/spiral/compiler-session/lib/SpiralHelloRunner"
+                                "--server"
+                                "/tmp/lane.sock"
+                        ? matching_scope <> 1i32 ?> 26i32
+                        |? other_scope <> 0i32 ?> 27i32
+                        |:
+                            := _ : process_boundary_probe boundary_session boundary_done = FinishBoundaryProbe
+                            0i32

@@ -1,0 +1,66 @@
+:< agile_mutation_policy.model
+
+:~ agile_set_decision_binding (progress : i32) (status_code : i32) : i32 =
+    agile_set_decision progress status_code
+
+:~ agile_task_identity_binding (field_count : i32) (id_equal : i32) : i32 =
+    agile_task_identity_decision field_count id_equal
+
+:~ agile_receipt_content_binding (bytes_equal : i32) (fingerprint_equal : i32) : i32 =
+    agile_receipt_content_decision bytes_equal fingerprint_equal
+
+:~ agile_receipt_snapshot_binding (snapshot_equal : i32) (reserved : i32) : i32 =
+    agile_receipt_snapshot_decision snapshot_equal reserved
+
+:~ agile_receipt_build_current_binding (content_current : i32) (build_fingerprint_equal : i32) : i32 =
+    agile_receipt_build_current_decision content_current build_fingerprint_equal
+
+:= main () : i32 =
+    := _ =
+        agile_tuple_parse "  \"a,b\", 12u64, runtime  ",
+        agile_attestation_normalize "build:42",
+        agile_attestation_value "build:42",
+        agile_u64_decimal_value "42",
+        agile_u64_literal_value "42u64"
+    !!!!Export(
+        "kit_agile_set_decision_binding",
+        ((\ (first, second) => agile_set_decision_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_agile_task_identity_binding",
+        ((\ (first, second) => agile_task_identity_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_agile_receipt_content_binding",
+        ((\ (first, second) => agile_receipt_content_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_agile_receipt_snapshot_binding",
+        ((\ (first, second) => agile_receipt_snapshot_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_agile_receipt_build_current_binding",
+        ((\ (first, second) => agile_receipt_build_current_binding first second) : i32 * i32 -> i32)
+    )
+    !!!!Export("kit_agile_tuple_parse_binding", ((\ value => agile_tuple_parse value) : string -> string))
+    !!!!Export(
+        "kit_agile_attestation_normalize_binding",
+        ((\ value => agile_attestation_normalize value) : string -> string)
+    )
+    !!!!Export("kit_agile_attestation_value_binding", ((\ value => agile_attestation_value value) : string -> u64))
+    !!!!Export(
+        "kit_agile_u64_decimal_normalize_binding",
+        ((\ value => agile_u64_decimal_normalize value) : string -> string)
+    )
+    !!!!Export("kit_agile_u64_decimal_value_binding", ((\ value => agile_u64_decimal_value value) : string -> u64))
+    !!!!Export(
+        "kit_agile_u64_literal_normalize_binding",
+        ((\ value => agile_u64_literal_normalize value) : string -> string)
+    )
+    !!!!Export("kit_agile_u64_literal_value_binding", ((\ value => agile_u64_literal_value value) : string -> u64))
+    := _ = agile_set_decision_binding 50i32 1i32
+    := _ = agile_task_identity_binding 11i32 1i32
+    := _ = agile_receipt_content_binding 1i32 1i32
+    := _ = agile_receipt_snapshot_binding 1i32 0i32
+    := _ = agile_receipt_build_current_binding 1i32 1i32
+    0i32

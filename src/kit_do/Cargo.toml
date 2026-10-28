@@ -1,0 +1,26 @@
+[package.metadata.spiral]
+entry = "run.spi"
+output = "do_run.rs"
+
+[package]
+name = "kit-do"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_do"
+path = "do_run.rs"
+
+[dependencies]
+kit-do-verbs = { path = "../kit_do_verbs" }
+kit-do-program = { path = "../kit_do_program" }
+kit-do-edit = { path = "../kit_do_edit" }
+kit-do-facts = { path = "../kit_do_facts" }
+kit-do-git = { path = "../kit_do_git" }
+kit-do-jobs = { path = "../kit_do_jobs" }
+kit-do-lab = { path = "../kit_do_lab" }
+kit-do-process = { path = "../kit_do_process" }
+kit-do-read = { path = "../kit_do_read" }
+kit-do-write = { path = "../kit_do_write" }

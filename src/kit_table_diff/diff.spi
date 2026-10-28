@@ -1,0 +1,207 @@
+:< sm'_operators
+:< kit_table_query.query
+:< kit_table_query.cells
+:< kit_table_query.stats
+
+:~ ^ indices_from (cells : table_cells) (~names : string) : string =
+    ? names = "" ?> ""
+    |: listed (i32_text (column_of cells (head_of names ","))) (indices_from cells (tail_of names ","))
+
+:~ ^ absent_from (left : table_cells) (right : table_cells) (~names : string) : string =
+    ? names = "" ?> ""
+    |:
+        := name = head_of names ","
+        := rest = absent_from left right (tail_of names ",")
+        ? column_of left name < 0i32 || column_of right name < 0i32 ?> listed name rest |: rest
+
+:~ ^ shared_columns (right : table_cells) (~names : string) (~keys : string) : string =
+    ? names = "" ?> ""
+    |:
+        := name = head_of names ","
+        := rest = shared_columns right (tail_of names ",") keys
+        ? sm'.listed "," name keys || column_of right name < 0i32 ?> rest |: listed name rest
+
+:| ^ column_pairs =
+    | NoPairs
+    | PairThen : string * i32 * i32 * column_pairs
+
+:~ ^ pairs_from (left : table_cells) (right : table_cells) (~names : string) : column_pairs =
+    ? names = "" ?> NoPairs
+    |:
+        := name = head_of names ","
+        PairThen (name, column_of left name, column_of right name, pairs_from left right (tail_of names ","))
+
+:| ^ differences =
+    | NoDifferences
+    | DifferenceThen : string * i32 * differences
+
+:~ ^ difference_counted (list : differences) (~name : string) : differences =
+    ?= list ?|
+    | NoDifferences => DifferenceThen (name, 1i32, NoDifferences)
+    | DifferenceThen (other, count, rest) =>
+        ? other = name ?> DifferenceThen (other, count + 1i32, rest)
+        |? text_before name other ?> DifferenceThen (name, 1i32, list)
+        |: DifferenceThen (other, count, difference_counted rest name)
+
+:~ ^ differences_printed (list : differences) (total : i32) : i32 =
+    ?= list ?|
+    | NoDifferences => total
+    | DifferenceThen (name, count, rest) =>
+        stdout_line ("column " ++# name ++# " differs=" ++# (i32_text count))
+        differences_printed rest (total + count)
+
+:== diff_tally =
+    {
+        considered : i32
+        only_left : i32
+        sampled : i32
+        samples : string
+        differing : differences
+    }
+
+:= at_least (~candidate : string) (~current : string) : bool =
+    ? numeric candidate && numeric current ?> number_of current <= number_of candidate
+    |: text_before candidate current = !-
+
+:~ ^ winners_from
+    (cells : table_cells) (~columns : string) (by : i32) (row : i32) (total : i32) (rows : key_rows)
+    : key_rows
+    =
+    ? total < row
+    ?> rows
+    |:
+        := key = key_of cells row columns
+        := current = key_row rows key
+        := _ =
+            ? current < 0i32 || by < 0i32 || at_least (cell_at cells row by) (cell_at cells current by)
+            ?> key_row_set rows key row
+            |: ()
+        winners_from cells columns by (row + 1i32) total rows
+
+:= winners (cells : table_cells) (~columns : string) (by : i32) : key_rows =
+    winners_from cells columns by 1i32 (row_total cells) (key_rows_new ())
+
+:~ ^ pairs_compared
+    (list : column_pairs) (left : table_cells) (right : table_cells) (row : i32) (other : i32) (~key : string)
+    (limit : u64) (tally : diff_tally)
+    : diff_tally
+    =
+    ?= list ?|
+    | NoPairs => tally
+    | PairThen (name, left_index, right_index, rest) =>
+        := a = cell_at left row left_index
+        := b = cell_at right other right_index
+        ? a = b
+        ?> pairs_compared rest left right row other key limit tally
+        |:
+            := sample = key ++# "\t" ++# name ++# "\t" ++# (a ++# "\t" ++# b)
+            := sampling = below_limit tally.sampled limit
+            := next =
+                { tally ?|
+                    differing = difference_counted tally.differing name
+                    sampled = (? sampling ?> tally.sampled + 1i32 |: tally.sampled)
+                    samples = (? sampling ?> listed_line tally.samples sample |: tally.samples)
+                }
+            pairs_compared rest left right row other key limit next
+
+:~ ^ left_compared
+    (left : table_cells) (right : table_cells) (~columns : string) (left_kept : key_rows) (latest : bool)
+    (right_kept : key_rows) (seen : key_rows) (pairs : column_pairs) (limit : u64) (row : i32) (tally : diff_tally)
+    : diff_tally
+    =
+    ? row_total left < row
+    ?> tally
+    |:
+        := key = key_of left row columns
+        ? latest && key_row left_kept key <> row
+        ?> left_compared left right columns left_kept latest right_kept seen pairs limit (row + 1i32) tally
+        |:
+            := _ = key_row_set seen key row
+            := other = key_row right_kept key
+            := counted = { tally ?| considered = (tally.considered + 1i32) }
+            := next =
+                ? other < 0i32
+                ?> { counted ?| only_left = (counted.only_left + 1i32) }
+                |: pairs_compared pairs left right row other key limit counted
+            left_compared left right columns left_kept latest right_kept seen pairs limit (row + 1i32) next
+
+:~ ^ right_unseen
+    (right : table_cells) (~columns : string) (right_kept : key_rows) (latest : bool) (seen : key_rows) (row : i32)
+    (rows : i32) (unseen : i32)
+    : i32 * i32
+    =
+    ? row_total right < row
+    ?> rows, unseen
+    |:
+        := key = key_of right row columns
+        ? latest && key_row right_kept key <> row
+        ?> right_unseen right columns right_kept latest seen (row + 1i32) rows unseen
+        |:
+            := missing = ? key_row seen key < 0i32 ?> 1i32 |: 0i32
+            right_unseen right columns right_kept latest seen (row + 1i32) (rows + 1i32) (unseen + missing)
+
+:~ diff_tables (left : table_cells) (right : table_cells) (request : table_request) : i32 =
+    := names = ? request.cols = "" ?> shared_columns right (header_joined left ",") request.key |: request.cols
+    := missing = listed (absent_from left right request.key) (absent_from left right names)
+    := latest = request.latest <> ""
+    := missing_latest =
+        ? latest && (column_of left request.latest < 0i32 || column_of right request.latest < 0i32)
+        ?> request.latest
+        |: ""
+    ? request.key = ""
+    ?> rejected "diff needs --key a,b"
+    |? listed missing missing_latest <> ""
+    ?> rejected ("diff unknown columns: " ++# (listed missing missing_latest))
+    |:
+        := left_columns = indices_from left request.key
+        := right_columns = indices_from right request.key
+        := left_kept = winners left left_columns (? latest ?> column_of left request.latest |: -1i32)
+        := right_kept = winners right right_columns (? latest ?> column_of right request.latest |: -1i32)
+        := seen = key_rows_new ()
+        := start = { considered = 0i32; only_left = 0i32; sampled = 0i32; samples = ""; differing = NoDifferences }
+        := tally =
+            left_compared left right left_columns left_kept latest right_kept seen
+                (pairs_from left right names)
+                request.limit
+                1i32
+                start
+        := right_rows, only_right = right_unseen right right_columns right_kept latest seen 1i32 0i32 0i32
+        := differing = differences_printed tally.differing 0i32
+        := _ = ? tally.samples <> "" ?> stdout_line ("key\tcolumn\tleft\tright\n" ++# tally.samples) |: ()
+        := head =
+            "kit table diff ok left_rows="
+            ++# i32_text tally.considered
+            ++# " right_rows="
+            ++# i32_text right_rows
+            ++# " only_left="
+        := tail =
+            i32_text tally.only_left
+            ++# " only_right="
+            ++# i32_text only_right
+            ++# " differing_cells="
+            ++# i32_text differing
+        stdout_line (head ++# tail ++# (? latest ?> " latest_by=" ++# request.latest |: ""))
+        0i32
+
+:~ diff_files (~left : string) (~right : string) (request : table_request) : i32 =
+    ?= table_read left, table_read right ?|
+    | TableUnreadable problem, _ => rejected problem
+    | _, TableUnreadable problem => rejected problem
+    | TableLoaded left_cells, TableLoaded right_cells => diff_tables left_cells right_cells request
+
+:~ table_diff_run
+    (~left : string) (~right : string) (~key : string) (~cols : string) (~latest : string) (limit : u64)
+    : i32
+    =
+    := base = no_request ()
+    diff_files left right { base ?| key = key; cols = cols; latest = latest; limit = limit }
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_table_diff_run",
+        (
+            \ (left, right, key, cols, latest, limit) => table_diff_run left right key cols latest limit
+            : string * string * string * string * string * u64 -> i32
+        )
+    )
+    0i32

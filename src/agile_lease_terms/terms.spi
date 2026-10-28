@@ -1,0 +1,147 @@
+:< sm'_operators
+
+:| effect_lookup =
+    | ByOperandCount
+    | BySubcommandMode
+    | BySubcommand
+    | ByVerb
+
+:= unknown_effect () : u64 = 4u64
+:~ process_argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:= process_operand_count () : string = $'std::rc::Rc::<str>::from(std::env::args().count().saturating_sub(3).to_string\
+    ())' : string
+:= known_effect (code : u64) : bool = (code <= 3u64)
+:= subcommand_effect (~key : string) : u64 = $"command_spec_domain::kit_command_subcommand_effect_code(&!key)" : u64
+:= verb_effect (~verb : string) : u64 = $"command_spec_domain::kit_command_effect_code(&!verb)" : u64
+:= effect_code_i32 (code : u64) : i32 = $"!code as i32" : i32
+
+:= effect_for (lookup : effect_lookup) : u64 =
+    := verb = process_argument 1i32
+    := key = verb ++# ":" ++# (process_argument 2i32)
+    ?= lookup ?|
+    | ByOperandCount => subcommand_effect (key ++# "/" ++# (process_operand_count ()))
+    | BySubcommandMode => subcommand_effect (key ++# ":" ++# (process_argument 3i32))
+    | BySubcommand => subcommand_effect key
+    | ByVerb => verb_effect verb
+
+:~ lease_effect_entry () : i32 =
+    := by_operands = effect_for ByOperandCount
+    ? known_effect by_operands ?> effect_code_i32 by_operands
+    |:
+        := by_mode = effect_for BySubcommandMode
+        ? known_effect by_mode ?> effect_code_i32 by_mode
+        |:
+            := by_subcommand = effect_for BySubcommand
+            ? known_effect by_subcommand ?> effect_code_i32 by_subcommand
+            |:
+                := by_verb = effect_for ByVerb
+                ? known_effect by_verb ?> effect_code_i32 by_verb |: effect_code_i32 (unknown_effect ())
+
+:| lease_policy_origin =
+    | PolicyFromEnvironment
+    | PolicyFromConfigFile
+
+:= environment_text (~name : string) : string = env.get_environment_variable name
+:= trimmed_file_text (~path : string) : string = $'std::fs::read_to_string(&*!path).map(|text| \
+    std::rc::Rc::<str>::from(text.trim())).unwrap_or_else(|_| std::rc::Rc::<str>::from(""))' : string
+:= present (~text : string) : bool = $"!text.is_empty() == false"
+
+:= kit_config_file (~name : string) : string =
+    := kit_home = environment_text "KIT_CONFIG_HOME"
+    := xdg_home = environment_text "XDG_CONFIG_HOME"
+    := app_data = environment_text "APPDATA"
+    := user_home = environment_text "USERPROFILE"
+    ? present kit_home ?> kit_home ++# "/" ++# name
+    |? present xdg_home ?> xdg_home ++# "/kit/" ++# name
+    |? present app_data ?> app_data ++# "/kit/" ++# name
+    |? present user_home ?> user_home ++# "/.config/kit/" ++# name
+    |: (environment_text "HOME") ++# "/.config/kit/" ++# name
+
+:= lease_policy_from (origin : lease_policy_origin) : string =
+    ?= origin ?|
+    | PolicyFromEnvironment => environment_text "KIT_LEASE_POLICY"
+    | PolicyFromConfigFile => trimmed_file_text (kit_config_file "lease-policy")
+
+:~ lease_policy_entry () : string =
+    := from_environment = lease_policy_from PolicyFromEnvironment
+    ? present from_environment ?> from_environment |: lease_policy_from PolicyFromConfigFile
+
+:| lease_phase =
+    | LeaseRunning
+    | LeaseWrapping
+    | LeaseExpired
+
+:= lease_phase_of (should_wrap : bool) (should_yield : bool) : lease_phase =
+    ? should_yield ?> LeaseExpired
+    |? should_wrap ?> LeaseWrapping
+    |: LeaseRunning
+
+:= lease_phase_text = \|
+    | LeaseRunning => "running"
+    | LeaseWrapping => "wrapping"
+    | LeaseExpired => "expired"
+
+:= u64_text (value : u64) : string = (sm'.show value)
+:= u64_div (a : u64) (b : u64) : u64 = (a / b)
+:= u64_rem (a : u64) (b : u64) : u64 = (a % b)
+:= u64_le (a : u64) (b : u64) : bool = (a <= b)
+:= u64_minus (a : u64) (b : u64) : u64 = $"!a.saturating_sub(!b)"
+:= u64_positive (value : u64) : bool = (0u64 < value)
+:= bool_flag (value : bool) : string = ? value ?> "1" |: "0"
+:= clock_now_ms () : u64 = $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() \
+    as u64).unwrap_or(0)' : u64
+
+:= two_digits (value : u64) : string =
+    ? u64_le value 9u64 ?> "0" ++# (u64_text value)
+    |: u64_text value
+
+:= duration_text (milliseconds : u64) : string =
+    := seconds = milliseconds / 1000u64
+    := hours = seconds / 3600u64
+    := minutes = (seconds / 60u64) % 60u64
+    := rest = seconds % 60u64
+    ? u64_positive hours ?> (u64_text hours) ++# "h" ++# (two_digits minutes) ++# "m"
+    |? u64_positive minutes ?> (u64_text minutes) ++# "m" ++# (two_digits rest) ++# "s"
+    |: (u64_text rest) ++# "s"
+
+:= relative_text (now : u64) (moment : u64) : string =
+    ? u64_le moment now ?> (duration_text (u64_minus now moment)) ++# "_ago"
+    |: "in_" ++# (duration_text (u64_minus moment now))
+
+:= policy_name () : string =
+    := configured = lease_policy_entry ()
+    ? present configured ?> configured |: "bounded"
+
+:~ lease_status_entry
+    (~root : string) (started : u64) (wrap_at : u64) (deadline : u64) (remaining : u64) (should_wrap : bool)
+    (should_yield : bool)
+    : string
+    =
+    := now = clock_now_ms ()
+    := head =
+        "kit agile lease status root="
+        ++# root
+        ++# " phase="
+        ++# lease_phase_text (lease_phase_of should_wrap should_yield)
+        ++# " policy="
+    := readable =
+        (policy_name ()) ++# " started=" ++# (relative_text now started) ++# " wrap_at=" ++# (relative_text now wrap_at)
+    := remaining_text = " deadline=" ++# (relative_text now deadline) ++# " remaining=" ++# (duration_text remaining)
+    := flags = " should_wrap=" ++# (bool_flag should_wrap) ++# " should_yield=" ++# (bool_flag should_yield)
+    := raw_start = " started_unix_ms=" ++# (u64_text started) ++# " wrap_at_unix_ms=" ++# (u64_text wrap_at)
+    := raw_end = " deadline_unix_ms=" ++# (u64_text deadline) ++# " remaining_ms=" ++# (u64_text remaining)
+    (head ++# readable ++# remaining_text) ++# flags ++# raw_start ++# raw_end
+
+:= main () : i32 =
+    !!!!Export("kit_lease_effect_code", ((\ () => lease_effect_entry ()) : () -> i32))
+    !!!!Export("kit_lease_policy_text", ((\ () => lease_policy_entry ()) : () -> string))
+    !!!!Export(
+        "kit_lease_status_text",
+        (
+            \ (root, started, wrap_at, deadline, remaining, should_wrap, should_yield) =>
+                lease_status_entry root started wrap_at deadline remaining should_wrap should_yield
+            : string * u64 * u64 * u64 * u64 * bool * bool -> string
+        )
+    )
+    := _ = lease_effect_entry ()
+    0i32

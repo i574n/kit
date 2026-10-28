@@ -1,0 +1,5 @@
+:< environment
+
+:= main () : i32 =
+    !!!!Export("kit_job_doctor_env_drift", ((\ () => env_drift ()) : () -> bool * string))
+    0i32
