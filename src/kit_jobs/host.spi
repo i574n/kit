@@ -14,7 +14,7 @@
 
 := decimal_i32 (~text : string) : i32 = $'!text.trim().parse::<i32>().unwrap_or(-1)' : i32
 
-:~ decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:~ decimal_text (~value : u64) : string = (sm'.show value)
 
 :~ now_ms () : u64 =
     $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as \
@@ -73,9 +73,9 @@
         let lines = text.lines().collect::<Vec<_>>(); let from = lines.len().saturating_sub(!count as usize); \
         std::rc::Rc::<str>::from(lines[from..].join("\n")) }' : string
 
-:~ stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:~ stdout_line (~text : string) : () = console.write_line text
 
-:~ stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:~ stderr_line (~text : string) : () = console.write_error_line text
 
 :~ supervisor_executable (~root : string) : string =
     $'{ let copy = || -> std::io::Result<std::path::PathBuf> { let source = std::env::current_exe()?; \

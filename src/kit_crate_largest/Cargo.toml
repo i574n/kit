@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "largest.spi"
+output = "largest.rs"
+
+[package]
+name = "kit-crate-largest"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_crate_largest"
+path = "largest.rs"

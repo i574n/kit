@@ -31,15 +31,8 @@
             lock_released root
             terms
 
-:~ ^ gate_loop (~id : string) (ask : request) (limit : u64) : i32 =
-    := now = now_ms ()
-    := _ = text_written (job_file id "heartbeat_ms") (decimal_text now)
-    ? file_exists (job_file id "stop")
-    ?>
-        := _ = file_removed (window_file (windows_root ()) ask.id)
-        := _ = text_written (job_file id "exit") (halt_line HaltOnRequest now (tree_stop_of 0u64))
-        143i32
-    |? now > limit
+:~ gate_step (~id : string) (ask : request) (limit : u64) (now : u64) : i32 =
+    ? now > limit
     ?>
         := _ = file_removed (window_file (windows_root ()) ask.id)
         := _ =
@@ -86,33 +79,106 @@
             0i32
         |:
             := _ = text_written (job_file id "window") (concat5 "waiting id=" ask.id " " blocker "")
+            1i32
+
+:~ ^ gate_loop (~id : string) (ask : request) (limit : u64) : i32 =
+    := now = now_ms ()
+    := _ = text_written (job_file id "heartbeat_ms") (decimal_text now)
+    ? file_exists (job_file id "stop")
+    ?>
+        := _ = file_removed (window_file (windows_root ()) ask.id)
+        := _ = text_written (job_file id "exit") (halt_line HaltOnRequest now (tree_stop_of 0u64))
+        143i32
+    |:
+        := step = gate_step id ask limit now
+        ? step = 1i32
+        ?>
             sleep_ms 500u64
             gate_loop id ask limit
+        |: step
+
+:~ window_named (wanted : window_class) (since : u64) : string =
+    concat5 "win-" (number_text since) "-" (number_text (process_number ())) (concat5 "-" (class_word wanted) "" "" "")
+
+:~ window_since (~window : string) : u64 =
+    $'(!window).split(char::from(45u8)).nth(1).and_then(|since| since.parse::<u64>().ok()).unwrap_or(0)' : u64
+
+:~ asked (~id : string) (wanted : window_class) (~window : string) : request =
+    := since = window_since window
+    := timeout = decimal_u64 (text_or_empty (job_file id "timeout_ms"))
+    := by = decimal_u64 (text_or_empty (job_file id "slot_by_ms"))
+    {
+        wanted = wanted
+        minutes = timeout / 60000u64 + 1u64
+        label = concat5 (text_or_empty (job_file id "label")) " (kit job " id ")" ""
+        id = window
+        since = since
+        deadline = ? by <> 0u64 && by < since + 86400000u64 ?> by |: since + 86400000u64
+        min_free = decimal_u64 (text_or_empty (job_file id "min_free_mb"))
+    }
+
+:~ owned_window (~held : string) : string =
+    $'std::rc::Rc::<str>::from({ let parts = (!held).splitn(4, char::from(45u8)).collect::<Vec<_>>(); if parts.len() \
+        == 4 { format\!("{}-{}-{}-{}", parts[0], parts[1], std::process::id(), parts[3]) } else { \
+        (!held).to_string() } }.as_str())' : string
+
+:~ row_rest (~row : string) (~held : string) : string =
+    $'std::rc::Rc::<str>::from((!row).strip_prefix(&*!held).unwrap_or(&*!row))' : string
+
+:~ ^ window_adopted (~held : string) (tries : i32) : string =
+    := root = windows_root ()
+    := owned = owned_window held
+    := row = text_or_empty (window_file root held)
+    ? row = "" || owned = held
+    ?> held
+    |? lock_taken root
+    ?>
+        := _ = text_written (window_file root owned) (concat5 owned (row_rest row held) "" "" "")
+        := _ = file_removed (window_file root held)
+        lock_released root
+        owned
+    |? tries > 0i32
+    ?>
+        sleep_ms 100u64
+        window_adopted held (tries - 1i32)
+    |: held
+
+:~ granted_by_host (~id : string) : bool =
+    := text = text_or_empty (job_file id "window")
+    $'(!text).starts_with("granted")' : bool
 
 :~ windowed_gate (~id : string) (wanted : window_class) : i32 =
-    := timeout = decimal_u64 (text_or_empty (job_file id "timeout_ms"))
-    := since = now_ms ()
-    := label = concat5 (text_or_empty (job_file id "label")) " (kit job " id ")" ""
-    := window =
-        concat5
-            "win-"
-            (number_text since)
-            "-"
-            (number_text (process_number ()))
-            (concat5 "-" (class_word wanted) "" "" "")
-    := by = decimal_u64 (text_or_empty (job_file id "slot_by_ms"))
-    := limit = ? by <> 0u64 && by < since + 86400000u64 ?> by |: since + 86400000u64
-    gate_loop id
-        {
-            wanted = wanted
-            minutes = timeout / 60000u64 + 1u64
-            label = label
-            id = window
-            since = since
-            deadline = limit
-            min_free = decimal_u64 (text_or_empty (job_file id "min_free_mb"))
-        }
-        limit
+    := held = text_or_empty (job_file id "window_request")
+    ? held <> "" && granted_by_host id
+    ?>
+        := owned = window_adopted held 50i32
+        := _ = text_written (job_file id "window") (concat5 "granted id=" owned " adopted from the job host" "" "")
+        0i32
+    |:
+        := ask = asked id wanted (window_named wanted (now_ms ()))
+        gate_loop id ask ask.deadline
+
+:~ held_window_of (~id : string) (wanted : window_class) : i32 =
+    := now = now_ms ()
+    := recorded = text_or_empty (job_file id "window_request")
+    := window = ? recorded = "" ?> window_named wanted now |: recorded
+    := _ = ? recorded = "" ?> text_written (job_file id "window_request") window |: ""
+    := ask = asked id wanted window
+    := step = gate_step id ask ask.deadline now
+    ? step = 75i32 ?> 2i32 |: step
+
+:~ held_window_step (~id : string) : i32 =
+    ? file_exists (job_file id "heavy-wrapper.ps1") ?> held_window_of id HeavyBuild
+    |? file_exists (job_file id "window-class") ?> held_window_of id Compile
+    |: 0i32
+
+:~ held_window_dropped (~id : string) : () =
+    := held = text_or_empty (job_file id "window_request")
+    ? held = ""
+    ?> ()
+    |:
+        := _ = file_removed (window_file (windows_root ()) held)
+        ()
 
 :~ ^ compile_hold_loop (~id : string) (ask : request) (limit : u64) : () =
     := now = now_ms ()
@@ -181,4 +247,6 @@
 := main () : i32 =
     !!!!Export("kit_job_window_gate", ((\ id => job_window_gate id) : string -> i32))
     !!!!Export("kit_job_compile_gate", ((\ id => job_compile_gate id) : string -> i32))
+    !!!!Export("kit_job_gate_held_step", ((\ id => held_window_step id) : string -> i32))
+    !!!!Export("kit_job_gate_window_dropped", ((\ id => held_window_dropped id) : string -> ()))
     0i32

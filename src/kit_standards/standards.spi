@@ -4,15 +4,15 @@
 
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:= stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
+:= stderr_line (~text : string) : () = console.write_error_line text
 := text_of (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default()\
     .as_str())' : string
 :~ directory_exists (~path : string) : bool =
     file_system.path_buf_is_dir (file_system.new_path_buf (sm'.to_std_string path))
 := joined (~base : string) (~name : string) : string = $'std::rc::Rc::<str>::from(std::path::Path::new(&*!base).join(&\
     *!name).to_string_lossy().replace(char::from(92u8), "/").as_str())' : string
-:= json_requested () : bool = $'std::env::args().skip(2).any(|argument| argument == "--json")' : bool
+:= json_requested () : bool = rust_std_env.model.argument_flag_present 2i32 "--json"
 
 := spiral_files (~directory : string) : string =
     $'std::rc::Rc::<str>::from({ let mut names = std::fs::read_dir(&*!directory).into_iter().flatten().flatten().filte\

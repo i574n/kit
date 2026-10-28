@@ -62,6 +62,41 @@
         fresh : i32
     }
 
+:= place_code (place : macro_place) : i32 =
+    ?= place ?|
+    | TermMacro => 0i32
+    | TypeMacro => 1i32
+
+:= origin_code (origin : macro_origin) : i32 =
+    ?= origin ?|
+    | InlineMacro => 0i32
+    | GlobalDeclaration => 1i32
+    | GlobalBody => 2i32
+
+:= place_of_code (code : i32) : macro_place = ? code = 1i32 ?> TypeMacro |: TermMacro
+:= origin_of_code (code : i32) : macro_origin =
+    ? code = 1i32 ?> GlobalDeclaration |? code = 2i32 ?> GlobalBody |: InlineMacro
+
+:= class_index (class : macro_class) : i32 =
+    ?= class ?|
+    | MacroLong => 0i32
+    | MacroBlock => 1i32
+    | MacroFlow => 2i32
+    | MacroCast => 3i32
+    | MacroArith => 4i32
+
+:= class_code (class : option macro_class) : i32 =
+    ?= class ?|
+    | Some value => class_index value
+    | None => -1i32
+
+:= class_of_code (code : i32) : option macro_class =
+    ? code = 0i32 ?> Some MacroLong
+    |? code = 1i32 ?> Some MacroBlock
+    |? code = 2i32 ?> Some MacroFlow
+    |? code = 3i32 ?> Some MacroCast
+    |? code = 4i32 ?> Some MacroArith
+    |: None
 :~ class_word (class : macro_class) : string =
     ?= class ?|
     | MacroLong => "long"
@@ -87,6 +122,11 @@
     |? sm'.ends_with ":" lead || sm'.ends_with "->" lead ?> TypeMacro
     |: TermMacro
 
+:= inside_literal (~prefix : string) : bool =
+    := plain = sm'.replace "\\\"" "" (sm'.replace "\\\\" "" prefix)
+    := quotes : i32 = am'.length (sm'.split "\"" plain |> array) - 1i32
+    quotes % 2i32 = 1i32
+
 :~ ^ line_macros
     (number : i32) (name : string) (line : string) (from : i32) (found : list host_macro)
     : list host_macro
@@ -98,6 +138,8 @@
     := relative = ? single < 0i32 ?> double |? double < 0i32 || single < double ?> single |: double
     := quote = ? relative = single ?> "'" |: "\""
     ? relative < 0i32 ?> found
+    |? inside_literal (sm'.substring 0i32 (from + relative) line)
+    ?> line_macros number name line (from + relative + 1i32) found
     |:
         := start = from + relative
         := place = place_of line (sm'.substring 0i32 start line)
@@ -349,3 +391,24 @@
     expect ((listm.length (file_macros text) : i32) = 4i32) "two globals and two interpolated macros"
     := classes = listm.map (\ (item : violation) => item.name ++# " " ++# class_word item.class) found
     expect (classes = [ "global block"; "add arith" ]) "a body global is a block, an import is not"
+
+///> rust
+:# a_dollar_sign_inside_a_string_literal_opens_no_macro =
+    := cash = "inl cash_quiet (prev : string) : bool = prev = \"$\"\n"
+    expect ((listm.length (file_macros cash) : i32) = 0i32) "a dollar sign literal"
+    := dollars = "inl dollars (n : string) : string = \"$\" ++# n ++# \" usd\"\n"
+    expect ((listm.length (file_macros dollars) : i32) = 0i32) "a dollar sign before a concat"
+    := after = "inl tag = \"$\" ++# " ++# hosted "@'f()' : string\n"
+    expect ((listm.length (file_macros after) : i32) = 1i32) "a real macro after a dollar literal still counts"
+    := escaped = "inl say = \"say \\\"hi\\\"\" ++# " ++# hosted "@'g()' : string\n"
+    expect ((listm.length (file_macros escaped) : i32) = 1i32) "escaped quotes keep the count even"
+
+///> rust
+:# one_file_reports_its_violations_and_honors_the_baseline =
+    := text = sample ()
+    expect ((listm.length (file_macros text) : i32) = 5i32) "five macros"
+    := found = file_violations "lib/sample.spi" text
+    expect ((listm.length found : i32) = 3i32) "three violations"
+    := known_two = baseline_of "lib/sample.spi:9  widen  cast\nlib/sample.spi:9  pick  flow\n"
+    := fresh = found |> listm'.filter \ (item : violation) => not (known known_two item)
+    expect ((listm.length fresh : i32) = 1i32) "the baseline hides two"

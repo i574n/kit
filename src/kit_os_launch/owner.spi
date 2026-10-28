@@ -1,0 +1,92 @@
+:< sm'_operators
+
+:== process_row =
+    {
+        pid : u64
+        name : string
+        started_ms : u64
+    }
+
+:| ^ ancestry =
+    | AncestryEnd
+    | Ancestor : process_row * ancestry
+
+:| launcher_kind =
+    | ShellLauncher
+    | KitLauncher
+    | OwnerProcess
+
+:| owner =
+    | OwnedBy : process_row
+    | NoOwner
+
+:= console_base (~base : string) : bool = base = "conhost" || base = "openconsole"
+
+:= shell_base (~base : string) : bool =
+    base = "cmd" || base = "pwsh" || base = "powershell" || base = "sh" || base = "bash"
+
+:~ launcher_kind_of (~name : string) : launcher_kind =
+    := base = sm'.trim_end_suffix ".exe" (sm'.to_lower name)
+    ? shell_base base || console_base base ?> ShellLauncher
+    |? sm'.starts_with "kit" base ?> KitLauncher
+    |: OwnerProcess
+
+:~ number_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert (sm'.trim text))
+
+:~ ^ ancestry_from (rows : array string) (index : i32) : ancestry =
+    ? index >= am'.length rows
+    ?> AncestryEnd
+    |:
+        := fields = sm'.split "|" (am'.index index rows) |> array
+        ? am'.length fields < 3i32
+        ?> ancestry_from rows (index + 1i32)
+        |:
+            := row =
+                {
+                    pid = number_of (am'.index 0i32 fields)
+                    name = am'.index 1i32 fields
+                    started_ms = number_of (am'.index 2i32 fields)
+                }
+            Ancestor (row, ancestry_from rows (index + 1i32))
+
+:~ ancestry_of_text (~text : string) : ancestry =
+    ? text = "" ?> AncestryEnd |: ancestry_from (sm'.split "\n" text |> array) 0i32
+
+:~ ^ owner_of (rows : ancestry) : owner =
+    ?= rows ?|
+    | AncestryEnd => NoOwner
+    | Ancestor (row, rest) =>
+        ?= launcher_kind_of row.name ?|
+        | OwnerProcess => OwnedBy row
+        | _ => owner_of rest
+
+:~ owner_home_name (found : owner) : string =
+    ?= found ?|
+    | OwnedBy row => sm'.format row.pid ++# "-" ++# sm'.format row.started_ms
+    | NoOwner => ""
+
+:= owned_pid (found : owner) : u64 =
+    ?= found ?|
+    | OwnedBy row => row.pid
+    | NoOwner => 0u64
+
+:~ caller_owner () : string * u64 * u64 =
+    := found = owner_of (ancestry_of_text ($'std::rc::Rc::<str>::from(kit_ancestry_text().as_str())' : string))
+    ?= found ?|
+    | OwnedBy row => owner_home_name found, row.pid, row.started_ms
+    | NoOwner => "", 0u64, 0u64
+
+:~ owner_present (pid : u64) (started_ms : u64) : bool =
+    pid = 0u64 || ($'kit_process_started_ms(!pid)' : u64) = started_ms
+
+///> rust
+:# the_owner_is_the_nearest_ancestor_that_is_not_a_shell_or_kit =
+    := shells = ancestry_of_text "10|pwsh.exe|5\n11|pwsh.exe|4\n12|cmd.exe|3\n13|agent.exe|2"
+    testing.expect (owned_pid (owner_of shells) = 13u64) "the owner sits above the shells"
+    := nested = ancestry_of_text "20|kit-1.exe|9\n21|kit.exe|8\n22|Terminal.exe|7"
+    testing.expect (owned_pid (owner_of nested) = 22u64) "a nested job belongs to the outer owner"
+    testing.expect (owned_pid (owner_of (ancestry_of_text "30|PWSH.EXE|9")) = 0u64) "shells alone own nothing"
+    testing.expect
+        (owner_home_name (owner_of (ancestry_of_text "13|agent.exe|2")) = "13-2")
+        "pid and start name the home"
+    testing.expect (owner_home_name NoOwner = "") "no owner keeps the shared home"

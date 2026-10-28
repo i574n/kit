@@ -1,3 +1,4 @@
+:< sm'_operators
 ///- --package .
 :# agile_todo_model static =
     :< workspace_primitives.numbers
@@ -83,7 +84,8 @@
     "node_modules|vendor|third_party|target|dist|_build|.zig-cache|zig-out|.lake|__pycache__|.venv|venv|.gradle|.ne"
     ^^ "xt|bin|obj|deps|.git|.cache|elm-stuff|bower_components|.dart_tool|.mypy_cache|.pytest_cache|.tox"
 
-:= comment_leaders = \|
+:~ comment_leaders (syntax : comment_syntax) : string =
+    ?= syntax ?|
     | CFamily => "//|/*"
     | HashFamily => "#"
     | DashFamily => "--"
@@ -220,7 +222,7 @@
     |? both (48i32 <= code) (code <= 57i32) ?> !+
     |: code = 95i32
 
-:= outside_quotes (single : bool) (~line : string) (~stop : i32) : bool =
+:~ outside_quotes (single : bool) (~line : string) (~stop : i32) : bool =
     := even_doubles = i32_remainder (count_of_byte line (ascii_double_quote ()) 0i32 stop 0i32) 2i32 = 0i32
     ? single
     ?> both even_doubles (i32_remainder (count_of_byte line (ascii_single_quote ()) 0i32 stop 0i32) 2i32 = 0i32)
@@ -242,10 +244,10 @@
     |? bar < 0i32 ?> !-
     |: earlier_comment single leaders before (bar + 1i32)
 
-:= directive_line (~line : string) : bool =
+:~ directive_line (~line : string) : bool =
     ? rust_std_string.model.starts_with line "///>" ?> !+ |: rust_std_string.model.starts_with line "///-"
 
-:= comment_text (~raw : string) : string =
+:~ comment_text (~raw : string) : string =
     := trimmed = rust_std_string.model.trim raw
     := closed =
         ? rust_std_string.model.ends_with trimmed "-->" ?> byte_slice trimmed 0i32 (i32_sub (byte_len trimmed) 3i32)
@@ -358,14 +360,15 @@
 := finding_line (~path : string) (line : i32) (~text : string) : string =
     rust_std_string.model.concat5 path ":" (i32_text line) "  " text
 
-:~ finding_json (~backlog : string) (~path : string) (line : i32) (~text : string) : string =
+:~ finding_json
+    (fields_of : string -> string -> string) (~backlog : string) (~path : string) (line : i32) (~text : string)
+    : string
+    =
     := id = todo_id backlog text
-    := id_field =
-        ? rust_std_string.model.equals id ""
-        ?> ""
-        |: rust_std_string.model.concat5 "\"id\":\"" (json_escaped id) "\"," "" ""
-    := head = rust_std_string.model.concat5 "{\"path\":\"" (json_escaped path) "\",\"line\":" (i32_text line) ","
-    rust_std_string.model.concat5 head id_field "\"text\":\"" (json_escaped text) "\"}"
+    := fields = fields_of id text
+    := identified = ? id = "" ?> "" |: "\"id\":\"" ++# json_escaped id ++# "\",\"fields\":" ++# fields ++# ","
+    := head = "{\"path\":\"" ++# json_escaped path ++# "\",\"line\":" ++# i32_text line ++# ","
+    head ++# identified ++# "\"text\":\"" ++# json_escaped text ++# "\"}"
 
 :~ ^ leader_prefix (~leaders : string) (~text : string) (~offset : i32) : bool =
     := bar = byte_find_from leaders "|" offset
@@ -434,6 +437,7 @@
     |: wides
 
 :~ ^ findings_from
+    (fields_of : string -> string -> string)
     (syntax : comment_syntax) (filter : todo_filter) (spiral : bool) (~backlog : string) (~text : string)
     (~path : string) (json : bool) (~offset : i32) (~number : i32) (~rendered : string) (~count : i32) (~wides : string)
     : string * i32 * string
@@ -446,7 +450,7 @@
         := line = byte_slice text offset stop
         := next = stop + 1i32
         ?= todo_in_line syntax line ?|
-        | NoTodo => findings_from syntax filter spiral backlog text path json next (number + 1i32) rendered count wides
+        | NoTodo => findings_from fields_of syntax filter spiral backlog text path json next (number + 1i32) rendered count wides
         | TodoComment comment =>
             := block, after, extra =
                 ? comment_starts_line syntax line
@@ -455,23 +459,27 @@
             := following = i32_add (number + 1i32) extra
             ? selected filter (todo_id backlog block)
             ?>
-                := entry = ? json ?> finding_json backlog path number block |: finding_line path number block
+                := entry = ? json ?> finding_json fields_of backlog path number block |: finding_line path number block
                 := joined =
                     ? rust_std_string.model.equals rendered ""
                     ?> entry
                     |? json
                     ?> rust_std_string.model.concat5 rendered ",\n" entry "" ""
                     |: rust_std_string.model.concat5 rendered "\n" entry "" ""
-                findings_from syntax filter spiral backlog text path json after following joined
+                findings_from fields_of syntax filter spiral backlog text path json after following joined
                     (count + 1i32)
                     (wides_with spiral wides path number (byte_slice text offset after))
-            |: findings_from syntax filter spiral backlog text path json after following rendered count wides
+            |: findings_from fields_of syntax filter spiral backlog text path json after following rendered count wides
+
+:= marker_fields_json (~id : string) (~comment : string) : string =
+    marker_fields.fields_json (marker_fields.marker_fields (marker_fields.tail_after id comment))
 
 := findings
+    (fields_of : string -> string -> string)
     (syntax : comment_syntax) (filter : todo_filter) (~backlog : string) (~text : string) (~path : string) (json : bool)
     : string * i32 * string
     =
-    findings_from syntax filter (spiral_source path) backlog text path json 0i32 1i32 "" 0i32 ""
+    findings_from fields_of syntax filter (spiral_source path) backlog text path json 0i32 1i32 "" 0i32 ""
 
 := tally_skips (tally : scan_tally) : string =
     := a =
@@ -667,6 +675,15 @@
         "a leader inside a single-quoted string"
 
 ///> rust
+:# typed_marker_fields_parse_before_the_prose =
+    := typed = marker_fields.fields_json (marker_fields.marker_fields "est=30m load=light who=pair swap the codec")
+    expect (rust_std_string.model.equals typed "{\"est\":30,\"load\":\"light\",\"who\":\"pair\"}") "typed fields"
+    := unknown = marker_fields.unknown_count (marker_fields.marker_fields "load=huge est=soon prio=P9 kind=Story left")
+    expect (unknown = 3i32) "bad values are unknown fields"
+    := bare = marker_fields.fields_json (marker_fields.marker_fields "swap the codec")
+    expect (rust_std_string.model.equals bare "{}") "bare marker"
+
+///> rust
 :# paths_skip_vendor_generated_and_unknown_files =
     labelled (path_label (path_verdict "deps/The-Spiral-Language/" !-)) "nested"
     labelled (path_label (path_verdict "apps/web/node_modules/x/index.js" !-)) "vendor"
@@ -688,7 +705,7 @@
             "\r\nlet b = 2\n"
             (marked "    // " ": \"quoted\"")
             "\n"
-    := lines, count, _ = findings CFamily AllTodos "" text "repo/a.spi" !-
+    := lines, count, _ = findings marker_fields_json CFamily AllTodos "" text "repo/a.spi" !-
     expect (count = 2i32) "two findings"
     expect
         (
@@ -702,7 +719,7 @@
             )
         )
         lines
-    := json, json_count, _ = findings CFamily AllTodos "" text "repo/a.spi" !+
+    := json, json_count, _ = findings marker_fields_json CFamily AllTodos "" text "repo/a.spi" !+
     expect (json_count = 2i32) "two json findings"
     expect
         (
@@ -750,14 +767,14 @@
         // not part of it
 
         """
-    := lines, count, _ = findings CFamily AllTodos "" text "repo/a.spi" !-
+    := lines, count, _ = findings marker_fields_json CFamily AllTodos "" text "repo/a.spi" !-
     expect (count = 2i32) "a block and a trailing comment"
     expect (rust_std_string.model.contains lines (rust_std_string.model.concat5 "repo/a.spi:2  " block "" "" "")) lines
     expect (rust_std_string.model.contains lines (marked "repo/a.spi:6  // " " trailing")) lines
     expect (negated (rust_std_string.model.contains lines "not part of it")) lines
-    := json, json_count, _ = findings CFamily AllTodos "" text "repo/a.spi" !+
+    := json, json_count, _ = findings marker_fields_json CFamily AllTodos "" text "repo/a.spi" !+
     expect (json_count = 2i32) "two json findings"
-    expect (rust_std_string.model.contains json "\"line\":2,\"id\":\"KIT-MEMORY-LINKS\",\"text\":") json
+    expect (rust_std_string.model.contains json "\"line\":2,\"id\":\"KIT-MEMORY-LINKS\",\"fields\":{},\"text\":") json
     expect (rust_std_string.model.contains json "\\n//     inl links root = ()\\n//     links \\\"backlog\\\"") json
     expect (rust_std_string.model.equals (todo_id "" (marked "// " " plain")) "") "no id without a tag"
     expect
@@ -823,24 +840,24 @@
             (marked "// " ": TODO-AS-SOURCE harvest\n")
             ""
             ""
-    := _, all, _ = findings CFamily (todo_filter_of "") "" text "a.spi" !-
+    := _, all, _ = findings marker_fields_json CFamily (todo_filter_of "") "" text "a.spi" !-
     expect (all = 3i32) "every block"
-    := _, tagged, _ = findings CFamily (todo_filter_of "*") "" text "a.spi" !-
+    := _, tagged, _ = findings marker_fields_json CFamily (todo_filter_of "*") "" text "a.spi" !-
     expect (tagged = 2i32) "tagged blocks only"
-    := one, only, _ = findings CFamily (todo_filter_of "KIT-JOBS") "" text "a.spi" !-
+    := one, only, _ = findings marker_fields_json CFamily (todo_filter_of "KIT-JOBS") "" text "a.spi" !-
     expect (only = 1i32) "one item"
     expect (rust_std_string.model.contains one "a.spi:1  ") one
-    := none, missing, _ = findings CFamily (todo_filter_of "KIT") "" text "a.spi" !-
+    := none, missing, _ = findings marker_fields_json CFamily (todo_filter_of "KIT") "" text "a.spi" !-
     expect (missing = 0i32) none
 
 ///> rust
 :# blocks_wider_than_120_columns_in_spiral_files_are_flagged =
     := long = $'std::rc::Rc::<str>::from("x".repeat(110).as_str())' : string
     := text = rust_std_string.model.concat5 (marked "// " ": short\n") (marked "// " ": KIT-JOBS ") long "\n" ""
-    := _, count, wides = findings CFamily AllTodos "" text "src/a.spi" !-
+    := _, count, wides = findings marker_fields_json CFamily AllTodos "" text "src/a.spi" !-
     expect (count = 2i32) "two blocks"
     expect (rust_std_string.model.equals wides "src/a.spi:2\n") wides
-    := _, _, rust_wides = findings CFamily AllTodos "" text "src/a.rs" !-
+    := _, _, rust_wides = findings marker_fields_json CFamily AllTodos "" text "src/a.rs" !-
     expect (rust_std_string.model.equals rust_wides "") "only Spiral files are rewrapped by the formatter"
 
 ///> rust

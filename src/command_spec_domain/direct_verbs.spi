@@ -27,6 +27,11 @@
     | VerbCrate
     | VerbEnv
     | VerbMirror
+    | VerbBacklog
+    | VerbStory
+    | VerbStandup
+    | VerbEvidence
+    | VerbLint
 
 :== verb_help =
     {
@@ -96,7 +101,8 @@
         {
             word = "do"
             line =
-                "do <root> '<program>' | do <root> - (stdin); edit <path|glob> [dry-run] [expect files n "
+                "do <root> [--dry-run] '<program>' | do <root> [--dry-run] - (stdin); edit <path|glob> [dry-run] "
+                ^^ "[expect files n "
                 ^^ "replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / "
                 ^^ "show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] "
                 ^^ "[first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head "
@@ -206,6 +212,39 @@
                 "mirror check <left-root> <right-root> <path>... (paths relative to both roots; a directory stands "
                 ^^ "for every file under it)"
         }
+    | VerbBacklog =>
+        {
+            word = "backlog"
+            line =
+                "backlog: list|next|plan|views|view|view-add|roots|check|todos|links <root> ... (the team backlog; "
+                ^^ "same grammar as agile <verb>)"
+        }
+    | VerbStory =>
+        {
+            word = "story"
+            line =
+                "story: add|edit|show|set|rename|migrate-tags|note|note-edit|notes <root> ... (one backlog item; "
+                ^^ "same grammar as agile <verb>)"
+        }
+    | VerbStandup =>
+        {
+            word = "standup"
+            line = "standup: status|handoff <root> (where the work stands; same grammar as agile <verb>)"
+        }
+    | VerbEvidence =>
+        {
+            word = "evidence"
+            line =
+                "evidence refresh <root> <relative path> [--as <new relative path>] [--dry-run] (rewrites that file's "
+                ^^ "EvidenceRef row in state/evidence.spi from the file on disk: sha256 and byte length)"
+        }
+    | VerbLint =>
+        {
+            word = "lint"
+            line =
+                "lint macros <root> [<path>...] [--baseline <rows>] (host macros by class: long, block, flow, cast, "
+                ^^ "arith)"
+        }
 
 := help_line_for (~target : string) : string =
     union_reflection.cases.union_case_where
@@ -248,6 +287,6 @@
     := text = help_lines ()
     expect (sm'.starts_with "job: " text) "help lines follow the union order"
     expect
-        (am'.length (sm'.split "\n" text |> array) = 19i32)
-        "22 verbs print 19 lines: read, lines and grep share one, ps and kill share one"
+        (am'.length (sm'.split "\n" text |> array) = 24i32)
+        "27 verbs print 24 lines: read, lines and grep share one, ps and kill share one"
     expect (sm'.index_of "mirror check " text >= 0i32) "mirror has a help line"

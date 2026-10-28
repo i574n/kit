@@ -25,7 +25,7 @@
 
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
-:= stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:= stderr_line (~text : string) : () = console.write_error_line text
 :~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
 
 := rejected (~message : string) : i32 =
@@ -114,8 +114,8 @@
                 search_receipt
                     (hits_found root files (matcher_of kind needle) options.glob)
                     options.json
-                    ($'!context as i32' : i32)
-                    ($'!limit as i32' : i32)
+                    ((conv context : i32))
+                    ((conv limit : i32))
                     (needle_hint_of options.regex needle)
                     started
 

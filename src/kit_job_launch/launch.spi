@@ -15,13 +15,13 @@
 :~ job_launched
     (shape : start_shape) (~after_mode : string) (~after_job : string) (attached : bool) (~cap_mb : u64)
     (~slot_minutes : u64) (~done_minutes : u64) (~hold_minutes : u64) (~quiet_wait : u64) (~min_free : u64)
-    (~label : string) (~timeout : u64) (~inner : string) (~cwd : string)
+    (front : bool) (~label : string) (~timeout : u64) (~inner : string) (~cwd : string)
     : launch
     =
     := word = shape_word shape
     := id, supervisor, problem =
         $'kit_job_create::kit_job_create(&*!word, &*!after_mode, &*!after_job, !attached, !cap_mb, !slot_minutes, \
-            !done_minutes, !hold_minutes, !quiet_wait, !min_free, &*!label, !timeout, &*!inner, &*!cwd)'
+            !done_minutes, !hold_minutes, !quiet_wait, !min_free, !front, &*!label, !timeout, &*!inner, &*!cwd)'
         : string * string * string
     ? problem <> "" ?> LaunchRefused problem |: Launched (id, supervisor)
 := supervised_job (~id : string) : i32 = $'kit_job_supervise::kit_job_supervise(&*!id)' : i32
@@ -55,10 +55,10 @@
 :~ job_started (attached : bool) : i32 * string =
     := ok
         , problem, shape_text, after_mode, after_job, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait,
-        min_free, settle_ms, first, timeout
+        min_free, settle_ms, first, timeout, front
         =
         $'kit_job_start_args::kit_job_start_args()'
-        : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64
+        : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64 * bool
     ? ok |> not
     ?> rejected problem, ""
     |:
@@ -76,6 +76,7 @@
                 hold_minutes
                 quiet_wait
                 min_free
+                front
                 label
                 timeout
                 (arguments_from (first + 2i32))
@@ -130,7 +131,7 @@
 := record_mark () : string = $'std::rc::Rc::<str>::from(char::from(30u8).to_string())' : string
 
 :~ launched_text (~label : string) (~timeout : u64) (~inner : string) (~cwd : string) : string =
-    ?= job_launched PlainStart "" "" !- 0u64 0u64 0u64 0u64 0u64 0u64 label timeout inner cwd ?|
+    ?= job_launched PlainStart "" "" !- 0u64 0u64 0u64 0u64 0u64 0u64 !- label timeout inner cwd ?|
     | Launched (id, supervisor) => id ++# (record_mark ()) ++# supervisor
     | LaunchRefused problem => "error: " ++# problem
 

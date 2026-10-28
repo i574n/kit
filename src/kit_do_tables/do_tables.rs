@@ -295,7 +295,7 @@ fn tables_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v20 {
             ()
         } else {
-            println!("{}", &*v14);
+            println!("{}", v14);
             ()
         };
         if v15 {
@@ -312,7 +312,7 @@ fn tables_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     } else {
         let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
         let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v5));
-        println!("{}", &*v27);
+        println!("{}", v27);
         let v28: US2 = US2::US2_Failed;
         let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rows a 0  b 0"); } LIT.with(|lit| lit.clone()) };
         receipt_line_15(v28.clone(), v29.clone(), v2);

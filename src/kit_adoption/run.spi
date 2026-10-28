@@ -6,7 +6,7 @@
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
 :~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
-:= u64_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= u64_text (value : u64) : string = (sm'.show value)
 := share_text (value : f64) : string = $'std::rc::Rc::<str>::from(format\!("{:.3}", !value))' : string
 := written (~path : string) (~text : string) : string =
     $'std::rc::Rc::<str>::from(std::fs::write(&*!path, (&*!text).as_bytes()).err().map(|error| format\!("write {}: \
@@ -120,7 +120,8 @@ inl sorted_lines (~text : string) : string = $'{ let mut lines = (&*!text).lines
     |: habit_lines (without_key key days) (acc ++# key ++# "\t" ++# u64_text calls ++# "\n") (shown + 1u64)
 
 :~ adoption_run () : i32 =
-    := asked = decimal_u64 (option_value "--days" 2i32)
+    := spelled = option_value "--days-back" 2i32
+    := asked = decimal_u64 (? spelled <> "" ?> spelled |: option_value "--days" 2i32)
     := days_back = ? asked = 0u64 ?> 7u64 |: asked
     := out = option_value "--out" 2i32
     := mode = ? flag_present "--habits" 2i32 ?> ByHabit |: ByDay
@@ -147,7 +148,7 @@ inl sorted_lines (~text : string) : string = $'{ let mut lines = (&*!text).lines
                 ++# u64_text habit_count
                 ++# (? out = "" ?> "" |: " out=")
                 ++# out
-        := _ = $'println\!("{}", &*!receipt)' : ()
+        := _ = console.write_line receipt
         0i32
 
 := main () : i32 =

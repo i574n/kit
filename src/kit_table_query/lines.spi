@@ -1,12 +1,8 @@
-:< sm'_operators
 :< cells
 
-:~ ^ row_text (cells : table_cells) (row : i32) (indexes : list i32) : string =
-    ?= indexes ?|
-    | [] => ""
-    | [ index ] => cell_at cells row index
-    | index :: rest => cell_at cells row index ++# "\t" ++# row_text cells row rest
+:= row_text (cells : table_cells) (row : i32) (indexes : list i32) : string =
+    csv.tsv_line (listm.map (cell_at cells row) indexes)
 
-:= group_line (count : i32) (value : string) : string = i32_text count ++# "\t" ++# value
+:= group_line (count : i32) (value : string) : string = csv.tsv_line [ i32_text count; value ]
 
-:= group_header (group : string) : string = "count\t" ++# group
+:= group_header (group : string) : string = csv.tsv_line [ "count"; group ]

@@ -73,7 +73,7 @@ enum US12 {
     US12_TableUnreadable(Rc<str>),
 }
 fn stderr_line_2(mut v0: Rc<str>) -> () {
-    eprintln!("{}", &*v0);
+    eprintln!("{}", v0);
     ()
 }
 fn failed_1(mut v0: Rc<str>) -> i32 {
@@ -376,7 +376,7 @@ fn look_of_24(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<str>) -
     }
 }
 fn stdout_line_25(mut v0: Rc<str>) -> () {
-    println!("{}", &*v0);
+    println!("{}", v0);
     ()
 }
 fn now_ms_26() -> u64 {

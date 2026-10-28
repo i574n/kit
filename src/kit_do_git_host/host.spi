@@ -8,7 +8,7 @@
 :~ tab_part (~text : string) (~index : i32) : string =
     $'std::rc::Rc::<str>::from((!text).split(char::from(9u8)).nth(!index as usize).unwrap_or(""))' : string
 
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 
 := column () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
 

@@ -43,13 +43,14 @@ enum US5 {
     US5_WindowPruned,
     US5_WindowDropped,
 }
+struct Mut0 { l0: Rc<str> }
 #[derive(Clone)]
 enum US6 {
     US6_Quiet,
     US6_Contended(u64),
 }
 fn stderr_line_2(mut v0: Rc<str>) -> () {
-    eprintln!("{}", &*v0);
+    eprintln!("{}", v0);
     ()
 }
 fn refused_1(mut v0: Rc<str>) -> i32 {
@@ -221,7 +222,7 @@ fn loop_6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: i32) -> bool {
     }
 }
 fn windows_root_10() -> Rc<str> {
-    let v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_WINDOWS_HOME").map(std::path::PathBuf::from).or_else(|| std::env::var_os("LOCALAPPDATA").map(|base| std::path::PathBuf::from(base).join("kit").join("windows"))).or_else(|| std::env::var_os("HOME").map(|base| std::path::PathBuf::from(base).join(".cache").join("kit").join("windows"))).unwrap_or_else(|| std::path::PathBuf::from(".kit-windows")).to_string_lossy().as_ref());
+    let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_WINDOWS_HOME").map(std::path::PathBuf::from).or_else(|| std::env::var_os("LOCALAPPDATA").map(|base| std::path::PathBuf::from(base).join("kit").join("windows"))).or_else(|| std::env::var_os("HOME").map(|base| std::path::PathBuf::from(base).join(".cache").join("kit").join("windows"))).unwrap_or_else(|| std::path::PathBuf::from(".kit-windows")).to_string_lossy().as_ref());
     v0.clone()
 }
 fn stored_rows_11(mut v0: Rc<str>) -> Rc<str> {
@@ -230,7 +231,7 @@ fn stored_rows_11(mut v0: Rc<str>) -> Rc<str> {
     v1.clone()
 }
 fn now_ms_12() -> u64 {
-    let v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
+    let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
 }
 fn first_row_14(mut v0: Rc<str>) -> Rc<str> {
@@ -306,9 +307,22 @@ fn file_removed_23(mut v0: Rc<str>) -> bool {
     let v1: bool = std::fs::remove_file(&*v0).is_ok();
     v1
 }
+fn method27(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_26(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method27(v2.clone(), v3.clone());
+    let mut v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn number_text_25(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
-    v1
+    format_real_26(v0)
 }
 fn event_logged_24(mut v0: Rc<str>, mut v1: US5, mut v2: Rc<str>) -> () {
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events.log"); } LIT.with(|lit| lit.clone()) };
@@ -364,7 +378,7 @@ fn event_logged_24(mut v0: Rc<str>, mut v1: US5, mut v2: Rc<str>) -> () {
         std::panic::panic_any::<std::string::String>(format!("{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("file_system.append_all_text: the write failed"); } LIT.with(|lit| lit.clone()) }))
     }
 }
-fn other_rows_26(mut v0: Rc<str>) -> Rc<str> {
+fn other_rows_28(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from(v0.lines().skip(1).collect::<Vec<_>>().join("
 "));
     v1
@@ -389,11 +403,11 @@ fn live_rows_13(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: Rc<str>) 
                 let v12: bool = file_removed_23(v11.clone());
                 let mut v13: US5 = US5::US5_WindowPruned;
                 event_logged_24(v0.clone(), v13.clone(), v5.clone());
-                let mut v14: Rc<str> = other_rows_26(v1.clone());
+                let mut v14: Rc<str> = other_rows_28(v1.clone());
                 (v0, v1, v2, v3) = (v0.clone(), v14.clone(), v2, v3.clone());
                 continue;
             } else {
-                let v16: Rc<str> = other_rows_26(v1.clone());
+                let v16: Rc<str> = other_rows_28(v1.clone());
                 let v17: bool = &*v3 == "";
                 let v21: Rc<str> = if v17 {
                     v5.clone()
@@ -409,7 +423,7 @@ fn live_rows_13(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: Rc<str>) 
         }
     }
 }
-fn method28(mut v0: Option<usize>) -> Option<usize> {
+fn method30(mut v0: Option<usize>) -> Option<usize> {
     v0
 }
 fn closure2() -> Rc<dyn Fn((usize)) -> i32> {
@@ -419,7 +433,7 @@ fn closure2() -> Rc<dyn Fn((usize)) -> i32> {
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn rows_busy_27(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
+fn rows_busy_29(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     loop {
         let v2: bool = &*v1 == "";
         if v2 {
@@ -432,7 +446,7 @@ fn rows_busy_27(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
             let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v5)), v6));
             let v10: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v0)), v6));
             let v11: Option<usize> = v10.find(&*v8);
-            let v12: Option<usize> = method28(v11.clone());
+            let v12: Option<usize> = method30(v11.clone());
             let mut v13: Rc<dyn Fn((usize)) -> i32> = closure2();
             let mut v14: Option<i32> = v12.map(|x| v13(x));
             let v16: i32 = v14.unwrap_or(-1i32);
@@ -440,7 +454,7 @@ fn rows_busy_27(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
             if v17 {
                 return true;
             } else {
-                let v18: Rc<str> = other_rows_26(v1.clone());
+                let v18: Rc<str> = other_rows_28(v1.clone());
                 (v0, v1) = (v0.clone(), v18.clone());
                 continue;
             }
@@ -454,7 +468,7 @@ fn waited_9(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: u64, mut v4: u64,
         let v9: u64 = now_ms_12();
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = live_rows_13(v7.clone(), v8.clone(), v9, v10.clone());
-        let v12: bool = rows_busy_27(v0.clone(), v11.clone());
+        let v12: bool = rows_busy_29(v0.clone(), v11.clone());
         let mut v13: u64 = v4.wrapping_add(1u64);
         let (mut v16, mut v17, mut v18): (u64, u64, u64) = if v12 {
             let mut v14: u64 = v5.wrapping_add(1u64);
@@ -486,12 +500,12 @@ fn waited_9(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: u64, mut v4: u64,
         }
     }
 }
-fn stdout_line_29(mut v0: Rc<str>) -> () {
-    println!("{}", &*v0);
+fn stdout_line_31(mut v0: Rc<str>) -> () {
+    println!("{}", v0);
     ()
 }
 fn window_wait_cleared_0() -> i32 {
-    let v0: i32 = 3i32;
+    let mut v0: i32 = 3i32;
     let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--every"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = option_value_3(v2.clone());
@@ -619,13 +633,13 @@ fn window_wait_cleared_0() -> i32 {
                 US3::US3_ClearNow => {
                     let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window wait-clear ok"); } LIT.with(|lit| lit.clone()) };
                     let v100: Rc<str> = Rc::<str>::from(format!("{}{}", v99, v98));
-                    stdout_line_29(v100.clone());
+                    stdout_line_31(v100.clone());
                     0i32
                 }
                 _ => {
                     let v101: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window wait-clear gave-up"); } LIT.with(|lit| lit.clone()) };
                     let v102: Rc<str> = Rc::<str>::from(format!("{}{}", v101, v98));
-                    stdout_line_29(v102.clone());
+                    stdout_line_31(v102.clone());
                     1i32
                 }
             }

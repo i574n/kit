@@ -406,7 +406,7 @@ fn agile_entry_0() -> i32 {
                     };
                     let v48: bool = state_lock_held_4(v47, v22.clone());
                     if v48 {
-                        let v249: i32 = match &v3 {
+                        let v250: i32 = match &v3 {
                             US1::US1_AgileAdd => {
                                 let v115: usize = std::env::args().count();
                                 let v116: i32 = ((v115) as i32);
@@ -485,19 +485,19 @@ fn agile_entry_0() -> i32 {
                                 method6()
                             }
                             US1::US1_AgileLinks => {
-                                let v213: usize = std::env::args().count();
-                                let v214: i32 = ((v213) as i32);
-                                let v215: bool = v214 > 2i32;
-                                let v217: i32 = if v215 {
-                                    let v216: i32 = v214.wrapping_sub(2i32);
-                                    v216
+                                let v214: usize = std::env::args().count();
+                                let v215: i32 = ((v214) as i32);
+                                let v216: bool = v215 > 2i32;
+                                let v218: i32 = if v216 {
+                                    let v217: i32 = v215.wrapping_sub(2i32);
+                                    v217
                                 } else {
                                     0i32
                                 };
-                                let v218: bool = 2i32 <= v217;
-                                if v218 {
-                                    let v219: i32 = agile_memory_links::kit_agile_links_run();
-                                    v219
+                                let v219: bool = 2i32 <= v218;
+                                if v219 {
+                                    let v220: i32 = agile_memory_links::kit_agile_links_run();
+                                    v220
                                 } else {
                                     agile_usage_error_2()
                                 }
@@ -539,19 +539,19 @@ fn agile_entry_0() -> i32 {
                                 }
                             }
                             US1::US1_AgileNext => {
-                                let v195: usize = std::env::args().count();
-                                let v196: i32 = ((v195) as i32);
-                                let v197: bool = v196 > 2i32;
-                                let v199: i32 = if v197 {
-                                    let v198: i32 = v196.wrapping_sub(2i32);
-                                    v198
+                                let v196: usize = std::env::args().count();
+                                let v197: i32 = ((v196) as i32);
+                                let v198: bool = v197 > 2i32;
+                                let v200: i32 = if v198 {
+                                    let v199: i32 = v197.wrapping_sub(2i32);
+                                    v199
                                 } else {
                                     0i32
                                 };
-                                let v200: bool = 2i32 <= v199;
-                                if v200 {
-                                    let v201: i32 = agile_task_next::kit_agile_next_run();
-                                    v201
+                                let v201: bool = 2i32 <= v200;
+                                if v201 {
+                                    let v202: i32 = agile_task_next::kit_agile_next_run();
+                                    v202
                                 } else {
                                     agile_usage_error_2()
                                 }
@@ -642,19 +642,19 @@ fn agile_entry_0() -> i32 {
                                 }
                             }
                             US1::US1_AgileRoots => {
-                                let v204: usize = std::env::args().count();
-                                let v205: i32 = ((v204) as i32);
-                                let v206: bool = v205 > 2i32;
-                                let v208: i32 = if v206 {
-                                    let v207: i32 = v205.wrapping_sub(2i32);
-                                    v207
+                                let v205: usize = std::env::args().count();
+                                let v206: i32 = ((v205) as i32);
+                                let v207: bool = v206 > 2i32;
+                                let v209: i32 = if v207 {
+                                    let v208: i32 = v206.wrapping_sub(2i32);
+                                    v208
                                 } else {
                                     0i32
                                 };
-                                let v209: bool = 2i32 <= v208;
-                                if v209 {
-                                    let v210: i32 = agile_todo_roots::kit_agile_roots_run();
-                                    v210
+                                let v210: bool = 2i32 <= v209;
+                                if v210 {
+                                    let v211: i32 = agile_todo_roots::kit_agile_roots_run();
+                                    v211
                                 } else {
                                     agile_usage_error_2()
                                 }
@@ -727,13 +727,14 @@ fn agile_entry_0() -> i32 {
                                 };
                                 let v188: bool = 2i32 <= v187;
                                 if v188 {
-                                    let v189: bool = std::env::args().skip(4).any(|argument| argument == "--record");
-                                    if v189 {
-                                        let v190: i32 = agile_todo_record::kit_agile_todos_record_run();
-                                        v190
-                                    } else {
-                                        let v191: i32 = agile_todo_scan::kit_agile_todos_run();
+                                    let v189: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--record"); } LIT.with(|lit| lit.clone()) };
+                                    let v190: bool = std::env::args().skip(4i32 as usize).any(|argument| argument == &*v189);
+                                    if v190 {
+                                        let v191: i32 = agile_todo_record::kit_agile_todos_record_run();
                                         v191
+                                    } else {
+                                        let v192: i32 = agile_todo_scan::kit_agile_todos_run();
+                                        v192
                                     }
                                 } else {
                                     agile_usage_error_2()
@@ -750,7 +751,7 @@ fn agile_entry_0() -> i32 {
                             }
                         };
                         state_lock_done_8(v47, v22.clone());
-                        v249
+                        v250
                     } else {
                         state_lock_refused_1()
                     }

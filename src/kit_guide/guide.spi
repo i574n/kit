@@ -6,8 +6,8 @@
     args.get(at + 1)).cloned().unwrap_or_default() }.as_str())' : string
 := stdout_text (~text : string) : () = $'{ use std::io::Write; let _ = std::io::stdout().lock().write_all((!text).as_b\
     ytes()); }' : ()
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:= stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
+:= stderr_line (~text : string) : () = console.write_error_line text
 := text_of (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default()\
     .replace(char::from(13u8), "").as_str())' : string
 :| write_outcome =
@@ -26,7 +26,7 @@
 := text_between (~text : string) (start : i32) (stop : i32) : string = $'std::rc::Rc::<str>::from((!text).get(!start \
     as usize..!stop as usize).unwrap_or(""))' : string
 := text_length (~text : string) : i32 = sm'.length text
-:= count_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= count_text (value : i32) : string = (sm'.show value)
 
 :| guide_place =
     | BetweenBlocks

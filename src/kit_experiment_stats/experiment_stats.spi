@@ -5,7 +5,7 @@
 := exp_of (x : f64) : f64 = $'(!x).exp()' : f64
 := sqrt_of (x : f64) : f64 = $'(!x).max(0.0).sqrt()' : f64
 := abs_of (x : f64) : f64 = $'(!x).abs()' : f64
-:= as_f64 (value : i32) : f64 = $'!value as f64' : f64
+:= as_f64 (value : i32) : f64 = (conv value : f64)
 := away_from_zero (x : f64) : f64 =
     ? abs_of x < 0.000000000000000000000000000001f64 ?> 0.000000000000000000000000000001f64 |: x
 

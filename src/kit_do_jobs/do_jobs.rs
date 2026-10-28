@@ -32,6 +32,7 @@ enum US3 {
     US3_Succeeded,
     US3_Failed,
 }
+struct Mut0 { l0: Rc<str> }
 fn now_ms_1() -> u64 {
     let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
@@ -774,9 +775,22 @@ fn jobs_run_14(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>,
     };
     (v64, v65, v66, v67, v68, v69, v70, v71, v72)
 }
+fn method44(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_43(mut v0: i32) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method44(v2.clone(), v3.clone());
+    let mut v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn code_text_42(mut v0: i32) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
-    v1
+    format_real_43(v0)
 }
 fn receipt_counts_41(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: i32) -> Rc<str> {
     let v9: Rc<str> = decimal_text_38(v2);
@@ -823,20 +837,20 @@ fn receipt_counts_41(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         v34.clone()
     }
 }
-fn elapsed_text_44(mut v0: u64) -> Rc<str> {
+fn elapsed_text_46(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
-fn local_offset_minutes_46() -> i64 {
+fn local_offset_minutes_48() -> i64 {
     let mut v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
     v0
 }
-fn clock_text_45() -> Rc<str> {
-    let mut v0: i64 = local_offset_minutes_46();
+fn clock_text_47() -> Rc<str> {
+    let mut v0: i64 = local_offset_minutes_48();
     let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_43(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_45(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US3::US3_Failed => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
@@ -849,9 +863,9 @@ fn receipt_line_43(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v7)), v1)), v7));
-    let v11: Rc<str> = elapsed_text_44(v2);
+    let v11: Rc<str> = elapsed_text_46(v2);
     let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v7));
-    let v14: Rc<str> = clock_text_45();
+    let v14: Rc<str> = clock_text_47();
     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
     println!("{}", v15);
     ()
@@ -870,27 +884,27 @@ fn job_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v26 {
             ()
         } else {
-            println!("{}", &*v17);
+            println!("{}", v17);
             ()
         };
         if v18 {
             let v27: US3 = US3::US3_Failed;
             let v28: Rc<str> = receipt_counts_41(v17.clone(), v18, v19, v20, v21, v22, v23.clone(), v24.clone(), v25);
-            receipt_line_43(v27.clone(), v28.clone(), v2);
+            receipt_line_45(v27.clone(), v28.clone(), v2);
             v25
         } else {
             let v29: US3 = US3::US3_Succeeded;
             let v30: Rc<str> = receipt_counts_41(v17.clone(), v18, v19, v20, v21, v22, v23.clone(), v24.clone(), v25);
-            receipt_line_43(v29.clone(), v30.clone(), v2);
+            receipt_line_45(v29.clone(), v30.clone(), v2);
             0i32
         }
     } else {
         let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
         let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v5));
-        println!("{}", &*v33);
+        println!("{}", v33);
         let v34: US3 = US3::US3_Failed;
         let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("jobs 0"); } LIT.with(|lit| lit.clone()) };
-        receipt_line_43(v34.clone(), v35.clone(), v2);
+        receipt_line_45(v34.clone(), v35.clone(), v2);
         2i32
     }
 }

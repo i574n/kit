@@ -45,8 +45,8 @@
     !row); }' : ()
 := key_rows_count (rows : key_rows) : i32 = $'(!rows).borrow().len() as i32' : i32
 
-:= stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stderr_line (~text : string) : () = console.write_error_line text
+:= stdout_line (~text : string) : () = console.write_line text
 := i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
 := head_of (~list : string) (~separator : string) : string = $'std::rc::Rc::<str>::from((!list).split(&*!separator).ne\
     xt().unwrap_or(""))' : string

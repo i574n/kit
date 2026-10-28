@@ -21,6 +21,7 @@
         crate : string
         output : string
         lines : i32
+        largest : string
     }
 
 :| crate_verdict =
@@ -74,6 +75,7 @@
     ++# sm'.format measure.lines
     ++# " lines "
     ++# verdict_text limit measure
+    ++# measure.largest
 
 :~ over_count (limit : i32) (measures : list crate_measure) : i32 =
     measures |> listm.fold (\ count (m : crate_measure) => ?= verdict_of limit m ?| | CrateOver => count + 1i32 | _ => count) 0i32
@@ -121,9 +123,11 @@
 ///> rust
 :# lines_verdicts_and_the_vacuity_rule =
     expect (line_count "a\nb\nc\n" = 3i32 && line_count "a\nb" = 2i32 && line_count "" = 0i32) "line counts"
-    := small = { crate = "small"; output = "s.rs"; lines = 900i32 }
-    := big = { crate = "big"; output = "b.rs"; lines = 1200i32 }
-    := unbuilt = { crate = "new"; output = "n.rs"; lines = -1i32 }
+    := small = { crate = "small"; output = "s.rs"; lines = 900i32; largest = "" }
+    := big = { crate = "big"; output = "b.rs"; lines = 1200i32; largest = "" }
+    := unbuilt = { crate = "new"; output = "n.rs"; lines = -1i32; largest = "" }
+    := named = { crate = "big"; output = "b.rs"; lines = 1200i32; largest = " largest run 300" }
+    expect (measure_line 1000i32 named = "gate / big b.rs 1200 lines OVER 1000 largest run 300") "largest fn named"
     expect (measure_line 1000i32 big = "gate / big b.rs 1200 lines OVER 1000") "over line"
     expect (measure_line 1000i32 small = "gate / small s.rs 900 lines ok") "ok line"
     expect (verdict_of 1000i32 unbuilt = CrateUnbuilt) "missing output is not counted as over"

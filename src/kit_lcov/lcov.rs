@@ -46,6 +46,21 @@ enum US4 {
     US4_HitRead(Rc<str>),
     US4_HitRejected(US1),
 }
+struct Mut0 { l0: Rc<str> }
+fn method5(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_4(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method5(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn hit_reading_of_3(mut v0: Rc<str>) -> US4 {
     let v1: bool = { let parts = v0.split(char::from(44u8)).collect::<Vec<_>>(); (2..=3).contains(&parts.len()) && parts[..2].iter().all(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit())) };
     if v1 {
@@ -57,7 +72,7 @@ fn hit_reading_of_3(mut v0: Rc<str>) -> US4 {
         } else {
             let v6: bool = v0.split(char::from(44u8)).nth(1).map(|hits| hits.parse::<u64>().is_ok()).unwrap_or(false);
             if v6 {
-                let v7: Rc<str> = std::rc::Rc::<str>::from((v2).to_string());
+                let v7: Rc<str> = format_real_4(v2);
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                 let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
                 let v10: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(44u8)).nth(1).unwrap_or(""));
@@ -73,7 +88,7 @@ fn hit_reading_of_3(mut v0: Rc<str>) -> US4 {
         US4::US4_HitRejected(v17.clone())
     }
 }
-fn method4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
+fn method6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
         let v3: bool = v2 >= v1;
         if v3 {
@@ -107,7 +122,7 @@ fn method4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
         }
     }
 }
-fn method5(mut v0: Rc<str>, mut v1: i32) -> i32 {
+fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
         let v2: bool = v1 <= 0i32;
         if v2 {
@@ -290,11 +305,11 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US2, mut v4: R
                         US2::US2_BetweenSources => {
                             let v59: i32 = (v55.clone().len() as i32);
                             let v60: i32 = 0i32;
-                            let v61: i32 = method4(v55.clone(), v59, v60);
+                            let v61: i32 = method6(v55.clone(), v59, v60);
                             let v62: i32 = v59.wrapping_sub(1i32);
                             let v63: Rc<str> = string_slice(&v55.clone(), v61 as i64, v62 as i64);
                             let v64: i32 = (v63.clone().len() as i32);
-                            let v65: i32 = method5(v63.clone(), v64);
+                            let v65: i32 = method7(v63.clone(), v64);
                             let v66: Rc<str> = string_slice(&v63.clone(), 0i32 as i64, v65 as i64);
                             let v67: bool = &*v66 == "";
                             if v67 {
@@ -428,7 +443,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         lcov_error_0(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn lcov_rows_6(mut v0: Rc<str>) -> Rc<str> {
+fn lcov_rows_8(mut v0: Rc<str>) -> Rc<str> {
     let v1: US0 = lcov_reading_of_1(v0.clone());
     match &v1 {
         US0::US0_LcovRecords(v2) => {
@@ -444,7 +459,7 @@ fn lcov_rows_6(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        lcov_rows_6(v0.clone())
+        lcov_rows_8(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_lcov_error(v0: &str) -> Rc<str> {

@@ -28,7 +28,7 @@ inl emit_runtime () : () = global """
         impl Graph {
             fn file(&mut self, path: &Path) -> Option<Vec<u8>> {
                 if self.records.len() >= 4096 { return None; }
-                let bytes = kit_rust_std_fs::read_regular_limited(path, self.bytes_left.min(8 * 1024 * 1024)).ok()?;
+                let bytes = kit_rust_std_fs::read_regular_limited(path, self.bytes_left.min(64 * 1024 * 1024)).ok()?;
                 self.bytes_left = self.bytes_left.checked_sub(bytes.len())?;
                 self.records.insert(path.to_owned(), kit_proxy_search::inspection_sha256(bytes.clone()));
                 Some(bytes)
@@ -105,7 +105,7 @@ inl emit_runtime () : () = global """
         }
         let root = absolute(state_dir)?;
         kit_rust_std_fs::rooted_canonical_directory(&root).ok()?;
-        let mut graph = Graph { root: root.clone(), active: Default::default(), visited: Default::default(), records: Default::default(), bytes_left: 64 * 1024 * 1024 };
+        let mut graph = Graph { root: root.clone(), active: Default::default(), visited: Default::default(), records: Default::default(), bytes_left: 128 * 1024 * 1024 };
         graph.package(root.clone(), include_state, 0)?;
         let base = root.parent()?;
         let mut identity = String::from("agile-package-inputs-v1\n");

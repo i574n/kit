@@ -52,8 +52,8 @@
 
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
-:= decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= decimal_text (~value : u64) : string = (sm'.show value)
+:= stdout_line (~text : string) : () = console.write_line text
 := is_repository (~root : string) : bool = $'std::path::Path::new(&*!root).join(".git").exists()' : bool
 
 :~ repo_state_of (~root : string) (depth : u64) : i32 =

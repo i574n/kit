@@ -15,3 +15,5 @@ path = "decide.rs"
 
 [dependencies]
 kit-job-state = { path = "../kit_job_state" }
+kit-job-slot = { path = "../kit_job_slot" }
+kit-job-gate = { path = "../kit_job_gate" }

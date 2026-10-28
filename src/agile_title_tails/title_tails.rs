@@ -202,7 +202,7 @@ fn stamped_separator_from_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
         if v4 {
             return v3;
         } else {
-            let v5: i32 = v3 + 2;
+            let v5: i32 = v3.wrapping_add(2i32);
             let v6: i32 = v5.wrapping_add(17i32);
             let v7: i32 = (v0.clone().len() as i32);
             let v8: bool = v7 <= v6;
@@ -439,7 +439,7 @@ fn moved_from_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut 
         let v15: i32 = if v12 {
             v2
         } else {
-            let v14: i32 = v11 + 2;
+            let v14: i32 = v11.wrapping_add(2i32);
             v14
         };
         let v16: Rc<str> = std::rc::Rc::<str>::from(v0.get(v1 as usize..v13 as usize).unwrap_or(""));
@@ -491,7 +491,7 @@ fn tail_rows_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>) -
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         (0i32, v7.clone())
     } else {
-        let v8: i32 = v5 + 2;
+        let v8: i32 = v5.wrapping_add(2i32);
         let mut v9: i32 = (v0.clone().len() as i32);
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v11: i32 = 0i32;

@@ -27,7 +27,7 @@
 
 := host_kind (~read : state_host) : i32 = $'!read.0' : i32
 := host_text (~read : state_host) : string = $'!read.1.clone()' : string
-:= i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= i32_text (value : i32) : string = (sm'.show value)
 := without_prefix (~text : string) (bytes : i32) : string =
     $'std::rc::Rc::<str>::from(&(&*!text)[!bytes as usize..])' : string
 := sorted_lines (~text : string) : string = $'{ let mut items = (&*!text).lines().filter(|line| \

@@ -19,8 +19,9 @@ enum US2 {
     US2_ScanQuoted,
     US2_ScanEscaped,
 }
+struct Mut0 { l0: Rc<str> }
 fn command_line_argument_count_2() -> i32 {
-    let v0: usize = std::env::args().count();
+    let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
@@ -335,7 +336,7 @@ fn section_shown_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US
                 v9.clone()
             }
         };
-        println!("{}", &*v15);
+        println!("{}", v15);
         let v33: Rc<str> = match &v3 {
             US1::US1_AuthorNotes => {
                 author_notes_5(v0.clone(), v1.clone(), v2.clone())
@@ -373,15 +374,29 @@ fn section_shown_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US
                 v32.clone()
             }
         };
-        println!("{}", &*v33);
+        println!("{}", v33);
         let v34: i32 = v4.wrapping_add(1i32);
         v34
     } else {
         v4
     }
 }
+fn method16(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_15(mut v0: i32) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method16(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn resume_run_0() -> i32 {
-    let v0: i32 = 2i32;
+    let mut v0: i32 = 2i32;
     let v1: Rc<str> = argument_1(v0);
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--team"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = std::rc::Rc::<str>::from({ let args = std::env::args().collect::<Vec<_>>(); args.iter().position(|argument| argument == &*v2).and_then(|at| args.get(at + 1)).cloned().unwrap_or_default() }.as_str());
@@ -397,7 +412,7 @@ fn resume_run_0() -> i32 {
     };
     if v9 {
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: usage: kit resume <backlog-root> [--team <team>] [--as <author>]"); } LIT.with(|lit| lit.clone()) };
-        eprintln!("{}", &*v10);
+        eprintln!("{}", v10);
         2i32
     } else {
         let v11: US1 = US1::US1_NextWork;
@@ -409,7 +424,7 @@ fn resume_run_0() -> i32 {
         let v17: i32 = section_shown_4(v1.clone(), v3.clone(), v5.clone(), v16.clone(), v15);
         let v18: US1 = US1::US1_AuthorNotes;
         let v19: i32 = section_shown_4(v1.clone(), v3.clone(), v5.clone(), v18.clone(), v17);
-        let v20: Rc<str> = std::rc::Rc::<str>::from((v19).to_string().as_str());
+        let v20: Rc<str> = format_real_15(v19);
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit resume ok sections="); } LIT.with(|lit| lit.clone()) };
         let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v20));
         let v23: bool = &*v3 == "";
@@ -435,7 +450,7 @@ fn resume_run_0() -> i32 {
         let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
         let v37: Rc<str> = std::rc::Rc::<str>::from(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0).to_string().as_str());
         let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v36, v37));
-        println!("{}", &*v38);
+        println!("{}", v38);
         0i32
     }
 }

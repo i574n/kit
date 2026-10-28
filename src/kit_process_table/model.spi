@@ -55,7 +55,7 @@
     | NoSuchProcess => !-
     | StoppedOf (stopped, total) => stopped = total
 
-:= count_text (~count : u64) : string = $'std::rc::Rc::<str>::from((!count).to_string())' : string
+:= count_text (~count : u64) : string = (sm'.show count)
 
 := stop_text (~pid_text : string) (result : stop_result) : string =
     ?= result ?|

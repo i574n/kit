@@ -29,6 +29,7 @@ enum US4 {
     US4_OneLine(u64),
     US4_LastLines(u64),
 }
+struct Mut0 { l0: Rc<str> }
 fn decimal_text_2(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
@@ -38,11 +39,11 @@ fn elapsed_text_4(mut v0: u64) -> Rc<str> {
     v1.clone()
 }
 fn local_offset_minutes_6() -> i64 {
-    let v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
+    let mut v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
     v0
 }
 fn clock_text_5() -> Rc<str> {
-    let v0: i64 = local_offset_minutes_6();
+    let mut v0: i64 = local_offset_minutes_6();
     let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
@@ -112,7 +113,7 @@ fn read_receipt_7(mut v0: u64, mut v1: u64, mut v2: u64, mut v3: Rc<str>, mut v4
         let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v13));
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
         let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v12, Rc::<str>::from(format!("{}{}", v15, v16))));
-        println!("{}", &*v18);
+        println!("{}", v18);
         let v19: bool = v1 == 0u64;
         if v19 {
             0i32
@@ -145,11 +146,11 @@ fn read_receipt_7(mut v0: u64, mut v1: u64, mut v2: u64, mut v3: Rc<str>, mut v4
     }
 }
 fn now_ms_8() -> u64 {
-    let v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
+    let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
 }
 fn command_line_argument_count_10() -> i32 {
-    let v0: usize = std::env::args().count();
+    let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
@@ -188,7 +189,7 @@ fn argument_9(mut v0: i32) -> Rc<str> {
     }
 }
 fn argument_count_12() -> i32 {
-    let v0: i32 = command_line_argument_count_10();
+    let mut v0: i32 = command_line_argument_count_10();
     let v1: i32 = v0.wrapping_add(1i32);
     v1
 }
@@ -308,7 +309,7 @@ fn max_lines_from_16(mut v0: i32, mut v1: i32) -> u64 {
     }
 }
 fn read_start_19() -> (u64, u64, u64, Rc<str>) {
-    let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     (0u64, 0u64, 0u64, v0.clone())
 }
 fn decimal_or_zero_22(mut v0: Rc<str>) -> u64 {
@@ -433,7 +434,21 @@ fn range_bounds_26(mut v0: US4, mut v1: u64) -> (u64, u64) {
         }
     }
 }
-fn slice_json_27(mut v0: std::rc::Rc<Result<Vec<String>, String>>, mut v1: u64, mut v2: u64, mut v3: Rc<str>) -> Rc<str> {
+fn method28(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_27(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method28(v2.clone(), v3.clone());
+    let mut v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
+fn slice_json_29(mut v0: std::rc::Rc<Result<Vec<String>, String>>, mut v1: u64, mut v2: u64, mut v3: Rc<str>) -> Rc<str> {
     loop {
         let mut v4: bool = v1 <= v2;
         if v4 {
@@ -455,13 +470,13 @@ fn slice_json_27(mut v0: std::rc::Rc<Result<Vec<String>, String>>, mut v1: u64, 
         }
     }
 }
-fn slice_printed_28(mut v0: std::rc::Rc<Result<Vec<String>, String>>, mut v1: u64, mut v2: u64, mut v3: u64) -> () {
+fn slice_printed_30(mut v0: std::rc::Rc<Result<Vec<String>, String>>, mut v1: u64, mut v2: u64, mut v3: u64) -> () {
     loop {
         let mut v4: bool = v1 <= v2;
         if v4 {
             let v5: Rc<str> = std::rc::Rc::<str>::from((*v0).as_ref().ok().and_then(|lines| lines.get((v1 - 1) as usize)).map(|line| line.as_str()).unwrap_or(""));
             let v6: Rc<str> = std::rc::Rc::<str>::from(format!("{:>width$}  {}", v1, &*v5, width = v3 as usize).as_str());
-            println!("{}", &*v6);
+            println!("{}", v6);
             let v7: u64 = v1.wrapping_add(1u64);
             (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
             continue;
@@ -490,7 +505,7 @@ fn file_slice_25(mut v0: Rc<str>, mut v1: US4, mut v2: u64, mut v3: bool) -> (i6
             let v18: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v16)), v6));
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
             let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
-            println!("{}", &*v20);
+            println!("{}", v20);
             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             (-1i64, v21.clone())
         };
@@ -511,64 +526,64 @@ fn file_slice_25(mut v0: Rc<str>, mut v1: US4, mut v2: u64, mut v3: bool) -> (i6
         } else {
             0u64
         };
-        let v36: i64 = v35 as i64;
+        let v36: i64 = (v35 as i64);
         let (mut v91, mut v92): (i64, Rc<str>) = if v3 {
             let v37: Rc<str> = std::rc::Rc::<str>::from({ let q = char::from(34u8); let b = char::from(92u8); let mut out = String::from(q); for c in (v0).chars() { match c { c if c == q || c == b => { out.push(b); out.push(c); } c if (c as u32) < 32 => out.push_str(&format!("{b}u{:04x}", c as u32)), c => out.push(c) } } out.push(q); out }.as_str());
             let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"path\":"); } LIT.with(|lit| lit.clone()) };
             let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v37));
             let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"from\":"); } LIT.with(|lit| lit.clone()) };
             let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
-            let v42: Rc<str> = std::rc::Rc::<str>::from((v27).to_string().as_str());
+            let v42: Rc<str> = format_real_27(v27);
             let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v42));
             let v44: u64 = (v27).saturating_sub(1u64);
             let v45: u64 = (v31).max(v44);
-            let v46: Rc<str> = std::rc::Rc::<str>::from((v45).to_string().as_str());
+            let v46: Rc<str> = format_real_27(v45);
             let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"to\":"); } LIT.with(|lit| lit.clone()) };
             let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v46));
             let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"total\":"); } LIT.with(|lit| lit.clone()) };
             let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v48, v49));
-            let v51: Rc<str> = std::rc::Rc::<str>::from((v24).to_string().as_str());
+            let v51: Rc<str> = format_real_27(v24);
             let v53: Rc<str> = Rc::<str>::from(format!("{}{}", v43, Rc::<str>::from(format!("{}{}", v50, v51))));
             let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"more\":"); } LIT.with(|lit| lit.clone()) };
             let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v53, v54));
             let v56: u64 = (v28).saturating_sub(v31);
-            let v57: Rc<str> = std::rc::Rc::<str>::from((v56).to_string().as_str());
+            let v57: Rc<str> = format_real_27(v56);
             let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v57));
             let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"lines\":["); } LIT.with(|lit| lit.clone()) };
             let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v59));
             let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v62: Rc<str> = slice_json_27(v4.clone(), v27, v31, v61.clone());
+            let v62: Rc<str> = slice_json_29(v4.clone(), v27, v31, v61.clone());
             let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]}"); } LIT.with(|lit| lit.clone()) };
             let v65: Rc<str> = Rc::<str>::from(format!("{}{}", v60, Rc::<str>::from(format!("{}{}", v62, v63))));
             (v36, v65.clone())
         } else {
             let v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (lines "); } LIT.with(|lit| lit.clone()) };
             let v67: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v66));
-            let v68: Rc<str> = std::rc::Rc::<str>::from((v27).to_string().as_str());
+            let v68: Rc<str> = format_real_27(v27);
             let v69: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v68));
             let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
             let v71: Rc<str> = Rc::<str>::from(format!("{}{}", v69, v70));
             let v72: u64 = (v27).saturating_sub(1u64);
             let v73: u64 = (v31).max(v72);
-            let v74: Rc<str> = std::rc::Rc::<str>::from((v73).to_string().as_str());
+            let v74: Rc<str> = format_real_27(v73);
             let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of "); } LIT.with(|lit| lit.clone()) };
             let v76: Rc<str> = Rc::<str>::from(format!("{}{}", v74, v75));
-            let v77: Rc<str> = std::rc::Rc::<str>::from((v24).to_string().as_str());
+            let v77: Rc<str> = format_real_27(v24);
             let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v77));
             let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
             let v81: Rc<str> = Rc::<str>::from(format!("{}{}", v71, Rc::<str>::from(format!("{}{}", v78, v79))));
-            println!("{}", &*v81);
+            println!("{}", v81);
             let v82: u64 = (v31).to_string().len() as u64;
-            slice_printed_28(v4.clone(), v27, v31, v82);
+            slice_printed_30(v4.clone(), v27, v31, v82);
             let v83: bool = v31 < v28;
             if v83 {
                 let v84: u64 = v28.wrapping_sub(v31);
-                let v85: Rc<str> = std::rc::Rc::<str>::from((v84).to_string().as_str());
+                let v85: Rc<str> = format_real_27(v84);
                 let v86: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("... "); } LIT.with(|lit| lit.clone()) };
                 let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v86, v85));
                 let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" more lines (raise --max-lines or pass a range)"); } LIT.with(|lit| lit.clone()) };
                 let v89: Rc<str> = Rc::<str>::from(format!("{}{}", v87, v88));
-                println!("{}", &*v89);
+                println!("{}", v89);
                 ()
             };
             let v90: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -594,13 +609,13 @@ fn slice_tallied_24(mut v0: Rc<str>, mut v1: US4, mut v2: u64, mut v3: bool, mut
         let v17: u64 = v5.wrapping_add(1u64);
         (v10, v17, v6, v15.clone())
     } else {
-        let v18: u64 = v8 as u64;
+        let v18: u64 = (v8 as u64);
         let v19: u64 = v6.wrapping_add(v18);
         (v10, v5, v19, v15.clone())
     };
     (v20, v21, v22, v23.clone())
 }
-fn globbed_from_29(mut v0: Rc<str>, mut v1: i32, mut v2: US4, mut v3: u64, mut v4: bool, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: Rc<str>) -> (u64, u64, u64, Rc<str>) {
+fn globbed_from_31(mut v0: Rc<str>, mut v1: i32, mut v2: US4, mut v3: u64, mut v4: bool, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: Rc<str>) -> (u64, u64, u64, Rc<str>) {
     let v9: Rc<str> = std::rc::Rc::<str>::from((v0).split(char::from(10u8)).nth(v1 as usize).unwrap_or(""));
     let v10: bool = &*v9 == "";
     let (mut v20, mut v21, mut v22, mut v23): (u64, u64, u64, Rc<str>) = if v10 {
@@ -608,7 +623,7 @@ fn globbed_from_29(mut v0: Rc<str>, mut v1: i32, mut v2: US4, mut v3: u64, mut v
     } else {
         let v11: i32 = v1.wrapping_add(1i32);
         let (mut v12, mut v13, mut v14, mut v15): (u64, u64, u64, Rc<str>) = slice_tallied_24(v9, v2.clone(), v3, v4, v5, v6, v7, v8);
-        let (mut v16, mut v17, mut v18, mut v19): (u64, u64, u64, Rc<str>) = globbed_from_29(v0, v11, v2, v3, v4, v12, v13, v14, v15);
+        let (mut v16, mut v17, mut v18, mut v19): (u64, u64, u64, Rc<str>) = globbed_from_31(v0, v11, v2, v3, v4, v12, v13, v14, v15);
         (v16, v17, v18, v19)
     };
     (v20, v21, v22, v23)
@@ -629,7 +644,7 @@ fn spec_tallied_23(mut v0: Rc<str>, mut v1: US4, mut v2: u64, mut v3: bool, mut 
         (v14, v15, v16, v17.clone())
     } else {
         let v18: i32 = 0i32;
-        let (mut v19, mut v20, mut v21, mut v22): (u64, u64, u64, Rc<str>) = globbed_from_29(v12.clone(), v18, v1.clone(), v2, v3, v4, v5, v6, v7.clone());
+        let (mut v19, mut v20, mut v21, mut v22): (u64, u64, u64, Rc<str>) = globbed_from_31(v12.clone(), v18, v1.clone(), v2, v3, v4, v5, v6, v7.clone());
         (v19, v20, v21, v22.clone())
     };
     (v23, v24, v25, v26.clone())
@@ -665,7 +680,7 @@ fn read_from_20(mut v0: i32, mut v1: i32, mut v2: u64, mut v3: bool, mut v4: u64
     (v41, v42, v43, v44)
 }
 fn read_run_0() -> i32 {
-    let v0: u64 = now_ms_8();
+    let mut v0: u64 = now_ms_8();
     let v1: i32 = 1i32;
     let v2: Rc<str> = argument_9(v1);
     let mut v3: bool = &*v2 == "read";
@@ -681,23 +696,23 @@ fn read_run_0() -> i32 {
     };
     match &v9 {
         US2::US2_CountLines => {
-            let v32: i32 = argument_count_12();
-            let v33: bool = v32 < 3i32;
-            if v33 {
-                let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
-                let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: "); } LIT.with(|lit| lit.clone()) };
-                let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
-                eprintln!("{}", &*v36);
+            let v33: i32 = argument_count_12();
+            let v34: bool = v33 < 3i32;
+            if v34 {
+                let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
+                let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: "); } LIT.with(|lit| lit.clone()) };
+                let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
+                eprintln!("{}", v37);
                 2i32
             } else {
-                let v37: i32 = 2i32;
-                let v38: i32 = argument_count_12();
-                let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v40: Rc<str> = patterns_from_13(v37, v38, v39.clone());
-                let v41: i32 = 0i32;
-                let v42: Rc<str> = expanded_from_14(v40.clone(), v41, v39.clone());
-                let v43: [u64; 4] = lines_counted_15(v42.clone());
-                lines_receipt_1(v43.clone(), v0)
+                let v38: i32 = 2i32;
+                let v39: i32 = argument_count_12();
+                let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let v41: Rc<str> = patterns_from_13(v38, v39, v40.clone());
+                let v42: i32 = 0i32;
+                let v43: Rc<str> = expanded_from_14(v41.clone(), v42, v40.clone());
+                let v44: [u64; 4] = lines_counted_15(v43.clone());
+                lines_receipt_1(v44.clone(), v0)
             }
         }
         US2::US2_ReadFiles => {
@@ -707,7 +722,7 @@ fn read_run_0() -> i32 {
                 let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
                 let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: "); } LIT.with(|lit| lit.clone()) };
                 let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
-                eprintln!("{}", &*v14);
+                eprintln!("{}", v14);
                 2i32
             } else {
                 let v15: i32 = 2i32;
@@ -715,18 +730,19 @@ fn read_run_0() -> i32 {
                 let v17: i32 = 2i32;
                 let v18: i32 = argument_count_12();
                 let v19: u64 = max_lines_from_16(v17, v18);
-                let v20: bool = std::env::args().skip(2).any(|argument| argument == "--json");
-                let (mut v21, mut v22, mut v23, mut v24): (u64, u64, u64, Rc<str>) = read_start_19();
-                let (mut v25, mut v26, mut v27, mut v28): (u64, u64, u64, Rc<str>) = read_from_20(v15, v16, v19, v20, v21, v22, v23, v24.clone());
-                let v29: bool = std::env::args().skip(2).any(|argument| argument == "--json");
-                read_receipt_7(v25, v26, v27, v28.clone(), v29, v0)
+                let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--json"); } LIT.with(|lit| lit.clone()) };
+                let v21: bool = std::env::args().skip(2i32 as usize).any(|argument| argument == &*v20);
+                let (mut v22, mut v23, mut v24, mut v25): (u64, u64, u64, Rc<str>) = read_start_19();
+                let (mut v26, mut v27, mut v28, mut v29): (u64, u64, u64, Rc<str>) = read_from_20(v15, v16, v19, v21, v22, v23, v24, v25.clone());
+                let v30: bool = std::env::args().skip(2i32 as usize).any(|argument| argument == &*v20);
+                read_receipt_7(v26, v27, v28, v29.clone(), v30, v0)
             }
         }
         US2::US2_ReadUnknown => {
-            let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
-            let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: "); } LIT.with(|lit| lit.clone()) };
-            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
-            eprintln!("{}", &*v48);
+            let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
+            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: "); } LIT.with(|lit| lit.clone()) };
+            let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> [--glob pattern] [--context n] [--max n] [--ignore-case] [--regex] [--json]"); } LIT.with(|lit| lit.clone()) };
+            eprintln!("{}", v49);
             2i32
         }
     }

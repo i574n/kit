@@ -75,7 +75,7 @@
             ++# ", or add a note with --as to say who moved "
             ++# (argument_owned 2i32)
     agile_mutation_error message
-:= todos_recording () : bool = $'std::env::args().skip(4).any(|argument| argument == "--record")' : bool
+:= todos_recording () : bool = rust_std_env.model.argument_flag_present 4i32 "--record"
 :~ state_lock_taken (~root : string) : bool =
     $'{ let state = std::path::Path::new(&*!root).join("state"); let lock = state.join("agile.spi.lock"); \
         let started = std::time::Instant::now(); loop { if std::fs::create_dir(&lock).is_ok() { break true; \

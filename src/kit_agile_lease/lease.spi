@@ -5,7 +5,7 @@
 := i32_eq (a : i32) (b : i32) : bool = (a = b)
 := i32_le (a : i32) (b : i32) : bool = (a <= b)
 := i32_lt (a : i32) (b : i32) : bool = (a < b)
-:= i32_positive (value : i32) : bool = $"0 < !value"
+:= i32_positive (value : i32) : bool = (0i32 < value)
 := i32_add (a : i32) (b : i32) : i32 = (a + b)
 := invalid_i32 () : i32 = $"-1"
 

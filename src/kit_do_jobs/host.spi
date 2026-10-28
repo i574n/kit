@@ -6,7 +6,7 @@
         raw.starts_with(char::from(113u8)) { format\!("{}{}{}", char::from(34u8), &raw[1..], \
         char::from(34u8)) } else { raw[1..].to_owned() }).collect::<Vec<_>>().join(" ")).unwrap_or_default())' : string
 
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 
 :~ part_at (~text : string) (~index : i32) : string =
     $'std::rc::Rc::<str>::from(!text.split(char::from(30u8)).nth(!index as usize).unwrap_or(""))' : string

@@ -15,20 +15,40 @@
     | Jobs => $'kit_do_jobs::kit_do_jobs_run(&*!root, &*!encoded)' : i32
     | Labs => $'kit_do_lab::kit_do_lab_run(&*!root, &*!encoded)' : i32
 
-:~ program_run (~root : string) (~text : string) : i32 =
+:~ rejected (~message : string) (~started : u64) : i32 =
+    stdout_line ("program rejected: " ++# message)
+    receipt_line Failed "files 0  replacements 0" started
+    2i32
+
+:~ dry_headed (~encoded : string) : string =
+    := size : i32 = sm'.length encoded
+    "dry" ++# sm'.substring 2i32 (size - 2i32) encoded
+
+:~ previewed_run (family : program_family) (~root : string) (~encoded : string) (~started : u64) : i32 =
+    ?= family ?|
+    | Edits => delegated_run Edits root (dry_headed encoded)
+    | Reads => delegated_run Reads root encoded
+    | Facts => delegated_run Facts root encoded
+    | _ => rejected "--dry-run covers edit, read and fact programs; this one writes, runs or changes state" started
+
+:~ program_run (~mode : write_mode) (~root : string) (~text : string) : i32 =
     := started = now_ms ()
     ?= program_decoded text ?|
-    | CompileRejected message =>
-        stdout_line ("program rejected: " ++# message)
-        receipt_line Failed "files 0  replacements 0" started
-        2i32
-    | Delegated (family, encoded) => delegated_run family root encoded
+    | CompileRejected message => rejected message started
+    | Delegated (family, encoded) =>
+        ?= mode ?|
+        | Apply => delegated_run family root encoded
+        | Preview => previewed_run family root encoded started
     | Split (edits, writes) =>
-        := edited = delegated_run Edits root edits
-        ? edited <> 0i32 ?> edited |: delegated_run Writes root writes
+        ?= mode ?|
+        | Apply =>
+            := edited = delegated_run Edits root edits
+            ? edited <> 0i32 ?> edited |: delegated_run Writes root writes
+        | Preview => previewed_run Writes root writes started
 
 := usage () : string =
-    "do <root> <program>... | do <root> - (program on stdin); statements: edit <path|glob> [dry-run] [expect files "
+    "do <root> [--dry-run] <program>... | do <root> [--dry-run] - (program on stdin; --dry-run chains every edit in "
+    ^^ "memory and writes nothing); statements: edit <path|glob> [dry-run] [expect files "
     ^^ "<n> replacements <n>], replace [pattern] once|all|<n> times \"<old>\" with \"<new>\" (pattern: a regex, $1 "
     ^^ "groups in the replacement; either takes raw lines between <<< and a >>> line), patch <<< apply_patch hunks "
     ^^ "(@@, then lines starting with space, - or +) >>>, show <path>"
@@ -42,14 +62,16 @@
 :~ do_run () : i32 =
     := count = argument_count ()
     := root = argument 2i32
-    ? count < 4i32 ?>
+    := mode = ? argument 3i32 = "--dry-run" ?> Preview |: Apply
+    := first = ?= mode ?| | Preview => 4i32 | Apply => 3i32
+    ? count <= first ?>
         stdout_line ("usage: kit " ++# (usage ()))
         2i32
     |? directory_exists root = !- ?>
         stdout_line ("kit error: root is not a directory: " ++# root)
         2i32
-    |? argument 3i32 = "-" ?> program_run root (stdin_text ())
-    |: program_run root (program_from 3i32 count "")
+    |? argument first = "-" ?> program_run mode root (stdin_text ())
+    |: program_run mode root (program_from first count "")
 
 := main () : i32 =
     !!!!Export("kit_do_run", ((\ () => do_run ()) : () -> i32))

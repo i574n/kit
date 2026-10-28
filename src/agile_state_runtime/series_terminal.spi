@@ -34,8 +34,8 @@ inl emit_runtime () : () = global """
         let ratings_path = root.join("state/ratings.spi");
         let bench_path = root.join("state/bench.spi");
         let migration_path = root.join("state/migration.spi");
-        let original = agile_read_regular_text_limited(&history_path, 8 * 1024 * 1024)?;
-        let migration = agile_read_regular_text_limited(&migration_path, 8 * 1024 * 1024)?;
+        let original = agile_read_regular_text_limited(&history_path, 64 * 1024 * 1024)?;
+        let migration = agile_read_regular_text_limited(&migration_path, 64 * 1024 * 1024)?;
         let (settled_units, migration_score) = agile_series_migration(&migration)?;
         let (previous_sequence, previous_units, previous_score) = agile_series_last(&original)?;
         let sequence = previous_sequence.checked_add(1).ok_or_else(|| "series sequence overflow".to_owned())?;
@@ -56,7 +56,7 @@ inl emit_runtime () : () = global """
         let updated = original.replacen(marker, &format!("{record}\n{marker}"), 1);
         agile_atomic_write(&history_path, updated.as_bytes())?;
         let validate = (|| -> Result<(), String> {
-            let observed = agile_read_regular_text_limited(&history_path, 8 * 1024 * 1024)?;
+            let observed = agile_read_regular_text_limited(&history_path, 64 * 1024 * 1024)?;
             let (observed_sequence, observed_units, observed_score) = agile_series_last(&observed)?;
             if observed_sequence != sequence || observed_units != settled_units || observed_score != migration_score { return Err("series runtime validation mismatch".to_owned()); }
             agile_attest_known_mutation(root, &history_path, Some(original.as_bytes()))

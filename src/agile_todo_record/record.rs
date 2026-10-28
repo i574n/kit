@@ -701,23 +701,21 @@ fn state_written_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US2 {
     std::env::var("KIT_AGILE_TEST_PAUSE_MS").ok().and_then(|value| value.parse::<u64>().ok()).map(|ms| { let _ = std::fs::write(&*v5, b""); std::thread::sleep(std::time::Duration::from_millis(ms)); let _ = std::fs::remove_file(&*v5); }).unwrap_or(());
     let v6: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v1);
     if v6 {
-        let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
-        let v8: Rc<str> = std::rc::Rc::<str>::from(std::process::id().to_string().as_str());
-        let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
-        let v10: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v7, &*v8, &*v9, &*v4].concat());
-        let v11: bool = std::fs::write(&*v10, &*v2).is_ok();
-        let v23: US3 = if v11 {
-            let v12: bool = std::fs::rename(&*v10, &*v0).is_ok();
-            if v12 {
-                let v13: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
-                if v13 {
+        let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
+        let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v7));
+        let mut v9: bool = std::fs::write(&*v8, &*v2).is_ok();
+        let v21: US3 = if v9 {
+            let v10: bool = std::fs::rename(&*v8, &*v0).is_ok();
+            if v10 {
+                let v11: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
+                if v11 {
                     US3::US3_Replaced
                 } else {
                     US3::US3_ReadbackMismatch
                 }
             } else {
-                let v17: bool = std::fs::remove_file(&*v10).is_ok() || !std::path::Path::new(&*v10).exists();
-                if v17 {
+                let v15: bool = std::fs::remove_file(&*v8).is_ok() || !std::path::Path::new(&*v8).exists();
+                if v15 {
                     US3::US3_RenameFailed
                 } else {
                     US3::US3_RenameFailedTemporaryKept
@@ -726,31 +724,31 @@ fn state_written_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US2 {
         } else {
             US3::US3_TemporaryWriteFailed
         };
-        match &v23 {
+        match &v21 {
             US3::US3_Replaced => {
                 US2::US2_StateWritten
             }
             _ => {
-                let v32: Rc<str> = match &v23 {
+                let v30: Rc<str> = match &v21 {
                     US3::US3_ReadbackMismatch => {
-                        let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
-                        v28.clone()
-                    }
-                    US3::US3_RenameFailed => {
-                        let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
+                        let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
                         v26.clone()
                     }
+                    US3::US3_RenameFailed => {
+                        let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
+                        v24.clone()
+                    }
                     US3::US3_RenameFailedTemporaryKept => {
-                        let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
-                        v27.clone()
+                        let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                        v25.clone()
                     }
                     US3::US3_TemporaryWriteFailed => {
-                        let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
-                        v25.clone()
+                        let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
+                        v23.clone()
                     }
                     _ => unreachable!(),
                 };
-                US2::US2_StateWriteFailed(v32.clone())
+                US2::US2_StateWriteFailed(v30.clone())
             }
         }
     } else {

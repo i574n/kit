@@ -22,7 +22,7 @@
         &*!held).status() { Ok(status) => status.code().unwrap_or(1), \
         Err(error) => { eprintln\!("kit error: window run: cannot start {program}: {error}"); 127 } } }' : i32
 
-:~ exit_text (code : i32) : string = $'std::rc::Rc::<str>::from((!code).to_string().as_str())' : string
+:~ exit_text (code : i32) : string = (sm'.show code)
 
 :~ window_ran () : i32 =
     ?= class_of (argument 3i32) ?|

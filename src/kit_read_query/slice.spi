@@ -6,7 +6,7 @@
         for c in (!text).chars() { match c { c if c == q || c == b => { out.push(b); out.push(c); \
         } c if (c as u32) < 32 => out.push_str(&format\!("{b}u{:04x}", c as u32)), c => out.push(c) } } out.push(q); \
         out }.as_str())' : string
-:= stdout_text (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_text (~text : string) : () = console.write_line text
 
 :! file_load = $'std::rc::Rc<Result<Vec<String>, String>>'
 
@@ -25,7 +25,7 @@
 := u64_lower (a : u64) (b : u64) : u64 = $'(!a).min(!b)' : u64
 := u64_upper (a : u64) (b : u64) : u64 = $'(!a).max(!b)' : u64
 := u64_digits (value : u64) : u64 = $'(!value).to_string().len() as u64' : u64
-:= u64_string (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= u64_string (value : u64) : string = (sm'.show value)
 := padded_number (number : u64) (width : u64) (~text : string) : string =
     $'std::rc::Rc::<str>::from(format\!("{:>width$}  {}", !number, &*!text, width = !width as usize).as_str())' : string
 
@@ -64,7 +64,7 @@
         := last = u64_lower wanted_last total
         := shown_last = u64_lower last (u64_less (u64_sum first limit) 1u64)
         := count = ? first <= shown_last ?> shown_last - first + 1u64 |: 0u64
-        := shown = $'!count as i64' : i64
+        := shown = (conv count : i64)
         ? json
         ?>
             := head =

@@ -86,8 +86,8 @@ inl taken_line (hits : search_hits) (file : i32) (taken : i32) (line : i32) : bo
         for c in (!text).chars() { match c { c if c == q || c == b => { out.push(b); out.push(c); } c if (c as u32) < \
         32 => out.push_str(&format\!("{b}u{:04x}", c as u32)), c => out.push(c) } } out.push(q); out }.as_str())'
     : string
-:= stdout_text (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:= i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= stdout_text (~text : string) : () = console.write_line text
+:= i32_text (value : i32) : string = (sm'.show value)
 := at_least_zero (value : i32) : i32 = ? value < 0i32 ?> 0i32 |: value
 := smaller (a : i32) (b : i32) : i32 = ? a < b ?> a |: b
 := larger (a : i32) (b : i32) : i32 = ? a < b ?> b |: a

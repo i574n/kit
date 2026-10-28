@@ -248,7 +248,7 @@ fn copies_run_15(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
                 (v26.clone(), true, v8, v9, v10)
             } else {
                 let v27: u64 = v8.wrapping_add(1u64);
-                let v28: u64 = v20 as u64;
+                let v28: u64 = (v20 as u64);
                 let v29: u64 = v10.wrapping_add(v28);
                 (v6.clone(), v7, v27, v9, v29)
             };

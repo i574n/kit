@@ -35,19 +35,20 @@ enum US3 {
     US3_TodoLine,
     US3_CommentLine,
 }
+struct Mut0 { l0: Rc<str> }
 fn command_line_argument_count_3() -> i32 {
-    let v0: usize = std::env::args().count();
+    let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn argument_count_2() -> i32 {
-    let v0: i32 = command_line_argument_count_3();
+    let mut v0: i32 = command_line_argument_count_3();
     let v1: i32 = v0.wrapping_add(1i32);
     v1
 }
 fn tally_start_4() -> (i32, i32, Rc<str>, i32, i32, Rc<str>) {
-    let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     (0i32, 0i32, v0.clone(), 0i32, 0i32, v0.clone())
 }
 fn command_line_argument_7(mut v0: i32) -> Rc<str> {
@@ -325,7 +326,7 @@ fn rule_words_12(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
     }
 }
 fn file_scan_start_14() -> (Rc<str>, i32, bool, Rc<str>, bool) {
-    let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     (v0.clone(), 0i32, false, v0.clone(), false)
 }
 fn outside_quotes_19(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
@@ -352,6 +353,20 @@ fn unquoted_18(mut v0: Rc<str>) -> Rc<str> {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     outside_quotes_19(v2.clone(), v3, v4.clone())
 }
+fn method21(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_20(mut v0: i32) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method21(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn line_findings_17(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>, mut v5: US3, mut v6: Rc<str>, mut v7: i32, mut v8: bool, mut v9: Rc<str>, mut v10: bool) -> Rc<str> {
     match &v0 {
         US1::US1_HostFree => {
@@ -364,7 +379,7 @@ fn line_findings_17(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, 
                         let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a host macro in a host-free package; reach for lib/spiral (sm', am', listm', file_system) or the OS boundary package"); } LIT.with(|lit| lit.clone()) };
                         let v119: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
                         let v120: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v119));
-                        let v121: Rc<str> = std::rc::Rc::<str>::from((v3).to_string().as_str());
+                        let v121: Rc<str> = format_real_20(v3);
                         let v122: Rc<str> = Rc::<str>::from(format!("{}{}", v120, v121));
                         let v123: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
                         let v124: Rc<str> = Rc::<str>::from(format!("{}{}", v122, v123));
@@ -399,7 +414,7 @@ fn line_findings_17(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, 
                         let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("floating point in an integer-only module"); } LIT.with(|lit| lit.clone()) };
                         let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
                         let v73: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v72));
-                        let v74: Rc<str> = std::rc::Rc::<str>::from((v3).to_string().as_str());
+                        let v74: Rc<str> = format_real_20(v3);
                         let v75: Rc<str> = Rc::<str>::from(format!("{}{}", v73, v74));
                         let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
                         let v77: Rc<str> = Rc::<str>::from(format!("{}{}", v75, v76));
@@ -426,7 +441,7 @@ fn line_findings_17(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, 
                 let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CRLF line ending"); } LIT.with(|lit| lit.clone()) };
                 let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
                 let v54: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v53));
-                let v55: Rc<str> = std::rc::Rc::<str>::from((v3).to_string().as_str());
+                let v55: Rc<str> = format_real_20(v3);
                 let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v55));
                 let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
                 let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v57));
@@ -449,14 +464,14 @@ fn line_findings_17(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, 
             let v29: i32 = (v4).trim_end_matches(char::from(13u8)).chars().count() as i32;
             let v30: bool = v28 < v29;
             if v30 {
-                let v31: Rc<str> = std::rc::Rc::<str>::from((v29).to_string().as_str());
+                let v31: Rc<str> = format_real_20(v29);
                 let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" columns, limit "); } LIT.with(|lit| lit.clone()) };
                 let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));
-                let v34: Rc<str> = std::rc::Rc::<str>::from((v28).to_string().as_str());
+                let v34: Rc<str> = format_real_20(v28);
                 let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v34));
                 let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
                 let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v36));
-                let v38: Rc<str> = std::rc::Rc::<str>::from((v3).to_string().as_str());
+                let v38: Rc<str> = format_real_20(v3);
                 let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v38));
                 let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
                 let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
@@ -480,7 +495,7 @@ fn line_findings_17(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, 
                         let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a comment line; encode it in names or drop it"); } LIT.with(|lit| lit.clone()) };
                         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
                         let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v13));
-                        let v15: Rc<str> = std::rc::Rc::<str>::from((v3).to_string().as_str());
+                        let v15: Rc<str> = format_real_20(v3);
                         let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
                         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
                         let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v17));
@@ -526,7 +541,7 @@ fn line_findings_17(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, 
                 let v100: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test block without a ///> target line above it or in the file header"); } LIT.with(|lit| lit.clone()) };
                 let v101: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
                 let v102: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v101));
-                let v103: Rc<str> = std::rc::Rc::<str>::from((v3).to_string().as_str());
+                let v103: Rc<str> = format_real_20(v3);
                 let v104: Rc<str> = Rc::<str>::from(format!("{}{}", v102, v103));
                 let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
                 let v106: Rc<str> = Rc::<str>::from(format!("{}{}", v104, v105));
@@ -671,7 +686,7 @@ fn files_checked_13(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i
     };
     (v35, v36, v37.clone(), v38, v39, v40.clone())
 }
-fn unknown_rules_20(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>) -> Rc<str> {
+fn unknown_rules_22(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>) -> Rc<str> {
     loop {
         let v4: bool = &*v0 == "";
         if v4 {
@@ -687,7 +702,7 @@ fn unknown_rules_20(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<st
                     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v1));
                     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
                     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
-                    let v13: Rc<str> = std::rc::Rc::<str>::from((v2).to_string().as_str());
+                    let v13: Rc<str> = format_real_20(v2);
                     let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
                     let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  unknown-rule  "); } LIT.with(|lit| lit.clone()) };
                     let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v8));
@@ -707,7 +722,7 @@ fn unknown_rules_20(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<st
         }
     }
 }
-fn package_findings_21(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
+fn package_findings_23(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     loop {
         match &*v0 {
             UH0::UH0_NoStandards => {
@@ -783,8 +798,8 @@ fn packages_checked_5(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4
                 let v46: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v9).join(&*v45).to_string_lossy().replace(char::from(92u8), "/").as_str());
                 let v47: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v46).unwrap_or_default().as_str());
                 let v48: i32 = 1i32;
-                let v49: Rc<str> = unknown_rules_20(v47.clone(), v46.clone(), v48, v36.clone());
-                let v50: Rc<str> = package_findings_21(v31.clone(), v9.clone(), v49.clone());
+                let v49: Rc<str> = unknown_rules_22(v47.clone(), v46.clone(), v48, v36.clone());
+                let v50: Rc<str> = package_findings_23(v31.clone(), v9.clone(), v49.clone());
                 let v51: i32 = v0.wrapping_add(1i32);
                 let v52: bool = &*v50 == "";
                 let (mut v56, mut v57, mut v58, mut v59, mut v60, mut v61): (i32, i32, Rc<str>, i32, i32, Rc<str>) = if v52 {
@@ -805,72 +820,73 @@ fn packages_checked_5(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4
     (v80, v81, v82.clone(), v83, v84, v85.clone())
 }
 fn rules_run_1() -> i32 {
-    let v0: i32 = argument_count_2();
+    let mut v0: i32 = argument_count_2();
     let v1: bool = v0 < 3i32;
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: standards <package-dir>... [--json]"); } LIT.with(|lit| lit.clone()) };
-        eprintln!("{}", &*v2);
+        eprintln!("{}", v2);
         2i32
     } else {
         let v3: i32 = 2i32;
         let v4: i32 = argument_count_2();
         let (mut v5, mut v6, mut v7, mut v8, mut v9, mut v10): (i32, i32, Rc<str>, i32, i32, Rc<str>) = tally_start_4();
         let (mut v11, mut v12, mut v13, mut v14, mut v15, mut v16): (i32, i32, Rc<str>, i32, i32, Rc<str>) = packages_checked_5(v3, v4, v5, v6, v7.clone(), v8, v9, v10.clone());
-        let v17: Rc<str> = std::rc::Rc::<str>::from((v11).to_string().as_str());
+        let v17: Rc<str> = format_real_20(v11);
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("packages="); } LIT.with(|lit| lit.clone()) };
         let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v17));
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" declared="); } LIT.with(|lit| lit.clone()) };
         let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v20));
-        let v22: Rc<str> = std::rc::Rc::<str>::from((v15).to_string().as_str());
+        let v22: Rc<str> = format_real_20(v15);
         let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
-        let v24: Rc<str> = std::rc::Rc::<str>::from((v12).to_string().as_str());
+        let v24: Rc<str> = format_real_20(v12);
         let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" files="); } LIT.with(|lit| lit.clone()) };
         let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v24));
         let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" findings="); } LIT.with(|lit| lit.clone()) };
         let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
-        let v29: Rc<str> = std::rc::Rc::<str>::from((v14).to_string().as_str());
+        let v29: Rc<str> = format_real_20(v14);
         let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v23, Rc::<str>::from(format!("{}{}", v28, v29))));
-        let v32: bool = std::env::args().skip(2).any(|argument| argument == "--json");
-        if v32 {
-            let v33: Rc<str> = std::rc::Rc::<str>::from({ let q = char::from(34u8); let b = char::from(92u8); let escape = |value: &str| value.replace(b, &format!("{b}{b}")).replace(q, &format!("{b}{q}")); let items = (v13).lines().filter_map(|line| { let mut parts = line.splitn(3, "  "); let place = parts.next()?; let rule = parts.next()?; let detail = parts.next().unwrap_or(""); let (path, number) = place.rsplit_once(char::from(58u8))?; Some(format!("{{{q}path{q}:{q}{}{q},{q}line{q}:{},{q}rule{q}:{q}{}{q},{q}detail{q}:{q}{}{q}}}", escape(path), number, rule, escape(detail))) }).collect::<Vec<_>>(); items.join(",") }.as_str());
-            let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"findings\":["); } LIT.with(|lit| lit.clone()) };
-            let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v33));
-            let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("],\"count\":"); } LIT.with(|lit| lit.clone()) };
-            let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
-            let v38: Rc<str> = std::rc::Rc::<str>::from((v14).to_string().as_str());
-            let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v38));
-            let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
-            let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
-            println!("{}", &*v41);
+        let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--json"); } LIT.with(|lit| lit.clone()) };
+        let v33: bool = std::env::args().skip(2i32 as usize).any(|argument| argument == &*v32);
+        if v33 {
+            let v34: Rc<str> = std::rc::Rc::<str>::from({ let q = char::from(34u8); let b = char::from(92u8); let escape = |value: &str| value.replace(b, &format!("{b}{b}")).replace(q, &format!("{b}{q}")); let items = (v13).lines().filter_map(|line| { let mut parts = line.splitn(3, "  "); let place = parts.next()?; let rule = parts.next()?; let detail = parts.next().unwrap_or(""); let (path, number) = place.rsplit_once(char::from(58u8))?; Some(format!("{{{q}path{q}:{q}{}{q},{q}line{q}:{},{q}rule{q}:{q}{}{q},{q}detail{q}:{q}{}{q}}}", escape(path), number, rule, escape(detail))) }).collect::<Vec<_>>(); items.join(",") }.as_str());
+            let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"findings\":["); } LIT.with(|lit| lit.clone()) };
+            let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v34));
+            let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("],\"count\":"); } LIT.with(|lit| lit.clone()) };
+            let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v36, v37));
+            let v39: Rc<str> = format_real_20(v14);
+            let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v39));
+            let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
+            let v42: Rc<str> = Rc::<str>::from(format!("{}{}", v40, v41));
+            println!("{}", v42);
             ()
         } else {
-            let v42: bool = &*v13 != "";
-            if v42 {
-                let v43: Rc<str> = std::rc::Rc::<str>::from((v13).trim_end());
-                println!("{}", &*v43);
+            let v43: bool = &*v13 != "";
+            if v43 {
+                let v44: Rc<str> = std::rc::Rc::<str>::from((v13).trim_end());
+                println!("{}", v44);
                 ()
             };
-            let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit standards ok "); } LIT.with(|lit| lit.clone()) };
-            let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v31));
-            let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rules="); } LIT.with(|lit| lit.clone()) };
-            let v48: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v45, v46)), v16));
-            println!("{}", &*v48);
+            let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit standards ok "); } LIT.with(|lit| lit.clone()) };
+            let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v31));
+            let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rules="); } LIT.with(|lit| lit.clone()) };
+            let v49: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v46, v47)), v16));
+            println!("{}", v49);
             ()
         };
-        let v49: bool = v14 == 0i32;
-        if v49 {
+        let v50: bool = v14 == 0i32;
+        if v50 {
             0i32
         } else {
             1i32
         }
     }
 }
-fn census_requested_22() -> bool {
-    let v0: bool = std::env::args().nth(2).is_some_and(|flag| matches!(flag.as_str(), "--census" | "--baseline" | "--baseline-merge" | "--ratchet"));
+fn census_requested_24() -> bool {
+    let mut v0: bool = std::env::args().nth(2).is_some_and(|flag| matches!(flag.as_str(), "--census" | "--baseline" | "--baseline-merge" | "--ratchet"));
     v0
 }
 fn standards_run_0() -> i32 {
-    let v0: bool = census_requested_22();
+    let mut v0: bool = census_requested_24();
     if v0 {
         let v1: i32 = kit_style_census::kit_census_run();
         v1

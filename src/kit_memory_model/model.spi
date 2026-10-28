@@ -4,8 +4,8 @@
 := option_value (~name : string) : string = $'std::rc::Rc::<str>::from({ let args = \
     std::env::args().collect::<Vec<_>>(); args.iter().position(|argument| argument == &*!name).and_then(|at| \
     args.get(at + 1)).cloned().unwrap_or_default() }.as_str())' : string
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:= stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
+:= stderr_line (~text : string) : () = console.write_error_line text
 := exact_text (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_defaul\
     t().as_str())' : string
 :~ file_present (~path : string) : bool =
@@ -18,7 +18,7 @@
     "MEMORY.md").collect::<Vec<_>>()).unwrap_or_default(); names.sort(); names.join("\n") }.as_str())' : string
 := path_joined (~dir : string) (~name : string) : string = $'std::rc::Rc::<str>::from(std::path::Path::new(&*!dir).joi\
     n(&*!name).to_string_lossy().as_ref())' : string
-:= count_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= count_text (value : i32) : string = (sm'.show value)
 := text_length (~text : string) : i32 = sm'.length text
 := byte_at (~text : string) (index : i32) : i32 = $'(!text).as_bytes().get(!index as usize).map(|byte| *byte as \
     i32).unwrap_or(-1)' : i32

@@ -32,6 +32,7 @@ enum US4 {
     US4_HabitCall,
     US4_OtherCall,
 }
+struct Mut0 { l0: Rc<str> }
 fn command_line_argument_count_3() -> i32 {
     let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
@@ -373,7 +374,21 @@ fn files_tallied_11(mut v0: US2, mut v1: US3, mut v2: Rc<str>, mut v3: Rc<str>, 
         }
     }
 }
-fn kit_share_22(mut v0: u64, mut v1: u64, mut v2: u64) -> f64 {
+fn method23(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_22(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method23(v2.clone(), v3.clone());
+    let mut v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
+fn kit_share_24(mut v0: u64, mut v1: u64, mut v2: u64) -> f64 {
     let mut v3: bool = v0 == 0u64;
     if v3 {
         0.0f64
@@ -395,13 +410,13 @@ fn rows_of_21(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64, mut v3: u64, mut v4
                 let v42: Rc<str> = if v10 {
                     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v11));
-                    let v13: Rc<str> = std::rc::Rc::<str>::from((v6).to_string());
+                    let v13: Rc<str> = format_real_22(v6);
                     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v13)), v11));
-                    let v16: Rc<str> = std::rc::Rc::<str>::from((v7).to_string());
+                    let v16: Rc<str> = format_real_22(v7);
                     let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v11));
-                    let v18: Rc<str> = std::rc::Rc::<str>::from((v8).to_string());
+                    let v18: Rc<str> = format_real_22(v8);
                     let v20: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v17, v18)), v11));
-                    let v21: f64 = kit_share_22(v6, v7, v8);
+                    let v21: f64 = kit_share_24(v6, v7, v8);
                     let v22: Rc<str> = std::rc::Rc::<str>::from(format!("{:.3}", v21));
                     let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v15, Rc::<str>::from(format!("{}{}", v20, v22))));
                     v24.clone()
@@ -410,13 +425,13 @@ fn rows_of_21(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64, mut v3: u64, mut v4
                     let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v25));
                     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                     let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v27));
-                    let v29: Rc<str> = std::rc::Rc::<str>::from((v6).to_string());
+                    let v29: Rc<str> = format_real_22(v6);
                     let v31: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v28, v29)), v27));
-                    let v32: Rc<str> = std::rc::Rc::<str>::from((v7).to_string());
+                    let v32: Rc<str> = format_real_22(v7);
                     let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v27));
-                    let v34: Rc<str> = std::rc::Rc::<str>::from((v8).to_string());
+                    let v34: Rc<str> = format_real_22(v8);
                     let v36: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v33, v34)), v27));
-                    let v37: f64 = kit_share_22(v6, v7, v8);
+                    let v37: f64 = kit_share_24(v6, v7, v8);
                     let v38: Rc<str> = std::rc::Rc::<str>::from(format!("{:.3}", v37));
                     let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v26, Rc::<str>::from(format!("{}{}", v31, Rc::<str>::from(format!("{}{}", v36, v38))))));
                     v41.clone()
@@ -433,7 +448,7 @@ fn rows_of_21(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64, mut v3: u64, mut v4
         }
     }
 }
-fn max_habit_24(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u64) {
+fn max_habit_26(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u64) {
     loop {
         match &*v0 {
             UH0::UH0_DayThen(v3, v4, v5, v6, v7) => {
@@ -457,7 +472,7 @@ fn max_habit_24(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u64)
         }
     }
 }
-fn without_key_25(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
+fn without_key_27(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
     match &*v1 {
         UH0::UH0_DayThen(v3, v4, v5, v6, v7) => {
             let mut v3: Rc<str> = v3.clone();
@@ -469,7 +484,7 @@ fn without_key_25(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
             if v8 {
                 v7.clone()
             } else {
-                let v9: Rc<UH0> = without_key_25(v0.clone(), v7.clone());
+                let v9: Rc<UH0> = without_key_27(v0.clone(), v7.clone());
                 Rc::new(UH0::UH0_DayThen(v3.clone(), v4, v5, v6, v9.clone()))
             }
         }
@@ -478,20 +493,20 @@ fn without_key_25(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
         }
     }
 }
-fn habit_lines_23(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u64) {
+fn habit_lines_25(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u64) {
     loop {
         let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let mut v4: u64 = 0u64;
-        let (mut v5, mut v6): (Rc<str>, u64) = max_habit_24(v0.clone(), v3.clone(), v4);
+        let (mut v5, mut v6): (Rc<str>, u64) = max_habit_26(v0.clone(), v3.clone(), v4);
         let v7: bool = &*v5 == "";
         if v7 {
             return (v1.clone(), v2);
         } else {
-            let v8: Rc<UH0> = without_key_25(v5.clone(), v0.clone());
+            let v8: Rc<UH0> = without_key_27(v5.clone(), v0.clone());
             let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v5));
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
             let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
-            let v12: Rc<str> = std::rc::Rc::<str>::from((v6).to_string());
+            let v12: Rc<str> = format_real_22(v6);
             let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v12));
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
@@ -502,129 +517,137 @@ fn habit_lines_23(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u6
     }
 }
 fn adoption_run_0() -> i32 {
-    let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--days"); } LIT.with(|lit| lit.clone()) };
+    let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--days-back"); } LIT.with(|lit| lit.clone()) };
     let v1: i32 = 2i32;
     let v2: Rc<str> = option_value_1(v0.clone(), v1);
-    let mut v3: u64 = decimal_u64_6(v2.clone());
-    let mut v4: bool = v3 == 0u64;
-    let v5: u64 = if v4 {
+    let mut v3: bool = &*v2 != "";
+    let v7: Rc<str> = if v3 {
+        v2.clone()
+    } else {
+        let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--days"); } LIT.with(|lit| lit.clone()) };
+        let v5: i32 = 2i32;
+        option_value_1(v4.clone(), v5)
+    };
+    let v8: u64 = decimal_u64_6(v7.clone());
+    let v9: bool = v8 == 0u64;
+    let v10: u64 = if v9 {
         7u64
     } else {
-        v3
+        v8
     };
-    let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--out"); } LIT.with(|lit| lit.clone()) };
-    let v7: i32 = 2i32;
-    let v8: Rc<str> = option_value_1(v6.clone(), v7);
-    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--habits"); } LIT.with(|lit| lit.clone()) };
-    let v10: i32 = 2i32;
-    let v11: bool = flag_present_8(v9.clone(), v10);
-    let v14: US2 = if v11 {
+    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--out"); } LIT.with(|lit| lit.clone()) };
+    let v12: i32 = 2i32;
+    let v13: Rc<str> = option_value_1(v11.clone(), v12);
+    let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--habits"); } LIT.with(|lit| lit.clone()) };
+    let v15: i32 = 2i32;
+    let v16: bool = flag_present_8(v14.clone(), v15);
+    let v19: US2 = if v16 {
         US2::US2_ByHabit
     } else {
         US2::US2_ByDay
     };
-    let v15: US3 = US3::US3_ClaudeCode;
-    let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".claude/projects"); } LIT.with(|lit| lit.clone()) };
-    let v17: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).map(std::path::PathBuf::from).unwrap_or_default().join(&*v16).to_string_lossy().as_ref());
-    let v18: Rc<str> = session_files_9(v17.clone(), v5);
-    let v19: Rc<str> = cutoff_day_10(v5);
-    let v20: u64 = 0u64;
-    let v21: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoDays); } CASE.with(|case| case.clone()) };
-    let v22: Rc<UH0> = files_tallied_11(v14.clone(), v15.clone(), v18.clone(), v19.clone(), v20, v21.clone());
-    let v23: US3 = US3::US3_Codex;
-    let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".codex/sessions"); } LIT.with(|lit| lit.clone()) };
-    let v25: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).map(std::path::PathBuf::from).unwrap_or_default().join(&*v24).to_string_lossy().as_ref());
-    let v26: Rc<str> = session_files_9(v25.clone(), v5);
-    let v27: Rc<str> = cutoff_day_10(v5);
-    let v28: u64 = 0u64;
-    let v29: Rc<UH0> = files_tallied_11(v14.clone(), v23.clone(), v26.clone(), v27.clone(), v28, v22.clone());
-    let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v31: u64 = 0u64;
-    let v32: u64 = 0u64;
+    let v20: US3 = US3::US3_ClaudeCode;
+    let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".claude/projects"); } LIT.with(|lit| lit.clone()) };
+    let v22: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).map(std::path::PathBuf::from).unwrap_or_default().join(&*v21).to_string_lossy().as_ref());
+    let v23: Rc<str> = session_files_9(v22.clone(), v10);
+    let v24: Rc<str> = cutoff_day_10(v10);
+    let v25: u64 = 0u64;
+    let v26: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoDays); } CASE.with(|case| case.clone()) };
+    let v27: Rc<UH0> = files_tallied_11(v19.clone(), v20.clone(), v23.clone(), v24.clone(), v25, v26.clone());
+    let v28: US3 = US3::US3_Codex;
+    let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".codex/sessions"); } LIT.with(|lit| lit.clone()) };
+    let v30: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).map(std::path::PathBuf::from).unwrap_or_default().join(&*v29).to_string_lossy().as_ref());
+    let v31: Rc<str> = session_files_9(v30.clone(), v10);
+    let v32: Rc<str> = cutoff_day_10(v10);
     let v33: u64 = 0u64;
-    let (mut v34, mut v35, mut v36, mut v37): (Rc<str>, u64, u64, u64) = rows_of_21(v29.clone(), v30.clone(), v31, v32, v33);
+    let v34: Rc<UH0> = files_tallied_11(v19.clone(), v28.clone(), v31.clone(), v32.clone(), v33, v27.clone());
+    let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v36: u64 = 0u64;
+    let v37: u64 = 0u64;
     let v38: u64 = 0u64;
-    let (mut v39, mut v40): (Rc<str>, u64) = habit_lines_23(v29.clone(), v30.clone(), v38);
-    let v49: Rc<str> = match &v14 {
+    let (mut v39, mut v40, mut v41, mut v42): (Rc<str>, u64, u64, u64) = rows_of_21(v34.clone(), v35.clone(), v36, v37, v38);
+    let v43: u64 = 0u64;
+    let (mut v44, mut v45): (Rc<str>, u64) = habit_lines_25(v34.clone(), v35.clone(), v43);
+    let v54: Rc<str> = match &v19 {
         US2::US2_ByDay => {
-            let v41: Rc<str> = { let mut lines = (&*v34).lines().filter(|line| !line.is_empty()).collect::<Vec<_>>(); lines.sort(); std::rc::Rc::<str>::from(lines.join("
+            let v46: Rc<str> = { let mut lines = (&*v39).lines().filter(|line| !line.is_empty()).collect::<Vec<_>>(); lines.sort(); std::rc::Rc::<str>::from(lines.join("
 ")) };
-            let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("client\tday\tshell_calls\tkit_calls\thabit_calls\tkit_share\n"); } LIT.with(|lit| lit.clone()) };
-            let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v41));
-            let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v44));
-            v45.clone()
+            let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("client\tday\tshell_calls\tkit_calls\thabit_calls\tkit_share\n"); } LIT.with(|lit| lit.clone()) };
+            let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v46));
+            let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+            let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v48, v49));
+            v50.clone()
         }
         US2::US2_ByHabit => {
-            let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("habit\tcalls\n"); } LIT.with(|lit| lit.clone()) };
-            let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v39));
-            v47.clone()
+            let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("habit\tcalls\n"); } LIT.with(|lit| lit.clone()) };
+            let v52: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v44));
+            v52.clone()
         }
     };
-    let v50: bool = &*v8 == "";
-    let v52: Rc<str> = if v50 {
-        v30.clone()
+    let v55: bool = &*v13 == "";
+    let v57: Rc<str> = if v55 {
+        v35.clone()
     } else {
-        let v51: Rc<str> = std::rc::Rc::<str>::from(std::fs::write(&*v8, (&*v49).as_bytes()).err().map(|error| format!("write {}: {error}", &*v8)).unwrap_or_default().as_str());
-        v51.clone()
+        let v56: Rc<str> = std::rc::Rc::<str>::from(std::fs::write(&*v13, (&*v54).as_bytes()).err().map(|error| format!("write {}: {error}", &*v13)).unwrap_or_default().as_str());
+        v56.clone()
     };
-    let v53: bool = &*v52 != "";
-    if v53 {
-        eprintln!("kit error: adoption: {}", &*v52);
+    let v58: bool = &*v57 != "";
+    if v58 {
+        eprintln!("kit error: adoption: {}", &*v57);
         2i32
     } else {
-        if v50 {
-            print!("{}", &*v49);
+        if v55 {
+            print!("{}", &*v54);
             ()
         };
-        let v90: Rc<str> = match &v14 {
+        let v95: Rc<str> = match &v19 {
             US2::US2_ByDay => {
-                let v54: Rc<str> = std::rc::Rc::<str>::from((v35).to_string());
-                let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shell_calls="); } LIT.with(|lit| lit.clone()) };
-                let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v54));
-                let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" kit_calls="); } LIT.with(|lit| lit.clone()) };
-                let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v57));
-                let v59: Rc<str> = std::rc::Rc::<str>::from((v36).to_string());
-                let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v59));
-                let v61: Rc<str> = std::rc::Rc::<str>::from((v37).to_string());
-                let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" habit_calls="); } LIT.with(|lit| lit.clone()) };
-                let v63: Rc<str> = Rc::<str>::from(format!("{}{}", v62, v61));
-                let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" kit_share="); } LIT.with(|lit| lit.clone()) };
+                let v59: Rc<str> = format_real_22(v40);
+                let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shell_calls="); } LIT.with(|lit| lit.clone()) };
+                let v61: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v59));
+                let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" kit_calls="); } LIT.with(|lit| lit.clone()) };
+                let v63: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v62));
+                let v64: Rc<str> = format_real_22(v41);
                 let v65: Rc<str> = Rc::<str>::from(format!("{}{}", v63, v64));
-                let v66: f64 = kit_share_22(v35, v36, v37);
-                let v67: Rc<str> = std::rc::Rc::<str>::from(format!("{:.3}", v66));
-                let v69: Rc<str> = Rc::<str>::from(format!("{}{}", v60, Rc::<str>::from(format!("{}{}", v65, v67))));
-                let v70: Rc<str> = std::rc::Rc::<str>::from((v5).to_string());
-                let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit adoption ok days_back="); } LIT.with(|lit| lit.clone()) };
-                let v73: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v71, v70)), v69));
-                let v75: Rc<str> = if v50 {
-                    v30.clone()
+                let v66: Rc<str> = format_real_22(v42);
+                let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" habit_calls="); } LIT.with(|lit| lit.clone()) };
+                let v68: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v66));
+                let v69: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" kit_share="); } LIT.with(|lit| lit.clone()) };
+                let v70: Rc<str> = Rc::<str>::from(format!("{}{}", v68, v69));
+                let v71: f64 = kit_share_24(v40, v41, v42);
+                let v72: Rc<str> = std::rc::Rc::<str>::from(format!("{:.3}", v71));
+                let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v65, Rc::<str>::from(format!("{}{}", v70, v72))));
+                let v75: Rc<str> = format_real_22(v10);
+                let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit adoption ok days_back="); } LIT.with(|lit| lit.clone()) };
+                let v78: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v76, v75)), v74));
+                let v80: Rc<str> = if v55 {
+                    v35.clone()
                 } else {
-                    let v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" out="); } LIT.with(|lit| lit.clone()) };
-                    v74.clone()
+                    let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" out="); } LIT.with(|lit| lit.clone()) };
+                    v79.clone()
                 };
-                let v77: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v73, v75)), v8));
-                v77.clone()
+                let v82: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v78, v80)), v13));
+                v82.clone()
             }
             US2::US2_ByHabit => {
-                let v78: Rc<str> = std::rc::Rc::<str>::from((v5).to_string());
-                let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit adoption ok mode=habits days="); } LIT.with(|lit| lit.clone()) };
-                let v80: Rc<str> = Rc::<str>::from(format!("{}{}", v79, v78));
-                let v81: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" habits="); } LIT.with(|lit| lit.clone()) };
-                let v82: Rc<str> = Rc::<str>::from(format!("{}{}", v80, v81));
-                let v83: Rc<str> = std::rc::Rc::<str>::from((v40).to_string());
-                let v84: Rc<str> = Rc::<str>::from(format!("{}{}", v82, v83));
-                let v86: Rc<str> = if v50 {
-                    v30.clone()
+                let v83: Rc<str> = format_real_22(v10);
+                let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit adoption ok mode=habits days="); } LIT.with(|lit| lit.clone()) };
+                let v85: Rc<str> = Rc::<str>::from(format!("{}{}", v84, v83));
+                let v86: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" habits="); } LIT.with(|lit| lit.clone()) };
+                let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v85, v86));
+                let v88: Rc<str> = format_real_22(v45);
+                let v89: Rc<str> = Rc::<str>::from(format!("{}{}", v87, v88));
+                let v91: Rc<str> = if v55 {
+                    v35.clone()
                 } else {
-                    let v85: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" out="); } LIT.with(|lit| lit.clone()) };
-                    v85.clone()
+                    let v90: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" out="); } LIT.with(|lit| lit.clone()) };
+                    v90.clone()
                 };
-                let v88: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v84, v86)), v8));
-                v88.clone()
+                let v93: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v89, v91)), v13));
+                v93.clone()
             }
         };
-        println!("{}", &*v90);
+        println!("{}", v95);
         0i32
     }
 }

@@ -21,6 +21,8 @@
     |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) Nil
     |> listm.rev
 
+:~ largest_of (~text : string) : string = $'kit_crate_largest::kit_crate_largest(&*!text)' : string
+
 :~ measured (dir : string) : option crate_measure =
     := manifest = dir </> "Cargo.toml"
     ? file_system.file_exists manifest |> not ?> None
@@ -29,8 +31,11 @@
         | NotSpiralCrate => None
         | SpiralCrate found =>
             := output = dir </> found.output
-            := lines = ? file_system.file_exists output ?> line_count (file_system.read_all_text output) |: -1i32
-            Some { crate = leaf_name dir; output = found.output; lines = lines }
+            := present = file_system.file_exists output
+            := text = ? present ?> file_system.read_all_text output |: ""
+            := lines = ? present ?> line_count text |: -1i32
+            := largest = ? lines > 0i32 ?> largest_of text |: ""
+            Some { crate = leaf_name dir; output = found.output; lines = lines; largest = largest }
 
 :~ ^ walked (todo : list string) (found : list crate_measure) : list crate_measure =
     ?= todo ?|

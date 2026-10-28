@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "classify.spi"
+output = "lint_classify.rs"
+
+[package]
+name = "kit-lint-classify"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_classify"
+path = "lint_classify.rs"

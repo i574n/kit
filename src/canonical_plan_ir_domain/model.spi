@@ -13,7 +13,7 @@
 := kind_count () : i32 = union_reflection.cases.union_cases_fold (\ counted (_ : plan_kind) => counted + 1i32) 0i32
 := index_code (~input : string) : i32 = $'(!input).parse::<u8>().ok().filter(|index| index.to_string() == \
     &*!input).map(|index| index as i32).unwrap_or(-1)' : i32
-:= wire_code (code : i32) : u64 = $'!code as u64' : u64
+:= wire_code (code : i32) : u64 = (conv code : u64)
 
 :~ plan_schema_tag (~input : string) : string =
     ? (input = "schema") ?> "canonical-plan-ir" |: "invalid"
@@ -141,7 +141,7 @@
     union_reflection.cases.union_case_where (kind_named op effect) (decoded target expected payload invalid) invalid
 
 := expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
-:= index_text (index : i32) : string = $'std::rc::Rc::<str>::from((!index).to_string().as_str())' : string
+:= index_text (index : i32) : string = (sm'.show index)
 
 :~ ^ descriptors_round_trip (index : i32) : bool =
     ? kind_count () <= index

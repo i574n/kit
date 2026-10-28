@@ -857,7 +857,7 @@ fn git_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v34 {
             ()
         } else {
-            println!("{}", &*v21);
+            println!("{}", v21);
             ()
         };
         if v22 {
@@ -875,7 +875,7 @@ fn git_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
         let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v42: Rc<str> = std::rc::Rc::<str>::from([&*v40, &*v5, &*v41, &*v41, &*v41].concat());
-        println!("{}", &*v42);
+        println!("{}", v42);
         let v43: US2 = US2::US2_Failed;
         let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("repos 0"); } LIT.with(|lit| lit.clone()) };
         receipt_line_39(v43.clone(), v44.clone(), v2);

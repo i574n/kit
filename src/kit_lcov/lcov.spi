@@ -63,7 +63,7 @@
 := hit_count_text (~value : string) : string = $'std::rc::Rc::<str>::from(!value.split(char::from(44u8)).nth(1).unwrap\
     _or(""))' : string
 
-:= decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= decimal_text (~value : u64) : string = (sm'.show value)
 
 :~ hit_reading_of (~value : string) : hit_reading =
     ? fields_valid value ?>

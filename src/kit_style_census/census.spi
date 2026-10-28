@@ -2,9 +2,9 @@
 :< probes
 
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
-:~ stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:~ stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
-:~ count_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:~ stdout_line (~text : string) : () = console.write_line text
+:~ stderr_line (~text : string) : () = console.write_error_line text
+:~ count_text (value : i32) : string = (sm'.show value)
 :~ file_text (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default\
     ().as_str())' : string
 :~ text_written (~path : string) (~text : string) : bool = $'std::fs::write(&*!path, (!text).as_bytes()).is_ok()' : bool

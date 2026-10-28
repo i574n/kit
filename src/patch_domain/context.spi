@@ -29,7 +29,7 @@
 := i32_le (a : i32) (b : i32) : bool = (a <= b)
 := i32_add (a : i32) (b : i32) : i32 = (a + b)
 := i32_sub (a : i32) (b : i32) : i32 = (a - b)
-:= i32_positive (value : i32) : bool = $"0 < !value"
+:= i32_positive (value : i32) : bool = (0i32 < value)
 
 := allowed_escape byte : bool =
     ? byte = 110i32 ?> !+

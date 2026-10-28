@@ -36,7 +36,7 @@ enum US5 {
     US5_TableUnreadable(Rc<str>),
 }
 fn stderr_line_3(mut v0: Rc<str>) -> () {
-    eprintln!("{}", &*v0);
+    eprintln!("{}", v0);
     ()
 }
 fn refused_2(mut v0: Rc<str>) -> i32 {
@@ -292,7 +292,7 @@ fn numeric_note_22(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f
     }
 }
 fn stdout_line_23(mut v0: Rc<str>) -> () {
-    println!("{}", &*v0);
+    println!("{}", v0);
     ()
 }
 fn tested_run_1(mut v0: US0, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>) -> i32 {

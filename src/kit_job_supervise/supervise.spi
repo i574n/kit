@@ -18,7 +18,7 @@
         := _ = text_written (job_file id "peak_private_mb") (decimal_text peak)
         halted child id HaltOnMemory
     |? code <> -1i64 ?>
-        := exit = $'!code as i32' : i32
+        := exit = (conv code : i32)
         := _ = text_written (job_file id "exit") (exit_line exit (now_ms ()) (JobFinished exit) "")
         := _ = $'kit_machine_windows::kit_job_windows_dropped(&*!id)' : u64
         exit

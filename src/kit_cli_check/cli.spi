@@ -94,7 +94,7 @@
 := exe_suffix () : string = $'std::rc::Rc::<str>::from(std::env::consts::EXE_SUFFIX)' : string
 := native_name () : string =
     $'std::rc::Rc::<str>::from(format\!("kit{}", std::env::consts::EXE_SUFFIX).as_str())' : string
-:= u64_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= u64_text (~value : u64) : string = (sm'.show value)
 := fixture_root_remove (fixture_root root) : () = $'{ let _ = std::fs::remove_dir_all(&*!root); }' : ()
 := fixture_slashed (fixture_root root) : string = $'std::rc::Rc::<str>::from((!root).replace(char::from(92u8), \
     "/").as_str())' : string
@@ -242,4 +242,4 @@
 := path_appears (~path : string) (~max_ms : u64) : bool = $'{ let started = std::time::Instant::now(); \
     while \!std::path::Path::new(&*!path).exists() && started.elapsed() < std::time::Duration::from_millis(!max_ms) { \
     std::thread::sleep(std::time::Duration::from_millis(50)); } std::path::Path::new(&*!path).exists() }' : bool
-:= decimal (~value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= decimal (~value : i32) : string = (sm'.show value)

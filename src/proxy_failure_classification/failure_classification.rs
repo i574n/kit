@@ -26,7 +26,7 @@ fn proxy_child_exit_code_0(mut v0: Rc<str>) -> i32 {
         }
         US0::US0_ChildProcessFailure(v6) => {
             let v6: i32 = *v6;
-            let v7: bool = v6 > 255;
+            let v7: bool = v6 > 255i32;
             if v7 {
                 255i32
             } else {

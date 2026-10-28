@@ -2,6 +2,7 @@ packages:
     |core-
     spiral-
     kit_receipt
+    rust_std_env
 modules:
     model
     slice

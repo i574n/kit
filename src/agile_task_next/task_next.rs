@@ -421,6 +421,34 @@ fn open_deps_17(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32, mut v3: i32) -> i
         }
     }
 }
+fn priority_weight_18(mut v0: i32) -> i32 {
+    let mut v1: bool = 1i32 == v0;
+    if v1 {
+        256i32
+    } else {
+        let v2: bool = 2i32 == v0;
+        if v2 {
+            64i32
+        } else {
+            let v3: bool = 3i32 == v0;
+            if v3 {
+                16i32
+            } else {
+                let v4: bool = 4i32 == v0;
+                if v4 {
+                    4i32
+                } else {
+                    let v5: bool = v0 < 1i32;
+                    if v5 {
+                        4096i32
+                    } else {
+                        1i32
+                    }
+                }
+            }
+        }
+    }
+}
 fn unblocked_weight_16(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
     loop {
         match &*v0 {
@@ -454,7 +482,7 @@ fn unblocked_weight_16(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                     let v21: i32 = 0i32;
                     let v22: i32 = 0i32;
                     let v23: i32 = open_deps_17(v0.clone(), v8.clone(), v21, v22);
-                    let v24: i32 = 1i32 << (2 * (5 - (v5).clamp(0, 5)));
+                    let v24: i32 = priority_weight_18(v5);
                     let v25: bool = v23 < 1i32;
                     let v26: i32 = if v25 {
                         1i32
@@ -524,7 +552,7 @@ fn ranked_of_15(mut v0: US0, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<str>, 
     };
     let v30: i32 = 0i32;
     let v31: i32 = unblocked_weight_16(v1, v2.clone(), v30);
-    let v32: i32 = 1i32 << (2 * (5 - (v4).clamp(0, 5)));
+    let v32: i32 = priority_weight_18(v4);
     let v33: i32 = v32.wrapping_add(v31);
     let v39: i32 = match &v0 {
         US0::US0_MainAgent => {
@@ -540,7 +568,7 @@ fn ranked_of_15(mut v0: US0, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<str>, 
     };
     (v2, v3, v4, v5, v29, v11, v31, v39)
 }
-fn inserted_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: bool, mut v6: i32, mut v7: i32, mut v8: Rc<UH1>) -> Rc<UH1> {
+fn inserted_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: bool, mut v6: i32, mut v7: i32, mut v8: Rc<UH1>) -> Rc<UH1> {
     match &*v8 {
         UH1::UH1_NoRanked => {
             let v9: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_NoRanked); } CASE.with(|case| case.clone()) };
@@ -560,7 +588,7 @@ fn inserted_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v
             if v20 {
                 Rc::new(UH1::UH1_RankedThen(v0.clone(), v1.clone(), v2, v3, v4, v5, v6, v7, v8.clone()))
             } else {
-                let v22: Rc<UH1> = inserted_18(v0.clone(), v1.clone(), v2, v3, v4, v5, v6, v7, v19.clone());
+                let v22: Rc<UH1> = inserted_19(v0.clone(), v1.clone(), v2, v3, v4, v5, v6, v7, v19.clone());
                 Rc::new(UH1::UH1_RankedThen(v11.clone(), v12.clone(), v13, v14, v15, v16, v17, v18, v22.clone()))
             }
         }
@@ -597,7 +625,7 @@ fn ranked_from_11(mut v0: US0, mut v1: Rc<dyn Fn(Rc<str>, Rc<str>, i32, i32, Rc<
                 };
                 if v20 {
                     let (mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28): (Rc<str>, Rc<str>, i32, i32, i32, bool, i32, i32) = ranked_of_15(v0.clone(), v2.clone(), v5.clone(), v6.clone(), v7, v8, v9.clone(), v10.clone(), v11.clone(), v12, v13);
-                    let v29: Rc<UH1> = inserted_18(v21.clone(), v22.clone(), v23, v24, v25, v26, v27, v28, v4.clone());
+                    let v29: Rc<UH1> = inserted_19(v21.clone(), v22.clone(), v23, v24, v25, v26, v27, v28, v4.clone());
                     (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v2.clone(), v14.clone(), v29.clone());
                     continue;
                 } else {
@@ -608,7 +636,7 @@ fn ranked_from_11(mut v0: US0, mut v1: Rc<dyn Fn(Rc<str>, Rc<str>, i32, i32, Rc<
         }
     }
 }
-fn ranked_json_20(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: i32, mut v5: i32, mut v6: bool, mut v7: i32, mut v8: i32) -> Rc<str> {
+fn ranked_json_21(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: i32, mut v5: i32, mut v6: bool, mut v7: i32, mut v8: i32) -> Rc<str> {
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"rank\":"); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"id\":\""); } LIT.with(|lit| lit.clone()) };
@@ -641,7 +669,7 @@ fn ranked_json_20(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mu
     let v34: Rc<str> = std::rc::Rc::<str>::from([&*v13, &*v26, &*v27, &*v28, &*v33].concat());
     v34.clone()
 }
-fn json_items_19(mut v0: Rc<UH1>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> (Rc<str>, i32) {
+fn json_items_20(mut v0: Rc<UH1>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> (Rc<str>, i32) {
     loop {
         match &*v0 {
             UH1::UH1_NoRanked => {
@@ -666,10 +694,10 @@ fn json_items_19(mut v0: Rc<UH1>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> 
                     let v16: i32 = v1.wrapping_add(1i32);
                     let v17: bool = &*v3 == "";
                     let v23: Rc<str> = if v17 {
-                        ranked_json_20(v1, v5.clone(), v6.clone(), v7, v8, v9, v10, v11, v12)
+                        ranked_json_21(v1, v5.clone(), v6.clone(), v7, v8, v9, v10, v11, v12)
                     } else {
                         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                        let v20: Rc<str> = ranked_json_20(v1, v5.clone(), v6.clone(), v7, v8, v9, v10, v11, v12);
+                        let v20: Rc<str> = ranked_json_21(v1, v5.clone(), v6.clone(), v7, v8, v9, v10, v11, v12);
                         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                         let v22: Rc<str> = std::rc::Rc::<str>::from([&*v3, &*v19, &*v20, &*v21, &*v21].concat());
                         v22.clone()
@@ -681,7 +709,7 @@ fn json_items_19(mut v0: Rc<UH1>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> 
         }
     }
 }
-fn ranked_count_21(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
+fn ranked_count_22(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
     loop {
         match &*v0 {
             UH1::UH1_NoRanked => {
@@ -704,7 +732,7 @@ fn ranked_count_21(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
         }
     }
 }
-fn ranked_line_23(mut v0: US0, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: i32, mut v5: i32, mut v6: i32, mut v7: bool, mut v8: i32, mut v9: i32) -> Rc<str> {
+fn ranked_line_24(mut v0: US0, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: i32, mut v5: i32, mut v6: i32, mut v7: bool, mut v8: i32, mut v9: i32) -> Rc<str> {
     let v10: Rc<str> = std::rc::Rc::<str>::from((v6).to_string());
     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("m"); } LIT.with(|lit| lit.clone()) };
     let v14: Rc<str> = if v7 {
@@ -747,7 +775,7 @@ fn ranked_line_23(mut v0: US0, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mu
     let v39: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v33, &*v34, &*v36, &*v38].concat());
     v39.clone()
 }
-fn printed_22(mut v0: US0, mut v1: Rc<UH1>, mut v2: i32, mut v3: i32) -> i32 {
+fn printed_23(mut v0: US0, mut v1: Rc<UH1>, mut v2: i32, mut v3: i32) -> i32 {
     loop {
         match &*v1 {
             UH1::UH1_NoRanked => {
@@ -769,7 +797,7 @@ fn printed_22(mut v0: US0, mut v1: Rc<UH1>, mut v2: i32, mut v3: i32) -> i32 {
                     let v15: i32 = v2.wrapping_sub(1i32);
                     return v15;
                 } else {
-                    let v16: Rc<str> = ranked_line_23(v0.clone(), v2, v5.clone(), v6.clone(), v7, v8, v9, v10, v11, v12);
+                    let v16: Rc<str> = ranked_line_24(v0.clone(), v2, v5.clone(), v6.clone(), v7, v8, v9, v10, v11, v12);
                     let v17: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v16.to_string() + "
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
                     let v18: i32 = v2.wrapping_add(1i32);
@@ -819,7 +847,7 @@ fn agile_next_1(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>, mut 
                 match &v5 {
                     US1::US1_NextJson => {
                         let v32: i32 = 1i32;
-                        let (mut v33, mut v34): (Rc<str>, i32) = json_items_19(v31.clone(), v32, v2, v8.clone());
+                        let (mut v33, mut v34): (Rc<str>, i32) = json_items_20(v31.clone(), v32, v2, v8.clone());
                         let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"role\":\""); } LIT.with(|lit| lit.clone()) };
                         let v39: Rc<str> = match &v1 {
                             US0::US0_MainAgent => {
@@ -833,7 +861,7 @@ fn agile_next_1(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>, mut 
                         };
                         let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\",\"ready\":"); } LIT.with(|lit| lit.clone()) };
                         let v41: i32 = 0i32;
-                        let v42: i32 = ranked_count_21(v31.clone(), v41);
+                        let v42: i32 = ranked_count_22(v31.clone(), v41);
                         let v43: Rc<str> = std::rc::Rc::<str>::from((v42).to_string());
                         let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"shown\":"); } LIT.with(|lit| lit.clone()) };
                         let v45: Rc<str> = std::rc::Rc::<str>::from((v34).to_string());
@@ -847,10 +875,10 @@ fn agile_next_1(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>, mut 
                     }
                     US1::US1_NextText => {
                         let v51: i32 = 1i32;
-                        let v52: i32 = printed_22(v1.clone(), v31.clone(), v51, v2);
+                        let v52: i32 = printed_23(v1.clone(), v31.clone(), v51, v2);
                         let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ready="); } LIT.with(|lit| lit.clone()) };
                         let v54: i32 = 0i32;
-                        let v55: i32 = ranked_count_21(v31.clone(), v54);
+                        let v55: i32 = ranked_count_22(v31.clone(), v54);
                         let v56: Rc<str> = std::rc::Rc::<str>::from((v55).to_string());
                         let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shown="); } LIT.with(|lit| lit.clone()) };
                         let v58: Rc<str> = std::rc::Rc::<str>::from((v52).to_string());

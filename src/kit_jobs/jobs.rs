@@ -54,7 +54,7 @@ fn shared_summary_2(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v2
 }
 fn stdout_line_3(mut v0: Rc<str>) -> () {
-    println!("{}", &*v0);
+    println!("{}", v0);
     ()
 }
 fn started_code_1(mut v0: bool) -> i32 {
@@ -81,7 +81,7 @@ fn started_code_1(mut v0: bool) -> i32 {
     v4
 }
 fn stderr_line_6(mut v0: Rc<str>) -> () {
-    eprintln!("{}", &*v0);
+    eprintln!("{}", v0);
     ()
 }
 fn rejected_5(mut v0: Rc<str>) -> i32 {

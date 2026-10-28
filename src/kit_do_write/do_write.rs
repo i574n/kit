@@ -894,7 +894,7 @@ fn write_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v34 {
             ()
         } else {
-            println!("{}", &*v21);
+            println!("{}", v21);
             ()
         };
         if v22 {
@@ -911,7 +911,7 @@ fn write_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     } else {
         let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
         let mut v41: Rc<str> = Rc::<str>::from(format!("{}{}", v40, v5));
-        println!("{}", &*v41);
+        println!("{}", v41);
         let v42: US5 = US5::US5_Failed;
         let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files 0"); } LIT.with(|lit| lit.clone()) };
         receipt_line_39(v42.clone(), v43.clone(), v2);

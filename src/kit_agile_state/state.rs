@@ -74,7 +74,7 @@ fn agile_snapshot_identity(state_dir: &Path, paths: &[PathBuf]) -> Result<(u64, 
 
 fn agile_load_receipts(path: &Path, expected_snapshot: u64) -> Result<BTreeMap<String, AgileModuleReceipt>, String> {
     if !path.exists() { return Ok(BTreeMap::new()); }
-    let source = agile_read_regular_text_limited(path, 8 * 1024 * 1024)?;
+    let source = agile_read_regular_text_limited(path, 64 * 1024 * 1024)?;
     let canonical = kit_state_receipt_parse(&source);
     if source.replace("\r\n", "\n").trim_end() != kit_state_receipt_serialize(&canonical).trim_end() { return Ok(BTreeMap::new()); }
     let mut lines = canonical.lines();
@@ -155,7 +155,7 @@ fn agile_list_from_args(args: Vec<String>) -> Result<(), String> {
     let filter = args.get(2).map(|status| kit_agile_status_name_code(status));
     if filter.is_some_and(|code| code >= 5) { return Err("invalid agile status filter; expected Planned|Active|Blocked|Paused|Done".to_owned()); }
     let state = Path::new(agile_arg(&args, 1, "root")?).join("state/agile.spi");
-    let source = agile_read_regular_text_limited(&state, 8 * 1024 * 1024)?;
+    let source = agile_read_regular_text_limited(&state, 64 * 1024 * 1024)?;
     for line in source.lines().filter(|line| kit_agile_task_line_candidate_code(line) == 1) {
         if let Some(filter) = filter {
             let start = line.find("Task (").ok_or("malformed Task")? + 6;
@@ -212,7 +212,7 @@ fn agile_set_from_args(args: Vec<String>, progress: i32, status_code: i32) -> Re
     let root = Path::new(agile_arg(&args, 1, "root")?);
     let state = root.join("state/agile.spi");
     let id = agile_arg(&args, 2, "id")?;
-    let original = agile_read_regular_text_limited(&state, 8 * 1024 * 1024)?;
+    let original = agile_read_regular_text_limited(&state, 64 * 1024 * 1024)?;
     let mut found = false;
     let mut lines = Vec::new();
     for line in original.lines() {
@@ -235,7 +235,7 @@ fn agile_set_from_args(args: Vec<String>, progress: i32, status_code: i32) -> Re
     let updated = format!("{}\n", lines.join("\n"));
     agile_atomic_write(&state, updated.as_bytes())?;
     let validate = (|| -> Result<(), String> {
-        let observed = agile_read_regular_text_limited(&state, 8 * 1024 * 1024)?;
+        let observed = agile_read_regular_text_limited(&state, 64 * 1024 * 1024)?;
         if observed != updated { return Err("agile update readback mismatch".to_owned()); }
         let line = observed.lines().find(|line| agile_task_id_matches(line, id)).ok_or_else(|| format!("updated agile task disappeared: {id}"))?;
         let start = line.find("Task (").ok_or_else(|| "updated Task malformed".to_owned())? + 6;
@@ -256,7 +256,7 @@ fn agile_transient_receipt(path: &Path) -> bool {
 }
 
 fn agile_validate_transient(path: &Path) -> Result<(), String> {
-    let source = agile_read_regular_text_limited(path, 8 * 1024 * 1024)?;
+    let source = agile_read_regular_text_limited(path, 64 * 1024 * 1024)?;
     let name = path.file_name().and_then(|value| value.to_str()).ok_or_else(|| format!("transient state name is not UTF-8: {}", path.display()))?;
     let projection = format!("{name}\n{source}");
     if agile_state_transient_schema_domain::kit_agile_state_transient_schema_code(&projection) == 1 { Ok(()) } else { Err(format!("known transient state receipt failed runtime schema validation: {name}")) }
@@ -370,8 +370,8 @@ fn agile_record_from_args(args: Vec<String>) -> Result<(), String> {
     let ratings_path = root.join("state/ratings.spi");
     let bench_path = root.join("state/bench.spi");
     let migration_path = root.join("state/migration.spi");
-    let original = agile_read_regular_text_limited(&history_path, 8 * 1024 * 1024)?;
-    let migration = agile_read_regular_text_limited(&migration_path, 8 * 1024 * 1024)?;
+    let original = agile_read_regular_text_limited(&history_path, 64 * 1024 * 1024)?;
+    let migration = agile_read_regular_text_limited(&migration_path, 64 * 1024 * 1024)?;
     let (settled_units, migration_score) = agile_series_migration(&migration)?;
     let (previous_sequence, previous_units, previous_score) = agile_series_last(&original)?;
     let sequence = previous_sequence.checked_add(1).ok_or_else(|| "series sequence overflow".to_owned())?;
@@ -392,7 +392,7 @@ fn agile_record_from_args(args: Vec<String>) -> Result<(), String> {
     let updated = original.replacen(marker, &format!("{record}\n{marker}"), 1);
     agile_atomic_write(&history_path, updated.as_bytes())?;
     let validate = (|| -> Result<(), String> {
-        let observed = agile_read_regular_text_limited(&history_path, 8 * 1024 * 1024)?;
+        let observed = agile_read_regular_text_limited(&history_path, 64 * 1024 * 1024)?;
         let (observed_sequence, observed_units, observed_score) = agile_series_last(&observed)?;
         if observed_sequence != sequence || observed_units != settled_units || observed_score != migration_score { return Err("series runtime validation mismatch".to_owned()); }
         agile_attest_known_mutation(root, &history_path, Some(original.as_bytes()))

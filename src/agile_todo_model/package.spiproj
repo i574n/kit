@@ -1,8 +1,10 @@
 packages:
     |core-
+    spiral-
     workspace_primitives
     rust_std_string
     union_reflection
 modules:
+    marker_fields
     model
     roots

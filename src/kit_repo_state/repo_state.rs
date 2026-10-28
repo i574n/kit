@@ -24,6 +24,7 @@ enum US1 {
     US1_HeaderLine,
     US1_OtherLine,
 }
+struct Mut0 { l0: Rc<str> }
 fn command_line_argument_count_3() -> i32 {
     let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
@@ -306,6 +307,20 @@ fn tally_status_7(mut v0: std::rc::Rc<std::cell::RefCell<std::collections::BTree
         return ();
     }
 }
+fn method11(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_10(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method11(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
     let v2: bool = std::path::Path::new(&*v0).join(".git").exists();
     if v2 {
@@ -354,28 +369,28 @@ fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
         let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v28, Rc::<str>::from(format!("{}{}", v32, v31))));
         let v35: u64 = 0u64;
         let v36: u64 = v7.borrow().values().map(|counts| counts[v35 as usize]).sum::<u64>();
-        let v37: Rc<str> = std::rc::Rc::<str>::from((v36).to_string());
+        let v37: Rc<str> = format_real_10(v36);
         let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" staged="); } LIT.with(|lit| lit.clone()) };
         let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v37));
         let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" modified="); } LIT.with(|lit| lit.clone()) };
         let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
         let v42: u64 = 1u64;
         let v43: u64 = v7.borrow().values().map(|counts| counts[v42 as usize]).sum::<u64>();
-        let v44: Rc<str> = std::rc::Rc::<str>::from((v43).to_string());
+        let v44: Rc<str> = format_real_10(v43);
         let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v44));
         let v46: u64 = 2u64;
         let v47: u64 = v7.borrow().values().map(|counts| counts[v46 as usize]).sum::<u64>();
-        let v48: Rc<str> = std::rc::Rc::<str>::from((v47).to_string());
+        let v48: Rc<str> = format_real_10(v47);
         let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" untracked="); } LIT.with(|lit| lit.clone()) };
         let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v48));
         let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" unmerged="); } LIT.with(|lit| lit.clone()) };
         let v52: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v51));
         let v53: u64 = 3u64;
         let v54: u64 = v7.borrow().values().map(|counts| counts[v53 as usize]).sum::<u64>();
-        let v55: Rc<str> = std::rc::Rc::<str>::from((v54).to_string());
+        let v55: Rc<str> = format_real_10(v54);
         let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v34, Rc::<str>::from(format!("{}{}", v45, Rc::<str>::from(format!("{}{}", v52, v55))))));
         let v59: u64 = v7.borrow().len() as u64;
-        let v60: Rc<str> = std::rc::Rc::<str>::from((v59).to_string());
+        let v60: Rc<str> = format_real_10(v59);
         let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" areas="); } LIT.with(|lit| lit.clone()) };
         let v63: Rc<str> = Rc::<str>::from(format!("{}{}", v58, Rc::<str>::from(format!("{}{}", v61, v60))));
         let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" last="); } LIT.with(|lit| lit.clone()) };
@@ -430,7 +445,7 @@ fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
             v91.clone()
         };
         let v93: Rc<str> = Rc::<str>::from(format!("{}{}", v65, v92));
-        println!("{}", &*v93);
+        println!("{}", v93);
         let v94: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v95: u64 = 12u64;
         let v96: Rc<str> = { let map = v7.borrow(); let mut areas = map.iter().collect::<Vec<_>>(); areas.sort_by(|left, right| right.1.iter().sum::<u64>().cmp(&left.1.iter().sum::<u64>()).then_with(|| left.0.cmp(right.0))); let shown = areas.iter().take(v95 as usize).map(|(area, counts)| format!("{}area={} staged={} modified={} untracked={} unmerged={}", &*v94, area, counts[0], counts[1], counts[2], counts[3])).collect::<Vec<_>>(); let hidden = areas.len().saturating_sub(shown.len()); let mut text = shown.join("
@@ -438,7 +453,7 @@ fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
 {}... {hidden} more areas (kit table query or git status for the rest)", &*v94)); } std::rc::Rc::<str>::from(text) };
         let v97: bool = &*v96 != "";
         if v97 {
-            println!("{}", &*v96);
+            println!("{}", v96);
             ()
         };
         0i32
@@ -447,7 +462,7 @@ fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
         let v99: Rc<str> = Rc::<str>::from(format!("{}{}", v98, v0));
         let v100: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" reason=not-a-git-repository"); } LIT.with(|lit| lit.clone()) };
         let v101: Rc<str> = Rc::<str>::from(format!("{}{}", v99, v100));
-        println!("{}", &*v101);
+        println!("{}", v101);
         2i32
     }
 }
@@ -471,7 +486,7 @@ fn states_from_1(mut v0: i32, mut v1: i32, mut v2: u64, mut v3: i32) -> i32 {
         }
     }
 }
-fn argument_count_10() -> i32 {
+fn argument_count_12() -> i32 {
     let mut v0: i32 = command_line_argument_count_3();
     let v1: i32 = v0.wrapping_add(1i32);
     v1
@@ -481,7 +496,7 @@ fn repo_run_0() -> i32 {
     let v1: Rc<str> = argument_2(v0);
     let v2: bool = &*v1 == "state";
     let v5: bool = if v2 {
-        let v3: i32 = argument_count_10();
+        let v3: i32 = argument_count_12();
         let v4: bool = v3 > 3i32;
         v4
     } else {
@@ -489,13 +504,13 @@ fn repo_run_0() -> i32 {
     };
     if v5 {
         let v6: i32 = 3i32;
-        let v7: i32 = argument_count_10();
+        let v7: i32 = argument_count_12();
         let v8: u64 = 2u64;
         let v9: i32 = 0i32;
         states_from_1(v6, v7, v8, v9)
     } else {
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: repo usage: repo state <root> [<root>...]"); } LIT.with(|lit| lit.clone()) };
-        println!("{}", &*v11);
+        println!("{}", v11);
         2i32
     }
 }

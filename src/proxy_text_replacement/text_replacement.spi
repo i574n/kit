@@ -22,7 +22,7 @@
     | ReplacementRejected : string
 
 := u64_parsed (~text : string) : u64 = $'!text.parse::<u64>().unwrap_or(0)' : u64
-:= u64_positive (value : u64) : bool = $"0 < !value"
+:= u64_positive (value : u64) : bool = (0u64 < value)
 := u64_equal (a : u64) (b : u64) : bool = (a = b)
 
 :~ regular_file (~path : string) : bool =

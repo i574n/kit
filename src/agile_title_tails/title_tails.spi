@@ -82,7 +82,7 @@
     := found = byte_find_from title (tail_separator ()) offset
     ? found < 0i32 ?> found
     |:
-        := start = $"!found + 2" : i32
+        := start = (found + 2i32)
         := window_end = (start + (stamp_window ()))
         := stop = ? byte_len title <= window_end ?> byte_len title |: window_end
         ? starts_with_stamp (byte_slice title start stop) ?> found
@@ -127,7 +127,7 @@
     |:
         := found = stamped_separator_from title offset
         := stop = ? found < 0i32 ?> length |: found
-        := next = ? found < 0i32 ?> length |: $"!found + 2" : i32
+        := next = ? found < 0i32 ?> length |: (found + 2i32)
         := piece = sm'.trim (byte_slice title offset stop)
         ? (piece = "")
         ?> moved_from title next length id seq day previous fallback moved
@@ -147,7 +147,7 @@
     ?> 0i32, ""
     |:
         := moved =
-            moved_from title ($"!first + 2" : i32) (byte_len title) id seq "" "" fallback { rows = ""; moved = 0i32 }
+            moved_from title ((first + 2i32)) (byte_len title) id seq "" "" fallback { rows = ""; moved = 0i32 }
         moved.moved, moved.rows
 
 := main () : i32 =

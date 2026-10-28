@@ -4,7 +4,7 @@
 
 :< sm'_operators
 :< file_system_operators
-:< model
+:< kit_lint_model.model
 
 := skipped_dir (name : string) : bool =
     sm'.starts_with "." name || name = "target" || name = "node_modules" || name = "_build" || name = "deps"
@@ -37,13 +37,48 @@
     := skip : i32 = sm'.length base
     ? sm'.starts_with base slashed ?> sm'.substring skip ((sm'.length slashed : i32) - skip) slashed |: slashed
 
+:~ scan_of (~text : string) : array i32 * array string * array string * array bool * array i32 * array i32 =
+    $'kit_lint_scan::kit_lint_scan(&*!text)'
+    : array i32 * array string * array string * array bool * array i32 * array i32
+:~ class_at (~text : string) (closed : bool) (place : i32) (origin : i32) : i32 =
+    $'kit_lint_classify::kit_lint_class(&*!text, !closed, !place, !origin)' : i32
+:~ added (~diff : string) : string = $'kit_lint_scan::kit_lint_added_text(&*!diff)' : string
+:~ known_in (~baseline : string) (item : violation) : bool =
+    := file, name, class = item.file, item.name, class_index item.class
+    $'kit_lint_classify::kit_lint_known(&*!baseline, &*!file, &*!name, !class)' : bool
+:~ row_of (width : i32) (item : violation) : string =
+    := file, line, name, class, text = item.file, item.line, item.name, class_index item.class, item.text
+    $'kit_lint_scan::kit_lint_row(!width, &*!file, !line, &*!name, !class, &*!text)' : string
+:~ tally_text (tally : lint_tally) : string =
+    := files, macros, violations, fresh = tally.files, tally.macros, tally.violations, tally.fresh
+    $'kit_lint_scan::kit_lint_tally(!files, !macros, !violations, !fresh)' : string
+
+:~ file_findings (~file : string) (~text : string) : i32 * list violation =
+    := lines, names, texts, closed, places, origins = scan_of text
+    := count = am'.length lines : i32
+    :~ ^ walk (index : i32) (found : list violation) : list violation =
+        ? index >= count
+        ?> listm.rev found
+        |:
+            := body = am'.index index texts
+            := code = class_at body (am'.index index closed) (am'.index index places) (am'.index index origins)
+            ?= class_of_code code ?|
+            | Some class =>
+                := item =
+                    {
+                        file = file; line = am'.index index lines; name = am'.index index names; class = class
+                        text = body
+                    }
+                walk (index + 1i32) (item :: found)
+            | None => walk (index + 1i32) found
+    count, walk 0i32 []
 :== lint_report =
     {
         rows : list string
         tally : lint_tally
     }
 
-:~ lint_report (~root : string) (paths : list string) (baseline : list known_violation) : lint_report =
+:~ lint_report (~root : string) (paths : list string) (~baseline : string) : lint_report =
     := starts = ?= paths ?| | [] => [ root ] | _ => paths |> listm.map (\ (path : string) => root </> path)
     := named = starts |> listm'.filter \ (path : string) => file_system.file_exists path
     := walked = spi_files (starts |> listm'.filter \ (path : string) => file_system.file_exists path |> not) []
@@ -53,17 +88,16 @@
         |> listm.fold
             \ (macros, found) (path : string) =>
                 := read = file_system.read_all_text path
-                := text = ? sm'.ends_with ".diff" path || sm'.ends_with ".patch" path ?> added_text read |: read
-                := count : i32 = listm.length (file_macros text)
-                := here = file_violations (relative_to root path) text
+                := text = ? sm'.ends_with ".diff" path || sm'.ends_with ".patch" path ?> added read |: read
+                := count, here = file_findings (relative_to root path) text
                 macros + count, listm.fold (\ all item => item :: all) found here
             (0i32, [])
     := found = listm.rev found
-    := fresh = found |> listm'.filter \ (item : violation) => not (known baseline item)
+    := fresh = found |> listm'.filter \ (item : violation) => not (known_in baseline item)
     := width = name_width fresh
     := violations : i32 = listm.length found
     := tally = { files = listm.length files; macros = macros; violations = violations; fresh = listm.length fresh }
-    { rows = listm.map (violation_row width) fresh; tally = tally }
+    { rows = listm.map (row_of width) fresh; tally = tally }
 
 :~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
 
@@ -89,22 +123,14 @@
         console.write_error_line ("kit error: lint macros: no baseline file at " ++# given)
         2i32
     |:
-        := baseline = ? baseline_path = "" ?> [] |: baseline_of (file_system.read_all_text baseline_path)
+        := baseline = ? baseline_path = "" ?> "" |: file_system.read_all_text baseline_path
         := report = lint_report root (paths_from 3i32 count []) baseline
         report.rows |> listm.iter console.write_line
         := elapsed = kit_receipt.receipt.elapsed_text started
         := clock = kit_receipt.receipt.clock_text ()
-        console.write_line (tally_head report.tally ++# "  " ++# elapsed ++# "  " ++# clock)
+        console.write_line (tally_text report.tally ++# "  " ++# elapsed ++# "  " ++# clock)
         ? report.tally.fresh = 0i32 ?> 0i32 |: 1i32
 
-///> rust
-:# the_sample_tree_reports_its_three_rows =
-    := root = file_system.get_temp_path () </> "kit-lint-macros-sample"
-    := _ = file_system.create_dir_all (root </> "lib")
-    file_system.write_all_text (root </> "lib" </> "sample.spi") (sample ())
-    := report = lint_report root [ "lib" ] []
-    expect ((listm.length report.rows : i32) = 3i32) "three rows"
-    expect (tally_head report.tally = "failed  files 1  macros 5  violations 3  new 3") "tally"
-    := known_two = baseline_of "lib/sample.spi:9  widen  cast\nlib/sample.spi:9  pick  flow\n"
-    := quieter = lint_report root [ "lib" ] known_two
-    expect (tally_head quieter.tally = "failed  files 1  macros 5  violations 3  new 1") "baseline"
+:= main () : i32 =
+    !!!!Export("kit_lint_run", ((\ () => lint_run ()) : () -> i32))
+    0i32

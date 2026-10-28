@@ -366,14 +366,14 @@
 := process_argument (index : i32) : string = $'std::rc::Rc::<str>::from(std::env::args().nth(!index as \
     usize).unwrap_or_default())' : string
 := process_argument_count () : i32 = env.host_argument_count ()
-:= u64_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= u64_text (value : u64) : string = (sm'.show value)
 := proxy_capability (~name : string) : bool =
     ? rust_std_string.model.equals name "" ?> !- |: ? rust_std_string.model.equals (proxy_usage name) "" ?> !- |: !+
 
 :~ ^ help_flag_from (index : i32) (count : i32) : bool =
     ? (index >= count) ?> !-
     |? help_flag (process_argument index) ?> !+
-    |: help_flag_from ($"!index + 1" : i32) count
+    |: help_flag_from ((index + 1i32)) count
 
 := help_request () : help_request =
     := verb = process_argument 1i32

@@ -7,6 +7,7 @@ enum US0 {
     US0_VerbHelp(Rc<str>),
     US0_CapabilityHelp(Rc<str>),
 }
+struct Mut0 { l0: Rc<str> }
 fn command_code_0(mut v0: Rc<str>) -> u64 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--help|-h"); } LIT.with(|lit| lit.clone()) };
     let v2: bool = v1.split("|").any(|item| item == &*v0);
@@ -301,7 +302,7 @@ fn proxy_route_code_9(mut v0: Rc<str>) -> u64 {
     }
 }
 fn proxy_route_witness_10() -> i32 {
-    let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("plan-ir-inspect"); } LIT.with(|lit| lit.clone()) };
+    let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("plan-ir-inspect"); } LIT.with(|lit| lit.clone()) };
     let v1: u64 = proxy_route_code_9(v0.clone());
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("source-recovery-diff"); } LIT.with(|lit| lit.clone()) };
     let v3: u64 = proxy_route_code_9(v2.clone());
@@ -374,7 +375,7 @@ fn help_flag_code_11(mut v0: Rc<str>) -> u64 {
     }
 }
 fn help_flag_witness_12() -> i32 {
-    let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--completion"); } LIT.with(|lit| lit.clone()) };
+    let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--completion"); } LIT.with(|lit| lit.clone()) };
     let v1: u64 = help_flag_code_11(v0.clone());
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--json"); } LIT.with(|lit| lit.clone()) };
     let v3: u64 = help_flag_code_11(v2.clone());
@@ -416,15 +417,29 @@ fn help_flag_from_14(mut v0: i32, mut v1: i32) -> bool {
             if v5 {
                 return true;
             } else {
-                let v6: i32 = v0 + 1;
+                let v6: i32 = v0.wrapping_add(1i32);
                 (v0, v1) = (v6, v1);
                 continue;
             }
         }
     }
 }
+fn method16(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_15(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method16(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn help_request_text_13() -> Rc<str> {
-    let v0: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(1i32 as usize).unwrap_or_default());
+    let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(1i32 as usize).unwrap_or_default());
     let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(2i32 as usize).unwrap_or_default());
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("help"); } LIT.with(|lit| lit.clone()) };
     let v3: bool = v0 == v2 ;
@@ -491,7 +506,7 @@ fn help_request_text_13() -> Rc<str> {
         US0::US0_VerbHelp(v34) => {
             let v34: Rc<str> = v34.clone();
             let v35: u64 = command_code_0(v34.clone());
-            let v36: Rc<str> = std::rc::Rc::<str>::from((v35).to_string());
+            let v36: Rc<str> = format_real_15(v35);
             let (mut v37, mut v38, mut v39, mut v40, mut v41): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) = command_descriptor_by_index_3(v36.clone());
             let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name="); } LIT.with(|lit| lit.clone()) };
             let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" effect="); } LIT.with(|lit| lit.clone()) };
@@ -526,7 +541,7 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<s
         command_descriptor_by_index_3(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn command_descriptor_named_15(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
+fn command_descriptor_named_17(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown"); } LIT.with(|lit| lit.clone()) };
     let v2: bool = "status" == &*v0;
     if v2 {
@@ -594,7 +609,7 @@ fn command_descriptor_named_15(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, R
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> = Rc::new(move |mut v0: Rc<str>| -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
-        command_descriptor_named_15(v0.clone())
+        command_descriptor_named_17(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure5() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -647,7 +662,7 @@ fn closure14() -> Rc<dyn Fn() -> Rc<str>> {
         help_request_text_13()
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn direct_verb_usage_16(mut v0: Rc<str>) -> Rc<str> {
+fn direct_verb_usage_18(mut v0: Rc<str>) -> Rc<str> {
     let v1: bool = "job" == &*v0;
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job: start [--heavy] <label> <timeout-ms> <program> [args...] | run [--heavy] <label> <timeout-ms> <program> [args...] (attached: supervises in this process, ends with its caller, exits with the job's code; long runs from reapable agent shells use start + a background wait) | status <id> | wait <id> [max-ms] (default: until the job settles; a queued --heavy job's timeout starts when it is admitted) | list [count] | tail <id> [lines] | stop <id> (stops the job's own process tree)"); } LIT.with(|lit| lit.clone()) };
@@ -680,7 +695,7 @@ fn direct_verb_usage_16(mut v0: Rc<str>) -> Rc<str> {
                         } else {
                             let v13: bool = "do" == &*v0;
                             if v13 {
-                                let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("do <root> '<program>' | do <root> - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>"); } LIT.with(|lit| lit.clone()) };
+                                let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("do <root> [--dry-run] '<program>' | do <root> [--dry-run] - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>"); } LIT.with(|lit| lit.clone()) };
                                 v14.clone()
                             } else {
                                 let v15: bool = "ps" == &*v0;
@@ -758,8 +773,38 @@ fn direct_verb_usage_16(mut v0: Rc<str>) -> Rc<str> {
                                                                                             let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("mirror check <left-root> <right-root> <path>... (paths relative to both roots; a directory stands for every file under it)"); } LIT.with(|lit| lit.clone()) };
                                                                                             v44.clone()
                                                                                         } else {
-                                                                                            let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                                                                            v45.clone()
+                                                                                            let v45: bool = "backlog" == &*v0;
+                                                                                            if v45 {
+                                                                                                let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("backlog: list|next|plan|views|view|view-add|roots|check|todos|links <root> ... (the team backlog; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+                                                                                                v46.clone()
+                                                                                            } else {
+                                                                                                let v47: bool = "story" == &*v0;
+                                                                                                if v47 {
+                                                                                                    let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("story: add|edit|show|set|rename|migrate-tags|note|note-edit|notes <root> ... (one backlog item; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+                                                                                                    v48.clone()
+                                                                                                } else {
+                                                                                                    let v49: bool = "standup" == &*v0;
+                                                                                                    if v49 {
+                                                                                                        let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("standup: status|handoff <root> (where the work stands; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+                                                                                                        v50.clone()
+                                                                                                    } else {
+                                                                                                        let v51: bool = "evidence" == &*v0;
+                                                                                                        if v51 {
+                                                                                                            let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("evidence refresh <root> <relative path> [--as <new relative path>] [--dry-run] (rewrites that file's EvidenceRef row in state/evidence.spi from the file on disk: sha256 and byte length)"); } LIT.with(|lit| lit.clone()) };
+                                                                                                            v52.clone()
+                                                                                                        } else {
+                                                                                                            let v53: bool = "lint" == &*v0;
+                                                                                                            if v53 {
+                                                                                                                let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lint macros <root> [<path>...] [--baseline <rows>] (host macros by class: long, block, flow, cast, arith)"); } LIT.with(|lit| lit.clone()) };
+                                                                                                                v54.clone()
+                                                                                                            } else {
+                                                                                                                let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                                                                                                v55.clone()
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
@@ -785,7 +830,7 @@ fn direct_verb_usage_16(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure15() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        direct_verb_usage_16(v0.clone())
+        direct_verb_usage_18(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_command_code(v0: &str) -> u64 {

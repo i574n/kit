@@ -1,3 +1,7 @@
+///- --package .
+:# wheres static =
+    :< sm'_operators
+
 :< sm'_operators
 :< query
 :< cells

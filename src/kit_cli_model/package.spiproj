@@ -1,5 +1,6 @@
 packages:
     |core-
+    spiral-
     command_spec_domain
     union_reflection
 modules:

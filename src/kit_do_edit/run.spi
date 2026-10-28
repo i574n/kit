@@ -1,4 +1,5 @@
 :< rust_std_string.model
+:< sm'_operators
 :< kit_receipt.receipt
 :< kit_do_model.model
 :< host
@@ -163,7 +164,7 @@
     (~pending : pending_writes) (~mode : write_mode) (~path : string) (~result : file_result) (~pass : block_pass)
     : block_pass
     =
-    := head = concat5 "edit " path "" "" ""
+    := head = "edit " ++# path
     := state = pass.tally
     := sites = lines_joined pass.sites result.sites
     ?= result.outcome ?|
@@ -223,7 +224,7 @@
         }
     := pass = files_run root pending block globbed paths 0i32 (opened_block opened)
     := tally = pass.tally
-    := head = concat5 "edit " target "" "" ""
+    := head = "edit " ++# target
     ? pass.problems = 0u64
     ?>
         ?= block.expectation ?|
@@ -237,7 +238,7 @@
                 { tally ?|
                     counts_differ = !+
                     failures =
-                        lines_joined (lines_joined tally.failures (row2 head (concat5 wanted got "" "" ""))) pass.sites
+                        lines_joined (lines_joined tally.failures (row2 head (wanted ++# got))) pass.sites
                 }
         | Unchecked =>
             ? pass.matched = 0u64
@@ -274,20 +275,20 @@
                 files
                 " of "
                 (decimal_text state.expanded)
-                (concat5 " matched  replacements " replacements "" "" "")
+                (" matched  replacements " ++# replacements)
         |: concat5 "files " files "  replacements " replacements ""
     |? state.replacements = 0u64
     ?> concat5 "files 0 written  replacements " previewed " previewed" "" ""
-    |: concat5 "files " files " written  replacements " replacements (concat5 "  previewed " previewed "" "" "")
+    |: concat5 "files " files " written  replacements " replacements ("  previewed " ++# previewed)
 
 :~ refused (~message : string) (~code : i32) (~started : u64) : i32 =
     stdout_line message
     receipt_line Failed "files 0  replacements 0" started
     code
 
-:~ run_rejection (~encoded : string) : string = $'kit_do_process::kit_do_process_rejection(&*!encoded)' : string
+:= run_rejection (~encoded : string) : string = $'kit_do_process::kit_do_process_rejection(&*!encoded)' : string
 
-:~ runs_after_edits (~root : string) (~encoded : string) : string =
+:= runs_after_edits (~root : string) (~encoded : string) : string =
     $'kit_do_process::kit_do_process_after_edits(&*!root, &*!encoded)' : string
 
 :~ part_at (~text : string) (~index : i32) : string =
@@ -314,39 +315,43 @@
     | EditsCommitted : string
     | EditsStopped : i32
 
-:~ edits_applied (~root : string) (~steps : steps) (~started : u64) : edits_outcome =
+:~ edits_applied (~root : string) (~dry : bool) (~steps : steps) (~started : u64) : edits_outcome =
     := pending = pending_new ()
     := final = steps_run root pending steps (empty_tally ())
     ? final.failed = 0u64 && final.counts_differ = !- ?>
-        := problem = committed pending root
+        := problem = ? dry ?> "" |: committed pending root
         ? problem = "" ?>
             printed (aligned final.report)
-            EditsCommitted (success_counts final)
-        |: EditsStopped (refused (concat5 "nothing written: " problem "" "" "") 1i32 started)
+            EditsCommitted (success_counts final ++# (? dry ?> "  dry run, nothing written" |: ""))
+        |: EditsStopped (refused ("nothing written: " ++# problem) 1i32 started)
     |: EditsStopped (edits_refused final started)
 
 :~ finished (~failed : bool) (~counts : string) (~started : u64) : i32 =
     receipt_line (? failed ?> Failed |: Succeeded) counts started
     ? failed ?> 1i32 |: 0i32
 
-:~ edits_then_runs (~root : string) (~steps : steps) (~encoded : string) (~started : u64) : i32 =
+:= runs_skipped () : string =
+    $'std::rc::Rc::<str>::from(format\!("{0}runs not started{0}0", char::from(30u8)))' : string
+
+:~ edits_then_runs (~root : string) (~dry : bool) (~steps : steps) (~encoded : string) (~started : u64) : i32 =
     := rejection = run_rejection encoded
-    ? rejection <> "" ?> refused (concat5 "program rejected: " rejection "" "" "") 2i32 started
+    ? rejection <> "" ?> refused ("program rejected: " ++# rejection) 2i32 started
     |:
-        ?= edits_applied root steps started ?|
+        ?= edits_applied root dry steps started ?|
         | EditsStopped code => code
         | EditsCommitted counts =>
-            := outcome = runs_after_edits root encoded
+            := outcome = ? dry ?> runs_skipped () |: runs_after_edits root encoded
             printed (part_at outcome 0i32)
-            finished (part_at outcome 2i32 = "1") (concat5 counts "  " (part_at outcome 1i32) "" "") started
+            finished (part_at outcome 2i32 = "1") (counts ++# "  " ++# part_at outcome 1i32) started
 
 :~ edit_program_run (~root : string) (~encoded : string) : i32 =
     := started = now_ms ()
     := records = records_of encoded
     := steps = steps_decoded records 1i32
-    ? runs_in encoded ?> edits_then_runs root steps encoded started
+    := dry = field_at records 0i32 0i32 = "dry"
+    ? runs_in encoded ?> edits_then_runs root dry steps encoded started
     |:
-        ?= edits_applied root steps started ?|
+        ?= edits_applied root dry steps started ?|
         | EditsCommitted counts => finished !- counts started
         | EditsStopped code => code
 

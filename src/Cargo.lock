@@ -201,8 +201,15 @@ name = "agile-title-tails"
 version = "0.0.0"
 
 [[package]]
+name = "agile-todo-fields"
+version = "0.0.0"
+
+[[package]]
 name = "agile-todo-lines"
 version = "0.0.0"
+dependencies = [
+ "agile-todo-fields",
+]
 
 [[package]]
 name = "agile-todo-paths"
@@ -696,6 +703,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-ceremonies"
+version = "0.0.0"
+
+[[package]]
 name = "kit-ci-parity"
 version = "0.0.0"
 dependencies = [
@@ -732,6 +743,7 @@ dependencies = [
  "kit-batch-write",
  "kit-bundle-manifest",
  "kit-bundle-retention",
+ "kit-ceremonies",
  "kit-ci-parity",
  "kit-command-help",
  "kit-compiler-discovery",
@@ -739,6 +751,7 @@ dependencies = [
  "kit-crate-gate",
  "kit-do",
  "kit-env-pins",
+ "kit-evidence",
  "kit-experiments",
  "kit-fs-actions",
  "kit-grep-query",
@@ -746,6 +759,7 @@ dependencies = [
  "kit-handoff",
  "kit-jobs",
  "kit-legacy-operations",
+ "kit-lint-macros",
  "kit-machine-watch",
  "kit-machine-windows",
  "kit-memory",
@@ -829,6 +843,13 @@ dependencies = [
 
 [[package]]
 name = "kit-crate-gate"
+version = "0.0.0"
+dependencies = [
+ "kit-crate-largest",
+]
+
+[[package]]
+name = "kit-crate-largest"
 version = "0.0.0"
 
 [[package]]
@@ -971,6 +992,13 @@ version = "0.0.0"
 [[package]]
 name = "kit-env-pins"
 version = "0.0.0"
+
+[[package]]
+name = "kit-evidence"
+version = "0.0.0"
+dependencies = [
+ "kit-proxy-search",
+]
 
 [[package]]
 name = "kit-experiment-amend"
@@ -1123,6 +1151,8 @@ dependencies = [
 name = "kit-job-queue"
 version = "0.0.0"
 dependencies = [
+ "kit-job-gate",
+ "kit-job-slot",
  "kit-job-state",
 ]
 
@@ -1216,6 +1246,22 @@ dependencies = [
  "proxy-file-removal",
  "proxy-text-replacement",
 ]
+
+[[package]]
+name = "kit-lint-classify"
+version = "0.0.0"
+
+[[package]]
+name = "kit-lint-macros"
+version = "0.0.0"
+dependencies = [
+ "kit-lint-classify",
+ "kit-lint-scan",
+]
+
+[[package]]
+name = "kit-lint-scan"
+version = "0.0.0"
 
 [[package]]
 name = "kit-log-sections"
@@ -1572,11 +1618,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-table-plain"
+version = "0.0.0"
+dependencies = [
+ "kit-table-text",
+]
+
+[[package]]
 name = "kit-table-query"
 version = "0.0.0"
 dependencies = [
  "kit-table-diff",
  "kit-table-measures",
+ "kit-table-plain",
  "kit-table-text",
 ]
 

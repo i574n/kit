@@ -2,6 +2,6 @@ packages:
     |core-
     spiral-
     kit_receipt
+    kit_lint_model
 modules:
-    model
     lint

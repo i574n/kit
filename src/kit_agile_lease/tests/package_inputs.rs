@@ -74,7 +74,7 @@ fn missing_cyclic_ambiguous_or_unsupported_graphs_are_not_cacheable() {
 fn bounded_inputs_reject_oversized_sources() {
     let fixture = Fixture::new();
     let source = fs::File::create(fixture.0.join("src/dep/model.spi")).unwrap();
-    source.set_len(8 * 1024 * 1024 + 1).unwrap();
+    source.set_len(64 * 1024 * 1024 + 1).unwrap();
     assert_eq!(None, fixture.hash(false));
 }
 #[cfg(windows)]

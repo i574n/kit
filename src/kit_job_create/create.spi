@@ -33,7 +33,7 @@
 :~ job_launched
     (shape : start_shape) (~after_mode : string) (~after_job : string) (attached : bool) (~cap_mb : u64)
     (~slot_minutes : u64) (~done_minutes : u64) (~hold_minutes : u64) (~quiet_wait : u64) (~min_free : u64)
-    (~label : string) (~timeout : u64) (~inner : string) (~cwd : string)
+    (front : bool) (~label : string) (~timeout : u64) (~inner : string) (~cwd : string)
     : launch
     =
     := id = new_job_id label
@@ -81,6 +81,7 @@
                     ++# text_written (job_file id "quiet_wait_min") (decimal_text quiet_wait)
             := floor_written =
                 ? min_free = 0u64 ?> "" |: text_written (job_file id "min_free_mb") (decimal_text min_free)
+            := front_written = ? front ?> text_written (job_file id "front") "1" |: ""
             := author = env.get_environment_variable "KIT_AUTHOR"
             := author_written = ? author = "" ?> "" |: text_written (job_file id "author") author
             ?
@@ -91,6 +92,7 @@
                 || done_written <> ""
                 || quiet_written <> ""
                 || floor_written <> ""
+                || front_written <> ""
                 || author_written <> ""
             ?>
                 LaunchRefused (
@@ -99,7 +101,7 @@
                     ++# after_written
                     ++# cap_written
                     ++# slot_written
-                    ++# (done_written ++# quiet_written ++# author_written)
+                    ++# (done_written ++# quiet_written ++# front_written ++# author_written)
                 )
             |:
                 := supervisor =
@@ -111,8 +113,8 @@
 :~ job_created
     (~shape : string) (~after_mode : string) (~after_job : string) (attached : bool) (~cap_mb : u64)
     (~slot_minutes : u64)
-    (~done_minutes : u64) (~hold_minutes : u64) (~quiet_wait : u64) (~min_free : u64) (~label : string) (~timeout : u64)
-    (~inner : string) (~cwd : string)
+    (~done_minutes : u64) (~hold_minutes : u64) (~quiet_wait : u64) (~min_free : u64) (front : bool) (~label : string)
+    (~timeout : u64) (~inner : string) (~cwd : string)
     : string * string * string
     =
     ?=
@@ -127,6 +129,7 @@
             hold_minutes
             quiet_wait
             min_free
+            front
             label
             timeout
             inner
@@ -138,8 +141,16 @@
 := main () : i32 =
     !!!!Export(
         "kit_job_create",
-        ((\ (shape, after_mode, after_job, attached, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait, min_free, label, timeout, inner, cwd) =>
-            job_created shape after_mode after_job attached cap_mb slot_minutes done_minutes hold_minutes quiet_wait min_free label timeout inner cwd)
-            : string * string * string * bool * u64 * u64 * u64 * u64 * u64 * u64 * string * u64 * string * string -> string * string * string)
+        (
+            \ (
+                shape, after_mode, after_job, attached, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait,
+                min_free, front, label, timeout, inner, cwd
+            ) =>
+                job_created
+                    shape after_mode after_job attached cap_mb slot_minutes done_minutes hold_minutes quiet_wait
+                    min_free front label timeout inner cwd
+            : string * string * string * bool * u64 * u64 * u64 * u64 * u64 * u64 * bool * string * u64 * string
+            * string -> string * string * string
+        )
     )
     0i32

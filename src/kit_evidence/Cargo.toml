@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "evidence.spi"
+output = "evidence.rs"
+
+[package]
+name = "kit-evidence"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_evidence"
+path = "evidence.rs"
+
+[dependencies]
+kit-proxy-search = { path = "../kit_proxy_search" }

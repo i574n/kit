@@ -1,3 +1,7 @@
+///- --package .
+:# files static =
+    :< sm'_operators
+
 :< rust_std_fs.model
 :< sm'_operators
 :< numbers
@@ -20,6 +24,10 @@
     | ReadbackMismatch => "readback did not match the written file"
 
 := pending_path (~path : string) : string = path ++# ".pending"
+
+///> rust
+:# every_writer_of_one_file_shares_one_pending_copy =
+    ? pending_path "state/agile.spi" = "state/agile.spi.pending" ?> () |: failwith "one pending copy per file"
 
 := replace_file_checked (~path : string) (~text : string) : file_replacement =
     := temporary = pending_path path

@@ -23,6 +23,7 @@ enum US2 {
     US2_KindKnown(US0),
     US2_KindUnknown,
 }
+struct Mut0 { l0: Rc<str> }
 fn file_present_1(mut v0: Rc<str>) -> bool {
     let v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
@@ -670,13 +671,27 @@ fn identical_count_15(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
         }
     }
 }
+fn method18(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_17(mut v0: i32) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method18(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn import_receipt_16(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>) -> Rc<str> {
-    let v4: Rc<str> = std::rc::Rc::<str>::from((v0).to_string().as_str());
+    let v4: Rc<str> = format_real_17(v0);
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit memory import ok memories="); } LIT.with(|lit| lit.clone()) };
     let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v4));
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" identical="); } LIT.with(|lit| lit.clone()) };
     let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
-    let v9: Rc<str> = std::rc::Rc::<str>::from((v1).to_string().as_str());
+    let v9: Rc<str> = format_real_17(v1);
     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v9));
     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" index_identical="); } LIT.with(|lit| lit.clone()) };
     let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v2));
@@ -697,7 +712,7 @@ fn memory_import_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v12: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v9, &*v11, &*v11, &*v11].concat());
-        eprintln!("{}", &*v12);
+        eprintln!("{}", v12);
         2i32
     } else {
         let v13: Rc<str> = std::rc::Rc::<str>::from({ let mut names = std::fs::read_dir(&*v0).map(|entries| entries.filter_map(|entry| entry.ok()).map(|entry| entry.file_name().to_string_lossy().into_owned()).filter(|name| name.ends_with(".md") && name != "MEMORY.md").collect::<Vec<_>>()).unwrap_or_default(); names.sort(); names.join("
@@ -712,7 +727,7 @@ fn memory_import_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
             let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v19));
             let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
             let v24: Rc<str> = std::rc::Rc::<str>::from([&*v23, &*v22, &*v16, &*v16, &*v16].concat());
-            eprintln!("{}", &*v24);
+            eprintln!("{}", v24);
             2i32
         } else {
             let v25: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(&*v2).to_string_lossy().as_ref());
@@ -738,14 +753,14 @@ fn memory_import_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
                 let v43: i32 = 0i32;
                 let v44: i32 = identical_count_15(v35.clone(), v0.clone(), v43);
                 let v45: Rc<str> = import_receipt_16(v18, v44, v42.clone(), v1.clone());
-                println!("{}", &*v45);
+                println!("{}", v45);
                 0i32
             } else {
                 let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("import could not write "); } LIT.with(|lit| lit.clone()) };
                 let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v1));
                 let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                 let v49: Rc<str> = std::rc::Rc::<str>::from([&*v48, &*v47, &*v16, &*v16, &*v16].concat());
-                eprintln!("{}", &*v49);
+                eprintln!("{}", v49);
                 2i32
             }
         }

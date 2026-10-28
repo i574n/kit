@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "agile_todo_lines"
 path = "todo_lines.rs"
+
+[dependencies]
+agile-todo-fields = { path = "../agile_todo_fields" }

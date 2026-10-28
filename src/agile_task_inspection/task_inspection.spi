@@ -128,6 +128,22 @@
 
 := task_anchor (~id : string) : string = "Task (\"" ++# id ++# "\","
 
+:= backlog_archive_path (~root : string) : string = root ++# "/archive/done-notes.spi"
+
+:~ archived_text (~root : string) : string =
+    ?= probe (unchecked (backlog_archive_path root)) ?|
+    | FileMissing _ => ""
+    | FileReadable file => records_text (loaded_string (read_text file))
+
+:~ notes_joined (~archived : string) (~live : string) : string =
+    ? archived = "" ?> live |? live = "" ?> archived |: archived ++# "\n" ++# live
+
+:~ notes_or_archived (~archived : string) (~live : string) : string = ? live = "" ?> archived |: live
+
+:~ json_notes_of (~archive : string) (~text : string) (~id : string) : string =
+    := live = notes_json text id
+    ? live = notes_json "" id ?> notes_json archive id |: live
+
 := dash_when_empty (~text : string) : string = ? (text = "") ?> "-" |: text
 
 :~ task_summary (record : task_record) : string =
@@ -162,6 +178,7 @@
     | FileMissing _ => agile_show_failure "state/agile.spi is missing" id
     | FileReadable file =>
         := text = records_text (loaded_string (read_text file))
+        := archive = archived_text root
         := found = byte_find text (task_anchor id)
         ? found < 0i32
         ?> agile_show_failure "no task with this id" id
@@ -172,19 +189,19 @@
                 show_task
                     (task_record_at text arguments (byte_len text))
                     (planning_summary text id)
-                    (notes_text text id)
+                    (notes_joined (notes_text archive id) (notes_text text id))
                     started
             | ShowFiltered (mode, value) =>
                 show_task
                     (task_record_at text arguments (byte_len text))
                     (planning_summary text id)
-                    (notes_filtered text id mode value)
+                    (notes_or_archived (notes_filtered archive id mode value) (notes_filtered text id mode value))
                     started
             | ShowJson =>
                 stdout_line (
                     task_json
                         (task_json_record_at text arguments (byte_len text))
-                        ((planning_json text id) ++# "," ++# (notes_json text id))
+                        ((planning_json text id) ++# "," ++# (json_notes_of archive text id))
                         started
                 )
 

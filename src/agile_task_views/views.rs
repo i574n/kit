@@ -107,24 +107,21 @@ fn views_written_5(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<st
         v6
     };
     if v7 {
-        let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
-        let v9: Rc<str> = std::rc::Rc::<str>::from(std::process::id().to_string().as_str());
-        let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
-        let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v12: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v8, &*v9, &*v10, &*v11].concat());
-        let v13: bool = std::fs::write(&*v12, &*v3).is_ok();
-        let v25: US2 = if v13 {
-            let v14: bool = std::fs::rename(&*v12, &*v0).is_ok();
-            if v14 {
-                let v15: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v3);
-                if v15 {
+        let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
+        let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v8));
+        let v10: bool = std::fs::write(&*v9, &*v3).is_ok();
+        let v22: US2 = if v10 {
+            let v11: bool = std::fs::rename(&*v9, &*v0).is_ok();
+            if v11 {
+                let v12: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v3);
+                if v12 {
                     US2::US2_Replaced
                 } else {
                     US2::US2_ReadbackMismatch
                 }
             } else {
-                let v19: bool = std::fs::remove_file(&*v12).is_ok() || !std::path::Path::new(&*v12).exists();
-                if v19 {
+                let v16: bool = std::fs::remove_file(&*v9).is_ok() || !std::path::Path::new(&*v9).exists();
+                if v16 {
                     US2::US2_RenameFailed
                 } else {
                     US2::US2_RenameFailedTemporaryKept
@@ -133,31 +130,31 @@ fn views_written_5(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<st
         } else {
             US2::US2_TemporaryWriteFailed
         };
-        match &v25 {
+        match &v22 {
             US2::US2_Replaced => {
                 US1::US1_StateWritten
             }
             _ => {
-                let v34: Rc<str> = match &v25 {
+                let v31: Rc<str> = match &v22 {
                     US2::US2_ReadbackMismatch => {
-                        let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
-                        v30.clone()
+                        let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
+                        v27.clone()
                     }
                     US2::US2_RenameFailed => {
-                        let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
-                        v28.clone()
+                        let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
+                        v25.clone()
                     }
                     US2::US2_RenameFailedTemporaryKept => {
-                        let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
-                        v29.clone()
+                        let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                        v26.clone()
                     }
                     US2::US2_TemporaryWriteFailed => {
-                        let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
-                        v27.clone()
+                        let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
+                        v24.clone()
                     }
                     _ => unreachable!(),
                 };
-                US1::US1_StateWriteFailed(v34.clone())
+                US1::US1_StateWriteFailed(v31.clone())
             }
         }
     } else {
@@ -201,23 +198,21 @@ fn views_module_registered_6(mut v0: Rc<str>) -> US1 {
                 if v27 {
                     let v31: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v26, v16)), v2)), v2)), v2));
                     let v32: Rc<str> = Rc::<str>::from(v14.replace(&*v26, &*v31));
-                    let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
-                    let v34: Rc<str> = std::rc::Rc::<str>::from(std::process::id().to_string().as_str());
-                    let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
-                    let v36: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v33, &*v34, &*v35, &*v2].concat());
-                    let v37: bool = std::fs::write(&*v36, &*v32).is_ok();
-                    let v49: US2 = if v37 {
-                        let v38: bool = std::fs::rename(&*v36, &*v6).is_ok();
-                        if v38 {
-                            let v39: bool = std::fs::read_to_string(&*v6).is_ok_and(|value| value == *v32);
-                            if v39 {
+                    let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
+                    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v33));
+                    let v35: bool = std::fs::write(&*v34, &*v32).is_ok();
+                    let v47: US2 = if v35 {
+                        let v36: bool = std::fs::rename(&*v34, &*v6).is_ok();
+                        if v36 {
+                            let v37: bool = std::fs::read_to_string(&*v6).is_ok_and(|value| value == *v32);
+                            if v37 {
                                 US2::US2_Replaced
                             } else {
                                 US2::US2_ReadbackMismatch
                             }
                         } else {
-                            let v43: bool = std::fs::remove_file(&*v36).is_ok() || !std::path::Path::new(&*v36).exists();
-                            if v43 {
+                            let v41: bool = std::fs::remove_file(&*v34).is_ok() || !std::path::Path::new(&*v34).exists();
+                            if v41 {
                                 US2::US2_RenameFailed
                             } else {
                                 US2::US2_RenameFailedTemporaryKept
@@ -226,36 +221,36 @@ fn views_module_registered_6(mut v0: Rc<str>) -> US1 {
                     } else {
                         US2::US2_TemporaryWriteFailed
                     };
-                    match &v49 {
+                    match &v47 {
                         US2::US2_Replaced => {
                             US1::US1_StateWritten
                         }
                         _ => {
-                            let v58: Rc<str> = match &v49 {
+                            let v56: Rc<str> = match &v47 {
                                 US2::US2_ReadbackMismatch => {
-                                    let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
-                                    v54.clone()
-                                }
-                                US2::US2_RenameFailed => {
-                                    let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
+                                    let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
                                     v52.clone()
                                 }
+                                US2::US2_RenameFailed => {
+                                    let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
+                                    v50.clone()
+                                }
                                 US2::US2_RenameFailedTemporaryKept => {
-                                    let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
-                                    v53.clone()
+                                    let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                                    v51.clone()
                                 }
                                 US2::US2_TemporaryWriteFailed => {
-                                    let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
-                                    v51.clone()
+                                    let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
+                                    v49.clone()
                                 }
                                 _ => unreachable!(),
                             };
-                            US1::US1_StateWriteFailed(v58.clone())
+                            US1::US1_StateWriteFailed(v56.clone())
                         }
                     }
                 } else {
-                    let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/package.spiproj has no modules section to list views in"); } LIT.with(|lit| lit.clone()) };
-                    US1::US1_StateWriteFailed(v61.clone())
+                    let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/package.spiproj has no modules section to list views in"); } LIT.with(|lit| lit.clone()) };
+                    US1::US1_StateWriteFailed(v59.clone())
                 }
             }
         }

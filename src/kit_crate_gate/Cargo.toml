@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_crate_gate"
 path = "gate.rs"
+
+[dependencies]
+kit-crate-largest = { path = "../kit_crate_largest" }

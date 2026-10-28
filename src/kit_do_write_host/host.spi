@@ -8,7 +8,7 @@
 :~ part_at (~text : string) (~index : i32) : string =
     $'std::rc::Rc::<str>::from(!text.split(char::from(30u8)).nth(!index as usize).unwrap_or(""))' : string
 
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 
 :~ read_rejection (~encoded : string) : string = $'kit_do_read::kit_do_read_rejection(&*!encoded)' : string
 
@@ -22,7 +22,7 @@ let read_report (~root : string) (~encoded : string) : string = $'kit_do_read::k
 
 :~ crlf () : string = $'std::rc::Rc::<str>::from(format\!("{}{}", char::from(13u8), char::from(10u8)))' : string
 
-:= unsigned (~value : i64) : u64 = $'!value as u64' : u64
+:= unsigned (~value : i64) : u64 = (conv value : u64)
 
 :~ line_at (~text : string) (~index : u64) : string = sm'.line_at (convert.i32 index) text
 

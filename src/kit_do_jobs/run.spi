@@ -35,7 +35,7 @@
 
 :~ decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
 
-:~ code_text (~code : i32) : string = $'std::rc::Rc::<str>::from((!code).to_string())' : string
+:~ code_text (~code : i32) : string = (sm'.show code)
 
 :~ start_run
     (~root : string) (~name : string) (~command : string) (~timeout : string) (~notify : bool) (~state : job_tally)

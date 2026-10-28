@@ -1,6 +1,6 @@
 :! table_outcome = $'std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)>'
 
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 
 := outcome_report (~outcome : table_outcome) : string = $'!outcome.0.clone()' : string
 := outcome_counter (~outcome : table_outcome) (~index : u64) : u64 = $'!outcome.1[!index as usize]' : u64

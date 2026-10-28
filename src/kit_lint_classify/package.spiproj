@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    kit_lint_model
+modules:
+    classify

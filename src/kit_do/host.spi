@@ -2,6 +2,6 @@
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
 := stdin_text () : string = $'{ let mut text = String::new(); let _ = std::io::Read::read_to_string(&mut \
     std::io::stdin(), &mut text); std::rc::Rc::<str>::from(text) }' : string
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 :~ directory_exists (~path : string) : bool =
     file_system.path_buf_is_dir (file_system.new_path_buf (sm'.to_std_string path))

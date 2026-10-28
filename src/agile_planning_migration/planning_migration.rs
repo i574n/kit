@@ -78,24 +78,21 @@ fn migration_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok unchanged"); } LIT.with(|lit| lit.clone()) };
         migration_receipt_3(v8.clone(), v1.clone(), v2, v3, v4, v5.clone(), v6)
     } else {
-        let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
-        let v11: Rc<str> = std::rc::Rc::<str>::from(std::process::id().to_string().as_str());
-        let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
-        let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v14: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v10, &*v11, &*v12, &*v13].concat());
-        let v15: bool = std::fs::write(&*v14, &*v1).is_ok();
-        let v27: US1 = if v15 {
-            let v16: bool = std::fs::rename(&*v14, &*v0).is_ok();
-            if v16 {
-                let v17: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v1);
-                if v17 {
+        let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
+        let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v10));
+        let v12: bool = std::fs::write(&*v11, &*v1).is_ok();
+        let v24: US1 = if v12 {
+            let v13: bool = std::fs::rename(&*v11, &*v0).is_ok();
+            if v13 {
+                let v14: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v1);
+                if v14 {
                     US1::US1_Replaced
                 } else {
                     US1::US1_ReadbackMismatch
                 }
             } else {
-                let v21: bool = std::fs::remove_file(&*v14).is_ok() || !std::path::Path::new(&*v14).exists();
-                if v21 {
+                let v18: bool = std::fs::remove_file(&*v11).is_ok() || !std::path::Path::new(&*v11).exists();
+                if v18 {
                     US1::US1_RenameFailed
                 } else {
                     US1::US1_RenameFailedTemporaryKept
@@ -104,36 +101,36 @@ fn migration_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
         } else {
             US1::US1_TemporaryWriteFailed
         };
-        match &v27 {
+        match &v24 {
             US1::US1_Replaced => {
-                let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-                migration_receipt_3(v28.clone(), v1.clone(), v2, v3, v4, v5.clone(), v6)
+                let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
+                migration_receipt_3(v25.clone(), v1.clone(), v2, v3, v4, v5.clone(), v6)
             }
             _ => {
-                let v37: Rc<str> = match &v27 {
+                let v34: Rc<str> = match &v24 {
                     US1::US1_ReadbackMismatch => {
-                        let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
-                        v33.clone()
+                        let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
+                        v30.clone()
                     }
                     US1::US1_RenameFailed => {
-                        let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
-                        v31.clone()
+                        let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
+                        v28.clone()
                     }
                     US1::US1_RenameFailedTemporaryKept => {
-                        let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
-                        v32.clone()
+                        let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                        v29.clone()
                     }
                     US1::US1_TemporaryWriteFailed => {
-                        let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
-                        v30.clone()
+                        let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
+                        v27.clone()
                     }
                     _ => unreachable!(),
                 };
-                let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile migrate-tags rejected: "); } LIT.with(|lit| lit.clone()) };
-                let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v37));
-                let v40: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v39 + "
+                let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile migrate-tags rejected: "); } LIT.with(|lit| lit.clone()) };
+                let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v34));
+                let v37: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v36 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-                v40
+                v37
             }
         }
     }

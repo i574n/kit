@@ -1,0 +1,7 @@
+:< agile_todo_model.marker_fields
+
+:~ fields_of_marker (~id : string) (~comment : string) : string = fields_json (marker_fields (tail_after id comment))
+
+:= main () : i32 =
+    !!!!Export("kit_agile_todo_fields", ((\ (id, comment) => fields_of_marker id comment) : string * string -> string))
+    0i32

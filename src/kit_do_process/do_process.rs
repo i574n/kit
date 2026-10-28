@@ -31,6 +31,7 @@ enum US3 {
     US3_ExitedBeforeMatch(i64),
     US3_BadPattern,
 }
+struct Mut0 { l0: Rc<str> }
 #[derive(Clone)]
 enum US4 {
     US4_Succeeded,
@@ -327,11 +328,25 @@ fn run_ended_22(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std
     let mut v3: (u8, i64, u64, u64) = { let mut state = v0.borrow_mut(); let path = state.0.clone(); let Some((_, mut child, job)) = state.1.pop() else { return (6, 0, 0, 0) }; let stop = |child: &mut std::process::Child| { #[cfg(windows)] { unsafe extern "system" { fn TerminateJobObject(job: *mut std::ffi::c_void, code: u32) -> i32; } if job != 0 { unsafe { TerminateJobObject(job as *mut std::ffi::c_void, 1); } } } #[cfg(unix)] { let _ = job; let _ = std::process::Command::new("kill").arg("-KILL").arg("--").arg(format!("-{}", child.id())).status(); } let _ = child.kill(); let _ = child.wait(); }; let pattern = if (&*v1).is_empty() { None } else { match regex::Regex::new(&*v1) { Ok(pattern) => Some(pattern), Err(_) => { stop(&mut child); return (6, 0, 0, 0); } } }; let started = std::time::Instant::now(); let limit = std::time::Duration::from_millis(v2); let lines = || std::fs::read(&path).map(|bytes| String::from_utf8_lossy(&bytes).lines().count() as u64).unwrap_or(0); loop { if let Some(pattern) = &pattern { let text = std::fs::read(&path).map(|bytes| String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_default(); if text.lines().any(|line| pattern.is_match(line)) { stop(&mut child); return (3, 0, started.elapsed().as_millis() as u64, lines()); } } if let Ok(Some(status)) = child.try_wait() { let code = status.code().map(|code| code as i64).unwrap_or(-1); return (if pattern.is_some() { 5 } else { 1 }, code, started.elapsed().as_millis() as u64, lines()); } if started.elapsed() >= limit { stop(&mut child); return (if pattern.is_some() { 4 } else { 2 }, 0, started.elapsed().as_millis() as u64, lines()); } std::thread::sleep(std::time::Duration::from_millis(50)); } };
     v3.clone()
 }
-fn duration_text_24(mut v0: u64) -> Rc<str> {
+fn method25(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_24(mut v0: i64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method25(v2.clone(), v3.clone());
+    let mut v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
+fn duration_text_26(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from(if v0 < 10000 { format!("{}ms", v0) } else { format!("{:.1}s", v0 as f64 / 1000.0) });
     v1
 }
-fn timeout_text_25(mut v0: u64) -> Rc<str> {
+fn timeout_text_27(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from(if v0 % 1000 == 0 { format!("{}s", v0 / 1000) } else { format!("{}ms", v0) });
     v1
 }
@@ -355,8 +370,8 @@ fn run_end_text_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: u64, m
         US3::US3_Exited(v15) => {
             let v15: i64 = *v15;
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit "); } LIT.with(|lit| lit.clone()) };
-            let v17: Rc<str> = std::rc::Rc::<str>::from((v15).to_string());
-            let v18: Rc<str> = duration_text_24(v3);
+            let v17: Rc<str> = format_real_24(v15);
+            let v18: Rc<str> = duration_text_26(v3);
             let v19: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v18, &*v8, &*v8, &*v8].concat());
             let v20: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v16, &*v17, &*v12, &*v19].concat());
             v20.clone()
@@ -364,7 +379,7 @@ fn run_end_text_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: u64, m
         US3::US3_ExitedBeforeMatch(v37) => {
             let v37: i64 = *v37;
             let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exited "); } LIT.with(|lit| lit.clone()) };
-            let v39: Rc<str> = std::rc::Rc::<str>::from((v37).to_string());
+            let v39: Rc<str> = format_real_24(v37);
             let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" before matching "); } LIT.with(|lit| lit.clone()) };
             let v41: Rc<str> = std::rc::Rc::<str>::from([&*v40, &*v14, &*v8, &*v8, &*v8].concat());
             let v42: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v38, &*v39, &*v41, &*v12].concat());
@@ -373,7 +388,7 @@ fn run_end_text_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: u64, m
         US3::US3_Matched => {
             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("matched "); } LIT.with(|lit| lit.clone()) };
             let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" after "); } LIT.with(|lit| lit.clone()) };
-            let v27: Rc<str> = duration_text_24(v3);
+            let v27: Rc<str> = duration_text_26(v3);
             let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped (tree)  exit killed"); } LIT.with(|lit| lit.clone()) };
             let v29: Rc<str> = std::rc::Rc::<str>::from([&*v27, &*v28, &*v8, &*v8, &*v8].concat());
             let v30: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v25, &*v14, &*v26, &*v29].concat());
@@ -382,7 +397,7 @@ fn run_end_text_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: u64, m
         US3::US3_NoMatch => {
             let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no match for "); } LIT.with(|lit| lit.clone()) };
             let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" in "); } LIT.with(|lit| lit.clone()) };
-            let v33: Rc<str> = timeout_text_25(v2);
+            let v33: Rc<str> = timeout_text_27(v2);
             let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped (tree)"); } LIT.with(|lit| lit.clone()) };
             let v35: Rc<str> = std::rc::Rc::<str>::from([&*v32, &*v33, &*v34, &*v8, &*v8].concat());
             let v36: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v31, &*v14, &*v35, &*v12].concat());
@@ -390,23 +405,23 @@ fn run_end_text_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: u64, m
         }
         US3::US3_TimedOut => {
             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timed out after "); } LIT.with(|lit| lit.clone()) };
-            let v22: Rc<str> = timeout_text_25(v2);
+            let v22: Rc<str> = timeout_text_27(v2);
             let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped (tree)"); } LIT.with(|lit| lit.clone()) };
             let v24: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v21, &*v22, &*v23, &*v12].concat());
             v24.clone()
         }
     }
 }
-fn later_reads_output_26(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> bool {
+fn later_reads_output_28(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> bool {
     let v2: bool = v0.iter().skip(v1 as usize + 1).any(|fields| fields.get(1).map(|verb| [ "tail", "search", "errors" ].contains(&&**verb)).unwrap_or(false));
     v2
 }
-fn output_lines_27(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>, mut v1: u64, mut v2: bool) -> Rc<str> {
+fn output_lines_29(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>, mut v1: u64, mut v2: bool) -> Rc<str> {
     let mut v3: Rc<str> = { let text = std::fs::read(&v0.borrow().0).map(|bytes| String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_default(); let lines = text.lines().collect::<Vec<_>>(); let from = lines.len().saturating_sub(v1 as usize); let mut shown = Vec::new(); if v2 { shown.push(format!("output (last {} lines)", v1)); } else if from > 0 { shown.push(format!("... {} earlier lines", from)); } shown.extend(lines[from..].iter().map(|line| line.to_string())); std::rc::Rc::<str>::from(shown.join("
 ")) };
     v3.clone()
 }
-fn lines_joined_28(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn lines_joined_30(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: bool = &*v1 == "";
     if v2 {
         v0.clone()
@@ -422,8 +437,8 @@ fn lines_joined_28(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         }
     }
 }
-fn reported_29(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: bool, mut v4: i64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: Rc<str>, mut v14: bool) -> (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) {
-    let v15: Rc<str> = lines_joined_28(v0.clone(), v13.clone());
+fn reported_31(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: bool, mut v4: i64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: Rc<str>, mut v14: bool) -> (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) {
+    let v15: Rc<str> = lines_joined_30(v0.clone(), v13.clone());
     let v16: bool = v1 || v14;
     (v15.clone(), v16, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
 }
@@ -463,14 +478,14 @@ fn foreground_run_21(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String
     let v48: Rc<str> = match &v37 {
         US3::US3_Exited(v41) => {
             let v41: i64 = *v41;
-            let v42: bool = later_reads_output_26(v14, v15);
+            let v42: bool = later_reads_output_28(v14, v15);
             if v42 {
                 v40.clone()
             } else {
                 let v43: u64 = 40u64;
                 let v44: bool = false;
-                let v45: Rc<str> = output_lines_27(v0, v43, v44);
-                lines_joined_28(v40.clone(), v45)
+                let v45: Rc<str> = output_lines_29(v0, v43, v44);
+                lines_joined_30(v40.clone(), v45)
             }
         }
         _ => {
@@ -490,7 +505,7 @@ fn foreground_run_21(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String
             true
         }
     };
-    let (mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_29(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v48, v52);
+    let (mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_31(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v48, v52);
     let v66: u64 = v3.wrapping_add(1u64);
     let (mut v68, mut v69, mut v70, mut v71, mut v72, mut v73, mut v74, mut v75, mut v76, mut v77, mut v78, mut v79, mut v80): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v37 {
         US3::US3_Exited(v67) => {
@@ -503,34 +518,34 @@ fn foreground_run_21(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String
     };
     (v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80)
 }
-fn background_pid_30(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>) -> u64 {
+fn background_pid_32(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>) -> u64 {
     let v1: u64 = v0.borrow().1.last().map(|entry| entry.1.id() as u64).unwrap_or(0);
     v1
 }
-fn decimal_text_31(mut v0: u64) -> Rc<str> {
+fn decimal_text_33(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
-fn output_searched_32(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>, mut v1: Rc<str>) -> std::rc::Rc<(std::rc::Rc<str>, u64, bool)> {
+fn output_searched_34(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>, mut v1: Rc<str>) -> std::rc::Rc<(std::rc::Rc<str>, u64, bool)> {
     let v2: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = { let text = std::fs::read(&v0.borrow().0).map(|bytes| String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_default(); match regex::Regex::new(&*v1) { Err(error) => std::rc::Rc::new((std::rc::Rc::<str>::from(format!("search: invalid pattern: {error}")), 0, true)), Ok(pattern) => { let hits = text.lines().enumerate().filter(|(_, line)| pattern.is_match(line)).map(|(index, line)| format!("output:{}  {}", index + 1, line)).collect::<Vec<_>>(); std::rc::Rc::new((std::rc::Rc::<str>::from(hits.join("
 ")), hits.len() as u64, false)) } } };
     v2.clone()
 }
-fn errors_grouped_33(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>, mut v1: Rc<str>) -> std::rc::Rc<(std::rc::Rc<str>, u64, bool)> {
+fn errors_grouped_35(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>, mut v1: Rc<str>) -> std::rc::Rc<(std::rc::Rc<str>, u64, bool)> {
     let v2: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = { let text = std::fs::read(&v0.borrow().0).map(|bytes| String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_default(); match regex::Regex::new(&*v1) { Err(error) => std::rc::Rc::new((std::rc::Rc::<str>::from(format!("errors: invalid pattern: {error}")), 0, true)), Ok(pattern) => { let mut groups: Vec<(String, u64, String)> = Vec::new(); let mut total = 0u64; for line in text.lines() { if let Some(captures) = pattern.captures(line) { total += 1; let key = captures.get(1).or_else(|| captures.get(0)).map(|found| found.as_str().to_owned()).unwrap_or_default(); match groups.iter_mut().find(|group| group.0 == key) { Some(group) => group.1 += 1, None => groups.push((key, 1, line.trim().to_owned())) } } } groups.sort_by(|left, right| right.1.cmp(&left.1)); let width = groups.iter().map(|group| group.0.len()).max().unwrap_or(0).max(4); let count_width = groups.iter().map(|group| group.1.to_string().len()).max().unwrap_or(0).max(5); let mut shown = vec![format!("{:<width$}  {:<count_width$}  {}", "code", "count", "first")]; for group in &groups { shown.push(format!("{:<width$}  {:<count_width$}  {}", group.0, group.1, group.2)); } std::rc::Rc::new((std::rc::Rc::<str>::from(shown.join("
 ")), total, false)) } } };
     v2.clone()
 }
-fn local_offset_minutes_34() -> i64 {
+fn local_offset_minutes_36() -> i64 {
     let mut v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
     v0
 }
-fn processes_listed_35(mut v0: Rc<str>, mut v1: i64) -> std::rc::Rc<(std::rc::Rc<str>, u64, bool)> {
+fn processes_listed_37(mut v0: Rc<str>, mut v1: i64) -> std::rc::Rc<(std::rc::Rc<str>, u64, bool)> {
     let v2: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = { match regex::RegexBuilder::new(&*v0).case_insensitive(true).build() { Err(error) => std::rc::Rc::new((std::rc::Rc::<str>::from(format!("processes: invalid pattern: {error}")), 0, true)), Ok(pattern) => { let system = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_processes(sysinfo::ProcessRefreshKind::nothing().with_cmd(sysinfo::UpdateKind::Always))); let own = std::process::id(); let offset = v1 * 60; let mut rows = system.processes().iter().filter(|(pid, _)| pid.as_u32() != own).filter_map(|(pid, process)| { let command = process.cmd().iter().map(|part| part.to_string_lossy().into_owned()).collect::<Vec<_>>().join(" "); if pattern.is_match(&command) { Some((process.start_time(), pid.as_u32(), command)) } else { None } }).collect::<Vec<_>>(); rows.sort(); let pid_width = rows.iter().map(|row| row.1.to_string().len()).max().unwrap_or(0).max(7); let mut shown = vec![format!("{:<pid_width$}  {:<7}  {}", "pid", "started", "command")]; for (started, pid, command) in &rows { let local = (*started as i64 + offset).rem_euclid(86400); shown.push(format!("{:<pid_width$}  {:<7}  {}", pid, format!("{:02}:{:02}", local / 3600, local / 60 % 60), command)); } std::rc::Rc::new((std::rc::Rc::<str>::from(shown.join("
 ")), rows.len() as u64, false)) } } };
     v2.clone()
 }
-fn run_stopped_36(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>, mut v1: Rc<str>) -> bool {
+fn run_stopped_38(mut v0: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>>, mut v1: Rc<str>) -> bool {
     let v2: bool = { let mut state = v0.borrow_mut(); match state.1.iter().position(|entry| entry.0 == &*v1) { None => false, Some(index) => { let (_, mut child, job) = state.1.remove(index); #[cfg(windows)] { unsafe extern "system" { fn TerminateJobObject(job: *mut std::ffi::c_void, code: u32) -> i32; } if job != 0 { unsafe { TerminateJobObject(job as *mut std::ffi::c_void, 1); } } } #[cfg(unix)] { let _ = job; let _ = std::process::Command::new("kill").arg("-KILL").arg("--").arg(format!("-{}", child.id())).status(); } let _ = child.kill(); let _ = child.wait(); true } } };
     v2
 }
@@ -550,7 +565,7 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                 let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
                 let v38: Rc<str> = std::rc::Rc::<str>::from([&*v36, &*v18, &*v37, &*v21, &*v20].concat());
                 let v39: bool = true;
-                let (mut v40, mut v41, mut v42, mut v43, mut v44, mut v45, mut v46, mut v47, mut v48, mut v49, mut v50, mut v51, mut v52): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_29(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v38.clone(), v39);
+                let (mut v40, mut v41, mut v42, mut v43, mut v44, mut v45, mut v46, mut v47, mut v48, mut v49, mut v50, mut v51, mut v52): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_31(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v38.clone(), v39);
                 let v53: u64 = v6.wrapping_add(1u64);
                 (v40.clone(), v41, v53, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52)
             }
@@ -572,7 +587,7 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                         let v87: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
                         let v88: Rc<str> = std::rc::Rc::<str>::from([&*v86, &*v67, &*v87, &*v71, &*v70].concat());
                         let v89: bool = true;
-                        let (mut v90, mut v91, mut v92, mut v93, mut v94, mut v95, mut v96, mut v97, mut v98, mut v99, mut v100, mut v101, mut v102): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_29(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v88.clone(), v89);
+                        let (mut v90, mut v91, mut v92, mut v93, mut v94, mut v95, mut v96, mut v97, mut v98, mut v99, mut v100, mut v101, mut v102): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_31(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v88.clone(), v89);
                         let v103: u64 = v6.wrapping_add(1u64);
                         (v90.clone(), v91, v103, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102)
                     }
@@ -588,8 +603,8 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                                 let v121: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run "); } LIT.with(|lit| lit.clone()) };
                                 let v122: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  background as "); } LIT.with(|lit| lit.clone()) };
                                 let v123: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  pid "); } LIT.with(|lit| lit.clone()) };
-                                let v124: u64 = background_pid_30(v1.clone());
-                                let v125: Rc<str> = decimal_text_31(v124);
+                                let v124: u64 = background_pid_32(v1.clone());
+                                let v125: Rc<str> = decimal_text_33(v124);
                                 let v126: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                                 let v127: Rc<str> = std::rc::Rc::<str>::from([&*v123, &*v125, &*v126, &*v126, &*v126].concat());
                                 let v128: Rc<str> = std::rc::Rc::<str>::from([&*v121, &*v117, &*v122, &*v118, &*v127].concat());
@@ -602,7 +617,7 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                                 v132.clone()
                             };
                             let v134: bool = &*v119 != "";
-                            let (mut v135, mut v136, mut v137, mut v138, mut v139, mut v140, mut v141, mut v142, mut v143, mut v144, mut v145, mut v146, mut v147): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_29(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v133.clone(), v134);
+                            let (mut v135, mut v136, mut v137, mut v138, mut v139, mut v140, mut v141, mut v142, mut v143, mut v144, mut v145, mut v146, mut v147): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_31(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v133.clone(), v134);
                             let v148: u64 = v6.wrapping_add(1u64);
                             (v135.clone(), v136, v148, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147)
                         }
@@ -611,18 +626,18 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                                 US1::US1_TailOutput(v149) => {
                                     let v149: u64 = *v149;
                                     let v150: bool = true;
-                                    let v151: Rc<str> = output_lines_27(v1.clone(), v149, v150);
+                                    let v151: Rc<str> = output_lines_29(v1.clone(), v149, v150);
                                     let v152: bool = false;
-                                    reported_29(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v151.clone(), v152)
+                                    reported_31(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v151.clone(), v152)
                                 }
                                 _ => {
                                     let (mut v294, mut v295, mut v296, mut v297, mut v298, mut v299, mut v300, mut v301, mut v302, mut v303, mut v304, mut v305, mut v306): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v17 {
                                         US1::US1_SearchOutput(v166) => {
                                             let v166: Rc<str> = v166.clone();
-                                            let v167: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = output_searched_32(v1.clone(), v166.clone());
+                                            let v167: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = output_searched_34(v1.clone(), v166.clone());
                                             let v168: Rc<str> = v167.0.clone();
                                             let v169: bool = v167.clone().2;
-                                            let (mut v170, mut v171, mut v172, mut v173, mut v174, mut v175, mut v176, mut v177, mut v178, mut v179, mut v180, mut v181, mut v182): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_29(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v168.clone(), v169);
+                                            let (mut v170, mut v171, mut v172, mut v173, mut v174, mut v175, mut v176, mut v177, mut v178, mut v179, mut v180, mut v181, mut v182): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_31(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v168.clone(), v169);
                                             let v183: u64 = v167.1;
                                             let v184: u64 = v15.wrapping_add(v183);
                                             let v185: u64 = v16.wrapping_add(1u64);
@@ -632,10 +647,10 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                                             let (mut v281, mut v282, mut v283, mut v284, mut v285, mut v286, mut v287, mut v288, mut v289, mut v290, mut v291, mut v292, mut v293): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v17 {
                                                 US1::US1_ErrorsBy(v186) => {
                                                     let v186: Rc<str> = v186.clone();
-                                                    let v187: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = errors_grouped_33(v1.clone(), v186.clone());
+                                                    let v187: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = errors_grouped_35(v1.clone(), v186.clone());
                                                     let v188: Rc<str> = v187.0.clone();
                                                     let v189: bool = v187.clone().2;
-                                                    let (mut v190, mut v191, mut v192, mut v193, mut v194, mut v195, mut v196, mut v197, mut v198, mut v199, mut v200, mut v201, mut v202): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_29(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v188.clone(), v189);
+                                                    let (mut v190, mut v191, mut v192, mut v193, mut v194, mut v195, mut v196, mut v197, mut v198, mut v199, mut v200, mut v201, mut v202): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_31(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v188.clone(), v189);
                                                     let v203: u64 = v187.1;
                                                     let v204: u64 = v13.wrapping_add(v203);
                                                     let v205: u64 = v14.wrapping_add(1u64);
@@ -645,11 +660,11 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                                                     let (mut v268, mut v269, mut v270, mut v271, mut v272, mut v273, mut v274, mut v275, mut v276, mut v277, mut v278, mut v279, mut v280): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v17 {
                                                         US1::US1_ProcessesMatching(v206) => {
                                                             let v206: Rc<str> = v206.clone();
-                                                            let v207: i64 = local_offset_minutes_34();
-                                                            let v208: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = processes_listed_35(v206.clone(), v207);
+                                                            let v207: i64 = local_offset_minutes_36();
+                                                            let v208: std::rc::Rc<(std::rc::Rc<str>, u64, bool)> = processes_listed_37(v206.clone(), v207);
                                                             let v209: Rc<str> = v208.0.clone();
                                                             let v210: bool = v208.clone().2;
-                                                            let (mut v211, mut v212, mut v213, mut v214, mut v215, mut v216, mut v217, mut v218, mut v219, mut v220, mut v221, mut v222, mut v223): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_29(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v209.clone(), v210);
+                                                            let (mut v211, mut v212, mut v213, mut v214, mut v215, mut v216, mut v217, mut v218, mut v219, mut v220, mut v221, mut v222, mut v223): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_31(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v209.clone(), v210);
                                                             let v224: u64 = v208.1;
                                                             let v225: u64 = v9.wrapping_add(v224);
                                                             let v226: u64 = v10.wrapping_add(1u64);
@@ -659,7 +674,7 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                                                             let (mut v255, mut v256, mut v257, mut v258, mut v259, mut v260, mut v261, mut v262, mut v263, mut v264, mut v265, mut v266, mut v267): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v17 {
                                                                 US1::US1_StopNamed(v227) => {
                                                                     let v227: Rc<str> = v227.clone();
-                                                                    let v228: bool = run_stopped_36(v1.clone(), v227.clone());
+                                                                    let v228: bool = run_stopped_38(v1.clone(), v227.clone());
                                                                     let v237: Rc<str> = if v228 {
                                                                         let v229: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
                                                                         let v230: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped (tree)"); } LIT.with(|lit| lit.clone()) };
@@ -674,7 +689,7 @@ fn step_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String, 
                                                                         v236.clone()
                                                                     };
                                                                     let v238: bool = v228 == false;
-                                                                    let (mut v239, mut v240, mut v241, mut v242, mut v243, mut v244, mut v245, mut v246, mut v247, mut v248, mut v249, mut v250, mut v251): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_29(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v237.clone(), v238);
+                                                                    let (mut v239, mut v240, mut v241, mut v242, mut v243, mut v244, mut v245, mut v246, mut v247, mut v248, mut v249, mut v250, mut v251): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_31(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v237.clone(), v238);
                                                                     let v252: u64 = if v228 {
                                                                         1u64
                                                                     } else {
@@ -739,7 +754,7 @@ fn steps_run_15(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<(String,
     };
     (v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101)
 }
-fn segments_joined_39(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn segments_joined_41(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: bool = &*v0 == "";
     if v2 {
         v1.clone()
@@ -750,25 +765,25 @@ fn segments_joined_39(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         v5.clone()
     }
 }
-fn counted_segment_38(mut v0: bool, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> Rc<str> {
+fn counted_segment_40(mut v0: bool, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> Rc<str> {
     if v0 {
         let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-        let v5: Rc<str> = decimal_text_31(v3);
+        let v5: Rc<str> = decimal_text_33(v3);
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v4, &*v5, &*v6, &*v6].concat());
-        segments_joined_39(v1.clone(), v7.clone())
+        segments_joined_41(v1.clone(), v7.clone())
     } else {
         v1.clone()
     }
 }
-fn receipt_counts_37(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: bool, mut v4: i64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64) -> Rc<str> {
+fn receipt_counts_39(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: bool, mut v4: i64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64) -> Rc<str> {
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runs "); } LIT.with(|lit| lit.clone()) };
-    let v14: Rc<str> = decimal_text_31(v2);
+    let v14: Rc<str> = decimal_text_33(v2);
     let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v16: Rc<str> = std::rc::Rc::<str>::from([&*v13, &*v14, &*v15, &*v15, &*v15].concat());
     let v20: Rc<str> = if v3 {
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  exit "); } LIT.with(|lit| lit.clone()) };
-        let v18: Rc<str> = std::rc::Rc::<str>::from((v4).to_string());
+        let v18: Rc<str> = format_real_24(v4);
         let v19: Rc<str> = std::rc::Rc::<str>::from([&*v16, &*v17, &*v18, &*v15, &*v15].concat());
         v19.clone()
     } else {
@@ -776,16 +791,16 @@ fn receipt_counts_37(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: bool, m
     };
     let v21: bool = v6 > 0u64;
     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("processes"); } LIT.with(|lit| lit.clone()) };
-    let v23: Rc<str> = counted_segment_38(v21, v20.clone(), v22.clone(), v5);
+    let v23: Rc<str> = counted_segment_40(v21, v20.clone(), v22.clone(), v5);
     let v24: bool = v8 > 0u64;
     let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
-    let v26: Rc<str> = counted_segment_38(v24, v23.clone(), v25.clone(), v7);
+    let v26: Rc<str> = counted_segment_40(v24, v23.clone(), v25.clone(), v7);
     let v27: bool = v10 > 0u64;
     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("errors"); } LIT.with(|lit| lit.clone()) };
-    let v29: Rc<str> = counted_segment_38(v27, v26.clone(), v28.clone(), v9);
+    let v29: Rc<str> = counted_segment_40(v27, v26.clone(), v28.clone(), v9);
     let v30: bool = v12 > 0u64;
     let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("matches"); } LIT.with(|lit| lit.clone()) };
-    counted_segment_38(v30, v29.clone(), v31.clone(), v11)
+    counted_segment_40(v30, v29.clone(), v31.clone(), v11)
 }
 fn after_edits_run_12(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>> = state_new_13();
@@ -794,7 +809,7 @@ fn after_edits_run_12(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let (mut v5, mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13, mut v14, mut v15, mut v16, mut v17): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = empty_run_tally_14();
     let (mut v18, mut v19, mut v20, mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30): (Rc<str>, bool, u64, bool, i64, u64, u64, u64, u64, u64, u64, u64, u64) = steps_run_15(v0.clone(), v2.clone(), v3.clone(), v4, v5.clone(), v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17);
     let v31: Rc<str> = std::rc::Rc::<str>::from(char::from(30u8).to_string());
-    let v32: Rc<str> = receipt_counts_37(v18.clone(), v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30);
+    let v32: Rc<str> = receipt_counts_39(v18.clone(), v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30);
     let v33: Rc<str> = std::rc::Rc::<str>::from(char::from(30u8).to_string());
     let v36: Rc<str> = if v19 {
         let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1"); } LIT.with(|lit| lit.clone()) };
@@ -811,11 +826,11 @@ fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
         after_edits_run_12(v0.clone(), v1.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn now_ms_41() -> u64 {
+fn now_ms_43() -> u64 {
     let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
 }
-fn first_rejection_42(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> Rc<str> {
+fn first_rejection_44(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> Rc<str> {
     loop {
         let v2: i32 = v0.len() as i32;
         let mut v3: bool = v1 < v2;
@@ -847,16 +862,16 @@ fn first_rejection_42(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i
         }
     }
 }
-fn elapsed_text_44(mut v0: u64) -> Rc<str> {
+fn elapsed_text_46(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
-fn clock_text_45() -> Rc<str> {
-    let mut v0: i64 = local_offset_minutes_34();
+fn clock_text_47() -> Rc<str> {
+    let mut v0: i64 = local_offset_minutes_36();
     let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_43(mut v0: US4, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_45(mut v0: US4, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US4::US4_Failed => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
@@ -869,18 +884,18 @@ fn receipt_line_43(mut v0: US4, mut v1: Rc<str>, mut v2: u64) -> () {
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v7)), v1)), v7));
-    let v11: Rc<str> = elapsed_text_44(v2);
+    let v11: Rc<str> = elapsed_text_46(v2);
     let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v7));
-    let v14: Rc<str> = clock_text_45();
+    let v14: Rc<str> = clock_text_47();
     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
     println!("{}", v15);
     ()
 }
-fn run_program_run_40(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
-    let v2: u64 = now_ms_41();
+fn run_program_run_42(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
+    let v2: u64 = now_ms_43();
     let mut v3: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_0(v1.clone());
     let mut v4: i32 = 1i32;
-    let v5: Rc<str> = first_rejection_42(v3.clone(), v4);
+    let v5: Rc<str> = first_rejection_44(v3.clone(), v4);
     let v6: bool = &*v5 == "";
     if v6 {
         let v7: std::rc::Rc<std::cell::RefCell<(String, Vec<(String, std::process::Child, u64)>)>> = state_new_13();
@@ -891,33 +906,33 @@ fn run_program_run_40(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v35 {
             ()
         } else {
-            println!("{}", &*v22);
+            println!("{}", v22);
             ()
         };
-        let v36: Rc<str> = receipt_counts_37(v22.clone(), v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34);
+        let v36: Rc<str> = receipt_counts_39(v22.clone(), v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34);
         if v23 {
             let v37: US4 = US4::US4_Failed;
-            receipt_line_43(v37.clone(), v36.clone(), v2);
+            receipt_line_45(v37.clone(), v36.clone(), v2);
             1i32
         } else {
             let v38: US4 = US4::US4_Succeeded;
-            receipt_line_43(v38.clone(), v36.clone(), v2);
+            receipt_line_45(v38.clone(), v36.clone(), v2);
             0i32
         }
     } else {
         let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
         let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v42: Rc<str> = std::rc::Rc::<str>::from([&*v40, &*v5, &*v41, &*v41, &*v41].concat());
-        println!("{}", &*v42);
+        println!("{}", v42);
         let v43: US4 = US4::US4_Failed;
         let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runs 0"); } LIT.with(|lit| lit.clone()) };
-        receipt_line_43(v43.clone(), v44.clone(), v2);
+        receipt_line_45(v43.clone(), v44.clone(), v2);
         2i32
     }
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> i32 {
-        run_program_run_40(v0.clone(), v1.clone())
+        run_program_run_42(v0.clone(), v1.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_do_process_rejection(v0: &str) -> Rc<str> {

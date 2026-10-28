@@ -49,23 +49,24 @@ enum US7 {
     US7_NoSuchProcess,
     US7_StoppedOf(u64, u64),
 }
+struct Mut0 { l0: Rc<str> }
 #[derive(Clone)]
 enum US8 {
     US8_Succeeded,
     US8_Failed,
 }
 fn now_ms_0() -> u64 {
-    let v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
+    let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
 }
 fn command_line_argument_count_3() -> i32 {
-    let v0: usize = std::env::args().count();
+    let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn argument_count_2() -> i32 {
-    let v0: i32 = command_line_argument_count_3();
+    let mut v0: i32 = command_line_argument_count_3();
     let v1: i32 = v0.wrapping_add(1i32);
     v1
 }
@@ -148,7 +149,7 @@ fn value_after_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> Rc<str> {
     }
 }
 fn ancestor_pids_10() -> Rc<str> {
-    let v0: Rc<str> = { let system = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_processes(sysinfo::ProcessRefreshKind::nothing())); let mut chain: Vec<u32> = Vec::new(); let mut current = sysinfo::Pid::from_u32(std::process::id()); while let Some(parent) = system.process(current).and_then(|process| process.parent()) { if chain.contains(&parent.as_u32()) { break; } chain.push(parent.as_u32()); current = parent; } std::rc::Rc::<str>::from(chain.iter().map(|pid| pid.to_string()).collect::<Vec<_>>().join(",")) };
+    let mut v0: Rc<str> = { let system = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_processes(sysinfo::ProcessRefreshKind::nothing())); let mut chain: Vec<u32> = Vec::new(); let mut current = sysinfo::Pid::from_u32(std::process::id()); while let Some(parent) = system.process(current).and_then(|process| process.parent()) { if chain.contains(&parent.as_u32()) { break; } chain.push(parent.as_u32()); current = parent; } std::rc::Rc::<str>::from(chain.iter().map(|pid| pid.to_string()).collect::<Vec<_>>().join(",")) };
     v0.clone()
 }
 fn method14(mut v0: Option<u64>) -> Option<u64> {
@@ -299,7 +300,7 @@ fn joined_19(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v2
 }
 fn jobs_root_21() -> Rc<str> {
-    let v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_JOBS_HOME").map(std::path::PathBuf::from).or_else(|| std::env::var_os("LOCALAPPDATA").map(|base| std::path::PathBuf::from(base).join("kit").join("jobs"))).or_else(|| std::env::var_os("HOME").map(|base| std::path::PathBuf::from(base).join(".cache").join("kit").join("jobs"))).unwrap_or_else(|| std::path::PathBuf::from(".kit-jobs")).to_string_lossy().as_ref());
+    let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_JOBS_HOME").map(std::path::PathBuf::from).or_else(|| std::env::var_os("LOCALAPPDATA").map(|base| std::path::PathBuf::from(base).join("kit").join("jobs"))).or_else(|| std::env::var_os("HOME").map(|base| std::path::PathBuf::from(base).join(".cache").join("kit").join("jobs"))).unwrap_or_else(|| std::path::PathBuf::from(".kit-jobs")).to_string_lossy().as_ref());
     v0.clone()
 }
 fn job_directory_20(mut v0: Rc<str>) -> Rc<str> {
@@ -463,6 +464,20 @@ fn process_stopped_27(mut v0: u64, mut v1: bool) -> (u64, u64) {
     let v2: (u64, u64) = { let system = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_processes(sysinfo::ProcessRefreshKind::nothing())); let root = sysinfo::Pid::from_u32(v0 as u32); match system.process(root) { None => (0u64, 0u64), Some(_) => { let mut order = vec![root]; if v1 { let mut index = 0; while index < order.len() { let parent = order[index]; for (pid, process) in system.processes() { if process.parent() == Some(parent) && !order.contains(pid) { order.push(*pid); } } index += 1; } } for pid in order.iter().rev() { #[cfg(windows)] { unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn TerminateProcess(process: *mut std::ffi::c_void, code: u32) -> i32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; } unsafe { let handle = OpenProcess(1, 0, pid.as_u32()); if !handle.is_null() { TerminateProcess(handle, 1); CloseHandle(handle); } } } #[cfg(not(windows))] { if let Some(process) = system.process(*pid) { process.kill(); } } } std::thread::sleep(std::time::Duration::from_millis(200)); let after = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_processes(sysinfo::ProcessRefreshKind::nothing())); let survivors = order.iter().filter(|pid| { #[cfg(windows)] { let _ = &after; unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid.as_u32()); if handle.is_null() { false } else { let running = WaitForSingleObject(handle, 2000) == 258; CloseHandle(handle); running } } } #[cfg(not(windows))] { after.process(**pid).is_some() } }).count(); ((order.len() - survivors) as u64, order.len() as u64) } } };
     v2.clone()
 }
+fn method29(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_28(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method29(v2.clone(), v3.clone());
+    let mut v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn stop_once_26(mut v0: Rc<str>, mut v1: u64, mut v2: bool) -> bool {
     let mut v3: (u64, u64) = process_stopped_27(v1, v2);
     let mut v4: u64 = v3.clone().0;
@@ -488,12 +503,12 @@ fn stop_once_26(mut v0: Rc<str>, mut v1: u64, mut v2: bool) -> bool {
             if v16 {
                 let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop "); } LIT.with(|lit| lit.clone()) };
                 let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v0));
-                let v19: Rc<str> = std::rc::Rc::<str>::from((v14).to_string());
+                let v19: Rc<str> = format_real_28(v14);
                 let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped "); } LIT.with(|lit| lit.clone()) };
                 let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v19));
                 let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of "); } LIT.with(|lit| lit.clone()) };
                 let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
-                let v24: Rc<str> = std::rc::Rc::<str>::from((v15).to_string());
+                let v24: Rc<str> = format_real_28(v15);
                 let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
                 let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" processes"); } LIT.with(|lit| lit.clone()) };
                 let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v18, Rc::<str>::from(format!("{}{}", v25, v26))));
@@ -511,7 +526,7 @@ fn stop_once_26(mut v0: Rc<str>, mut v1: u64, mut v2: bool) -> bool {
                     let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v0));
                     let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  stopped (tree: "); } LIT.with(|lit| lit.clone()) };
                     let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
-                    let v38: Rc<str> = std::rc::Rc::<str>::from((v15).to_string());
+                    let v38: Rc<str> = format_real_28(v15);
                     let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v38));
                     let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" processes)"); } LIT.with(|lit| lit.clone()) };
                     let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
@@ -520,7 +535,7 @@ fn stop_once_26(mut v0: Rc<str>, mut v1: u64, mut v2: bool) -> bool {
             }
         }
     };
-    println!("{}", &*v45);
+    println!("{}", v45);
     match &v9 {
         US7::US7_NoSuchProcess => {
             false
@@ -582,7 +597,7 @@ fn stops_from_11(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: US1, mut v4: u6
                                     let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v9));
                                     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  refused: "); } LIT.with(|lit| lit.clone()) };
                                     let v28: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v25, v26)), v23));
-                                    println!("{}", &*v28);
+                                    println!("{}", v28);
                                     let v29: i32 = v0.wrapping_add(1i32);
                                     let v30: u64 = v7.wrapping_add(1u64);
                                     (v0, v1, v2, v3, v4, v5, v6, v7) = (v29, v1, v2, v3.clone(), v4, v5.clone(), v6, v30);
@@ -623,7 +638,7 @@ fn stops_from_11(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: US1, mut v4: u6
                                 }
                                 _ => unreachable!(),
                             };
-                            println!("{}", &*v69);
+                            println!("{}", v69);
                             let v70: i32 = v0.wrapping_add(1i32);
                             let v71: u64 = v7.wrapping_add(1u64);
                             (v0, v1, v2, v3, v4, v5, v6, v7) = (v70, v1, v2, v3.clone(), v4, v5.clone(), v6, v71);
@@ -637,24 +652,24 @@ fn stops_from_11(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: US1, mut v4: u6
         }
     }
 }
-fn decimal_text_28(mut v0: u64) -> Rc<str> {
+fn decimal_text_30(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
-fn elapsed_text_30(mut v0: u64) -> Rc<str> {
+fn elapsed_text_32(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
-fn local_offset_minutes_32() -> i64 {
-    let v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
+fn local_offset_minutes_34() -> i64 {
+    let mut v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
     v0
 }
-fn clock_text_31() -> Rc<str> {
-    let v0: i64 = local_offset_minutes_32();
+fn clock_text_33() -> Rc<str> {
+    let mut v0: i64 = local_offset_minutes_34();
     let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_29(mut v0: US8, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_31(mut v0: US8, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US8::US8_Failed => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
@@ -667,9 +682,9 @@ fn receipt_line_29(mut v0: US8, mut v1: Rc<str>, mut v2: u64) -> () {
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v7)), v1)), v7));
-    let v11: Rc<str> = elapsed_text_30(v2);
+    let v11: Rc<str> = elapsed_text_32(v2);
     let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v7));
-    let v14: Rc<str> = clock_text_31();
+    let v14: Rc<str> = clock_text_33();
     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
     println!("{}", v15);
     ()
@@ -681,7 +696,7 @@ fn stop_run_1(mut v0: u64) -> i32 {
         let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit "); } LIT.with(|lit| lit.clone()) };
         let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"); } LIT.with(|lit| lit.clone()) };
-        println!("{}", &*v5);
+        println!("{}", v5);
         2i32
     } else {
         let v6: u64 = std::process::id() as u64;
@@ -708,28 +723,28 @@ fn stop_run_1(mut v0: u64) -> i32 {
         let v25: u64 = 0u64;
         let v26: u64 = 0u64;
         let (mut v27, mut v28): (u64, u64) = stops_from_11(v20, v1, v23, v19.clone(), v6, v24.clone(), v25, v26);
-        let v29: Rc<str> = decimal_text_28(v27);
+        let v29: Rc<str> = decimal_text_30(v27);
         let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped "); } LIT.with(|lit| lit.clone()) };
         let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v29));
         let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  failed "); } LIT.with(|lit| lit.clone()) };
         let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));
-        let v34: Rc<str> = decimal_text_28(v28);
+        let v34: Rc<str> = decimal_text_30(v28);
         let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v34));
         let v36: bool = v28 == 0u64;
         if v36 {
             let v37: US8 = US8::US8_Succeeded;
-            receipt_line_29(v37.clone(), v35.clone(), v0);
+            receipt_line_31(v37.clone(), v35.clone(), v0);
             0i32
         } else {
             let v38: US8 = US8::US8_Failed;
-            receipt_line_29(v38.clone(), v35.clone(), v0);
+            receipt_line_31(v38.clone(), v35.clone(), v0);
             1i32
         }
     }
 }
 fn closure0() -> Rc<dyn Fn() -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> i32> = Rc::new(move || -> i32 {
-        let v0: u64 = now_ms_0();
+        let mut v0: u64 = now_ms_0();
         stop_run_1(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }

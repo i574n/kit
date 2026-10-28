@@ -7,5 +7,6 @@ modules:
     query
     stats
     cells
+    lines
     wheres
     table

@@ -10,7 +10,7 @@
 :~ process_argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 := process_operand_count () : string = $'std::rc::Rc::<str>::from(std::env::args().count().saturating_sub(3).to_string\
     ())' : string
-:= known_effect (code : u64) : bool = $"!code <= 3"
+:= known_effect (code : u64) : bool = (code <= 3u64)
 := subcommand_effect (~key : string) : u64 = $"command_spec_domain::kit_command_subcommand_effect_code(&!key)" : u64
 := verb_effect (~verb : string) : u64 = $"command_spec_domain::kit_command_effect_code(&!verb)" : u64
 := effect_code_i32 (code : u64) : i32 = $"!code as i32" : i32
@@ -41,8 +41,7 @@
     | PolicyFromEnvironment
     | PolicyFromConfigFile
 
-:= environment_text (~name : string) : string =
-    $'std::rc::Rc::<str>::from(std::env::var(&*!name).unwrap_or_default())' : string
+:= environment_text (~name : string) : string = env.get_environment_variable name
 := trimmed_file_text (~path : string) : string = $'std::fs::read_to_string(&*!path).map(|text| \
     std::rc::Rc::<str>::from(text.trim())).unwrap_or_else(|_| std::rc::Rc::<str>::from(""))' : string
 := present (~text : string) : bool = $"!text.is_empty() == false"
@@ -82,12 +81,12 @@
     | LeaseWrapping => "wrapping"
     | LeaseExpired => "expired"
 
-:= u64_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= u64_text (value : u64) : string = (sm'.show value)
 := u64_div (a : u64) (b : u64) : u64 = (a / b)
 := u64_rem (a : u64) (b : u64) : u64 = (a % b)
 := u64_le (a : u64) (b : u64) : bool = (a <= b)
 := u64_minus (a : u64) (b : u64) : u64 = $"!a.saturating_sub(!b)"
-:= u64_positive (value : u64) : bool = $"0 < !value"
+:= u64_positive (value : u64) : bool = (0u64 < value)
 := bool_flag (value : bool) : string = ? value ?> "1" |: "0"
 := clock_now_ms () : u64 = $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() \
     as u64).unwrap_or(0)' : u64

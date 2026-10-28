@@ -1,6 +1,6 @@
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 := own_pid () : u64 = $'std::process::id() as u64' : u64
 
 :~ ancestor_pids () : string =

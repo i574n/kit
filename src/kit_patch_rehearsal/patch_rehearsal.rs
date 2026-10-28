@@ -154,7 +154,7 @@ fn safe_path_loop_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> b
                 let v7: bool = v5 == 47i32;
                 if v7 {
                     let v8: i32 = v1.wrapping_sub(v3);
-                    let v9: bool = 0 < v8;
+                    let v9: bool = 0i32 < v8;
                     let v24: bool = if v9 {
                         let v10: bool = v8 == 1i32;
                         if v10 {
@@ -198,7 +198,7 @@ fn safe_path_loop_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> b
             }
         } else {
             let v32: i32 = v2.wrapping_sub(v3);
-            let v33: bool = 0 < v32;
+            let v33: bool = 0i32 < v32;
             if v33 {
                 let v34: bool = v32 == 1i32;
                 if v34 {
@@ -339,7 +339,7 @@ fn scan_plan_2(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> US0 {
                         let v63: i32 = v52.wrapping_add(1i32);
                         let v64: i32 = v62.wrapping_sub(1i32);
                         let v65: i32 = v64.wrapping_sub(v63);
-                        let v66: bool = 0 < v65;
+                        let v66: bool = 0i32 < v65;
                         let v73: bool = if v66 {
                             let v67: i32 = usize::try_from(v63).ok().and_then(|index| v0.as_bytes().get(index).copied()).map_or(-1, i32::from);
                             let v68: bool = v67 == 47i32;
@@ -481,7 +481,7 @@ fn scan_plan_2(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> US0 {
                 continue;
             }
         } else {
-            let v154: bool = 0 < v3;
+            let v154: bool = 0i32 < v3;
             if v154 {
                 return US0::US0_PatchPlanValid(v3);
             } else {
@@ -505,7 +505,7 @@ fn patch_gated_entry_1() -> i32 {
         let v10: bool = 0 < v9;
         if v10 {
             let v11: i32 = canonical_plan_ir_domain::plan_ir_manifest_count(&v8);
-            let v12: bool = 0 < v11;
+            let v12: bool = 0i32 < v11;
             let v27: US0 = if v12 {
                 US0::US0_PatchPlanValid(v11)
             } else {
@@ -593,7 +593,7 @@ fn patch_rehearse_entry_7() -> i32 {
         let v8: bool = 0 < v7;
         if v8 {
             let v9: i32 = canonical_plan_ir_domain::plan_ir_manifest_count(&v6);
-            let v10: bool = 0 < v9;
+            let v10: bool = 0i32 < v9;
             let v25: US0 = if v10 {
                 US0::US0_PatchPlanValid(v9)
             } else {

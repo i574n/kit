@@ -105,31 +105,29 @@ fn binomial_terms_6(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
         if v5 {
             return v4;
         } else {
-            let v6: f64 = v0 as f64;
+            let v6: f64 = (v0 as f64);
             let v7: f64 = v6 + 1.0f64;
             let v8: f64 = ln_gamma_7(v7);
-            let v9: f64 = v2 as f64;
+            let v9: f64 = (v2 as f64);
             let v10: f64 = v9 + 1.0f64;
             let v11: f64 = ln_gamma_7(v10);
             let v12: f64 = v8 - v11;
             let v13: i32 = v0.wrapping_sub(v2);
-            let v14: f64 = v13 as f64;
+            let v14: f64 = (v13 as f64);
             let v15: f64 = v14 + 1.0f64;
             let v16: f64 = ln_gamma_7(v15);
             let v17: f64 = v12 - v16;
             let v18: i32 = v2.wrapping_add(1i32);
-            let v19: f64 = v2 as f64;
-            let v20: f64 = (v3).ln();
-            let v21: f64 = v19 * v20;
-            let v22: f64 = v17 + v21;
-            let v23: f64 = v13 as f64;
-            let v24: f64 = 1.0f64 - v3;
-            let v25: f64 = (v24).ln();
-            let v26: f64 = v23 * v25;
-            let v27: f64 = v22 + v26;
-            let v28: f64 = (v27).exp();
-            let v29: f64 = v4 + v28;
-            (v0, v1, v2, v3, v4) = (v0, v1, v18, v3, v29);
+            let v19: f64 = (v3).ln();
+            let v20: f64 = v9 * v19;
+            let v21: f64 = v17 + v20;
+            let v22: f64 = 1.0f64 - v3;
+            let v23: f64 = (v22).ln();
+            let v24: f64 = v14 * v23;
+            let v25: f64 = v21 + v24;
+            let v26: f64 = (v25).exp();
+            let v27: f64 = v4 + v26;
+            (v0, v1, v2, v3, v4) = (v0, v1, v18, v3, v27);
             continue;
         }
     }
@@ -227,7 +225,7 @@ fn fraction_step_19(mut v0: f64, mut v1: f64, mut v2: f64, mut v3: i32, mut v4: 
         if v7 {
             return v6;
         } else {
-            let v8: f64 = v3 as f64;
+            let v8: f64 = (v3 as f64);
             let v9: f64 = v1 - v8;
             let v10: f64 = v8 * v9;
             let v11: f64 = v10 * v2;
@@ -566,8 +564,8 @@ fn normal_quantile_22(mut v0: f64) -> f64 {
     normal_search_23(v0, v1, v2, v3)
 }
 fn wilson_26(mut v0: i32, mut v1: i32, mut v2: f64) -> (f64, f64) {
-    let v3: f64 = v1 as f64;
-    let v4: f64 = v0 as f64;
+    let v3: f64 = (v1 as f64);
+    let v4: f64 = (v0 as f64);
     let v5: f64 = v4 / v3;
     let v6: f64 = v2 * v2;
     let v7: f64 = v6 / v3;

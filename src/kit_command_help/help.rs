@@ -549,17 +549,17 @@ fn command_more_usages_2() -> Rc<str> {
         };
         (v38.clone(), v39.clone())
     };
-    let v42: bool = "do <root> '<program>' | do <root> - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>" == &*v41;
+    let v42: bool = "do <root> [--dry-run] '<program>' | do <root> [--dry-run] - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>" == &*v41;
     let (mut v50, mut v51): (Rc<str>, Rc<str>) = if v42 {
         (v40.clone(), v41.clone())
     } else {
         let v43: bool = &*v40 == "";
         let (mut v48, mut v49): (Rc<str>, Rc<str>) = if v43 {
-            let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("do <root> '<program>' | do <root> - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>"); } LIT.with(|lit| lit.clone()) };
+            let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("do <root> [--dry-run] '<program>' | do <root> [--dry-run] - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>"); } LIT.with(|lit| lit.clone()) };
             (v44.clone(), v44.clone())
         } else {
             let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v40, v1));
-            let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("do <root> '<program>' | do <root> - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>"); } LIT.with(|lit| lit.clone()) };
+            let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("do <root> [--dry-run] '<program>' | do <root> [--dry-run] - (stdin); edit <path|glob> [dry-run] [expect files n replacements n] / replace [pattern] once|all|<n> times \"old\" with \"new\" / patch <<<hunks>>> / show <path>; search [literal] \"re\" in <glob> [include a,b] [exclude glob] [context n[,m]] [first n per file] [paths] / read <path> around \"text\" [context n[,m]] / files <glob> / head <glob> n / tail <glob> n / wait <file> ~ \"re\" [timeout 5s]; hash <a,b,...> / env <A,B> / exists <a,b> / nearest \"re\" before lines n,m in <file> / json <file> get a.b,c.length / lines <file> count by \"(re)\" / files <glob> count by extension / table <file.tsv> [where col = \"v\"|col <> \"v\"] count by a,b / dirs <dir/*> having a and b + tag <name> = <file> ~ \"re\" [and|or|not ...] + count by <name> / diff <a.tsv> <b.tsv> by k1,k2 [on c1,c2]; run <cmd> [timeout 10s] [until output ~ \"re\" then stop] [background as name] / tail output n / search \"re\" in output / errors in output by \"(re)\" / processes where command ~ \"re\" / stop <name>; append <file> \"line {clock:HH:mm}\" / write <file> [overwrite] <<< text >>> / copy <glob> to <dir> [except *.tmp,...] / move <path> to <path> (no overwrite; absolute paths reach other roots), then read statements; git init|commit <repo> all \"msg\" [at <iso>] / git history <repo> \"text\" in <file> / git status a, b group by state / git log <repo> [since <date>] count by day / search \"re\" in <glob> with git status; job start <cmd> as <name> timeout 30s [notify] / job wait <name> [timeout 5m] / job stop <name>; lab audit <dir> against <backlog>"); } LIT.with(|lit| lit.clone()) };
             let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v46));
             (v47.clone(), v46.clone())
         };
@@ -805,7 +805,87 @@ fn command_more_usages_2() -> Rc<str> {
         };
         (v198.clone(), v199.clone())
     };
-    v200.clone()
+    let v202: bool = "backlog: list|next|plan|views|view|view-add|roots|check|todos|links <root> ... (the team backlog; same grammar as agile <verb>)" == &*v201;
+    let (mut v210, mut v211): (Rc<str>, Rc<str>) = if v202 {
+        (v200.clone(), v201.clone())
+    } else {
+        let v203: bool = &*v200 == "";
+        let (mut v208, mut v209): (Rc<str>, Rc<str>) = if v203 {
+            let v204: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("backlog: list|next|plan|views|view|view-add|roots|check|todos|links <root> ... (the team backlog; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+            (v204.clone(), v204.clone())
+        } else {
+            let v205: Rc<str> = Rc::<str>::from(format!("{}{}", v200, v1));
+            let v206: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("backlog: list|next|plan|views|view|view-add|roots|check|todos|links <root> ... (the team backlog; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+            let v207: Rc<str> = Rc::<str>::from(format!("{}{}", v205, v206));
+            (v207.clone(), v206.clone())
+        };
+        (v208.clone(), v209.clone())
+    };
+    let v212: bool = "story: add|edit|show|set|rename|migrate-tags|note|note-edit|notes <root> ... (one backlog item; same grammar as agile <verb>)" == &*v211;
+    let (mut v220, mut v221): (Rc<str>, Rc<str>) = if v212 {
+        (v210.clone(), v211.clone())
+    } else {
+        let v213: bool = &*v210 == "";
+        let (mut v218, mut v219): (Rc<str>, Rc<str>) = if v213 {
+            let v214: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("story: add|edit|show|set|rename|migrate-tags|note|note-edit|notes <root> ... (one backlog item; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+            (v214.clone(), v214.clone())
+        } else {
+            let v215: Rc<str> = Rc::<str>::from(format!("{}{}", v210, v1));
+            let v216: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("story: add|edit|show|set|rename|migrate-tags|note|note-edit|notes <root> ... (one backlog item; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+            let v217: Rc<str> = Rc::<str>::from(format!("{}{}", v215, v216));
+            (v217.clone(), v216.clone())
+        };
+        (v218.clone(), v219.clone())
+    };
+    let v222: bool = "standup: status|handoff <root> (where the work stands; same grammar as agile <verb>)" == &*v221;
+    let (mut v230, mut v231): (Rc<str>, Rc<str>) = if v222 {
+        (v220.clone(), v221.clone())
+    } else {
+        let v223: bool = &*v220 == "";
+        let (mut v228, mut v229): (Rc<str>, Rc<str>) = if v223 {
+            let v224: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("standup: status|handoff <root> (where the work stands; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+            (v224.clone(), v224.clone())
+        } else {
+            let v225: Rc<str> = Rc::<str>::from(format!("{}{}", v220, v1));
+            let v226: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("standup: status|handoff <root> (where the work stands; same grammar as agile <verb>)"); } LIT.with(|lit| lit.clone()) };
+            let v227: Rc<str> = Rc::<str>::from(format!("{}{}", v225, v226));
+            (v227.clone(), v226.clone())
+        };
+        (v228.clone(), v229.clone())
+    };
+    let v232: bool = "evidence refresh <root> <relative path> [--as <new relative path>] [--dry-run] (rewrites that file's EvidenceRef row in state/evidence.spi from the file on disk: sha256 and byte length)" == &*v231;
+    let (mut v240, mut v241): (Rc<str>, Rc<str>) = if v232 {
+        (v230.clone(), v231.clone())
+    } else {
+        let v233: bool = &*v230 == "";
+        let (mut v238, mut v239): (Rc<str>, Rc<str>) = if v233 {
+            let v234: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("evidence refresh <root> <relative path> [--as <new relative path>] [--dry-run] (rewrites that file's EvidenceRef row in state/evidence.spi from the file on disk: sha256 and byte length)"); } LIT.with(|lit| lit.clone()) };
+            (v234.clone(), v234.clone())
+        } else {
+            let v235: Rc<str> = Rc::<str>::from(format!("{}{}", v230, v1));
+            let v236: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("evidence refresh <root> <relative path> [--as <new relative path>] [--dry-run] (rewrites that file's EvidenceRef row in state/evidence.spi from the file on disk: sha256 and byte length)"); } LIT.with(|lit| lit.clone()) };
+            let v237: Rc<str> = Rc::<str>::from(format!("{}{}", v235, v236));
+            (v237.clone(), v236.clone())
+        };
+        (v238.clone(), v239.clone())
+    };
+    let v242: bool = "lint macros <root> [<path>...] [--baseline <rows>] (host macros by class: long, block, flow, cast, arith)" == &*v241;
+    let (mut v250, mut v251): (Rc<str>, Rc<str>) = if v242 {
+        (v240.clone(), v241.clone())
+    } else {
+        let v243: bool = &*v240 == "";
+        let (mut v248, mut v249): (Rc<str>, Rc<str>) = if v243 {
+            let v244: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lint macros <root> [<path>...] [--baseline <rows>] (host macros by class: long, block, flow, cast, arith)"); } LIT.with(|lit| lit.clone()) };
+            (v244.clone(), v244.clone())
+        } else {
+            let v245: Rc<str> = Rc::<str>::from(format!("{}{}", v240, v1));
+            let v246: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lint macros <root> [<path>...] [--baseline <rows>] (host macros by class: long, block, flow, cast, arith)"); } LIT.with(|lit| lit.clone()) };
+            let v247: Rc<str> = Rc::<str>::from(format!("{}{}", v245, v246));
+            (v247.clone(), v246.clone())
+        };
+        (v248.clone(), v249.clone())
+    };
+    v250.clone()
 }
 fn closure1() -> Rc<dyn Fn() -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> Rc<str>> = Rc::new(move || -> Rc<str> {

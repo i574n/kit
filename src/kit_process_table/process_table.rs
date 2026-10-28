@@ -17,6 +17,7 @@ enum UH0 {
     UH0_NoPsRows,
     UH0_PsRowThen(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<UH0>),
 }
+struct Mut0 { l0: Rc<str> }
 #[derive(Clone)]
 enum US2 {
     US2_Succeeded,
@@ -29,13 +30,13 @@ enum US3 {
     US3_ProcessUnknown,
 }
 fn command_line_argument_count_3() -> i32 {
-    let v0: usize = std::env::args().count();
+    let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn argument_count_2() -> i32 {
-    let v0: i32 = command_line_argument_count_3();
+    let mut v0: i32 = command_line_argument_count_3();
     let v1: i32 = v0.wrapping_add(1i32);
     v1
 }
@@ -157,10 +158,24 @@ fn session_root_10(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc:
     }
 }
 fn local_offset_minutes_11() -> i64 {
-    let v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
+    let mut v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
     v0
 }
-fn descends_from_13(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: u64, mut v3: i32) -> bool {
+fn method14(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_13(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method14(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
+fn descends_from_15(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: u64, mut v3: i32) -> bool {
     loop {
         let v4: bool = v1 == v2;
         if v4 {
@@ -190,11 +205,11 @@ fn descends_from_13(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc
         }
     }
 }
-fn pattern_matches_14(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
+fn pattern_matches_16(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let v2: bool = { static PATTERN: std::sync::OnceLock<Option<regex::Regex>> = std::sync::OnceLock::new(); PATTERN.get_or_init(|| regex::RegexBuilder::new(&*v0).case_insensitive(true).build().ok()).as_ref().map(|found| found.is_match(&*v1)).unwrap_or(false) };
     v2
 }
-fn children_listed_15(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: i32, mut v3: i64, mut v4: i32, mut v5: Rc<UH0>, mut v6: Rc<str>, mut v7: u64) -> (Rc<UH0>, Rc<str>, u64) {
+fn children_listed_17(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: i32, mut v3: i64, mut v4: i32, mut v5: Rc<UH0>, mut v6: Rc<str>, mut v7: u64) -> (Rc<UH0>, Rc<str>, u64) {
     let v8: i32 = v0.len() as i32;
     let v9: bool = v4 >= v8;
     let (mut v53, mut v54, mut v55): (Rc<UH0>, Rc<str>, u64) = if v9 {
@@ -210,7 +225,7 @@ fn children_listed_15(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::
             false
         };
         let v21: bool = if v14 {
-            let v15: Rc<str> = std::rc::Rc::<str>::from((v10).to_string());
+            let v15: Rc<str> = format_real_13(v10);
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
             let v18: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v16, v15)), v16));
             let v19: bool = v6.contains(&*v18);
@@ -223,31 +238,31 @@ fn children_listed_15(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::
             let v22: i32 = v2.wrapping_add(1i32);
             let v23: i32 = 0i32;
             let v24: u64 = v0[v4 as usize].0;
-            let v25: Rc<str> = std::rc::Rc::<str>::from((v24).to_string());
+            let v25: Rc<str> = format_real_13(v24);
             let v26: u64 = v0[v4 as usize].1;
-            let v27: Rc<str> = std::rc::Rc::<str>::from((v26).to_string());
+            let v27: Rc<str> = format_real_13(v26);
             let v28: u64 = v0[v4 as usize].5;
             let v29: Rc<str> = std::rc::Rc::<str>::from({ let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64; let local = (now - (v28 as i64) * 60 + v3 * 60).rem_euclid(86400); format!("{:02}:{:02}", local / 3600, local / 60 % 60) }.as_str());
             let v30: u64 = v0[v4 as usize].7;
-            let v31: Rc<str> = std::rc::Rc::<str>::from((v30).to_string());
+            let v31: Rc<str> = format_real_13(v30);
             let v32: f64 = v0[v4 as usize].4;
             let v33: Rc<str> = std::rc::Rc::<str>::from(format!("{:.1}", v32).as_str());
             let v34: Rc<str> = std::rc::Rc::<str>::from("  ".repeat(v2 as usize).as_str());
             let v35: Rc<str> = v0[v4 as usize].3.clone();
             let v36: Rc<str> = std::rc::Rc::<str>::from({ let text = &*v35; if text.chars().count() > 200 { format!("{}...", text.chars().take(200).collect::<String>()) } else { text.to_owned() } }.as_str());
             let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v36));
-            let v38: Rc<str> = std::rc::Rc::<str>::from((v24).to_string());
+            let v38: Rc<str> = format_real_13(v24);
             let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v38));
             let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
             let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
             let v42: Rc<UH0> = Rc::new(UH0::UH0_PsRowThen(v25.clone(), v27.clone(), v29.clone(), v31.clone(), v33.clone(), v37.clone(), v5.clone()));
-            let (mut v43, mut v44, mut v45): (Rc<UH0>, Rc<str>, u64) = children_listed_15(v0.clone(), v10, v22, v3, v23, v42.clone(), v41.clone(), v7);
+            let (mut v43, mut v44, mut v45): (Rc<UH0>, Rc<str>, u64) = children_listed_17(v0.clone(), v10, v22, v3, v23, v42.clone(), v41.clone(), v7);
             (v43.clone(), v44.clone(), v45)
         } else {
             (v5.clone(), v6.clone(), v7)
         };
         let v49: i32 = v4.wrapping_add(1i32);
-        let (mut v50, mut v51, mut v52): (Rc<UH0>, Rc<str>, u64) = children_listed_15(v0.clone(), v1, v2, v3, v49, v46.clone(), v47.clone(), v48);
+        let (mut v50, mut v51, mut v52): (Rc<UH0>, Rc<str>, u64) = children_listed_17(v0.clone(), v1, v2, v3, v49, v46.clone(), v47.clone(), v48);
         (v50.clone(), v51.clone(), v52)
     };
     (v53.clone(), v54.clone(), v55)
@@ -261,7 +276,7 @@ fn listed_12(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<st
         let v12: u64 = v0[v6 as usize].0;
         let v13: bool = v12 != v4;
         let v20: bool = if v13 {
-            let v14: Rc<str> = std::rc::Rc::<str>::from((v12).to_string());
+            let v14: Rc<str> = format_real_13(v12);
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
             let v17: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v15, v14)), v15));
             let v18: bool = v8.contains(&*v17);
@@ -281,7 +296,7 @@ fn listed_12(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<st
                 US1::US1_SessionTree(v21) => {
                     let v21: u64 = *v21;
                     let v22: i32 = 0i32;
-                    descends_from_13(v0.clone(), v12, v21, v22)
+                    descends_from_15(v0.clone(), v12, v21, v22)
                 }
             }
         } else {
@@ -293,27 +308,27 @@ fn listed_12(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<st
             let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
             let v31: Rc<str> = v0[v6 as usize].3.clone();
             let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
-            pattern_matches_14(v1.clone(), v32.clone())
+            pattern_matches_16(v1.clone(), v32.clone())
         } else {
             false
         };
         let (mut v64, mut v65, mut v66): (Rc<UH0>, Rc<str>, u64) = if v34 {
             let v35: u64 = v9.wrapping_add(1u64);
             let v36: u64 = v0[v6 as usize].0;
-            let v37: Rc<str> = std::rc::Rc::<str>::from((v36).to_string());
+            let v37: Rc<str> = format_real_13(v36);
             let v38: u64 = v0[v6 as usize].1;
-            let v39: Rc<str> = std::rc::Rc::<str>::from((v38).to_string());
+            let v39: Rc<str> = format_real_13(v38);
             let v40: u64 = v0[v6 as usize].5;
             let v41: Rc<str> = std::rc::Rc::<str>::from({ let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64; let local = (now - (v40 as i64) * 60 + v5 * 60).rem_euclid(86400); format!("{:02}:{:02}", local / 3600, local / 60 % 60) }.as_str());
             let v42: u64 = v0[v6 as usize].7;
-            let v43: Rc<str> = std::rc::Rc::<str>::from((v42).to_string());
+            let v43: Rc<str> = format_real_13(v42);
             let v44: f64 = v0[v6 as usize].4;
             let v45: Rc<str> = std::rc::Rc::<str>::from(format!("{:.1}", v44).as_str());
             let v46: Rc<str> = std::rc::Rc::<str>::from("  ".repeat(0i32 as usize).as_str());
             let v47: Rc<str> = v0[v6 as usize].3.clone();
             let v48: Rc<str> = std::rc::Rc::<str>::from({ let text = &*v47; if text.chars().count() > 200 { format!("{}...", text.chars().take(200).collect::<String>()) } else { text.to_owned() } }.as_str());
             let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v48));
-            let v50: Rc<str> = std::rc::Rc::<str>::from((v36).to_string());
+            let v50: Rc<str> = format_real_13(v36);
             let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v50));
             let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
             let v53: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v52));
@@ -321,7 +336,7 @@ fn listed_12(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<st
                 let v54: i32 = 1i32;
                 let v55: i32 = 0i32;
                 let v56: Rc<UH0> = Rc::new(UH0::UH0_PsRowThen(v37.clone(), v39.clone(), v41.clone(), v43.clone(), v45.clone(), v49.clone(), v7.clone()));
-                let (mut v57, mut v58, mut v59): (Rc<UH0>, Rc<str>, u64) = children_listed_15(v0.clone(), v12, v54, v5, v55, v56.clone(), v53.clone(), v35);
+                let (mut v57, mut v58, mut v59): (Rc<UH0>, Rc<str>, u64) = children_listed_17(v0.clone(), v12, v54, v5, v55, v56.clone(), v53.clone(), v35);
                 (v57.clone(), v58.clone(), v59)
             } else {
                 let v60: Rc<UH0> = Rc::new(UH0::UH0_PsRowThen(v37.clone(), v39.clone(), v41.clone(), v43.clone(), v45.clone(), v49.clone(), v7.clone()));
@@ -337,7 +352,7 @@ fn listed_12(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<st
     };
     (v71.clone(), v72.clone(), v73)
 }
-fn widths_of_17(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: i32) -> (i32, i32, i32, i32, i32) {
+fn widths_of_19(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: i32) -> (i32, i32, i32, i32, i32) {
     let (mut v38, mut v39, mut v40, mut v41, mut v42): (i32, i32, i32, i32, i32) = match &*v0 {
         UH0::UH0_NoPsRows => {
             (v1, v2, v3, v4, v5)
@@ -387,7 +402,7 @@ fn widths_of_17(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: 
                     } else {
                         v5
                     };
-                    widths_of_17(v12, v15, v18, v21, v24, v27)
+                    widths_of_19(v12, v15, v18, v21, v24, v27)
                 }
                 _ => unreachable!(),
             };
@@ -396,7 +411,7 @@ fn widths_of_17(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: 
     };
     (v38, v39, v40, v41, v42)
 }
-fn rows_text_18(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: i32, mut v6: Rc<str>) -> Rc<str> {
+fn rows_text_20(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: i32, mut v6: Rc<str>) -> Rc<str> {
     loop {
         match &*v0 {
             UH0::UH0_NoPsRows => {
@@ -446,7 +461,7 @@ fn rows_text_18(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: 
         }
     }
 }
-fn listing_text_16(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> Rc<str> {
+fn listing_text_18(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> Rc<str> {
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pid"); } LIT.with(|lit| lit.clone()) };
     let v4: i32 = (&*v3).chars().count() as i32;
     let v5: bool = 0i32 < v4;
@@ -487,9 +502,9 @@ fn listing_text_16(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> Rc<str> {
     } else {
         0i32
     };
-    let (mut v23, mut v24, mut v25, mut v26, mut v27): (i32, i32, i32, i32, i32) = widths_of_17(v0.clone(), v6, v10, v14, v18, v22);
+    let (mut v23, mut v24, mut v25, mut v26, mut v27): (i32, i32, i32, i32, i32) = widths_of_19(v0.clone(), v6, v10, v14, v18, v22);
     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v29: Rc<str> = rows_text_18(v0.clone(), v23, v24, v25, v26, v27, v28.clone());
+    let v29: Rc<str> = rows_text_20(v0.clone(), v23, v24, v25, v26, v27, v28.clone());
     let v30: Rc<str> = std::rc::Rc::<str>::from(format!("{:<width$}", &*v3, width = v23 as usize).as_str());
     let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
     let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
@@ -512,20 +527,20 @@ fn listing_text_16(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> Rc<str> {
         v50.clone()
     }
 }
-fn decimal_text_19(mut v0: u64) -> Rc<str> {
+fn decimal_text_21(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
-fn elapsed_text_21(mut v0: u64) -> Rc<str> {
+fn elapsed_text_23(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
-fn clock_text_22() -> Rc<str> {
-    let v0: i64 = local_offset_minutes_11();
+fn clock_text_24() -> Rc<str> {
+    let mut v0: i64 = local_offset_minutes_11();
     let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_20(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_22(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US2::US2_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
@@ -538,9 +553,9 @@ fn receipt_line_20(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v7)), v1)), v7));
-    let v11: Rc<str> = elapsed_text_21(v2);
+    let v11: Rc<str> = elapsed_text_23(v2);
     let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v7));
-    let v14: Rc<str> = clock_text_22();
+    let v14: Rc<str> = clock_text_24();
     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
     println!("{}", v15);
     ()
@@ -554,7 +569,7 @@ fn list_run_1(mut v0: u64) -> i32 {
     if v5 {
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps: invalid pattern: "); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v4));
-        println!("{}", &*v7);
+        println!("{}", v7);
         2i32
     } else {
         let v8: u64 = 500u64;
@@ -579,7 +594,7 @@ fn list_run_1(mut v0: u64) -> i32 {
         match &v22 {
             US1::US1_NoSession => {
                 let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps --mine: no claude or codex process above this kit"); } LIT.with(|lit| lit.clone()) };
-                println!("{}", &*v23);
+                println!("{}", v23);
                 2i32
             }
             _ => {
@@ -592,10 +607,10 @@ fn list_run_1(mut v0: u64) -> i32 {
                 let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                 let v31: u64 = 0u64;
                 let (mut v32, mut v33, mut v34): (Rc<UH0>, Rc<str>, u64) = listed_12(v10.clone(), v3.clone(), v22.clone(), v26, v11, v27, v28, v29.clone(), v30.clone(), v31);
-                let v35: Rc<str> = listing_text_16(v32.clone(), v33.clone(), v34);
-                println!("{}", &*v35);
+                let v35: Rc<str> = listing_text_18(v32.clone(), v33.clone(), v34);
+                println!("{}", v35);
                 let v36: US2 = US2::US2_Succeeded;
-                let v37: Rc<str> = decimal_text_19(v34);
+                let v37: Rc<str> = decimal_text_21(v34);
                 let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("processes "); } LIT.with(|lit| lit.clone()) };
                 let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v37));
                 let v46: Rc<str> = match &v22 {
@@ -605,7 +620,7 @@ fn list_run_1(mut v0: u64) -> i32 {
                     }
                     US1::US1_SessionTree(v41) => {
                         let v41: u64 = *v41;
-                        let v42: Rc<str> = std::rc::Rc::<str>::from((v41).to_string());
+                        let v42: Rc<str> = format_real_13(v41);
                         let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  session "); } LIT.with(|lit| lit.clone()) };
                         let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v42));
                         v44.clone()
@@ -613,18 +628,18 @@ fn list_run_1(mut v0: u64) -> i32 {
                     _ => unreachable!(),
                 };
                 let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v46));
-                receipt_line_20(v36.clone(), v47.clone(), v0);
+                receipt_line_22(v36.clone(), v47.clone(), v0);
                 0i32
             }
         }
     }
 }
-fn now_ms_23() -> u64 {
-    let v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
+fn now_ms_25() -> u64 {
+    let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
 }
 fn process_run_0() -> i32 {
-    let v0: u64 = now_ms_23();
+    let mut v0: u64 = now_ms_25();
     let v1: i32 = 1i32;
     let v2: Rc<str> = argument_5(v1);
     let v3: bool = &*v2 == "ps";
@@ -646,7 +661,7 @@ fn process_run_0() -> i32 {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit "); } LIT.with(|lit| lit.clone()) };
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"); } LIT.with(|lit| lit.clone()) };
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"); } LIT.with(|lit| lit.clone()) };
-            println!("{}", &*v14);
+            println!("{}", v14);
             2i32
         }
         US3::US3_StopProcesses => {

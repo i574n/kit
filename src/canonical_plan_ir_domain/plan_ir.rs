@@ -384,306 +384,297 @@ fn plan_index_valid_11(mut v0: Rc<str>) -> u64 {
     }
 }
 fn plan_decode_code_12(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> u64 {
-    let v5: u64 = 8i32 as u64;
-    let v6: bool = "create" == &*v0;
-    let v8: bool = if v6 {
-        let v7: bool = "write" == &*v4;
-        v7
+    let v5: bool = "create" == &*v0;
+    let v7: bool = if v5 {
+        let v6: bool = "write" == &*v4;
+        v6
     } else {
         false
     };
-    if v8 {
-        let v9: bool = &*v1 == "";
-        let v11: bool = if v9 {
+    if v7 {
+        let v8: bool = &*v1 == "";
+        let v10: bool = if v8 {
             true
         } else {
-            let v10: bool = &*v1 == "-";
-            v10
+            let v9: bool = &*v1 == "-";
+            v9
         };
-        let v12: bool = v11 == false;
-        let v14: bool = if v12 {
-            let v13: bool = &*v2 == "-";
-            v13
+        let v11: bool = v10 == false;
+        let v13: bool = if v11 {
+            let v12: bool = &*v2 == "-";
+            v12
         } else {
             false
         };
-        if v14 {
-            let v15: u64 = 0i32 as u64;
-            v15
+        if v13 {
+            0u64
         } else {
-            v5
+            8u64
         }
     } else {
-        let v17: bool = "replace" == &*v0;
-        let v19: bool = if v17 {
-            let v18: bool = "write" == &*v4;
-            v18
+        let v15: bool = "replace" == &*v0;
+        let v17: bool = if v15 {
+            let v16: bool = "write" == &*v4;
+            v16
         } else {
             false
         };
-        if v19 {
-            let v20: bool = &*v1 == "";
-            let v22: bool = if v20 {
+        if v17 {
+            let v18: bool = &*v1 == "";
+            let v20: bool = if v18 {
                 true
             } else {
-                let v21: bool = &*v1 == "-";
-                v21
+                let v19: bool = &*v1 == "-";
+                v19
             };
-            let v23: bool = v22 == false;
-            let v28: bool = if v23 {
-                let v24: bool = &*v2 == "";
-                let v26: bool = if v24 {
+            let v21: bool = v20 == false;
+            let v26: bool = if v21 {
+                let v22: bool = &*v2 == "";
+                let v24: bool = if v22 {
                     true
                 } else {
-                    let v25: bool = &*v2 == "-";
-                    v25
+                    let v23: bool = &*v2 == "-";
+                    v23
                 };
-                let v27: bool = v26 == false;
-                v27
+                let v25: bool = v24 == false;
+                v25
             } else {
                 false
             };
-            if v28 {
-                let v29: u64 = 1i32 as u64;
-                v29
+            if v26 {
+                1u64
             } else {
-                v5
+                8u64
             }
         } else {
-            let v31: bool = "patch-exact" == &*v0;
-            let v33: bool = if v31 {
-                let v32: bool = "write" == &*v4;
-                v32
+            let v28: bool = "patch-exact" == &*v0;
+            let v30: bool = if v28 {
+                let v29: bool = "write" == &*v4;
+                v29
             } else {
                 false
             };
-            if v33 {
-                let v34: bool = &*v1 == "";
-                let v36: bool = if v34 {
+            if v30 {
+                let v31: bool = &*v1 == "";
+                let v33: bool = if v31 {
                     true
                 } else {
-                    let v35: bool = &*v1 == "-";
-                    v35
+                    let v32: bool = &*v1 == "-";
+                    v32
                 };
-                let v37: bool = v36 == false;
-                if v37 {
-                    let v38: u64 = 2i32 as u64;
-                    v38
+                let v34: bool = v33 == false;
+                if v34 {
+                    2u64
                 } else {
-                    v5
+                    8u64
                 }
             } else {
-                let v40: bool = "mkdir" == &*v0;
-                let v42: bool = if v40 {
-                    let v41: bool = "write" == &*v4;
-                    v41
+                let v36: bool = "mkdir" == &*v0;
+                let v38: bool = if v36 {
+                    let v37: bool = "write" == &*v4;
+                    v37
                 } else {
                     false
                 };
-                if v42 {
-                    let v43: bool = &*v1 == "";
-                    let v45: bool = if v43 {
+                if v38 {
+                    let v39: bool = &*v1 == "";
+                    let v41: bool = if v39 {
                         true
                     } else {
-                        let v44: bool = &*v1 == "-";
-                        v44
+                        let v40: bool = &*v1 == "-";
+                        v40
                     };
-                    let v46: bool = v45 == false;
-                    let v48: bool = if v46 {
-                        let v47: bool = &*v2 == "-";
-                        v47
+                    let v42: bool = v41 == false;
+                    let v44: bool = if v42 {
+                        let v43: bool = &*v2 == "-";
+                        v43
                     } else {
                         false
                     };
+                    let v46: bool = if v44 {
+                        let v45: bool = &*v3 == "-";
+                        v45
+                    } else {
+                        false
+                    };
+                    if v46 {
+                        3u64
+                    } else {
+                        8u64
+                    }
+                } else {
+                    let v48: bool = "toolchain" == &*v0;
                     let v50: bool = if v48 {
-                        let v49: bool = &*v3 == "-";
+                        let v49: bool = "toolchain" == &*v4;
                         v49
                     } else {
                         false
                     };
                     if v50 {
-                        let v51: u64 = 3i32 as u64;
-                        v51
-                    } else {
-                        v5
-                    }
-                } else {
-                    let v53: bool = "toolchain" == &*v0;
-                    let v55: bool = if v53 {
-                        let v54: bool = "toolchain" == &*v4;
-                        v54
-                    } else {
-                        false
-                    };
-                    if v55 {
-                        let v56: bool = &*v1 == "";
-                        let v58: bool = if v56 {
+                        let v51: bool = &*v1 == "";
+                        let v53: bool = if v51 {
                             true
                         } else {
-                            let v57: bool = &*v1 == "-";
+                            let v52: bool = &*v1 == "-";
+                            v52
+                        };
+                        let v54: bool = v53 == false;
+                        let v56: bool = if v54 {
+                            let v55: bool = &*v2 == "-";
+                            v55
+                        } else {
+                            false
+                        };
+                        let v58: bool = if v56 {
+                            let v57: bool = &*v3 == "-";
                             v57
-                        };
-                        let v59: bool = v58 == false;
-                        let v61: bool = if v59 {
-                            let v60: bool = &*v2 == "-";
-                            v60
                         } else {
                             false
                         };
-                        let v63: bool = if v61 {
-                            let v62: bool = &*v3 == "-";
-                            v62
+                        if v58 {
+                            4u64
                         } else {
-                            false
-                        };
-                        if v63 {
-                            let v64: u64 = 4i32 as u64;
-                            v64
-                        } else {
-                            v5
+                            8u64
                         }
                     } else {
-                        let v66: bool = "copy" == &*v0;
-                        let v68: bool = if v66 {
-                            let v67: bool = "write" == &*v4;
-                            v67
+                        let v60: bool = "copy" == &*v0;
+                        let v62: bool = if v60 {
+                            let v61: bool = "write" == &*v4;
+                            v61
                         } else {
                             false
                         };
-                        if v68 {
-                            let v69: bool = &*v1 == "";
-                            let v71: bool = if v69 {
+                        if v62 {
+                            let v63: bool = &*v1 == "";
+                            let v65: bool = if v63 {
                                 true
                             } else {
-                                let v70: bool = &*v1 == "-";
+                                let v64: bool = &*v1 == "-";
+                                v64
+                            };
+                            let v66: bool = v65 == false;
+                            let v71: bool = if v66 {
+                                let v67: bool = &*v2 == "";
+                                let v69: bool = if v67 {
+                                    true
+                                } else {
+                                    let v68: bool = &*v2 == "-";
+                                    v68
+                                };
+                                let v70: bool = v69 == false;
                                 v70
-                            };
-                            let v72: bool = v71 == false;
-                            let v77: bool = if v72 {
-                                let v73: bool = &*v2 == "";
-                                let v75: bool = if v73 {
-                                    true
-                                } else {
-                                    let v74: bool = &*v2 == "-";
-                                    v74
-                                };
-                                let v76: bool = v75 == false;
-                                v76
                             } else {
                                 false
                             };
-                            let v82: bool = if v77 {
-                                let v78: bool = &*v3 == "";
-                                let v80: bool = if v78 {
+                            let v76: bool = if v71 {
+                                let v72: bool = &*v3 == "";
+                                let v74: bool = if v72 {
                                     true
                                 } else {
-                                    let v79: bool = &*v3 == "-";
-                                    v79
+                                    let v73: bool = &*v3 == "-";
+                                    v73
                                 };
-                                let v81: bool = v80 == false;
-                                v81
+                                let v75: bool = v74 == false;
+                                v75
                             } else {
                                 false
                             };
-                            if v82 {
-                                let v83: u64 = 5i32 as u64;
-                                v83
+                            if v76 {
+                                5u64
                             } else {
-                                v5
+                                8u64
                             }
                         } else {
-                            let v85: bool = "chmod" == &*v0;
-                            let v87: bool = if v85 {
-                                let v86: bool = "write" == &*v4;
-                                v86
+                            let v78: bool = "chmod" == &*v0;
+                            let v80: bool = if v78 {
+                                let v79: bool = "write" == &*v4;
+                                v79
                             } else {
                                 false
                             };
-                            if v87 {
-                                let v88: bool = &*v1 == "";
-                                let v90: bool = if v88 {
+                            if v80 {
+                                let v81: bool = &*v1 == "";
+                                let v83: bool = if v81 {
                                     true
                                 } else {
-                                    let v89: bool = &*v1 == "-";
-                                    v89
+                                    let v82: bool = &*v1 == "-";
+                                    v82
                                 };
-                                let v91: bool = v90 == false;
-                                let v96: bool = if v91 {
-                                    let v92: bool = &*v2 == "";
-                                    let v94: bool = if v92 {
+                                let v84: bool = v83 == false;
+                                let v89: bool = if v84 {
+                                    let v85: bool = &*v2 == "";
+                                    let v87: bool = if v85 {
                                         true
                                     } else {
-                                        let v93: bool = &*v2 == "-";
-                                        v93
+                                        let v86: bool = &*v2 == "-";
+                                        v86
                                     };
-                                    let v95: bool = v94 == false;
-                                    v95
+                                    let v88: bool = v87 == false;
+                                    v88
                                 } else {
                                     false
                                 };
-                                let v101: bool = if v96 {
-                                    let v97: bool = &*v3 == "";
-                                    let v99: bool = if v97 {
+                                let v94: bool = if v89 {
+                                    let v90: bool = &*v3 == "";
+                                    let v92: bool = if v90 {
                                         true
                                     } else {
-                                        let v98: bool = &*v3 == "-";
-                                        v98
+                                        let v91: bool = &*v3 == "-";
+                                        v91
                                     };
-                                    let v100: bool = v99 == false;
-                                    v100
+                                    let v93: bool = v92 == false;
+                                    v93
                                 } else {
                                     false
                                 };
-                                if v101 {
-                                    let v102: u64 = 6i32 as u64;
-                                    v102
+                                if v94 {
+                                    6u64
                                 } else {
-                                    v5
+                                    8u64
                                 }
                             } else {
-                                let v104: bool = "symlink" == &*v0;
-                                let v106: bool = if v104 {
-                                    let v105: bool = "write" == &*v4;
-                                    v105
+                                let v96: bool = "symlink" == &*v0;
+                                let v98: bool = if v96 {
+                                    let v97: bool = "write" == &*v4;
+                                    v97
                                 } else {
                                     false
                                 };
-                                if v106 {
-                                    let v107: bool = &*v1 == "";
-                                    let v109: bool = if v107 {
+                                if v98 {
+                                    let v99: bool = &*v1 == "";
+                                    let v101: bool = if v99 {
                                         true
                                     } else {
-                                        let v108: bool = &*v1 == "-";
-                                        v108
+                                        let v100: bool = &*v1 == "-";
+                                        v100
                                     };
-                                    let v110: bool = v109 == false;
-                                    let v112: bool = if v110 {
-                                        let v111: bool = &*v2 == "-";
-                                        v111
+                                    let v102: bool = v101 == false;
+                                    let v104: bool = if v102 {
+                                        let v103: bool = &*v2 == "-";
+                                        v103
                                     } else {
                                         false
                                     };
-                                    let v117: bool = if v112 {
-                                        let v113: bool = &*v3 == "";
-                                        let v115: bool = if v113 {
+                                    let v109: bool = if v104 {
+                                        let v105: bool = &*v3 == "";
+                                        let v107: bool = if v105 {
                                             true
                                         } else {
-                                            let v114: bool = &*v3 == "-";
-                                            v114
+                                            let v106: bool = &*v3 == "-";
+                                            v106
                                         };
-                                        let v116: bool = v115 == false;
-                                        v116
+                                        let v108: bool = v107 == false;
+                                        v108
                                     } else {
                                         false
                                     };
-                                    if v117 {
-                                        let v118: u64 = 7i32 as u64;
-                                        v118
+                                    if v109 {
+                                        7u64
                                     } else {
-                                        v5
+                                        8u64
                                     }
                                 } else {
-                                    v5
+                                    8u64
                                 }
                             }
                         }

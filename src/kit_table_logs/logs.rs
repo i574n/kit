@@ -1,6 +1,7 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
+struct Mut0 { l0: Rc<str> }
 #[derive(Clone)]
 enum US0 {
     US0_CountMatches,
@@ -42,7 +43,7 @@ enum US5 {
     US5_MixedShapes,
 }
 fn stderr_line_2(mut v0: Rc<str>) -> () {
-    eprintln!("{}", &*v0);
+    eprintln!("{}", v0);
     ()
 }
 fn failed_1(mut v0: Rc<str>) -> i32 {
@@ -60,7 +61,7 @@ fn text_written_5(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v2.clone()
 }
 fn stdout_line_6(mut v0: Rc<str>) -> () {
-    println!("{}", &*v0);
+    println!("{}", v0);
     ()
 }
 fn table_written_3(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<str>) -> i32 {
@@ -202,9 +203,22 @@ fn values_rows_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
         }
     }
 }
+fn method20(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_19(mut v0: i32) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method20(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn count_text_18(mut v0: i32) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string().as_str());
-    v1
+    format_real_19(v0)
 }
 fn values_run_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: bool, mut v5: Rc<str>, mut v6: Rc<str>) -> i32 {
     let v7: Rc<str> = files_listed_8(v0.clone(), v1.clone());
@@ -234,35 +248,35 @@ fn values_run_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
         table_written_3(v3.clone(), v4, v23.clone(), v32.clone())
     }
 }
-fn command_line_argument_count_20() -> i32 {
+fn command_line_argument_count_22() -> i32 {
     let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
-fn argument_count_19() -> i32 {
-    let mut v0: i32 = command_line_argument_count_20();
+fn argument_count_21() -> i32 {
+    let mut v0: i32 = command_line_argument_count_22();
     let v1: i32 = v0.wrapping_add(1i32);
     v1
 }
-fn command_line_argument_23(mut v0: i32) -> Rc<str> {
+fn command_line_argument_25(mut v0: i32) -> Rc<str> {
     let v1: i32 = v0.wrapping_add(1i32);
     let v2: usize = ((v1) as usize);
     let v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
     v3
 }
-fn argument_22(mut v0: i32) -> Rc<str> {
+fn argument_24(mut v0: i32) -> Rc<str> {
     let v1: i32 = v0.wrapping_sub(1i32);
     let v2: bool = v1 >= 0i32;
     let v5: bool = if v2 {
-        let v3: i32 = command_line_argument_count_20();
+        let v3: i32 = command_line_argument_count_22();
         let v4: bool = v1 < v3;
         v4
     } else {
         false
     };
     let v9: US2 = if v5 {
-        let v6: Rc<str> = command_line_argument_23(v1);
+        let v6: Rc<str> = command_line_argument_25(v1);
         US2::US2_Some(v6.clone())
     } else {
         US2::US2_None
@@ -278,7 +292,7 @@ fn argument_22(mut v0: i32) -> Rc<str> {
         }
     }
 }
-fn kind_of_24(mut v0: Rc<str>) -> US3 {
+fn kind_of_26(mut v0: Rc<str>) -> US3 {
     let v1: bool = &*v0 == "--count";
     if v1 {
         let v2: US0 = US0::US0_CountMatches;
@@ -317,11 +331,11 @@ fn kind_of_24(mut v0: Rc<str>) -> US3 {
         }
     }
 }
-fn name_ok_26(mut v0: Rc<str>) -> bool {
+fn name_ok_28(mut v0: Rc<str>) -> bool {
     let v1: bool = !(v0).is_empty() && (v0).chars().all(|c| c.is_ascii_alphanumeric() || c == char::from(95u8) || c == char::from(45u8));
     v1
 }
-fn measures_appended_27(mut v0: Rc<UH0>, mut v1: US0, mut v2: Rc<str>, mut v3: Rc<str>) -> Rc<UH0> {
+fn measures_appended_29(mut v0: Rc<UH0>, mut v1: US0, mut v2: Rc<str>, mut v3: Rc<str>) -> Rc<UH0> {
     match &*v0 {
         UH0::UH0_MeasureThen(v7, v8, v9, v10, v11) => {
             let v7: US0 = v7.clone();
@@ -329,7 +343,7 @@ fn measures_appended_27(mut v0: Rc<UH0>, mut v1: US0, mut v2: Rc<str>, mut v3: R
             let v9: Rc<str> = v9.clone();
             let v10: Rc<str> = v10.clone();
             let v11: Rc<UH0> = v11.clone();
-            let v12: Rc<UH0> = measures_appended_27(v11.clone(), v1.clone(), v2.clone(), v3.clone());
+            let v12: Rc<UH0> = measures_appended_29(v11.clone(), v1.clone(), v2.clone(), v3.clone());
             Rc::new(UH0::UH0_MeasureThen(v7.clone(), v8.clone(), v9.clone(), v10.clone(), v12.clone()))
         }
         UH0::UH0_NoMeasures => {
@@ -339,10 +353,10 @@ fn measures_appended_27(mut v0: Rc<UH0>, mut v1: US0, mut v2: Rc<str>, mut v3: R
         }
     }
 }
-fn spec_applied_25(mut v0: Rc<UH0>, mut v1: US0, mut v2: Rc<str>) -> US4 {
+fn spec_applied_27(mut v0: Rc<UH0>, mut v1: US0, mut v2: Rc<str>) -> US4 {
     let v3: Rc<str> = std::rc::Rc::<str>::from((v2).split_once(char::from(61u8)).map(|(name, _)| name).unwrap_or(""));
     let v4: Rc<str> = std::rc::Rc::<str>::from((v2).split_once(char::from(61u8)).map(|(_, pattern)| pattern).unwrap_or(""));
-    let v5: bool = name_ok_26(v3.clone());
+    let v5: bool = name_ok_28(v3.clone());
     let v6: bool = v5 == false;
     let v8: bool = if v6 {
         true
@@ -388,18 +402,18 @@ fn spec_applied_25(mut v0: Rc<UH0>, mut v1: US0, mut v2: Rc<str>) -> US4 {
             let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the column name 'file' is taken by the file path"); } LIT.with(|lit| lit.clone()) };
             US4::US4_SpecRejected(v28.clone())
         } else {
-            let v30: Rc<UH0> = measures_appended_27(v0.clone(), v1.clone(), v3.clone(), v4.clone());
+            let v30: Rc<UH0> = measures_appended_29(v0.clone(), v1.clone(), v3.clone(), v4.clone());
             US4::US4_SpecTaken(v30.clone())
         }
     }
 }
-fn options_from_21(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: bool, mut v7: Rc<UH0>) -> US1 {
+fn options_from_23(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: bool, mut v7: Rc<UH0>) -> US1 {
     loop {
         let v8: bool = v0 >= v1;
         if v8 {
             return US1::US1_RequestTaken(v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6, v7.clone());
         } else {
-            let v10: Rc<str> = argument_22(v0);
+            let v10: Rc<str> = argument_24(v0);
             let v11: bool = &*v10 == "--quiet";
             if v11 {
                 let v12: i32 = v0.wrapping_add(1i32);
@@ -422,30 +436,30 @@ fn options_from_21(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, m
                         let v24: bool = &*v10 == "--glob";
                         if v24 {
                             let v25: i32 = v0.wrapping_add(2i32);
-                            let v26: Rc<str> = argument_22(v17);
+                            let v26: Rc<str> = argument_24(v17);
                             (v0, v1, v2, v3, v4, v5, v6, v7) = (v25, v1, v2.clone(), v26.clone(), v4.clone(), v5.clone(), v6, v7.clone());
                             continue;
                         } else {
                             let v28: bool = &*v10 == "--since";
                             if v28 {
                                 let v29: i32 = v0.wrapping_add(2i32);
-                                let v30: Rc<str> = argument_22(v17);
+                                let v30: Rc<str> = argument_24(v17);
                                 (v0, v1, v2, v3, v4, v5, v6, v7) = (v29, v1, v2.clone(), v3.clone(), v4.clone(), v30.clone(), v6, v7.clone());
                                 continue;
                             } else {
                                 let v32: bool = &*v10 == "--out";
                                 if v32 {
                                     let v33: i32 = v0.wrapping_add(2i32);
-                                    let v34: Rc<str> = argument_22(v17);
+                                    let v34: Rc<str> = argument_24(v17);
                                     (v0, v1, v2, v3, v4, v5, v6, v7) = (v33, v1, v2.clone(), v3.clone(), v34.clone(), v5.clone(), v6, v7.clone());
                                     continue;
                                 } else {
-                                    let v36: US3 = kind_of_24(v10.clone());
+                                    let v36: US3 = kind_of_26(v10.clone());
                                     match &v36 {
                                         US3::US3_KindKnown(v40) => {
                                             let v40: US0 = v40.clone();
-                                            let v41: Rc<str> = argument_22(v17);
-                                            let v42: US4 = spec_applied_25(v7.clone(), v40.clone(), v41.clone());
+                                            let v41: Rc<str> = argument_24(v17);
+                                            let v42: US4 = spec_applied_27(v7.clone(), v40.clone(), v41.clone());
                                             match &v42 {
                                                 US4::US4_SpecRejected(v43) => {
                                                     let v43: Rc<str> = v43.clone();
@@ -486,7 +500,7 @@ fn options_from_21(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, m
         }
     }
 }
-fn measure_count_28(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
+fn measure_count_30(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
     loop {
         match &*v0 {
             UH0::UH0_MeasureThen(v2, v3, v4, v5, v6) => {
@@ -505,11 +519,11 @@ fn measure_count_28(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
         }
     }
 }
-fn pattern_error_30(mut v0: Rc<str>) -> Rc<str> {
+fn pattern_error_32(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from(regex::Regex::new(&*v0).err().map(|error| error.to_string()).unwrap_or_default().as_str());
     v1.clone()
 }
-fn pattern_problem_29(mut v0: Rc<UH0>) -> Rc<str> {
+fn pattern_problem_31(mut v0: Rc<UH0>) -> Rc<str> {
     loop {
         match &*v0 {
             UH0::UH0_MeasureThen(v2, v3, v4, v5, v6) => {
@@ -518,7 +532,7 @@ fn pattern_problem_29(mut v0: Rc<UH0>) -> Rc<str> {
                 let v4: Rc<str> = v4.clone();
                 let v5: Rc<str> = v5.clone();
                 let v6: Rc<UH0> = v6.clone();
-                let v7: Rc<str> = pattern_error_30(v4.clone());
+                let v7: Rc<str> = pattern_error_32(v4.clone());
                 let v8: bool = &*v7 != "";
                 if v8 {
                     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("invalid pattern for "); } LIT.with(|lit| lit.clone()) };
@@ -538,7 +552,7 @@ fn pattern_problem_29(mut v0: Rc<UH0>) -> Rc<str> {
         }
     }
 }
-fn values_measure_32(mut v0: Rc<UH0>) -> (Rc<str>, Rc<str>) {
+fn values_measure_34(mut v0: Rc<UH0>) -> (Rc<str>, Rc<str>) {
     loop {
         match &*v0 {
             UH0::UH0_MeasureThen(v2, v3, v4, v5, v6) => {
@@ -564,14 +578,14 @@ fn values_measure_32(mut v0: Rc<UH0>) -> (Rc<str>, Rc<str>) {
         }
     }
 }
-fn shape_of_31(mut v0: Rc<UH0>) -> US5 {
-    let (mut v1, mut v2): (Rc<str>, Rc<str>) = values_measure_32(v0.clone());
+fn shape_of_33(mut v0: Rc<UH0>) -> US5 {
+    let (mut v1, mut v2): (Rc<str>, Rc<str>) = values_measure_34(v0.clone());
     let v3: bool = &*v1 == "";
     if v3 {
         US5::US5_PerFile
     } else {
         let v5: i32 = 0i32;
-        let v6: i32 = measure_count_28(v0, v5);
+        let v6: i32 = measure_count_30(v0, v5);
         let v7: bool = v6 == 1i32;
         if v7 {
             US5::US5_PerMatch(v1, v2)
@@ -580,7 +594,7 @@ fn shape_of_31(mut v0: Rc<UH0>) -> US5 {
         }
     }
 }
-fn value_measures_34(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<UH0>) -> Rc<UH0> {
+fn value_measures_36(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<UH0>) -> Rc<UH0> {
     let v4: bool = &*v2 == "";
     if v4 {
         v3.clone()
@@ -589,17 +603,17 @@ fn value_measures_34(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: 
         let v6: Rc<str> = std::rc::Rc::<str>::from((v2).split_once(char::from(10u8)).map(|(_, rest)| rest).unwrap_or(""));
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
         let v9: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v7)), v5));
-        let v10: Rc<UH0> = value_measures_34(v0.clone(), v1.clone(), v6.clone(), v3.clone());
+        let v10: Rc<UH0> = value_measures_36(v0.clone(), v1.clone(), v6.clone(), v3.clone());
         let v11: US0 = US0::US0_CountByCapture;
         Rc::new(UH0::UH0_MeasureThen(v11.clone(), v9.clone(), v1.clone(), v5.clone(), v10.clone()))
     }
 }
-fn capture_values_35(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn capture_values_37(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = std::rc::Rc::<str>::from(regex::Regex::new(&*v1).map(|pattern| { let mut values = std::collections::BTreeSet::new(); for file in (v0).split(char::from(10u8)).filter(|line| !line.is_empty() && !line.starts_with(char::from(1u8))) { let text = String::from_utf8_lossy(&std::fs::read(file).unwrap_or_default()).into_owned(); for found in pattern.captures_iter(&text) { if let Some(group) = found.get(1) { values.insert(group.as_str().replace(char::from(9u8), " ").replace(char::from(10u8), " ")); } } } values.into_iter().collect::<Vec<_>>().join("
 ") }).unwrap_or_default().as_str());
     v2.clone()
 }
-fn expanded_33(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<UH0> {
+fn expanded_35(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<UH0> {
     match &*v0 {
         UH0::UH0_MeasureThen(v3, v4, v5, v6, v7) => {
             let v3: US0 = v3.clone();
@@ -609,12 +623,12 @@ fn expanded_33(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<UH0> {
             let v7: Rc<UH0> = v7.clone();
             match &v3 {
                 US0::US0_CountByCapture => {
-                    let v8: Rc<str> = capture_values_35(v1.clone(), v5.clone());
-                    let v9: Rc<UH0> = expanded_33(v7.clone(), v1.clone());
-                    value_measures_34(v4.clone(), v5.clone(), v8.clone(), v9.clone())
+                    let v8: Rc<str> = capture_values_37(v1.clone(), v5.clone());
+                    let v9: Rc<UH0> = expanded_35(v7.clone(), v1.clone());
+                    value_measures_36(v4.clone(), v5.clone(), v8.clone(), v9.clone())
                 }
                 _ => {
-                    let v11: Rc<UH0> = expanded_33(v7.clone(), v1.clone());
+                    let v11: Rc<UH0> = expanded_35(v7.clone(), v1.clone());
                     Rc::new(UH0::UH0_MeasureThen(v3.clone(), v4.clone(), v5.clone(), v6.clone(), v11.clone()))
                 }
             }
@@ -624,23 +638,23 @@ fn expanded_33(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<UH0> {
         }
     }
 }
-fn value_count_38(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
+fn value_count_40(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
     let v3: i32 = regex::Regex::new(&*v1).map(|pattern| pattern.captures_iter(&*v0).filter(|found| found.get(1).map(|group| group.as_str() == &*v2).unwrap_or(false)).count() as i32).unwrap_or(0);
     v3
 }
-fn match_count_39(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
+fn match_count_41(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v2: i32 = regex::Regex::new(&*v1).map(|pattern| pattern.find_iter(&*v0).count() as i32).unwrap_or(0);
     v2
 }
-fn capture_at_40(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool) -> Rc<str> {
+fn capture_at_42(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool) -> Rc<str> {
     let v3: Rc<str> = std::rc::Rc::<str>::from(regex::Regex::new(&*v1).ok().and_then(|pattern| { let mut found = pattern.captures_iter(&*v0); if v2 { found.last() } else { found.next() } }.and_then(|found| found.get(1).or_else(|| found.get(0)).map(|group| group.as_str().replace(char::from(9u8), " ")))).unwrap_or_default().as_str());
     v3.clone()
 }
-fn capture_sum_41(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn capture_sum_43(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = std::rc::Rc::<str>::from(regex::Regex::new(&*v1).map(|pattern| { let sum: f64 = pattern.captures_iter(&*v0).filter_map(|found| found.get(1).and_then(|group| group.as_str().trim().parse::<f64>().ok())).sum(); let text = format!("{:.6}", sum + 0.0); text.trim_end_matches(char::from(48u8)).trim_end_matches(char::from(46u8)).to_owned() }).unwrap_or_default().as_str());
     v2.clone()
 }
-fn row_cells_37(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
+fn row_cells_39(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     match &*v0 {
         UH0::UH0_MeasureThen(v4, v5, v6, v7, v8) => {
             let v4: US0 = v4.clone();
@@ -650,23 +664,23 @@ fn row_cells_37(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
             let v8: Rc<UH0> = v8.clone();
             let v24: Rc<str> = match &v4 {
                 US0::US0_CountByCapture => {
-                    let v11: i32 = value_count_38(v2.clone(), v6.clone(), v7.clone());
+                    let v11: i32 = value_count_40(v2.clone(), v6.clone(), v7.clone());
                     count_text_18(v11)
                 }
                 US0::US0_CountMatches => {
-                    let v9: i32 = match_count_39(v2.clone(), v6.clone());
+                    let v9: i32 = match_count_41(v2.clone(), v6.clone());
                     count_text_18(v9)
                 }
                 US0::US0_LastCapture => {
                     let v16: bool = true;
-                    capture_at_40(v2.clone(), v6.clone(), v16)
+                    capture_at_42(v2.clone(), v6.clone(), v16)
                 }
                 US0::US0_PathField => {
                     let v14: bool = false;
-                    capture_at_40(v1.clone(), v6.clone(), v14)
+                    capture_at_42(v1.clone(), v6.clone(), v14)
                 }
                 US0::US0_SumCaptures => {
-                    capture_sum_41(v2.clone(), v6.clone())
+                    capture_sum_43(v2.clone(), v6.clone())
                 }
                 US0::US0_ValuesPerMatch => {
                     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -675,7 +689,7 @@ fn row_cells_37(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
             };
             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
             let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v24));
-            let v27: Rc<str> = row_cells_37(v8.clone(), v1.clone(), v2.clone());
+            let v27: Rc<str> = row_cells_39(v8.clone(), v1.clone(), v2.clone());
             let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
             v28.clone()
         }
@@ -685,7 +699,7 @@ fn row_cells_37(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
         }
     }
 }
-fn rows_of_36(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>) -> (Rc<str>, i32, Rc<str>) {
+fn rows_of_38(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>) -> (Rc<str>, i32, Rc<str>) {
     loop {
         let v6: bool = &*v2 == "";
         if v6 {
@@ -713,7 +727,7 @@ fn rows_of_36(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>
                 let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v7));
                 let v22: Rc<str> = file_text_13(v7.clone());
                 let v23: Rc<str> = text_since_14(v22.clone(), v1.clone());
-                let v24: Rc<str> = row_cells_37(v0.clone(), v7.clone(), v23.clone());
+                let v24: Rc<str> = row_cells_39(v0.clone(), v7.clone(), v23.clone());
                 let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v24));
                 let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                 let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v26));
@@ -724,7 +738,7 @@ fn rows_of_36(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>
         }
     }
 }
-fn measure_header_42(mut v0: Rc<UH0>) -> Rc<str> {
+fn measure_header_44(mut v0: Rc<UH0>) -> Rc<str> {
     match &*v0 {
         UH0::UH0_MeasureThen(v2, v3, v4, v5, v6) => {
             let v2: US0 = v2.clone();
@@ -734,7 +748,7 @@ fn measure_header_42(mut v0: Rc<UH0>) -> Rc<str> {
             let v6: Rc<UH0> = v6.clone();
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
             let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v3));
-            let v9: Rc<str> = measure_header_42(v6.clone());
+            let v9: Rc<str> = measure_header_44(v6.clone());
             let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v9));
             v10.clone()
         }
@@ -746,11 +760,11 @@ fn measure_header_42(mut v0: Rc<UH0>) -> Rc<str> {
 }
 fn logs_run_0() -> i32 {
     let mut v0: i32 = 3i32;
-    let v1: i32 = argument_count_19();
+    let v1: i32 = argument_count_21();
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v3: bool = false;
     let v4: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMeasures); } CASE.with(|case| case.clone()) };
-    let v5: US1 = options_from_21(v0, v1, v2.clone(), v2.clone(), v2.clone(), v2.clone(), v3, v4.clone());
+    let v5: US1 = options_from_23(v0, v1, v2.clone(), v2.clone(), v2.clone(), v2.clone(), v3, v4.clone());
     match &v5 {
         US1::US1_RequestRejected(v6) => {
             let v6: Rc<str> = v6.clone();
@@ -775,7 +789,7 @@ fn logs_run_0() -> i32 {
                 failed_1(v21.clone())
             } else {
                 let v23: i32 = 0i32;
-                let v24: i32 = measure_count_28(v17.clone(), v23);
+                let v24: i32 = measure_count_30(v17.clone(), v23);
                 let v25: bool = v24 == 0i32;
                 if v25 {
                     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("needs at least one --count, --count-by, --sum, --last or --field; "); } LIT.with(|lit| lit.clone()) };
@@ -783,27 +797,27 @@ fn logs_run_0() -> i32 {
                     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("needs at least one --count, --count-by, --sum, --last or --field; usage: table logs <file|dir>... [--glob *.log] [--since regex] (--count name=regex | --count-by name=regex | --sum name=regex | --last name=regex | --field name=regex-on-the-file-path)... | --values name=regex alone (one row per match; to pair a per-file id with a value, use --field for the id and --last for the value) [--out file.tsv] [--quiet]"); } LIT.with(|lit| lit.clone()) };
                     failed_1(v28.clone())
                 } else {
-                    let v30: Rc<str> = pattern_problem_29(v17.clone());
+                    let v30: Rc<str> = pattern_problem_31(v17.clone());
                     let v31: bool = &*v30 != "";
                     if v31 {
-                        let v32: Rc<str> = pattern_problem_29(v17.clone());
+                        let v32: Rc<str> = pattern_problem_31(v17.clone());
                         failed_1(v32.clone())
                     } else {
                         let v34: bool = &*v15 != "";
                         let v37: bool = if v34 {
-                            let v35: Rc<str> = pattern_error_30(v15.clone());
+                            let v35: Rc<str> = pattern_error_32(v15.clone());
                             let v36: bool = &*v35 != "";
                             v36
                         } else {
                             false
                         };
                         if v37 {
-                            let v38: Rc<str> = pattern_error_30(v15.clone());
+                            let v38: Rc<str> = pattern_error_32(v15.clone());
                             let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("invalid --since pattern: "); } LIT.with(|lit| lit.clone()) };
                             let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v38));
                             failed_1(v40.clone())
                         } else {
-                            let v42: US5 = shape_of_31(v17.clone());
+                            let v42: US5 = shape_of_33(v17.clone());
                             match &v42 {
                                 US5::US5_MixedShapes => {
                                     let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--values makes one row per match and cannot share the table with other measures; "); } LIT.with(|lit| lit.clone()) };
@@ -813,16 +827,16 @@ fn logs_run_0() -> i32 {
                                 }
                                 US5::US5_PerFile => {
                                     let v50: Rc<str> = files_listed_8(v12.clone(), v13.clone());
-                                    let v51: Rc<UH0> = expanded_33(v17.clone(), v50.clone());
+                                    let v51: Rc<UH0> = expanded_35(v17.clone(), v50.clone());
                                     let v52: i32 = 0i32;
-                                    let (mut v53, mut v54, mut v55): (Rc<str>, i32, Rc<str>) = rows_of_36(v51.clone(), v15.clone(), v50.clone(), v2.clone(), v52, v2.clone());
+                                    let (mut v53, mut v54, mut v55): (Rc<str>, i32, Rc<str>) = rows_of_38(v51.clone(), v15.clone(), v50.clone(), v2.clone(), v52, v2.clone());
                                     let v56: bool = &*v55 != "";
                                     if v56 {
                                         let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no such file or directory: "); } LIT.with(|lit| lit.clone()) };
                                         let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v55));
                                         failed_1(v58.clone())
                                     } else {
-                                        let v60: Rc<str> = measure_header_42(v51.clone());
+                                        let v60: Rc<str> = measure_header_44(v51.clone());
                                         let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("file"); } LIT.with(|lit| lit.clone()) };
                                         let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v60));
                                         let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
@@ -833,7 +847,7 @@ fn logs_run_0() -> i32 {
                                         let v69: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" columns="); } LIT.with(|lit| lit.clone()) };
                                         let v70: Rc<str> = Rc::<str>::from(format!("{}{}", v68, v69));
                                         let v71: i32 = 0i32;
-                                        let v72: i32 = measure_count_28(v51.clone(), v71);
+                                        let v72: i32 = measure_count_30(v51.clone(), v71);
                                         let v73: Rc<str> = count_text_18(v72);
                                         let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v70, v73));
                                         table_written_3(v14.clone(), v16, v65.clone(), v74.clone())

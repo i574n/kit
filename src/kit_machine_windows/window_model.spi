@@ -121,7 +121,7 @@
 
 :~ decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
 
-:~ number_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:~ number_text (~value : u64) : string = (sm'.show value)
 
 :~ one_line (~text : string) : string =
     $'std::rc::Rc::<str>::from(!text.chars().map(|c| if c.is_control() { char::from(32u8) } else { c \

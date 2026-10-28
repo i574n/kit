@@ -1,0 +1,124 @@
+///- --package .
+:# evidence static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| refresh_outcome =
+    | Refreshed : string
+    | DryRun : string
+    | NotListed
+    | OutsideRoot
+    | MissingFile
+    | WriteFailed : string
+
+:~ argument (index : i32) : string =
+    $'std::rc::Rc::<str>::from(std::env::args().nth(!index as usize).unwrap_or_default().as_str())' : string
+
+:~ has_flag (~flag : string) : bool = rust_std_env.model.argument_flag_present 0i32 flag
+
+:~ option_after (~flag : string) : string =
+    $'std::rc::Rc::<str>::from(std::env::args().skip_while(|value| value.as_str() \!= &*!flag).nth(1)\
+        .unwrap_or_default().as_str())'
+    : string
+
+:~ file_sha256 (~path : string) : string =
+    $'std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*!path))\
+        .unwrap_or_default().as_str())'
+    : string
+
+:~ file_length (~path : string) : u64 = $'std::fs::metadata(&*!path).map(|metadata| metadata.len()).unwrap_or(0)' : u64
+
+:~ stdout_line (~text : string) : i32 =
+    console.write_line text
+    0i32
+
+:~ stderr_line (~text : string) : i32 =
+    console.write_error_line text
+    2i32
+
+:= row_marker (~name : string) : string = "core.EvidenceRef (\"" ++# name ++# "\", "
+
+:= inside_root (~relative : string) : bool =
+    relative <> ""
+    && sm'.contains ".." relative = !-
+    && sm'.contains ":" relative = !-
+    && sm'.starts_with "/" relative = !-
+    && sm'.starts_with "\\" relative = !-
+
+:~ rewritten_row (~line : string) (~name : string) (~sha : string) (size : u64) : string =
+    := opening = sm'.index_of "core.EvidenceRef (" line : i32
+    := size_end = sm'.index_of "u64, " line : i32
+    ? opening < 0i32 || size_end < 0i32
+    ?> line
+    |:
+        := indent = sm'.substring 0i32 opening line
+        := tail = sm'.substring (size_end + 3i32) ((sm'.length line : i32) - size_end - 3i32) line
+        indent ++# row_marker name ++# "\"" ++# sha ++# "\", " ++# sm'.show size ++# "u64" ++# tail
+
+:~ refreshed_text (~text : string) (~listed : string) (~name : string) (~sha : string) (size : u64) : option string =
+    := lines : array string = array (sm'.split "\n" text)
+    := count = am'.length lines : i32
+    := marker = row_marker listed
+    :~ ^ joined (index : i32) (~acc : string) (found : bool) : option string =
+        ? index >= count
+        ?> ? found ?> Some acc |: None
+        |:
+            := line = am'.index index lines
+            := hit = found = !- && sm'.contains marker line
+            := next = ? hit ?> rewritten_row line name sha size |: line
+            := glue = ? index = 0i32 ?> "" |: "\n"
+            joined (index + 1i32) (acc ++# glue ++# next) (found || hit)
+    joined 0i32 "" !-
+
+:~ refresh (~root : string) (~listed : string) (~renamed : string) (dry : bool) : refresh_outcome =
+    := name = ? renamed = "" ?> listed |: renamed
+    := evidence = root ++# "/state/evidence.spi"
+    := target = root ++# "/" ++# name
+    ? inside_root listed = !- || inside_root name = !-
+    ?> OutsideRoot
+    |? file_length target = 0u64
+    ?> MissingFile
+    |:
+        := sha = file_sha256 target
+        := size = file_length target
+        ?= refreshed_text (file_system.read_all_text evidence) listed name sha size ?|
+        | None => NotListed
+        | Some text =>
+            := row = row_marker name ++# "\"" ++# sha ++# "\", " ++# sm'.show size ++# "u64"
+            ? dry
+            ?> DryRun row
+            |:
+                ?= workspace_primitives.files.replace_file_checked evidence text ?|
+                | workspace_primitives.files.Replaced => Refreshed row
+                | problem => WriteFailed (workspace_primitives.files.file_replacement_problem problem)
+
+:~ evidence_run () : i32 =
+    ? argument 2i32 <> "refresh" || argument 3i32 = "" || argument 4i32 = ""
+    ?> stderr_line "usage: kit evidence refresh <root> <relative path> [--as <new relative path>] [--dry-run]"
+    |:
+        ?= refresh (argument 3i32) (argument 4i32) (option_after "--as") (has_flag "--dry-run") ?|
+        | Refreshed row => stdout_line ("kit evidence refresh ok " ++# row)
+        | DryRun row => stdout_line ("kit evidence refresh dry-run (nothing written) " ++# row)
+        | NotListed => stderr_line "kit evidence refresh: that path has no EvidenceRef row in state/evidence.spi"
+        | OutsideRoot => stderr_line "kit evidence refresh: the path must be relative and stay inside the root"
+        | MissingFile => stderr_line "kit evidence refresh: the file to hash is missing or empty"
+        | WriteFailed reason => stderr_line ("kit evidence refresh: " ++# reason)
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust
+:# one_row_is_rewritten_and_the_others_stay_byte_identical =
+    := first = "    core.EvidenceRef (\"state/core.spi\", \"aa\", 1u64, core.Utf8TextMedia, core.BundlePath)"
+    := second = "    core.EvidenceRef (\"eoie.exe\", \"bb\", 2u64, core.BinaryMedia, core.BundlePath)"
+    := text = "inl a () =\n" ++# first ++# "\ninl b () =\n" ++# second ++# "\n"
+    := expected = "    core.EvidenceRef (\"kit.exe\", \"cc\", 3u64, core.BinaryMedia, core.BundlePath)"
+    := renamed = refreshed_text text "eoie.exe" "kit.exe" "cc" 3u64
+    expect (renamed = Some ("inl a () =\n" ++# first ++# "\ninl b () =\n" ++# expected ++# "\n")) "rename"
+    expect (refreshed_text text "missing.bin" "missing.bin" "cc" 3u64 = None) "an unlisted path is refused"
+    expect (inside_root "../x" = !- && inside_root "C:/x" = !- && inside_root "kit.exe") "paths stay inside the root"
+
+///> _
+:= main () : i32 =
+    !!!!Export("kit_evidence_run", ((\ () => evidence_run ()) : () -> i32))
+    0i32

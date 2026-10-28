@@ -8,7 +8,7 @@
         """
     global """
         fn agile_validate_transient(path: &Path) -> Result<(), String> {
-            let source = agile_read_regular_text_limited(path, 8 * 1024 * 1024)?;
+            let source = agile_read_regular_text_limited(path, 64 * 1024 * 1024)?;
             let name = path.file_name().and_then(|value| value.to_str()).ok_or_else(|| format!("transient state name is not UTF-8: {}", path.display()))?;
             let projection = format!("{name}\n{source}");
             if agile_state_transient_schema_domain::kit_agile_state_transient_schema_code(&projection) == 1 { Ok(()) } else { Err(format!("known transient state receipt failed runtime schema validation: {name}")) }

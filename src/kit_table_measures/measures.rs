@@ -622,7 +622,7 @@ fn decimal_text_18(mut v0: f64) -> Rc<str> {
 fn measure_value_17(mut v0: US2, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: f64, mut v5: f64, mut v6: f64) -> Rc<str> {
     match &v0 {
         US2::US2_CountOf => {
-            let v7: f64 = v2 as f64;
+            let v7: f64 = (v2 as f64);
             decimal_text_18(v7)
         }
         US2::US2_MaxOf => {
@@ -640,7 +640,7 @@ fn measure_value_17(mut v0: US2, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
                 let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 v19.clone()
             } else {
-                let v20: f64 = v1 as f64;
+                let v20: f64 = (v1 as f64);
                 let v21: f64 = v3 / v20;
                 decimal_text_18(v21)
             }
@@ -667,11 +667,11 @@ fn measure_value_17(mut v0: US2, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
                 }
             } else {
                 let v29: f64 = v3 * v3;
-                let v30: f64 = v1 as f64;
+                let v30: f64 = (v1 as f64);
                 let v31: f64 = v29 / v30;
                 let v32: f64 = v4 - v31;
                 let v33: i32 = v1.wrapping_sub(1i32);
-                let v34: f64 = v33 as f64;
+                let v34: f64 = (v33 as f64);
                 let v35: f64 = v32 / v34;
                 let v36: f64 = (v35).max(0.0).sqrt();
                 decimal_text_18(v36)
@@ -732,7 +732,7 @@ fn groups_printed_15(mut v0: Rc<UH1>, mut v1: Rc<UH3>, mut v2: u64, mut v3: i32)
                     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v9, v10)), v4));
                     let v13: Rc<str> = measure_cells_16(v0.clone(), v6.clone());
                     let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
-                    println!("{}", &*v14);
+                    println!("{}", v14);
                     let v15: i32 = v3.wrapping_add(1i32);
                     (v0, v1, v2, v3) = (v0.clone(), v7.clone(), v2, v15);
                     continue;
@@ -829,7 +829,7 @@ fn grouped_measures_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: R
         let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
         let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v47: Rc<str> = std::rc::Rc::<str>::from([&*v45, &*v44, &*v46, &*v46, &*v46].concat());
-        eprintln!("{}", &*v47);
+        eprintln!("{}", v47);
         2i32
     } else {
         let v48: Rc<UH2> = stats_empty_6(v14.clone());
@@ -848,7 +848,7 @@ fn grouped_measures_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: R
         let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v56));
         let v59: Rc<str> = measure_headers_12(v14.clone());
         let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v59));
-        println!("{}", &*v60);
+        println!("{}", v60);
         let v61: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
         let v62: Rc<UH3> = groups_sorted_13(v53.clone(), v61.clone());
         let v63: i32 = 0i32;
@@ -873,7 +873,7 @@ fn grouped_measures_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: R
             let v80: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v78, v77)), v75));
             let v81: Rc<str> = std::rc::Rc::<str>::from((v64).to_string().as_str());
             let v82: Rc<str> = Rc::<str>::from(format!("{}{}", v80, v81));
-            println!("{}", &*v82);
+            println!("{}", v82);
             ()
         };
         0i32
@@ -898,7 +898,7 @@ fn measured_query_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: R
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
             let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v18: Rc<str> = std::rc::Rc::<str>::from([&*v16, &*v15, &*v17, &*v17, &*v17].concat());
-            eprintln!("{}", &*v18);
+            eprintln!("{}", v18);
             2i32
         }
     }

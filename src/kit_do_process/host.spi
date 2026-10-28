@@ -6,7 +6,7 @@
 
 :! step_outcome = $'std::rc::Rc<(std::rc::Rc<str>, u64, bool)>'
 
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 
 :~ first_of_kind (~records : record_list) (~record : i32) (~kind : u8) : string =
     $'!records.get(!record as usize).and_then(|fields| fields.iter().skip(2).find(|field| field.as_bytes().first() == \
@@ -39,7 +39,7 @@
         !millis) })' : string
 
 :~ decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
-:= signed_text (~value : i64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= signed_text (~value : i64) : string = (sm'.show value)
 
 :~ state_new () : run_state = $'std::rc::Rc::new(std::cell::RefCell::new((String::new(), Vec::new())))' : run_state
 

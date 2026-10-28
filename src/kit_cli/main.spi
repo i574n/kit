@@ -1,4 +1,6 @@
 := main () : i32 =
     kit_cli_routing.routing_terminal.emit_runtime ()
+    $'std::panic::set_hook(Box::new(|info| { if info.to_string().contains("failed printing to stdout") { \
+        std::process::exit(0) } eprintln\!("{info}") }))' : ()
     := code = kit_cli_model.model.run ()
     $"kit_coverage_prune::coverage_finish(!code)" : i32

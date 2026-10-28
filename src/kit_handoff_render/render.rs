@@ -21,6 +21,7 @@ enum US1 {
     US1_StateText(Rc<str>),
     US1_StateUnreadable(Rc<str>),
 }
+struct Mut0 { l0: Rc<str> }
 fn state_host_of_3(mut v0: Rc<str>, mut v1: Rc<str>) -> (i32, std::rc::Rc<str>) {
     let v2: (i32, std::rc::Rc<str>) = { let path = std::path::Path::new(&*v0).join(&*v1); match std::fs::read_to_string(&path) { Ok(source) => (1, std::rc::Rc::<str>::from(source)), Err(error) if error.kind() == std::io::ErrorKind::NotFound => (0, { thread_local!{ static LIT: std::rc::Rc<str> = std::rc::Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }), Err(error) => (2, std::rc::Rc::<str>::from(format!("read {}: {error}", path.display()))) } };
     v2.clone()
@@ -74,6 +75,20 @@ fn sections_block_4(mut v0: Rc<str>) -> US0 {
         }
     }
 }
+fn method8(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_7(mut v0: i32) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method8(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
     let v3: i32 = authority_state_domain::kit_authority_declared_mask(0, 0);
     let v4: i32 = authority_state_domain::kit_authority_state(v3, 0);
@@ -100,7 +115,7 @@ fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
         let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v13));
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" blocker_mask="); } LIT.with(|lit| lit.clone()) };
         let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
-        let v18: Rc<str> = std::rc::Rc::<str>::from((v3).to_string());
+        let v18: Rc<str> = format_real_7(v3);
         let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v18));
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
         let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v2));
@@ -270,7 +285,7 @@ fn recorded_block_5(mut v0: Rc<str>) -> US0 {
         }
     }
 }
-fn bulleted_8(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
+fn bulleted_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
     loop {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v4: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v3).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
@@ -350,7 +365,7 @@ fn bulleted_8(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
         }
     }
 }
-fn active_block_7(mut v0: Rc<str>) -> US0 {
+fn active_block_9(mut v0: Rc<str>) -> US0 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/agile.spi"); } LIT.with(|lit| lit.clone()) };
     let v2: US1 = state_read_of_2(v0.clone(), v1.clone());
     match &v2 {
@@ -395,7 +410,7 @@ fn active_block_7(mut v0: Rc<str>) -> US0 {
                             } else {
                                 let v28: i32 = 0i32;
                                 let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n## Active work\n"); } LIT.with(|lit| lit.clone()) };
-                                bulleted_8(v25.clone(), v28, v29.clone())
+                                bulleted_10(v25.clone(), v28, v29.clone())
                             };
                             US0::US0_Rendered(v31.clone())
                         } else {
@@ -438,7 +453,7 @@ fn handoff_text_1(mut v0: Rc<str>) -> US0 {
                         }
                         US0::US0_Rendered(v15) => {
                             let v15: Rc<str> = v15.clone();
-                            let v16: US0 = active_block_7(v0.clone());
+                            let v16: US0 = active_block_9(v0.clone());
                             match &v16 {
                                 US0::US0_Refused(v17) => {
                                     let v17: Rc<str> = v17.clone();

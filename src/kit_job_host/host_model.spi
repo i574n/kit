@@ -7,6 +7,7 @@
 :| host_step =
     | KeepServing
     | HostIdleExit
+    | HostDraining
 
 :| host_home =
     | HomePresent
@@ -27,10 +28,13 @@
 
 := idle_limit_ms () : u64 = 600000u64
 
+:= owner_ended_detail () : string = "its owner session ended before the job started"
+
 := request_suffix () : string = ".start"
 
-:~ host_step_of (live : u64) (idle_since : u64) (now : u64) (home : host_home) : host_step =
-    ? live > 0u64 ?> KeepServing
+:~ host_step_of (live : u64) (idle_since : u64) (now : u64) (home : host_home) (owner_present : bool) : host_step =
+    ? owner_present = !- ?> (? live > 0u64 ?> HostDraining |: HostIdleExit)
+    |? live > 0u64 ?> KeepServing
     |? home = HomeGone ?> HostIdleExit
     |? now - idle_since >= idle_limit_ms () ?> HostIdleExit
     |: KeepServing
@@ -53,21 +57,30 @@
 
 ///> rust
 :# an_idle_host_exits_only_after_ten_quiet_minutes_without_children =
-    testing.expect (host_step_of 1u64 0u64 900000u64 HomePresent = KeepServing) "a live supervisor keeps the host"
-    testing.expect (host_step_of 0u64 1000u64 300000u64 HomePresent = KeepServing) "five quiet minutes are not enough"
-    testing.expect (host_step_of 0u64 1000u64 601000u64 HomePresent = HostIdleExit) "ten quiet minutes end the host"
+    testing.expect (host_step_of 1u64 0u64 900000u64 HomePresent !+ = KeepServing) "a live supervisor keeps the host"
+    testing.expect
+        (host_step_of 0u64 1000u64 300000u64 HomePresent !+ = KeepServing)
+        "five quiet minutes are not enough"
+    testing.expect (host_step_of 0u64 1000u64 601000u64 HomePresent !+ = HostIdleExit) "ten quiet minutes end the host"
 
 ///> rust
 :# a_host_whose_jobs_home_was_removed_exits_once_its_children_end =
-    testing.expect (host_step_of 0u64 1000u64 2000u64 HomeGone = HostIdleExit) "a removed home ends an idle host at once"
-    testing.expect (host_step_of 1u64 1000u64 2000u64 HomeGone = KeepServing) "a running supervisor still keeps it"
+    testing.expect
+        (host_step_of 0u64 1000u64 2000u64 HomeGone !+ = HostIdleExit)
+        "a removed home ends an idle host at once"
+    testing.expect (host_step_of 1u64 1000u64 2000u64 HomeGone !+ = KeepServing) "a running supervisor still keeps it"
 
 ///> rust
-:# one_host_serves_a_machine =
+:# a_host_drains_when_its_owner_ends =
+    testing.expect (host_step_of 2u64 0u64 1000u64 HomePresent !- = HostDraining) "running children finish first"
+    testing.expect (host_step_of 0u64 0u64 1000u64 HomePresent !- = HostIdleExit) "with no children left it exits"
+
+///> rust
+:# one_host_serves_an_owner =
     testing.expect (host_claim_of 0u64 7u64 !- = HostOwns) "no recorded host"
     testing.expect (host_claim_of 7u64 7u64 !+ = HostOwns) "the recorded host is this one"
     testing.expect (host_claim_of 9u64 7u64 !- = HostOwns) "a dead recorded host is replaced"
-    testing.expect (host_claim_of 9u64 7u64 !+ = OtherHostServes 9u64) "a live other host keeps the machine"
+    testing.expect (host_claim_of 9u64 7u64 !+ = OtherHostServes 9u64) "a live other host keeps its owner's home"
 
 ///> rust
 :# a_missing_host_pid_file_starts_a_host =

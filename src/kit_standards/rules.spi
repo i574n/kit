@@ -39,7 +39,7 @@
 
 := trimmed_start (~line : string) : string = $'std::rc::Rc::<str>::from((!line).trim_start())' : string
 := char_count (~line : string) : i32 = $'(!line).trim_end_matches(char::from(13u8)).chars().count() as i32' : i32
-:= i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= i32_text (value : i32) : string = (sm'.show value)
 
 := line_kind_of (~line : string) : line_kind =
     := lead = trimmed_start line

@@ -7,7 +7,7 @@
 :! query_outcome = $'std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)>'
 
 :~ decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 
 :~ files_matching (~root : string) (~target : string) (~include : string) (~exclude : string) : path_list =
     $'{ fn wildcard(mask: &str, name: &str) -> bool { let parts = mask.split(char::from(42u8)).collect::<Vec<_>>(); \

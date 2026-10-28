@@ -37,7 +37,7 @@
 
 := waited_for (wait : queued_wait) : string =
     ?= wait ?|
-    | NoChain => ""
+    | NoChain => "a slot"
     | Chained (predecessor, _, _) => predecessor
 
 := step_of (job : queued_job) : queue_step =
@@ -99,6 +99,8 @@
 :~ held_released (~id : string) : () =
     := path = held_file id
     $'{ let _ = std::fs::remove_file(&*!path); }' : ()
+
+:~ held_owned_by (~id : string) (~home : string) : bool = text_or_empty (job_file id "host-home") = home
 
 :~ settled_in_queue (~id : string) (step : queue_step) : () =
     ?= step ?|

@@ -1,8 +1,8 @@
 :< rust_std_string.model
 :< experiment_model
 
-:~ stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:~ stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:~ stdout_line (~text : string) : () = console.write_line text
+:~ stderr_line (~text : string) : () = console.write_error_line text
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ option_value (~flag : string) : string =
     $'std::rc::Rc::<str>::from(std::env::args().skip_while(|arg| arg \!= &*!flag).nth(1).unwrap_or_default())' : string

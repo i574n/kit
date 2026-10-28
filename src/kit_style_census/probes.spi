@@ -76,7 +76,7 @@
 
 := probe_pattern \* side. (which : probe side) : string =
     ?= which ?|
-    | GadtCase => "^\\s*\\|\\s*\\w+\\s*::"
+    | GadtCase => "^\\s*\\|\\s*[A-Z]\\w*\\s*::[^=]*$"
     | Existential => "\\bexists\\s+\\w+\\."
     | Forall => "\\bforall\\b"
     | IndexedUnion => "^\\s*union\\s+(rec\\s+)?(private\\s+)?\\w+\\s+\\w+\\s*="
@@ -84,7 +84,7 @@
     | TypeDecl => "^\\s*(union|type|nominal)\\b"
     | HostMacro => "^\\s+.*(\\$'|\\$\\x22)"
     | WideHostMacro => "\\$'[^']{200,}'"
-    | RustGlobal => "rust_global"
+    | RustGlobal => "(^|[^\\w.])(rust_global\\b|global\\s*(\\(|\\x22))"
     | EncodedRow => "char::from\\((9|30|31)u8\\)|\\x22\\\\t\\x22"
     | PipeTable => "pipe_(index|member|lookup)"
     | NumberArm => "^\\s*\\|\\s*\\d+(u64|i32|u32)?\\s*=>"

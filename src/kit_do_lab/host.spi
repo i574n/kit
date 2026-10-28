@@ -1,4 +1,4 @@
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
+:= stdout_line (~text : string) : () = console.write_line text
 
 := column () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
 

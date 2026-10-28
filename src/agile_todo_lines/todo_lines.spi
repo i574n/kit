@@ -1,11 +1,14 @@
 :< workspace_primitives.numbers
 :< agile_todo_model.model
 
+:~ linked_marker_fields (~id : string) (~comment : string) : string =
+    $'agile_todo_fields::kit_agile_todo_fields(&*!id, &*!comment)' : string
+
 :~ todo_findings
     (syntax : i32) (~only : string) (~backlog : string) (~text : string) (~path : string) (json : bool)
     : string * i32 * string
     =
-    findings (case_at syntax CFamily) (todo_filter_of only) backlog text path json
+    findings linked_marker_fields (case_at syntax CFamily) (todo_filter_of only) backlog text path json
 
 := main () : i32 =
     !!!!Export(

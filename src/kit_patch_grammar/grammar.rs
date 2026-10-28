@@ -113,7 +113,7 @@ fn safe_path_loop_2(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> b
                 let v7: bool = v5 == 47i32;
                 if v7 {
                     let v8: i32 = v1.wrapping_sub(v3);
-                    let v9: bool = 0 < v8;
+                    let v9: bool = 0i32 < v8;
                     let v24: bool = if v9 {
                         let v10: bool = v8 == 1i32;
                         if v10 {
@@ -157,7 +157,7 @@ fn safe_path_loop_2(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> b
             }
         } else {
             let v32: i32 = v2.wrapping_sub(v3);
-            let v33: bool = 0 < v32;
+            let v33: bool = 0i32 < v32;
             if v33 {
                 let v34: bool = v32 == 1i32;
                 if v34 {
@@ -216,7 +216,7 @@ fn spiral_main() -> i32 {
             let v14: i32 = v3.wrapping_add(1i32);
             let v15: i32 = v13.wrapping_sub(1i32);
             let v16: i32 = v15.wrapping_sub(v14);
-            let v17: bool = 0 < v16;
+            let v17: bool = 0i32 < v16;
             let v24: bool = if v17 {
                 let v18: i32 = usize::try_from(v14).ok().and_then(|index| v0.as_bytes().get(index).copied()).map_or(-1, i32::from);
                 let v19: bool = v18 == 47i32;

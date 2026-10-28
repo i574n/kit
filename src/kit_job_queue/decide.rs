@@ -472,7 +472,7 @@ fn queue_decide_0(mut v0: Rc<str>) -> i32 {
                 v5.clone()
             }
             US0::US0_NoChain => {
-                let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a slot"); } LIT.with(|lit| lit.clone()) };
                 v4.clone()
             }
         };
@@ -531,10 +531,19 @@ fn queue_decide_0(mut v0: Rc<str>) -> i32 {
             1i32
         }
         US6::US6_StartSupervisor => {
-            0i32
+            let v41: i32 = kit_job_slot::kit_job_slot_held_step(&*v0);
+            let v42: bool = v41 != 0i32;
+            if v42 {
+                v41
+            } else {
+                let v43: i32 = kit_job_gate::kit_job_gate_held_step(&*v0);
+                v43
+            }
         }
         _ => {
             settled_in_queue_20(v0.clone(), v40.clone());
+            kit_job_slot::kit_job_slot_ticket_dropped(&*v0);
+            kit_job_gate::kit_job_gate_window_dropped(&*v0);
             2i32
         }
     }

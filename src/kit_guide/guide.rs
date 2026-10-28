@@ -17,8 +17,9 @@ enum US2 {
     US2_Written,
     US2_WriteFailed(Rc<str>),
 }
+struct Mut0 { l0: Rc<str> }
 fn command_line_argument_count_2() -> i32 {
-    let v0: usize = std::env::args().count();
+    let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
@@ -132,14 +133,28 @@ fn guided_4(mut v0: Rc<str>, mut v1: i32, mut v2: US1, mut v3: i32, mut v4: Rc<s
     };
     (v71, v72.clone())
 }
+fn method6(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_5(mut v0: i32) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method6(v2.clone(), v3.clone());
+    let v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn guide_run_0() -> i32 {
-    let v0: i32 = 2i32;
+    let mut v0: i32 = 2i32;
     let v1: Rc<str> = argument_1(v0);
     let v2: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v1).unwrap_or_default().replace(char::from(13u8), "").as_str());
     let v3: bool = &*v2 == "";
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: guide needs a readable spec file; usage: guide <spec/one-call.md> [--out <file.md>]"); } LIT.with(|lit| lit.clone()) };
-        eprintln!("{}", &*v4);
+        eprintln!("{}", v4);
         2i32
     } else {
         let v5: i32 = 0i32;
@@ -168,16 +183,16 @@ fn guide_run_0() -> i32 {
                     let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v12));
                     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
                     let v30: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v27, v28)), v25));
-                    eprintln!("{}", &*v30);
+                    eprintln!("{}", v30);
                     2i32
                 }
                 US2::US2_Written => {
-                    let v19: Rc<str> = std::rc::Rc::<str>::from((v9).to_string().as_str());
+                    let v19: Rc<str> = format_real_5(v9);
                     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit guide ok intents="); } LIT.with(|lit| lit.clone()) };
                     let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v19));
                     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" out="); } LIT.with(|lit| lit.clone()) };
                     let v24: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v21, v22)), v12));
-                    println!("{}", &*v24);
+                    println!("{}", v24);
                     0i32
                 }
             }

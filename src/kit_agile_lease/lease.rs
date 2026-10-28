@@ -29,7 +29,7 @@ pub fn agile_package_input_fingerprint(state_dir: &Path, include_state: bool) ->
     impl Graph {
         fn file(&mut self, path: &Path) -> Option<Vec<u8>> {
             if self.records.len() >= 4096 { return None; }
-            let bytes = kit_rust_std_fs::read_regular_limited(path, self.bytes_left.min(8 * 1024 * 1024)).ok()?;
+            let bytes = kit_rust_std_fs::read_regular_limited(path, self.bytes_left.min(64 * 1024 * 1024)).ok()?;
             self.bytes_left = self.bytes_left.checked_sub(bytes.len())?;
             self.records.insert(path.to_owned(), kit_proxy_search::inspection_sha256(bytes.clone()));
             Some(bytes)
@@ -106,7 +106,7 @@ pub fn agile_package_input_fingerprint(state_dir: &Path, include_state: bool) ->
     }
     let root = absolute(state_dir)?;
     kit_rust_std_fs::rooted_canonical_directory(&root).ok()?;
-    let mut graph = Graph { root: root.clone(), active: Default::default(), visited: Default::default(), records: Default::default(), bytes_left: 64 * 1024 * 1024 };
+    let mut graph = Graph { root: root.clone(), active: Default::default(), visited: Default::default(), records: Default::default(), bytes_left: 128 * 1024 * 1024 };
     graph.package(root.clone(), include_state, 0)?;
     let base = root.parent()?;
     let mut identity = String::from("agile-package-inputs-v1\n");
@@ -331,7 +331,7 @@ fn validate_title_loop_1(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: bool) ->
 fn lease_title_entry_0() -> i32 {
     let v0: i32 = 2i32;
     let v1: i32 = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or(-1, |value| i32::try_from(value.len()).unwrap_or(i32::MAX));
-    let v2: bool = 0 < v1;
+    let v2: bool = 0i32 < v1;
     if v2 {
         let v3: i32 = 0i32;
         let v4: i32 = 0i32;

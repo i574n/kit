@@ -124,7 +124,7 @@ fn main() {
     same (beat_bytes root "parent.beat") parent_before
     fixture_root_remove root
 
-:= decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= decimal_text (~value : u64) : string = (sm'.show value)
 
 := stamp (~offset : u64) : string = decimal_text (now_ms () - offset)
 

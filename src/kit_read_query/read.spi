@@ -7,10 +7,10 @@
 
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
-:= stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
+:= stderr_line (~text : string) : () = console.write_error_line text
 :~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
 := tally_at (~tally : host_tally) (~index : u64) : u64 = $'!tally[!index as usize]' : u64
-:= unsigned_of (~value : i64) : u64 = $'!value as u64' : u64
+:= unsigned_of (~value : i64) : u64 = (conv value : u64)
 
 := rejected (~message : string) : i32 =
     stderr_line ("kit error: " ++# message)
@@ -82,7 +82,7 @@
 
 :~ read_start () : read_tally = { files = 0u64; unreadable = 0u64; lines = 0u64; json = "" }
 
-:= json_flag () : bool = $'std::env::args().skip(2).any(|argument| argument == "--json")' : bool
+:= json_flag () : bool = rust_std_env.model.argument_flag_present 2i32 "--json"
 :~ lines_counted (~patterns : string) : host_tally =
     $'(|| -> [u64; 4] { let mut rows = Vec::new(); for shown in (&*!patterns).lines().filter(|line| \
         \!line.is_empty()) { rows.push((shown.to_owned(), std::fs::read(shown).map(|bytes| (bytes.len() as u64, \

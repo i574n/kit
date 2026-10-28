@@ -1,3 +1,7 @@
+///- --package .
+:# slot static =
+    :< sm'_operators
+
 :< sm'_operators
 :< kit_jobs.host
 :< kit_jobs.model
@@ -33,6 +37,28 @@ let ticket_pid (~name : string) : u64 = $'(!name).trim_end_matches(".t").split(c
         := name = first_row names
         ? process_alive (ticket_pid name) ?> name |: first_live_ticket (other_rows names)
 
+:~ ticket_ticks (~name : string) : u64 =
+    $'(!name).split(char::from(45u8)).next().and_then(|ticks| ticks.parse::<u64>().ok()).unwrap_or(0)' : u64
+
+:~ own_pid () : u64 = $'std::process::id() as u64' : u64
+
+:~ ticket_written (~queue : string) (~name : string) : bool =
+    $'std::fs::create_dir_all(&*!queue).and_then(|_| std::fs::write(std::path::Path::new(&*!queue).join(&*!name), \
+        b"")).is_ok()'
+    : bool
+
+:= ticket_name (ticks : u64) (pid : u64) : string =
+    sm'.pad_left 20i32 '0' (sm'.show ticks) ++# "-" ++# sm'.show pid ++# ".t"
+
+:= front_name (head_ticks : u64) (pid : u64) : string = ticket_name (head_ticks - 1u64) pid
+
+:~ front_ticket (~queue : string) : string =
+    := head = first_live_ticket (tickets_sorted queue)
+    ? head = "" || ticket_ticks head = 0u64
+    ?> ticket_created queue
+    |:
+        := name = front_name (ticket_ticks head) (own_pid ())
+        ? ticket_written queue name ?> name |: ""
 :~ slot_free (free : u64) : bool =
     $'{ \#[cfg(windows)] fn probe(name: &str) -> bool { unsafe extern "system" { fn OpenMutexW(access: u32, inherit: \
         i32, name: *const u16) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: \
@@ -79,11 +105,87 @@ let ticket_pid (~name : string) : u64 = $'(!name).trim_end_matches(".t").split(c
         sleep_ms 500u64
         slot_loop id queue ticket since
 
+:~ ticket_renamed (~queue : string) (~name : string) (~owned : string) : bool =
+    $'std::fs::rename(std::path::Path::new(&*!queue).join(&*!name), \
+        std::path::Path::new(&*!queue).join(&*!owned)).is_ok()' : bool
+
+:~ handed_ticket (~id : string) (~queue : string) : string =
+    := handed = text_or_empty (job_file id "slot_ticket")
+    := owned = ticket_name (ticket_ticks handed) (own_pid ())
+    ? handed <> "" && ticket_renamed queue handed owned ?> owned |: ""
+
 :~ slot_gate (~id : string) : i32 =
     := queue = heavy_queue ()
-    := ticket = ? queue = "" ?> "" |: ticket_created queue
+    := handed = ? queue = "" ?> "" |: handed_ticket id queue
+    := ticket =
+        ? queue = "" || handed <> "" ?> handed
+        |? file_exists (job_file id "front") ?> front_ticket queue
+        |: ticket_created queue
     ? ticket = "" ?> 0i32 |: slot_loop id queue ticket (now_ms ())
 
+:~ held_ticket (~id : string) (~queue : string) : string =
+    := recorded = text_or_empty (job_file id "slot_ticket")
+    ? recorded <> "" && file_exists (joined queue recorded) ?> recorded
+    |:
+        := name = ? file_exists (job_file id "front") ?> front_ticket queue |: ticket_created queue
+        := _ = text_written (job_file id "slot_ticket") name
+        := _ = text_written (joined queue name) id
+        name
+
+:~ abandoned_swept (~queue : string) (~first : string) (now : u64) : () =
+    := text = text_or_empty (joined queue first)
+    := owner = first_row text
+    := handed = decimal_u64 (other_rows text)
+    := held = file_exists (joined (joined (jobs_root ()) "held") owner)
+    ? first = "" || ticket_pid first <> own_pid () || held || (handed <> 0u64 && now - handed < 60000u64) ?> ()
+    |:
+        := _ = file_removed (joined queue first)
+        ()
+
+:~ slot_held_step (~id : string) : i32 =
+    := queue = heavy_queue ()
+    ? queue = "" || file_exists (job_file id "heavy-wrapper.ps1") = !- ?> 0i32
+    |:
+        := now = now_ms ()
+        := ticket = held_ticket id queue
+        abandoned_swept queue (first_live_ticket (tickets_sorted queue)) now
+        := first = first_live_ticket (tickets_sorted queue)
+        ? ticket = "" ?> 0i32
+        |? slot_deadline_passed id now ?>
+            := _ = file_removed (joined queue ticket)
+            := _ =
+                text_written
+                    (job_file id "exit")
+                    (exit_line 75i32 now JobExpiredInQueue "no heavy slot within --slot-within; the job never started")
+            := _ = text_written (job_file id "slot") ("settled ticket=" ++# ticket ++# " state=expired-in-queue")
+            2i32
+        |? first = ticket && slot_free (free_mb ()) ?>
+            := _ = text_written (joined queue ticket) (id ++# "\n" ++# decimal_text now)
+            := _ = text_written (job_file id "slot") ("handed ticket=" ++# ticket)
+            0i32
+        |:
+            := _ = text_written (job_file id "slot") ("held ticket=" ++# ticket ++# " first=" ++# first)
+            1i32
+
+:~ slot_ticket_dropped (~id : string) : () =
+    := name = text_or_empty (job_file id "slot_ticket")
+    ? name = "" ?> ()
+    |:
+        := _ = file_removed (joined (heavy_queue ()) name)
+        ()
+
+///> rust
+:# a_front_ticket_sorts_one_tick_before_the_head =
+    ? front_name 639286833110079226u64 42u64 = "00639286833110079225-42.t" ?> () |: failwith "front ticket sorts first"
+
+///> rust
+:# a_handed_ticket_keeps_its_place_under_the_new_owner =
+    := handed = "00639286833110079225-7.t"
+    ? ticket_name (ticket_ticks handed) 42u64 = "00639286833110079225-42.t" ?> () |: failwith "same ticks, new pid"
+
+///> _
 := main () : i32 =
     !!!!Export("kit_job_slot_gate", ((\ id => slot_gate id) : string -> i32))
+    !!!!Export("kit_job_slot_held_step", ((\ id => slot_held_step id) : string -> i32))
+    !!!!Export("kit_job_slot_ticket_dropped", ((\ id => slot_ticket_dropped id) : string -> ()))
     0i32

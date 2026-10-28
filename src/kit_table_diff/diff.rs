@@ -453,7 +453,7 @@ fn differences_printed_15(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
                 let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
                 let v9: Rc<str> = std::rc::Rc::<str>::from((v3).to_string().as_str());
                 let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v9));
-                println!("{}", &*v10);
+                println!("{}", v10);
                 let v11: i32 = v1.wrapping_add(v3);
                 (v0, v1) = (v4.clone(), v11);
                 continue;
@@ -515,7 +515,7 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
         let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
         let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v37: Rc<str> = std::rc::Rc::<str>::from([&*v35, &*v34, &*v36, &*v36, &*v36].concat());
-        eprintln!("{}", &*v37);
+        eprintln!("{}", v37);
         2i32
     } else {
         let v38: bool = &*v23 == "";
@@ -552,7 +552,7 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
             let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
             let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v56: Rc<str> = std::rc::Rc::<str>::from([&*v54, &*v53, &*v55, &*v55, &*v55].concat());
-            eprintln!("{}", &*v56);
+            eprintln!("{}", v56);
             2i32
         } else {
             let v57: Rc<str> = indices_from_8(v0.clone(), v5.clone());
@@ -596,7 +596,7 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
             if v91 {
                 let v92: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("key\tcolumn\tleft\tright\n"); } LIT.with(|lit| lit.clone()) };
                 let v93: Rc<str> = Rc::<str>::from(format!("{}{}", v92, v82));
-                println!("{}", &*v93);
+                println!("{}", v93);
                 ()
             };
             let v94: Rc<str> = std::rc::Rc::<str>::from((v79).to_string().as_str());
@@ -625,7 +625,7 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
                 v77.clone()
             };
             let v116: Rc<str> = Rc::<str>::from(format!("{}{}", v112, v115));
-            println!("{}", &*v116);
+            println!("{}", v116);
             0i32
         }
     }
@@ -653,7 +653,7 @@ fn diff_files_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
             let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v25: Rc<str> = std::rc::Rc::<str>::from([&*v23, &*v22, &*v24, &*v24, &*v24].concat());
-            eprintln!("{}", &*v25);
+            eprintln!("{}", v25);
             2i32
         }
         _ => {
@@ -663,7 +663,7 @@ fn diff_files_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
                     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
                     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     let v29: Rc<str> = std::rc::Rc::<str>::from([&*v27, &*v26, &*v28, &*v28, &*v28].concat());
-                    eprintln!("{}", &*v29);
+                    eprintln!("{}", v29);
                     2i32
                 }
                 _ => {

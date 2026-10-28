@@ -14,6 +14,7 @@ enum US1 {
     US1_MlFamily,
     US1_PascalFamily,
     US1_BatchFamily,
+    US1_FsharpFamily,
 }
 #[derive(Clone)]
 enum US2 {
@@ -98,7 +99,7 @@ fn syntax_of_path_3(mut v0: Rc<str>) -> US3 {
         let v17: Rc<str> = std::rc::Rc::<str>::from(v8.get(v15 as usize..v16 as usize).unwrap_or(""));
         v17.clone()
     };
-    let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spi|spir|fs|fsx|fsi|rs|c|h|cc|cpp|cxx|hpp|hh|cs|js|mjs|cjs|ts|tsx|jsx|go|java|kt|kts|swift|zig|gleam|scala|dart|wgsl|glsl|hlsl|proto|jsonc|css|scss|less|php|sv|v"); } LIT.with(|lit| lit.clone()) };
+    let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spi|spir|rs|c|h|cc|cpp|cxx|hpp|hh|cs|js|mjs|cjs|ts|tsx|jsx|go|java|kt|kts|swift|zig|gleam|scala|dart|wgsl|glsl|hlsl|proto|jsonc|css|scss|less|php|sv|v"); } LIT.with(|lit| lit.clone()) };
     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v21: bool = v18 == v20 ;
     let v22: bool = v21 == false;
@@ -201,7 +202,17 @@ fn syntax_of_path_3(mut v0: Rc<str>) -> US3 {
                                                     let v96: US1 = US1::US1_BatchFamily;
                                                     US3::US3_KnownSyntax(v96.clone())
                                                 } else {
-                                                    US3::US3_UnknownSyntax
+                                                    let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs|fsx|fsi"); } LIT.with(|lit| lit.clone()) };
+                                                    let v99: bool = v18 == v20 ;
+                                                    let v100: bool = v99 == false;
+                                                    let v101: bool = v98.split("|").any(|item| item == &*v18);
+                                                    let v102: bool = v100 && v101;
+                                                    if v102 {
+                                                        let v103: US1 = US1::US1_FsharpFamily;
+                                                        US3::US3_KnownSyntax(v103.clone())
+                                                    } else {
+                                                        US3::US3_UnknownSyntax
+                                                    }
                                                 }
                                             }
                                         }
@@ -290,6 +301,9 @@ fn todo_path_verdict_0(mut v0: Rc<str>, mut v1: bool) -> i32 {
                 }
                 US1::US1_ErlangFamily => {
                     7i32
+                }
+                US1::US1_FsharpFamily => {
+                    12i32
                 }
                 US1::US1_HashFamily => {
                     2i32

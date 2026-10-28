@@ -82,9 +82,6 @@
 
 := require (value : bool) : () = $'if !value { () } else { std::panic::panic_any("Spiral test assertion failed") }' : ()
 
-///> rust
-:# every_writer_of_one_file_shares_one_pending_copy =
-    require (files.pending_path "state/agile.spi" = "state/agile.spi.pending")
 
 ///> rust
 :# an_explicit_option_wins_over_everything =

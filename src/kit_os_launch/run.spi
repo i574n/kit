@@ -1,5 +1,6 @@
 :< sm'_operators
 :< launch
+:< owner
 
 :~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
 
@@ -26,4 +27,6 @@
 
 := main () : i32 =
     !!!!Export("kit_process_launch_run", ((\ () => process_run ()) : () -> i32))
+    !!!!Export("kit_caller_owner", ((\ () => caller_owner ()) : () -> string * u64 * u64))
+    !!!!Export("kit_owner_present", ((\ (pid, started) => owner_present pid started) : u64 * u64 -> bool))
     0i32

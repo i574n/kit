@@ -25,6 +25,9 @@ kit-experiments = { path = "../kit_experiments" }
 kit-table-logs = { path = "../kit_table_logs" }
 kit-env-pins = { path = "../kit_env_pins" }
 kit-mirror = { path = "../kit_mirror" }
+kit-ceremonies = { path = "../kit_ceremonies" }
+kit-evidence = { path = "../kit_evidence" }
+kit-lint-macros = { path = "../kit_lint_macros" }
 kit-table-sequences = { path = "../kit_table_sequences" }
 kit-guide = { path = "../kit_guide" }
 kit-machine-watch = { path = "../kit_machine_watch" }

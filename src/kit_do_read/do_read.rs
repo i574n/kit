@@ -858,7 +858,7 @@ fn read_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v36 {
             ()
         } else {
-            println!("{}", &*v24);
+            println!("{}", v24);
             ()
         };
         let v37: u64 = v10.borrow().len() as u64;
@@ -880,7 +880,7 @@ fn read_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     } else {
         let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
         let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v8));
-        println!("{}", &*v45);
+        println!("{}", v45);
         let v46: US7 = US7::US7_Failed;
         let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files 0"); } LIT.with(|lit| lit.clone()) };
         receipt_line_30(v46.clone(), v47.clone(), v2);

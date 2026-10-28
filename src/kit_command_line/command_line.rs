@@ -209,77 +209,81 @@ fn has_extension_14(mut v0: Rc<str>) -> bool {
     let v1: bool = std::path::Path::new(&*v0).extension().is_some();
     v1
 }
-fn pathext_15() -> Rc<str> {
-    let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var("PATHEXT").unwrap_or_default().as_str());
-    v0
+fn get_environment_variable_16(mut v0: Rc<str>) -> Rc<str> {
+    let v1: Rc<str> = Rc::<str>::from(std::env::var(&*v0).unwrap_or_default());
+    v1
 }
-fn first_line_17(mut v0: Rc<str>) -> Rc<str> {
+fn pathext_15() -> Rc<str> {
+    let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("PATHEXT"); } LIT.with(|lit| lit.clone()) };
+    get_environment_variable_16(v0.clone())
+}
+fn first_line_18(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).split(char::from(10u8)).next().unwrap_or(""));
     v1
 }
-fn path_joined_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
+fn path_joined_20(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     let v3: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(format!("{}{}", &*v1, &*v2)).to_string_lossy().as_ref());
     v3
 }
-fn is_file_20(mut v0: Rc<str>) -> bool {
+fn is_file_21(mut v0: Rc<str>) -> bool {
     let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.is_file();
     v8
 }
-fn rest_lines_21(mut v0: Rc<str>) -> Rc<str> {
+fn rest_lines_22(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).split_once(char::from(10u8)).map(|(_, rest)| rest).unwrap_or(""));
     v1.clone()
 }
-fn candidate_in_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
+fn candidate_in_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     loop {
-        let v3: Rc<str> = first_line_17(v2.clone());
-        let v4: Rc<str> = path_joined_19(v0.clone(), v1.clone(), v3.clone());
-        let v5: bool = is_file_20(v4.clone());
+        let v3: Rc<str> = first_line_18(v2.clone());
+        let v4: Rc<str> = path_joined_20(v0.clone(), v1.clone(), v3.clone());
+        let v5: bool = is_file_21(v4.clone());
         if v5 {
             return v4.clone();
         } else {
-            let mut v6: Rc<str> = rest_lines_21(v2.clone());
+            let mut v6: Rc<str> = rest_lines_22(v2.clone());
             let v7: bool = &*v6 == "";
             if v7 {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 return v8.clone();
             } else {
-                let v9: Rc<str> = rest_lines_21(v2.clone());
+                let v9: Rc<str> = rest_lines_22(v2.clone());
                 (v0, v1, v2) = (v0.clone(), v1.clone(), v9.clone());
                 continue;
             }
         }
     }
 }
-fn program_in_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
+fn program_in_17(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     loop {
         let v3: bool = &*v0 == "";
         if v3 {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             return v4.clone();
         } else {
-            let v5: Rc<str> = first_line_17(v0.clone());
+            let v5: Rc<str> = first_line_18(v0.clone());
             let mut v6: bool = &*v5 == "";
             let v9: Rc<str> = if v6 {
                 let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 v7.clone()
             } else {
-                candidate_in_18(v5.clone(), v1.clone(), v2.clone())
+                candidate_in_19(v5.clone(), v1.clone(), v2.clone())
             };
             let v10: bool = &*v9 != "";
             if v10 {
                 return v9.clone();
             } else {
-                let v11: Rc<str> = rest_lines_21(v0.clone());
+                let v11: Rc<str> = rest_lines_22(v0.clone());
                 (v0, v1, v2) = (v11.clone(), v1.clone(), v2.clone());
                 continue;
             }
         }
     }
 }
-fn lowered_22(mut v0: Rc<str>) -> Rc<str> {
+fn lowered_23(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = Rc::<str>::from(v0.to_lowercase());
     v1
 }
@@ -439,7 +443,7 @@ fn launch_parts_of_6(mut v0: Rc<str>, mut v1: Rc<UH0>) -> (Rc<str>, Rc<str>) {
                                 let v89: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                                 v89.clone()
                             };
-                            let v91: Rc<str> = program_in_16(v77.clone(), v26.clone(), v90.clone());
+                            let v91: Rc<str> = program_in_17(v77.clone(), v26.clone(), v90.clone());
                             let v92: bool = &*v91 == "";
                             let (mut v145, mut v146): (Rc<str>, Rc<str>) = if v92 {
                                 let v93: bool = cfg!(windows);
@@ -468,7 +472,7 @@ fn launch_parts_of_6(mut v0: Rc<str>, mut v1: Rc<UH0>) -> (Rc<str>, Rc<str>) {
                             } else {
                                 let v111: bool = cfg!(windows);
                                 let v118: bool = if v111 {
-                                    let v112: Rc<str> = lowered_22(v91.clone());
+                                    let v112: Rc<str> = lowered_23(v91.clone());
                                     let v113: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".exe"); } LIT.with(|lit| lit.clone()) };
                                     let v114: bool = v112.ends_with(&*v113);
                                     if v114 {
@@ -542,7 +546,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
         launch_argv_of_0(v0.clone(), v1.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn shell_line_of_23(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn shell_line_of_24(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: i32 = 0i32;
     let v3: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMoreWords); } CASE.with(|case| case.clone()) };
     let v4: Rc<UH0> = words_scanned_1(v1.clone(), v2, v3.clone());
@@ -553,7 +557,7 @@ fn shell_line_of_23(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
-        shell_line_of_23(v0.clone(), v1.clone())
+        shell_line_of_24(v0.clone(), v1.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_launch_argv(v0: &str, v1: &str) -> Rc<str> {

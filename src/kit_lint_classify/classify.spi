@@ -1,0 +1,28 @@
+:< kit_lint_model.model
+
+:~ classified (~text : string) (closed : bool) (place : i32) (origin : i32) : i32 =
+    := item =
+        {
+            line = 0i32; name = ""; place = place_of_code place; text = text; closed = closed
+            origin = origin_of_code origin
+        }
+    class_code (class_of item)
+
+:~ known_in (~baseline : string) (~file : string) (~name : string) (class : i32) : bool =
+    ?= class_of_code class ?|
+    | Some value => known (baseline_of baseline) { file = file; line = 0i32; name = name; class = value; text = "" }
+    | None => !-
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_lint_class",
+        ((\ (text, closed, place, origin) => classified text closed place origin) : string * bool * i32 * i32 -> i32)
+    )
+    !!!!Export(
+        "kit_lint_known",
+        (
+            (\ (baseline, file, name, class) => known_in baseline file name class)
+            : string * string * string * i32 -> bool
+        )
+    )
+    0i32

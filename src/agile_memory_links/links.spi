@@ -3,9 +3,9 @@
 
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:= stderr_line (~text : string) : () = $'eprintln\!("{}", &*!text)' : ()
-:= i32_text (value : i32) : string = $'std::rc::Rc::<str>::from((!value).to_string().as_str())' : string
+:= stdout_line (~text : string) : () = console.write_line text
+:= stderr_line (~text : string) : () = console.write_error_line text
+:= i32_text (value : i32) : string = (sm'.show value)
 := text_of (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default()\
     .as_str())' : string
 :~ directory_exists (~path : string) : bool =
@@ -19,7 +19,7 @@
 := option_value (~name : string) : string = $'std::rc::Rc::<str>::from({ let args = \
     std::env::args().collect::<Vec<_>>(); args.iter().position(|argument| argument == &*!name).and_then(|at| \
     args.get(at + 1)).cloned().unwrap_or_default() }.as_str())' : string
-:= flag_present (~name : string) : bool = $'std::env::args().any(|argument| argument == &*!name)' : bool
+:= flag_present (~name : string) : bool = rust_std_env.model.argument_flag_present 0i32 name
 
 := memory_files (~directory : string) : string =
     $'std::rc::Rc::<str>::from({ let mut names = std::fs::read_dir(&*!directory).into_iter().flatten().flatten().map(|\

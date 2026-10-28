@@ -26,7 +26,7 @@ enum US3 {
     US3_PlanRejected(Rc<str>),
 }
 fn stderr_line_3(mut v0: Rc<str>) -> () {
-    eprintln!("{}", &*v0);
+    eprintln!("{}", v0);
     ()
 }
 fn failed_2(mut v0: Rc<str>) -> i32 {
@@ -465,7 +465,7 @@ fn text_created_21(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v2.clone()
 }
 fn stdout_line_22(mut v0: Rc<str>) -> () {
-    println!("{}", &*v0);
+    println!("{}", v0);
     ()
 }
 fn registered_1() -> i32 {

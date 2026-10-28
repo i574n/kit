@@ -79,7 +79,7 @@ inl emit_receipts () : () = global """
 
     fn agile_load_receipts(path: &Path, expected_snapshot: u64) -> Result<BTreeMap<String, AgileModuleReceipt>, String> {
         if !path.exists() { return Ok(BTreeMap::new()); }
-        let source = agile_read_regular_text_limited(path, 8 * 1024 * 1024)?;
+        let source = agile_read_regular_text_limited(path, 64 * 1024 * 1024)?;
         let canonical = kit_state_receipt_parse(&source);
         if source.replace("\r\n", "\n").trim_end() != kit_state_receipt_serialize(&canonical).trim_end() { return Ok(BTreeMap::new()); }
         let mut lines = canonical.lines();
@@ -163,7 +163,7 @@ inl emit_typecheck () : () = global """
         let filter = args.get(2).map(|status| kit_agile_status_name_code(status));
         if filter.is_some_and(|code| code >= 5) { return Err("invalid agile status filter; expected Planned|Active|Blocked|Paused|Done".to_owned()); }
         let state = Path::new(agile_arg(&args, 1, "root")?).join("state/agile.spi");
-        let source = agile_read_regular_text_limited(&state, 8 * 1024 * 1024)?;
+        let source = agile_read_regular_text_limited(&state, 64 * 1024 * 1024)?;
         for line in source.lines().filter(|line| kit_agile_task_line_candidate_code(line) == 1) {
             if let Some(filter) = filter {
                 let start = line.find("Task (").ok_or("malformed Task")? + 6;
@@ -223,7 +223,7 @@ inl emit_mutations () : () = global """
         let root = Path::new(agile_arg(&args, 1, "root")?);
         let state = root.join("state/agile.spi");
         let id = agile_arg(&args, 2, "id")?;
-        let original = agile_read_regular_text_limited(&state, 8 * 1024 * 1024)?;
+        let original = agile_read_regular_text_limited(&state, 64 * 1024 * 1024)?;
         let mut found = false;
         let mut lines = Vec::new();
         for line in original.lines() {
@@ -246,7 +246,7 @@ inl emit_mutations () : () = global """
         let updated = format!("{}\n", lines.join("\n"));
         agile_atomic_write(&state, updated.as_bytes())?;
         let validate = (|| -> Result<(), String> {
-            let observed = agile_read_regular_text_limited(&state, 8 * 1024 * 1024)?;
+            let observed = agile_read_regular_text_limited(&state, 64 * 1024 * 1024)?;
             if observed != updated { return Err("agile update readback mismatch".to_owned()); }
             let line = observed.lines().find(|line| agile_task_id_matches(line, id)).ok_or_else(|| format!("updated agile task disappeared: {id}"))?;
             let start = line.find("Task (").ok_or_else(|| "updated Task malformed".to_owned())? + 6;

@@ -72,6 +72,23 @@
     shows stale.stdout "anchor not found"
     fixture_root_remove root
 
+:= dry_call (root : fixture_root) (~program : string) : cli_run =
+    kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("do", Arg (".", Arg ("--dry-run", Arg (program, NoArgs)))))
+
+///> rust
+:# a_dry_run_chains_every_edit_in_memory_and_writes_nothing =
+    := root = fixture_root_create "do dry run"
+    fixture_write root "a.txt" "one\n"
+    := program = "edit a.txt\n  replace once \"one\" with \"two\"\nedit a.txt\n  replace once \"two\" with \"three\""
+    shows (succeeded (dry_call root program)) "replacements 2  dry run, nothing written"
+    same (fixture_read root "a.txt") "one\n"
+    := writes = dry_call root "write b.txt <<<\nx\n>>>"
+    expect (writes.code = 2i32) (cat "a dry run accepted a write, " (run_text writes))
+    expect (path_exists (fixture_path root "b.txt") = !-) "a dry run wrote nothing"
+    shows (succeeded (do_call root program)) "replacements 2  "
+    same (fixture_read root "a.txt") "three\n"
+    fixture_root_remove root
+
 := forward (~text : string) : string = $'std::rc::Rc::<str>::from((&*!text).replace(char::from(92u8), "/"))' : string
 
 ///> rust

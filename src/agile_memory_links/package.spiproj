@@ -1,6 +1,7 @@
 packages:
     |core-
     spiral-
+    rust_std_env
 modules:
     links_model
     links

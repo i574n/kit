@@ -89,7 +89,7 @@
     $'std::rc::Rc::<str>::from(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).map(|dir| \
         dir.to_string_lossy().into_owned()).collect::<Vec<_>>().join(&*!separator))' : string
 :~ has_extension (~name : string) : bool = $'std::path::Path::new(&*!name).extension().is_some()' : bool
-:~ pathext () : string = $'std::rc::Rc::<str>::from(std::env::var("PATHEXT").unwrap_or_default().as_str())' : string
+:~ pathext () : string = env.get_environment_variable "PATHEXT"
 :~ named_in (~word : string) (~names : string) : bool = $'(!names).split(char::from(124u8)).any(|name| \
     name.eq_ignore_ascii_case(&*!word))' : bool
 := on_windows () : bool = $'cfg\!(windows)' : bool

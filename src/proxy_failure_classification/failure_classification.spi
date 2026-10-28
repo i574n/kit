@@ -27,7 +27,7 @@
     |? message_starts message "text-replace expected " && $"!matches > 0" ?> ExpectObservedMatches matches
     |: NoRepair
 
-:= process_exit_code (code : i32) : i32 = ? $"!code > 255" ?> 255i32 |: code
+:= process_exit_code (code : i32) : i32 = ? (code > 255i32) ?> 255i32 |: code
 
 := proxy_flags_follow (index : i32) : bool = $'std::env::args().nth(2 + !index as usize).is_some_and(|word| \
     word.starts_with("--"))' : bool

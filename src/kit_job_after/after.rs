@@ -401,9 +401,22 @@ fn state_settled_20(mut v0: US1) -> bool {
         }
     }
 }
+fn method23(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    v0.borrow_mut().l0 = v3;
+    ()
+}
+fn format_real_22(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    method23(v2.clone(), v3.clone());
+    let mut v4: Rc<str> = v2.borrow().l0.clone();
+    v4.clone()
+}
 fn decimal_text_21(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
-    v1
+    format_real_22(v0)
 }
 fn awaited_3(mut v0: Rc<str>, mut v1: u64) -> (US1, bool, Rc<str>) {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after"); } LIT.with(|lit| lit.clone()) };
@@ -462,7 +475,7 @@ fn awaited_3(mut v0: Rc<str>, mut v1: u64) -> (US1, bool, Rc<str>) {
     };
     (v42.clone(), v43, v44.clone())
 }
-fn settled_exit_23(mut v0: US3) -> i32 {
+fn settled_exit_25(mut v0: US3) -> i32 {
     match &v0 {
         US3::US3_JobExpiredInQueue => {
             75i32
@@ -493,7 +506,7 @@ fn settled_exit_23(mut v0: US3) -> i32 {
         }
     }
 }
-fn state_exit_22(mut v0: US1) -> i32 {
+fn state_exit_24(mut v0: US1) -> i32 {
     match &v0 {
         US1::US1_Live(v1) => {
             let v1: US2 = v1.clone();
@@ -501,11 +514,11 @@ fn state_exit_22(mut v0: US1) -> i32 {
         }
         US1::US1_Settled(v2) => {
             let v2: US3 = v2.clone();
-            settled_exit_23(v2)
+            settled_exit_25(v2)
         }
     }
 }
-fn live_word_25(mut v0: US2) -> Rc<str> {
+fn live_word_27(mut v0: US2) -> Rc<str> {
     match &v0 {
         US2::US2_JobPending => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pending"); } LIT.with(|lit| lit.clone()) };
@@ -517,11 +530,11 @@ fn live_word_25(mut v0: US2) -> Rc<str> {
         }
     }
 }
-fn state_word_24(mut v0: US1) -> Rc<str> {
+fn state_word_26(mut v0: US1) -> Rc<str> {
     match &v0 {
         US1::US1_Live(v1) => {
             let v1: US2 = v1.clone();
-            live_word_25(v1)
+            live_word_27(v1)
         }
         US1::US1_Settled(v3) => {
             let mut v3: US3 = v3.clone();
@@ -529,17 +542,11 @@ fn state_word_24(mut v0: US1) -> Rc<str> {
         }
     }
 }
-fn method27(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
-    let v2: Rc<str> = v0.borrow().l0.clone();
-    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
-    v0.borrow_mut().l0 = v3;
-    ()
-}
-fn format_real_26(mut v0: i32) -> Rc<str> {
+fn format_real_28(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method27(v2.clone(), v3.clone());
+    method23(v2.clone(), v3.clone());
     let mut v4: Rc<str> = v2.borrow().l0.clone();
     v4.clone()
 }
@@ -603,7 +610,7 @@ fn after_outcome_of_1(mut v0: Rc<str>) -> US0 {
         };
         let v50: bool = &*v49 == "ok";
         let v53: bool = if v50 {
-            let v51: i32 = state_exit_22(v3.clone());
+            let v51: i32 = state_exit_24(v3.clone());
             let v52: bool = v51 != 0i32;
             v52
         } else {
@@ -614,12 +621,12 @@ fn after_outcome_of_1(mut v0: Rc<str>) -> US0 {
             let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v20));
             let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ended "); } LIT.with(|lit| lit.clone()) };
             let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v56));
-            let v58: Rc<str> = state_word_24(v3.clone());
+            let v58: Rc<str> = state_word_26(v3.clone());
             let v59: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v58));
             let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" exit "); } LIT.with(|lit| lit.clone()) };
             let v61: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v60));
-            let v62: i32 = state_exit_22(v3.clone());
-            let v63: Rc<str> = format_real_26(v62);
+            let v62: i32 = state_exit_24(v3.clone());
+            let v63: Rc<str> = format_real_28(v62);
             let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v63));
             let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
             let v66: Rc<str> = job_file_4(v0.clone(), v65.clone());
@@ -639,7 +646,7 @@ fn after_outcome_of_1(mut v0: Rc<str>) -> US0 {
             let v79: Rc<str> = job_file_4(v0.clone(), v78.clone());
             let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
             let v81: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v80));
-            let v82: Rc<str> = state_word_24(v3.clone());
+            let v82: Rc<str> = state_word_26(v3.clone());
             let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v81, v82));
             let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" waited_ms="); } LIT.with(|lit| lit.clone()) };
             let v85: Rc<str> = Rc::<str>::from(format!("{}{}", v83, v84));

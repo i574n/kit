@@ -31,7 +31,7 @@ enum US4 {
     US4_PlanRejected(Rc<str>),
 }
 fn stderr_line_2(mut v0: Rc<str>) -> () {
-    eprintln!("{}", &*v0);
+    eprintln!("{}", v0);
     ()
 }
 fn failed_1(mut v0: Rc<str>) -> i32 {
@@ -582,7 +582,7 @@ fn text_appended_26(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v2.clone()
 }
 fn stdout_line_27(mut v0: Rc<str>) -> () {
-    println!("{}", &*v0);
+    println!("{}", v0);
     ()
 }
 fn amended_0() -> i32 {

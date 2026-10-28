@@ -28,7 +28,7 @@
 :~ argument_count () : i32 =
     := user = env.command_line_argument_count ()
     ? user > 0i32 ?> user - 1i32 |: 0i32
-:= json_requested () : bool = $'std::env::args().skip(4).any(|argument| argument == "--json")' : bool
+:= json_requested () : bool = rust_std_env.model.argument_flag_present 4i32 "--json"
 := filter_text () : string = $'std::rc::Rc::<str>::from({ let args = std::env::args().skip(4).collect::<Vec<_>>(); \
     match args.iter().position(|argument| argument == "--id") { Some(at) => args.get(at + \
     1).cloned().unwrap_or_default(), None => if args.iter().any(|argument| argument == "--tagged") { "*".to_owned() } \

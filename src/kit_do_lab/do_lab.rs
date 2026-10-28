@@ -643,7 +643,7 @@ fn lab_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v26 {
             ()
         } else {
-            println!("{}", &*v17);
+            println!("{}", v17);
             ()
         };
         let v32: bool = if v18 {
@@ -670,7 +670,7 @@ fn lab_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     } else {
         let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
         let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v5));
-        println!("{}", &*v39);
+        println!("{}", v39);
         let v40: US3 = US3::US3_Failed;
         let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("labs 0"); } LIT.with(|lit| lit.clone()) };
         receipt_line_33(v40.clone(), v41.clone(), v2);

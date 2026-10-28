@@ -67,7 +67,7 @@
             (job_owner_of job job_author terms.author)
             terms.theirs
 
-:= count_word (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= count_word (value : u64) : string = (sm'.show value)
 
 := scope_text (scope : ps_scope) : string =
     ?= scope ?|

@@ -40,7 +40,7 @@
 := numeric (~cell : string) : bool =
     $'(!cell).trim().parse::<f64>().map(|value| value.is_finite()).unwrap_or(false)' : bool
 := number_of (~cell : string) : f64 = $'(!cell).trim().parse::<f64>().unwrap_or(0.0)' : f64
-:= as_f64 (count : i32) : f64 = $'!count as f64' : f64
+:= as_f64 (count : i32) : f64 = (conv count : f64)
 := square_root (value : f64) : f64 = $'(!value).max(0.0).sqrt()' : f64
 :~ decimal_text (value : f64) : string =
     $'std::rc::Rc::<str>::from({ let text = format\!("{:.3}", !value); \
