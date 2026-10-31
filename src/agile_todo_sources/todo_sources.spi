@@ -4,7 +4,7 @@
 :< agile_todo_model.model
 
 := git_timeout_ms () : u64 = 60000u64
-:= nul_text () : string = $'std::rc::Rc::<str>::from(char::from(0u8).to_string())' : string
+:= nul_text () : string = sm'.char_text 0u8
 
 := git_output (~directory : string) (~arguments : string) : bool * string =
     := timeout = git_timeout_ms ()
@@ -62,7 +62,20 @@
         |: !+, walked_directory path "" ""
     |: !-, ""
 
+:~ git_head (~root : string) : string =
+    := ok, out = git_output root "rev-parse\tHEAD"
+    ? ok ?> sm'.trim out |: ""
+
+:~ git_changed_since (~root : string) (~since : string) : string =
+    := diffed_ok, diffed = git_output root ("diff\t--name-only\t--relative\t-z\t" ++# since)
+    := untracked_ok, untracked = git_output root "ls-files\t-o\t--exclude-standard\t-z"
+    ? diffed_ok && untracked_ok ?> nul_text () ++# diffed ++# untracked |: ""
+
 := main () : i32 =
     !!!!Export("kit_agile_todo_sources", ((\ path => todo_sources path) : string -> bool * string))
     := _ = todo_sources ""
+    export "kit_agile_todo_git_head" ((\ root => git_head root) : string -> string)
+    export "kit_agile_todo_git_changed" ((\ (root, since) => git_changed_since root since) : string * string -> string)
+    := _ = git_head ""
+    := _ = git_changed_since "" ""
     0i32

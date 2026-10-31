@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "measures.spi"
+output = "sequence_measures.rs"
+
+[package]
+name = "kit-table-sequence-measures"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_table_sequence_measures"
+path = "sequence_measures.rs"
+
+[dependencies]
+kit-log-sequences = { path = "../kit_log_sequences" }

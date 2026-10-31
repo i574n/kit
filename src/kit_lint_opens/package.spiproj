@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    kit_lint_shadows_core
+modules:
+    opens
+    entry

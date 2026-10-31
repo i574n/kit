@@ -46,20 +46,20 @@ fn listed_fact_7(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": expected a list of names"); } LIT.with(|lit| lit.clone()) };
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v3, &*v4, &*v4, &*v4].concat());
-        US0::US0_FactRejected(v5.clone())
+        US0::US0_FactRejected(v5)
     } else {
         let v7: bool = &*v0 == "hash";
         if v7 {
             let v8: US1 = US1::US1_HashFiles(v1.clone());
-            US0::US0_FactParsed(v8.clone())
+            US0::US0_FactParsed(v8)
         } else {
             let v10: bool = &*v0 == "env";
             if v10 {
                 let v11: US1 = US1::US1_EnvValues(v1.clone());
-                US0::US0_FactParsed(v11.clone())
+                US0::US0_FactParsed(v11)
             } else {
-                let v13: US1 = US1::US1_PathsExist(v1.clone());
-                US0::US0_FactParsed(v13.clone())
+                let v13: US1 = US1::US1_PathsExist(v1);
+                US0::US0_FactParsed(v13)
             }
         }
     }
@@ -85,35 +85,35 @@ fn nearest_fact_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
     let v2: u8 = 113u8;
     let v3: Rc<str> = first_of_kind_9(v0.clone(), v1, v2);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lines"); } LIT.with(|lit| lit.clone()) };
-    let v5: i32 = field_index_10(v0.clone(), v1, v4.clone());
+    let v5: i32 = field_index_10(v0.clone(), v1, v4);
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("in"); } LIT.with(|lit| lit.clone()) };
-    let v7: i32 = field_index_10(v0.clone(), v1, v6.clone());
+    let v7: i32 = field_index_10(v0.clone(), v1, v6);
     let v8: bool = &*v3 == "";
     if v8 {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("nearest: expected a quoted pattern"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_FactRejected(v9.clone())
+        US0::US0_FactRejected(v9)
     } else {
         let v11: bool = v5 < 0i32;
         if v11 {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("nearest: expected before lines <n,...>"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_FactRejected(v12.clone())
+            US0::US0_FactRejected(v12)
         } else {
             let v14: bool = v7 < v5;
             if v14 {
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("nearest: expected in <file> after the lines"); } LIT.with(|lit| lit.clone()) };
-                US0::US0_FactRejected(v15.clone())
+                US0::US0_FactRejected(v15)
             } else {
                 let v17: i32 = v7.wrapping_add(1i32);
                 let v18: Rc<str> = body_at_11(v0.clone(), v1, v17);
                 let v19: bool = &*v18 == "";
                 if v19 {
                     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("in: expected a value after it"); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_FactRejected(v20.clone())
+                    US0::US0_FactRejected(v20)
                 } else {
                     let v22: i32 = v5.wrapping_add(1i32);
-                    let v23: Rc<str> = items_span_12(v0.clone(), v1, v22, v7);
-                    let v24: US1 = US1::US1_NearestMarker(v3.clone(), v23.clone(), v18.clone());
-                    US0::US0_FactParsed(v24.clone())
+                    let v23: Rc<str> = items_span_12(v0, v1, v22, v7);
+                    let v24: US1 = US1::US1_NearestMarker(v3, v23, v18);
+                    US0::US0_FactParsed(v24)
                 }
             }
         }
@@ -123,7 +123,7 @@ fn json_fact_13(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
     let v2: u8 = 119u8;
     let v3: Rc<str> = first_of_kind_9(v0.clone(), v1, v2);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("get"); } LIT.with(|lit| lit.clone()) };
-    let v5: i32 = field_index_10(v0.clone(), v1, v4.clone());
+    let v5: i32 = field_index_10(v0.clone(), v1, v4);
     let v6: bool = &*v3 == "";
     let v8: bool = if v6 {
         true
@@ -133,23 +133,23 @@ fn json_fact_13(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
     };
     if v8 {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("json: expected a file"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_FactRejected(v9.clone())
+        US0::US0_FactRejected(v9)
     } else {
         let v11: bool = v5 < 0i32;
         if v11 {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("json: expected get <field,...>"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_FactRejected(v12.clone())
+            US0::US0_FactRejected(v12)
         } else {
             let v14: i32 = v5.wrapping_add(1i32);
             let v15: i32 = -1i32;
-            let v16: Rc<str> = items_span_12(v0.clone(), v1, v14, v15);
+            let v16: Rc<str> = items_span_12(v0, v1, v14, v15);
             let v17: bool = &*v16 == "";
             if v17 {
                 let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("get: expected a value after it"); } LIT.with(|lit| lit.clone()) };
-                US0::US0_FactRejected(v18.clone())
+                US0::US0_FactRejected(v18)
             } else {
-                let v20: US1 = US1::US1_JsonFields(v3.clone(), v16.clone());
-                US0::US0_FactParsed(v20.clone())
+                let v20: US1 = US1::US1_JsonFields(v3, v16);
+                US0::US0_FactParsed(v20)
             }
         }
     }
@@ -158,7 +158,7 @@ fn counted_fact_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
     let v3: u8 = 119u8;
     let v4: Rc<str> = first_of_kind_9(v0.clone(), v1, v3);
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("by"); } LIT.with(|lit| lit.clone()) };
-    let v6: i32 = field_index_10(v0.clone(), v1, v5.clone());
+    let v6: i32 = field_index_10(v0.clone(), v1, v5);
     let v7: bool = &*v4 == "";
     let v9: bool = if v7 {
         true
@@ -170,10 +170,10 @@ fn counted_fact_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": expected a path"); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v12: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v10, &*v11, &*v11, &*v11].concat());
-        US0::US0_FactRejected(v12.clone())
+        US0::US0_FactRejected(v12)
     } else {
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count"); } LIT.with(|lit| lit.clone()) };
-        let v15: i32 = field_index_10(v0.clone(), v1, v14.clone());
+        let v15: i32 = field_index_10(v0.clone(), v1, v14);
         let v16: bool = v15 < 0i32;
         let v18: bool = if v16 {
             true
@@ -185,7 +185,7 @@ fn counted_fact_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": expected count by ..."); } LIT.with(|lit| lit.clone()) };
             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v21: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v19, &*v20, &*v20, &*v20].concat());
-            US0::US0_FactRejected(v21.clone())
+            US0::US0_FactRejected(v21)
         } else {
             let v23: bool = &*v2 == "files";
             if v23 {
@@ -194,21 +194,21 @@ fn counted_fact_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
                 let v26: bool = &*v25 == "extension";
                 if v26 {
                     let v27: US1 = US1::US1_FilesCounted(v4.clone());
-                    US0::US0_FactParsed(v27.clone())
+                    US0::US0_FactParsed(v27)
                 } else {
                     let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files count by: only extension is supported"); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_FactRejected(v29.clone())
+                    US0::US0_FactRejected(v29)
                 }
             } else {
                 let v32: u8 = 113u8;
-                let v33: Rc<str> = first_of_kind_9(v0.clone(), v1, v32);
+                let v33: Rc<str> = first_of_kind_9(v0, v1, v32);
                 let v34: bool = &*v33 == "";
                 if v34 {
                     let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lines count by: expected a quoted regex"); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_FactRejected(v35.clone())
+                    US0::US0_FactRejected(v35)
                 } else {
-                    let v37: US1 = US1::US1_LinesCounted(v4.clone(), v33.clone());
-                    US0::US0_FactParsed(v37.clone())
+                    let v37: US1 = US1::US1_LinesCounted(v4, v33);
+                    US0::US0_FactParsed(v37)
                 }
             }
         }
@@ -218,13 +218,13 @@ fn table_fact_15(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
     let v2: u8 = 119u8;
     let v3: Rc<str> = first_of_kind_9(v0.clone(), v1, v2);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("where"); } LIT.with(|lit| lit.clone()) };
-    let v5: i32 = field_index_10(v0.clone(), v1, v4.clone());
+    let v5: i32 = field_index_10(v0.clone(), v1, v4);
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("by"); } LIT.with(|lit| lit.clone()) };
-    let v7: i32 = field_index_10(v0.clone(), v1, v6.clone());
+    let v7: i32 = field_index_10(v0.clone(), v1, v6);
     let v8: bool = v5 < 0i32;
     let v12: Rc<str> = if v8 {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("="); } LIT.with(|lit| lit.clone()) };
-        v9.clone()
+        v9
     } else {
         let v10: i32 = v5.wrapping_add(2i32);
         body_at_11(v0.clone(), v1, v10)
@@ -244,12 +244,12 @@ fn table_fact_15(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
     };
     if v17 {
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("table: expected a file"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_FactRejected(v18.clone())
+        US0::US0_FactRejected(v18)
     } else {
         let v20: bool = v7 < 0i32;
         if v20 {
             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("table: expected count by <column,...>"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_FactRejected(v21.clone())
+            US0::US0_FactRejected(v21)
         } else {
             let v23: bool = &*v12 != "=";
             let v25: bool = if v23 {
@@ -260,14 +260,14 @@ fn table_fact_15(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
             };
             if v25 {
                 let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("where: expected <column> = \"value\" or <column> <> \"value\""); } LIT.with(|lit| lit.clone()) };
-                US0::US0_FactRejected(v26.clone())
+                US0::US0_FactRejected(v26)
             } else {
                 let v28: i32 = v7.wrapping_add(1i32);
                 let v29: i32 = -1i32;
                 let v30: Rc<str> = items_span_12(v0.clone(), v1, v28, v29);
                 let v34: Rc<str> = if v8 {
                     let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v31.clone()
+                    v31
                 } else {
                     let v32: i32 = v5.wrapping_add(1i32);
                     body_at_11(v0.clone(), v1, v32)
@@ -275,13 +275,13 @@ fn table_fact_15(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
                 let v35: bool = &*v30 == "";
                 if v35 {
                     let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("by: expected a value after it"); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_FactRejected(v36.clone())
+                    US0::US0_FactRejected(v36)
                 } else {
                     let v38: bool = &*v12 == "=";
                     let v39: i32 = v5.wrapping_add(3i32);
-                    let v40: Rc<str> = body_at_11(v0.clone(), v1, v39);
-                    let v41: US1 = US1::US1_TableCounted(v3.clone(), v34.clone(), v38, v40.clone(), v30.clone());
-                    US0::US0_FactParsed(v41.clone())
+                    let v40: Rc<str> = body_at_11(v0, v1, v39);
+                    let v41: US1 = US1::US1_TableCounted(v3, v34, v38, v40, v30);
+                    US0::US0_FactParsed(v41)
                 }
             }
         }
@@ -299,17 +299,17 @@ fn dirs_fact_16(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
     };
     if v6 {
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dirs: expected a folder or folder/*"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_FactRejected(v7.clone())
+        US0::US0_FactRejected(v7)
     } else {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("having"); } LIT.with(|lit| lit.clone()) };
-        let v10: i32 = field_index_10(v0.clone(), v1, v9.clone());
+        let v10: i32 = field_index_10(v0, v1, v9);
         let v11: bool = v10 < 0i32;
         if v11 {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dirs: expected having <file> [and <file>...]"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_FactRejected(v12.clone())
+            US0::US0_FactRejected(v12)
         } else {
             let v14: US1 = US1::US1_DirsClassified(v1);
-            US0::US0_FactParsed(v14.clone())
+            US0::US0_FactParsed(v14)
         }
     }
 }
@@ -363,7 +363,7 @@ fn fact_parsed_6(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
         let v9: i32 = 2i32;
         let v10: i32 = -1i32;
         let v11: Rc<str> = items_span_12(v0.clone(), v1, v9, v10);
-        listed_fact_7(v3.clone(), v11.clone())
+        listed_fact_7(v3.clone(), v11)
     } else {
         let v13: bool = &*v3 == "nearest";
         if v13 {
@@ -400,21 +400,21 @@ fn fact_parsed_6(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
                             };
                             if v27 {
                                 let v28: i32 = v1.wrapping_sub(1i32);
-                                let v29: bool = dirs_above_17(v0.clone(), v28);
+                                let v29: bool = dirs_above_17(v0, v28);
                                 if v29 {
                                     let v30: US1 = US1::US1_DirsDetail;
-                                    US0::US0_FactParsed(v30.clone())
+                                    US0::US0_FactParsed(v30)
                                 } else {
                                     let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": needs a dirs line above it"); } LIT.with(|lit| lit.clone()) };
                                     let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                                     let v34: Rc<str> = std::rc::Rc::<str>::from([&*v3, &*v32, &*v33, &*v33, &*v33].concat());
-                                    US0::US0_FactRejected(v34.clone())
+                                    US0::US0_FactRejected(v34)
                                 }
                             } else {
                                 let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cannot share one program with hash, env, exists, nearest, json, table, dirs or count by yet; run it as its own call"); } LIT.with(|lit| lit.clone()) };
                                 let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                                 let v39: Rc<str> = std::rc::Rc::<str>::from([&*v3, &*v37, &*v38, &*v38, &*v38].concat());
-                                US0::US0_FactRejected(v39.clone())
+                                US0::US0_FactRejected(v39)
                             }
                         }
                     }
@@ -457,7 +457,7 @@ fn first_rejection_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i3
 }
 fn empty_fact_tally_18() -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
+    (v0, false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
 }
 fn dirs_classified_21(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32) -> std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> {
     let v3: std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> = (|| -> std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> { let root = std::path::Path::new(&*v0); let all = &*v1; let start = v2 as usize; let words = |fields: &Vec<std::rc::Rc<str>>| fields.iter().skip(2).filter(|field| !field.is_empty()).map(|field| (field.starts_with(char::from(113u8)), field[1..].to_owned())).collect::<Vec<_>>(); let head = words(&all[start]); let target = head.first().map(|word| word.1.clone()).unwrap_or_default(); let required = head.iter().skip_while(|word| word.1 != "having").skip(1).filter(|word| word.1 != "and").map(|word| word.1.clone()).collect::<Vec<_>>(); let (folder, mask) = match target.rsplit_once(char::from(47u8)) { Some((folder, mask)) if mask.contains(char::from(42u8)) => (folder.to_owned(), mask.to_owned()), _ => (target.clone(), String::new()) }; let wildcard = |mask: &str, name: &str| { let parts = mask.split(char::from(42u8)).collect::<Vec<_>>(); if parts.len() == 1 { return mask == name; } name.starts_with(parts[0]) && name.ends_with(parts[parts.len() - 1]) && name.len() >= parts[0].len() + parts[parts.len() - 1].len() }; let mut candidates = if mask.is_empty() { vec![target.clone()] } else { std::fs::read_dir(root.join(&folder)).map(|entries| entries.filter_map(|entry| entry.ok()).filter(|entry| entry.path().is_dir()).map(|entry| entry.file_name().to_string_lossy().into_owned()).filter(|name| wildcard(&mask, name)).map(|name| format!("{folder}/{name}")).collect::<Vec<_>>()).unwrap_or_default() }; candidates.sort(); let matched = candidates.iter().filter(|dir| required.iter().all(|file| root.join(dir.as_str()).join(file).is_file())).cloned().collect::<Vec<_>>(); let mut tags: Vec<(String, Vec<(bool, String)>)> = Vec::new(); let mut grouping: Option<String> = None; for fields in all.iter().skip(start + 1) { match fields.get(1).map(|verb| &**verb) { Some("tag") => { let line = words(fields); let name = line.first().map(|word| word.1.clone()).unwrap_or_default(); tags.push((name, line.into_iter().skip(2).collect())); } Some("count") => { grouping = words(fields).iter().skip_while(|word| word.1 != "by").nth(1).map(|word| word.1.clone()); } _ => break } } let evaluate = |dir: &str, expression: &[(bool, String)]| -> Result<bool, String> { let mut any = false; let mut all = true; let mut negate = false; let mut index = 0; while index < expression.len() { let (quoted, word) = &expression[index]; if !quoted && word == "and" { index += 1; continue; } if !quoted && word == "or" { any = any || all; all = true; index += 1; continue; } if !quoted && word == "not" { negate = !negate; index += 1; continue; } let file = word.clone(); let pattern = match (expression.get(index + 1), expression.get(index + 2)) { (Some((false, tilde)), Some((true, pattern))) if tilde == "~" => pattern.clone(), _ => return Err(format!("tag: expected <file> ~ <quoted regex> near {file}")) }; let pattern = regex::Regex::new(&pattern).map_err(|error| format!("tag: invalid pattern: {error}"))?; let text = std::fs::read(root.join(dir).join(&file)).map(|bytes| String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_default(); let hit = pattern.is_match(&text) != negate; all = all && hit; negate = false; index += 3; } Ok(any || all) }; let short = |dir: &String| dir.rsplit(char::from(47u8)).next().unwrap_or(dir).to_owned(); let mut values: Vec<Vec<String>> = Vec::new(); for dir in &matched { let mut row = Vec::new(); for (_, expression) in &tags { match evaluate(dir, expression) { Ok(value) => row.push(value.to_string()), Err(problem) => return std::rc::Rc::new((std::rc::Rc::<str>::from(problem), [matched.len() as u64, candidates.len() as u64, 0, 0], true)) } } values.push(row); } let shown = match grouping.as_ref().and_then(|name| tags.iter().position(|tag| &tag.0 == name).map(|index| (name.clone(), index))) { Some((name, index)) => { let mut groups: Vec<(String, u64, Vec<String>)> = Vec::new(); for (dir, row) in matched.iter().zip(&values) { match groups.iter_mut().find(|group| group.0 == row[index]) { Some(group) => { group.1 += 1; group.2.push(short(dir)); } None => groups.push((row[index].clone(), 1, vec![short(dir)])) } } groups.sort_by(|left, right| right.1.cmp(&left.1)); let width = groups.iter().map(|group| group.0.len()).max().unwrap_or(0).max(name.len()); let mut lines = vec![format!("{:<width$}  {:<5}  {}", name, "count", "dirs")]; for group in &groups { lines.push(format!("{:<width$}  {:<5}  {}", group.0, group.1, group.2.join(", "))); } lines } None => { if let Some(name) = &grouping { return std::rc::Rc::new((std::rc::Rc::<str>::from(format!("count by: no tag named {name}")), [matched.len() as u64, candidates.len() as u64, 0, 0], true)); } let width = matched.iter().map(|dir| short(dir).len()).max().unwrap_or(0).max(3); let mut lines = vec![std::iter::once(format!("{:<width$}", "dir")).chain(tags.iter().map(|tag| format!("{:<w$}", tag.0, w = tag.0.len().max(5)))).collect::<Vec<_>>().join("  ").trim_end().to_owned()]; for (dir, row) in matched.iter().zip(&values) { lines.push(std::iter::once(format!("{:<width$}", short(dir))).chain(row.iter().zip(&tags).map(|(value, tag)| format!("{:<w$}", value, w = tag.0.len().max(5)))).collect::<Vec<_>>().join("  ").trim_end().to_owned()); } lines } }; std::rc::Rc::new((std::rc::Rc::<str>::from(shown.join("
@@ -466,7 +466,7 @@ fn dirs_classified_21(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<s
 }
 fn nothing_found_22() -> std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> {
     let v0: std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> = std::rc::Rc::new(({ thread_local!{ static LIT: std::rc::Rc<str> = std::rc::Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, [0, 0, 0, 0], false));
-    v0.clone()
+    v0
 }
 fn environment_23(mut v0: Rc<str>) -> std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> {
     let v1: std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> = { let names = (&*v0).lines().filter(|name| !name.is_empty()).map(str::to_owned).collect::<Vec<_>>(); let width = names.iter().map(String::len).max().unwrap_or(0); let mut set = 0u64; let shown = names.iter().map(|name| match std::env::var(name) { Ok(value) => { set += 1; format!("{:<width$}  {:?}", name, value) } Err(_) => format!("{:<width$}  unset", name) }).collect::<Vec<_>>(); std::rc::Rc::new((std::rc::Rc::<str>::from(shown.join("
@@ -578,7 +578,7 @@ fn lines_joined_33(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v4, &*v1, &*v5, &*v5].concat());
-            v6.clone()
+            v6
         }
     }
 }
@@ -763,7 +763,7 @@ fn segments_joined_36(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v3, &*v1, &*v4, &*v4].concat());
-        v5.clone()
+        v5
     }
 }
 fn decimal_text_37(mut v0: u64) -> Rc<str> {
@@ -776,9 +776,9 @@ fn counted_segment_35(mut v0: bool, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u6
         let v5: Rc<str> = decimal_text_37(v3);
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v4, &*v5, &*v6, &*v6].concat());
-        segments_joined_36(v1.clone(), v7.clone())
+        segments_joined_36(v1.clone(), v7)
     } else {
-        v1.clone()
+        v1
     }
 }
 fn receipt_counts_34(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: u64, mut v14: u64, mut v15: u64, mut v16: u64, mut v17: u64, mut v18: u64, mut v19: u64, mut v20: u64, mut v21: u64, mut v22: u64, mut v23: u64, mut v24: u64, mut v25: u64, mut v26: u64) -> Rc<str> {
@@ -790,10 +790,10 @@ fn receipt_counts_34(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v31: Rc<str> = decimal_text_37(v25);
         let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched"); } LIT.with(|lit| lit.clone()) };
         let v33: Rc<str> = std::rc::Rc::<str>::from([&*v28, &*v29, &*v30, &*v31, &*v32].concat());
-        v33.clone()
+        v33
     } else {
         let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v34.clone()
+        v34
     };
     let v36: u64 = v5.wrapping_add(v7);
     let v37: u64 = v36.wrapping_add(v9);
@@ -801,25 +801,25 @@ fn receipt_counts_34(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
     let v39: u64 = v38.wrapping_add(v13);
     let v40: bool = v39 > 0u64;
     let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files"); } LIT.with(|lit| lit.clone()) };
-    let v42: Rc<str> = counted_segment_35(v40, v35.clone(), v41.clone(), v2);
+    let v42: Rc<str> = counted_segment_35(v40, v35, v41, v2);
     let v43: u64 = v5.wrapping_add(v13);
     let v44: bool = v43 > 0u64;
     let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bytes"); } LIT.with(|lit| lit.clone()) };
-    let v46: Rc<str> = counted_segment_35(v44, v42.clone(), v45.clone(), v3);
+    let v46: Rc<str> = counted_segment_35(v44, v42, v45, v3);
     let v47: bool = v5 > 0u64;
     let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("distinct"); } LIT.with(|lit| lit.clone()) };
-    let v49: Rc<str> = counted_segment_35(v47, v46.clone(), v48.clone(), v4);
+    let v49: Rc<str> = counted_segment_35(v47, v46, v48, v4);
     let v50: bool = v7 > 0u64;
     let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lookups"); } LIT.with(|lit| lit.clone()) };
-    let v52: Rc<str> = counted_segment_35(v50, v49.clone(), v51.clone(), v6);
+    let v52: Rc<str> = counted_segment_35(v50, v49, v51, v6);
     let v53: bool = v9 > 0u64;
     let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fields"); } LIT.with(|lit| lit.clone()) };
-    let v55: Rc<str> = counted_segment_35(v53, v52.clone(), v54.clone(), v8);
+    let v55: Rc<str> = counted_segment_35(v53, v52, v54, v8);
     let v56: bool = v12 > 0u64;
     let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lines"); } LIT.with(|lit| lit.clone()) };
-    let v58: Rc<str> = counted_segment_35(v56, v55.clone(), v57.clone(), v10);
+    let v58: Rc<str> = counted_segment_35(v56, v55, v57, v10);
     let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("groups"); } LIT.with(|lit| lit.clone()) };
-    let v60: Rc<str> = counted_segment_35(v56, v58.clone(), v59.clone(), v11);
+    let v60: Rc<str> = counted_segment_35(v56, v58, v59.clone(), v11);
     let v61: bool = v16 > 0u64;
     let v69: Rc<str> = if v61 {
         let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("env "); } LIT.with(|lit| lit.clone()) };
@@ -828,9 +828,9 @@ fn receipt_counts_34(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v65: Rc<str> = decimal_text_37(v15);
         let v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" set)"); } LIT.with(|lit| lit.clone()) };
         let v67: Rc<str> = std::rc::Rc::<str>::from([&*v62, &*v63, &*v64, &*v65, &*v66].concat());
-        segments_joined_36(v60.clone(), v67.clone())
+        segments_joined_36(v60.clone(), v67)
     } else {
-        v60.clone()
+        v60
     };
     let v70: bool = v19 > 0u64;
     let v78: Rc<str> = if v70 {
@@ -840,16 +840,16 @@ fn receipt_counts_34(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v74: Rc<str> = decimal_text_37(v18);
         let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" present)"); } LIT.with(|lit| lit.clone()) };
         let v76: Rc<str> = std::rc::Rc::<str>::from([&*v71, &*v72, &*v73, &*v74, &*v75].concat());
-        segments_joined_36(v69.clone(), v76.clone())
+        segments_joined_36(v69.clone(), v76)
     } else {
-        v69.clone()
+        v69
     };
     let v79: bool = v23 > 0u64;
     let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rows"); } LIT.with(|lit| lit.clone()) };
-    let v81: Rc<str> = counted_segment_35(v79, v78.clone(), v80.clone(), v20);
+    let v81: Rc<str> = counted_segment_35(v79, v78, v80, v20);
     let v82: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("matched"); } LIT.with(|lit| lit.clone()) };
-    let v83: Rc<str> = counted_segment_35(v79, v81.clone(), v82.clone(), v21);
-    counted_segment_35(v79, v83.clone(), v59.clone(), v22)
+    let v83: Rc<str> = counted_segment_35(v79, v81, v82, v21);
+    counted_segment_35(v79, v83, v59, v22)
 }
 fn elapsed_text_39(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
@@ -868,11 +868,11 @@ fn receipt_line_38(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US2::US2_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US2::US2_Succeeded => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };

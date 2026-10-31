@@ -88,7 +88,7 @@ fn rejected_5(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: job "); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v0, &*v2, &*v2, &*v2].concat());
-    stderr_line_6(v3.clone());
+    stderr_line_6(v3);
     2i32
 }
 fn joined_8(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
@@ -117,21 +117,21 @@ fn job_status_4() -> i32 {
     let mut v3: bool = v1.starts_with(&*v2);
     let mut v6: bool = if v3 {
         let mut v4: Rc<str> = job_directory_7(v1.clone());
-        directory_exists_10(v4.clone())
+        directory_exists_10(v4)
     } else {
         false
     };
     if v6 {
         let v7: Rc<str> = kit_job_host::kit_job_host_revive();
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status"); } LIT.with(|lit| lit.clone()) };
-        let v9: Rc<str> = shared_summary_2(v8.clone(), v1.clone());
-        stdout_line_3(v9.clone());
+        let v9: Rc<str> = shared_summary_2(v8, v1.clone());
+        stdout_line_3(v9);
         0i32
     } else {
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status: unknown job id "); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v12: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v1, &*v11, &*v11, &*v11].concat());
-        rejected_5(v12.clone())
+        rejected_5(v12)
     }
 }
 fn settled_exit_13(mut v0: US2) -> i32 {
@@ -345,7 +345,7 @@ fn job_waited_11() -> i32 {
     let mut v3: bool = v1.starts_with(&*v2);
     let mut v6: bool = if v3 {
         let mut v4: Rc<str> = job_directory_7(v1.clone());
-        directory_exists_10(v4.clone())
+        directory_exists_10(v4)
     } else {
         false
     };
@@ -357,7 +357,7 @@ fn job_waited_11() -> i32 {
         let v14: u64 = if v10 {
             let v11: i32 = 4i32;
             let v12: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v11 as usize).unwrap_or_default());
-            decimal_u64_17(v12.clone())
+            decimal_u64_17(v12)
         } else {
             864000000u64
         };
@@ -365,14 +365,14 @@ fn job_waited_11() -> i32 {
         let v16: u64 = watched_caller_19();
         let v17: US0 = waited_21(v1.clone(), v15, v16);
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait"); } LIT.with(|lit| lit.clone()) };
-        let v19: Rc<str> = shared_summary_2(v18.clone(), v1.clone());
-        stdout_line_3(v19.clone());
-        state_exit_12(v17.clone())
+        let v19: Rc<str> = shared_summary_2(v18, v1.clone());
+        stdout_line_3(v19);
+        state_exit_12(v17)
     } else {
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait: unknown job id "); } LIT.with(|lit| lit.clone()) };
         let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v23: Rc<str> = std::rc::Rc::<str>::from([&*v21, &*v1, &*v22, &*v22, &*v22].concat());
-        rejected_5(v23.clone())
+        rejected_5(v23)
     }
 }
 fn command_line_argument_26(mut v0: i32) -> Rc<str> {
@@ -526,7 +526,7 @@ fn job_run_0() -> i32 {
             v53
         }
         US4::US4_JobUnknown => {
-            let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job doctor [--env] (audits kit processes, job files and after-chains; --env also compares a detached job's environment with this shell's; exit 1 on a finding) | job after <queued-id> <predecessor-id> [--ok] (re-points a job still waiting on --after/--after-ok; label, timeout, gate and command are kept) | job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one and prints every id; --serial runs the links in order inside one job, so waiting links hold no process) | job start [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] [--settle-ms <n>] <label> <timeout-ms> <program> [args...] (the cap covers the whole job tree; reaching it stops the job as memory-capped, exit 137; a plain start without --after watches the job for --settle-ms, default 2000, 0 skips, and a job that already failed prints 'job start failed' with its exit and first stderr line and exits with its code) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for long runs from an agent shell that can be reaped, use job start plus a background job wait) | job status <id> | job wait <id> [max-ms, default until it settles] | job list [count] | job tail <id> [lines] | job stop <id> | job amend <id> --timeout <ms> (a queued job only; the limit is read when its child starts)"); } LIT.with(|lit| lit.clone()) };
+            let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job doctor [--env] (audits kit processes, job files and after-chains; --env also compares a detached job's environment with this shell's; exit 1 on a finding) | job after <queued-id> <predecessor-id> [--ok] (re-points a job still waiting on --after/--after-ok; label, timeout, gate and command are kept) | job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one and prints every id; --serial runs the links in order inside one job, so waiting links hold no process) | job start [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] [--settle-ms <n>] <label> <timeout-ms> <program> [args...] (the cap covers the whole job tree; reaching it stops the job as memory-capped, exit 137; a plain start without --after watches the job for --settle-ms, default 2000, 0 skips, and a job that already settled badly prints 'job start failed' with its state, exit and detail and exits with that code) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for long runs from an agent shell that can be reaped, use job start plus a background job wait) | job status <id> | job wait <id> [max-ms, default until it settles] | job list [count] | job tail <id> [lines] | job stop <id> | job amend <id> --timeout <ms> (a queued job only; the limit is read when its child starts)"); } LIT.with(|lit| lit.clone()) };
             rejected_5(v73.clone())
         }
         US4::US4_JobWait => {

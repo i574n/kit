@@ -1,5 +1,7 @@
 # KIT source workspace
 
+[![깃허브 코드스페이스](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=1404535261)
+
 Every kit operation is one call: a patch batch, a multi-file write or a gated
 change is passed inline and validated, rehearsed and applied by that same call,
 with one receipt. A verb that needs a plan file written first, or separate

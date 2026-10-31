@@ -15,31 +15,34 @@
     |: TheirJob (job, job_author)
 
 :~ mine_verdict (in_session : bool) (owner : job_owner) (~theirs : string) : option string =
-    ? in_session
-    ?> None
-    |:
-        ?= owner ?|
-        | YourJob _ => None
-        | TheirJob (job, by) =>
-            ? theirs = job
-            ?> None
-            |:
-                Some (
-                    "it belongs to job "
-                    ++# job
-                    ++# " by "
-                    ++# (? by = "" ?> "no author" |: by)
-                    ++# "; pass --theirs "
-                    ++# job
-                    ++# " to stop it anyway"
-                )
-        | NoOwningJob => Some "no kit job started it and it is outside this agent session"
+    ?= owner ?|
+    | YourJob _ => None
+    | TheirJob (job, by) =>
+        ? theirs = job
+        ?> None
+        |:
+            Some (
+                "it belongs to job "
+                ++# job
+                ++# " by "
+                ++# (? by = "" ?> "no author" |: by)
+                ++# "; pass --theirs "
+                ++# job
+                ++# " to stop it anyway"
+            )
+    | NoOwningJob => ? in_session ?> None |: Some "no kit job started it and it is outside this agent session"
 
 := expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
 
 ///> rust
 :# a_kill_with_mine_stops_only_my_session_or_my_jobs =
     expect (mine_verdict !+ NoOwningJob "" = None) "a process under my agent session"
+    expect
+        (
+            mine_verdict !+ (job_owner_of "job-4-d" "alpha" "beta") ""
+            = Some "it belongs to job job-4-d by alpha; pass --theirs job-4-d to stop it anyway"
+        )
+        "another author's job refuses even inside my session, where the per-owner job host now puts every job"
     expect (mine_verdict !- (job_owner_of "job-1-a" "alpha" "alpha") "" = None) "my own job's tree"
     expect
         (

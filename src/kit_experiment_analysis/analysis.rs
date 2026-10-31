@@ -80,7 +80,7 @@ fn failed_1(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: experiment "); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v0, &*v2, &*v2, &*v2].concat());
-    stderr_line_2(v3.clone());
+    stderr_line_2(v3);
     2i32
 }
 fn where_clauses_4() -> Rc<str> {
@@ -112,18 +112,18 @@ fn argument_5(mut v0: i32) -> Rc<str> {
     };
     let v9: US5 = if v5 {
         let v6: Rc<str> = command_line_argument_7(v1);
-        US5::US5_Some(v6.clone())
+        US5::US5_Some(v6)
     } else {
         US5::US5_None
     };
     match &v9 {
         US5::US5_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US5::US5_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -302,10 +302,10 @@ fn numeric_note_19(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" numeric)"); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v16: Rc<str> = std::rc::Rc::<str>::from([&*v12, &*v13, &*v14, &*v15, &*v15].concat());
-        v16.clone()
+        v16
     } else {
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v17.clone()
+        v17
     }
 }
 fn arm_counts_17(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, mut v4: Rc<str>, mut v5: i32, mut v6: f64, mut v7: Rc<str>, mut v8: Rc<str>, mut v9: Rc<str>, mut v10: US1, mut v11: i32, mut v12: f64, mut v13: f64, mut v14: f64, mut v15: i32, mut v16: i32, mut v17: f64, mut v18: f64, mut v19: f64, mut v20: i32) -> Rc<str> {
@@ -317,19 +317,19 @@ fn arm_counts_17(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0,
     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v27: Rc<str> = std::rc::Rc::<str>::from([&*v21, &*v25, &*v26, &*v26, &*v26].concat());
     let v28: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v22, &*v23, &*v24, &*v27].concat());
-    let v29: US7 = second_arm_of_15(v10.clone());
+    let v29: US7 = second_arm_of_15(v10);
     match &v29 {
         US7::US7_AgainstArm(v30) => {
             let v30: Rc<str> = v30.clone();
             let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
             let v32: Rc<str> = i32_text_18(v16);
-            let v33: Rc<str> = numeric_note_19(v3.clone(), v16, v17, v18, v19, v20);
+            let v33: Rc<str> = numeric_note_19(v3, v16, v17, v18, v19, v20);
             let v34: Rc<str> = std::rc::Rc::<str>::from([&*v32, &*v24, &*v21, &*v33, &*v26].concat());
             let v35: Rc<str> = std::rc::Rc::<str>::from([&*v28, &*v31, &*v30, &*v22, &*v34].concat());
-            v35.clone()
+            v35
         }
         US7::US7_OneArm => {
-            v28.clone()
+            v28
         }
     }
 }
@@ -356,7 +356,7 @@ fn look_of_24(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<str>) -
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; an experiment is analyzed once (experiment show prints it)"); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v8: Rc<str> = std::rc::Rc::<str>::from([&*v5, &*v3, &*v6, &*v7, &*v7].concat());
-        US8::US8_LookRefused(v8.clone())
+        US8::US8_LookRefused(v8)
     } else {
         let v10: bool = v1 == false;
         if v10 {
@@ -368,9 +368,9 @@ fn look_of_24(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<str>) -
                 let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rows of the planned count; pass --interim '<reason>' to look anyway and record a disclosure"); } LIT.with(|lit| lit.clone()) };
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 let v16: Rc<str> = std::rc::Rc::<str>::from([&*v13, &*v0, &*v14, &*v15, &*v15].concat());
-                US8::US8_LookRefused(v16.clone())
+                US8::US8_LookRefused(v16)
             } else {
-                US8::US8_InterimLook(v2.clone())
+                US8::US8_InterimLook(v2)
             }
         }
     }
@@ -485,39 +485,39 @@ fn terms_of_27(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>,
             let v30: i32 = 1i32;
             let v31: i32 = ((v0).len().max(1) - 1) as i32;
             let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v33: Rc<str> = values_of_30(v0.clone(), v1.clone(), v2, v3, v4.clone(), v8.clone(), v5, v30, v31, v32.clone());
-            median_terms_between_28(v33.clone(), v28, v29)
+            let v33: Rc<str> = values_of_30(v0, v1, v2, v3, v4, v8, v5, v30, v31, v32);
+            median_terms_between_28(v33, v28, v29)
         }
         US9::US9_NoBand => {
             let v46: Rc<str> = match &v9 {
                 US0::US0_BinomialAtMost => {
                     let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binomial"); } LIT.with(|lit| lit.clone()) };
-                    v37.clone()
+                    v37
                 }
                 US0::US0_BinomialBand => {
                     let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binomial-band"); } LIT.with(|lit| lit.clone()) };
-                    v40.clone()
+                    v40
                 }
                 US0::US0_MedianBand => {
                     let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("median"); } LIT.with(|lit| lit.clone()) };
-                    v39.clone()
+                    v39
                 }
                 US0::US0_OneSampleT => {
                     let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("one-sample"); } LIT.with(|lit| lit.clone()) };
-                    v36.clone()
+                    v36
                 }
                 US0::US0_WelchTwoSided => {
                     let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("welch"); } LIT.with(|lit| lit.clone()) };
-                    v35.clone()
+                    v35
                 }
                 US0::US0_WilsonBand => {
                     let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wilson"); } LIT.with(|lit| lit.clone()) };
-                    v38.clone()
+                    v38
                 }
             };
-            let v47: f64 = prediction_of_31(v16.clone());
+            let v47: f64 = prediction_of_31(v16);
             let v48: Rc<str> = kit_experiment_stats::kit_experiment_terms(&*v46, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v47, v12);
-            v48.clone()
+            v48
         }
     }
 }
@@ -765,14 +765,14 @@ fn plan_text_35(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v3, &*v2, &*v4, &*v4].concat());
-    let v6: Rc<str> = joined_20(v0.clone(), v5.clone());
-    let v7: Rc<str> = file_text_21(v6.clone());
+    let v6: Rc<str> = joined_20(v0.clone(), v5);
+    let v7: Rc<str> = file_text_21(v6);
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("amendments"); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v3, &*v8, &*v4, &*v4].concat());
-    let v10: Rc<str> = joined_20(v0.clone(), v9.clone());
-    let v11: Rc<str> = file_text_21(v10.clone());
+    let v10: Rc<str> = joined_20(v0, v9);
+    let v11: Rc<str> = file_text_21(v10);
     let v12: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v11, &*v4, &*v4, &*v4].concat());
-    v12.clone()
+    v12
 }
 fn test_of_37(mut v0: Rc<str>) -> US11 {
     let v1: bool = &*v0 == "welch";
@@ -868,33 +868,33 @@ fn test_plan_of_41(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>) -> US1 {
 }
 fn plan_trusted_36(mut v0: Rc<str>) -> US10 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = field_of_22(v0.clone(), v1.clone());
-    let v3: US11 = test_of_37(v2.clone());
+    let v2: Rc<str> = field_of_22(v0.clone(), v1);
+    let v3: US11 = test_of_37(v2);
     match &v3 {
         US11::US11_TestKnown(v6) => {
             let v6: US0 = v6.clone();
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runs"); } LIT.with(|lit| lit.clone()) };
-            let v8: Rc<str> = field_of_22(v0.clone(), v7.clone());
-            let v9: i32 = whole_of_38(v8.clone());
+            let v8: Rc<str> = field_of_22(v0.clone(), v7);
+            let v9: i32 = whole_of_38(v8);
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("confidence"); } LIT.with(|lit| lit.clone()) };
-            let v11: Rc<str> = field_of_22(v0.clone(), v10.clone());
-            let v12: f64 = number_of_39(v11.clone());
+            let v11: Rc<str> = field_of_22(v0.clone(), v10);
+            let v12: f64 = number_of_39(v11);
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("id"); } LIT.with(|lit| lit.clone()) };
-            let v14: Rc<str> = field_of_22(v0.clone(), v13.clone());
+            let v14: Rc<str> = field_of_22(v0.clone(), v13);
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("metric"); } LIT.with(|lit| lit.clone()) };
-            let v16: Rc<str> = field_of_22(v0.clone(), v15.clone());
+            let v16: Rc<str> = field_of_22(v0.clone(), v15);
             let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("arms"); } LIT.with(|lit| lit.clone()) };
             let v18: Rc<str> = field_of_22(v0.clone(), v17.clone());
             let v19: bool = &*v18 == "";
             let v23: Rc<str> = if v19 {
                 let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("all"); } LIT.with(|lit| lit.clone()) };
-                v20.clone()
+                v20
             } else {
                 let v21: Rc<str> = field_of_22(v0.clone(), v17.clone());
-                first_item_40(v21.clone())
+                first_item_40(v21)
             };
             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("group"); } LIT.with(|lit| lit.clone()) };
-            let v25: Rc<str> = field_of_22(v0.clone(), v24.clone());
+            let v25: Rc<str> = field_of_22(v0.clone(), v24);
             let v26: bool = v12 == v12;
             let v27: f64 = if v26 {
                 v12
@@ -902,20 +902,20 @@ fn plan_trusted_36(mut v0: Rc<str>) -> US10 {
                 0.95f64
             };
             let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("decision"); } LIT.with(|lit| lit.clone()) };
-            let v29: Rc<str> = field_of_22(v0.clone(), v28.clone());
+            let v29: Rc<str> = field_of_22(v0.clone(), v28);
             let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("time"); } LIT.with(|lit| lit.clone()) };
-            let v31: Rc<str> = field_of_22(v0.clone(), v30.clone());
+            let v31: Rc<str> = field_of_22(v0.clone(), v30);
             let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("registered_local"); } LIT.with(|lit| lit.clone()) };
-            let v33: Rc<str> = field_of_22(v0.clone(), v32.clone());
-            let v34: Rc<str> = field_of_22(v0.clone(), v17.clone());
+            let v33: Rc<str> = field_of_22(v0.clone(), v32);
+            let v34: Rc<str> = field_of_22(v0.clone(), v17);
             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("prediction"); } LIT.with(|lit| lit.clone()) };
-            let v36: Rc<str> = field_of_22(v0.clone(), v35.clone());
-            let v37: US1 = test_plan_of_41(v6.clone(), v34.clone(), v36.clone());
-            US10::US10_PlanRead(v14.clone(), v16.clone(), v23.clone(), v6.clone(), v25.clone(), v9, v27, v29.clone(), v31.clone(), v33.clone(), v37.clone())
+            let v36: Rc<str> = field_of_22(v0, v35);
+            let v37: US1 = test_plan_of_41(v6.clone(), v34, v36);
+            US10::US10_PlanRead(v14, v16, v23, v6, v25, v9, v27, v29, v31, v33, v37)
         }
         US11::US11_TestUnknown => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the registration names an unknown test"); } LIT.with(|lit| lit.clone()) };
-            US10::US10_PlanBroken(v4.clone())
+            US10::US10_PlanBroken(v4)
         }
     }
 }

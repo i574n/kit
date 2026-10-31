@@ -16,3 +16,8 @@ path = "lint.rs"
 [dependencies]
 kit-lint-scan = { path = "../kit_lint_scan" }
 kit-lint-classify = { path = "../kit_lint_classify" }
+kit-lint-flow = { path = "../kit_lint_flow" }
+kit-lint-walk = { path = "../kit_lint_walk" }
+kit-lint-flow-constructs = { path = "../kit_lint_flow_constructs" }
+kit-lint-flow-idioms = { path = "../kit_lint_flow_idioms" }
+kit-lint-shadows = { path = "../kit_lint_shadows" }

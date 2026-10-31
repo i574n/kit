@@ -1,0 +1,7 @@
+:< segments
+
+:= main () : i32 =
+    export
+        "kit_agile_note_appended"
+        ((\ (state_dir, row, stamp) => note_appended state_dir row stamp) : string * string * string -> string)
+    0i32

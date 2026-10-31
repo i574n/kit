@@ -23,6 +23,7 @@ enum US2 {
     US2_RenameFailed,
     US2_RenameFailedTemporaryKept,
     US2_ReadbackMismatch,
+    US2_ChangedSinceRead,
 }
 fn stderr_line_1(mut v0: Rc<str>) -> i32 {
     eprintln!("{}", v0);
@@ -33,7 +34,7 @@ fn stdout_line_2(mut v0: Rc<str>) -> i32 {
     0i32
 }
 fn argument_3(mut v0: i32) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default().as_str());
+    let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
     v1
 }
 fn option_after_4(mut v0: Rc<str>) -> Rc<str> {
@@ -73,11 +74,11 @@ fn method15(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_14(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method15(v2.clone(), v3.clone());
+    method15(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn rewritten_row_12(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> Rc<str> {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("core.EvidenceRef ("); } LIT.with(|lit| lit.clone()) };
@@ -176,6 +177,24 @@ fn refreshed_text_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: 
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v14: bool = false;
     joined_11(v2.clone(), v3.clone(), v4, v6.clone(), v7, v11.clone(), v12, v13.clone(), v14)
+}
+fn renamed_within_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
+    loop {
+        let v3: bool = std::fs::rename(&*v1, &*v0).is_ok();
+        if v3 {
+            return true;
+        } else {
+            let v4: bool = v2 <= 1i32;
+            if v4 {
+                return false;
+            } else {
+                std::thread::sleep(std::time::Duration::from_millis(50u64));
+                let v5: i32 = v2.wrapping_sub(1i32);
+                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                continue;
+            }
+        }
+    }
 }
 fn refresh_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: bool) -> US0 {
     let v4: bool = &*v2 == "";
@@ -298,18 +317,19 @@ fn refresh_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: bool) ->
                         let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
                         let v80: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v79));
                         let v81: bool = std::fs::write(&*v80, &*v65).is_ok();
-                        let v93: US2 = if v81 {
-                            let v82: bool = std::fs::rename(&*v80, &*v7).is_ok();
-                            if v82 {
-                                let v83: bool = std::fs::read_to_string(&*v7).is_ok_and(|value| value == *v65);
-                                if v83 {
+                        let v94: US2 = if v81 {
+                            let v82: i32 = 40i32;
+                            let v83: bool = renamed_within_16(v7.clone(), v80.clone(), v82);
+                            if v83 {
+                                let v84: bool = std::fs::read_to_string(&*v7).is_ok_and(|value| value == *v65);
+                                if v84 {
                                     US2::US2_Replaced
                                 } else {
                                     US2::US2_ReadbackMismatch
                                 }
                             } else {
-                                let v87: bool = std::fs::remove_file(&*v80).is_ok() || !std::path::Path::new(&*v80).exists();
-                                if v87 {
+                                let v88: bool = std::fs::remove_file(&*v80).is_ok() || !std::path::Path::new(&*v80).exists();
+                                if v88 {
                                     US2::US2_RenameFailed
                                 } else {
                                     US2::US2_RenameFailedTemporaryKept
@@ -318,31 +338,35 @@ fn refresh_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: bool) ->
                         } else {
                             US2::US2_TemporaryWriteFailed
                         };
-                        match &v93 {
+                        match &v94 {
                             US2::US2_Replaced => {
                                 US0::US0_Refreshed(v77.clone())
                             }
                             _ => {
-                                let v102: Rc<str> = match &v93 {
+                                let v105: Rc<str> = match &v94 {
+                                    US2::US2_ChangedSinceRead => {
+                                        let v100: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the file changed since it was read; nothing written, run the call again"); } LIT.with(|lit| lit.clone()) };
+                                        v100.clone()
+                                    }
                                     US2::US2_ReadbackMismatch => {
-                                        let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
-                                        v98.clone()
+                                        let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
+                                        v99.clone()
                                     }
                                     US2::US2_RenameFailed => {
-                                        let v96: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
-                                        v96.clone()
-                                    }
-                                    US2::US2_RenameFailedTemporaryKept => {
-                                        let v97: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                                        let v97: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
                                         v97.clone()
                                     }
+                                    US2::US2_RenameFailedTemporaryKept => {
+                                        let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                                        v98.clone()
+                                    }
                                     US2::US2_TemporaryWriteFailed => {
-                                        let v95: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
-                                        v95.clone()
+                                        let v96: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
+                                        v96.clone()
                                     }
                                     _ => unreachable!(),
                                 };
-                                US0::US0_WriteFailed(v102.clone())
+                                US0::US0_WriteFailed(v105.clone())
                             }
                         }
                     }
@@ -373,47 +397,47 @@ fn evidence_run_0() -> i32 {
     };
     if v10 {
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit evidence refresh <root> <relative path> [--as <new relative path>] [--dry-run]"); } LIT.with(|lit| lit.clone()) };
-        stderr_line_1(v11.clone())
+        stderr_line_1(v11)
     } else {
         let v13: i32 = 3i32;
         let mut v14: Rc<str> = argument_3(v13);
         let v15: i32 = 4i32;
         let v16: Rc<str> = argument_3(v15);
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--as"); } LIT.with(|lit| lit.clone()) };
-        let v18: Rc<str> = option_after_4(v17.clone());
+        let v18: Rc<str> = option_after_4(v17);
         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--dry-run"); } LIT.with(|lit| lit.clone()) };
-        let v20: bool = has_flag_5(v19.clone());
-        let v21: US0 = refresh_6(v14.clone(), v16.clone(), v18.clone(), v20);
+        let v20: bool = has_flag_5(v19);
+        let v21: US0 = refresh_6(v14, v16, v18, v20);
         match &v21 {
             US0::US0_DryRun(v26) => {
                 let v26: Rc<str> = v26.clone();
                 let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit evidence refresh dry-run (nothing written) "); } LIT.with(|lit| lit.clone()) };
                 let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v26));
-                stdout_line_2(v28.clone())
+                stdout_line_2(v28)
             }
             US0::US0_MissingFile => {
                 let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit evidence refresh: the file to hash is missing or empty"); } LIT.with(|lit| lit.clone()) };
-                stderr_line_1(v34.clone())
+                stderr_line_1(v34)
             }
             US0::US0_NotListed => {
                 let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit evidence refresh: that path has no EvidenceRef row in state/evidence.spi"); } LIT.with(|lit| lit.clone()) };
-                stderr_line_1(v30.clone())
+                stderr_line_1(v30)
             }
             US0::US0_OutsideRoot => {
                 let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit evidence refresh: the path must be relative and stay inside the root"); } LIT.with(|lit| lit.clone()) };
-                stderr_line_1(v32.clone())
+                stderr_line_1(v32)
             }
             US0::US0_Refreshed(v22) => {
                 let v22: Rc<str> = v22.clone();
                 let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit evidence refresh ok "); } LIT.with(|lit| lit.clone()) };
                 let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v22));
-                stdout_line_2(v24.clone())
+                stdout_line_2(v24)
             }
             US0::US0_WriteFailed(v36) => {
                 let v36: Rc<str> = v36.clone();
                 let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit evidence refresh: "); } LIT.with(|lit| lit.clone()) };
                 let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v36));
-                stderr_line_1(v38.clone())
+                stderr_line_1(v38)
             }
         }
     }

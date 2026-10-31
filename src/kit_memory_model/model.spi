@@ -6,8 +6,7 @@
     args.get(at + 1)).cloned().unwrap_or_default() }.as_str())' : string
 := stdout_line (~text : string) : () = console.write_line text
 := stderr_line (~text : string) : () = console.write_error_line text
-:= exact_text (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_defaul\
-    t().as_str())' : string
+:= exact_text (~path : string) : string = file_system.read_text_or_empty path
 :~ file_present (~path : string) : bool =
     file_system.path_buf_is_file (file_system.new_path_buf (sm'.to_std_string path))
 := text_written (~path : string) (~text : string) : bool = $'{ let path = std::path::Path::new(&*!path); \
@@ -22,22 +21,16 @@
 := text_length (~text : string) : i32 = sm'.length text
 := byte_at (~text : string) (index : i32) : i32 = $'(!text).as_bytes().get(!index as usize).map(|byte| *byte as \
     i32).unwrap_or(-1)' : i32
-:= text_between (~text : string) (start : i32) (stop : i32) : string = $'std::rc::Rc::<str>::from((!text).get(!start \
-    as usize..!stop as usize).unwrap_or(""))' : string
+:= text_between (~text : string) (start : i32) (stop : i32) : string = sm'.bytes_between start stop text
 := index_of (~text : string) (~needle : string) (from : i32) : i32 = $'(!text).get(!from as usize..).and_then(|rest| \
     rest.find(&*!needle)).map(|at| at as i32 + !from).unwrap_or(-1)' : i32
 := line_value (~front : string) (~key : string) : string = $'std::rc::Rc::<str>::from((!front).lines().find_map(|line| \
     line.strip_prefix(&*!key)).unwrap_or(""))' : string
-:= first_line (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split(char::from(10u8)).next().unwrap_o\
-    r(""))' : string
-:= rest_lines (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split_once(char::from(10u8)).map(|(_, \
-    rest)| rest).unwrap_or(""))' : string
+:= first_line (~lines : string) : string = sm'.first_line lines
+:= rest_lines (~lines : string) : string = sm'.after_first_line lines
 := ascii_lowercase (~text : string) : string =
     $'std::rc::Rc::<str>::from((!text).to_ascii_lowercase().as_str())' : string
 := text_before (~left : string) (~right : string) : bool = $'!left < !right' : bool
-:= clipped (~text : string) (width : i32) : string = $'{ let text = !text; if text.chars().count() <= !width as usize \
-    { text } else { std::rc::Rc::<str>::from(text.chars().take((!width as \
-    usize).saturating_sub(3)).collect::<String>() + "...") } }' : string
 
 :| memory_kind =
     | KindUser
@@ -212,7 +205,7 @@
     := start = index_of line "= Memory (" 0i32 + 10i32
     := comma = index_of line "," start
     ?= kind_of_case (text_between line start comma) ?|
-    | KindUnknown => EntryRefused (concat5 "unknown memory kind in: " (clipped line 80i32) "" "" "")
+    | KindUnknown => EntryRefused (concat5 "unknown memory kind in: " (sm'.clip 80i32 line) "" "" "")
     | KindKnown kind =>
         := file, a = quoted_at line comma
         := slug, b = quoted_at line a
@@ -222,7 +215,7 @@
         := modified, f = quoted_at line e
         := body, g = quoted_at line f
         ? g < 0i32
-        ?> EntryRefused (concat5 "malformed memory line: " (clipped line 80i32) "" "" "")
+        ?> EntryRefused (concat5 "malformed memory line: " (sm'.clip 80i32 line) "" "" "")
         |:
             EntryRead {
                 file = file

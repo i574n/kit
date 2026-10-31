@@ -33,6 +33,9 @@
         in_todo : bool
         last_code : string
         header_targets : bool
+        header_untargeted : bool
+        seen_test : bool
+        notebook_header : bool
     }
 
 := todo_marker () : string = "TO" ++# "DO"
@@ -66,10 +69,8 @@
         rest)| rest.trim().trim_end_matches("u32").trim_end_matches("i32").trim_matches(char::from(34u8))).unwrap_or("\
         "))' : string
 
-:= line_head (~text : string) : string = $'std::rc::Rc::<str>::from((!text).split(char::from(10u8)).next().unwrap_or("\
-    "))' : string
-:= line_rest (~text : string) : string = $'std::rc::Rc::<str>::from((!text).split_once(char::from(10u8)).map(|(_, \
-    rest)| rest).unwrap_or(""))' : string
+:= line_head (~text : string) : string = sm'.first_line text
+:= line_rest (~text : string) : string = sm'.after_first_line text
 
 :| declared_row =
     | DeclaredRule : standard
@@ -152,12 +153,25 @@
             |: ""
         | _ => ""
     | TestTargets =>
-        ?
+        := test_line = (sm'.starts_with ":# " line || sm'.starts_with "test " line) && sm'.contains " static =" line = !-
+        ? test_line && scan.seen_test = !- && scan.notebook_header = !-
+        ?>
+            finding path number rule (
+                "a test block in a module without a notebook header never runs; start the file with "
+                ^^ "///- --package . and a :# <module> static = prelude"
+            )
+        |?
             sm'.starts_with "test " line
             && sm'.contains " static =" line = !-
             && sm'.starts_with "///> " scan.last_code = !-
             && scan.header_targets = !-
         ?> finding path number rule "test block without a ///> target line above it or in the file header"
+        |?
+            sm'.starts_with ":= main () : i32 =" line
+            && scan.seen_test
+            && scan.last_code <> "///> _"
+            && scan.header_untargeted = !-
+        ?> finding path number rule "a main after a test block builds on the default Zig target; put ///> _ above it"
         |: ""
     | HostFree =>
         ?= kind ?|
@@ -208,6 +222,11 @@
         := header_targets =
             scan.header_targets
             || (number = 2i32 && sm'.starts_with "///-" scan.last_code && sm'.starts_with "///> " (trimmed_start line))
+        := header_untargeted =
+            scan.header_untargeted
+            || (number = 2i32 && sm'.starts_with "///-" scan.last_code && trimmed_start line = "///> _")
+        := seen_test = scan.seen_test || (sm'.starts_with ":# " line && sm'.contains " static =" line = !-)
+        := notebook_header = scan.notebook_header || (number = 1i32 && sm'.starts_with "///-" (trimmed_start line))
         := next =
             {
                 findings = scan.findings ++# found
@@ -215,10 +234,23 @@
                 in_todo = in_todo
                 last_code = last_code
                 header_targets = header_targets
+                header_untargeted = header_untargeted
+                seen_test = seen_test
+                notebook_header = notebook_header
             }
         lines_scanned list path module (line_rest text) (number + 1i32) next
 
-:~ file_scan_start () : file_scan = { findings = ""; count = 0i32; in_todo = !-; last_code = ""; header_targets = !- }
+:~ file_scan_start () : file_scan =
+    {
+        findings = ""
+        count = 0i32
+        in_todo = !-
+        last_code = ""
+        header_targets = !-
+        header_untargeted = !-
+        seen_test = !-
+        notebook_header = !-
+    }
 
 
 := scanned_text (list : standards) (~module : string) (~text : string) : string =
@@ -245,11 +277,40 @@
     testing.expect (sm'.contains "m.spi:1  lf-only  CRLF line ending" found) found
     testing.expect (sm'.contains "m.spi:2  integer-only  floating point in an integer-only module" found) found
     testing.expect (sm'.contains "m.spi:6  test-targets" found) found
-    testing.expect (sm'.contains "m.spi:5  test-targets" found = !-) found
+    testing.expect (sm'.contains "m.spi:5  test-targets  test block without" found = !-) found
+    testing.expect (sm'.contains "m.spi:5  test-targets  a test block in a module without a notebook header" found) found
     testing.expect (sm'.contains "m.spi:7  test-targets" found = !-) found
     testing.expect
         ((scanned_text list "other" "inl x = 1.0f64\n") = "m.spi:1  line-width  14 columns, limit 10\n")
         "integer-only is per module"
+
+///> rust
+:# a_main_after_a_test_block_needs_an_untargeted_marker =
+    := list = StandardThen (TestTargets, NoStandards)
+    := head = "///- --package .\n:# m static =\n\n"
+    := tested = "///> rust\n:# works =\n    ()\n\n"
+    := entry = ":= main () : i32 =\n    0i32\n"
+    := flagged = "a main after a test block"
+    := trailing = scanned_text list "m" (head ++# tested ++# entry)
+    testing.expect (sm'.contains ("m.spi:8  test-targets  " ++# flagged) trailing) trailing
+    := marked = scanned_text list "m" (head ++# tested ++# "///> _\n" ++# entry)
+    testing.expect (sm'.contains flagged marked = !-) "a marked main"
+    := leading = scanned_text list "m" (head ++# entry ++# "\n" ++# tested)
+    testing.expect (sm'.contains flagged leading = !-) "a main before the tests"
+    := prelude = scanned_text list "m" ("///- --package .\n///> _\n:# m static =\n\n" ++# tested ++# entry)
+    testing.expect (sm'.contains flagged prelude = !-) "an untargeted prelude"
+
+///> rust
+:# a_test_block_needs_a_notebook_header_to_run =
+    := list = StandardThen (TestTargets, NoStandards)
+    := flagged = "a test block in a module without a notebook header"
+    := tests = "///> rust\n:# works =\n    ()\n\n///> rust\n:# also =\n    ()\n"
+    := headerless = scanned_text list "m" (":< sm'_operators\n\n" ++# tests)
+    testing.expect (sm'.contains ("m.spi:4  test-targets  " ++# flagged) headerless) headerless
+    testing.expect (findings_count headerless = 1i32) "one finding per file, at the first test block"
+    := headed = scanned_text list "m" ("///- --package .\n:# m static =\n\n" ++# tests)
+    testing.expect (sm'.contains flagged headed = !-) "a notebook header"
+    testing.expect (sm'.contains flagged (scanned_text list "m" ":< sm'_operators\n:= f () = 1i32\n") = !-) "no tests"
 
 ///> rust
 :# declared_rows_replace_the_defaults =

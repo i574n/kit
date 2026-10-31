@@ -13,6 +13,7 @@
     {
         id : string
         title : string
+        kind : string
         priority : i32
         difficulty : i32
         status : string
@@ -78,7 +79,7 @@
 
 := listed_in (~items : string) (~item : string) : bool =
     rust_std_string.model.pipe_member
-        (rust_std_string.model.replace (rust_std_string.model.replace items ", " "|") "," "|")
+        (sm'.replace "," "|" (sm'.replace ", " "|" items))
         item
 
 := query_passes (~query : string) (~id : string) (~title : string) (~tags : string) (~status : string) : bool =
@@ -140,8 +141,14 @@
         key = rank_key role (priority_weight task.priority + unblocks) minutes task.priority
     }
 
-:= candidate (passes : backlog_task -> bool) (tasks : task_list) (task : backlog_task) : bool =
-    task_open task && deps_settled tasks task.deps 0i32 && passes task
+:= role_takes (role : rank_role) (task : backlog_task) : bool =
+    ?= role ?|
+    | Subagent => task.kind <> "Epic"
+    | MainAgent => !+
+
+:= candidate (role : rank_role) (passes : backlog_task -> bool) (tasks : task_list) (task : backlog_task) : bool =
+    task_open task && role_takes role task && not (listed_in task.tags "user-batch")
+    && deps_settled tasks task.deps 0i32 && passes task
 
 :~ ^ inserted (item : ranked_task) (list : ranked_list) : ranked_list =
     ?= list ?|
@@ -156,7 +163,7 @@
     ?= remaining ?|
     | NoTasks => list
     | TaskThen (task, rest) =>
-        ? candidate passes tasks task ?> ranked_from role passes tasks rest (inserted (ranked_of role tasks task) list)
+        ? candidate role passes tasks task ?> ranked_from role passes tasks rest (inserted (ranked_of role tasks task) list)
         |: ranked_from role passes tasks rest list
 
 := ranking_where (role : rank_role) (passes : backlog_task -> bool) (tasks : task_list) : ranked_list =
@@ -182,6 +189,7 @@
     {
         id = id
         title = id
+        kind = "Story"
         priority = priority
         difficulty = difficulty
         status = status
@@ -231,22 +239,33 @@
 
 ///> rust
 :# subagents_take_the_longest_items_first =
-    := elsewhere = \ (task : backlog_task) => rust_std_string.model.starts_with task.id "KIT-" = !-
+    := elsewhere = \ (task : backlog_task) => sm'.starts_with "KIT-" task.id = !-
     testing.expect (ranked_ids (ranking_where Subagent elsewhere (sample_backlog ())) = "BIG-P0 GATE SMALL-P2") (ranked_ids (
         ranking_where Subagent elsewhere (sample_backlog ())))
+
+///> rust
+:# subagents_take_leaf_work_and_never_an_epic =
+    := epic = task_at "EPIC-BIG" 0i32 8i32 "Active" "" "" 9600i32
+    := tasks = TaskThen ({ epic ?| kind = "Epic" }, sample_backlog ())
+    := elsewhere = \ (task : backlog_task) => sm'.starts_with "KIT-" task.id = !-
+    testing.expect
+        (ranked_ids (ranking_where Subagent elsewhere tasks) = "BIG-P0 GATE SMALL-P2")
+        (ranked_ids (ranking_where Subagent elsewhere tasks))
+    testing.expect (role_takes MainAgent { epic ?| kind = "Epic" }) "the main agent still sees epics"
+    testing.expect (role_takes Subagent epic) "a story is leaf work"
 
 ///> rust
 :# teams_filter_the_ranking_and_progress_shrinks_the_fallback_estimate =
     := tasks = sample_backlog ()
     testing.expect
         (
-            ranked_ids (ranking_where MainAgent (\ task => rust_std_string.model.starts_with task.id "KIT-") tasks)
+            ranked_ids (ranking_where MainAgent (\ task => sm'.starts_with "KIT-" task.id) tasks)
             = "KIT-SIDE"
         )
         "a predicate narrows the ranking"
     testing.expect
         (
-            ranked_ids (ranking_where MainAgent (\ task => rust_std_string.model.starts_with task.id "SMALL") tasks)
+            ranked_ids (ranking_where MainAgent (\ task => sm'.starts_with "SMALL" task.id) tasks)
             = "SMALL-P2"
         )
         "prefix predicate"

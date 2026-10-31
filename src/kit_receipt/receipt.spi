@@ -12,7 +12,7 @@
     $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as \
         u64).unwrap_or(0)' : u64
 
-:~ decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:~ decimal_text (~value : u64) : string = sm'.decimal_text value
 
 :~ elapsed_text (~started : u64) : string =
     $'{ let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| \

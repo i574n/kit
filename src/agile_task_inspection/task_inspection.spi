@@ -123,6 +123,10 @@
     $'agile_note_listing::kit_agile_notes_text(&*!text, &*!id)' : string
 := notes_filtered (~text : string) (~id : string) (~mode : string) (~value : string) : string =
     $'agile_note_listing::kit_agile_notes_filtered_text(&*!text, &*!id, &*!mode, &*!value)' : string
+:~ state_segments (~root : string) : string =
+    := state_dir = root ++# "/state"
+    $'agile_note_listing::kit_agile_state_segments(&*!state_dir)' : string
+
 := notes_json (~text : string) (~id : string) : string =
     $'agile_note_listing::kit_agile_notes_json(&*!text, &*!id)' : string
 
@@ -179,6 +183,7 @@
     | FileReadable file =>
         := text = records_text (loaded_string (read_text file))
         := archive = archived_text root
+        := noted = notes_joined text (state_segments root)
         := found = byte_find text (task_anchor id)
         ? found < 0i32
         ?> agile_show_failure "no task with this id" id
@@ -189,19 +194,19 @@
                 show_task
                     (task_record_at text arguments (byte_len text))
                     (planning_summary text id)
-                    (notes_joined (notes_text archive id) (notes_text text id))
+                    (notes_joined (notes_text archive id) (notes_text noted id))
                     started
             | ShowFiltered (mode, value) =>
                 show_task
                     (task_record_at text arguments (byte_len text))
                     (planning_summary text id)
-                    (notes_or_archived (notes_filtered archive id mode value) (notes_filtered text id mode value))
+                    (notes_or_archived (notes_filtered archive id mode value) (notes_filtered noted id mode value))
                     started
             | ShowJson =>
                 stdout_line (
                     task_json
                         (task_json_record_at text arguments (byte_len text))
-                        ((planning_json text id) ++# "," ++# (json_notes_of archive text id))
+                        ((planning_json text id) ++# "," ++# (json_notes_of archive noted id))
                         started
                 )
 

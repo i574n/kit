@@ -9,3 +9,5 @@ packages:
     agile_planning_model
 modules:
     planning_filters
+rust-extern:
+    rc_str = kit_agile_planning_selected, kit_agile_planning_selected_near

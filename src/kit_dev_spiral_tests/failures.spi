@@ -1,8 +1,9 @@
-:< sm'_operators
-
 ///- --package .
 :# failures static =
+    :< sm'_operators
     :< notebook
+
+:< sm'_operators
 
 :| ^ failed_notebooks =
     | NoFailures

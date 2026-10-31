@@ -2,6 +2,7 @@
 param([string]$DevBinary)
 $ErrorActionPreference = 'Stop'
 $eoiRoot = Split-Path $PSScriptRoot -Parent
+if (-not $env:TEMP -or -not $env:TMP) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
 $fixture = Join-Path ([IO.Path]::GetTempPath()) ('kit dev contracts ' + [guid]::NewGuid().ToString('N'))
 $root = Join-Path $fixture 'workspace with spaces'
 $bundle = Join-Path $fixture 'compiler with spaces'

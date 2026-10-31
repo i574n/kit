@@ -48,8 +48,7 @@
         1024).unwrap_or(u64::MAX) } std::env::var("KIT_WINDOWS_FREE_MB").ok().and_then(|text| \
         text.trim().parse::<u64>().ok()).unwrap_or_else(free) }' : u64
 
-:~ option_value (~flag : string) : string =
-    $'std::rc::Rc::<str>::from(std::env::args().skip_while(|arg| arg \!= &*!flag).nth(1).unwrap_or_default())' : string
+:~ option_value (~flag : string) : string = rust_std_env.model.argument_after_flag flag
 
 :~ process_number () : u64 = $'std::process::id() as u64' : u64
 
@@ -84,12 +83,13 @@
         |: live_rows root (other_rows rows) now (? kept = "" ?> row |: concat5 kept "\n" row "" "")
 
 :~ verdict_text
-    (wanted : window_class) (~mine : string) (since : u64) (minutes : u64) (~rows : string) (free : u64) (now : u64)
-    (min_free : u64)
+    (wanted : window_class) (~label : string) (~mine : string) (since : u64) (minutes : u64) (~rows : string)
+    (free : u64) (now : u64) (min_free : u64)
     : string
     =
     := word = class_word wanted
-    $'kit_window_admission::kit_window_verdict(&*!word, &*!mine, !since, !minutes, &*!rows, !free, !now, !min_free)'
+    $'kit_window_admission::kit_window_verdict(&*!word, &*!label, &*!mine, !since, !minutes, &*!rows, !free, \
+        !now, !min_free)'
     : string
 
 :~ refused (~message : string) : i32 =
@@ -102,8 +102,8 @@
             "usage: window request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] "
             ^^ "[--min-free-mb <n>] | window release <id> | window list | window check <class> | window claim <path> "
             ^^ "| window wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | window run "
-            ^^ "<class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...]; "
-            ^^ "classes "
+            ^^ "<class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...] "
+            ^^ "| window remote <ssh-alias> [--bin <remote kit path>]; classes "
         )
         (class_words ())
         ""
@@ -142,7 +142,7 @@
         := now = now_ms ()
         := rows = live_rows root (stored_rows root) now ""
         := free = free_mb ()
-        := terms = verdict_text ask.wanted ask.id ask.since ask.minutes rows free now ask.min_free
+        := terms = verdict_text ask.wanted ask.label ask.id ask.since ask.minutes rows free now ask.min_free
         := step = wait_step_of (terms = "") (file_exists (released_mark root ask.id)) now ask.deadline
         ?= step ?|
         | ReleasedWhileWaiting =>
@@ -239,15 +239,19 @@
         0i32
     |: refused (concat5 "release: unknown window id '" id "'; it was released or expired" "" "")
 
+:~ remote_status (~alias : string) (~binary : string) : i32 =
+    $'kit_remote_status::kit_remote_status_run(&*!alias, &*!binary)' : i32
+
 :~ window_run () : i32 =
     := verb = argument 2i32
-    ? verb = "request" ?> window_requested ()
+    ? verb = "request" ?> $'kit_window_request::kit_window_request_run()' : i32
     |? verb = "release" ?> window_released ()
     |? verb = "list" ?> $'kit_window_query::kit_window_list_run()' : i32
     |? verb = "check" ?> $'kit_window_query::kit_window_check_run()' : i32
     |? verb = "run" ?> $'kit_window_run::kit_window_run_run()' : i32
     |? verb = "claim" ?> $'kit_window_claim::kit_window_claim_run()' : i32
     |? verb = "wait-clear" ?> $'kit_window_wait::kit_window_wait_run()' : i32
+    |? verb = "remote" ?> remote_status (argument 3i32) (? option_value "--bin" = "" ?> "kit" |: option_value "--bin")
     |: refused (concat5 "unknown verb '" verb "'; " (window_usage ()) "")
 
 :~ ^ dropped_tagged (~root : string) (~rows : string) (~tag : string) (count : u64) : u64 =

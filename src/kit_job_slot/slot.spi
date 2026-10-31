@@ -70,7 +70,7 @@ let ticket_pid (~name : string) : u64 = $'(!name).trim_end_matches(".t").split(c
         true } let base = std::env::var("KIT_HEAVY_MUTEX").unwrap_or_else(|_| format\!("Global{}spiral-heavy-job", \
         char::from(92u8))); probe(&base) || (!free > 3072 && probe(&format\!("{base}-2"))) }' : bool
 
-:~ ticket_adopted (~name : string) : () = $'unsafe { std::env::set_var("SPIRAL_HEAVY_TICKET", &*!name); }' : ()
+:~ ticket_adopted (~name : string) : () = env.set_environment_variable "SPIRAL_HEAVY_TICKET" name
 
 :~ slot_deadline_passed (~id : string) (now : u64) : bool =
     := by = decimal_u64 (text_or_empty (job_file id "slot_by_ms"))

@@ -162,7 +162,7 @@ fn signal_spiral_session(_pid: i32, _signal: i32) -> Result<(), String> {
 
 fn remove_spiral_session_files(process: &SpiralSessionProcess) {
     for path in [process.socket.clone(), std::path::PathBuf::from(format!("{}.pid", process.socket.display())), std::path::PathBuf::from(format!("{}.start-lock", process.socket.display())), std::path::PathBuf::from(format!("{}.request-lock", process.socket.display()))] {
-        let _ = if path.is_dir() { std::fs::remove_dir_all(path) } else { std::fs::remove_file(path) };
+        if !path.is_dir() { let _ = std::fs::remove_file(path); }
     }
 }
 

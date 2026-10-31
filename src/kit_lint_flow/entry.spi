@@ -1,0 +1,5 @@
+:< flow
+
+:= main () : i32 =
+    export "kit_lint_flow" ((\ line => flow_line line) : string -> bool)
+    0i32

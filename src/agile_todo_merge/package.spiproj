@@ -1,0 +1,13 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    rust_std_env
+    rust_std_fs
+    rust_std_string
+    union_reflection
+    agile_task_text
+    agile_note_model
+    agile_todo_model
+modules:
+    merge

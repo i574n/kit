@@ -11,6 +11,7 @@ enum US1 {
     US1_TreeRead,
     US1_Bench,
     US1_CompileHold,
+    US1_TreeWrite,
 }
 #[derive(Clone)]
 enum US0 {
@@ -58,42 +59,46 @@ fn refused_1(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: window "); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v0, &*v2, &*v2, &*v2].concat());
-    stderr_line_2(v3.clone());
+    stderr_line_2(v3);
     2i32
 }
 fn class_word_4(mut v0: US1) -> Rc<str> {
     match &v0 {
         US1::US1_Bench => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bench"); } LIT.with(|lit| lit.clone()) };
-            v7.clone()
+            v7
         }
         US1::US1_Compile => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compile"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US1::US1_CompileHold => {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compile-hold"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US1::US1_CompilerInstall => {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compiler-install"); } LIT.with(|lit| lit.clone()) };
-            v5.clone()
+            v5
         }
         US1::US1_HeavyBuild => {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("heavy-build"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
         US1::US1_LiveGui => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("live-gui"); } LIT.with(|lit| lit.clone()) };
-            v1.clone()
+            v1
         }
         US1::US1_TestSuite => {
             let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test-suite"); } LIT.with(|lit| lit.clone()) };
-            v2.clone()
+            v2
         }
         US1::US1_TreeRead => {
             let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tree-read"); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
+        }
+        US1::US1_TreeWrite => {
+            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tree-write"); } LIT.with(|lit| lit.clone()) };
+            v9
         }
     }
 }
@@ -154,7 +159,15 @@ fn class_of_3(mut v0: Rc<str>) -> US0 {
                                     let v39: US1 = US1::US1_CompileHold;
                                     US0::US0_ClassKnown(v39)
                                 } else {
-                                    US0::US0_ClassUnknown
+                                    let v41: US1 = US1::US1_TreeWrite;
+                                    let v42: Rc<str> = class_word_4(v41);
+                                    let v43: bool = &*v0 == &*v42;
+                                    if v43 {
+                                        let v44: US1 = US1::US1_TreeWrite;
+                                        US0::US0_ClassKnown(v44)
+                                    } else {
+                                        US0::US0_ClassUnknown
+                                    }
                                 }
                             }
                         }
@@ -207,11 +220,11 @@ fn method11(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_10(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method11(v2.clone(), v3.clone());
+    method11(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn number_text_9(mut v0: u64) -> Rc<str> {
     format_real_10(v0)
@@ -265,7 +278,7 @@ fn holder_of_24(mut v0: Rc<str>) -> US3 {
         true
     } else {
         let v5: i32 = 0i32;
-        let mut v6: Rc<str> = tab_field_22(v0.clone(), v5);
+        let mut v6: Rc<str> = tab_field_22(v0, v5);
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-run"); } LIT.with(|lit| lit.clone()) };
         let v8: bool = v6.ends_with(&*v7);
         v8
@@ -308,7 +321,7 @@ fn window_file_27(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".window"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v4: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v2, &*v3, &*v3, &*v3].concat());
-    joined_28(v0.clone(), v4.clone())
+    joined_28(v0, v4)
 }
 fn file_removed_29(mut v0: Rc<str>) -> bool {
     let v1: bool = std::fs::remove_file(&*v0).is_ok();
@@ -316,38 +329,38 @@ fn file_removed_29(mut v0: Rc<str>) -> bool {
 }
 fn event_logged_30(mut v0: Rc<str>, mut v1: US4, mut v2: Rc<str>) -> () {
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events.log"); } LIT.with(|lit| lit.clone()) };
-    let mut v4: Rc<str> = joined_28(v0.clone(), v3.clone());
+    let mut v4: Rc<str> = joined_28(v0, v3);
     let v5: u64 = now_ms_8();
     let mut v6: Rc<str> = number_text_9(v5);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v21: Rc<str> = match &v1 {
         US4::US4_WindowDropped => {
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dropped"); } LIT.with(|lit| lit.clone()) };
-            v14.clone()
+            v14
         }
         US4::US4_WindowGaveUp => {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("gave-up"); } LIT.with(|lit| lit.clone()) };
-            v12.clone()
+            v12
         }
         US4::US4_WindowGranted => {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("granted"); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         }
         US4::US4_WindowPruned => {
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pruned"); } LIT.with(|lit| lit.clone()) };
-            v13.clone()
+            v13
         }
         US4::US4_WindowQueued => {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("queued"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US4::US4_WindowReleased => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("released"); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US4::US4_WindowReleasedWaiting => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("released-waiting"); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
     };
     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
@@ -417,16 +430,16 @@ fn free_mb_32() -> u64 {
     let mut v0: u64 = { #[cfg(windows)] fn free() -> u64 { #[repr(C)] struct Status { length: u32, load: u32, total: u64, available: u64, total_page: u64, available_page: u64, total_virtual: u64, available_virtual: u64, extended: u64 } unsafe extern "system" { fn GlobalMemoryStatusEx(status: *mut Status) -> i32; } unsafe { let mut status: Status = std::mem::zeroed(); status.length = std::mem::size_of::<Status>() as u32; if GlobalMemoryStatusEx(&mut status) == 0 { u64::MAX } else { status.available / 1048576 } } } #[cfg(not(windows))] fn free() -> u64 { std::fs::read_to_string("/proc/meminfo").ok().and_then(|text| text.lines().find(|line| line.starts_with("MemAvailable:")).and_then(|line| line.split_whitespace().nth(1)).and_then(|kb| kb.parse::<u64>().ok())).map(|kb| kb / 1024).unwrap_or(u64::MAX) } std::env::var("KIT_WINDOWS_FREE_MB").ok().and_then(|text| text.trim().parse::<u64>().ok()).unwrap_or_else(free) };
     v0
 }
-fn verdict_text_33(mut v0: US1, mut v1: Rc<str>, mut v2: u64, mut v3: u64, mut v4: Rc<str>, mut v5: u64, mut v6: u64, mut v7: u64) -> Rc<str> {
-    let v8: Rc<str> = class_word_4(v0);
-    let v9: Rc<str> = kit_window_admission::kit_window_verdict(&*v8, &*v1, v2, v3, &*v4, v5, v6, v7);
-    v9
+fn verdict_text_33(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64, mut v4: u64, mut v5: Rc<str>, mut v6: u64, mut v7: u64, mut v8: u64) -> Rc<str> {
+    let v9: Rc<str> = class_word_4(v0);
+    let v10: Rc<str> = kit_window_admission::kit_window_verdict(&*v9, &*v1, &*v2, v3, v4, &*v5, v6, v7, v8);
+    v10
 }
 fn released_mark_34(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".released"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v4: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v2, &*v3, &*v3, &*v3].concat());
-    joined_28(v0.clone(), v4.clone())
+    joined_28(v0, v4)
 }
 fn file_exists_35(mut v0: Rc<str>) -> bool {
     let v2: &str = &*v0;
@@ -457,25 +470,25 @@ fn one_line_39(mut v0: Rc<str>) -> Rc<str> {
 }
 fn row_text_38(mut v0: Rc<str>, mut v1: US1, mut v2: US6, mut v3: Rc<str>, mut v4: u64, mut v5: u64) -> Rc<str> {
     let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-    let v7: Rc<str> = class_word_4(v1.clone());
+    let v7: Rc<str> = class_word_4(v1);
     let v11: Rc<str> = match &v2 {
         US6::US6_Held => {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("held"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US6::US6_Waiting => {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("waiting"); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         }
     };
     let v12: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v6, &*v7, &*v6, &*v11].concat());
-    let v13: Rc<str> = one_line_39(v3.clone());
+    let v13: Rc<str> = one_line_39(v3);
     let v14: Rc<str> = number_text_9(v4);
     let v15: Rc<str> = number_text_9(v5);
     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v17: Rc<str> = std::rc::Rc::<str>::from([&*v14, &*v6, &*v15, &*v16, &*v16].concat());
     let v18: Rc<str> = std::rc::Rc::<str>::from([&*v12, &*v6, &*v13, &*v6, &*v17].concat());
-    v18.clone()
+    v18
 }
 fn request_row_37(mut v0: US1, mut v1: u64, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: US6, mut v8: u64) -> Rc<str> {
     row_text_38(v3, v0, v7, v2, v4, v8)
@@ -492,11 +505,11 @@ fn request_head_42(mut v0: US1, mut v1: u64, mut v2: Rc<str>, mut v3: Rc<str>, m
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window request "); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" id="); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class="); } LIT.with(|lit| lit.clone()) };
-    let v11: Rc<str> = class_word_4(v0.clone());
+    let v11: Rc<str> = class_word_4(v0);
     let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v13: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v11, &*v12, &*v12, &*v12].concat());
     let v14: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v7, &*v9, &*v3, &*v13].concat());
-    v14.clone()
+    v14
 }
 fn stdout_line_43(mut v0: Rc<str>) -> () {
     println!("{}", v0);
@@ -516,7 +529,7 @@ fn requested_15(mut v0: US1, mut v1: u64, mut v2: Rc<str>, mut v3: Rc<str>, mut 
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v16: Rc<str> = live_rows_19(v8.clone(), v14.clone(), v13, v15.clone());
             let v17: u64 = free_mb_32();
-            let v18: Rc<str> = verdict_text_33(v0.clone(), v3.clone(), v4, v1, v16.clone(), v17, v13, v6);
+            let v18: Rc<str> = verdict_text_33(v0.clone(), v2.clone(), v3.clone(), v4, v1, v16.clone(), v17, v13, v6);
             let v19: bool = &*v18 == "";
             let v20: Rc<str> = released_mark_34(v8.clone(), v3.clone());
             let v21: bool = file_exists_35(v20.clone());
@@ -622,11 +635,11 @@ fn child_status_44(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
 }
 fn format_real_46(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method11(v2.clone(), v3.clone());
+    method11(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn exit_text_45(mut v0: i32) -> Rc<str> {
     format_real_46(v0)
@@ -636,115 +649,119 @@ fn window_ran_0() -> i32 {
     let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
     let v2: US0 = class_of_3(v1.clone());
     match &v2 {
-        US0::US0_ClassKnown(v46) => {
-            let v46: US1 = v46.clone();
-            let v47: i32 = 4i32;
-            let v48: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v47 as usize).unwrap_or_default());
-            let v49: u64 = decimal_of_5(v48.clone());
-            let v50: Rc<str> = command_after_separator_7();
-            let v51: bool = v49 == 0u64;
-            if v51 {
-                let v52: i32 = 4i32;
-                let v53: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v52 as usize).unwrap_or_default());
-                let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run: minutes must be a whole number above 0, received '"); } LIT.with(|lit| lit.clone()) };
-                let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v53));
-                let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'; "); } LIT.with(|lit| lit.clone()) };
-                let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v56));
-                let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: window request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] [--min-free-mb <n>] | window release <id> | window list | window check <class> | window claim <path> | window wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | window run <class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...]; classes "); } LIT.with(|lit| lit.clone()) };
-                let v59: US1 = US1::US1_LiveGui;
-                let v60: Rc<str> = class_word_4(v59.clone());
-                let v61: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v60.clone()));
-                let v62: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v61.clone()));
-                let v63: US1 = US1::US1_TestSuite;
+        US0::US0_ClassKnown(v50) => {
+            let v50: US1 = v50.clone();
+            let v51: i32 = 4i32;
+            let v52: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v51 as usize).unwrap_or_default());
+            let v53: u64 = decimal_of_5(v52.clone());
+            let v54: Rc<str> = command_after_separator_7();
+            let v55: bool = v53 == 0u64;
+            if v55 {
+                let v56: i32 = 4i32;
+                let v57: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v56 as usize).unwrap_or_default());
+                let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run: minutes must be a whole number above 0, received '"); } LIT.with(|lit| lit.clone()) };
+                let v59: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v57));
+                let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'; "); } LIT.with(|lit| lit.clone()) };
+                let v61: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v60));
+                let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: window request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] [--min-free-mb <n>] | window release <id> | window list | window check <class> | window claim <path> | window wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | window run <class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...] | window remote <ssh-alias> [--bin <remote kit path>]; classes "); } LIT.with(|lit| lit.clone()) };
+                let v63: US1 = US1::US1_LiveGui;
                 let v64: Rc<str> = class_word_4(v63.clone());
-                let v65: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v64.clone()));
-                let v66: Rc<str> = Rc::<str>::from(format!("{}{}", v62.clone(), v65.clone()));
-                let v67: US1 = US1::US1_HeavyBuild;
+                let v65: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v64.clone()));
+                let v66: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v65.clone()));
+                let v67: US1 = US1::US1_TestSuite;
                 let v68: Rc<str> = class_word_4(v67.clone());
                 let v69: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v68.clone()));
                 let v70: Rc<str> = Rc::<str>::from(format!("{}{}", v66.clone(), v69.clone()));
-                let v71: US1 = US1::US1_Compile;
+                let v71: US1 = US1::US1_HeavyBuild;
                 let v72: Rc<str> = class_word_4(v71.clone());
                 let v73: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v72.clone()));
                 let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v70.clone(), v73.clone()));
-                let v75: US1 = US1::US1_CompilerInstall;
+                let v75: US1 = US1::US1_Compile;
                 let v76: Rc<str> = class_word_4(v75.clone());
                 let v77: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v76.clone()));
                 let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v74.clone(), v77.clone()));
-                let v79: US1 = US1::US1_TreeRead;
+                let v79: US1 = US1::US1_CompilerInstall;
                 let v80: Rc<str> = class_word_4(v79.clone());
                 let v81: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v80.clone()));
                 let v82: Rc<str> = Rc::<str>::from(format!("{}{}", v78.clone(), v81.clone()));
-                let v83: US1 = US1::US1_Bench;
+                let v83: US1 = US1::US1_TreeRead;
                 let v84: Rc<str> = class_word_4(v83.clone());
                 let v85: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v84.clone()));
                 let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v82.clone(), v85.clone()));
-                let v87: US1 = US1::US1_CompileHold;
+                let v87: US1 = US1::US1_Bench;
                 let v88: Rc<str> = class_word_4(v87.clone());
                 let v89: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v88.clone()));
                 let v90: Rc<str> = Rc::<str>::from(format!("{}{}", v86.clone(), v89.clone()));
-                let v91: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v92: Rc<str> = std::rc::Rc::<str>::from([&*v58, &*v90, &*v91, &*v91, &*v91].concat());
-                let v93: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v92));
-                refused_1(v93.clone())
+                let v91: US1 = US1::US1_CompileHold;
+                let v92: Rc<str> = class_word_4(v91.clone());
+                let v93: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v92.clone()));
+                let v94: Rc<str> = Rc::<str>::from(format!("{}{}", v90.clone(), v93.clone()));
+                let v95: US1 = US1::US1_TreeWrite;
+                let v96: Rc<str> = class_word_4(v95.clone());
+                let v97: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v96.clone()));
+                let v98: Rc<str> = Rc::<str>::from(format!("{}{}", v94.clone(), v97.clone()));
+                let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let v100: Rc<str> = std::rc::Rc::<str>::from([&*v62, &*v98, &*v99, &*v99, &*v99].concat());
+                let v101: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v100));
+                refused_1(v101.clone())
             } else {
-                let v95: bool = &*v50 == "";
-                if v95 {
-                    let v96: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run: give the command after --, e.g. window run compile 5 --wait 10 -- pwsh -File build.ps1"); } LIT.with(|lit| lit.clone()) };
-                    refused_1(v96.clone())
+                let v103: bool = &*v54 == "";
+                if v103 {
+                    let v104: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run: give the command after --, e.g. window run compile 5 --wait 10 -- pwsh -File build.ps1"); } LIT.with(|lit| lit.clone()) };
+                    refused_1(v104.clone())
                 } else {
-                    let v98: u64 = now_ms_8();
-                    let v99: Rc<str> = number_text_9(v98);
-                    let v100: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("win-"); } LIT.with(|lit| lit.clone()) };
-                    let v101: Rc<str> = Rc::<str>::from(format!("{}{}", v100, v99));
-                    let v102: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
-                    let v103: Rc<str> = Rc::<str>::from(format!("{}{}", v101, v102));
-                    let v104: u64 = process_number_12();
-                    let v105: Rc<str> = number_text_9(v104);
-                    let v106: Rc<str> = Rc::<str>::from(format!("{}{}", v103, v105));
-                    let v107: Rc<str> = class_word_4(v46.clone());
-                    let v108: Rc<str> = Rc::<str>::from(format!("{}{}", v102, v107));
-                    let v109: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-run"); } LIT.with(|lit| lit.clone()) };
-                    let v111: Rc<str> = Rc::<str>::from(format!("{}{}", v106, Rc::<str>::from(format!("{}{}", v108, v109))));
-                    let v112: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--label"); } LIT.with(|lit| lit.clone()) };
-                    let v113: Rc<str> = own_option_13(v112.clone());
-                    let v114: bool = &*v113 == "";
-                    let v117: Rc<str> = if v114 {
-                        command_head_14(v50.clone())
+                    let v106: u64 = now_ms_8();
+                    let v107: Rc<str> = number_text_9(v106);
+                    let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("win-"); } LIT.with(|lit| lit.clone()) };
+                    let v109: Rc<str> = Rc::<str>::from(format!("{}{}", v108, v107));
+                    let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
+                    let v111: Rc<str> = Rc::<str>::from(format!("{}{}", v109, v110));
+                    let v112: u64 = process_number_12();
+                    let v113: Rc<str> = number_text_9(v112);
+                    let v114: Rc<str> = Rc::<str>::from(format!("{}{}", v111, v113));
+                    let v115: Rc<str> = class_word_4(v50.clone());
+                    let v116: Rc<str> = Rc::<str>::from(format!("{}{}", v110, v115));
+                    let v117: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-run"); } LIT.with(|lit| lit.clone()) };
+                    let v119: Rc<str> = Rc::<str>::from(format!("{}{}", v114, Rc::<str>::from(format!("{}{}", v116, v117))));
+                    let v120: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--label"); } LIT.with(|lit| lit.clone()) };
+                    let v121: Rc<str> = own_option_13(v120.clone());
+                    let v122: bool = &*v121 == "";
+                    let v125: Rc<str> = if v122 {
+                        command_head_14(v54.clone())
                     } else {
-                        own_option_13(v112.clone())
+                        own_option_13(v120.clone())
                     };
-                    let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--wait"); } LIT.with(|lit| lit.clone()) };
-                    let v119: Rc<str> = own_option_13(v118.clone());
-                    let v120: u64 = decimal_of_5(v119.clone());
-                    let v121: u64 = v120.wrapping_mul(60000u64);
-                    let v122: u64 = v98.wrapping_add(v121);
-                    let v123: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--min-free-mb"); } LIT.with(|lit| lit.clone()) };
-                    let v124: Rc<str> = own_option_13(v123.clone());
-                    let v125: u64 = decimal_of_5(v124.clone());
-                    let v126: bool = false;
-                    let v127: i32 = requested_15(v46.clone(), v49, v117.clone(), v111.clone(), v98, v122, v125, v126);
-                    let v128: bool = v127 != 0i32;
-                    if v128 {
-                        v127
+                    let v126: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--wait"); } LIT.with(|lit| lit.clone()) };
+                    let v127: Rc<str> = own_option_13(v126.clone());
+                    let v128: u64 = decimal_of_5(v127.clone());
+                    let v129: u64 = v128.wrapping_mul(60000u64);
+                    let v130: u64 = v106.wrapping_add(v129);
+                    let v131: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--min-free-mb"); } LIT.with(|lit| lit.clone()) };
+                    let v132: Rc<str> = own_option_13(v131.clone());
+                    let v133: u64 = decimal_of_5(v132.clone());
+                    let v134: bool = false;
+                    let v135: i32 = requested_15(v50.clone(), v53, v125.clone(), v119.clone(), v106, v130, v133, v134);
+                    let v136: bool = v135 != 0i32;
+                    if v136 {
+                        v135
                     } else {
-                        let v129: Rc<str> = class_word_4(v46.clone());
-                        let v130: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
-                        let v132: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v129, v130)), v111));
-                        let v133: i32 = child_status_44(v50.clone(), v132.clone());
-                        let v134: Rc<str> = windows_root_16();
-                        let v135: Rc<str> = window_file_27(v134.clone(), v111.clone());
-                        let v136: bool = file_removed_29(v135.clone());
-                        let v137: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window run ok id="); } LIT.with(|lit| lit.clone()) };
-                        let v138: Rc<str> = Rc::<str>::from(format!("{}{}", v137, v111));
-                        let v139: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" exit="); } LIT.with(|lit| lit.clone()) };
-                        let v140: Rc<str> = Rc::<str>::from(format!("{}{}", v138, v139));
-                        let v141: Rc<str> = exit_text_45(v133);
-                        let v142: Rc<str> = Rc::<str>::from(format!("{}{}", v140, v141));
-                        let v143: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" released=yes"); } LIT.with(|lit| lit.clone()) };
-                        let v144: Rc<str> = Rc::<str>::from(format!("{}{}", v142, v143));
-                        stdout_line_43(v144.clone());
-                        v133
+                        let v137: Rc<str> = class_word_4(v50.clone());
+                        let v138: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
+                        let v140: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v137, v138)), v119));
+                        let v141: i32 = child_status_44(v54.clone(), v140.clone());
+                        let v142: Rc<str> = windows_root_16();
+                        let v143: Rc<str> = window_file_27(v142.clone(), v119.clone());
+                        let v144: bool = file_removed_29(v143.clone());
+                        let v145: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window run ok id="); } LIT.with(|lit| lit.clone()) };
+                        let v146: Rc<str> = Rc::<str>::from(format!("{}{}", v145, v119));
+                        let v147: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" exit="); } LIT.with(|lit| lit.clone()) };
+                        let v148: Rc<str> = Rc::<str>::from(format!("{}{}", v146, v147));
+                        let v149: Rc<str> = exit_text_45(v141);
+                        let v150: Rc<str> = Rc::<str>::from(format!("{}{}", v148, v149));
+                        let v151: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" released=yes"); } LIT.with(|lit| lit.clone()) };
+                        let v152: Rc<str> = Rc::<str>::from(format!("{}{}", v150, v151));
+                        stdout_line_43(v152.clone());
+                        v141
                     }
                 }
             }
@@ -756,7 +773,7 @@ fn window_ran_0() -> i32 {
             let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v4));
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'; "); } LIT.with(|lit| lit.clone()) };
             let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
-            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: window request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] [--min-free-mb <n>] | window release <id> | window list | window check <class> | window claim <path> | window wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | window run <class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...]; classes "); } LIT.with(|lit| lit.clone()) };
+            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: window request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] [--min-free-mb <n>] | window release <id> | window list | window check <class> | window claim <path> | window wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | window run <class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...] | window remote <ssh-alias> [--bin <remote kit path>]; classes "); } LIT.with(|lit| lit.clone()) };
             let v10: US1 = US1::US1_LiveGui;
             let v11: Rc<str> = class_word_4(v10.clone());
             let v12: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v11.clone()));
@@ -789,10 +806,14 @@ fn window_ran_0() -> i32 {
             let v39: Rc<str> = class_word_4(v38.clone());
             let v40: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v39.clone()));
             let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v37.clone(), v40.clone()));
-            let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v43: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v41, &*v42, &*v42, &*v42].concat());
-            let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v43));
-            refused_1(v44.clone())
+            let v42: US1 = US1::US1_TreeWrite;
+            let v43: Rc<str> = class_word_4(v42.clone());
+            let v44: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v43.clone()));
+            let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v41.clone(), v44.clone()));
+            let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let v47: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v45, &*v46, &*v46, &*v46].concat());
+            let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v47));
+            refused_1(v48.clone())
         }
     }
 }
@@ -894,9 +915,9 @@ fn holder_paths_54(mut v0: Rc<str>) -> Rc<str> {
 }
 fn heavy_holders_text_47() -> Rc<str> {
     let mut v0: Rc<str> = heavy_queue_dir_53();
-    let v1: Rc<str> = holder_paths_54(v0.clone());
+    let v1: Rc<str> = holder_paths_54(v0);
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    holder_lines_48(v1.clone(), v2.clone())
+    holder_lines_48(v1, v2)
 }
 fn closure2() -> Rc<dyn Fn() -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> Rc<str>> = Rc::new(move || -> Rc<str> {

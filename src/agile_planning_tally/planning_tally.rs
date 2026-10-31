@@ -88,14 +88,14 @@ fn parse_planned_load_2(mut v0: Rc<str>) -> US1 {
     };
     if v4 {
         let v5: US2 = US2::US2_LoadUnset;
-        US1::US1_Valid(v5.clone())
+        US1::US1_Valid(v5)
     } else {
         let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Light"); } LIT.with(|lit| lit.clone()) };
         let v8: Rc<str> = std::rc::Rc::<str>::from(v7.to_ascii_lowercase());
         let v9: bool = &*v1 == &*v8;
         let v13: US4 = if v9 {
             let v10: US3 = US3::US3_LoadLight;
-            US4::US4_Valid(v10.clone())
+            US4::US4_Valid(v10)
         } else {
             US4::US4_Invalid
         };
@@ -104,18 +104,18 @@ fn parse_planned_load_2(mut v0: Rc<str>) -> US1 {
         let v16: bool = &*v1 == &*v15;
         let v19: US4 = if v16 {
             let v17: US3 = US3::US3_LoadMedium;
-            US4::US4_Valid(v17.clone())
+            US4::US4_Valid(v17)
         } else {
-            v13.clone()
+            v13
         };
         let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Heavy"); } LIT.with(|lit| lit.clone()) };
         let v21: Rc<str> = std::rc::Rc::<str>::from(v20.to_ascii_lowercase());
         let v22: bool = &*v1 == &*v21;
         let v25: US4 = if v22 {
             let v23: US3 = US3::US3_LoadHeavy;
-            US4::US4_Valid(v23.clone())
+            US4::US4_Valid(v23)
         } else {
-            v19.clone()
+            v19
         };
         match &v25 {
             US4::US4_Invalid => {
@@ -123,8 +123,8 @@ fn parse_planned_load_2(mut v0: Rc<str>) -> US1 {
             }
             US4::US4_Valid(v26) => {
                 let v26: US3 = v26.clone();
-                let v27: US2 = US2::US2_PlannedLoad(v26.clone());
-                US1::US1_Valid(v27.clone())
+                let v27: US2 = US2::US2_PlannedLoad(v26);
+                US1::US1_Valid(v27)
             }
         }
     }
@@ -140,14 +140,14 @@ fn parse_planned_assignee_3(mut v0: Rc<str>) -> US5 {
     };
     if v4 {
         let v5: US6 = US6::US6_Unassigned;
-        US5::US5_Valid(v5.clone())
+        US5::US5_Valid(v5)
     } else {
         let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Agent"); } LIT.with(|lit| lit.clone()) };
         let v8: Rc<str> = std::rc::Rc::<str>::from(v7.to_ascii_lowercase());
         let v9: bool = &*v1 == &*v8;
         let v13: US8 = if v9 {
             let v10: US7 = US7::US7_AssigneeAgent;
-            US8::US8_Valid(v10.clone())
+            US8::US8_Valid(v10)
         } else {
             US8::US8_Invalid
         };
@@ -156,18 +156,18 @@ fn parse_planned_assignee_3(mut v0: Rc<str>) -> US5 {
         let v16: bool = &*v1 == &*v15;
         let v19: US8 = if v16 {
             let v17: US7 = US7::US7_AssigneePair;
-            US8::US8_Valid(v17.clone())
+            US8::US8_Valid(v17)
         } else {
-            v13.clone()
+            v13
         };
         let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("User"); } LIT.with(|lit| lit.clone()) };
         let v21: Rc<str> = std::rc::Rc::<str>::from(v20.to_ascii_lowercase());
         let v22: bool = &*v1 == &*v21;
         let v25: US8 = if v22 {
             let v23: US7 = US7::US7_AssigneeUser;
-            US8::US8_Valid(v23.clone())
+            US8::US8_Valid(v23)
         } else {
-            v19.clone()
+            v19
         };
         match &v25 {
             US8::US8_Invalid => {
@@ -175,8 +175,8 @@ fn parse_planned_assignee_3(mut v0: Rc<str>) -> US5 {
             }
             US8::US8_Valid(v26) => {
                 let v26: US7 = v26.clone();
-                let v27: US6 = US6::US6_PlannedAssignee(v26.clone());
-                US5::US5_Valid(v27.clone())
+                let v27: US6 = US6::US6_PlannedAssignee(v26);
+                US5::US5_Valid(v27)
             }
         }
     }
@@ -430,7 +430,7 @@ fn planning_at_11(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
     let v4: i32 = 1i32;
     let v5: i32 = field_start_6(v0.clone(), v2, v3, v4);
     let v6: US10 = US10::US10_ScanPlain;
-    let mut v7: i32 = field_end_7(v0.clone(), v5, v3, v6.clone());
+    let mut v7: i32 = field_end_7(v0.clone(), v5, v3, v6);
     let v8: Rc<str> = std::rc::Rc::<str>::from(v0.get(v5 as usize..v7 as usize).unwrap_or(""));
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Minutes "); } LIT.with(|lit| lit.clone()) };
     let v10: bool = v8.starts_with(&*v9);
@@ -440,7 +440,7 @@ fn planning_at_11(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
         let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = Rc::<str>::from(v12.replace(&*v13, &*v14));
-        let v16: US11 = decimal_value_12(v15.clone());
+        let v16: US11 = decimal_value_12(v15);
         match &v16 {
             US11::US11_Invalid => {
                 US9::US9_Unestimated
@@ -456,21 +456,21 @@ fn planning_at_11(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
     let v24: i32 = 2i32;
     let v25: i32 = field_start_6(v0.clone(), v2, v3, v24);
     let v26: US10 = US10::US10_ScanPlain;
-    let v27: i32 = field_end_7(v0.clone(), v25, v3, v26.clone());
+    let v27: i32 = field_end_7(v0.clone(), v25, v3, v26);
     let v28: Rc<str> = std::rc::Rc::<str>::from(v0.get(v25 as usize..v27 as usize).unwrap_or(""));
     let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Load "); } LIT.with(|lit| lit.clone()) };
     let v30: bool = v28.starts_with(&*v29);
     let v39: US2 = if v30 {
         let v31: i32 = (v28.clone().len() as i32);
         let v32: Rc<str> = std::rc::Rc::<str>::from(v28.get(5i32 as usize..v31 as usize).unwrap_or(""));
-        let v33: US1 = parse_planned_load_2(v32.clone());
+        let v33: US1 = parse_planned_load_2(v32);
         match &v33 {
             US1::US1_Invalid => {
                 US2::US2_LoadUnset
             }
             US1::US1_Valid(v34) => {
                 let v34: US2 = v34.clone();
-                v34.clone()
+                v34
             }
         }
     } else {
@@ -479,27 +479,27 @@ fn planning_at_11(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
     let v40: i32 = 3i32;
     let v41: i32 = field_start_6(v0.clone(), v2, v3, v40);
     let v42: US10 = US10::US10_ScanPlain;
-    let v43: i32 = field_end_7(v0.clone(), v41, v3, v42.clone());
+    let v43: i32 = field_end_7(v0.clone(), v41, v3, v42);
     let v44: Rc<str> = std::rc::Rc::<str>::from(v0.get(v41 as usize..v43 as usize).unwrap_or(""));
     let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Assigned "); } LIT.with(|lit| lit.clone()) };
     let v46: bool = v44.starts_with(&*v45);
     let v55: US6 = if v46 {
         let v47: i32 = (v44.clone().len() as i32);
         let v48: Rc<str> = std::rc::Rc::<str>::from(v44.get(9i32 as usize..v47 as usize).unwrap_or(""));
-        let v49: US5 = parse_planned_assignee_3(v48.clone());
+        let v49: US5 = parse_planned_assignee_3(v48);
         match &v49 {
             US5::US5_Invalid => {
                 US6::US6_Unassigned
             }
             US5::US5_Valid(v50) => {
                 let v50: US6 = v50.clone();
-                v50.clone()
+                v50
             }
         }
     } else {
         US6::US6_Unassigned
     };
-    (v23.clone(), v39.clone(), v55.clone())
+    (v23, v39, v55)
 }
 fn planning_of_9(mut v0: Rc<str>, mut v1: Rc<str>) -> (US9, US2, US6) {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) };
@@ -507,18 +507,18 @@ fn planning_of_9(mut v0: Rc<str>, mut v1: Rc<str>) -> (US9, US2, US6) {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
     let v6: i32 = 0i32;
-    let mut v7: i32 = declared_from_10(v0.clone(), v5.clone(), v6);
+    let mut v7: i32 = declared_from_10(v0.clone(), v5, v6);
     let v8: bool = v7 < 0i32;
     let (mut v15, mut v16, mut v17): (US9, US2, US6) = if v8 {
         let v9: US9 = US9::US9_Unestimated;
         let v10: US2 = US2::US2_LoadUnset;
         let v11: US6 = US6::US6_Unassigned;
-        (v9.clone(), v10.clone(), v11.clone())
+        (v9, v10, v11)
     } else {
-        let (mut v12, mut v13, mut v14): (US9, US2, US6) = planning_at_11(v0.clone(), v7);
-        (v12.clone(), v13.clone(), v14.clone())
+        let (mut v12, mut v13, mut v14): (US9, US2, US6) = planning_at_11(v0, v7);
+        (v12, v13, v14)
     };
-    (v15.clone(), v16.clone(), v17.clone())
+    (v15, v16, v17)
 }
 fn rollup_task_at_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>, Rc<str>, Rc<str>, US9, US2, US6) {
     let v3: i32 = 0i32;

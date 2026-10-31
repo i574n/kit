@@ -4,7 +4,7 @@
 
 inl now_ms () : u64 = $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| \
     elapsed.as_millis() as u64).unwrap_or(0)' : u64
-:= count_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= count_text (value : u64) : string = sm'.decimal_text value
 inl quiet_state_path () : string = $'std::rc::Rc::<str>::from(std::env::var_os("LOCALAPPDATA").map(std::path::PathBuf:\
     :from).unwrap_or_else(std::env::temp_dir).join("kit").join("machine-watch").join("quiet.tsv").to_string_lossy().a\
     s_ref())' : string
@@ -28,8 +28,9 @@ inl line_at (~text : string) (index : i32) : string = $'std::rc::Rc::<str>::from
 
 :~ ^ cells_cores (~rows : process_rows) (at : i32) (total : f64) : f64 =
     ? at >= row_count rows ?> total
+    |? row_cores rows at < 0.1f64 ?> cells_cores rows (at + 1i32) total
     |:
-        := busy = row_cores rows at >= 0.1f64 && starts_with (owner_text (owner_of rows at)) "cells-vm:"
+        := busy = starts_with (owner_text (owner_of rows at)) "cells-vm:"
         cells_cores rows (at + 1i32) (? busy ?> total + row_cores rows at |: total)
 
 := job_state_word (~id : string) : string = $'kit_job_control::kit_job_state_word(&*!id)' : string

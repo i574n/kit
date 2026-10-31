@@ -1,0 +1,19 @@
+:< sm'_operators
+:< kit_standards.rules
+
+:~ declared_or_default (~declaration : string) : standards =
+    ?= declared_from declaration NoStandards ?|
+    | NoStandards => default_standards ()
+    | declared => declared
+
+:~ file_findings (~declaration : string) (~path : string) (~module : string) (~text : string) : string =
+    (lines_scanned (declared_or_default declaration) path module text 1i32 (file_scan_start ())).findings
+
+:= main () : i32 =
+    export
+        "kit_standards_file_findings"
+        (
+            (\ (declaration, path, module, text) => file_findings declaration path module text)
+            : string * string * string * string -> string
+        )
+    0i32

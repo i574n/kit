@@ -29,6 +29,50 @@
         "kit memory import ok memories=3 identical=3 index_identical=yes data="
     data
 
+:= save_with
+    (~dir : string) (~kind : string) (~slug : string) (~description : string) (~body : string) (rest : cli_args)
+    : cli_args
+    =
+    Arg ("save", Arg (dir, Arg (kind, Arg (slug, Arg (description, Arg (body, rest))))))
+:= save_args (~dir : string) (~kind : string) (~slug : string) (~description : string) (~body : string) : cli_args =
+    save_with dir kind slug description body NoArgs
+
+///> rust
+:# save_writes_a_memory_and_its_index_line_and_refuses_bad_ones =
+    := root = memory_root "save"
+    := dir = fixture_path root "mem"
+    := unreasoned = memory_run root (save_args dir "feedback" "delta" "a rule" "Do it.")
+    failed_with unreasoned "needs **Why:** and **How to apply:**"
+    := body = "Do it.\n\n**Why:** because.\n\n**How to apply:** always."
+    := titled = Arg ("--title", Arg ("Delta rule", NoArgs))
+    := saved = succeeded (memory_run root (save_with dir "feedback" "delta" "a rule" body titled))
+    shows saved "kit memory save ok file=delta.md kind=feedback"
+    := expected = "---\nname: delta\ndescription: a rule\nmetadata:\n  node_type: memory\n  type: feedback\n---\n\n"
+    same (fixture_read root "mem/delta.md") (cat expected (cat body "\n"))
+    same (fixture_read root "mem/MEMORY.md") (cat (index ()) "- [Delta rule](delta.md) — a rule\n")
+    failed_with (memory_run root (save_args dir "user" "delta" "again" "x")) "already exists"
+    failed_with (memory_run root (save_args dir "habit" "eps" "d" "x")) "unknown kind"
+    failed_with (memory_run root (save_args dir "user" "Bad Slug" "d" "x")) "a slug is lowercase"
+    := data = fixture_path root "state/saved.spi"
+    shows
+        (succeeded (memory_run root (Arg ("import", Arg (dir, Arg (data, NoArgs))))))
+        "kit memory import ok memories=4 identical=4 index_identical=yes data="
+    := edit_args (~field : string) (~text : string) =
+        Arg ("edit", Arg (dir, Arg ("delta", Arg (field, Arg (text, NoArgs)))))
+    := renamed = memory_run root (edit_args "description" "a better rule")
+    shows (succeeded renamed) "kit memory edit ok file=delta.md field=description"
+    shows (fixture_read root "mem/delta.md") "description: a better rule\n"
+    shows (fixture_read root "mem/MEMORY.md") "- [Delta rule](delta.md) — a better rule\n"
+    := stripped = memory_run root (edit_args "body" "No reasons.")
+    failed_with stripped "keeps **Why:** and **How to apply:**"
+    := described = memory_run root (edit_args "description" "a rule")
+    shows (succeeded described) "field=description"
+    shows (succeeded (memory_run root (Arg ("forget", Arg (dir, Arg ("delta", NoArgs)))))) "archived=archive/delta.md"
+    same (fixture_read root "mem/archive/delta.md") (cat expected (cat body "\n"))
+    same (fixture_read root "mem/MEMORY.md") (index ())
+    failed_with (memory_run root (Arg ("forget", Arg (dir, Arg ("delta", NoArgs))))) "no delta.md"
+    fixture_root_remove root
+
 ///> rust
 :# memories_import_to_spiral_data_and_render_back_byte_identical =
     := root = memory_root "round trip"

@@ -85,6 +85,8 @@
             let record_ready = kit_agile_state_record_preflight_binding(record_mask, 0);
             if record_ready < 0 { return Err(format!("typed agile record preflight rejected mask={record_mask}")); }
             println!("{}", agile_record_catalog::kit_agile_record_catalog_text("v1", (record_required.len() - record_missing.len()) as i32, record_required.len() as i32, &record_missing.join(",")));
+            let gaps = agile_planning_gaps::kit_agile_planning_gaps_text(&std::fs::read_to_string(state_dir.join("agile.spi")).unwrap_or_default());
+            if !gaps.is_empty() { print!("{gaps}"); }
             let compiler_status = compiler.as_ref().map(|value| format!("available source={} fingerprint={} sha256={} path={}", value.source, value.fingerprint, value.sha256, value.path.display())).unwrap_or_else(|| "absent".to_owned());
             println!("kit agile check ok files={} skipped={skipped} transient={transient} runtime_attested={runtime_attested} build_attested={build_attested} build_batches={build_batches} validation=receipt-first compiler={compiler_status}", paths.len() + 1);
             Ok(())

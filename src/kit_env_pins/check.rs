@@ -289,11 +289,11 @@ fn drift_of_12(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH1>) -> US1 {
             if v12 {
                 US1::US1_Matches
             } else {
-                let v14: bool = listed_13(v2.clone(), v1.clone());
+                let v14: bool = listed_13(v2, v1);
                 if v14 {
                     US1::US1_Shadowed(v4.clone())
                 } else {
-                    US1::US1_Elsewhere(v4.clone())
+                    US1::US1_Elsewhere(v4)
                 }
             }
         }
@@ -429,19 +429,19 @@ fn method17(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_16(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method17(v2.clone(), v3.clone());
+    method17(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn format_real_18(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method17(v2.clone(), v3.clone());
+    method17(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn env_run_0() -> i32 {
     let mut v0: i32 = command_line_argument_count_1();

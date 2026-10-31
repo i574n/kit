@@ -46,11 +46,11 @@ fn method5(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_4(mut v0: i32) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method5(v2.clone(), v3.clone());
+    method5(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn token_change_9(mut v0: US1, mut v1: Rc<str>, mut v2: US1, mut v3: Rc<str>) -> US0 {
     match &v0 {
@@ -636,7 +636,7 @@ fn tokens_of_10(mut v0: Rc<str>) -> Rc<UH0> {
     let mut v1: i32 = 0i32;
     let v2: i32 = (v0.clone().len() as i32);
     let mut v3: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    tokens_from_11(v0.clone(), v1, v2, v3.clone())
+    tokens_from_11(v0, v1, v2, v3)
 }
 fn line_change_7(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
     let v2: Rc<UH0> = tokens_of_10(v0);
@@ -724,9 +724,9 @@ fn reviewed_lines_6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<RefCell<Vec<Rc
         let (mut v53, mut v54): (bool, Rc<str>) = if v9 {
             let mut v10: i32 = v2.wrapping_add(1i32);
             let (mut v11, mut v12): (bool, Rc<str>) = reviewed_lines_6(v0.clone(), v1.clone(), v10, v3, v4.clone());
-            (v11, v12.clone())
+            (v11, v12)
         } else {
-            let v13: US0 = line_change_7(v7.clone(), v8.clone());
+            let v13: US0 = line_change_7(v7, v8.clone());
             let v14: i32 = v2.wrapping_add(1i32);
             let v15: Rc<str> = format_real_4(v14);
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("line "); } LIT.with(|lit| lit.clone()) };
@@ -736,19 +736,19 @@ fn reviewed_lines_6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<RefCell<Vec<Rc
             let v27: Rc<str> = match &v13 {
                 US0::US0_BooleanChange => {
                     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("BOOLEAN"); } LIT.with(|lit| lit.clone()) };
-                    v21.clone()
+                    v21
                 }
                 US0::US0_ComparisonChange => {
                     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("COMPARISON"); } LIT.with(|lit| lit.clone()) };
-                    v22.clone()
+                    v22
                 }
                 US0::US0_LiteralChange => {
                     let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("literal"); } LIT.with(|lit| lit.clone()) };
-                    v20.clone()
+                    v20
                 }
                 US0::US0_ShapeChange => {
                     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SHAPE"); } LIT.with(|lit| lit.clone()) };
-                    v23.clone()
+                    v23
                 }
             };
             let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v27));
@@ -758,10 +758,10 @@ fn reviewed_lines_6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<RefCell<Vec<Rc
             let v32: i32 = 0i32;
             let v33: i32 = method16(v8.clone(), v31, v32);
             let v34: i32 = v31.wrapping_sub(1i32);
-            let v35: Rc<str> = string_slice(&v8.clone(), v33 as i64, v34 as i64);
+            let v35: Rc<str> = string_slice(&v8, v33 as i64, v34 as i64);
             let v36: i32 = (v35.clone().len() as i32);
             let v37: i32 = method17(v35.clone(), v36);
-            let v38: Rc<str> = string_slice(&v35.clone(), 0i32 as i64, v37 as i64);
+            let v38: Rc<str> = string_slice(&v35, 0i32 as i64, v37 as i64);
             let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v38));
             let v45: bool = if v3 {
                 let v43: i32 = match &v13 {
@@ -789,14 +789,14 @@ fn reviewed_lines_6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<RefCell<Vec<Rc
             } else {
                 let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                 let v49: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v47)), v39));
-                v49.clone()
+                v49
             };
-            let (mut v51, mut v52): (bool, Rc<str>) = reviewed_lines_6(v0.clone(), v1.clone(), v14, v45, v50.clone());
-            (v51, v52.clone())
+            let (mut v51, mut v52): (bool, Rc<str>) = reviewed_lines_6(v0, v1, v14, v45, v50);
+            (v51, v52)
         };
-        (v53, v54.clone())
+        (v53, v54)
     };
-    (v55, v56.clone())
+    (v55, v56)
 }
 fn accept_review_3(mut v0: Rc<str>, mut v1: Rc<str>) -> (bool, Rc<str>) {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
@@ -826,17 +826,17 @@ fn accept_review_3(mut v0: Rc<str>, mut v1: Rc<str>) -> (bool, Rc<str>) {
 fn reviewed_files_1(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let mut v3: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v0);
     let v5: Vec<u8> = v3.unwrap();
-    let mut v6: Vec<u8> = method2(v5.clone());
+    let mut v6: Vec<u8> = method2(v5);
     let mut v8: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v6);
     let mut v10: std::string::String = v8.unwrap();
     let v12: Rc<str> = Rc::<str>::from(String::as_str(&v10));
     let v14: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v1);
     let v16: Vec<u8> = v14.unwrap();
-    let mut v17: Vec<u8> = method2(v16.clone());
+    let mut v17: Vec<u8> = method2(v16);
     let mut v19: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v17);
     let v21: std::string::String = v19.unwrap();
     let v23: Rc<str> = Rc::<str>::from(String::as_str(&v21));
-    let (mut v24, mut v25): (bool, Rc<str>) = accept_review_3(v12.clone(), v23.clone());
+    let (mut v24, mut v25): (bool, Rc<str>) = accept_review_3(v12, v23);
     let v26: bool = &*v25 == "";
     if v26 {
         ()
@@ -846,10 +846,10 @@ fn reviewed_files_1(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     };
     let v29: Rc<str> = if v24 {
         let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-        v27.clone()
+        v27
     } else {
         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("refused"); } LIT.with(|lit| lit.clone()) };
-        v28.clone()
+        v28
     };
     let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit repo accept-review "); } LIT.with(|lit| lit.clone()) };
     let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v29));
@@ -894,18 +894,18 @@ fn accept_review_run_0() -> i32 {
     let mut v6: US2 = if v1 {
         let v2: i32 = 2i32;
         let mut v3: Rc<str> = command_line_argument_19(v2);
-        US2::US2_Some(v3.clone())
+        US2::US2_Some(v3)
     } else {
         US2::US2_None
     };
     let mut v10: Rc<str> = match &v6 {
         US2::US2_None => {
             let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US2::US2_Some(v7) => {
             let v7: Rc<str> = v7.clone();
-            v7.clone()
+            v7
         }
     };
     let mut v11: i32 = command_line_argument_count_18();
@@ -913,18 +913,18 @@ fn accept_review_run_0() -> i32 {
     let mut v17: US2 = if v12 {
         let v13: i32 = 3i32;
         let v14: Rc<str> = command_line_argument_19(v13);
-        US2::US2_Some(v14.clone())
+        US2::US2_Some(v14)
     } else {
         US2::US2_None
     };
     let v21: Rc<str> = match &v17 {
         US2::US2_None => {
             let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v19.clone()
+            v19
         }
         US2::US2_Some(v18) => {
             let mut v18: Rc<str> = v18.clone();
-            v18.clone()
+            v18
         }
     };
     let v22: bool = &*v10 == "";
@@ -955,7 +955,7 @@ fn accept_review_run_0() -> i32 {
                 println!("{}", v33);
                 2i32
             } else {
-                reviewed_files_1(v10.clone(), v21.clone())
+                reviewed_files_1(v10, v21)
             }
         }
     }

@@ -2,6 +2,7 @@
 :< sm'_operators
 :< kit_receipt.receipt
 :< kit_do_model.model
+:< kit_do_store.store
 :< host
 :< decode
 :< kit_do_records.records
@@ -179,7 +180,7 @@
         := fourth =
             ?= mode ?|
             | Apply =>
-                staged pending path after
+                staged pending path after before
                 concat5 "sha256 " (sha256_of before) " -> " (sha256_of after) ""
             | Preview => "dry run, nothing written"
         := row = row4 head (counted count "replacement" "replacements") (lines_label marks) fourth
@@ -291,8 +292,7 @@
 := runs_after_edits (~root : string) (~encoded : string) : string =
     $'kit_do_process::kit_do_process_after_edits(&*!root, &*!encoded)' : string
 
-:~ part_at (~text : string) (~index : i32) : string =
-    $'std::rc::Rc::<str>::from(!text.split(char::from(30u8)).nth(!index as usize).unwrap_or(""))' : string
+:~ part_at (~text : string) (~index : i32) : string = sm'.split_nth 30u8 index text
 
 :~ edits_refused (~final : tally) (~started : u64) : i32 =
     printed (aligned final.failures)

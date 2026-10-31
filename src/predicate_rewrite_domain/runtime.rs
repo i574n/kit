@@ -23,7 +23,7 @@ enum US1 {
 }
 fn method3() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_2() -> Rc<str> {
     method3()
@@ -70,15 +70,15 @@ fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<s
     };
     if v9 {
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        (v1, v1, v1, v10.clone(), false)
+        (v1, v1, v1, v10, false)
     } else {
         let v11: u8 = v0.clone().as_bytes()[v3 as usize];
         let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-        let v13: u8 = codec_runtime_char_6(v12.clone());
+        let v13: u8 = codec_runtime_char_6(v12);
         let v14: bool = v11 == v13 ;
         if v14 {
             let (mut v15, mut v16, mut v17): (Rc<str>, i32, bool) = predicate_literal_domain::kit_predicate_literal(&*v0,v3);
-            (v16, v3, v16, v15.clone(), v17)
+            (v16, v3, v16, v15, v17)
         } else {
             let v18: i32 = (v0.clone().len() as i32);
             let v19: i32 = v3 + 1i32 ;
@@ -89,7 +89,7 @@ fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<s
                 let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("("); } LIT.with(|lit| lit.clone()) };
                 let v22: i32 = 0i32;
                 let v23: i32 = 1i32;
-                starts_with_loop_4(v0.clone(), v21.clone(), v3, v22, v23)
+                starts_with_loop_4(v0.clone(), v21, v3, v22, v23)
             };
             if v25 {
                 let v26: i32 = v3 + 1i32 ;
@@ -106,7 +106,7 @@ fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<s
                         let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("typed_predicate.model.lift_sha256"); } LIT.with(|lit| lit.clone()) };
                         let v32: i32 = 0i32;
                         let v33: i32 = 33i32;
-                        starts_with_loop_4(v0.clone(), v31.clone(), v27, v32, v33)
+                        starts_with_loop_4(v0.clone(), v31, v27, v32, v33)
                     };
                     if v35 {
                         33i32
@@ -119,7 +119,7 @@ fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<s
                             let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("typed_predicate.model.lift_receipt_text"); } LIT.with(|lit| lit.clone()) };
                             let v39: i32 = 0i32;
                             let v40: i32 = 39i32;
-                            starts_with_loop_4(v0.clone(), v38.clone(), v27, v39, v40)
+                            starts_with_loop_4(v0.clone(), v38, v27, v39, v40)
                         };
                         if v42 {
                             39i32
@@ -131,7 +131,7 @@ fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<s
                 let v46: bool = v45 == 0i32 ;
                 if v46 {
                     let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    (v3, v3, v3, v47.clone(), false)
+                    (v3, v3, v3, v47, false)
                 } else {
                     let v48: i32 = v27 + v45 ;
                     let v49: i32 = predicate_lex_domain::kit_predicate_skip(&*v0,v48);
@@ -139,7 +139,7 @@ fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<s
                     let v53: bool = v52 == false ;
                     if v53 {
                         let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        (v3, v3, v3, v54.clone(), false)
+                        (v3, v3, v3, v54, false)
                     } else {
                         let v55: i32 = v2 + 1i32 ;
                         let (mut v56, mut v57, mut v58, mut v59, mut v60): (i32, i32, i32, Rc<str>, bool) = argument_5(v0.clone(), v51, v55);
@@ -153,7 +153,7 @@ fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<s
                         };
                         if v64 {
                             let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                            (v3, v3, v3, v65.clone(), false)
+                            (v3, v3, v3, v65, false)
                         } else {
                             let v66: i32 = v61 + 1i32 ;
                             let v67: bool = v18 < v66;
@@ -163,21 +163,21 @@ fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<s
                                 let v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
                                 let v69: i32 = 0i32;
                                 let v70: i32 = 1i32;
-                                starts_with_loop_4(v0.clone(), v68.clone(), v61, v69, v70)
+                                starts_with_loop_4(v0, v68, v61, v69, v70)
                             };
                             if v72 {
                                 let v73: i32 = v61 + 1i32 ;
-                                (v73, v57, v58, v59.clone(), true)
+                                (v73, v57, v58, v59, true)
                             } else {
                                 let v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                (v3, v3, v3, v74.clone(), false)
+                                (v3, v3, v3, v74, false)
                             }
                         }
                     }
                 }
             } else {
                 let v95: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                (v3, v3, v3, v95.clone(), false)
+                (v3, v3, v3, v95, false)
             }
         }
     }
@@ -518,15 +518,15 @@ fn wrapper_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     let v15: Rc<str> = match &v9 {
         US1::US1_ReceiptText => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lift_receipt_text"); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US1::US1_Sha256 => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lift_sha256"); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US1::US1_Unsupported => {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unsupported"); } LIT.with(|lit| lit.clone()) };
-            v12.clone()
+            v12
         }
     };
     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("(typed_predicate.model."); } LIT.with(|lit| lit.clone()) };
@@ -537,7 +537,7 @@ fn wrapper_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v21));
     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
     let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v22, Rc::<str>::from(format!("{}{}", v2, v23))));
-    v25.clone()
+    v25
 }
 fn source_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: i32, mut v5: Rc<str>, mut v6: i32) -> US0 {
     loop {
@@ -654,7 +654,7 @@ fn rewrite_result_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (bool,
     let v4: bool = v3 == 0i32 ;
     let v38: US0 = if v4 {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Empty function name"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_Rejected(v5.clone())
+        US0::US0_Rejected(v5)
     } else {
         let v7: i32 = predicate_lex_domain::kit_predicate_word_end(&*v1,0i32);
         let v8: bool = v7 == v3 ;
@@ -702,29 +702,29 @@ fn rewrite_result_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (bool,
             match &v26 {
                 US1::US1_Unsupported => {
                     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Unsupported predicate family"); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_Rejected(v27.clone())
+                    US0::US0_Rejected(v27)
                 }
                 _ => {
                     let v29: i32 = 0i32;
                     let v30: i32 = 0i32;
                     let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     let v32: i32 = 0i32;
-                    source_loop_1(v0.clone(), v1.clone(), v2.clone(), v29, v30, v31.clone(), v32)
+                    source_loop_1(v0, v1, v2, v29, v30, v31, v32)
                 }
             }
         } else {
             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Function name must be an ASCII identifier"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_Rejected(v35.clone())
+            US0::US0_Rejected(v35)
         }
     };
     match &v38 {
         US0::US0_Candidate(v39) => {
             let v39: Rc<str> = v39.clone();
-            (true, v39.clone())
+            (true, v39)
         }
         US0::US0_Rejected(v40) => {
             let v40: Rc<str> = v40.clone();
-            (false, v40.clone())
+            (false, v40)
         }
     }
 }

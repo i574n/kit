@@ -5,6 +5,7 @@ packages:
     kit_receipt
     kit_do_model
     kit_do_records
+    kit_do_store
 modules:
     host
     decode

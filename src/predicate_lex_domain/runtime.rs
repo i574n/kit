@@ -325,7 +325,7 @@ fn word_end_8(mut v0: Rc<str>, mut v1: i32) -> i32 {
 }
 fn method10() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_9() -> Rc<str> {
     method10()
@@ -336,12 +336,12 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
     let v4: bool = v2 < 0i32;
     if v4 {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        (v2, v2, v5.clone(), false)
+        (v2, v2, v5, false)
     } else {
         let v6: bool = v2 == v3 ;
         if v6 {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v2, v2, v7.clone(), true)
+            (v2, v2, v7, true)
         } else {
             let v8: u8 = v0.clone().as_bytes()[v2 as usize];
             let v9: i32 = v2 + 2i32 ;
@@ -352,7 +352,7 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
                 let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("r\""); } LIT.with(|lit| lit.clone()) };
                 let v12: i32 = 0i32;
                 let v13: i32 = 2i32;
-                starts_with_loop_2(v0.clone(), v11.clone(), v2, v12, v13)
+                starts_with_loop_2(v0.clone(), v11, v2, v12, v13)
             };
             let v23: bool = if v15 {
                 true
@@ -365,7 +365,7 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
                     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("r#"); } LIT.with(|lit| lit.clone()) };
                     let v19: i32 = 0i32;
                     let v20: i32 = 2i32;
-                    starts_with_loop_2(v0.clone(), v18.clone(), v2, v19, v20)
+                    starts_with_loop_2(v0.clone(), v18, v2, v19, v20)
                 }
             };
             let v56: i32 = if v23 {
@@ -379,7 +379,7 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
                     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("br\""); } LIT.with(|lit| lit.clone()) };
                     let v27: i32 = 0i32;
                     let v28: i32 = 3i32;
-                    starts_with_loop_2(v0.clone(), v26.clone(), v2, v27, v28)
+                    starts_with_loop_2(v0.clone(), v26, v2, v27, v28)
                 };
                 let v38: bool = if v30 {
                     true
@@ -392,7 +392,7 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
                         let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("br#"); } LIT.with(|lit| lit.clone()) };
                         let v34: i32 = 0i32;
                         let v35: i32 = 3i32;
-                        starts_with_loop_2(v0.clone(), v33.clone(), v2, v34, v35)
+                        starts_with_loop_2(v0.clone(), v33, v2, v34, v35)
                     }
                 };
                 let v46: bool = if v38 {
@@ -406,7 +406,7 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
                         let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cr\""); } LIT.with(|lit| lit.clone()) };
                         let v42: i32 = 0i32;
                         let v43: i32 = 3i32;
-                        starts_with_loop_2(v0.clone(), v41.clone(), v2, v42, v43)
+                        starts_with_loop_2(v0.clone(), v41, v2, v42, v43)
                     }
                 };
                 let v54: bool = if v46 {
@@ -420,7 +420,7 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
                         let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cr#"); } LIT.with(|lit| lit.clone()) };
                         let v50: i32 = 0i32;
                         let v51: i32 = 3i32;
-                        starts_with_loop_2(v0.clone(), v49.clone(), v2, v50, v51)
+                        starts_with_loop_2(v0.clone(), v49, v2, v50, v51)
                     }
                 };
                 if v54 {
@@ -433,7 +433,7 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
             let v107: i32 = if v57 {
                 let v58: i32 = v2 + v56 ;
                 let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                raw_end_5(v0.clone(), v58, v59.clone())
+                raw_end_5(v0.clone(), v58, v59)
             } else {
                 let v61: bool = v8 == b'"' ;
                 if v61 {
@@ -545,17 +545,17 @@ fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
             let v108: bool = v107 < 0i32;
             if v108 {
                 let v109: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                (v2, v2, v109.clone(), false)
+                (v2, v2, v109, false)
             } else {
                 let v110: bool = v2 == v107 ;
                 let v114: Rc<str> = if v110 {
                     codec_empty_9()
                 } else {
                     let v112: i32 = v107 - 1i32 ;
-                    let v113: Rc<str> = string_slice(&v0.clone(), v2 as i64, v112 as i64);
-                    v113.clone()
+                    let v113: Rc<str> = string_slice(&v0, v2 as i64, v112 as i64);
+                    v113
                 };
-                (v2, v107, v114.clone(), true)
+                (v2, v107, v114, true)
             }
         }
     }

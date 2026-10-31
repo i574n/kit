@@ -1,0 +1,11 @@
+:< status
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_remote_status_run",
+        (
+            \ (alias, binary) => remote_status_run alias binary
+            : string * string -> i32
+        )
+    )
+    0i32

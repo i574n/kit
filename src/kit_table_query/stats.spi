@@ -11,6 +11,7 @@
     | MinOf
     | MaxOf
     | CountOf
+    | MedianOf
 
 :| ^ measures =
     | NoMeasures
@@ -22,7 +23,7 @@
 
 :| ^ measure_stats =
     | NoMeasureStats
-    | MeasureStatsThen : i32 * i32 * f64 * f64 * f64 * f64 * measure_stats
+    | MeasureStatsThen : i32 * i32 * f64 * f64 * f64 * f64 * list f64 * measure_stats
 
 :| ^ groups =
     | NoGroups
@@ -35,6 +36,7 @@
     | MinOf => "min"
     | MaxOf => "max"
     | CountOf => "count"
+    | MedianOf => "median"
 
 := blank (~cell : string) : bool = $'(!cell).trim().is_empty()' : bool
 := numeric (~cell : string) : bool =
@@ -51,11 +53,47 @@
 :~ ^ stats_empty (list : measures) : measure_stats =
     ?= list ?|
     | NoMeasures => NoMeasureStats
-    | MeasureThen (_, _, _, rest) => MeasureStatsThen (0i32, 0i32, 0.0f64, 0.0f64, 0.0f64, 0.0f64, stats_empty rest)
+    | MeasureThen (_, _, _, rest) => MeasureStatsThen (0i32, 0i32, 0.0f64, 0.0f64, 0.0f64, 0.0f64, [], stats_empty rest)
+
+:~ ^ values_split (values : list f64) (left : list f64) (right : list f64) : list f64 * list f64 =
+    ?= values ?|
+    | head :: rest => values_split rest right (head :: left)
+    | [] => left, right
+
+:~ ^ reversed_onto (taken : list f64) (rest : list f64) : list f64 =
+    ?= taken ?|
+    | head :: more => reversed_onto more (head :: rest)
+    | [] => rest
+
+:~ ^ values_merged (left : list f64) (right : list f64) (taken : list f64) : list f64 =
+    ?= left, right ?|
+    | [], _ => reversed_onto taken right
+    | _, [] => reversed_onto taken left
+    | (low :: lows), (high :: highs) =>
+        ? low <= high ?> values_merged lows right (low :: taken) |: values_merged left highs (high :: taken)
+
+:~ ^ values_sorted (values : list f64) : list f64 =
+    ?= values ?|
+    | [] => []
+    | [ only ] => [ only ]
+    | _ =>
+        := left, right = values_split values [] []
+        values_merged (values_sorted left) (values_sorted right) []
+
+:~ ^ value_at (sorted : list f64) (index : i32) : f64 =
+    ?= sorted ?|
+    | [] => 0.0f64
+    | head :: rest => ? index <= 0i32 ?> head |: value_at rest (index - 1i32)
+
+:~ median_of (values : list f64) (count : i32) : f64 =
+    := sorted = values_sorted values
+    := middle = count / 2i32
+    := upper = value_at sorted middle
+    ? count % 2i32 = 1i32 ?> upper |: (value_at sorted (middle - 1i32) + upper) / 2.0f64
 
 :~ ^ stats_added (stats : measure_stats) (cells : cell_texts) : measure_stats =
     ?= stats, cells ?|
-    | MeasureStatsThen (count, filled, sum, squares, low, high, rest), CellThen (cell, more) =>
+    | MeasureStatsThen (count, filled, sum, squares, low, high, values, rest), CellThen (cell, more) =>
         := filled = ? blank cell ?> filled |: filled + 1i32
         ? numeric cell
         ?>
@@ -69,9 +107,10 @@
                 squares + value * value,
                 low,
                 high,
+                value :: values,
                 stats_added rest more
             )
-        |: MeasureStatsThen (count, filled, sum, squares, low, high, stats_added rest more)
+        |: MeasureStatsThen (count, filled, sum, squares, low, high, values, stats_added rest more)
     | _ => stats
 
 :~ ^ group_added (list : groups) (~key : string) (empty : measure_stats) (cells : cell_texts) : groups =
@@ -103,9 +142,11 @@
 
 :~ measure_value
     (kind : aggregate) (count : i32) (filled : i32) (sum : f64) (squares : f64) (low : f64) (high : f64)
+    (values : list f64)
     : string
     =
     ?= kind ?|
+    | MedianOf => ? count = 0i32 ?> "" |: decimal_text (median_of values count)
     | CountOf => decimal_text (as_f64 filled)
     | MinOf => ? count = 0i32 ?> "" |: decimal_text low
     | MaxOf => ? count = 0i32 ?> "" |: decimal_text high
@@ -117,8 +158,8 @@
 
 :~ ^ measure_cells (list : measures) (stats : measure_stats) : string =
     ?= list, stats ?|
-    | MeasureThen (kind, _, _, rest), MeasureStatsThen (count, filled, sum, squares, low, high, more) =>
-        concat5 "\t" (measure_value kind count filled sum squares low high) (measure_cells rest more) "" ""
+    | MeasureThen (kind, _, _, rest), MeasureStatsThen (count, filled, sum, squares, low, high, values, more) =>
+        concat5 "\t" (measure_value kind count filled sum squares low high values) (measure_cells rest more) "" ""
     | _ => ""
 
 :~ ^ measure_headers (list : measures) : string =
@@ -191,5 +232,15 @@
     testing.expect (decimal_text 52240.0f64 = "52240") "integral"
     testing.expect (decimal_text 2.5f64 = "2.5") "fraction"
     testing.expect (decimal_text 0.0f64 = "0") "zero"
-    testing.expect (measure_value SumOf 2i32 2i32 7.25f64 0.0f64 0.0f64 0.0f64 = "7.25") "sum"
-    testing.expect (measure_value SdOf 1i32 1i32 3.0f64 9.0f64 3.0f64 3.0f64 = "0") "one value has no spread"
+    testing.expect (measure_value SumOf 2i32 2i32 7.25f64 0.0f64 0.0f64 0.0f64 [] = "7.25") "sum"
+    testing.expect (measure_value SdOf 1i32 1i32 3.0f64 9.0f64 3.0f64 3.0f64 [] = "0") "one value has no spread"
+
+///> rust
+:# a_median_takes_the_middle_value_or_the_mean_of_the_two_middle_values =
+    := odd = [ 9.0f64; 1.0f64; 5.0f64 ]
+    testing.expect (values_sorted odd = [ 1.0f64; 5.0f64; 9.0f64 ]) "values sort"
+    testing.expect (values_sorted [ 3.0f64; 3.0f64; 1.0f64; 2.0f64 ] = [ 1.0f64; 2.0f64; 3.0f64; 3.0f64 ]) "ties"
+    testing.expect (measure_value MedianOf 3i32 3i32 0.0f64 0.0f64 0.0f64 0.0f64 odd = "5") "odd count"
+    := even = [ 4.0f64; 1.0f64; 10.0f64; 2.0f64 ]
+    testing.expect (measure_value MedianOf 4i32 4i32 0.0f64 0.0f64 0.0f64 0.0f64 even = "3") "even count"
+    testing.expect (measure_value MedianOf 0i32 0i32 0.0f64 0.0f64 0.0f64 0.0f64 [] = "") "no values"

@@ -247,12 +247,12 @@ fn file_reading_report_0() -> (i32, Rc<str>) {
     match &v0 {
         US0::US0_ReadRejected(v3) => {
             let v3: Rc<str> = v3.clone();
-            (2i32, v3.clone())
+            (2i32, v3)
         }
         US0::US0_ReadShown(v1) => {
             let v1: i32 = *v1;
             let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (0i32, v2.clone())
+            (0i32, v2)
         }
     }
 }

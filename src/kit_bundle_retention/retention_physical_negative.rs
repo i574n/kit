@@ -14,7 +14,7 @@ fn retention_bytes(root: &Path) -> BTreeMap<String, Vec<u8>> { let mut out = BTr
 fn retention_stage_exists(root: &Path) -> bool { fs::read_dir(root).expect("read root").filter_map(Result::ok).any(|entry| entry.file_name().to_string_lossy().starts_with(".kit-retention-stage-")) }
 fn physical_negative() -> i32 { let root = retention_negative_root(); retention_prepare(&root); let receipt = root.join("state/retention_receipt.spi"); let stale = retention_bundle_name(4); assert!(plan_retention(&root, &stale, &receipt).is_err()); let current = retention_bundle_name(5); let plan = plan_retention(&root, &current, &receipt).expect("plan"); assert_eq!(plan.delete_count, 2); assert!(apply_retention_with_fault(&root, &current, &receipt, "wrong", RetentionFault::None).is_err()); let before = retention_bytes(&root); let error = apply_retention_with_fault(&root, &current, &receipt, &plan.fingerprint, RetentionFault::AfterFirstDelete).expect_err("first-delete fault"); assert!(error.contains("rollback")); assert_eq!(retention_bytes(&root), before); assert!(!retention_stage_exists(&root)); let plan = plan_retention(&root, &current, &receipt).expect("replan"); let error = apply_retention_with_fault(&root, &current, &receipt, &plan.fingerprint, RetentionFault::AfterAllDeletes).expect_err("all-delete fault"); assert!(error.contains("rollback")); assert_eq!(retention_bytes(&root), before); assert!(!retention_stage_exists(&root)); fs::remove_dir_all(root).expect("cleanup"); 0 }
 fn spiral_main() -> i32 {
-    let mut v0: i32 = physical_negative();
+    let v0: i32 = physical_negative();
     v0
 }
 fn main() { #[cfg(target_arch = "wasm32")] { spiral_main(); return; }

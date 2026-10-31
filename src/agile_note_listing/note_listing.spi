@@ -4,6 +4,7 @@
 := main () : i32 =
     !!!!Export("kit_agile_notes_text", ((\ (text, id) => notes_text text id) : string * string -> string))
     !!!!Export("kit_agile_notes_json", ((\ (text, id) => notes_json text id) : string * string -> string))
+    !!!!Export("kit_agile_state_segments", ((\ state_dir => state_segments_text state_dir) : string -> string))
     !!!!Export(
         "kit_agile_notes_filtered_text",
         (
@@ -13,5 +14,6 @@
     )
     := _ = notes_text "" "X"
     := _ = notes_json "" "X"
+    := _ = state_segments_text ""
     := _ = notes_filtered_text "" "X" AllNotes
     0i32

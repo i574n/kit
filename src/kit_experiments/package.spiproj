@@ -4,6 +4,7 @@ packages:
     rust_std_string
     union_reflection
     agile_note_model
+    rust_std_env
 modules:
     experiment_model
     experiment_plan

@@ -1,8 +1,10 @@
 ///- --package .
 :# window_model static =
     :< rust_std_string.model
+    :< sm'_operators
 
 :< rust_std_string.model
+:< sm'_operators
 
 :| window_class =
     | LiveGui
@@ -13,6 +15,7 @@
     | TreeRead
     | Bench
     | CompileHold
+    | TreeWrite
 
 :~ class_word (class : window_class) : string =
     ?= class ?|
@@ -24,6 +27,7 @@
     | TreeRead => "tree-read"
     | Bench => "bench"
     | CompileHold => "compile-hold"
+    | TreeWrite => "tree-write"
 
 :| class_parse =
     | ClassKnown : window_class
@@ -47,6 +51,7 @@
 :~ lease_only (class : window_class) : bool =
     ?= class ?|
     | TreeRead => !+
+    | TreeWrite => !+
     | _ => !-
 
 :~ quiet (class : window_class) : bool =
@@ -92,6 +97,7 @@
     | TreeRead => 0u64
     | Bench => 2048u64
     | CompileHold => 0u64
+    | TreeWrite => 0u64
 
 :| window_state =
     | Held
@@ -149,9 +155,38 @@
             until_ms = decimal_of (tab_field text 5i32)
         }
 
-:= blocks (wanted : window_class) (~mine : string) (since : u64) (backfills : bool) (row : window_row) : bool =
+:~ writes_tree (class : window_class) : bool =
+    ?= class ?|
+    | TreeWrite => !+
+    | _ => !-
+
+:~ tree_access (class : window_class) : bool =
+    ?= class ?|
+    | TreeRead => !+
+    | TreeWrite => !+
+    | _ => !-
+
+:~ tree_clash (held : window_class) (wanted : window_class) : bool =
+    tree_access held && tree_access wanted && (writes_tree held || writes_tree wanted)
+
+:~ path_prefix (~path : string) : string = sm'.replace "//" "/" (sm'.to_lower (sm'.replace "\\" "/" path) ++# "/")
+
+:~ path_overlaps (~held : string) (~wanted : string) : bool =
+    := held_prefix = path_prefix held
+    := wanted_prefix = path_prefix wanted
+    sm'.starts_with held_prefix wanted_prefix || sm'.starts_with wanted_prefix held_prefix
+
+:= blocks
+    (wanted : window_class) (~label : string) (~mine : string) (since : u64) (backfills : bool) (row : window_row)
+    : bool
+    =
     ? row.id = mine
     ?> !-
+    |? tree_clash row.kind wanted && path_overlaps row.label label
+    ?>
+        ?= row.state ?|
+        | Held => !+
+        | Waiting => writes_tree row.kind && row.start_ms < since
     |:
         ?= row.state ?|
         | Held => clashes row.kind wanted
@@ -161,10 +196,16 @@
             && clashes row.kind wanted
             && backfills = !-
 
-:~ row_blocks (wanted : window_class) (~mine : string) (since : u64) (backfills : bool) (~text : string) : bool =
+:~ row_blocks
+    (wanted : window_class) (~label : string) (~mine : string) (since : u64) (backfills : bool) (~text : string)
+    : bool
+    =
     ?= row_of text ?|
     | RowUnknown => !-
-    | RowKnown row => blocks wanted mine since backfills row
+    | RowKnown row => blocks wanted label mine since backfills row
+
+:~ tree_row (kind : window_class) (state : window_state) (~id : string) (~path : string) (start : u64) : string =
+    row_text { id = id; kind = kind; state = state; label = path; start_ms = start; until_ms = 600000u64 }
 
 :~ row_expired (~text : string) (now : u64) : bool = decimal_of (tab_field text 5i32) < now
 
@@ -272,7 +313,7 @@
 ///> rust
 :# classes_round_trip_through_their_words =
     testing.expect
-        (class_words () = "live-gui|test-suite|heavy-build|compile|compiler-install|tree-read|bench|compile-hold")
+        (class_words () = "live-gui|test-suite|heavy-build|compile|compiler-install|tree-read|bench|compile-hold|tree-write")
         "class list"
     testing.expect (class_word LiveGui = "live-gui") "live word"
     testing.expect (parsed_word "compiler-install" = "compiler-install") "parsed back"
@@ -291,10 +332,10 @@
 :# rows_round_trip_and_labels_stay_on_one_line =
     := text = row_at LiveGui Held "win-1" 1000u64 61000u64
     testing.expect (text = "win-1\tlive-gui\theld\tlane note\t1000\t61000") text
-    testing.expect (row_blocks Compile "win-2" 5000u64 !- text) "a held live window blocks a compile"
-    testing.expect (row_blocks Compile "win-1" 5000u64 !- text = !-) "a window never blocks itself"
+    testing.expect (row_blocks Compile "" "win-2" 5000u64 !- text) "a held live window blocks a compile"
+    testing.expect (row_blocks Compile "" "win-1" 5000u64 !- text = !-) "a window never blocks itself"
     testing.expect
-        (row_blocks Compile "win-2" 5000u64 !- "win-9\tunknown-class\theld\t\t0\t99" = !-)
+        (row_blocks Compile "" "win-2" 5000u64 !- "win-9\tunknown-class\theld\t\t0\t99" = !-)
         "unknown classes are skipped"
     testing.expect (row_expired text 61001u64) "expired after its end"
     testing.expect (row_expired text 60000u64 = !-) "still live"
@@ -302,10 +343,10 @@
 ///> rust
 :# an_older_exclusive_waiter_keeps_newcomers_out =
     := waiting = row_at LiveGui Waiting "win-1" 1000u64 31000u64
-    testing.expect (row_blocks Compile "win-2" 2000u64 !- waiting) "a newer compile waits behind the live request"
-    testing.expect (row_blocks Compile "win-2" 500u64 !- waiting = !-) "an older compile is not overtaken"
+    testing.expect (row_blocks Compile "" "win-2" 2000u64 !- waiting) "a newer compile waits behind the live request"
+    testing.expect (row_blocks Compile "" "win-2" 500u64 !- waiting = !-) "an older compile is not overtaken"
     testing.expect
-        (row_blocks Compile "win-2" 2000u64 !- (row_at HeavyBuild Waiting "win-1" 1000u64 31000u64) = !-)
+        (row_blocks Compile "" "win-2" 2000u64 !- (row_at HeavyBuild Waiting "win-1" 1000u64 31000u64) = !-)
         "shared waiters never block"
 
 ///> rust
@@ -349,11 +390,29 @@
     testing.expect (clashes HeavyBuild HeavyBuild = !-) "heavy builds still share the box under the slot gate"
     testing.expect (clashes Bench LiveGui) "a live block still excludes everything"
     testing.expect
-        (row_blocks HeavyBuild "win-2" 2000u64 !- (row_at Bench Waiting "win-1" 1000u64 31000u64))
+        (row_blocks HeavyBuild "" "win-2" 2000u64 !- (row_at Bench Waiting "win-1" 1000u64 31000u64))
         "an older waiting bench request keeps newer heavy builds out"
     testing.expect
-        (row_blocks Compile "win-2" 2000u64 !- (row_at Bench Waiting "win-1" 1000u64 31000u64) = !-)
+        (row_blocks Compile "" "win-2" 2000u64 !- (row_at Bench Waiting "win-1" 1000u64 31000u64) = !-)
         "but not compiles"
+
+///> rust
+:# a_tree_write_waits_for_readers_and_keeps_new_readers_out =
+    := lib = "C:/home/git/spiral/lib"
+    := reading = tree_row TreeRead Held "win-1" "C:\\home\\git\\spiral\\lib\\spiral" 1000u64
+    testing.expect (row_blocks TreeWrite lib "win-2" 2000u64 !- reading) "a held read below keeps the write waiting"
+    testing.expect (row_blocks TreeRead lib "win-2" 2000u64 !- reading = !-) "readers share a path"
+    := writing = tree_row TreeWrite Waiting "win-1" lib 1000u64
+    testing.expect (row_blocks TreeRead "c:/home/git/spiral/lib/spiral" "win-2" 2000u64 !- writing) "writer preference"
+    testing.expect (row_blocks TreeRead lib "win-2" 500u64 !- writing = !-) "an older reader is not overtaken"
+    testing.expect
+        (row_blocks TreeWrite lib "win-2" 2000u64 !- (tree_row TreeWrite Held "win-1" lib 1000u64))
+        "one writer at a time"
+    testing.expect (row_blocks TreeWrite "C:/home/git/kit" "win-2" 2000u64 !- reading = !-) "disjoint paths never clash"
+    testing.expect
+        (row_blocks TreeWrite "C:/home/git/spiral/lib2" "win-2" 2000u64 !- reading = !-)
+        "a sibling with a shared prefix is another path"
+    testing.expect (clashes TreeWrite Compile = !- && needed_mb TreeWrite = 0u64) "a tree write is a lease, not a load"
 
 ///> rust
 :# a_compile_hold_keeps_compiles_out_and_nothing_else =

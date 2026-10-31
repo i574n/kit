@@ -1,0 +1,115 @@
+///- --package .
+:# cache static =
+    :< sm'_operators
+
+:< sm'_operators
+:< agile_task_text.model
+:< workspace_primitives.bytes
+
+:= nul_text () : string = unicode.char_of 0i32
+
+:~ ^ ids_in (~rendered : string) (offset : i32) (~found : string) : string =
+    := at = byte_find_from rendered "\"id\":\"" offset
+    ? at < 0i32
+    ?> found
+    |:
+        := start = at + 6i32
+        := stop = byte_find_from rendered "\"" start
+        ? stop < 0i32
+        ?> found
+        |:
+            := id = byte_slice rendered start stop
+            ids_in rendered (stop + 1i32) (? found = "" ?> id |: found ++# " " ++# id)
+
+:~ cache_row (~path : string) (size : u64) (mtime : u64) (~ids : string) (untracked : i32) : string =
+    "inl c () = Cached (" ++# spi_quoted path ++# ", " ++# sm'.show size ++# "u64, " ++# sm'.show mtime ++# "u64, "
+    ++# spi_quoted ids ++# ", " ++# sm'.show untracked ++# "i32)"
+
+:~ skipped_row (~path : string) : string = "inl s () = Skipped (" ++# spi_quoted path ++# ")"
+
+:~ number_between (~text : string) (start : i32) (~marker : string) : u64 * i32 =
+    := stop = byte_find_from text marker start
+    ? stop < 0i32 ?> 0u64, -1i32 |: optionm'.default_value 0u64 (convert.try_convert (byte_slice text start stop)), stop
+
+:~ row_of (~cache : string) (cursor : i32) (~path : string) : i32 * u64 * u64 * string * i32 * i32 =
+    := key = "(" ++# spi_quoted path
+    := near = byte_find_from cache key cursor
+    := at = ? near < 0i32 ?> byte_find_from cache key 0i32 |: near
+    := after = at + byte_len key
+    ? at < 8i32
+    ?> 0i32, 0u64, 0u64, "", 0i32, -1i32
+    |? byte_slice cache (at - 8i32) at = "Skipped " ?> 1i32, 0u64, 0u64, "", 0i32, after + 1i32
+    |? byte_slice cache (at - 7i32) at <> "Cached " ?> 0i32, 0u64, 0u64, "", 0i32, -1i32
+    |:
+        := size, after_size = number_between cache (after + 2i32) "u64, "
+        := mtime, after_mtime = ? after_size < 0i32 ?> 0u64, -1i32 |: number_between cache (after_size + 5i32) "u64, \""
+        := ids_start = after_mtime + 6i32
+        := ids_stop = ? after_mtime < 0i32 ?> -1i32 |: byte_find_from cache "\", " ids_start
+        := tail = ? ids_stop < 0i32 ?> -1i32 |: byte_find_from cache "i32)" ids_stop
+        ? tail < 0i32
+        ?> 0i32, 0u64, 0u64, "", 0i32, -1i32
+        |:
+            := untracked = optionm'.default_value 0i32 (convert.try_convert (byte_slice cache (ids_stop + 3i32) tail))
+            2i32, size, mtime, byte_slice cache ids_start ids_stop, untracked, tail
+
+:~ head_row (~root : string) (~head : string) (~dirty : string) : string =
+    := lines = sm'.replace (nul_text ()) "\n" dirty
+    "inl h () = RootHead (" ++# spi_quoted root ++# ", " ++# spi_quoted head ++# ", " ++# spi_quoted lines ++# ")"
+
+:~ head_of (~cache : string) (~root : string) : string * string =
+    := key = "RootHead (" ++# spi_quoted root ++# ", \""
+    := at = byte_find_from cache key 0i32
+    ? at < 0i32
+    ?> "", ""
+    |:
+        := start = at + byte_len key
+        := stop = byte_find_from cache "\", \"" start
+        := tail = ? stop < 0i32 ?> -1i32 |: byte_find_from cache "\")" (stop + 4i32)
+        ? tail < 0i32
+        ?> "", ""
+        |: byte_slice cache start stop, sm'.replace "\\n" (nul_text ()) (byte_slice cache (stop + 4i32) tail)
+
+///> rust
+:# cache_rows_round_trip_by_path_and_by_root =
+    ? ids_in "{\"path\":\"a\",\"id\":\"KIT-X\",\"text\":\"t\"},{\"path\":\"b\",\"id\":\"KIT-Y\"}" 0i32 "" = "KIT-X KIT-Y"
+    ?> ()
+    |: failwith "ids"
+    := row = cache_row "C:/r/a.spi" 12u64 34u64 "KIT-X" 1i32
+    := kind, size, mtime, ids, untracked, _ = row_of row 0i32 "C:/r/a.spi"
+    ? kind = 2i32 && size = 12u64 && mtime = 34u64 && ids = "KIT-X" && untracked = 1i32 ?> () |: failwith "row by path"
+    := rows = skipped_row "C:/r/b.rs" ++# "\n" ++# row
+    := skip, _, _, _, _, _ = row_of rows 0i32 "C:/r/b.rs"
+    := after_skip, _, _, _, _, _ = row_of rows 0i32 "C:/r/a.spi"
+    := unseen, _, _, _, _, _ = row_of rows 0i32 "C:/r/new.rs"
+    ? skip = 1i32 && after_skip = 2i32 && unseen = 0i32 ?> () |: failwith "skipped, cached and unseen rows"
+    := dirty = nul_text () ++# "a.spi" ++# nul_text () ++# "b/c.spi" ++# nul_text ()
+    := heads = head_row "C:/r" "abc123" dirty ++# "\n" ++# row
+    := head, was_dirty = head_of heads "C:/r"
+    ? head = "abc123" && was_dirty = dirty ?> () |: failwith "root head and dirty set round trip"
+    := missing, _ = head_of heads "C:/other"
+    ? missing = "" ?> () |: failwith "an unknown root has no head"
+
+///> _
+:= main () : i32 =
+    !!!!Export("kit_agile_todo_ids_in", ((\ rendered => ids_in rendered 0i32 "") : string -> string))
+    !!!!Export(
+        "kit_agile_todo_cache_row",
+        (
+            \ (path, size, mtime, ids, untracked) => cache_row path size mtime ids untracked
+            : string * u64 * u64 * string * i32 -> string
+        )
+    )
+    !!!!Export("kit_agile_todo_skipped_row", ((\ path => skipped_row path) : string -> string))
+    !!!!Export(
+        "kit_agile_todo_row_of",
+        (
+            \ (cache, cursor, path) => row_of cache cursor path
+            : string * i32 * string -> i32 * u64 * u64 * string * i32 * i32
+        )
+    )
+    !!!!Export(
+        "kit_agile_todo_head_row",
+        ((\ (root, head, dirty) => head_row root head dirty) : string * string * string -> string)
+    )
+    !!!!Export("kit_agile_todo_head_of", ((\ (cache, root) => head_of cache root) : string * string -> string * string))
+    0i32

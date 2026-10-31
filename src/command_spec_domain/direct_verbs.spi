@@ -32,6 +32,7 @@
     | VerbStandup
     | VerbEvidence
     | VerbLint
+    | VerbSchedule
 
 :== verb_help =
     {
@@ -65,7 +66,8 @@
             word = "table"
             line =
                 "table: query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... "
-                ^^ "[--cols a,b] [--group col] [--mean|--sd|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | "
+                ^^ "[--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] "
+                ^^ "[--quiet] | "
                 ^^ "diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n] | logs <file|dir>... "
                 ^^ "[--glob *.log] [--since regex] (--count name=regex | --count-by name=regex | --sum name=regex | "
                 ^^ "--last name=regex | --field name=regex-on-the-file-path)... | --values name=regex alone (one row "
@@ -74,7 +76,9 @@
                 ^^ "<column>]] [--prediction x] [--confidence 0.95] [--where ...]... | sequences <file|dir>... --time "
                 ^^ "<regex (?<ms>-?\\d+)> (--interval name=A [--between B] [--modulo ms] | --window name=A --from M "
                 ^^ "--ms lo..hi | --order name=A,B | --latency name=A --to B | [--section-on <regex>] [--carry "
-                ^^ "<regex>] (--first|--last) name=<regex (?<id>)(?<value>)>...) [--out file.tsv]"
+                ^^ "<regex>] (--first|--last) name=<regex (?<id>)(?<value>)>... | [--section-on <regex>] (--count "
+                ^^ "name=<regex [(?<value>)]>... [--count-in name=<regex (?<rest>)>] [--in-set "
+                ^^ "name=<file>[:<regex (?<value>)>]])) [--out file.tsv]"
         }
     | VerbRead =>
         {
@@ -173,7 +177,9 @@
             word = "memory"
             line =
                 "memory import <memory-dir> <data.spi> | render <data.spi> <out-dir> | check <data.spi> | list "
-                ^^ "<data.spi> [--kind user|feedback|project|reference] | recall <data.spi> <words> [--limit n]"
+                ^^ "<data.spi> [--kind user|feedback|project|reference] | recall <data.spi> <words> [--limit n] | save "
+                ^^ "<memory-dir> <kind> <slug> <description> <body>|- [--title <text>] | forget <memory-dir> <slug> | "
+                ^^ "edit <memory-dir> <slug> description|body <text>|-"
         }
     | VerbResume => { word = "resume"; line = "resume <backlog-root> [--team <team>] [--as <author>]" }
     | VerbCi =>
@@ -242,8 +248,16 @@
         {
             word = "lint"
             line =
-                "lint macros <root> [<path>...] [--baseline <rows>] (host macros by class: long, block, flow, cast, "
-                ^^ "arith)"
+                "lint macros <root> [<path>...] [--baseline <rows>] [--tsv] (host macros by class: long, block, flow, "
+                ^^ "cast, arith); lint shadows <root> [<path>...] [--baseline <rows>] (a type declared twice in "
+                ^^ "one module, or a top-level term redefined before any use)"
+        }
+    | VerbSchedule =>
+        {
+            word = "schedule"
+            line =
+                "schedule due <name> <minutes> (exit 0 when due, 1 when not) | ran <name> | list (stamps under "
+                ^^ "KIT_SCHEDULES_HOME, else LOCALAPPDATA\\kit\\schedules)"
         }
 
 := help_line_for (~target : string) : string =
@@ -287,6 +301,6 @@
     := text = help_lines ()
     expect (sm'.starts_with "job: " text) "help lines follow the union order"
     expect
-        (am'.length (sm'.split "\n" text |> array) = 24i32)
-        "27 verbs print 24 lines: read, lines and grep share one, ps and kill share one"
+        (am'.length (sm'.split "\n" text |> array) = 25i32)
+        "28 verbs print 25 lines: read, lines and grep share one, ps and kill share one"
     expect (sm'.index_of "mirror check " text >= 0i32) "mirror has a help line"

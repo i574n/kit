@@ -11,6 +11,8 @@
 
 := argument_owned index : string = rust_std_env.model.argument_owned index
 
+:~ note_text_of (~raw : string) : string = sm'.trim (? sm'.trim raw = "-" ?> console.read_to_end () |: raw)
+
 := decimal_i32 (~text : string) : i32 = optionm'.default_value (-1i32) (convert.try_convert (sm'.trim text))
 
 :| note_change =
@@ -74,7 +76,13 @@
         ++# " text_bytes="
         ++# i32_text (byte_len previous.text)
     stdout_line (
-        head ++# middle ++# "->" ++# (i32_text (byte_len revised.text)) ++# (measured_sizes before after elapsed)
+        head
+        ++# middle
+        ++# "->"
+        ++# (i32_text (byte_len revised.text))
+        ++# " replaced="
+        ++# spi_quoted (sm'.clip 80i32 previous.text)
+        ++# (measured_sizes before after elapsed)
     )
 
 :~ note_edited
@@ -122,7 +130,7 @@
 :~ note_edit_entry () : i32 =
     := id = argument_owned 2i32
     := seq = decimal_i32 (argument_owned 3i32)
-    := body = sm'.trim (argument_owned 4i32)
+    := body = note_text_of (argument_owned 4i32)
     ? seq < 1i32
     ?> note_edit_failure "the note number must be a positive integer" id
     |? (body = "")

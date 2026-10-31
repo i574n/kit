@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "delete_guard.rs"
+
+[package]
+name = "kit-delete-guard"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_delete_guard"
+path = "delete_guard.rs"

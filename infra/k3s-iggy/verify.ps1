@@ -1,5 +1,5 @@
 param(
-    [string] $BaseUrl = 'http://localhost:3000',
+    [string] $BaseUrl = 'http://127.0.0.1:3000',
     [string] $Username = 'iggy',
     [ValidateRange(2, 10000000)] [int] $Count = 10000,
     [ValidateRange(1, 100000)] [int] $Batch = 1000,
@@ -64,8 +64,9 @@ if ($RestartCommand) {
     if ($LASTEXITCODE) { throw "verify.ps1: restart command failed (exit $LASTEXITCODE)" }
     Start-Sleep -Seconds 5
     Wait-Ping
-    $script:headers = Get-Headers
-    $restarted = 'restarted mid-stream'
+    try { Invoke-Iggy Get "streams/$stream" $null | Out-Null }
+    catch { throw "verify.ps1: the access token issued before the restart was rejected after it (JWT secrets not persistent): $($_.Exception.Message)" }
+    $restarted = 'restarted mid-stream, token survived'
 }
 
 $empty = 0

@@ -25,10 +25,8 @@
         line.split(char::from(9u8)).next()).filter(|id| \!id.is_empty()).collect::<Vec<_>>(); ids.sort(); \
         ids.dedup(); ids.join("\n") }.as_str())' : string
 
-:= line_head (~text : string) : string = $'std::rc::Rc::<str>::from((!text).split(char::from(10u8)).next().unwrap_or("\
-    "))' : string
-:= line_rest (~text : string) : string = $'std::rc::Rc::<str>::from((!text).split_once(char::from(10u8)).map(|(_, \
-    rest)| rest).unwrap_or(""))' : string
+:= line_head (~text : string) : string = sm'.first_line text
+:= line_rest (~text : string) : string = sm'.after_first_line text
 
 :~ ^ sites_of (~ledger : string) (~id : string) (~found : string) : string =
     ? ledger = ""

@@ -8,6 +8,11 @@ enum US0 {
     US0_ScanEscaped,
 }
 struct Mut0 { l0: Rc<str> }
+#[derive(Clone)]
+enum UH0 {
+    UH0_Nil,
+    UH0_Cons(Rc<str>, Rc<UH0>),
+}
 fn field_end_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US0) -> i32 {
     loop {
         let v4: bool = v2 <= v1;
@@ -137,11 +142,11 @@ fn method8(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_7(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method8(v2.clone(), v3.clone());
+    method8(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn status_count_text_2(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
     let v3: Rc<str> = std::rc::Rc::<str>::from(v2.to_ascii_lowercase());
@@ -151,33 +156,33 @@ fn status_count_text_2(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str>
     let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v6));
     let v8: i32 = 0i32;
     let v9: i32 = 0i32;
-    let v10: i32 = count_status_3(v0.clone(), v8, v1, v2.clone(), v9);
+    let v10: i32 = count_status_3(v0, v8, v1, v2, v9);
     let v11: Rc<str> = format_real_7(v10);
     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v11));
-    v12.clone()
+    v12
 }
 fn status_counts_1(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planned"); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = status_count_text_2(v0.clone(), v1, v2.clone());
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v3.clone()));
-    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v4.clone()));
+    let v3: Rc<str> = status_count_text_2(v0.clone(), v1, v2);
+    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v3));
+    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v4));
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Active"); } LIT.with(|lit| lit.clone()) };
-    let v7: Rc<str> = status_count_text_2(v0.clone(), v1, v6.clone());
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v7.clone()));
-    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v5.clone(), v8.clone()));
+    let v7: Rc<str> = status_count_text_2(v0.clone(), v1, v6);
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v7));
+    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v8));
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Blocked"); } LIT.with(|lit| lit.clone()) };
-    let v11: Rc<str> = status_count_text_2(v0.clone(), v1, v10.clone());
-    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v11.clone()));
-    let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v9.clone(), v12.clone()));
+    let v11: Rc<str> = status_count_text_2(v0.clone(), v1, v10);
+    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v11));
+    let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v12));
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Paused"); } LIT.with(|lit| lit.clone()) };
-    let v15: Rc<str> = status_count_text_2(v0.clone(), v1, v14.clone());
-    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v15.clone()));
-    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v13.clone(), v16.clone()));
+    let v15: Rc<str> = status_count_text_2(v0.clone(), v1, v14);
+    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v15));
+    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v16));
     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Done"); } LIT.with(|lit| lit.clone()) };
-    let v19: Rc<str> = status_count_text_2(v0.clone(), v1, v18.clone());
-    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v19.clone()));
-    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v17.clone(), v20.clone()));
-    v21.clone()
+    let v19: Rc<str> = status_count_text_2(v0, v1, v18);
+    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v19));
+    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v20));
+    v21
 }
 fn census_text_0(mut v0: Rc<str>) -> Rc<str> {
     let v1: i32 = (v0.clone().len() as i32);
@@ -196,37 +201,37 @@ fn status_count_json_11(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str
     let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v6));
     let v8: i32 = 0i32;
     let v9: i32 = 0i32;
-    let v10: i32 = count_status_3(v0.clone(), v8, v1, v2.clone(), v9);
+    let v10: i32 = count_status_3(v0, v8, v1, v2, v9);
     let v11: Rc<str> = format_real_7(v10);
     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v11));
-    v12.clone()
+    v12
 }
 fn status_counts_json_10(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planned"); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = status_count_json_11(v0.clone(), v1, v2.clone());
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v3.clone()));
-    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v4.clone()));
+    let v3: Rc<str> = status_count_json_11(v0.clone(), v1, v2);
+    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v3));
+    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v4));
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Active"); } LIT.with(|lit| lit.clone()) };
-    let v7: Rc<str> = status_count_json_11(v0.clone(), v1, v6.clone());
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }, v7.clone()));
-    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v5.clone(), v8.clone()));
+    let v7: Rc<str> = status_count_json_11(v0.clone(), v1, v6);
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }, v7));
+    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v8));
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Blocked"); } LIT.with(|lit| lit.clone()) };
-    let v11: Rc<str> = status_count_json_11(v0.clone(), v1, v10.clone());
-    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }, v11.clone()));
-    let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v9.clone(), v12.clone()));
+    let v11: Rc<str> = status_count_json_11(v0.clone(), v1, v10);
+    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }, v11));
+    let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v12));
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Paused"); } LIT.with(|lit| lit.clone()) };
-    let v15: Rc<str> = status_count_json_11(v0.clone(), v1, v14.clone());
-    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }, v15.clone()));
-    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v13.clone(), v16.clone()));
+    let v15: Rc<str> = status_count_json_11(v0.clone(), v1, v14);
+    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }, v15));
+    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v16));
     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Done"); } LIT.with(|lit| lit.clone()) };
-    let v19: Rc<str> = status_count_json_11(v0.clone(), v1, v18.clone());
-    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }, v19.clone()));
-    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v17.clone(), v20.clone()));
+    let v19: Rc<str> = status_count_json_11(v0, v1, v18);
+    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }, v19));
+    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v20));
     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"counts\":{"); } LIT.with(|lit| lit.clone()) };
     let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v21));
     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
     let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-    v25.clone()
+    v25
 }
 fn census_json_9(mut v0: Rc<str>) -> Rc<str> {
     let v1: i32 = (v0.clone().len() as i32);
@@ -272,7 +277,7 @@ fn task_status_of_12(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
     let v6: i32 = 0i32;
     let v7: i32 = (v0.clone().len() as i32);
-    status_of_id_13(v0.clone(), v5.clone(), v6, v7)
+    status_of_id_13(v0, v5, v6, v7)
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
@@ -328,7 +333,7 @@ fn unsettled_ids_14(mut v0: Rc<str>) -> Rc<str> {
     let v1: i32 = 0i32;
     let mut v2: i32 = (v0.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    unsettled_from_15(v0.clone(), v1, v2, v3.clone())
+    unsettled_from_15(v0, v1, v2, v3)
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
@@ -395,6 +400,146 @@ fn closure4() -> Rc<dyn Fn(Rc<str>) -> i32> {
         first_malformed_task_16(v0.clone(), v1, v2)
     }); } CLOSURE.with(|closure| closure.clone())
 }
+fn done_from_19(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> Rc<str> {
+    loop {
+        let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task (\""); } LIT.with(|lit| lit.clone()) };
+        let v5: i32 = v0.get(v1 as usize..).and_then(|rest| rest.find(&*v4)).map(|found| (found + v1 as usize) as i32).unwrap_or(-1);
+        let v6: bool = v5 < 0i32;
+        if v6 {
+            return v3.clone();
+        } else {
+            let v7: i32 = v5.wrapping_add(6i32);
+            let v8: i32 = v0.get(..v5 as usize).and_then(|head| head.rfind(char::from(10u8))).map(|newline| newline as i32 + 1).unwrap_or(0);
+            let v9: Rc<str> = std::rc::Rc::<str>::from(v0.get(v8 as usize..v5 as usize).unwrap_or(""));
+            let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
+            let v11: bool = v9.starts_with(&*v10);
+            let v18: bool = if v11 {
+                let v12: i32 = 6i32;
+                let v13: i32 = field_start_4(v0.clone(), v7, v2, v12);
+                let v14: US0 = US0::US0_ScanPlain;
+                let v15: i32 = field_end_5(v0.clone(), v13, v2, v14.clone());
+                let v16: Rc<str> = std::rc::Rc::<str>::from(v0.get(v13 as usize..v15 as usize).unwrap_or(""));
+                let v17: bool = &*v16 == "Done";
+                v17
+            } else {
+                false
+            };
+            let v19: i32 = 0i32;
+            let v20: i32 = field_start_4(v0.clone(), v7, v2, v19);
+            let v21: US0 = US0::US0_ScanPlain;
+            let v22: i32 = field_end_5(v0.clone(), v20, v2, v21.clone());
+            let v23: Rc<str> = std::rc::Rc::<str>::from(v0.get(v20 as usize..v22 as usize).unwrap_or(""));
+            let v30: Rc<str> = if v18 {
+                let v24: i32 = (v23.clone().len() as i32);
+                let v25: i32 = v24.wrapping_sub(1i32);
+                let v26: Rc<str> = std::rc::Rc::<str>::from(v23.get(1i32 as usize..v25 as usize).unwrap_or(""));
+                let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v26));
+                let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
+                v29.clone()
+            } else {
+                v3.clone()
+            };
+            (v0, v1, v2, v3) = (v0.clone(), v7, v2, v30.clone());
+            continue;
+        }
+    }
+}
+fn done_ids_18(mut v0: Rc<str>) -> Rc<str> {
+    let v1: i32 = 0i32;
+    let mut v2: i32 = (v0.clone().len() as i32);
+    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    done_from_19(v0, v1, v2, v3)
+}
+fn closure5() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
+        done_ids_18(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn method22(mut v0: Rc<str>, mut v1: Rc<Vec<Rc<str>>>, mut v2: i32, mut v3: Rc<UH0>) -> Rc<UH0> {
+    loop {
+        let v4: bool = v2 < 0i32;
+        if v4 {
+            return v3.clone();
+        } else {
+            let v5: usize = ((v2) as usize);
+            let v6: Rc<str> = (v1)[v5].clone();
+            let v7: i32 = v2.wrapping_sub(1i32);
+            let v8: bool = &*v6 != "";
+            let v13: bool = if v8 {
+                let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                let v11: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v9, v6)), v9));
+                let v12: bool = v0.contains(&*v11);
+                v12
+            } else {
+                false
+            };
+            let v15: Rc<UH0> = if v13 {
+                Rc::new(UH0::UH0_Cons(v6.clone(), v3.clone()))
+            } else {
+                v3.clone()
+            };
+            (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v7, v15.clone());
+            continue;
+        }
+    }
+}
+fn method23(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH0>, mut v2: i32) -> i32 {
+    loop {
+        match &*v1 {
+            UH0::UH0_Cons(v3, v4) => {
+                let v3: Rc<str> = v3.clone();
+                let v4: Rc<UH0> = v4.clone();
+                v0.borrow_mut().push(v3);
+                let v5: i32 = v2.wrapping_add(1i32);
+                (v0, v1, v2) = (v0.clone(), v4.clone(), v5);
+                continue;
+            }
+            UH0::UH0_Nil => {
+                return v2;
+            }
+        }
+    }
+}
+fn unmet_deps_21(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v0));
+    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v6: Rc<str> = Rc::<str>::from(v1.replace(&*v4, &*v5));
+    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+    let v8: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v6.split(&*v7).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+    let v9: Rc<Vec<Rc<str>>> = Rc::new((v8).borrow().clone());
+    let v10: usize = (v9).len();
+    let v11: i32 = ((v10) as i32);
+    let v12: i32 = v11.wrapping_sub(1i32);
+    let v13: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+    let v14: Rc<UH0> = method22(v3.clone(), v9.clone(), v12, v13.clone());
+    let v15: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+    let v16: i32 = 0i32;
+    let v17: i32 = method23(v15.clone(), v14.clone(), v16);
+    let v18: Rc<Vec<Rc<str>>> = Rc::new(v15.borrow().clone());
+    let v19: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v18).as_ref().clone()));
+    let v20: Rc<str> = Rc::<str>::from((*v19).borrow().iter().map(|x| &**x).collect::<Vec<&str>>().join(&*v7).as_str());
+    v20.clone()
+}
+fn waits_column_20(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+    let mut v2: Rc<str> = unmet_deps_21(v0, v1);
+    let v3: bool = &*v2 == "";
+    if v3 {
+        let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v4
+    } else {
+        let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  waits "); } LIT.with(|lit| lit.clone()) };
+        let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v2));
+        v6
+    }
+}
+fn closure6() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
+        waits_column_20(v0.clone(), v1.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
 pub fn kit_agile_status_counts(v0: &str) -> Rc<str> {
     closure0()(Rc::<str>::from(v0))
 }
@@ -409,4 +554,10 @@ pub fn kit_agile_unsettled_ids(v0: &str) -> Rc<str> {
 }
 pub fn kit_agile_first_malformed_task(v0: &str) -> i32 {
     closure4()(Rc::<str>::from(v0))
+}
+pub fn kit_agile_done_ids(v0: &str) -> Rc<str> {
+    closure5()(Rc::<str>::from(v0))
+}
+pub fn kit_agile_waits_column(v0: &str, v1: &str) -> Rc<str> {
+    closure6()(Rc::<str>::from(v0), Rc::<str>::from(v1))
 }

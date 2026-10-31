@@ -12,7 +12,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
 }
 fn method2() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_1() -> Rc<str> {
     method2()
@@ -56,7 +56,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
         } else {
             let v10: i32 = v6 - 1i32 ;
             let v11: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v10 as i64);
-            v11.clone()
+            v11
         };
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("snapshot"); } LIT.with(|lit| lit.clone()) };
         let v14: bool = v12 == v13 ;
@@ -75,14 +75,14 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                 } else {
                     let v22: i32 = v2 - 1i32 ;
                     let v23: Rc<str> = string_slice(&v0.clone(), v19 as i64, v22 as i64);
-                    v23.clone()
+                    v23
                 };
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 let v26: bool = v24 == v25 ;
                 if v26 {
                     (v1.clone(), v1.clone(), v1.clone(), v1.clone(), v1.clone())
                 } else {
-                    (v13.clone(), v24.clone(), v1.clone(), v1.clone(), v1.clone())
+                    (v13, v24, v1.clone(), v1.clone(), v1.clone())
                 }
             }
         } else {
@@ -111,7 +111,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                             (v1.clone(), v1.clone(), v1.clone(), v1.clone(), v1.clone())
                         } else {
                             let v51: i32 = v49 + 1i32 ;
-                            let v52: u8 = codec_runtime_char_3(v3.clone());
+                            let v52: u8 = codec_runtime_char_3(v3);
                             let v53: i32 = find_char_loop_4(v0.clone(), v51, v2, v52);
                             let v54: bool = v53 < v2;
                             if v54 {
@@ -124,7 +124,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                                 } else {
                                     let v58: i32 = v41 - 1i32 ;
                                     let v59: Rc<str> = string_slice(&v0.clone(), v55 as i64, v58 as i64);
-                                    v59.clone()
+                                    v59
                                 };
                                 let v61: i32 = v41 + 1i32 ;
                                 let v62: bool = v61 == v45 ;
@@ -133,7 +133,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                                 } else {
                                     let v64: i32 = v45 - 1i32 ;
                                     let v65: Rc<str> = string_slice(&v0.clone(), v61 as i64, v64 as i64);
-                                    v65.clone()
+                                    v65
                                 };
                                 let v67: i32 = v45 + 1i32 ;
                                 let v68: bool = v67 == v49 ;
@@ -142,7 +142,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                                 } else {
                                     let v70: i32 = v49 - 1i32 ;
                                     let v71: Rc<str> = string_slice(&v0.clone(), v67 as i64, v70 as i64);
-                                    v71.clone()
+                                    v71
                                 };
                                 let v73: i32 = v49 + 1i32 ;
                                 let v74: bool = v73 == v2 ;
@@ -150,8 +150,8 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                                     codec_empty_1()
                                 } else {
                                     let v76: i32 = v2 - 1i32 ;
-                                    let v77: Rc<str> = string_slice(&v0.clone(), v73 as i64, v76 as i64);
-                                    v77.clone()
+                                    let v77: Rc<str> = string_slice(&v0, v73 as i64, v76 as i64);
+                                    v77
                                 };
                                 let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                                 let v80: bool = v60 == v79 ;
@@ -170,7 +170,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                                             if v83 {
                                                 (v1.clone(), v1.clone(), v1.clone(), v1.clone(), v1.clone())
                                             } else {
-                                                (v37.clone(), v60.clone(), v66.clone(), v72.clone(), v78.clone())
+                                                (v37, v60, v66, v72, v78)
                                             }
                                         }
                                     }
@@ -180,7 +180,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                     }
                 }
             } else {
-                (v1.clone(), v1.clone(), v1.clone(), v1.clone(), v1.clone())
+                (v1.clone(), v1.clone(), v1.clone(), v1.clone(), v1)
             }
         }
     }

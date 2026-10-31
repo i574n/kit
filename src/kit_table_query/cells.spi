@@ -1,3 +1,5 @@
+:< sm'_operators
+
 :! table_cells = $'std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>'
 
 :! key_rows = $'std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>'
@@ -55,5 +57,5 @@
 := below_limit (count : i32) (limit : u64) : bool = $'(!count as u64) < !limit' : bool
 
 := rejected (~message : string) : i32 =
-    stderr_line (rust_std_string.model.concat5 "kit error: table " message "" "" "")
+    stderr_line ("kit error: table " ++# message)
     2i32

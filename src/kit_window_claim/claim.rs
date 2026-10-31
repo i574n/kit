@@ -42,6 +42,7 @@ enum US5 {
     US5_TreeRead,
     US5_Bench,
     US5_CompileHold,
+    US5_TreeWrite,
 }
 #[derive(Clone)]
 enum US6 {
@@ -141,7 +142,7 @@ fn holder_of_12(mut v0: Rc<str>) -> US1 {
         true
     } else {
         let v5: i32 = 0i32;
-        let v6: Rc<str> = tab_field_8(v0.clone(), v5);
+        let v6: Rc<str> = tab_field_8(v0, v5);
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-run"); } LIT.with(|lit| lit.clone()) };
         let v8: bool = v6.ends_with(&*v7);
         v8
@@ -184,7 +185,7 @@ fn window_file_15(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".window"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v4: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v2, &*v3, &*v3, &*v3].concat());
-    joined_16(v0.clone(), v4.clone())
+    joined_16(v0, v4)
 }
 fn file_removed_17(mut v0: Rc<str>) -> bool {
     let v1: bool = std::fs::remove_file(&*v0).is_ok();
@@ -198,49 +199,49 @@ fn method21(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_20(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method21(v2.clone(), v3.clone());
+    method21(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn number_text_19(mut v0: u64) -> Rc<str> {
     format_real_20(v0)
 }
 fn event_logged_18(mut v0: Rc<str>, mut v1: US2, mut v2: Rc<str>) -> () {
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events.log"); } LIT.with(|lit| lit.clone()) };
-    let mut v4: Rc<str> = joined_16(v0.clone(), v3.clone());
+    let mut v4: Rc<str> = joined_16(v0, v3);
     let v5: u64 = now_ms_2();
     let v6: Rc<str> = number_text_19(v5);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v21: Rc<str> = match &v1 {
         US2::US2_WindowDropped => {
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dropped"); } LIT.with(|lit| lit.clone()) };
-            v14.clone()
+            v14
         }
         US2::US2_WindowGaveUp => {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("gave-up"); } LIT.with(|lit| lit.clone()) };
-            v12.clone()
+            v12
         }
         US2::US2_WindowGranted => {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("granted"); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         }
         US2::US2_WindowPruned => {
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pruned"); } LIT.with(|lit| lit.clone()) };
-            v13.clone()
+            v13
         }
         US2::US2_WindowQueued => {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("queued"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US2::US2_WindowReleased => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("released"); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US2::US2_WindowReleasedWaiting => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("released-waiting"); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
     };
     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
@@ -310,35 +311,39 @@ fn class_word_26(mut v0: US5) -> Rc<str> {
     match &v0 {
         US5::US5_Bench => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bench"); } LIT.with(|lit| lit.clone()) };
-            v7.clone()
+            v7
         }
         US5::US5_Compile => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compile"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US5::US5_CompileHold => {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compile-hold"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US5::US5_CompilerInstall => {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compiler-install"); } LIT.with(|lit| lit.clone()) };
-            v5.clone()
+            v5
         }
         US5::US5_HeavyBuild => {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("heavy-build"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
         US5::US5_LiveGui => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("live-gui"); } LIT.with(|lit| lit.clone()) };
-            v1.clone()
+            v1
         }
         US5::US5_TestSuite => {
             let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test-suite"); } LIT.with(|lit| lit.clone()) };
-            v2.clone()
+            v2
         }
         US5::US5_TreeRead => {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tree-read"); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
+        }
+        US5::US5_TreeWrite => {
+            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tree-write"); } LIT.with(|lit| lit.clone()) };
+            v9
         }
     }
 }
@@ -399,7 +404,15 @@ fn class_of_25(mut v0: Rc<str>) -> US7 {
                                     let v39: US5 = US5::US5_CompileHold;
                                     US7::US7_ClassKnown(v39)
                                 } else {
-                                    US7::US7_ClassUnknown
+                                    let v41: US5 = US5::US5_TreeWrite;
+                                    let v42: Rc<str> = class_word_26(v41);
+                                    let v43: bool = &*v0 == &*v42;
+                                    if v43 {
+                                        let v44: US5 = US5::US5_TreeWrite;
+                                        US7::US7_ClassKnown(v44)
+                                    } else {
+                                        US7::US7_ClassUnknown
+                                    }
                                 }
                             }
                         }

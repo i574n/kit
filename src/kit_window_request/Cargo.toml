@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "request.spi"
+output = "request.rs"
+
+[package]
+name = "kit-window-request"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_window_request"
+path = "request.rs"
+
+[dependencies]
+kit-window-admission = { path = "../kit_window_admission" }

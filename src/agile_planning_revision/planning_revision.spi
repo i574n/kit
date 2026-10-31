@@ -32,7 +32,7 @@
     (~state : string) (~id : string) (~field_name : string) (~original : string) (~updated : string) (started : u64)
     : i32
     =
-    ?= replace_file_checked state updated ?|
+    ?= replace_records_unchanged state original updated ?|
     | Replaced =>
         := head = "kit agile edit ok id=" ++# id ++# " field=" ++# field_name ++# " "
         stdout_line (head ++# (planning_summary updated id) ++# (

@@ -2,10 +2,10 @@
 :< kit_do_model.model
 :< program
 
-:= record_separator () : string = $'std::rc::Rc::<str>::from(char::from(30u8).to_string())' : string
+:= record_separator () : string = sm'.char_text 30u8
 := separator_free (~text : string) : bool = $'\!!text.contains(char::from(30u8)) && \
     \!!text.contains(char::from(31u8))' : bool
-:~ decimal_text (~value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:~ decimal_text (~value : u64) : string = sm'.decimal_text value
 
 :~ fields (~a : string) (~b : string) (~c : string) (~d : string) (~e : string) : string =
     $'std::rc::Rc::<str>::from([&*!a, &*!b, &*!c, &*!d, &*!e].join(&char::from(31u8).to_string()))' : string

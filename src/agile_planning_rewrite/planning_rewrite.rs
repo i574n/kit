@@ -195,34 +195,34 @@ fn planning_tokens_of_3(mut v0: Rc<str>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>, 
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
     let mut v6: i32 = 0i32;
-    let v7: i32 = declared_from_4(v0.clone(), v5.clone(), v6);
+    let v7: i32 = declared_from_4(v0.clone(), v5, v6);
     let v8: bool = v7 < 0i32;
     let (mut v29, mut v30, mut v31): (Rc<str>, Rc<str>, Rc<str>) = if v8 {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Unestimated"); } LIT.with(|lit| lit.clone()) };
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("LoadUnset"); } LIT.with(|lit| lit.clone()) };
         let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Unassigned"); } LIT.with(|lit| lit.clone()) };
-        (v9.clone(), v10.clone(), v11.clone())
+        (v9, v10, v11)
     } else {
         let v12: i32 = v7.wrapping_add(10i32);
         let v13: i32 = (v0.clone().len() as i32);
         let v14: i32 = 1i32;
         let v15: i32 = field_start_5(v0.clone(), v12, v13, v14);
         let v16: US1 = US1::US1_ScanPlain;
-        let mut v17: i32 = field_end_6(v0.clone(), v15, v13, v16.clone());
+        let mut v17: i32 = field_end_6(v0.clone(), v15, v13, v16);
         let v18: Rc<str> = std::rc::Rc::<str>::from(v0.get(v15 as usize..v17 as usize).unwrap_or(""));
         let v19: i32 = 2i32;
         let v20: i32 = field_start_5(v0.clone(), v12, v13, v19);
         let v21: US1 = US1::US1_ScanPlain;
-        let v22: i32 = field_end_6(v0.clone(), v20, v13, v21.clone());
+        let v22: i32 = field_end_6(v0.clone(), v20, v13, v21);
         let v23: Rc<str> = std::rc::Rc::<str>::from(v0.get(v20 as usize..v22 as usize).unwrap_or(""));
         let v24: i32 = 3i32;
         let v25: i32 = field_start_5(v0.clone(), v12, v13, v24);
         let v26: US1 = US1::US1_ScanPlain;
-        let v27: i32 = field_end_6(v0.clone(), v25, v13, v26.clone());
+        let v27: i32 = field_end_6(v0.clone(), v25, v13, v26);
         let v28: Rc<str> = std::rc::Rc::<str>::from(v0.get(v25 as usize..v27 as usize).unwrap_or(""));
-        (v18.clone(), v23.clone(), v28.clone())
+        (v18, v23, v28)
     };
-    (v29.clone(), v30.clone(), v31.clone())
+    (v29, v30, v31)
 }
 fn planning_row_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> Rc<str> {
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
@@ -258,7 +258,7 @@ fn planning_row_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<
     let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v33, Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v1, v32)), v2)), v32)), v3))));
     let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
     let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v39));
-    v40.clone()
+    v40
 }
 fn planning_upserted_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> US2 {
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task (\""); } LIT.with(|lit| lit.clone()) };
@@ -316,7 +316,7 @@ fn planning_upserted_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3
 }
 fn field_token_rewrite_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: US0, mut v3: Rc<str>) -> (i32, Rc<str>) {
     let mut v4: Rc<str> = planning_schema_ensured_2(v0.clone());
-    let (mut v5, mut v6, mut v7): (Rc<str>, Rc<str>, Rc<str>) = planning_tokens_of_3(v0.clone(), v1.clone());
+    let (mut v5, mut v6, mut v7): (Rc<str>, Rc<str>, Rc<str>) = planning_tokens_of_3(v0, v1.clone());
     let (mut v14, mut v15, mut v16): (Rc<str>, Rc<str>, Rc<str>) = match &v2 {
         US0::US0_FieldEstimate => {
             (v3.clone(), v6.clone(), v7.clone())
@@ -324,30 +324,30 @@ fn field_token_rewrite_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: US0, mut v3: 
         _ => {
             let (mut v11, mut v12, mut v13): (Rc<str>, Rc<str>, Rc<str>) = match &v2 {
                 US0::US0_FieldLoad => {
-                    (v5.clone(), v3.clone(), v7.clone())
+                    (v5.clone(), v3.clone(), v7)
                 }
                 _ => {
                     let (mut v8, mut v9, mut v10): (Rc<str>, Rc<str>, Rc<str>) = match &v2 {
                         US0::US0_FieldAssignee => {
-                            (v5.clone(), v6.clone(), v3.clone())
+                            (v5, v6, v3)
                         }
                         _ => unreachable!(),
                     };
-                    (v8.clone(), v9.clone(), v10.clone())
+                    (v8, v9, v10)
                 }
             };
-            (v11.clone(), v12.clone(), v13.clone())
+            (v11, v12, v13)
         }
     };
-    let mut v17: US2 = planning_upserted_8(v4.clone(), v1.clone(), v14.clone(), v15.clone(), v16.clone());
+    let mut v17: US2 = planning_upserted_8(v4, v1, v14, v15, v16);
     match &v17 {
         US2::US2_Invalid => {
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no task with this id"); } LIT.with(|lit| lit.clone()) };
-            (2i32, v19.clone())
+            (2i32, v19)
         }
         US2::US2_Valid(v18) => {
             let v18: Rc<str> = v18.clone();
-            (0i32, v18.clone())
+            (0i32, v18)
         }
     }
 }
@@ -357,7 +357,7 @@ fn planning_rewrite_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3:
     let mut v6: bool = &*v2 == &*v5;
     let v10: US3 = if v6 {
         let v7: US0 = US0::US0_FieldEstimate;
-        US3::US3_Valid(v7.clone())
+        US3::US3_Valid(v7)
     } else {
         US3::US3_Invalid
     };
@@ -366,27 +366,27 @@ fn planning_rewrite_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3:
     let v13: bool = &*v2 == &*v12;
     let v16: US3 = if v13 {
         let v14: US0 = US0::US0_FieldLoad;
-        US3::US3_Valid(v14.clone())
+        US3::US3_Valid(v14)
     } else {
-        v10.clone()
+        v10
     };
     let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Assignee"); } LIT.with(|lit| lit.clone()) };
     let v18: Rc<str> = std::rc::Rc::<str>::from(v17.to_ascii_lowercase());
     let v19: bool = &*v2 == &*v18;
     let v22: US3 = if v19 {
         let v20: US0 = US0::US0_FieldAssignee;
-        US3::US3_Valid(v20.clone())
+        US3::US3_Valid(v20)
     } else {
-        v16.clone()
+        v16
     };
     match &v22 {
         US3::US3_Invalid => {
             let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("field must be estimate, load or assignee"); } LIT.with(|lit| lit.clone()) };
-            (1i32, v26.clone())
+            (1i32, v26)
         }
         US3::US3_Valid(v23) => {
             let v23: US0 = v23.clone();
-            field_token_rewrite_1(v0.clone(), v1.clone(), v23.clone(), v3.clone())
+            field_token_rewrite_1(v0, v1, v23, v3)
         }
     }
 }

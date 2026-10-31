@@ -64,6 +64,33 @@
 
 :~ unsettled_ids (text : string) : string = unsettled_from text 0i32 (byte_len text) ""
 
+:~ ^ done_from (text : string) (offset : i32) (length : i32) (~ids : string) : string =
+    := found = byte_find_from text (task_marker ()) offset
+    ? found < 0i32
+    ?> ids
+    |:
+        := arguments = (found + (task_arguments_offset ()))
+        := done = ? declared_task text found ?> ((tuple_field text arguments length 6i32) = "Done") |: !-
+        := id = tuple_field text arguments length 0i32
+        done_from text arguments length (? done ?> ids ++# (byte_slice id 1i32 (byte_len id - 1i32)) ++# "\n" |: ids)
+
+:~ done_ids (text : string) : string = done_from text 0i32 (byte_len text) ""
+
+:~ unmet_deps (~unsettled : string) (~deps : string) : string =
+    := known = "\n" ++# unsettled
+    := waiting = \ (dep : string) => dep <> "" && sm'.contains ("\n" ++# dep ++# "\n") known
+    sm'.split "," (sm'.replace " " "" deps)
+    |> array
+    |> am'.to_list'
+    |> listm'.filter' waiting
+    |> listm'.to_array'
+    |> array
+    |> sm'.concat_array ","
+
+:~ waits_column (~unsettled : string) (~deps : string) : string =
+    := unmet = unmet_deps unsettled deps
+    ? unmet = "" ?> "" |: "  waits " ++# unmet
+
 := main () : i32 =
     !!!!Export("kit_agile_status_counts", ((\ text => census_text text) : string -> string))
     !!!!Export("kit_agile_status_counts_json", ((\ text => census_json text) : string -> string))
@@ -76,4 +103,11 @@
     )
     := _ = task_status_of "" ""
     := _ = unsettled_ids ""
+    !!!!Export("kit_agile_done_ids", ((\ text => done_ids text) : string -> string))
+    := _ = done_ids ""
+    !!!!Export(
+        "kit_agile_waits_column",
+        ((\ (unsettled, deps) => waits_column unsettled deps) : string * string -> string)
+    )
+    := _ = waits_column "" ""
     0i32

@@ -55,11 +55,11 @@ fn receipt_line_3(mut v0: US1, mut v1: Rc<str>, mut v2: u64) -> () {
     let mut v6: Rc<str> = match &v0 {
         US1::US1_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US1::US1_Succeeded => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
@@ -77,7 +77,7 @@ fn rejected_2(mut v0: Rc<str>, mut v1: u64) -> i32 {
     println!("{}", v3);
     let v4: US1 = US1::US1_Failed;
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files 0  replacements 0"); } LIT.with(|lit| lit.clone()) };
-    receipt_line_3(v4.clone(), v5.clone(), v1);
+    receipt_line_3(v4, v5, v1);
     2i32
 }
 fn delegated_run_7(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
@@ -125,26 +125,30 @@ fn dry_headed_9(mut v0: Rc<str>) -> Rc<str> {
     let mut v6: Rc<str> = Rc::<str>::from(&(v0)[v3..v5]);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dry"); } LIT.with(|lit| lit.clone()) };
     let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v6));
-    v8.clone()
+    v8
 }
 fn previewed_run_8(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> i32 {
     match &v0 {
         US2::US2_Edits => {
             let v4: US2 = US2::US2_Edits;
             let v5: Rc<str> = dry_headed_9(v2.clone());
-            delegated_run_7(v4.clone(), v1.clone(), v5.clone())
+            delegated_run_7(v4, v1.clone(), v5)
         }
         US2::US2_Facts => {
             let v9: US2 = US2::US2_Facts;
-            delegated_run_7(v9.clone(), v1.clone(), v2.clone())
+            delegated_run_7(v9, v1.clone(), v2.clone())
         }
         US2::US2_Reads => {
             let v7: US2 = US2::US2_Reads;
-            delegated_run_7(v7.clone(), v1.clone(), v2.clone())
+            delegated_run_7(v7, v1.clone(), v2.clone())
+        }
+        US2::US2_Writes => {
+            let v11: i32 = kit_do_file_steps::kit_do_writes_preview(&*v1, &*v2);
+            v11
         }
         _ => {
-            let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--dry-run covers edit, read and fact programs; this one writes, runs or changes state"); } LIT.with(|lit| lit.clone()) };
-            rejected_2(v11.clone(), v3)
+            let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--dry-run previews edits, reads, facts and appends; this one runs or changes state"); } LIT.with(|lit| lit.clone()) };
+            rejected_2(v12, v3)
         }
     }
 }
@@ -348,18 +352,18 @@ fn argument_20(mut v0: i32) -> Rc<str> {
     };
     let v9: US5 = if v5 {
         let mut v6: Rc<str> = command_line_argument_21(v1);
-        US5::US5_Some(v6.clone())
+        US5::US5_Some(v6)
     } else {
         US5::US5_None
     };
     match &v9 {
         US5::US5_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US5::US5_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -381,7 +385,7 @@ fn lines_joined_24(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         } else {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v4)), v1));
-            v6.clone()
+            v6
         }
     }
 }

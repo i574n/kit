@@ -1,0 +1,3 @@
+:= main () : i32 =
+    !!!!Export("kit_command_more_usages", ((\ () => command_spec_domain.model.command_more_usages ()) : () -> string))
+    0i32

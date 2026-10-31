@@ -1,0 +1,66 @@
+///- --package .
+:# schedule static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| schedule_verdict =
+    | ScheduleDue
+    | ScheduleWaits : u64
+
+:| schedule_request =
+    | AskDue : string * u64
+    | MarkRan : string
+    | ListSchedules
+    | ScheduleUsage
+
+:= verdict_of (last : option u64) (now : u64) (period : u64) : schedule_verdict =
+    ?= last ?|
+    | Some at => ? now >= at + period ?> ScheduleDue |: ScheduleWaits (at + period - now)
+    | None => ScheduleDue
+
+:= path_characters () : list string = [ "\\"; "/"; ":"; "."; "*"; "?"; "\""; "<"; ">"; "|"; " " ]
+
+:= name_allowed (name : string) : bool =
+    := clean =
+        (!+, path_characters ())
+        ||> listm.fold \ acc part =>
+            acc && not (sm'.contains part name)
+    sm'.length name > 0i32 && sm'.length name <= 64i32 && clean
+
+:= request_of (words : list string) : schedule_request =
+    ?= words ?|
+    | [ "due"; name; minutes ] =>
+        ?= convert.try_convert minutes ?|
+        | Some (count : u64) => ? name_allowed name && count > 0u64 ?> AskDue (name, count * 60000u64) |: ScheduleUsage
+        | None => ScheduleUsage
+    | [ "ran"; name ] => ? name_allowed name ?> MarkRan name |: ScheduleUsage
+    | [ "list" ] => ListSchedules
+    | _ => ScheduleUsage
+
+:= verdict_line (name : string) (verdict : schedule_verdict) : string =
+    ?= verdict ?|
+    | ScheduleDue => "kit schedule due ok name=" ++# name ++# " due=yes"
+    | ScheduleWaits left => "kit schedule due ok name=" ++# name ++# " due=no next_in_s=" ++# sm'.show (left / 1000u64)
+
+:= usage () : string =
+    "kit schedule: due <name> <minutes> (exit 0 when due, 1 when not) | ran <name> | list (a name has no path "
+    ^^ "characters; stamps under KIT_SCHEDULES_HOME, else LOCALAPPDATA\\kit\\schedules; never a relative folder)"
+
+///> rust
+:# a_schedule_is_due_when_unstamped_or_its_period_passed =
+    ? verdict_of None 5000u64 60000u64 = ScheduleDue ?> () |: failwith "never ran"
+    ? verdict_of (Some 1000u64) 61000u64 60000u64 = ScheduleDue ?> () |: failwith "exactly one period later"
+    ? verdict_of (Some 1000u64) 31000u64 60000u64 = ScheduleWaits 30000u64 ?> () |: failwith "half a period later"
+    ? verdict_line "mirror" (ScheduleWaits 30500u64) = "kit schedule due ok name=mirror due=no next_in_s=30" ?> ()
+    |: failwith "waits line"
+
+///> rust
+:# requests_are_typed_and_names_stay_inside_the_stamp_folder =
+    ? request_of [ "due"; "profile-mirror"; "60" ] = AskDue ("profile-mirror", 3600000u64) ?> () |: failwith "due"
+    ? request_of [ "ran"; "profile-mirror" ] = MarkRan "profile-mirror" ?> () |: failwith "ran"
+    ? request_of [ "list" ] = ListSchedules ?> () |: failwith "list"
+    ? request_of [ "due"; "../x"; "60" ] = ScheduleUsage ?> () |: failwith "a path is not a name"
+    ? request_of [ "due"; "mirror"; "0" ] = ScheduleUsage ?> () |: failwith "a zero period"
+    ? request_of [ "due"; "mirror"; "soon" ] = ScheduleUsage ?> () |: failwith "minutes must be a number"
+    ? request_of [ "ran"; "" ] = ScheduleUsage ?> () |: failwith "an empty name"

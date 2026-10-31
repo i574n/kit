@@ -17,5 +17,7 @@ path = "windows.rs"
 kit-window-run = { path = "../kit_window_run" }
 kit-window-query = { path = "../kit_window_query" }
 kit-window-claim = { path = "../kit_window_claim" }
+kit-window-request = { path = "../kit_window_request" }
 kit-window-wait = { path = "../kit_window_wait" }
 kit-window-admission = { path = "../kit_window_admission" }
+kit-remote-status = { path = "../kit_remote_status" }

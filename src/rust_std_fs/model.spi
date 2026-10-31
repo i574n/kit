@@ -1,3 +1,16 @@
+:= file_byte_size (~path : string) : u64 = $'std::fs::metadata(&*!path).map(|metadata| metadata.len()).unwrap_or(0)' : u64
+
+:= file_modified_ms (~path : string) : u64 =
+    $'std::fs::metadata(&*!path).and_then(|metadata| metadata.modified()).ok().and_then(|time| \
+        time.duration_since(std::time::UNIX_EPOCH).ok()).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0)' : u64
+
+:= spiral_sibling_of (~path : string) : bool = $'std::path::Path::new(&*!path).with_extension("spi").is_file()' : bool
+
+:= scan_text_of (~path : string) : bool * string =
+    $'match std::fs::read(&*!path) { Ok(bytes) => (bytes.contains(&0u8), \
+        std::rc::Rc::<str>::from(String::from_utf8_lossy(&bytes).as_ref())), Err(_) => (true, \
+        std::rc::Rc::<str>::from("")) }' : bool * string
+
 := write_text (path : string) (text : string) : bool =
     $'std::fs::write(&*!path, &*!text).is_ok()' : bool
 
@@ -9,6 +22,17 @@
 
 := text_equals (expected : string) (path : string) : bool =
     $'std::fs::read_to_string(&*!path).is_ok_and(|value| value == *!expected)' : bool
+
+:= write_problem (path : string) (text : string) : string =
+    $'std::fs::write(&*!path, &*!text).err().map(|error| error.to_string()).unwrap_or_default().into()' : string
+
+:= joined_path (root : string) (path : string) : string =
+    $'std::path::Path::new(&*!root).join(&*!path).display().to_string().into()' : string
+
+:= hidden_sibling (path : string) (suffix : string) : string =
+    $'std::path::Path::new(&*!path).with_file_name(format\!(".{}{}", std::path::Path::new(&*!path).file_name()\
+        .map(|name| name.to_string_lossy().into_owned()).unwrap_or_default(), &*!suffix)).display().to_string().into()'
+    : string
 
 := file_exists (path : string) : bool =
     $'std::path::Path::new(&*!path).is_file()' : bool

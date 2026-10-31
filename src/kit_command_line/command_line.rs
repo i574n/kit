@@ -142,24 +142,24 @@ fn word_needs_shell_9(mut v0: US0) -> bool {
             let mut v2: bool = cfg!(windows);
             let v5: Rc<str> = if v2 {
                 let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|&<>^%()\n"); } LIT.with(|lit| lit.clone()) };
-                v3.clone()
+                v3
             } else {
                 let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|&<>;$`*?~(){}[]'\"\\\n"); } LIT.with(|lit| lit.clone()) };
-                v4.clone()
+                v4
             };
-            any_letter_of_10(v1.clone(), v5.clone())
+            any_letter_of_10(v1, v5)
         }
         US0::US0_Quoted(v7) => {
             let v7: Rc<str> = v7.clone();
             let v8: bool = cfg!(windows);
             let v11: Rc<str> = if v8 {
                 let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("%\"\n"); } LIT.with(|lit| lit.clone()) };
-                v9.clone()
+                v9
             } else {
                 let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$`\"\\\n"); } LIT.with(|lit| lit.clone()) };
-                v10.clone()
+                v10
             };
-            any_letter_of_10(v7.clone(), v11.clone())
+            any_letter_of_10(v7, v11)
         }
     }
 }
@@ -215,7 +215,7 @@ fn get_environment_variable_16(mut v0: Rc<str>) -> Rc<str> {
 }
 fn pathext_15() -> Rc<str> {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("PATHEXT"); } LIT.with(|lit| lit.clone()) };
-    get_environment_variable_16(v0.clone())
+    get_environment_variable_16(v0)
 }
 fn first_line_18(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).split(char::from(10u8)).next().unwrap_or(""));
@@ -535,11 +535,11 @@ fn launch_parts_of_6(mut v0: Rc<str>, mut v1: Rc<UH0>) -> (Rc<str>, Rc<str>) {
 fn launch_argv_of_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: i32 = 0i32;
     let v3: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMoreWords); } CASE.with(|case| case.clone()) };
-    let v4: Rc<UH0> = words_scanned_1(v1.clone(), v2, v3.clone());
+    let v4: Rc<UH0> = words_scanned_1(v1, v2, v3);
     let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMoreWords); } CASE.with(|case| case.clone()) };
-    let mut v6: Rc<UH0> = words_flipped_5(v4.clone(), v5.clone());
-    let (mut v7, mut v8): (Rc<str>, Rc<str>) = launch_parts_of_6(v0.clone(), v6.clone());
-    v7.clone()
+    let mut v6: Rc<UH0> = words_flipped_5(v4, v5);
+    let (mut v7, mut v8): (Rc<str>, Rc<str>) = launch_parts_of_6(v0, v6);
+    v7
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
@@ -549,11 +549,11 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
 fn shell_line_of_24(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: i32 = 0i32;
     let v3: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMoreWords); } CASE.with(|case| case.clone()) };
-    let v4: Rc<UH0> = words_scanned_1(v1.clone(), v2, v3.clone());
+    let v4: Rc<UH0> = words_scanned_1(v1, v2, v3);
     let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMoreWords); } CASE.with(|case| case.clone()) };
-    let mut v6: Rc<UH0> = words_flipped_5(v4.clone(), v5.clone());
-    let (mut v7, mut v8): (Rc<str>, Rc<str>) = launch_parts_of_6(v0.clone(), v6.clone());
-    v8.clone()
+    let mut v6: Rc<UH0> = words_flipped_5(v4, v5);
+    let (mut v7, mut v8): (Rc<str>, Rc<str>) = launch_parts_of_6(v0, v6);
+    v8
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {

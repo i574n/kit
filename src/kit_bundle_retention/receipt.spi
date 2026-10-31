@@ -15,8 +15,7 @@
     | PlannedReceipt => "RetentionDryRun"
     | AppliedReceipt => "RetentionApplied"
 
-:= decimal (~value : u64) : string =
-    $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= decimal (~value : u64) : string = sm'.decimal_text value
 
 := receipt_schema () : string =
     """

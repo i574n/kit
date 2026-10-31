@@ -17,3 +17,5 @@ path = "task_notes.rs"
 kit-agile-records = { path = "../kit_agile_records" }
 agile-planning-values = { path = "../agile_planning_values" }
 agile-planning-rewrite = { path = "../agile_planning_rewrite" }
+agile-note-listing = { path = "../agile_note_listing" }
+agile-note-segments = { path = "../agile_note_segments" }

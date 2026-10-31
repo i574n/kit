@@ -16,7 +16,8 @@
 
 := table_usage () : string =
     "table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] "
-    ^^ "[--group col] [--mean|--sd|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> "
+    ^^ "[--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | "
+    ^^ "table diff <left> "
     ^^ "<right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"
 
 :== table_request =
@@ -71,7 +72,7 @@
     ?> StepTaken { request ?| group = value }
     |? name = "--key"
     ?> StepTaken { request ?| key = value }
-    |? pipe_member "--mean|--sd|--sum|--min|--max|--count" name
+    |? pipe_member "--mean|--sd|--median|--sum|--min|--max|--count" name
     ?>
         StepTaken { request ?|
             measured =

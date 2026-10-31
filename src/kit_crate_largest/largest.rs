@@ -223,18 +223,18 @@ fn method9(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_8(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method9(v2.clone(), v3.clone());
+    method9(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn largest_text_0(mut v0: Rc<str>) -> Rc<str> {
-    let (mut v1, mut v2): (Rc<str>, i32) = largest_function_of_1(v0.clone());
+    let (mut v1, mut v2): (Rc<str>, i32) = largest_function_of_1(v0);
     let v3: bool = &*v1 == "";
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v4.clone()
+        v4
     } else {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" largest "); } LIT.with(|lit| lit.clone()) };
         let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v1));
@@ -242,7 +242,7 @@ fn largest_text_0(mut v0: Rc<str>) -> Rc<str> {
         let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
         let v9: Rc<str> = format_real_8(v2);
         let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v9));
-        v10.clone()
+        v10
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {

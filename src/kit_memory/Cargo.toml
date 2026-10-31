@@ -14,5 +14,6 @@ name = "kit_memory"
 path = "memory.rs"
 
 [dependencies]
+kit-memory-save = { path = "../kit_memory_save" }
 kit-memory-query = { path = "../kit_memory_query" }
 kit-memory-import = { path = "../kit_memory_import" }

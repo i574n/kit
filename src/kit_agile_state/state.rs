@@ -194,6 +194,7 @@ fn agile_begin_from_args(args: Vec<String>) -> Result<(), String> {
         agile_attest_known_mutation(root, &state, None)
     })();
     if let Err(error) = validate {
+        if agile_read_regular_text_limited(&state, 64 * 1024 * 1024).ok().as_deref() != Some(source.as_str()) { return Err(format!("prompt lease not rolled back: another writer changed state/prompt.spi meanwhile, and their write is kept: {error}")); }
         if let Some(original) = original { agile_atomic_write(&state, &original)?; } else { let _ = fs::remove_file(&state); }
         return Err(format!("prompt lease rolled back: {error}"));
     }
@@ -221,6 +222,7 @@ fn agile_set_from_args(args: Vec<String>, progress: i32, status_code: i32) -> Re
                 let end = line.rfind(')').ok_or_else(|| "malformed Task terminator".to_owned())?;
                 let mut parts = agile_tuple_fields(&line[start..end])?;
                 if kit_agile_task_identity_binding(parts.len() as i32, 1) != 1 { return Err(format!("Task {id} has a shape rejected by the typed Spiral policy: fields={}", parts.len())); }
+                if parts[6] == "Done" && status != "Done" && env::var("KIT_AGILE_REOPEN").ok().as_deref() != Some("1") { return Err(format!("{id} is Done; nothing written. Reopening needs KIT_AGILE_REOPEN=1 (a stale script replaying old values cannot revert a closure)")); }
                 parts[5] = format!("{progress}u32");
                 parts[6] = status.to_owned();
                 let prompt_id = env::var("KIT_PROMPT_ID").unwrap_or_else(|_| "current".to_owned());
@@ -233,6 +235,7 @@ fn agile_set_from_args(args: Vec<String>, progress: i32, status_code: i32) -> Re
     }
     if !found { return Err(format!("agile task not found: {id}")); }
     let updated = format!("{}\n", lines.join("\n"));
+    if agile_read_regular_text_limited(&state, 64 * 1024 * 1024)? != original { return Err("state/agile.spi changed since it was read; nothing written, run the call again".to_owned()); }
     agile_atomic_write(&state, updated.as_bytes())?;
     let validate = (|| -> Result<(), String> {
         let observed = agile_read_regular_text_limited(&state, 64 * 1024 * 1024)?;
@@ -246,7 +249,10 @@ fn agile_set_from_args(args: Vec<String>, progress: i32, status_code: i32) -> Re
         if parts.get(5).map(String::as_str) != Some(expected_progress.as_str()) || parts.get(6).map(String::as_str) != Some(status) { return Err("agile update runtime validation mismatch".to_owned()); }
         agile_attest_known_mutation(root, &state, Some(original.as_bytes()))
     })();
-    if let Err(error) = validate { agile_atomic_write(&state, original.as_bytes())?; return Err(format!("agile update rolled back: {error}")); }
+    if let Err(error) = validate {
+        if agile_read_regular_text_limited(&state, 64 * 1024 * 1024).ok().as_deref() == Some(updated.as_str()) { agile_atomic_write(&state, original.as_bytes())?; return Err(format!("agile update rolled back: {error}")); }
+        return Err(format!("agile update not rolled back: another writer changed state/agile.spi meanwhile, and their write is kept: {error}"));
+    }
     println!("{}", agile_update_receipt::kit_agile_set_receipt_text(id, progress, status, original.len() as u64, updated.len() as u64, started));
     Ok(())
 }
@@ -331,6 +337,8 @@ fn agile_check_classified_from_args(args: Vec<String>) -> Result<(), String> {
     let record_ready = kit_agile_state_record_preflight_binding(record_mask, 0);
     if record_ready < 0 { return Err(format!("typed agile record preflight rejected mask={record_mask}")); }
     println!("{}", agile_record_catalog::kit_agile_record_catalog_text("v1", (record_required.len() - record_missing.len()) as i32, record_required.len() as i32, &record_missing.join(",")));
+    let gaps = agile_planning_gaps::kit_agile_planning_gaps_text(&std::fs::read_to_string(state_dir.join("agile.spi")).unwrap_or_default());
+    if !gaps.is_empty() { print!("{gaps}"); }
     let compiler_status = compiler.as_ref().map(|value| format!("available source={} fingerprint={} sha256={} path={}", value.source, value.fingerprint, value.sha256, value.path.display())).unwrap_or_else(|| "absent".to_owned());
     println!("kit agile check ok files={} skipped={skipped} transient={transient} runtime_attested={runtime_attested} build_attested={build_attested} build_batches={build_batches} validation=receipt-first compiler={compiler_status}", paths.len() + 1);
     Ok(())
@@ -397,7 +405,10 @@ fn agile_record_from_args(args: Vec<String>) -> Result<(), String> {
         if observed_sequence != sequence || observed_units != settled_units || observed_score != migration_score { return Err("series runtime validation mismatch".to_owned()); }
         agile_attest_known_mutation(root, &history_path, Some(original.as_bytes()))
     })();
-    if let Err(error) = validate { agile_atomic_write(&history_path, original.as_bytes())?; return Err(format!("series append rolled back: {error}")); }
+    if let Err(error) = validate {
+        if agile_read_regular_text_limited(&history_path, 64 * 1024 * 1024).ok().as_deref() == Some(updated.as_str()) { agile_atomic_write(&history_path, original.as_bytes())?; return Err(format!("series append rolled back: {error}")); }
+        return Err(format!("series append not rolled back: another writer changed the history meanwhile, and their write is kept: {error}"));
+    }
     println!("kit agile record ok sequence={sequence} units={settled_units} migration={migration_score}/1000 ratings_tag={ratings_tag} bench_tag={bench_tag} validation=runtime-attested compiler=not-required");
     Ok(())
 }

@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "shadows_run.spi"
+output = "shadows.rs"
+
+[package]
+name = "kit-lint-shadows"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_shadows"
+path = "shadows.rs"
+
+[dependencies]
+kit-lint-shadows-core = { path = "../kit_lint_shadows_core" }
+kit-lint-opens = { path = "../kit_lint_opens" }

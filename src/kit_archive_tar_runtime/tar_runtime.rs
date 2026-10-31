@@ -95,7 +95,7 @@ fn classify_archive_name_1(mut v0: Rc<str>) -> US0 {
     let v3: bool = v1.ends_with(&*v2);
     if v3 {
         let v4: US1 = US1::US1_ZipArchive;
-        US0::US0_Recognized(v4.clone())
+        US0::US0_Recognized(v4)
     } else {
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".tar.gz"); } LIT.with(|lit| lit.clone()) };
         let v7: bool = v1.ends_with(&*v6);
@@ -108,7 +108,7 @@ fn classify_archive_name_1(mut v0: Rc<str>) -> US0 {
         };
         if v10 {
             let v11: US1 = US1::US1_GzipTarArchive;
-            US0::US0_Recognized(v11.clone())
+            US0::US0_Recognized(v11)
         } else {
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".tar.xz"); } LIT.with(|lit| lit.clone()) };
             let v14: bool = v1.ends_with(&*v13);
@@ -121,7 +121,7 @@ fn classify_archive_name_1(mut v0: Rc<str>) -> US0 {
             };
             if v17 {
                 let v18: US1 = US1::US1_XzTarArchive;
-                US0::US0_Recognized(v18.clone())
+                US0::US0_Recognized(v18)
             } else {
                 let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".tar.bz2"); } LIT.with(|lit| lit.clone()) };
                 let v21: bool = v1.ends_with(&*v20);
@@ -141,13 +141,13 @@ fn classify_archive_name_1(mut v0: Rc<str>) -> US0 {
                 };
                 if v27 {
                     let v28: US1 = US1::US1_Bzip2TarArchive;
-                    US0::US0_Recognized(v28.clone())
+                    US0::US0_Recognized(v28)
                 } else {
                     let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".tar"); } LIT.with(|lit| lit.clone()) };
                     let v31: bool = v1.ends_with(&*v30);
                     if v31 {
                         let v32: US1 = US1::US1_TarArchive;
-                        US0::US0_Recognized(v32.clone())
+                        US0::US0_Recognized(v32)
                     } else {
                         US0::US0_Unsupported
                     }
@@ -190,36 +190,36 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn archive_classification_label_2(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = classify_archive_name_1(v0.clone());
+    let v1: US0 = classify_archive_name_1(v0);
     match &v1 {
         US0::US0_Recognized(v2) => {
             let v2: US1 = v2.clone();
             match &v2 {
                 US1::US1_Bzip2TarArchive => {
                     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tar.bz2"); } LIT.with(|lit| lit.clone()) };
-                    v7.clone()
+                    v7
                 }
                 US1::US1_GzipTarArchive => {
                     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tar.gz"); } LIT.with(|lit| lit.clone()) };
-                    v5.clone()
+                    v5
                 }
                 US1::US1_TarArchive => {
                     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tar"); } LIT.with(|lit| lit.clone()) };
-                    v4.clone()
+                    v4
                 }
                 US1::US1_XzTarArchive => {
                     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tar.xz"); } LIT.with(|lit| lit.clone()) };
-                    v6.clone()
+                    v6
                 }
                 US1::US1_ZipArchive => {
                     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("zip"); } LIT.with(|lit| lit.clone()) };
-                    v3.clone()
+                    v3
                 }
             }
         }
         US0::US0_Unsupported => {
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v13.clone()
+            v13
         }
     }
 }
@@ -340,7 +340,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> u64> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn octal_field_error_7(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: US2 = read_octal_field_4(v0.clone());
+    let v2: US2 = read_octal_field_4(v0);
     match &v2 {
         US2::US2_InvalidOctal(v3) => {
             let v3: Rc<str> = v3.clone();
@@ -348,11 +348,11 @@ fn octal_field_error_7(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
             let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v1));
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
             let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v5, v6)), v3));
-            v8.clone()
+            v8
         }
         _ => {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         }
     }
 }

@@ -34,7 +34,7 @@ fn number_shown_2(mut v0: f64) -> Rc<str> {
     v1
 }
 fn median_terms_0(mut v0: Rc<str>, mut v1: f64, mut v2: f64) -> Rc<str> {
-    let v3: f64 = median_of_1(v0.clone());
+    let v3: f64 = median_of_1(v0);
     let v4: bool = v3 >= v1;
     let v6: bool = if v4 {
         let v5: bool = v3 <= v2;
@@ -56,13 +56,13 @@ fn median_terms_0(mut v0: Rc<str>, mut v1: f64, mut v2: f64) -> Rc<str> {
     let v19: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v17, v16)), v15));
     let v22: Rc<str> = if v6 {
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" median_inside=yes"); } LIT.with(|lit| lit.clone()) };
-        v20.clone()
+        v20
     } else {
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" median_inside=no"); } LIT.with(|lit| lit.clone()) };
-        v21.clone()
+        v21
     };
     let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v22));
-    v23.clone()
+    v23
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, f64, f64) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, f64, f64) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: f64, mut v2: f64| -> Rc<str> {
@@ -448,10 +448,10 @@ fn t_terms_20(mut v0: f64, mut v1: f64, mut v2: f64, mut v3: f64, mut v4: f64, m
     let v16: bool = v3 < v6;
     let v19: Rc<str> = if v16 {
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" reject_h0=yes"); } LIT.with(|lit| lit.clone()) };
-        v17.clone()
+        v17
     } else {
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" reject_h0=no"); } LIT.with(|lit| lit.clone()) };
-        v18.clone()
+        v18
     };
     let v20: Rc<str> = number_shown_2(v3);
     let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v20));
@@ -464,7 +464,7 @@ fn t_terms_20(mut v0: f64, mut v1: f64, mut v2: f64, mut v3: f64, mut v4: f64, m
     let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
     let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) };
     let v32: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v21, Rc::<str>::from(format!("{}{}", v28, v29)))), v19));
-    v32.clone()
+    v32
 }
 fn welch_21(mut v0: f64, mut v1: f64, mut v2: f64, mut v3: f64, mut v4: f64, mut v5: f64, mut v6: f64) -> (f64, f64, f64, f64, f64, f64) {
     let v7: f64 = v2 / v0;
@@ -606,13 +606,13 @@ fn test_terms_4(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64,
             let v74: bool = v63 < v13;
             let v77: Rc<str> = if v74 {
                 let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" reject_h0=yes"); } LIT.with(|lit| lit.clone()) };
-                v75.clone()
+                v75
             } else {
                 let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" reject_h0=no"); } LIT.with(|lit| lit.clone()) };
-                v76.clone()
+                v76
             };
             let v79: Rc<str> = Rc::<str>::from(format!("{}{}", v70, Rc::<str>::from(format!("{}{}", v73, v77))));
-            v79.clone()
+            v79
         }
         US0::US0_BinomialBand => {
             let (mut v108, mut v109): (i32, i32) = binomial_band_9(v1, v11, v12);
@@ -645,20 +645,20 @@ fn test_terms_4(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64,
             let v133: Rc<str> = match &v129 {
                 US2::US2_BandFails => {
                     let v131: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fails"); } LIT.with(|lit| lit.clone()) };
-                    v131.clone()
+                    v131
                 }
                 US2::US2_BandHolds => {
                     let v130: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("holds"); } LIT.with(|lit| lit.clone()) };
-                    v130.clone()
+                    v130
                 }
             };
             let v134: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("] verdict="); } LIT.with(|lit| lit.clone()) };
             let v137: Rc<str> = Rc::<str>::from(format!("{}{}", v116, Rc::<str>::from(format!("{}{}", v123, Rc::<str>::from(format!("{}{}", v134, v133))))));
-            v137.clone()
+            v137
         }
         US0::US0_MedianBand => {
             let v107: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v107.clone()
+            v107
         }
         US0::US0_OneSampleT => {
             let (mut v40, mut v41, mut v42): (f64, f64, f64) = sample_of_11(v1, v2, v3, v4, v5);
@@ -674,7 +674,7 @@ fn test_terms_4(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64,
             let v59: Rc<str> = t_terms_20(v53, v54, v55, v56, v57, v58, v13);
             let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
             let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v49, Rc::<str>::from(format!("{}{}", v60, v59))));
-            v62.clone()
+            v62
         }
         US0::US0_WelchTwoSided => {
             let (mut v14, mut v15, mut v16): (f64, f64, f64) = sample_of_11(v1, v2, v3, v4, v5);
@@ -690,7 +690,7 @@ fn test_terms_4(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64,
             let (mut v32, mut v33, mut v34, mut v35, mut v36, mut v37): (f64, f64, f64, f64, f64, f64) = welch_21(v26, v27, v28, v29, v30, v31, v12);
             let v38: Rc<str> = t_terms_20(v32, v33, v34, v35, v36, v37, v13);
             let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v38));
-            v39.clone()
+            v39
         }
         US0::US0_WilsonBand => {
             let v80: f64 = v13 / 2.0f64;
@@ -720,13 +720,13 @@ fn test_terms_4(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64,
             let v101: Rc<str> = Rc::<str>::from(format!("{}{}", v99, v100));
             let v104: Rc<str> = if v87 {
                 let v102: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("] prediction_inside=yes"); } LIT.with(|lit| lit.clone()) };
-                v102.clone()
+                v102
             } else {
                 let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("] prediction_inside=no"); } LIT.with(|lit| lit.clone()) };
-                v103.clone()
+                v103
             };
             let v106: Rc<str> = Rc::<str>::from(format!("{}{}", v94, Rc::<str>::from(format!("{}{}", v101, v104))));
-            v106.clone()
+            v106
         }
     }
 }
@@ -770,15 +770,15 @@ fn test_of_27(mut v0: Rc<str>) -> US3 {
     }
 }
 fn terms_text_3(mut v0: Rc<str>, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64, mut v5: i32, mut v6: i32, mut v7: f64, mut v8: f64, mut v9: f64, mut v10: i32, mut v11: f64, mut v12: f64) -> Rc<str> {
-    let v13: US3 = test_of_27(v0.clone());
+    let v13: US3 = test_of_27(v0);
     match &v13 {
         US3::US3_TestKnown(v14) => {
             let v14: US0 = v14.clone();
-            test_terms_4(v14.clone(), v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
+            test_terms_4(v14, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
         }
         US3::US3_TestUnknown => {
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v16.clone()
+            v16
         }
     }
 }

@@ -9,7 +9,8 @@
 :< sm'_operators
 
 := planned_load_selected (~text : string) (~id : string) (~load : string) : bool =
-    $'agile_planning_filters::kit_agile_planning_selected(&*!text, &*!id, &*!load, "all")' : bool
+    := every = "all"
+    $'agile_planning_filters::kit_agile_planning_selected(&!text, &!id, &!load, &!every)' : bool
 
 :~ load_words (~loads : string) : array string = sm'.split "," loads |> array
 
@@ -25,10 +26,6 @@
 := right_aligned (~text : string) (width : i32) : string =
     $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); \
         std::rc::Rc::<str>::from(" ".repeat(filler) + &*text) }' : string
-:= clipped (~text : string) (width : i32) : string =
-    $'{ let text = !text; if text.chars().count() <= !width as usize { text } else { \
-        std::rc::Rc::<str>::from(text.chars().take((!width as usize).saturating_sub(3)).collect::<String>() + "...") \
-        } }' : string
 
 := progress_of (~token : string) : i32 = $'(!token).trim().trim_end_matches("u32").parse::<i32>().unwrap_or(0)' : i32
 
@@ -38,12 +35,13 @@
     {
         id = id
         title = unquoted (field 1i32)
+        kind = field 2i32
         priority = level_of (field 3i32)
         difficulty = level_of (field 4i32)
         status = field 6i32
         deps = unquoted (field 7i32)
         tags = unquoted (field 8i32)
-        estimate = $'agile_planning_fields::kit_agile_planning_minutes_near(&*!text, &*!id, !arguments)' : i32
+        estimate = $'agile_planning_fields::kit_agile_planning_minutes_near(&!text, &!id, !arguments)' : i32
         progress = progress_of (field 5i32)
     }
 
@@ -74,7 +72,7 @@
     rust_std_string.model.concat5 head middle
         "  unblocks="
         (padded (i32_text item.unblocks) 5i32)
-        (rust_std_string.model.concat5 "  " (clipped item.title 72i32) "" "" "")
+        (rust_std_string.model.concat5 "  " (sm'.clip 72i32 item.title) "" "" "")
 
 :~ ^ printed (role : rank_role) (list : ranked_list) (rank : i32) (limit : i32) : i32 =
     ?= list ?|

@@ -48,14 +48,14 @@ fn table_parsed_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
     let v6: i32 = 3i32;
     let v7: Rc<str> = body_at_6(v0.clone(), v1, v6);
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("by"); } LIT.with(|lit| lit.clone()) };
-    let v9: i32 = field_index_7(v0.clone(), v1, v8.clone());
+    let v9: i32 = field_index_7(v0.clone(), v1, v8);
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("on"); } LIT.with(|lit| lit.clone()) };
-    let v11: i32 = field_index_7(v0.clone(), v1, v10.clone());
+    let v11: i32 = field_index_7(v0.clone(), v1, v10);
     let v12: bool = &*v3 != "diff";
     if v12 {
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cannot share one program with diff yet; run it as its own call"); } LIT.with(|lit| lit.clone()) };
         let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v13));
-        US0::US0_TableRejected(v14.clone())
+        US0::US0_TableRejected(v14)
     } else {
         let v16: bool = &*v5 == "";
         let v18: bool = if v16 {
@@ -72,12 +72,12 @@ fn table_parsed_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
         };
         if v20 {
             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("diff: expected two tables"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_TableRejected(v21.clone())
+            US0::US0_TableRejected(v21)
         } else {
             let v23: bool = v9 < 0i32;
             if v23 {
                 let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("diff: expected by <key,...>"); } LIT.with(|lit| lit.clone()) };
-                US0::US0_TableRejected(v24.clone())
+                US0::US0_TableRejected(v24)
             } else {
                 let v26: i32 = v9.wrapping_add(1i32);
                 let v27: bool = v11 < 0i32;
@@ -89,19 +89,19 @@ fn table_parsed_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
                 let v29: Rc<str> = items_span_8(v0.clone(), v1, v26, v28);
                 let v34: Rc<str> = if v27 {
                     let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v30.clone()
+                    v30
                 } else {
                     let v31: i32 = v11.wrapping_add(1i32);
                     let v32: i32 = -1i32;
-                    items_span_8(v0.clone(), v1, v31, v32)
+                    items_span_8(v0, v1, v31, v32)
                 };
                 let v35: bool = &*v29 == "";
                 if v35 {
                     let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("by: expected a value after it"); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_TableRejected(v36.clone())
+                    US0::US0_TableRejected(v36)
                 } else {
-                    let v38: US1 = US1::US1_TablesDiffed(v5.clone(), v7.clone(), v29.clone(), v34.clone());
-                    US0::US0_TableParsed(v38.clone())
+                    let v38: US1 = US1::US1_TablesDiffed(v5, v7, v29, v34);
+                    US0::US0_TableParsed(v38)
                 }
             }
         }
@@ -141,7 +141,7 @@ fn first_rejection_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i3
 }
 fn empty_diff_tally_9() -> (Rc<str>, bool, u64, u64, u64, u64) {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), false, 0u64, 0u64, 0u64, 0u64)
+    (v0, false, 0u64, 0u64, 0u64, 0u64)
 }
 fn tables_diffed_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> {
     let v5: std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> = (|| -> std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> { let read = |path: &str| -> Result<(Vec<String>, Vec<Vec<String>>), String> { let text = std::fs::read_to_string(std::path::Path::new(&*v0).join(path)).map_err(|error| format!("{path}  unreadable: {error}"))?; let separator = if path.ends_with(".csv") { char::from(44u8) } else { char::from(9u8) }; let mut lines = text.lines(); let header = lines.next().unwrap_or("").split(separator).map(|cell| cell.trim().to_owned()).collect::<Vec<_>>(); Ok((header, lines.filter(|line| !line.trim().is_empty()).map(|line| line.split(separator).map(|cell| cell.trim().to_owned()).collect()).collect())) }; let fail = |message: String| std::rc::Rc::new((std::rc::Rc::<str>::from(message), [0, 0, 0, 0], true)); let (left_header, left_rows) = match read(&*v1) { Ok(table) => table, Err(message) => return fail(message) }; let (right_header, right_rows) = match read(&*v2) { Ok(table) => table, Err(message) => return fail(message) }; let keys = (&*v3).lines().filter(|key| !key.is_empty()).map(str::to_owned).collect::<Vec<_>>(); let mut columns = (&*v4).lines().filter(|column| !column.is_empty()).map(str::to_owned).collect::<Vec<_>>(); if columns.is_empty() { columns = left_header.iter().filter(|name| !keys.contains(name) && right_header.contains(name)).cloned().collect(); } let position = |header: &Vec<String>, name: &String| header.iter().position(|title| title == name); for name in keys.iter().chain(&columns) { if position(&left_header, name).is_none() || position(&right_header, name).is_none() { return fail(format!("diff: column {name} is not in both tables")); } } let key_of = |header: &Vec<String>, row: &Vec<String>| keys.iter().map(|name| row.get(position(header, name).unwrap()).cloned().unwrap_or_default()).collect::<Vec<_>>().join("|"); let cell = |header: &Vec<String>, row: &Vec<String>, name: &String| row.get(position(header, name).unwrap()).cloned().unwrap_or_default(); let mut changes: Vec<(String, String, String, String)> = Vec::new(); let mut changed = 0u64; let mut both = 0u64; let mut removed = Vec::new(); for row in &left_rows { let key = key_of(&left_header, row); match right_rows.iter().find(|other| key_of(&right_header, other) == key) { None => removed.push(key), Some(other) => { both += 1; let mut differs = false; for name in &columns { let (before, after) = (cell(&left_header, row, name), cell(&right_header, other, name)); if before != after { differs = true; changes.push((key.clone(), name.clone(), before, after)); } } if differs { changed += 1; } } } } let added = right_rows.iter().map(|row| key_of(&right_header, row)).filter(|key| !left_rows.iter().any(|row| &key_of(&left_header, row) == key)).collect::<Vec<_>>(); let key_width = changes.iter().map(|change| change.0.len()).chain(if added.is_empty() { None } else { Some(5) }).chain(if removed.is_empty() { None } else { Some(7) }).max().unwrap_or(0).max(3); let column_width = changes.iter().map(|change| change.1.len()).max().unwrap_or(0).max(6); let before_width = changes.iter().map(|change| change.2.len()).max().unwrap_or(0).max(1); let mut shown = vec![format!("{:<key_width$}  {:<column_width$}  {:<before_width$}  {}", "key", "column", "a", "b")]; for change in &changes { shown.push(format!("{:<key_width$}  {:<column_width$}  {:<before_width$}  {}", change.0, change.1, change.2, change.3).trim_end().to_owned()); } for key in &added { shown.push(format!("{:<key_width$}  {}", "added", key)); } for key in &removed { shown.push(format!("{:<key_width$}  {}", "removed", key)); } std::rc::Rc::new((std::rc::Rc::<str>::from(shown.join("
@@ -159,7 +159,7 @@ fn lines_joined_12(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         } else {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v4)), v1));
-            v6.clone()
+            v6
         }
     }
 }
@@ -246,7 +246,7 @@ fn receipt_counts_13(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
     let v23: u64 = v2.wrapping_sub(v5);
     let v24: Rc<str> = decimal_text_14(v23);
     let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v16, Rc::<str>::from(format!("{}{}", v22, v24))));
-    v26.clone()
+    v26
 }
 fn elapsed_text_16(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
@@ -265,11 +265,11 @@ fn receipt_line_15(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US2::US2_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US2::US2_Succeeded => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
@@ -283,14 +283,14 @@ fn receipt_line_15(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
 }
 fn tables_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v2: u64 = now_ms_1();
-    let v3: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1.clone());
+    let v3: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1);
     let v4: i32 = 1i32;
     let v5: Rc<str> = first_rejection_3(v3.clone(), v4);
     let v6: bool = &*v5 == "";
     if v6 {
         let v7: i32 = 1i32;
         let (mut v8, mut v9, mut v10, mut v11, mut v12, mut v13): (Rc<str>, bool, u64, u64, u64, u64) = empty_diff_tally_9();
-        let (mut v14, mut v15, mut v16, mut v17, mut v18, mut v19): (Rc<str>, bool, u64, u64, u64, u64) = tables_run_10(v0.clone(), v3.clone(), v7, v8.clone(), v9, v10, v11, v12, v13);
+        let (mut v14, mut v15, mut v16, mut v17, mut v18, mut v19): (Rc<str>, bool, u64, u64, u64, u64) = tables_run_10(v0, v3, v7, v8, v9, v10, v11, v12, v13);
         let v20: bool = &*v14 == "";
         if v20 {
             ()
@@ -301,12 +301,12 @@ fn tables_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v15 {
             let v21: US2 = US2::US2_Failed;
             let v22: Rc<str> = receipt_counts_13(v14.clone(), v15, v16, v17, v18, v19);
-            receipt_line_15(v21.clone(), v22.clone(), v2);
+            receipt_line_15(v21, v22, v2);
             1i32
         } else {
             let v23: US2 = US2::US2_Succeeded;
-            let v24: Rc<str> = receipt_counts_13(v14.clone(), v15, v16, v17, v18, v19);
-            receipt_line_15(v23.clone(), v24.clone(), v2);
+            let v24: Rc<str> = receipt_counts_13(v14, v15, v16, v17, v18, v19);
+            receipt_line_15(v23, v24, v2);
             0i32
         }
     } else {
@@ -315,7 +315,7 @@ fn tables_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         println!("{}", v27);
         let v28: US2 = US2::US2_Failed;
         let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rows a 0  b 0"); } LIT.with(|lit| lit.clone()) };
-        receipt_line_15(v28.clone(), v29.clone(), v2);
+        receipt_line_15(v28, v29, v2);
         2i32
     }
 }

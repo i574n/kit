@@ -1,0 +1,8 @@
+:< walk
+
+:= main () : i32 =
+    export "kit_do_walk_matching" (
+        (\ (root, target, include, exclude) => matching root target include exclude)
+        : string * string * string * string -> path_list
+    )
+    0i32

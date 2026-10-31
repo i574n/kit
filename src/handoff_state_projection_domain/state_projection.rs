@@ -12,7 +12,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
 }
 fn method2() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_1() -> Rc<str> {
     method2()
@@ -266,13 +266,13 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl active_codebase_readiness"); } LIT.with(|lit| lit.clone()) };
     let v3: i32 = 0i32;
     let v4: i32 = 29i32;
-    let v5: i32 = find_text_loop_3(v0.clone(), v2.clone(), v3, v1, v4);
+    let v5: i32 = find_text_loop_3(v0.clone(), v2, v3, v1, v4);
     let v6: bool = v5 == v1 ;
     let v16: Rc<str> = if v6 {
         codec_empty_1()
     } else {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v9: u8 = codec_runtime_char_5(v8.clone());
+        let v9: u8 = codec_runtime_char_5(v8);
         let v10: i32 = find_char_loop_6(v0.clone(), v5, v1, v9);
         let v11: bool = v5 == v10 ;
         if v11 {
@@ -280,7 +280,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
         } else {
             let v13: i32 = v10 - 1i32 ;
             let v14: Rc<str> = string_slice(&v0.clone(), v5 as i64, v13 as i64);
-            v14.clone()
+            v14
         }
     };
     let v17: i32 = (v16.clone().len() as i32);
@@ -303,7 +303,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
             } else {
                 let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
                 let v30: i32 = 3i32;
-                let v31: i32 = find_text_loop_3(v16.clone(), v29.clone(), v26, v17, v30);
+                let v31: i32 = find_text_loop_3(v16.clone(), v29, v26, v17, v30);
                 let v32: bool = v31 == v17 ;
                 if v32 {
                     codec_empty_1()
@@ -313,10 +313,10 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
                         codec_empty_1()
                     } else {
                         let v36: i32 = v31 - 1i32 ;
-                        let v37: Rc<str> = string_slice(&v16.clone(), v26 as i64, v36 as i64);
-                        v37.clone()
+                        let v37: Rc<str> = string_slice(&v16, v26 as i64, v36 as i64);
+                        v37
                     };
-                    codec_u64_decimal_normalize_8(v38.clone())
+                    codec_u64_decimal_normalize_8(v38)
                 }
             }
         }
@@ -324,13 +324,13 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
     let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl subjective_phase_ceiling"); } LIT.with(|lit| lit.clone()) };
     let v45: i32 = 0i32;
     let v46: i32 = 28i32;
-    let v47: i32 = find_text_loop_3(v0.clone(), v44.clone(), v45, v1, v46);
+    let v47: i32 = find_text_loop_3(v0.clone(), v44, v45, v1, v46);
     let v48: bool = v47 == v1 ;
     let v58: Rc<str> = if v48 {
         codec_empty_1()
     } else {
         let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v51: u8 = codec_runtime_char_5(v50.clone());
+        let v51: u8 = codec_runtime_char_5(v50);
         let v52: i32 = find_char_loop_6(v0.clone(), v47, v1, v51);
         let v53: bool = v47 == v52 ;
         if v53 {
@@ -338,7 +338,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
         } else {
             let v55: i32 = v52 - 1i32 ;
             let v56: Rc<str> = string_slice(&v0.clone(), v47 as i64, v55 as i64);
-            v56.clone()
+            v56
         }
     };
     let v59: i32 = (v58.clone().len() as i32);
@@ -361,7 +361,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
             } else {
                 let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
                 let v72: i32 = 3i32;
-                let v73: i32 = find_text_loop_3(v58.clone(), v71.clone(), v68, v59, v72);
+                let v73: i32 = find_text_loop_3(v58.clone(), v71, v68, v59, v72);
                 let v74: bool = v73 == v59 ;
                 if v74 {
                     codec_empty_1()
@@ -371,10 +371,10 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
                         codec_empty_1()
                     } else {
                         let v78: i32 = v73 - 1i32 ;
-                        let v79: Rc<str> = string_slice(&v58.clone(), v68 as i64, v78 as i64);
-                        v79.clone()
+                        let v79: Rc<str> = string_slice(&v58, v68 as i64, v78 as i64);
+                        v79
                     };
-                    codec_u64_decimal_normalize_8(v80.clone())
+                    codec_u64_decimal_normalize_8(v80)
                 }
             }
         }
@@ -382,13 +382,13 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
     let v86: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl active_coverage_attainment"); } LIT.with(|lit| lit.clone()) };
     let v87: i32 = 0i32;
     let v88: i32 = 30i32;
-    let v89: i32 = find_text_loop_3(v0.clone(), v86.clone(), v87, v1, v88);
+    let v89: i32 = find_text_loop_3(v0.clone(), v86, v87, v1, v88);
     let v90: bool = v89 == v1 ;
     let v100: Rc<str> = if v90 {
         codec_empty_1()
     } else {
         let v92: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v93: u8 = codec_runtime_char_5(v92.clone());
+        let v93: u8 = codec_runtime_char_5(v92);
         let v94: i32 = find_char_loop_6(v0.clone(), v89, v1, v93);
         let v95: bool = v89 == v94 ;
         if v95 {
@@ -396,7 +396,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
         } else {
             let v97: i32 = v94 - 1i32 ;
             let v98: Rc<str> = string_slice(&v0.clone(), v89 as i64, v97 as i64);
-            v98.clone()
+            v98
         }
     };
     let v101: i32 = (v100.clone().len() as i32);
@@ -419,7 +419,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
             } else {
                 let v113: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
                 let v114: i32 = 3i32;
-                let v115: i32 = find_text_loop_3(v100.clone(), v113.clone(), v110, v101, v114);
+                let v115: i32 = find_text_loop_3(v100.clone(), v113, v110, v101, v114);
                 let v116: bool = v115 == v101 ;
                 if v116 {
                     codec_empty_1()
@@ -429,10 +429,10 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
                         codec_empty_1()
                     } else {
                         let v120: i32 = v115 - 1i32 ;
-                        let v121: Rc<str> = string_slice(&v100.clone(), v110 as i64, v120 as i64);
-                        v121.clone()
+                        let v121: Rc<str> = string_slice(&v100, v110 as i64, v120 as i64);
+                        v121
                     };
-                    codec_u64_decimal_normalize_8(v122.clone())
+                    codec_u64_decimal_normalize_8(v122)
                 }
             }
         }
@@ -440,13 +440,13 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
     let v128: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl phase_runtime_drift"); } LIT.with(|lit| lit.clone()) };
     let v129: i32 = 0i32;
     let v130: i32 = 23i32;
-    let v131: i32 = find_text_loop_3(v0.clone(), v128.clone(), v129, v1, v130);
+    let v131: i32 = find_text_loop_3(v0.clone(), v128, v129, v1, v130);
     let v132: bool = v131 == v1 ;
     let v142: Rc<str> = if v132 {
         codec_empty_1()
     } else {
         let v134: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v135: u8 = codec_runtime_char_5(v134.clone());
+        let v135: u8 = codec_runtime_char_5(v134);
         let v136: i32 = find_char_loop_6(v0.clone(), v131, v1, v135);
         let v137: bool = v131 == v136 ;
         if v137 {
@@ -454,7 +454,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
         } else {
             let v139: i32 = v136 - 1i32 ;
             let v140: Rc<str> = string_slice(&v0.clone(), v131 as i64, v139 as i64);
-            v140.clone()
+            v140
         }
     };
     let v143: i32 = (v142.clone().len() as i32);
@@ -477,7 +477,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
             } else {
                 let v155: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
                 let v156: i32 = 3i32;
-                let v157: i32 = find_text_loop_3(v142.clone(), v155.clone(), v152, v143, v156);
+                let v157: i32 = find_text_loop_3(v142.clone(), v155, v152, v143, v156);
                 let v158: bool = v157 == v143 ;
                 if v158 {
                     codec_empty_1()
@@ -487,10 +487,10 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
                         codec_empty_1()
                     } else {
                         let v162: i32 = v157 - 1i32 ;
-                        let v163: Rc<str> = string_slice(&v142.clone(), v152 as i64, v162 as i64);
-                        v163.clone()
+                        let v163: Rc<str> = string_slice(&v142, v152 as i64, v162 as i64);
+                        v163
                     };
-                    codec_u64_decimal_normalize_8(v164.clone())
+                    codec_u64_decimal_normalize_8(v164)
                 }
             }
         }
@@ -498,13 +498,13 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
     let v170: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl phase_parallel_readiness"); } LIT.with(|lit| lit.clone()) };
     let v171: i32 = 0i32;
     let v172: i32 = 28i32;
-    let v173: i32 = find_text_loop_3(v0.clone(), v170.clone(), v171, v1, v172);
+    let v173: i32 = find_text_loop_3(v0.clone(), v170, v171, v1, v172);
     let v174: bool = v173 == v1 ;
     let v184: Rc<str> = if v174 {
         codec_empty_1()
     } else {
         let v176: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v177: u8 = codec_runtime_char_5(v176.clone());
+        let v177: u8 = codec_runtime_char_5(v176);
         let v178: i32 = find_char_loop_6(v0.clone(), v173, v1, v177);
         let v179: bool = v173 == v178 ;
         if v179 {
@@ -512,7 +512,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
         } else {
             let v181: i32 = v178 - 1i32 ;
             let v182: Rc<str> = string_slice(&v0.clone(), v173 as i64, v181 as i64);
-            v182.clone()
+            v182
         }
     };
     let v185: i32 = (v184.clone().len() as i32);
@@ -535,7 +535,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
             } else {
                 let v197: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
                 let v198: i32 = 3i32;
-                let v199: i32 = find_text_loop_3(v184.clone(), v197.clone(), v194, v185, v198);
+                let v199: i32 = find_text_loop_3(v184.clone(), v197, v194, v185, v198);
                 let v200: bool = v199 == v185 ;
                 if v200 {
                     codec_empty_1()
@@ -545,10 +545,10 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
                         codec_empty_1()
                     } else {
                         let v204: i32 = v199 - 1i32 ;
-                        let v205: Rc<str> = string_slice(&v184.clone(), v194 as i64, v204 as i64);
-                        v205.clone()
+                        let v205: Rc<str> = string_slice(&v184, v194 as i64, v204 as i64);
+                        v205
                     };
-                    codec_u64_decimal_normalize_8(v206.clone())
+                    codec_u64_decimal_normalize_8(v206)
                 }
             }
         }
@@ -556,13 +556,13 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
     let v212: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl phase_plan_ir"); } LIT.with(|lit| lit.clone()) };
     let v213: i32 = 0i32;
     let v214: i32 = 17i32;
-    let v215: i32 = find_text_loop_3(v0.clone(), v212.clone(), v213, v1, v214);
+    let v215: i32 = find_text_loop_3(v0.clone(), v212, v213, v1, v214);
     let v216: bool = v215 == v1 ;
     let v226: Rc<str> = if v216 {
         codec_empty_1()
     } else {
         let v218: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v219: u8 = codec_runtime_char_5(v218.clone());
+        let v219: u8 = codec_runtime_char_5(v218);
         let v220: i32 = find_char_loop_6(v0.clone(), v215, v1, v219);
         let v221: bool = v215 == v220 ;
         if v221 {
@@ -570,7 +570,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
         } else {
             let v223: i32 = v220 - 1i32 ;
             let v224: Rc<str> = string_slice(&v0.clone(), v215 as i64, v223 as i64);
-            v224.clone()
+            v224
         }
     };
     let v227: i32 = (v226.clone().len() as i32);
@@ -593,7 +593,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
             } else {
                 let v239: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
                 let v240: i32 = 3i32;
-                let v241: i32 = find_text_loop_3(v226.clone(), v239.clone(), v236, v227, v240);
+                let v241: i32 = find_text_loop_3(v226.clone(), v239, v236, v227, v240);
                 let v242: bool = v241 == v227 ;
                 if v242 {
                     codec_empty_1()
@@ -603,10 +603,10 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
                         codec_empty_1()
                     } else {
                         let v246: i32 = v241 - 1i32 ;
-                        let v247: Rc<str> = string_slice(&v226.clone(), v236 as i64, v246 as i64);
-                        v247.clone()
+                        let v247: Rc<str> = string_slice(&v226, v236 as i64, v246 as i64);
+                        v247
                     };
-                    codec_u64_decimal_normalize_8(v248.clone())
+                    codec_u64_decimal_normalize_8(v248)
                 }
             }
         }
@@ -614,21 +614,21 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
     let v254: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl migration ()"); } LIT.with(|lit| lit.clone()) };
     let v255: i32 = 0i32;
     let v256: i32 = 16i32;
-    let v257: i32 = find_text_loop_3(v0.clone(), v254.clone(), v255, v1, v256);
+    let v257: i32 = find_text_loop_3(v0.clone(), v254, v255, v1, v256);
     let v258: bool = v257 == v1 ;
     let v268: Rc<str> = if v258 {
         codec_empty_1()
     } else {
         let v260: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v261: u8 = codec_runtime_char_5(v260.clone());
+        let v261: u8 = codec_runtime_char_5(v260);
         let v262: i32 = find_char_loop_6(v0.clone(), v257, v1, v261);
         let v263: bool = v257 == v262 ;
         if v263 {
             codec_empty_1()
         } else {
             let v265: i32 = v262 - 1i32 ;
-            let v266: Rc<str> = string_slice(&v0.clone(), v257 as i64, v265 as i64);
-            v266.clone()
+            let v266: Rc<str> = string_slice(&v0, v257 as i64, v265 as i64);
+            v266
         }
     };
     let v269: i32 = (v268.clone().len() as i32);
@@ -651,7 +651,7 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
             } else {
                 let v281: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
                 let v282: i32 = 3i32;
-                let v283: i32 = find_text_loop_3(v268.clone(), v281.clone(), v278, v269, v282);
+                let v283: i32 = find_text_loop_3(v268.clone(), v281, v278, v269, v282);
                 let v284: bool = v283 == v269 ;
                 if v284 {
                     codec_empty_1()
@@ -661,10 +661,10 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
                         codec_empty_1()
                     } else {
                         let v288: i32 = v283 - 1i32 ;
-                        let v289: Rc<str> = string_slice(&v268.clone(), v278 as i64, v288 as i64);
-                        v289.clone()
+                        let v289: Rc<str> = string_slice(&v268, v278 as i64, v288 as i64);
+                        v289
                     };
-                    codec_u64_decimal_normalize_8(v290.clone())
+                    codec_u64_decimal_normalize_8(v290)
                 }
             }
         }
@@ -698,21 +698,21 @@ fn handoff_ratings_projection_0(mut v0: Rc<str>) -> Rc<str> {
                             if v309 {
                                 codec_empty_1()
                             } else {
-                                let v311: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("active_readiness="); } LIT.with(|lit| lit.clone()) }, v43.clone()));
-                                let v312: Rc<str> = Rc::<str>::from(format!("{}{}", v311.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 subjective_ceiling="); } LIT.with(|lit| lit.clone()) }));
-                                let v313: Rc<str> = Rc::<str>::from(format!("{}{}", v312.clone(), v85.clone()));
-                                let v314: Rc<str> = Rc::<str>::from(format!("{}{}", v313.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 coverage="); } LIT.with(|lit| lit.clone()) }));
-                                let v315: Rc<str> = Rc::<str>::from(format!("{}{}", v314.clone(), v127.clone()));
-                                let v316: Rc<str> = Rc::<str>::from(format!("{}{}", v315.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 runtime_drift="); } LIT.with(|lit| lit.clone()) }));
-                                let v317: Rc<str> = Rc::<str>::from(format!("{}{}", v316.clone(), v169.clone()));
-                                let v318: Rc<str> = Rc::<str>::from(format!("{}{}", v317.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 parallel_readiness="); } LIT.with(|lit| lit.clone()) }));
-                                let v319: Rc<str> = Rc::<str>::from(format!("{}{}", v318.clone(), v211.clone()));
-                                let v320: Rc<str> = Rc::<str>::from(format!("{}{}", v319.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 canonical_plan_ir="); } LIT.with(|lit| lit.clone()) }));
-                                let v321: Rc<str> = Rc::<str>::from(format!("{}{}", v320.clone(), v253.clone()));
-                                let v322: Rc<str> = Rc::<str>::from(format!("{}{}", v321.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 migration_historical="); } LIT.with(|lit| lit.clone()) }));
-                                let v323: Rc<str> = Rc::<str>::from(format!("{}{}", v322.clone(), v295.clone()));
-                                let v324: Rc<str> = Rc::<str>::from(format!("{}{}", v323.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000"); } LIT.with(|lit| lit.clone()) }));
-                                v324.clone()
+                                let v311: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("active_readiness="); } LIT.with(|lit| lit.clone()) }, v43));
+                                let v312: Rc<str> = Rc::<str>::from(format!("{}{}", v311, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 subjective_ceiling="); } LIT.with(|lit| lit.clone()) }));
+                                let v313: Rc<str> = Rc::<str>::from(format!("{}{}", v312, v85));
+                                let v314: Rc<str> = Rc::<str>::from(format!("{}{}", v313, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 coverage="); } LIT.with(|lit| lit.clone()) }));
+                                let v315: Rc<str> = Rc::<str>::from(format!("{}{}", v314, v127));
+                                let v316: Rc<str> = Rc::<str>::from(format!("{}{}", v315, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 runtime_drift="); } LIT.with(|lit| lit.clone()) }));
+                                let v317: Rc<str> = Rc::<str>::from(format!("{}{}", v316, v169));
+                                let v318: Rc<str> = Rc::<str>::from(format!("{}{}", v317, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 parallel_readiness="); } LIT.with(|lit| lit.clone()) }));
+                                let v319: Rc<str> = Rc::<str>::from(format!("{}{}", v318, v211));
+                                let v320: Rc<str> = Rc::<str>::from(format!("{}{}", v319, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 canonical_plan_ir="); } LIT.with(|lit| lit.clone()) }));
+                                let v321: Rc<str> = Rc::<str>::from(format!("{}{}", v320, v253));
+                                let v322: Rc<str> = Rc::<str>::from(format!("{}{}", v321, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000 migration_historical="); } LIT.with(|lit| lit.clone()) }));
+                                let v323: Rc<str> = Rc::<str>::from(format!("{}{}", v322, v295));
+                                let v324: Rc<str> = Rc::<str>::from(format!("{}{}", v323, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/1000"); } LIT.with(|lit| lit.clone()) }));
+                                v324
                             }
                         }
                     }
@@ -832,21 +832,21 @@ fn handoff_census_projection_10(mut v0: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("AuthorityCensus ("); } LIT.with(|lit| lit.clone()) };
     let v3: i32 = 0i32;
     let v4: i32 = 17i32;
-    let v5: i32 = find_text_loop_3(v0.clone(), v2.clone(), v3, v1, v4);
+    let v5: i32 = find_text_loop_3(v0.clone(), v2, v3, v1, v4);
     let v6: bool = v5 == v1 ;
     let v16: Rc<str> = if v6 {
         codec_empty_1()
     } else {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v9: u8 = codec_runtime_char_5(v8.clone());
+        let v9: u8 = codec_runtime_char_5(v8);
         let v10: i32 = find_char_loop_6(v0.clone(), v5, v1, v9);
         let v11: bool = v5 == v10 ;
         if v11 {
             codec_empty_1()
         } else {
             let v13: i32 = v10 - 1i32 ;
-            let v14: Rc<str> = string_slice(&v0.clone(), v5 as i64, v13 as i64);
-            v14.clone()
+            let v14: Rc<str> = string_slice(&v0, v5 as i64, v13 as i64);
+            v14
         }
     };
     let v17: i32 = (v16.clone().len() as i32);
@@ -857,7 +857,7 @@ fn handoff_census_projection_10(mut v0: Rc<str>) -> Rc<str> {
         let v20: i32 = 0i32;
         let v21: i32 = 0i32;
         let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        projection_census_loop_11(v16.clone(), v20, v17, v21, v22.clone())
+        projection_census_loop_11(v16, v20, v17, v21, v22)
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {

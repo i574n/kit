@@ -380,7 +380,7 @@ fn query_family_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
     let v4: bool = &*v3 == "files";
     let v8: bool = if v4 {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count"); } LIT.with(|lit| lit.clone()) };
-        let v6: i32 = field_index_6(v0.clone(), v1, v5.clone());
+        let v6: i32 = field_index_6(v0, v1, v5);
         let v7: bool = v6 >= 0i32;
         v7
     } else {
@@ -388,9 +388,9 @@ fn query_family_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
     };
     if v8 {
         let v9: US0 = US0::US0_Facts;
-        US1::US1_Some(v9.clone())
+        US1::US1_Some(v9)
     } else {
-        let v11: US2 = program_verb_named_7(v3.clone());
+        let v11: US2 = program_verb_named_7(v3);
         match &v11 {
             US2::US2_None => {
                 US1::US1_None
@@ -424,7 +424,7 @@ fn query_family_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
                         US0::US0_Writes
                     }
                 };
-                US1::US1_Some(v30.clone())
+                US1::US1_Some(v30)
             }
         }
     }
@@ -538,13 +538,13 @@ fn records_family_1(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>) -> US0 {
     let v6: US0 = US0::US0_Facts;
     let v7: US0 = US0::US0_Reads;
     let v8: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v9: Rc<UH0> = Rc::new(UH0::UH0_Cons(v7.clone(), v8.clone()));
-    let v10: Rc<UH0> = Rc::new(UH0::UH0_Cons(v6.clone(), v9.clone()));
-    let v11: Rc<UH0> = Rc::new(UH0::UH0_Cons(v5.clone(), v10.clone()));
-    let v12: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4.clone(), v11.clone()));
-    let v13: Rc<UH0> = Rc::new(UH0::UH0_Cons(v3.clone(), v12.clone()));
-    let v14: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v13.clone()));
-    let v15: Rc<UH0> = Rc::new(UH0::UH0_Cons(v1.clone(), v14.clone()));
+    let v9: Rc<UH0> = Rc::new(UH0::UH0_Cons(v7, v8));
+    let v10: Rc<UH0> = Rc::new(UH0::UH0_Cons(v6, v9));
+    let v11: Rc<UH0> = Rc::new(UH0::UH0_Cons(v5, v10));
+    let v12: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v11));
+    let v13: Rc<UH0> = Rc::new(UH0::UH0_Cons(v3, v12));
+    let v14: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2, v13));
+    let v15: Rc<UH0> = Rc::new(UH0::UH0_Cons(v1, v14));
     let v16: i32 = 1i32;
     let v17: bool = false;
     let v18: bool = false;
@@ -553,8 +553,8 @@ fn records_family_1(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>) -> US0 {
     let v21: bool = false;
     let v22: bool = false;
     let v23: bool = false;
-    let (mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30): (bool, bool, bool, bool, bool, bool, bool) = families_of_3(v0.clone(), v16, v17, v18, v19, v20, v21, v22, v23);
-    first_seen_2(v15.clone(), v24, v25, v26, v27, v28, v29, v30)
+    let (mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30): (bool, bool, bool, bool, bool, bool, bool) = families_of_3(v0, v16, v17, v18, v19, v20, v21, v22, v23);
+    first_seen_2(v15, v24, v25, v26, v27, v28, v29, v30)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
@@ -597,11 +597,11 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn do_verb_family_12(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US2 = program_verb_named_7(v0.clone());
+    let v1: US2 = program_verb_named_7(v0);
     match &v1 {
         US2::US2_None => {
             let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v37.clone()
+            v37
         }
         US2::US2_Some(v2) => {
             let v2: US3 = v2.clone();
@@ -635,35 +635,35 @@ fn do_verb_family_12(mut v0: Rc<str>) -> Rc<str> {
             match &v20 {
                 US0::US0_Edits => {
                     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edits"); } LIT.with(|lit| lit.clone()) };
-                    v21.clone()
+                    v21
                 }
                 US0::US0_Facts => {
                     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("facts"); } LIT.with(|lit| lit.clone()) };
-                    v23.clone()
+                    v23
                 }
                 US0::US0_Git => {
                     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("git"); } LIT.with(|lit| lit.clone()) };
-                    v26.clone()
+                    v26
                 }
                 US0::US0_Jobs => {
                     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("jobs"); } LIT.with(|lit| lit.clone()) };
-                    v27.clone()
+                    v27
                 }
                 US0::US0_Labs => {
                     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("labs"); } LIT.with(|lit| lit.clone()) };
-                    v28.clone()
+                    v28
                 }
                 US0::US0_Reads => {
                     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("reads"); } LIT.with(|lit| lit.clone()) };
-                    v22.clone()
+                    v22
                 }
                 US0::US0_Runs => {
                     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runs"); } LIT.with(|lit| lit.clone()) };
-                    v24.clone()
+                    v24
                 }
                 US0::US0_Writes => {
                     let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("writes"); } LIT.with(|lit| lit.clone()) };
-                    v25.clone()
+                    v25
                 }
             }
         }

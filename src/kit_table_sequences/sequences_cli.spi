@@ -88,3 +88,34 @@
         2i32
         "needs --time and a measure name"
     fixture_root_remove root
+
+///> rust
+:# counts_tally_set_members_per_section_and_name_headerless_files_by_the_file =
+    := root = fixture_root_create "table sequences counts"
+    fixture_write root "zone.txt" "10,10 protection-zone\n30,30 protection-zone\n99,99 floor-up\n"
+    fixture_write root
+        "model.trace"
+        "== run 1\nseen at 10,10: rat 20,20 rat 30,30\nseen at 11,11:\n== run 2\nseen at 50,50: rat 60,60\n"
+    fixture_write root "live.log" "seen at 30,30: rat 10,10\nnoise\n"
+    := knight_set = "knight=zone.txt:^(?<value>\\d+,\\d+) protection-zone$"
+    := monsters_set = "monsters=zone.txt:^(?<value>\\d+,\\d+) protection-zone$"
+    := run =
+        sequences_run root (Arg ("model.trace", Arg ("live.log", Arg ("--section-on", Arg ("^== (?<section>.*)$",
+            Arg ("--count", Arg ("samples=seen at ", Arg ("--count", Arg ("knight=seen at (?<value>\\d+,\\d+):",
+            Arg ("--in-set", Arg (knight_set, Arg ("--count", Arg ("monsters= (?<value>\\d+,\\d+)",
+            Arg ("--count-in", Arg ("monsters=seen at \\d+,\\d+:(?<rest>.*)$", Arg ("--in-set",
+            Arg (monsters_set, NoArgs)))))))))))))))))
+    expect (run.code = 0i32) (run_text run)
+    same run.stdout "section\tsamples\tknight\tmonsters\nrun 1\t2\t1\t1\nrun 2\t1\t0\t0\nlive.log\t1\t1\t1\n"
+    shows run.stderr "kit table sequences ok files=2 sections=3 rows=3"
+    rejected_with
+        (sequences_run root (Arg ("live.log", Arg ("--count", Arg ("k=seen", Arg ("--in-set", Arg ("x=zone.txt",
+            NoArgs)))))))
+        2i32
+        "--in-set x names no --count column"
+    rejected_with
+        (sequences_run root (Arg ("live.log", Arg ("--count", Arg ("k=seen", Arg ("--in-set", Arg ("k=nope.txt",
+            NoArgs)))))))
+        2i32
+        "no such set file: nope.txt"
+    fixture_root_remove root

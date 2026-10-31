@@ -363,215 +363,215 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
 }
 fn habit_words_4(mut v0: Rc<str>) -> Rc<str> {
     let v1: US0 = US0::US0_GetContent;
-    let v2: bool = habit_in_1(v0.clone(), v1.clone());
+    let v2: bool = habit_in_1(v0.clone(), v1);
     let v9: Rc<str> = if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("get-content"); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("get-content"); } LIT.with(|lit| lit.clone()) };
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("get-content\n"); } LIT.with(|lit| lit.clone()) };
-        v7.clone()
+        v7
     } else {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v8.clone()
+        v8
     };
     let v10: US0 = US0::US0_SelectString;
-    let v11: bool = habit_in_1(v0.clone(), v10.clone());
+    let v11: bool = habit_in_1(v0.clone(), v10);
     let v16: Rc<str> = if v11 {
         let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("select-string"); } LIT.with(|lit| lit.clone()) };
         let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v12));
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
-        v15.clone()
+        v15
     } else {
-        v9.clone()
+        v9
     };
     let v17: US0 = US0::US0_GetChildItem;
-    let v18: bool = habit_in_1(v0.clone(), v17.clone());
+    let v18: bool = habit_in_1(v0.clone(), v17);
     let v23: Rc<str> = if v18 {
         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("get-childitem"); } LIT.with(|lit| lit.clone()) };
         let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v19));
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v21));
-        v22.clone()
+        v22
     } else {
-        v16.clone()
+        v16
     };
     let v24: US0 = US0::US0_SetContent;
-    let v25: bool = habit_in_1(v0.clone(), v24.clone());
+    let v25: bool = habit_in_1(v0.clone(), v24);
     let v30: Rc<str> = if v25 {
         let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("set-content"); } LIT.with(|lit| lit.clone()) };
         let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v26));
         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
-        v29.clone()
+        v29
     } else {
-        v23.clone()
+        v23
     };
     let v31: US0 = US0::US0_AddContent;
-    let v32: bool = habit_in_1(v0.clone(), v31.clone());
+    let v32: bool = habit_in_1(v0.clone(), v31);
     let mut v37: Rc<str> = if v32 {
         let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("add-content"); } LIT.with(|lit| lit.clone()) };
         let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v33));
         let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
-        v36.clone()
+        v36
     } else {
-        v30.clone()
+        v30
     };
     let mut v38: US0 = US0::US0_OutFile;
-    let v39: bool = habit_in_1(v0.clone(), v38.clone());
+    let v39: bool = habit_in_1(v0.clone(), v38);
     let v44: Rc<str> = if v39 {
         let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("out-file"); } LIT.with(|lit| lit.clone()) };
         let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v40));
         let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v42));
-        v43.clone()
+        v43
     } else {
-        v37.clone()
+        v37
     };
     let v45: US0 = US0::US0_ForEachObject;
-    let v46: bool = habit_in_1(v0.clone(), v45.clone());
+    let v46: bool = habit_in_1(v0.clone(), v45);
     let v51: Rc<str> = if v46 {
         let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("foreach-object"); } LIT.with(|lit| lit.clone()) };
         let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v47));
         let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v48, v49));
-        v50.clone()
+        v50
     } else {
-        v44.clone()
+        v44
     };
     let v52: US0 = US0::US0_MeasureObject;
-    let v53: bool = habit_in_1(v0.clone(), v52.clone());
+    let v53: bool = habit_in_1(v0.clone(), v52);
     let v58: Rc<str> = if v53 {
         let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("measure-object"); } LIT.with(|lit| lit.clone()) };
         let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v54));
         let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v56));
-        v57.clone()
+        v57
     } else {
-        v51.clone()
+        v51
     };
     let v59: US0 = US0::US0_CopyItem;
-    let v60: bool = habit_in_1(v0.clone(), v59.clone());
+    let v60: bool = habit_in_1(v0.clone(), v59);
     let v65: Rc<str> = if v60 {
         let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("copy-item"); } LIT.with(|lit| lit.clone()) };
         let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v61));
         let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v62, v63));
-        v64.clone()
+        v64
     } else {
-        v58.clone()
+        v58
     };
     let v66: US0 = US0::US0_RemoveItem;
-    let v67: bool = habit_in_1(v0.clone(), v66.clone());
+    let v67: bool = habit_in_1(v0.clone(), v66);
     let v72: Rc<str> = if v67 {
         let v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("remove-item"); } LIT.with(|lit| lit.clone()) };
         let v69: Rc<str> = Rc::<str>::from(format!("{}{}", v65, v68));
         let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v71: Rc<str> = Rc::<str>::from(format!("{}{}", v69, v70));
-        v71.clone()
+        v71
     } else {
-        v65.clone()
+        v65
     };
     let v73: US0 = US0::US0_MoveItem;
-    let v74: bool = habit_in_1(v0.clone(), v73.clone());
+    let v74: bool = habit_in_1(v0.clone(), v73);
     let v79: Rc<str> = if v74 {
         let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("move-item"); } LIT.with(|lit| lit.clone()) };
         let v76: Rc<str> = Rc::<str>::from(format!("{}{}", v72, v75));
         let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v77));
-        v78.clone()
+        v78
     } else {
-        v72.clone()
+        v72
     };
     let v80: US0 = US0::US0_TestPath;
-    let v81: bool = habit_in_1(v0.clone(), v80.clone());
+    let v81: bool = habit_in_1(v0.clone(), v80);
     let v86: Rc<str> = if v81 {
         let v82: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test-path"); } LIT.with(|lit| lit.clone()) };
         let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v79, v82));
         let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v85: Rc<str> = Rc::<str>::from(format!("{}{}", v83, v84));
-        v85.clone()
+        v85
     } else {
-        v79.clone()
+        v79
     };
     let v87: US0 = US0::US0_StartSleep;
-    let v88: bool = habit_in_1(v0.clone(), v87.clone());
+    let v88: bool = habit_in_1(v0.clone(), v87);
     let v93: Rc<str> = if v88 {
         let v89: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("start-sleep"); } LIT.with(|lit| lit.clone()) };
         let v90: Rc<str> = Rc::<str>::from(format!("{}{}", v86, v89));
         let v91: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v92: Rc<str> = Rc::<str>::from(format!("{}{}", v90, v91));
-        v92.clone()
+        v92
     } else {
-        v86.clone()
+        v86
     };
     let v94: US0 = US0::US0_Robocopy;
-    let v95: bool = habit_in_1(v0.clone(), v94.clone());
+    let v95: bool = habit_in_1(v0.clone(), v94);
     let v100: Rc<str> = if v95 {
         let v96: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("robocopy"); } LIT.with(|lit| lit.clone()) };
         let v97: Rc<str> = Rc::<str>::from(format!("{}{}", v93, v96));
         let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v99: Rc<str> = Rc::<str>::from(format!("{}{}", v97, v98));
-        v99.clone()
+        v99
     } else {
-        v93.clone()
+        v93
     };
     let v101: US0 = US0::US0_Findstr;
-    let v102: bool = habit_in_1(v0.clone(), v101.clone());
+    let v102: bool = habit_in_1(v0.clone(), v101);
     let v107: Rc<str> = if v102 {
         let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("findstr"); } LIT.with(|lit| lit.clone()) };
         let v104: Rc<str> = Rc::<str>::from(format!("{}{}", v100, v103));
         let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v106: Rc<str> = Rc::<str>::from(format!("{}{}", v104, v105));
-        v106.clone()
+        v106
     } else {
-        v100.clone()
+        v100
     };
     let v108: US0 = US0::US0_Python;
-    let v109: bool = habit_in_1(v0.clone(), v108.clone());
+    let v109: bool = habit_in_1(v0.clone(), v108);
     let v114: Rc<str> = if v109 {
         let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("python"); } LIT.with(|lit| lit.clone()) };
         let v111: Rc<str> = Rc::<str>::from(format!("{}{}", v107, v110));
         let v112: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v113: Rc<str> = Rc::<str>::from(format!("{}{}", v111, v112));
-        v113.clone()
+        v113
     } else {
-        v107.clone()
+        v107
     };
     let v115: US0 = US0::US0_Python3;
-    let v116: bool = habit_in_1(v0.clone(), v115.clone());
+    let v116: bool = habit_in_1(v0.clone(), v115);
     let v121: Rc<str> = if v116 {
         let v117: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("python3"); } LIT.with(|lit| lit.clone()) };
         let v118: Rc<str> = Rc::<str>::from(format!("{}{}", v114, v117));
         let v119: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v120: Rc<str> = Rc::<str>::from(format!("{}{}", v118, v119));
-        v120.clone()
+        v120
     } else {
-        v114.clone()
+        v114
     };
     let v122: US0 = US0::US0_PyExe;
-    let v123: bool = habit_in_1(v0.clone(), v122.clone());
+    let v123: bool = habit_in_1(v0.clone(), v122);
     let v128: Rc<str> = if v123 {
         let v124: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("py.exe"); } LIT.with(|lit| lit.clone()) };
         let v125: Rc<str> = Rc::<str>::from(format!("{}{}", v121, v124));
         let v126: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v127: Rc<str> = Rc::<str>::from(format!("{}{}", v125, v126));
-        v127.clone()
+        v127
     } else {
-        v121.clone()
+        v121
     };
     let v129: US0 = US0::US0_IoFile;
-    let v130: bool = habit_in_1(v0.clone(), v129.clone());
+    let v130: bool = habit_in_1(v0, v129);
     if v130 {
         let v131: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("[io.file]"); } LIT.with(|lit| lit.clone()) };
         let v132: Rc<str> = Rc::<str>::from(format!("{}{}", v128, v131));
         let v133: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v134: Rc<str> = Rc::<str>::from(format!("{}{}", v132, v133));
-        v134.clone()
+        v134
     } else {
-        v128.clone()
+        v128
     }
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {

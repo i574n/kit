@@ -84,7 +84,7 @@ fn starts_with_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
 }
 fn method3() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_2() -> Rc<str> {
     method3()
@@ -205,7 +205,7 @@ fn toolchain_u64_decimal_valid_0(mut v0: Rc<str>) -> u64 {
         let v4: i32 = 0i32;
         let v5: i32 = 0i32;
         let v6: i32 = 1i32;
-        starts_with_loop_1(v0.clone(), v3.clone(), v4, v5, v6)
+        starts_with_loop_1(v0.clone(), v3, v4, v5, v6)
     };
     let v19: Rc<str> = if v8 {
         let v9: bool = v1 == 1i32 ;
@@ -218,12 +218,12 @@ fn toolchain_u64_decimal_valid_0(mut v0: Rc<str>) -> u64 {
             } else {
                 let v13: i32 = v1 - 1i32 ;
                 let v14: Rc<str> = string_slice(&v0.clone(), 1i32 as i64, v13 as i64);
-                v14.clone()
+                v14
             };
-            codec_u64_decimal_normalize_4(v15.clone())
+            codec_u64_decimal_normalize_4(v15)
         }
     } else {
-        codec_u64_decimal_normalize_4(v0.clone())
+        codec_u64_decimal_normalize_4(v0)
     };
     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v21: bool = v19 == v20 ;
@@ -321,7 +321,7 @@ fn toolchain_u64_decimal_value_6(mut v0: Rc<str>) -> u64 {
         let v4: i32 = 0i32;
         let v5: i32 = 0i32;
         let v6: i32 = 1i32;
-        starts_with_loop_1(v0.clone(), v3.clone(), v4, v5, v6)
+        starts_with_loop_1(v0.clone(), v3, v4, v5, v6)
     };
     let v19: Rc<str> = if v8 {
         let v9: bool = v1 == 1i32 ;
@@ -334,14 +334,14 @@ fn toolchain_u64_decimal_value_6(mut v0: Rc<str>) -> u64 {
             } else {
                 let v13: i32 = v1 - 1i32 ;
                 let v14: Rc<str> = string_slice(&v0.clone(), 1i32 as i64, v13 as i64);
-                v14.clone()
+                v14
             };
-            codec_u64_decimal_normalize_4(v15.clone())
+            codec_u64_decimal_normalize_4(v15)
         }
     } else {
-        codec_u64_decimal_normalize_4(v0.clone())
+        codec_u64_decimal_normalize_4(v0)
     };
-    codec_u64_decimal_value_7(v19.clone())
+    codec_u64_decimal_value_7(v19)
 }
 fn toolchain_u32_decimal_valid_9(mut v0: Rc<str>) -> u64 {
     let v1: i32 = (v0.clone().len() as i32);
@@ -353,7 +353,7 @@ fn toolchain_u32_decimal_valid_9(mut v0: Rc<str>) -> u64 {
         let v4: i32 = 0i32;
         let v5: i32 = 0i32;
         let v6: i32 = 1i32;
-        starts_with_loop_1(v0.clone(), v3.clone(), v4, v5, v6)
+        starts_with_loop_1(v0.clone(), v3, v4, v5, v6)
     };
     let v19: Rc<str> = if v8 {
         let v9: bool = v1 == 1i32 ;
@@ -366,19 +366,19 @@ fn toolchain_u32_decimal_valid_9(mut v0: Rc<str>) -> u64 {
             } else {
                 let v13: i32 = v1 - 1i32 ;
                 let v14: Rc<str> = string_slice(&v0.clone(), 1i32 as i64, v13 as i64);
-                v14.clone()
+                v14
             };
-            codec_u64_decimal_normalize_4(v15.clone())
+            codec_u64_decimal_normalize_4(v15)
         }
     } else {
-        codec_u64_decimal_normalize_4(v0.clone())
+        codec_u64_decimal_normalize_4(v0)
     };
     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v21: bool = v19 == v20 ;
     if v21 {
         0u64
     } else {
-        let v22: u64 = codec_u64_decimal_value_7(v19.clone());
+        let v22: u64 = codec_u64_decimal_value_7(v19);
         let v23: bool = v22 <= 4294967295u64;
         if v23 {
             1u64

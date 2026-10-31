@@ -75,10 +75,8 @@
 :~ lowered (~word : string) : string = sm'.to_lower word
 :~ any_letter_of (~word : string) (~letters : string) : bool = $'(!word).chars().any(|letter| \
     (!letters).contains(letter))' : bool
-:~ first_line (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split(char::from(10u8)).next().unwrap_o\
-    r(""))' : string
-:~ rest_lines (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split_once(char::from(10u8)).map(|(_, \
-    rest)| rest).unwrap_or(""))' : string
+:~ first_line (~lines : string) : string = sm'.first_line lines
+:~ rest_lines (~lines : string) : string = sm'.after_first_line lines
 :~ is_file (~path : string) : bool = file_system.path_buf_is_file (file_system.new_path_buf (sm'.to_std_string path))
 :~ path_joined (~dir : string) (~name : string) (~extension : string) : string =
     $'std::rc::Rc::<str>::from(std::path::Path::new(&*!dir).join(format\!("{}{}", &*!name, \
@@ -132,8 +130,7 @@
 
 :~ byte_at (~text : string) (index : i32) : i32 = $'(!text).as_bytes().get(!index as usize).map(|byte| *byte as \
     i32).unwrap_or(-1)' : i32
-:~ text_between (~text : string) (start : i32) (stop : i32) : string = $'std::rc::Rc::<str>::from((!text).get(!start \
-    as usize..!stop as usize).unwrap_or(""))' : string
+:~ text_between (~text : string) (start : i32) (stop : i32) : string = sm'.bytes_between start stop text
 
 :~ ^ word_end (~text : string) (index : i32) (closing : i32) : i32 =
     := byte = byte_at text index

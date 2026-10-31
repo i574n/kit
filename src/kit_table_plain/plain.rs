@@ -198,7 +198,7 @@ fn all_columns_4(mut v0: i32, mut v1: i32) -> Rc<UH1> {
     } else {
         let v4: i32 = v1.wrapping_add(1i32);
         let v5: Rc<UH1> = all_columns_4(v0, v4);
-        Rc::new(UH1::UH1_Cons(v1, v5.clone()))
+        Rc::new(UH1::UH1_Cons(v1, v5))
     }
 }
 fn named_columns_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<UH1>, Rc<str>) {
@@ -454,15 +454,15 @@ fn ranked_9(mut v0: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std
                 }
             };
             if v15 {
-                Rc::new(UH2::UH2_Cons(v1.clone(), v2.clone()))
+                Rc::new(UH2::UH2_Cons(v1.clone(), v2))
             } else {
-                let v17: Rc<UH2> = ranked_9(v0.clone(), v1.clone(), v6.clone());
-                Rc::new(UH2::UH2_Cons(v5.clone(), v17.clone()))
+                let v17: Rc<UH2> = ranked_9(v0, v1.clone(), v6);
+                Rc::new(UH2::UH2_Cons(v5, v17))
             }
         }
         UH2::UH2_Nil => {
             let v3: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-            Rc::new(UH2::UH2_Cons(v1.clone(), v3.clone()))
+            Rc::new(UH2::UH2_Cons(v1, v3))
         }
     }
 }
@@ -609,10 +609,10 @@ fn listed_rows_17(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<UH
             let v17: bool = (v7 as u64) < v3;
             if v17 {
                 let v18: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                let v19: Rc<UH2> = method18(v0.clone(), v4, v2.clone(), v18.clone());
+                let v19: Rc<UH2> = method18(v0.clone(), v4, v2.clone(), v18);
                 let mut v20: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
                 let v21: i32 = 0i32;
-                let v22: i32 = method16(v20.clone(), v19.clone(), v21);
+                let v22: i32 = method16(v20.clone(), v19, v21);
                 let v23: Rc<Vec<Rc<str>>> = Rc::new(v20.borrow().clone());
                 let v24: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v23).as_ref().clone()));
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
@@ -629,7 +629,7 @@ fn listed_rows_17(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<UH
             };
             let v30: i32 = v7.wrapping_add(v29);
             let v31: i32 = v4.wrapping_add(1i32);
-            let (mut v32, mut v33, mut v34): (i32, i32, i32) = listed_rows_17(v0.clone(), v1.clone(), v2.clone(), v3, v31, v27, v28, v30);
+            let (mut v32, mut v33, mut v34): (i32, i32, i32) = listed_rows_17(v0, v1, v2, v3, v31, v27, v28, v30);
             (v32, v33, v34)
         };
         (v35, v36, v37)
@@ -798,7 +798,7 @@ fn plain_query_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
 }
 fn no_request_19() -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), v0.clone(), v0.clone(), v0.clone(), 20u64, v0.clone(), v0.clone(), false)
+    (v0.clone(), v0.clone(), v0.clone(), v0.clone(), 20u64, v0.clone(), v0, false)
 }
 fn plain_entry_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: u64, mut v5: bool) -> i32 {
     let (mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_19();

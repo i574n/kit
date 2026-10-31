@@ -30,8 +30,7 @@
 := through_index (~text : string) (~end : i64) : string =
     $'std::rc::Rc::<str>::from(&(&*!text)[..!end as usize])' : string
 
-:= ascii_digits (~text : string) : bool =
-    $'\!!text.is_empty() && !text.bytes().all(|byte| byte.is_ascii_digit())' : bool
+:= ascii_digits (~text : string) : bool = sm'.all_digits text
 
 := decimal_overflow (~digits : string) : string =
     $'std::rc::Rc::<str>::from(!digits.parse::<u64>().err().map(|error| error.to_string()).unwrap_or_default())'

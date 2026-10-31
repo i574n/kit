@@ -101,10 +101,10 @@ fn authority_blocker_labels_4(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("differential-catalog"); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("family-contracts"); } LIT.with(|lit| lit.clone()) };
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cold-rebuild"); } LIT.with(|lit| lit.clone()) };
-        (v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone())
+        (v2, v3, v4, v5, v6)
     } else {
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        (v7.clone(), v7.clone(), v7.clone(), v7.clone(), v7.clone())
+        (v7.clone(), v7.clone(), v7.clone(), v7.clone(), v7)
     }
 }
 fn closure0() -> Rc<dyn Fn(i32, i32) -> i32> {

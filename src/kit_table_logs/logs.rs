@@ -49,7 +49,7 @@ fn stderr_line_2(mut v0: Rc<str>) -> () {
 fn failed_1(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table logs "); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v0));
-    stderr_line_2(v2.clone());
+    stderr_line_2(v2);
     2i32
 }
 fn stdout_text_4(mut v0: Rc<str>) -> () {
@@ -68,11 +68,11 @@ fn table_written_3(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<st
     let v4: bool = &*v0 == "";
     let v8: Rc<str> = if v4 {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v5.clone()
+        v5
     } else {
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" out="); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v0));
-        v7.clone()
+        v7
     };
     let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v8));
     if v4 {
@@ -84,15 +84,15 @@ fn table_written_3(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<st
         };
         0i32
     } else {
-        let v10: Rc<str> = text_written_5(v0.clone(), v2.clone());
+        let v10: Rc<str> = text_written_5(v0, v2);
         let v11: bool = &*v10 != "";
         if v11 {
-            failed_1(v10.clone())
+            failed_1(v10)
         } else {
             if v1 {
                 ()
             } else {
-                stdout_line_6(v9.clone())
+                stdout_line_6(v9)
             };
             0i32
         }
@@ -211,26 +211,26 @@ fn method20(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_19(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method20(v2.clone(), v3.clone());
+    method20(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn count_text_18(mut v0: i32) -> Rc<str> {
     format_real_19(v0)
 }
 fn values_run_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: bool, mut v5: Rc<str>, mut v6: Rc<str>) -> i32 {
-    let v7: Rc<str> = files_listed_8(v0.clone(), v1.clone());
+    let v7: Rc<str> = files_listed_8(v0, v1);
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v9: i32 = 0i32;
     let v10: i32 = 0i32;
-    let (mut v11, mut v12, mut v13, mut v14): (Rc<str>, i32, i32, Rc<str>) = values_rows_9(v6.clone(), v2.clone(), v7.clone(), v8.clone(), v9, v10, v8.clone());
+    let (mut v11, mut v12, mut v13, mut v14): (Rc<str>, i32, i32, Rc<str>) = values_rows_9(v6, v2, v7, v8.clone(), v9, v10, v8);
     let v15: bool = &*v14 != "";
     if v15 {
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no such file or directory: "); } LIT.with(|lit| lit.clone()) };
         let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v14));
-        failed_1(v17.clone())
+        failed_1(v17)
     } else {
         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("file\t"); } LIT.with(|lit| lit.clone()) };
         let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v5));
@@ -245,7 +245,7 @@ fn values_run_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
         let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
         let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" columns=1"); } LIT.with(|lit| lit.clone()) };
         let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
-        table_written_3(v3.clone(), v4, v23.clone(), v32.clone())
+        table_written_3(v3, v4, v23, v32)
     }
 }
 fn command_line_argument_count_22() -> i32 {
@@ -277,18 +277,18 @@ fn argument_24(mut v0: i32) -> Rc<str> {
     };
     let v9: US2 = if v5 {
         let v6: Rc<str> = command_line_argument_25(v1);
-        US2::US2_Some(v6.clone())
+        US2::US2_Some(v6)
     } else {
         US2::US2_None
     };
     match &v9 {
         US2::US2_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US2::US2_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -343,13 +343,13 @@ fn measures_appended_29(mut v0: Rc<UH0>, mut v1: US0, mut v2: Rc<str>, mut v3: R
             let v9: Rc<str> = v9.clone();
             let v10: Rc<str> = v10.clone();
             let v11: Rc<UH0> = v11.clone();
-            let v12: Rc<UH0> = measures_appended_29(v11.clone(), v1.clone(), v2.clone(), v3.clone());
-            Rc::new(UH0::UH0_MeasureThen(v7.clone(), v8.clone(), v9.clone(), v10.clone(), v12.clone()))
+            let v12: Rc<UH0> = measures_appended_29(v11, v1.clone(), v2.clone(), v3.clone());
+            Rc::new(UH0::UH0_MeasureThen(v7, v8, v9, v10, v12))
         }
         UH0::UH0_NoMeasures => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMeasures); } CASE.with(|case| case.clone()) };
-            Rc::new(UH0::UH0_MeasureThen(v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone()))
+            Rc::new(UH0::UH0_MeasureThen(v1, v2, v3, v4, v5))
         }
     }
 }
@@ -625,11 +625,11 @@ fn expanded_35(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<UH0> {
                 US0::US0_CountByCapture => {
                     let v8: Rc<str> = capture_values_37(v1.clone(), v5.clone());
                     let v9: Rc<UH0> = expanded_35(v7.clone(), v1.clone());
-                    value_measures_36(v4.clone(), v5.clone(), v8.clone(), v9.clone())
+                    value_measures_36(v4.clone(), v5.clone(), v8, v9)
                 }
                 _ => {
-                    let v11: Rc<UH0> = expanded_35(v7.clone(), v1.clone());
-                    Rc::new(UH0::UH0_MeasureThen(v3.clone(), v4.clone(), v5.clone(), v6.clone(), v11.clone()))
+                    let v11: Rc<UH0> = expanded_35(v7, v1);
+                    Rc::new(UH0::UH0_MeasureThen(v3, v4, v5, v6, v11))
                 }
             }
         }
@@ -664,7 +664,7 @@ fn row_cells_39(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
             let v8: Rc<UH0> = v8.clone();
             let v24: Rc<str> = match &v4 {
                 US0::US0_CountByCapture => {
-                    let v11: i32 = value_count_40(v2.clone(), v6.clone(), v7.clone());
+                    let v11: i32 = value_count_40(v2.clone(), v6.clone(), v7);
                     count_text_18(v11)
                 }
                 US0::US0_CountMatches => {
@@ -680,22 +680,22 @@ fn row_cells_39(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
                     capture_at_42(v1.clone(), v6.clone(), v14)
                 }
                 US0::US0_SumCaptures => {
-                    capture_sum_43(v2.clone(), v6.clone())
+                    capture_sum_43(v2.clone(), v6)
                 }
                 US0::US0_ValuesPerMatch => {
                     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v18.clone()
+                    v18
                 }
             };
             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
             let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v24));
-            let v27: Rc<str> = row_cells_39(v8.clone(), v1.clone(), v2.clone());
+            let v27: Rc<str> = row_cells_39(v8, v1, v2);
             let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
-            v28.clone()
+            v28
         }
         UH0::UH0_NoMeasures => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     }
 }
@@ -748,13 +748,13 @@ fn measure_header_44(mut v0: Rc<UH0>) -> Rc<str> {
             let v6: Rc<UH0> = v6.clone();
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
             let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v3));
-            let v9: Rc<str> = measure_header_44(v6.clone());
+            let v9: Rc<str> = measure_header_44(v6);
             let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v9));
-            v10.clone()
+            v10
         }
         UH0::UH0_NoMeasures => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v1.clone()
+            v1
         }
     }
 }

@@ -97,6 +97,99 @@
     |:
         := ago = minutes_text (now_ms - progress.last_ms)
         head ++# ", last " ++# progress.last_name ++# " " ++# ago ++# " min ago, ~" ++# pace_text progress started_ms
+:| train_verdict =
+    | TrainPending
+    | TrainPassed
+    | TrainTimedOut
+    | TrainFailed
+
+:== train_progress =
+    {
+        total : i32
+        passed : i32
+        timed_out : i32
+        failed : i32
+    }
+
+:~ train_name_of (command : string) : string =
+    := at = (sm'.index_of " -Name " command : i32)
+    ? not (sm'.contains "release-train.ps1" command) || at < 0i32 ?> ""
+    |:
+        := rest = sm'.trim (sm'.substring (at + 7i32) ((sm'.length command : i32) - at - 7i32) command)
+        := cut = (sm'.index_of " " rest : i32)
+        sm'.replace "\"" "" (? cut < 0i32 ?> rest |: sm'.substring 0i32 cut rest)
+
+:~ train_root_of (command : string) : string =
+    := slashed = sm'.replace "\\" "/" (sm'.replace "\"" "" command)
+    := at = (sm'.index_of "/scripts/release-train.ps1" slashed : i32)
+    ? at < 0i32 ?> ""
+    |:
+        := head = sm'.substring 0i32 at slashed
+        := space = sm'.last_index_of " " head
+        sm'.substring (space + 1i32) ((sm'.length head : i32) - space - 1i32) head
+
+:~ log_name_of (notebook : string) : string = sm'.replace "/" "_" (sm'.replace "\\" "_" notebook) ++# ".log"
+
+:~ train_verdict_of (log : string) : train_verdict =
+    ? sm'.contains "Spiral cell timed out" log ?> TrainTimedOut
+    |? sm'.contains "spiral-tests total" log
+    ?> (? sm'.contains "\"failed\":0," log ?> TrainPassed |: TrainFailed)
+    |? sm'.contains "** (Mix)" log ?> TrainFailed
+    |: TrainPending
+
+:~ train_counted (progress : train_progress) (verdict : train_verdict) : train_progress =
+    := progress = { progress ?| total = progress.total + 1i32 }
+    ?= verdict ?|
+    | TrainPending => progress
+    | TrainPassed => { progress ?| passed = progress.passed + 1i32 }
+    | TrainTimedOut => { progress ?| timed_out = progress.timed_out + 1i32 }
+    | TrainFailed => { progress ?| failed = progress.failed + 1i32 }
+
+:~ train_progress_of (logs : list string) : train_progress =
+    := empty = { total = 0i32; passed = 0i32; timed_out = 0i32; failed = 0i32 }
+    listm.fold (\ progress (log : string) => train_counted progress (train_verdict_of log)) empty logs
+
+:~ train_progress_text (name : string) (progress : train_progress) : string =
+    := done = progress.passed + progress.timed_out + progress.failed
+    "release train "
+    ++# name
+    ++# ": "
+    ++# sm'.format done
+    ++# " of "
+    ++# sm'.format progress.total
+    ++# " notebooks done, "
+    ++# sm'.format progress.passed
+    ++# " pass, "
+    ++# sm'.format progress.timed_out
+    ++# " timed out (a starved run, retried), "
+    ++# sm'.format progress.failed
+    ++# " failed"
+
+///> rust
+:# a_release_train_command_names_its_train_and_root =
+    := command =
+        "\"C:\\Users\\me\\pwsh.exe\" -NoProfile -File C:\\work\\kit\\scripts\\release-train.ps1 -Name train5e-20261031 -Snapshot"
+    expect (train_name_of command = "train5e-20261031") "the name stops at the next flag"
+    expect (train_root_of command = "C:/work/kit") "the root is the script's repo"
+    expect (train_name_of "pwsh -File run.ps1 -Name x" = "") "only release-train.ps1 counts"
+    expect (log_name_of "src/kit_jobs/model.spi" = "src_kit_jobs_model.spi.log") "log names flatten the path"
+
+///> rust
+:# train_logs_sort_into_verdicts =
+    := passed = "spiral-tests total {\"accepted\":0,\"built\":0,\"discovered\":5,\"executed\":5,\"failed\":0,\"files\":1}"
+    := failed = "spiral-tests total {\"accepted\":0,\"built\":0,\"discovered\":5,\"executed\":5,\"failed\":2,\"files\":1}"
+    := starved = failed ++# "\n** (Mix) x.spi: Spiral cell timed out after 300s; the process tree was killed."
+    := broken = "** (Mix) x.spi: type error somewhere"
+    := progress = train_progress_of [ passed; failed; starved; broken; ""; passed ]
+    expect (progress.total = 6i32 && progress.passed = 2i32) "two passes of six"
+    expect (progress.timed_out = 1i32 && progress.failed = 2i32) "a timeout is not a failure"
+    expect
+        (
+            train_progress_text "t1" progress
+            = "release train t1: 5 of 6 notebooks done, 2 pass, 1 timed out (a starved run, retried), 2 failed"
+        )
+        "receipt"
+
 ///> rust
 :# report_names_come_from_the_path_file_name =
     expect (report_name_of "C:\\work\\repo\\src\\pkg\\grep_cli.spi" = "grep_cli.spi.ipynb") "windows path"

@@ -1,12 +1,13 @@
 :< kit_do_records.records
+:< sm'_operators
+:< file_system_operators
 
 :~ record_alone (~records : record_list) (~record : i32) : string =
     $'std::rc::Rc::<str>::from(format\!("ok{}{}", char::from(30u8), !records.get(!record as usize).map(|fields| \
         fields.iter().map(|field| field.to_string()).collect::<Vec<_>>().join(&char::from(31u8).to_string())).unwrap_o\
         r_default()))' : string
 
-:~ part_at (~text : string) (~index : i32) : string =
-    $'std::rc::Rc::<str>::from(!text.split(char::from(30u8)).nth(!index as usize).unwrap_or(""))' : string
+:~ part_at (~text : string) (~index : i32) : string = sm'.split_nth 30u8 index text
 
 := stdout_line (~text : string) : () = console.write_line text
 
@@ -45,11 +46,15 @@ let read_report (~root : string) (~encoded : string) : string = $'kit_do_read::k
     $'std::rc::Rc::<str>::from(std::fs::read_to_string(std::path::Path::new(&*!root).join(&*!path)).unwrap_or_default(\
         ))' : string
 
-:~ appended_to (~root : string) (~path : string) (~text : string) : string =
-    $'{ use std::io::Write; std::rc::Rc::<str>::from(std::fs::OpenOptions::new().create(true).append(true).open(std::p\
-        ath::Path::new(&*!root).join(&*!path)).and_then(|mut file| \
-        file.write_all((!text).as_bytes())).err().map(|error| format\!("append {}: {error}", \
-        &*!path)).unwrap_or_default()) }' : string
+:= appended_to (~root : string) (~path : string) (~text : string) : string =
+    := target = root </> path
+    := parent = optionm'.default_value' "" (file_system.directory_get_parent target)
+    ? parent <> "" && resultm.is_err (file_system.create_dir_all parent)
+    ?> "append " ++# path ++# ": the folder " ++# parent ++# " could not be created"
+    |:
+        ?= file_system.try_append_all_text target text ?|
+        | Ok () => ""
+        | Error error => "append " ++# path ++# ": " ++# error
 
 :~ ended_with_newline (~text : string) : bool = $'(!text).is_empty() || (!text).ends_with(char::from(10u8))' : bool
 

@@ -62,18 +62,18 @@ fn argument_1(mut v0: i32) -> Rc<str> {
     };
     let v9: US0 = if v5 {
         let mut v6: Rc<str> = command_line_argument_3(v1);
-        US0::US0_Some(v6.clone())
+        US0::US0_Some(v6)
     } else {
         US0::US0_None
     };
     match &v9 {
         US0::US0_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US0::US0_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -119,7 +119,7 @@ fn names_from_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
 }
 fn links_start_6() -> (i32, i32, i32, i32, i32, i32, Rc<str>) {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (0i32, 0i32, 0i32, 0i32, 0i32, 0i32, v0.clone())
+    (0i32, 0i32, 0i32, 0i32, 0i32, 0i32, v0)
 }
 fn ids_checked_8(mut v0: Rc<str>, mut v1: US1, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: i32, mut v5: i32, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: i32, mut v10: Rc<str>) -> (i32, i32, i32, i32, i32, i32, Rc<str>) {
     let v11: bool = &*v3 == "";
@@ -619,11 +619,11 @@ fn method16(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_15(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method16(v2.clone(), v3.clone());
+    method16(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn links_run_0() -> i32 {
     let mut v0: i32 = 3i32;

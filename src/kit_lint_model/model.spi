@@ -217,9 +217,6 @@
     := spaced = punctuation () |> listm.fold (\ text (mark : string) => sm'.replace mark " " text) body
     words_from (sm'.split " " spaced |> array) 0i32 []
 
-:= flow_word (word : string) : bool =
-    word = "if" || word = "else" || word = "match" || word = "for" || word = "while" || word = "loop" || word = "let"
-    || word = "return" || word = "fn"
 
 := word_letter (letter : string) : bool =
     letter <> "" && sm'.contains letter "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
@@ -242,15 +239,13 @@
     [ "+"; "-"; "*"; "/"; "%" ]
     |> listm.fold (\ found (mark : string) => found || operator_between (sm'.split mark body |> array) 0i32) !-
 
-:~ term_class (body : string) : option macro_class =
-    := words = words_of body
-    := flow_mark = sm'.contains "=>" body || sm'.contains "->" body || sm'.contains ";" body
-    ? flow_mark || listm'.try_find_ flow_word words <> None ?> Some MacroFlow
-    |? listm'.try_find_ (\ (word : string) => word = "as") words <> None ?> Some MacroCast
+:~ term_class (body : string) (flow : bool) : option macro_class =
+    ? flow ?> Some MacroFlow
+    |? listm'.try_find_ (\ (word : string) => word = "as") (words_of body) <> None ?> Some MacroCast
     |? arith_in body || sm'.contains "==" body || sm'.contains "!=" body ?> Some MacroArith
     |: None
 
-:~ class_of (item : host_macro) : option macro_class =
+:~ class_of (item : host_macro) (flow : bool) : option macro_class =
     := long = (sm'.length item.text : i32) > 120i32
     ?= item.origin ?|
     | GlobalBody => Some MacroBlock
@@ -261,13 +256,18 @@
         |:
             ?= item.place ?|
             | TypeMacro => None
-            | TermMacro => term_class (unquoted_body item.text)
+            | TermMacro => term_class (unquoted_body item.text) flow
+
+:= flow_candidate (~line : string) : bool =
+    kit_lint_flow.flow.flow_line line && kit_lint_flow_constructs.constructs.construct_of line = None
+    && kit_lint_flow_idioms.idioms.idiom_of line = None
 
 :~ file_violations (~file : string) (text : string) : list violation =
+    := lines = sm'.split "\n" (sm'.replace "\r" "" text) |> array
     file_macros text
     |> listm.fold
         \ found (item : host_macro) =>
-            ?= class_of item ?|
+            ?= class_of item (flow_candidate (am'.index (item.line - 1i32) lines)) ?|
             | Some class =>
                 { file = file; line = item.line; name = item.name; class = class; text = item.text } :: found
             | None => found
@@ -280,11 +280,21 @@
         := word = am'.index index pieces
         words_in pieces (index + 1i32) (? word = "" ?> found |: word :: found)
 
+:= class_spelled (word : string) : bool =
+    word = "long" || word = "block" || word = "flow" || word = "cast" || word = "arith"
+
 :~ known_of (row : string) : option known_violation =
     ?= words_in (sm'.split " " (sm'.trim row) |> array) 0i32 [] ?|
     | place :: name :: class :: _ =>
         := colon : i32 = sm'.last_index_of ":" place
-        ? colon <= 0i32 ?> None |: Some { file = sm'.substring 0i32 colon place; name = name; class = class }
+        := unnamed = class_spelled name && (class_spelled class |> not)
+        ? colon <= 0i32
+        ?> None
+        |:
+            := file = sm'.substring 0i32 colon place
+            ? unnamed
+            ?> Some { file = file; name = ""; class = name }
+            |: Some { file = file; name = name; class = class }
     | _ => None
 
 :~ ^ baseline_from (rows : array string) (index : i32) (found : list known_violation) : list known_violation =
@@ -303,6 +313,24 @@
             row.file = item.file && row.name = item.name && row.class = class_word item.class
         baseline
     <> None
+
+:~ ^ rows_of_file
+    (~file : string) (pieces : array string) (index : i32) (found : list known_violation)
+    : list known_violation
+    =
+    ? index >= am'.length pieces
+    ?> found
+    |:
+        := piece = am'.index index pieces
+        := cut = sm'.index_of "\n" piece
+        := line = ? cut < 0 ?> piece |: sm'.substring 0i32 cut piece
+        ?= known_of (file ++# ":" ++# line) ?|
+        | Some row => rows_of_file file pieces (index + 1i32) (row :: found)
+        | None => rows_of_file file pieces (index + 1i32) found
+
+:~ known_text (baseline : string) (item : violation) : bool =
+    := pieces = sm'.split ("\n" ++# item.file ++# ":") ("\n" ++# sm'.replace "\r" "" baseline) |> array
+    known (rows_of_file item.file pieces 1i32 []) item
 
 :~ name_width (items : list violation) : i32 =
     items
@@ -339,6 +367,7 @@
 :# the_sample_yields_one_row_per_logic_macro =
     := found = file_violations "lib/sample.spi" (sample ())
     := width = name_width found
+    expect (flow_candidate (hosted "@'if !b { 1 } else { 0 }'")) "an if is flow"
     expect ((listm.length (file_macros (sample ())) : i32) = 5i32) "five macros"
     := cast = hosted "lib/sample.spi:2  widen  cast   @'!x as i64'"
     := flow = hosted "lib/sample.spi:3  pick   flow   @'if !b { 1 } else { 0 }'"
@@ -375,10 +404,10 @@
 :# type_text_is_not_flow_and_strings_are_not_logic =
     := type_text = hosted "@'Rc<dyn Fn() -> i32>'"
     := typed = { line = 1i32; name = "t"; place = TypeMacro; text = type_text; closed = !+; origin = InlineMacro }
-    expect (class_of typed = None) "a type macro"
+    expect (class_of typed !+ = None) "a type macro"
     := printed = unquoted_body (hosted "@'println!(\"{}; if\", &*!text)'")
-    expect (term_class printed = None) "string text and a deref are clean"
-    expect (term_class (unquoted_body (hosted "@'!xs.len() - 1'")) = Some MacroArith) "arith after a call"
+    expect (term_class printed !- = None) "string text and a deref are clean"
+    expect (term_class (unquoted_body (hosted "@'!xs.len() - 1'")) !- = Some MacroArith) "arith after a call"
     expect (definition_name "let rec walk (x : i32) : i32 =" "" = "walk") "a rec definition"
     expect (definition_name "    body" "walk" = "walk") "an indented line keeps the enclosing name"
 
@@ -391,6 +420,16 @@
     expect ((listm.length (file_macros text) : i32) = 4i32) "two globals and two interpolated macros"
     := classes = listm.map (\ (item : violation) => item.name ++# " " ++# class_word item.class) found
     expect (classes = [ "global block"; "add arith" ]) "a body global is a block, an import is not"
+
+///> rust
+:# flow_is_the_census_flow_test_minus_its_exempt_shapes =
+    := lambda = hosted "inl lam (x : i32) : i32 = @'!x |> fun y -> y'\n"
+    expect ((listm.length (file_violations "l.spi" lambda) : i32) = 0i32) "an exempt lambda arrow"
+    := named = hosted "inl apply (fn : i32) : i32 = @'!a |> Array.map !fn '\n"
+    expect ((listm.length (file_violations "n.spi" named) : i32) = 0i32) "a variable named fn is no flow"
+    := block = hosted "inl pick (b : bool) : i32 = @'{ let x = 1; if !b { x } else { 0 } }'\n"
+    := rows = file_violations "b.spi" block |> listm.map (\ (item : violation) => class_word item.class)
+    expect (rows = [ "flow" ]) "a block with real branching"
 
 ///> rust
 :# a_dollar_sign_inside_a_string_literal_opens_no_macro =
@@ -409,6 +448,25 @@
     expect ((listm.length (file_macros text) : i32) = 5i32) "five macros"
     := found = file_violations "lib/sample.spi" text
     expect ((listm.length found : i32) = 3i32) "three violations"
+    := unnamed = baseline_of "lib/host.spi:3    flow   @'std::rc::Rc<(u64, bool)>'\nlib/flow.spi:4  flow  flow  @'x'\n"
+    expect
+        (
+            unnamed
+            = [
+                { file = "lib/flow.spi"; name = "flow"; class = "flow" }
+                { file = "lib/host.spi"; name = ""; class = "flow" }
+            ]
+        )
+        "a row with no name keeps its class, and a macro named like a class keeps its name"
+    := text =
+        "xlib/sample.spi:2  widen  cast   @'a'\r\nlib/host.spi:3    flow   @'b'\n"
+        ^^ "lib/sample.spi:7  pick  flow  @'c'\n"
+    := probe (~file : string) (~name : string) (class : macro_class) : bool =
+        known_text text { file = file; line = 1i32; name = name; class = class; text = "" }
+    expect (probe "lib/sample.spi" "pick" MacroFlow) "a row of the file"
+    expect (probe "lib/host.spi" "" MacroFlow) "an unnamed row"
+    expect (probe "lib/sample.spi" "widen" MacroCast |> not) "a longer file name that ends with this one does not count"
+    expect (probe "lib/other.spi" "pick" MacroFlow |> not) "a file with no rows"
     := known_two = baseline_of "lib/sample.spi:9  widen  cast\nlib/sample.spi:9  pick  flow\n"
     := fresh = found |> listm'.filter \ (item : violation) => not (known known_two item)
     expect ((listm.length fresh : i32) = 1i32) "the baseline hides two"

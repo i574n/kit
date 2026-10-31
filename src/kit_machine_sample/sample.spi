@@ -1,0 +1,231 @@
+///- --package .
+:# sample static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! process_system = $'std::rc::Rc<std::cell::RefCell<sysinfo::System>>'
+:! pid_list = $'std::rc::Rc<Vec<u32>>'
+:! refresh_count = $'usize'
+:! row_buffer =
+    $'std::rc::Rc<std::cell::RefCell<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>>'
+:! sampled_rows = $'std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>'
+
+:! refresh_kind = $'sysinfo::ProcessRefreshKind'
+
+:= sampled_kind () : refresh_kind =
+    $'sysinfo::ProcessRefreshKind::nothing().with_cpu().with_memory().with_cmd(sysinfo::Upd\
+        ateKind::Always)' : refresh_kind
+
+:= system_watched (kind : refresh_kind) : process_system =
+    $'std::rc::Rc::new(std::cell::RefCell::new(sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().w\
+        ith_processes(!kind))))' : process_system
+
+:! cpu_snapshot = $'std::rc::Rc<std::collections::HashMap<u32, u64>>'
+
+:= cpu_snapshot_of (~system : process_system) : cpu_snapshot =
+    $'std::rc::Rc::new(!system.borrow().processes().iter().map(|(pid, process)| (pid.as_u32(), \
+        process.accumulated_cpu_time())).collect())' : cpu_snapshot
+
+:= cpu_before (~snapshot : cpu_snapshot) (pid : u32) : u64 = $'!snapshot.get(&!pid).copied().unwrap_or(0)' : u64
+
+:! instant = $'std::time::Instant'
+
+:= instant_now () : instant = $'std::time::Instant::now()' : instant
+
+:= seconds_since (~started : instant) : f64 = $'(!started).elapsed().as_secs_f64()' : f64
+
+:= paused (milliseconds : u64) : () = $'std::thread::sleep(std::time::Duration::from_millis(!milliseconds))' : ()
+
+:= refreshed (~system : process_system) (kind : refresh_kind) : refresh_count =
+    $'!system.borrow_mut().refresh_processes_specifics(sysinfo::ProcessesToUpdate::All, true, !kind)' : refresh_count
+
+:= pids_of (~system : process_system) : pid_list =
+    $'std::rc::Rc::new(!system.borrow().processes().keys().copied().map(sysinfo::Pid::as_u32).collect::<Vec<_>>(\
+        ))' : pid_list
+
+:= pid_count (~pids : pid_list) : i32 = ($'!pids.len()' : convert.unativeint) |> convert.convert
+
+:= pid_at (~pids : pid_list) (at : i32) : u32 =
+    := index : convert.unativeint = convert.convert at
+    $'!pids[!index]' : u32
+
+:= process_parent (~system : process_system) (pid : u32) : u32 =
+    $'!system.borrow().process(sysinfo::Pid::from_u32(!pid)).and_then(sysinfo::Process::parent).map_or(0, \
+        sysinfo::Pid::as_u32)' : u32
+
+:= process_start_seconds (~system : process_system) (pid : u32) : u64 =
+    $'!system.borrow().process(sysinfo::Pid::from_u32(!pid)).map_or(0, sysinfo::Process::start_time)' : u64
+
+:= now_seconds () : u64 =
+    $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |elapsed| elapsed.as_secs())' : u64
+
+:= parent_kept (parent : u32) (born : u64) (parent_born : u64) (now : u64) : bool =
+    parent <= 4u32 || born = 0u64 || parent_born = 0u64 || parent_born <= born || parent_born > now
+
+:~ live_parent (~system : process_system) (pid : u32) (now : u64) : u32 =
+    := parent = process_parent system pid
+    := born, parent_born = process_start_seconds system pid, process_start_seconds system parent
+    ? parent_kept parent born parent_born now ?> parent |: 0u32
+
+:= process_name (~system : process_system) (pid : u32) : string =
+    $'std::rc::Rc::<str>::from(!system.borrow().process(sysinfo::Pid::from_u32(!pid)).map(|process| \
+        process.name().to_string_lossy().trim_end_matches(".exe").to_owned()).unwrap_or_default())' : string
+
+:= process_command (~system : process_system) (pid : u32) : string =
+    $'std::rc::Rc::<str>::from(!system.borrow().process(sysinfo::Pid::from_u32(!pid)).map(|process| \
+        process.cmd().iter().map(|part| part.to_string_lossy().into_owned()).collect::<Vec<_>>().join(" \
+        ")).unwrap_or_default())' : string
+
+:= process_run_seconds (~system : process_system) (pid : u32) : u64 =
+    $'!system.borrow().process(sysinfo::Pid::from_u32(!pid)).map_or(0, sysinfo::Process::run_time)' : u64
+
+:= process_cpu_milliseconds (~system : process_system) (pid : u32) : u64 =
+    $'!system.borrow().process(sysinfo::Pid::from_u32(!pid)).map_or(0, sysinfo::Process::accumulated_cpu_time)' : u64
+
+:= process_memory_bytes (~system : process_system) (pid : u32) : u64 =
+    $'!system.borrow().process(sysinfo::Pid::from_u32(!pid)).map_or(0, sysinfo::Process::memory)' : u64
+
+:= buffer_new () : row_buffer = $'std::rc::Rc::new(std::cell::RefCell::new(Vec::new()))' : row_buffer
+
+:= row_added
+    (~buffer : row_buffer) (pid : u64) (parent : u64) (~name : string) (~command : string) (cores : f64) (age : u64)
+    (cpu : u64) (megabytes : u64)
+    : ()
+    =
+    $'!buffer.borrow_mut().push((!pid, !parent, !name, !command, !cores, !age, !cpu, !megabytes))' : ()
+
+:= rows_of (~buffer : row_buffer) : sampled_rows = $'std::rc::Rc::new(!buffer.borrow().clone())' : sampled_rows
+
+:= cores_between (before : u64) (after : u64) (seconds : f64) : f64 =
+    ? after > before && seconds > 0.0 ?> conv (after - before) / (seconds * 1000.0) |: 0.0
+
+:~ ^ rows_from
+    (~system : process_system) (~pids : pid_list) (~buffer : row_buffer) (~snapshot : cpu_snapshot) (at : i32)
+    (count : i32) (seconds : f64)
+    : ()
+    =
+    ? at < count
+    ?>
+        := pid = pid_at pids at
+        := used = process_cpu_milliseconds system pid
+        := now = now_seconds ()
+        row_added buffer (conv pid) (conv (live_parent system pid now)) (process_name system pid)
+            (process_command system pid) (cores_between (cpu_before snapshot pid) used seconds)
+            (process_run_seconds system pid / 60u64) (used / 60000u64) (process_memory_bytes system pid / 1048576u64)
+        rows_from system pids buffer snapshot (at + 1i32) count seconds
+    |: ()
+
+:= job_number (~id : string) (~name : string) : u64 =
+    := text = kit_jobs.host.text_or_empty (kit_jobs.jobs.job_file id name)
+    optionm'.default_value 0u64 (convert.try_convert (sm'.trim text))
+
+:~ ^ job_left_from (ids : array string) (index : i32) (parent : u64) (born : u64) : string =
+    ? index >= am'.length ids
+    ?> ""
+    |:
+        := id = am'.index index ids
+        := job_pid, job_supervisor = job_number id "pid", job_number id "supervisor"
+        ? id <> "" && (job_pid = parent || job_supervisor = parent)
+        ?>
+            := settled = sm'.trim (kit_jobs.host.text_or_empty (kit_jobs.jobs.job_file id "exit")) <> ""
+            := started = job_number id "started_ms"
+            ? kit_machine_watch_model.model.left_by parent born job_pid job_supervisor started settled
+            ?> id
+            |: job_left_from ids (index + 1i32) parent born
+        |: job_left_from ids (index + 1i32) parent born
+
+:~ job_left (parent : u64) (age_minutes : u64) : string =
+    ? parent <= 4u64
+    ?> ""
+    |:
+        := ids = kit_jobs.host.newest_directories (kit_jobs.host.jobs_root ()) 100u64
+        job_left_from (sm'.split "\n" ids |> array) 0i32 parent (now_seconds () - age_minutes * 60u64)
+
+:== job_seen =
+    {
+        id : string
+        label : string
+        elapsed_ms : u64
+        settled : bool
+    }
+
+:= decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert (sm'.trim text))
+
+:= job_field (~id : string) (~name : string) : string =
+    sm'.trim (kit_jobs.host.text_or_empty (kit_jobs.jobs.job_file id name))
+
+:~ job_seen_of (~id : string) (now_ms : u64) : job_seen =
+    := started = decimal_of (job_field id "started_ms")
+    := exit = job_field id "exit"
+    := stamp = optionm'.default_value "" (am'.try_item 1i32 (sm'.split " " exit |> array))
+    := finished = ? exit = "" ?> now_ms |: decimal_of stamp
+    := elapsed = ? finished > started ?> finished - started |: 0u64
+    { id = id; label = job_field id "label"; elapsed_ms = elapsed; settled = exit <> "" }
+
+:~ ^ jobs_seen (ids : array string) (index : i32) (now_ms : u64) (found : list job_seen) : list job_seen =
+    ? index >= am'.length ids
+    ?> found
+    |:
+        := seen = job_seen_of (am'.index index ids) now_ms
+        jobs_seen ids (index + 1i32) now_ms (? seen.label = "" ?> found |: seen :: found)
+
+:= finished_like (jobs : list job_seen) (~label : string) : list u64 =
+    := kept (acc : list u64) (other : job_seen) : list u64 =
+        ? other.settled && other.label = label ?> other.elapsed_ms :: acc |: acc
+    listm.fold kept [] jobs
+
+:= minutes_of (milliseconds : u64) : string = sm'.decimal_text (milliseconds / 60000u64)
+
+:~ stalled_step (jobs : list job_seen) (lines : list string) (seen : job_seen) : list string =
+    := finished = finished_like jobs seen.label
+    ? seen.settled || (kit_machine_watch_model.model.stalled_by seen.elapsed_ms finished |> not)
+    ?> lines
+    |:
+        := runs = sm'.decimal_text (listm.length finished : i32)
+        := usual = minutes_of (kit_machine_watch_model.model.usual_ms finished)
+        := text =
+            "  job " ++# seen.id ++# " running " ++# minutes_of seen.elapsed_ms ++# " min, usual " ++# usual
+            ++# " min over " ++# runs ++# " runs  stalled"
+        text :: lines
+
+:~ stalled_jobs () : string =
+    := ids = kit_jobs.host.newest_directories (kit_jobs.host.jobs_root ()) 300u64
+    := jobs = jobs_seen (sm'.split "\n" ids |> array) 0i32 (now_seconds () * 1000u64) []
+    sm'.concat_list "\n" (listm.fold (stalled_step jobs) [] jobs)
+
+:~ history_appended (~row : string) : string =
+    := folder = env.get_environment_variable "LOCALAPPDATA" ++# "\\kit\\machine-watch"
+    := path = folder ++# "\\health.tsv"
+    := _ = file_system.create_dir_all folder
+    := names = [ "unix"; "tools"; "ok"; "unowned"; "dangling"; "leftover"; "hogs"; "stalled" ]
+    := header = ? file_system.file_exists path ?> "" |: csv.tsv_line names ++# "\n"
+    file_system.append_all_text path (header ++# csv.tsv_line [ sm'.decimal_text (now_seconds ()); row ] ++# "\n")
+    path
+
+:~ rows_sampled (milliseconds : u64) : sampled_rows =
+    := kind = sampled_kind ()
+    := system = system_watched kind
+    := snapshot = cpu_snapshot_of system
+    := started = instant_now ()
+    paused milliseconds
+    := _ = refreshed system kind
+    := seconds = seconds_since started
+    := pids = pids_of system
+    := buffer = buffer_new ()
+    rows_from system pids buffer snapshot 0i32 (pid_count pids) seconds
+    rows_of buffer
+
+///> rust
+:# a_parent_born_after_its_child_is_a_reused_pid =
+    ? parent_kept 796u32 100u64 90u64 1000u64 ?> () |: failwith "an older parent is the real parent"
+    ? parent_kept 796u32 100u64 150u64 1000u64 |> not ?> () |: failwith "a parent born after the child is a reused pid"
+    ? parent_kept 796u32 100u64 5000u64 1000u64 ?> () |: failwith "a parent stamped in the future is clock skew"
+    ? parent_kept 9u32 0u64 150u64 1000u64 && parent_kept 9u32 100u64 0u64 1000u64 ?> () |: failwith "unknown times"
+    ? parent_kept 4u32 100u64 150u64 1000u64 ?> () |: failwith "the kernel's System process stays the parent"
+
+///> rust
+:# cores_are_cpu_time_over_wall_time =
+    ? cores_between 1000u64 3000u64 2.0 = 1.0 ?> () |: failwith "two cpu seconds over two wall seconds is one core"
+    ? cores_between 5u64 1u64 1.0 = 0.0 ?> () |: failwith "a counter that went down reads as idle"
+    ? cores_between 0u64 500u64 0.0 = 0.0 ?> () |: failwith "an empty window reads as idle"

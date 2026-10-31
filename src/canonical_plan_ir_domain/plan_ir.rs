@@ -23,10 +23,10 @@ fn plan_schema_tag_0(mut v0: Rc<str>) -> Rc<str> {
     let v1: bool = &*v0 == "schema";
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("canonical-plan-ir"); } LIT.with(|lit| lit.clone()) };
-        v2.clone()
+        v2
     } else {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("invalid"); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     }
 }
 fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
@@ -114,7 +114,7 @@ fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
 }
 fn method4() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_3() -> Rc<str> {
     method4()
@@ -123,7 +123,7 @@ fn plan_manifest_header_projection_2(mut v0: Rc<str>) -> Rc<str> {
     let v1: bool = &*v0 == "KIT-PLAN-IR\t1";
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1"); } LIT.with(|lit| lit.clone()) };
-        v2.clone()
+        v2
     } else {
         codec_empty_3()
     }
@@ -153,7 +153,7 @@ fn find_char_loop_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
 fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
     let v1: i32 = (v0.clone().len() as i32);
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-    let v3: u8 = codec_runtime_char_6(v2.clone());
+    let v3: u8 = codec_runtime_char_6(v2);
     let v4: i32 = 0i32;
     let v5: i32 = find_char_loop_7(v0.clone(), v4, v1, v3);
     let v6: bool = v5 == v1 ;
@@ -163,7 +163,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
         let v9: Rc<str> = codec_empty_3();
         let v10: Rc<str> = codec_empty_3();
         let v11: Rc<str> = codec_empty_3();
-        (v7.clone(), v8.clone(), v9.clone(), v10.clone(), v11.clone())
+        (v7, v8, v9, v10, v11)
     } else {
         let v12: i32 = v5 + 1i32 ;
         let v13: i32 = find_char_loop_7(v0.clone(), v12, v1, v3);
@@ -174,7 +174,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
             let v17: Rc<str> = codec_empty_3();
             let v18: Rc<str> = codec_empty_3();
             let v19: Rc<str> = codec_empty_3();
-            (v15.clone(), v16.clone(), v17.clone(), v18.clone(), v19.clone())
+            (v15, v16, v17, v18, v19)
         } else {
             let v20: i32 = v13 + 1i32 ;
             let v21: i32 = find_char_loop_7(v0.clone(), v20, v1, v3);
@@ -185,7 +185,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                 let v25: Rc<str> = codec_empty_3();
                 let v26: Rc<str> = codec_empty_3();
                 let v27: Rc<str> = codec_empty_3();
-                (v23.clone(), v24.clone(), v25.clone(), v26.clone(), v27.clone())
+                (v23, v24, v25, v26, v27)
             } else {
                 let v28: i32 = v21 + 1i32 ;
                 let v29: i32 = find_char_loop_7(v0.clone(), v28, v1, v3);
@@ -196,7 +196,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                     let v33: Rc<str> = codec_empty_3();
                     let v34: Rc<str> = codec_empty_3();
                     let v35: Rc<str> = codec_empty_3();
-                    (v31.clone(), v32.clone(), v33.clone(), v34.clone(), v35.clone())
+                    (v31, v32, v33, v34, v35)
                 } else {
                     let v36: i32 = v29 + 1i32 ;
                     let v37: i32 = find_char_loop_7(v0.clone(), v36, v1, v3);
@@ -207,7 +207,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                         let v41: Rc<str> = codec_empty_3();
                         let v42: Rc<str> = codec_empty_3();
                         let v43: Rc<str> = codec_empty_3();
-                        (v39.clone(), v40.clone(), v41.clone(), v42.clone(), v43.clone())
+                        (v39, v40, v41, v42, v43)
                     } else {
                         let v44: i32 = v37 + 1i32 ;
                         let v45: i32 = find_char_loop_7(v0.clone(), v44, v1, v3);
@@ -217,7 +217,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                         } else {
                             let v48: i32 = v5 - 1i32 ;
                             let v49: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v48 as i64);
-                            v49.clone()
+                            v49
                         };
                         let v51: bool = v45 < v1;
                         if v51 {
@@ -226,7 +226,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                             let v54: Rc<str> = codec_empty_3();
                             let v55: Rc<str> = codec_empty_3();
                             let v56: Rc<str> = codec_empty_3();
-                            (v52.clone(), v53.clone(), v54.clone(), v55.clone(), v56.clone())
+                            (v52, v53, v54, v55, v56)
                         } else {
                             let v57: bool = &*v50 == "op";
                             if v57 {
@@ -237,7 +237,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                                 } else {
                                     let v61: i32 = v13 - 1i32 ;
                                     let v62: Rc<str> = string_slice(&v0.clone(), v58 as i64, v61 as i64);
-                                    v62.clone()
+                                    v62
                                 };
                                 let v64: i32 = v13 + 1i32 ;
                                 let v65: bool = v64 == v21 ;
@@ -246,7 +246,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                                 } else {
                                     let v67: i32 = v21 - 1i32 ;
                                     let v68: Rc<str> = string_slice(&v0.clone(), v64 as i64, v67 as i64);
-                                    v68.clone()
+                                    v68
                                 };
                                 let v70: i32 = v21 + 1i32 ;
                                 let v71: bool = v70 == v29 ;
@@ -255,7 +255,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                                 } else {
                                     let v73: i32 = v29 - 1i32 ;
                                     let v74: Rc<str> = string_slice(&v0.clone(), v70 as i64, v73 as i64);
-                                    v74.clone()
+                                    v74
                                 };
                                 let v76: i32 = v29 + 1i32 ;
                                 let v77: bool = v76 == v37 ;
@@ -264,7 +264,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                                 } else {
                                     let v79: i32 = v37 - 1i32 ;
                                     let v80: Rc<str> = string_slice(&v0.clone(), v76 as i64, v79 as i64);
-                                    v80.clone()
+                                    v80
                                 };
                                 let v82: i32 = v37 + 1i32 ;
                                 let v83: bool = v82 == v1 ;
@@ -272,17 +272,17 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
                                     codec_empty_3()
                                 } else {
                                     let v85: i32 = v1 - 1i32 ;
-                                    let v86: Rc<str> = string_slice(&v0.clone(), v82 as i64, v85 as i64);
-                                    v86.clone()
+                                    let v86: Rc<str> = string_slice(&v0, v82 as i64, v85 as i64);
+                                    v86
                                 };
-                                (v63.clone(), v69.clone(), v75.clone(), v81.clone(), v87.clone())
+                                (v63, v69, v75, v81, v87)
                             } else {
                                 let v88: Rc<str> = codec_empty_3();
                                 let v89: Rc<str> = codec_empty_3();
                                 let v90: Rc<str> = codec_empty_3();
                                 let v91: Rc<str> = codec_empty_3();
                                 let v92: Rc<str> = codec_empty_3();
-                                (v88.clone(), v89.clone(), v90.clone(), v91.clone(), v92.clone())
+                                (v88, v89, v90, v91, v92)
                             }
                         }
                     }
@@ -293,15 +293,15 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
 }
 fn plan_manifest_projection_witness_8() -> i32 {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("KIT-PLAN-IR\t1"); } LIT.with(|lit| lit.clone()) };
-    let v1: Rc<str> = plan_manifest_header_projection_2(v0.clone());
+    let v1: Rc<str> = plan_manifest_header_projection_2(v0);
     let v2: bool = &*v1 == "1";
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("KIT-PLAN-IR\t2"); } LIT.with(|lit| lit.clone()) };
-        let v4: Rc<str> = plan_manifest_header_projection_2(v3.clone());
+        let v4: Rc<str> = plan_manifest_header_projection_2(v3);
         let v5: bool = &*v4 == "";
         if v5 {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("op\t01\t02\t03\t04\t05"); } LIT.with(|lit| lit.clone()) };
-            let (mut v7, mut v8, mut v9, mut v10, mut v11): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) = plan_manifest_row_hex_tuple_5(v6.clone());
+            let (mut v7, mut v8, mut v9, mut v10, mut v11): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) = plan_manifest_row_hex_tuple_5(v6);
             let v12: bool = &*v7 == "01";
             if v12 {
                 let v13: bool = &*v8 == "02";
@@ -313,7 +313,7 @@ fn plan_manifest_projection_witness_8() -> i32 {
                             let v16: bool = &*v11 == "05";
                             if v16 {
                                 let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("op\t01\t02\t03\t04\t05\t06"); } LIT.with(|lit| lit.clone()) };
-                                let (mut v18, mut v19, mut v20, mut v21, mut v22): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) = plan_manifest_row_hex_tuple_5(v17.clone());
+                                let (mut v18, mut v19, mut v20, mut v21, mut v22): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) = plan_manifest_row_hex_tuple_5(v17);
                                 let v23: bool = &*v18 == "";
                                 if v23 {
                                     let v24: bool = &*v19 == "";

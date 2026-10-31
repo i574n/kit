@@ -1,3 +1,4 @@
+///- --package .
 :! coverage_idle = ()
 :~ coverage_jobs_binding (requested : i32) (available : i32) : i32 =
     ? requested = 0i32 ?>

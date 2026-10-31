@@ -38,9 +38,6 @@
 := argument_byte index offset : i32 = rust_std_env.model.argument_byte index offset
 := argument_owned index : string = rust_std_env.model.argument_owned index
 := argument_equals index expected : bool = rust_std_env.model.argument_equals index expected
-:= i32_eq a b : bool = (a = b)
-:= i32_le a b : bool = (a <= b)
-:= i32_nonnegative value : bool = $"0 <= !value"
 := i32_positive value : bool = $"0 < !value"
 := i32_digit value : bool = ? 48i32 <= value ?> value <= 57i32 |: !-
 := i32_digit_value value : i32 = $"!value - 48"
@@ -108,6 +105,7 @@
     | AgilePlan => !-
     | AgileNext => !-
     | AgileLinks => !-
+    | AgileWip => !-
     | AgileBegin => !+
     | AgileRecord => !+
     | AgileSet => !+
@@ -118,6 +116,7 @@
     | AgileNoteEdit => !+
     | AgileNotes => !+
     | AgileRename => !+
+    | AgileSeal => !+
     | AgileTodos => !+
     | AgileRoots => !+
     | AgileViews => !-
@@ -145,6 +144,7 @@
     | AgileNoteEdit => agile_with_root \ () => $"agile_note_edit::kit_agile_note_edit_run()"
     | AgileNotes => agile_arity_route (args_len_is 4i32) \ () => $"agile_title_notes::kit_agile_notes_from_title_run()"
     | AgileRename => agile_arity_route (args_len_is 4i32) \ () => $"agile_task_rename::kit_agile_rename_run()"
+    | AgileSeal => agile_with_root \ () => $"agile_note_seal::kit_agile_seal_run()"
     | AgileTodos =>
         agile_with_root \ () =>
             ? todos_recording ()
@@ -153,6 +153,7 @@
     | AgileNext => agile_with_root \ () => $"agile_task_next::kit_agile_next_run()"
     | AgileRoots => agile_with_root \ () => $"agile_todo_roots::kit_agile_roots_run()"
     | AgileLinks => agile_with_root \ () => $"agile_memory_links::kit_agile_links_run()"
+    | AgileWip => agile_with_root \ () => $"agile_todo_merge::kit_agile_wip_run()"
     | AgileViews | AgileView | AgileViewAdd => agile_with_root \ () => $"agile_task_views::kit_agile_views_run()"
 
 :~ agile_entry () : i32 =

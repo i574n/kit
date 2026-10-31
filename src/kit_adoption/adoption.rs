@@ -57,18 +57,18 @@ fn argument_2(mut v0: i32) -> Rc<str> {
     };
     let v9: US0 = if v5 {
         let v6: Rc<str> = command_line_argument_4(v1);
-        US0::US0_Some(v6.clone())
+        US0::US0_Some(v6)
     } else {
         US0::US0_None
     };
     match &v9 {
         US0::US0_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US0::US0_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -217,8 +217,8 @@ fn tally_added_15(mut v0: Rc<str>, mut v1: US4, mut v2: Rc<UH0>) -> Rc<UH0> {
                 };
                 Rc::new(UH0::UH0_DayThen(v14.clone(), v31, v32, v33, v18.clone()))
             } else {
-                let v35: Rc<UH0> = tally_added_15(v0.clone(), v1.clone(), v18.clone());
-                Rc::new(UH0::UH0_DayThen(v14.clone(), v15, v16, v17, v35.clone()))
+                let v35: Rc<UH0> = tally_added_15(v0.clone(), v1.clone(), v18);
+                Rc::new(UH0::UH0_DayThen(v14, v15, v16, v17, v35))
             }
         }
         UH0::UH0_NoDays => {
@@ -245,7 +245,7 @@ fn tally_added_15(mut v0: Rc<str>, mut v1: US4, mut v2: Rc<UH0>) -> Rc<UH0> {
                 }
             };
             let v12: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoDays); } CASE.with(|case| case.clone()) };
-            Rc::new(UH0::UH0_DayThen(v0.clone(), v9, v10, v11, v12.clone()))
+            Rc::new(UH0::UH0_DayThen(v0, v9, v10, v11, v12))
         }
     }
 }
@@ -382,11 +382,11 @@ fn method23(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_22(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method23(v2.clone(), v3.clone());
+    method23(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn kit_share_24(mut v0: u64, mut v1: u64, mut v2: u64) -> f64 {
     let mut v3: bool = v0 == 0u64;
@@ -484,8 +484,8 @@ fn without_key_27(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
             if v8 {
                 v7.clone()
             } else {
-                let v9: Rc<UH0> = without_key_27(v0.clone(), v7.clone());
-                Rc::new(UH0::UH0_DayThen(v3.clone(), v4, v5, v6, v9.clone()))
+                let v9: Rc<UH0> = without_key_27(v0, v7);
+                Rc::new(UH0::UH0_DayThen(v3, v4, v5, v6, v9))
             }
         }
         UH0::UH0_NoDays => {

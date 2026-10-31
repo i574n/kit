@@ -28,7 +28,7 @@ fn row_4(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = std::rc::Rc::<str>::from(char::from(31u8).to_string());
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v2, &*v1, &*v3, &*v3].concat());
-    v4.clone()
+    v4
 }
 fn go_7(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
     loop {
@@ -181,7 +181,7 @@ fn joined_12(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v4, &*v1, &*v5, &*v5].concat());
-            v6.clone()
+            v6
         }
     }
 }
@@ -244,17 +244,17 @@ fn aligned_14(mut v0: Rc<str>) -> Rc<str> {
 fn failure_row_15(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  failed: "); } LIT.with(|lit| lit.clone()) };
     let v3: i32 = 2i32;
-    let v4: Rc<str> = part_at_3(v1.clone(), v3);
+    let v4: Rc<str> = part_at_3(v1, v3);
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v2, &*v4, &*v5, &*v5].concat());
-    v6.clone()
+    v6
 }
 fn history_report_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> (Rc<str>, bool, u64, u64) {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("log\n--abbrev=8\n--format=%h%x09%ad%x09%s\n--date=short\n-S"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n--\n"); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v7: Rc<str> = std::rc::Rc::<str>::from([&*v4, &*v2, &*v5, &*v3, &*v6].concat());
-    let v8: Rc<str> = git_run_1(v0.clone(), v1.clone(), v7.clone(), v6.clone());
+    let v8: Rc<str> = git_run_1(v0.clone(), v1.clone(), v7, v6.clone());
     let v9: bool = succeeded_2(v8.clone());
     if v9 {
         let v10: i32 = 1i32;
@@ -264,23 +264,23 @@ fn history_report_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: R
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("date"); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("change"); } LIT.with(|lit| lit.clone()) };
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("subject"); } LIT.with(|lit| lit.clone()) };
-        let v17: Rc<str> = row_4(v15.clone(), v16.clone());
-        let v18: Rc<str> = row_4(v14.clone(), v17.clone());
-        let v19: Rc<str> = row_4(v13.clone(), v18.clone());
-        let v20: Rc<str> = history_rows_5(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v11.clone(), v12, v19.clone());
+        let v17: Rc<str> = row_4(v15, v16);
+        let v18: Rc<str> = row_4(v14, v17);
+        let v19: Rc<str> = row_4(v13, v18);
+        let v20: Rc<str> = history_rows_5(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v11.clone(), v12, v19);
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
         let v22: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v21, &*v3, &*v6, &*v6].concat());
-        let v23: Rc<str> = matching_lines_13(v0.clone(), v22.clone(), v2.clone());
-        let v24: Rc<str> = aligned_14(v20.clone());
-        let v25: Rc<str> = joined_12(v24.clone(), v23.clone());
-        let v26: u64 = line_count_6(v11.clone());
-        let v27: u64 = line_count_6(v23.clone());
-        (v25.clone(), false, v26, v27)
+        let v23: Rc<str> = matching_lines_13(v0, v22, v2);
+        let v24: Rc<str> = aligned_14(v20);
+        let v25: Rc<str> = joined_12(v24, v23.clone());
+        let v26: u64 = line_count_6(v11);
+        let v27: u64 = line_count_6(v23);
+        (v25, false, v26, v27)
     } else {
         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("git history "); } LIT.with(|lit| lit.clone()) };
         let v29: Rc<str> = std::rc::Rc::<str>::from([&*v28, &*v1, &*v6, &*v6, &*v6].concat());
-        let v30: Rc<str> = failure_row_15(v29.clone(), v8.clone());
-        (v30.clone(), true, 0u64, 0u64)
+        let v30: Rc<str> = failure_row_15(v29, v8);
+        (v30, true, 0u64, 0u64)
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (Rc<str>, bool, u64, u64)> {
@@ -298,24 +298,24 @@ fn days_report_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<str>
     let v4: bool = &*v2 == "";
     let v12: Rc<str> = if v4 {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v5.clone()
+        v5
     } else {
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n--since="); } LIT.with(|lit| lit.clone()) };
         let v9: Rc<str> = if v3 {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" 00:00:00"); } LIT.with(|lit| lit.clone()) };
-            v7.clone()
+            v7
         } else {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         };
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v2, &*v9, &*v10, &*v10].concat());
-        v11.clone()
+        v11
     };
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("log\n--format=%ad\n--date=short"); } LIT.with(|lit| lit.clone()) };
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v15: Rc<str> = std::rc::Rc::<str>::from([&*v13, &*v12, &*v14, &*v14, &*v14].concat());
-    let v16: Rc<str> = git_run_1(v0.clone(), v1.clone(), v15.clone(), v14.clone());
+    let v16: Rc<str> = git_run_1(v0, v1.clone(), v15, v14.clone());
     let v17: bool = succeeded_2(v16.clone());
     if v17 {
         let v18: i32 = 1i32;
@@ -323,17 +323,17 @@ fn days_report_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<str>
         let v20: Rc<str> = days_counted_17(v19.clone());
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("day"); } LIT.with(|lit| lit.clone()) };
         let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("commits"); } LIT.with(|lit| lit.clone()) };
-        let v23: Rc<str> = row_4(v21.clone(), v22.clone());
-        let v24: Rc<str> = joined_12(v23.clone(), v20.clone());
-        let v25: Rc<str> = aligned_14(v24.clone());
-        let v26: u64 = line_count_6(v19.clone());
-        let v27: u64 = line_count_6(v20.clone());
-        (v25.clone(), false, v26, v27)
+        let v23: Rc<str> = row_4(v21, v22);
+        let v24: Rc<str> = joined_12(v23, v20.clone());
+        let v25: Rc<str> = aligned_14(v24);
+        let v26: u64 = line_count_6(v19);
+        let v27: u64 = line_count_6(v20);
+        (v25, false, v26, v27)
     } else {
         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("git log "); } LIT.with(|lit| lit.clone()) };
         let v29: Rc<str> = std::rc::Rc::<str>::from([&*v28, &*v1, &*v14, &*v14, &*v14].concat());
-        let v30: Rc<str> = failure_row_15(v29.clone(), v16.clone());
-        (v30.clone(), true, 0u64, 0u64)
+        let v30: Rc<str> = failure_row_15(v29, v16);
+        (v30, true, 0u64, 0u64)
     }
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (Rc<str>, bool, u64, u64)> {
@@ -341,9 +341,178 @@ fn closure1() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (Rc<str>, bool, u64, u6
         days_report_16(v0.clone(), v1.clone(), v2.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
+fn porcelain_paths_20(mut v0: Rc<str>, mut v1: bool) -> Rc<str> {
+    let v2: Rc<str> = std::rc::Rc::<str>::from((v0).lines().filter(|line| line.len() > 3 && line.starts_with("??") == v1).map(|line| line[3..].trim_matches(char::from(34u8)).to_owned()).collect::<Vec<_>>().join("
+"));
+    v2.clone()
+}
+fn staged_from_22(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
+    loop {
+        let v3: i32 = (v0.clone().borrow().len() as i32);
+        let v4: bool = v1 >= v3;
+        if v4 {
+            return v2.clone();
+        } else {
+            let v5: Rc<str> = v0.clone().borrow()[v1 as usize].clone();
+            let v6: i32 = (v5.clone().len() as i32);
+            let v7: bool = v6 > 3i32;
+            let v12: Rc<str> = if v7 {
+                let v8: usize = ((0i32) as usize);
+                let v9: usize = ((1i32) as usize);
+                let v10: Rc<str> = Rc::<str>::from(&(v5)[v8..v9]);
+                v10.clone()
+            } else {
+                let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+                v11.clone()
+            };
+            let v22: Rc<str> = if v7 {
+                let v13: i32 = v6.wrapping_sub(3i32);
+                let v14: usize = ((3i32) as usize);
+                let v15: i32 = 3i32.wrapping_add(v13);
+                let v16: usize = ((v15) as usize);
+                let v17: Rc<str> = Rc::<str>::from(&(v5)[v14..v16]);
+                let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
+                let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let v20: Rc<str> = Rc::<str>::from(v17.replace(&*v18, &*v19));
+                v20.clone()
+            } else {
+                let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                v21.clone()
+            };
+            let v23: i32 = v1.wrapping_add(1i32);
+            let v24: bool = &*v12 == " ";
+            let v26: bool = if v24 {
+                true
+            } else {
+                let v25: bool = &*v12 == "?";
+                v25
+            };
+            let v28: Rc<str> = if v26 {
+                v2.clone()
+            } else {
+                joined_12(v2.clone(), v22.clone())
+            };
+            (v0, v1, v2) = (v0.clone(), v23, v28.clone());
+            continue;
+        }
+    }
+}
+fn staged_paths_21(mut v0: Rc<str>) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v1).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+    let v3: i32 = 0i32;
+    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    staged_from_22(v2.clone(), v3, v4.clone())
+}
+fn decimal_text_24(mut v0: u64) -> Rc<str> {
+    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
+    v1
+}
+fn state_row_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
+    let v3: bool = &*v2 == "";
+    if v3 {
+        let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v4
+    } else {
+        let v5: u64 = line_count_6(v2.clone());
+        let v6: Rc<str> = decimal_text_24(v5);
+        let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+        let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
+        let v9: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v7, &v8));
+        let v10: Rc<str> = row_4(v6, v9);
+        let v11: Rc<str> = row_4(v1, v10);
+        row_4(v0, v11)
+    }
+}
+fn status_rows_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: Rc<str>, mut v4: bool, mut v5: u64, mut v6: u64, mut v7: u64) -> (Rc<str>, bool, u64, u64, u64) {
+    loop {
+        let v8: u64 = line_count_6(v1.clone());
+        let v9: bool = v2 < v8;
+        if v9 {
+            let v10: Rc<str> = line_at_8(v1.clone(), v2);
+            let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status\n--porcelain\n--untracked-files=all"); } LIT.with(|lit| lit.clone()) };
+            let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let v13: Rc<str> = git_run_1(v0.clone(), v10.clone(), v11.clone(), v12.clone());
+            let v14: bool = succeeded_2(v13.clone());
+            if v14 {
+                let v15: i32 = 1i32;
+                let v16: Rc<str> = part_at_3(v13.clone(), v15);
+                let v17: bool = false;
+                let v18: Rc<str> = porcelain_paths_20(v16.clone(), v17);
+                let v19: bool = true;
+                let v20: Rc<str> = porcelain_paths_20(v16.clone(), v19);
+                let v21: bool = &*v16 == "";
+                let v35: Rc<str> = if v21 {
+                    let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("clean"); } LIT.with(|lit| lit.clone()) };
+                    let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0"); } LIT.with(|lit| lit.clone()) };
+                    let v24: Rc<str> = row_4(v22.clone(), v23.clone());
+                    row_4(v10.clone(), v24.clone())
+                } else {
+                    let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("staged"); } LIT.with(|lit| lit.clone()) };
+                    let v27: Rc<str> = staged_paths_21(v16.clone());
+                    let v28: Rc<str> = state_row_23(v10.clone(), v26.clone(), v27.clone());
+                    let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("modified"); } LIT.with(|lit| lit.clone()) };
+                    let v30: Rc<str> = state_row_23(v10.clone(), v29.clone(), v18.clone());
+                    let v31: Rc<str> = joined_12(v30.clone(), v28.clone());
+                    let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("untracked"); } LIT.with(|lit| lit.clone()) };
+                    let v33: Rc<str> = state_row_23(v10.clone(), v32.clone(), v20.clone());
+                    joined_12(v31.clone(), v33.clone())
+                };
+                let v36: u64 = line_count_6(v18.clone());
+                let v37: u64 = v6.wrapping_add(v36);
+                let v38: u64 = line_count_6(v20.clone());
+                let v39: u64 = v7.wrapping_add(v38);
+                let v40: u64 = v2.wrapping_add(1u64);
+                let v41: Rc<str> = joined_12(v3.clone(), v35.clone());
+                let v42: u64 = v5.wrapping_add(1u64);
+                (v0, v1, v2, v3, v4, v5, v6, v7) = (v0.clone(), v1.clone(), v40, v41.clone(), v4, v42, v37, v39);
+                continue;
+            } else {
+                let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
+                let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
+                let v50: i32 = 2i32;
+                let v51: Rc<str> = part_at_3(v13.clone(), v50);
+                let v52: Rc<str> = row_4(v49.clone(), v51.clone());
+                let v53: Rc<str> = row_4(v48.clone(), v52.clone());
+                let v54: Rc<str> = row_4(v10.clone(), v53.clone());
+                let v55: u64 = v2.wrapping_add(1u64);
+                let v56: Rc<str> = joined_12(v3.clone(), v54.clone());
+                let v57: bool = true;
+                (v0, v1, v2, v3, v4, v5, v6, v7) = (v0.clone(), v1.clone(), v55, v56.clone(), v57, v5, v6, v7);
+                continue;
+            }
+        } else {
+            let v68: Rc<str> = aligned_14(v3.clone());
+            return (v68.clone(), v4, v5, v6, v7);
+        }
+    }
+}
+fn status_report_18(mut v0: Rc<str>, mut v1: Rc<str>) -> (Rc<str>, bool, u64, u64, u64) {
+    let v2: u64 = 0u64;
+    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("repo"); } LIT.with(|lit| lit.clone()) };
+    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state"); } LIT.with(|lit| lit.clone()) };
+    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count"); } LIT.with(|lit| lit.clone()) };
+    let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("paths"); } LIT.with(|lit| lit.clone()) };
+    let v7: Rc<str> = row_4(v5, v6);
+    let v8: Rc<str> = row_4(v4, v7);
+    let v9: Rc<str> = row_4(v3, v8);
+    let v10: bool = false;
+    let v11: u64 = 0u64;
+    let v12: u64 = 0u64;
+    let v13: u64 = 0u64;
+    status_rows_19(v0, v1, v2, v9, v10, v11, v12, v13)
+}
+fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> (Rc<str>, bool, u64, u64, u64)> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> (Rc<str>, bool, u64, u64, u64)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> (Rc<str>, bool, u64, u64, u64) {
+        status_report_18(v0.clone(), v1.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
 pub fn kit_do_git_history(v0: &str, v1: &str, v2: &str, v3: &str) -> (Rc<str>, bool, u64, u64) {
     closure0()(Rc::<str>::from(v0), Rc::<str>::from(v1), Rc::<str>::from(v2), Rc::<str>::from(v3))
 }
 pub fn kit_do_git_days(v0: &str, v1: &str, v2: &str) -> (Rc<str>, bool, u64, u64) {
     closure1()(Rc::<str>::from(v0), Rc::<str>::from(v1), Rc::<str>::from(v2))
+}
+pub fn kit_do_git_status(v0: &str, v1: &str) -> (Rc<str>, bool, u64, u64, u64) {
+    closure2()(Rc::<str>::from(v0), Rc::<str>::from(v1))
 }

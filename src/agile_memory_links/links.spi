@@ -6,16 +6,13 @@
 := stdout_line (~text : string) : () = console.write_line text
 := stderr_line (~text : string) : () = console.write_error_line text
 := i32_text (value : i32) : string = (sm'.show value)
-:= text_of (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default()\
-    .as_str())' : string
+:= text_of (~path : string) : string = file_system.read_text_or_empty path
 :~ directory_exists (~path : string) : bool =
     file_system.path_buf_is_dir (file_system.new_path_buf (sm'.to_std_string path))
 := joined (~base : string) (~name : string) : string = $'std::rc::Rc::<str>::from(std::path::Path::new(&*!base).join(&\
     *!name).to_string_lossy().as_ref())' : string
-:= line_head (~text : string) : string = $'std::rc::Rc::<str>::from((!text).split(char::from(10u8)).next().unwrap_or("\
-    "))' : string
-:= line_rest (~text : string) : string = $'std::rc::Rc::<str>::from((!text).split_once(char::from(10u8)).map(|(_, \
-    rest)| rest).unwrap_or(""))' : string
+:= line_head (~text : string) : string = sm'.first_line text
+:= line_rest (~text : string) : string = sm'.after_first_line text
 := option_value (~name : string) : string = $'std::rc::Rc::<str>::from({ let args = \
     std::env::args().collect::<Vec<_>>(); args.iter().position(|argument| argument == &*!name).and_then(|at| \
     args.get(at + 1)).cloned().unwrap_or_default() }.as_str())' : string
@@ -127,8 +124,7 @@
     Note (")).map(|at| at as i32 + !offset).unwrap_or(-1)' : i32
 := line_end_from (~state : string) (offset : i32) : i32 = $'(!state).get(!offset as usize..).and_then(|rest| \
     rest.find(char::from(10u8))).map(|at| at as i32 + !offset).unwrap_or((!state).len() as i32)' : i32
-:= text_between (~text : string) (start : i32) (stop : i32) : string = $'std::rc::Rc::<str>::from((!text).get(!start \
-    as usize..!stop as usize).unwrap_or(""))' : string
+:= text_between (~text : string) (start : i32) (stop : i32) : string = sm'.bytes_between start stop text
 := quoted_first (~line : string) : string = $'std::rc::Rc::<str>::from((!line).split(char::from(34u8)).nth(1).unwrap_o\
     r(""))' : string
 := memory_word_at (~line : string) (offset : i32) : i32 = $'(!line).get(!offset as usize..).and_then(|rest| \
@@ -169,7 +165,9 @@
         stderr_line "kit error: agile links rejected: --memory <dir> must name a memory directory"
         2i32
     |:
-        := state_raw = text_of (joined (joined root "state") "agile.spi")
+        := state_dir = joined root "state"
+        := segments = $'agile_note_listing::kit_agile_state_segments(&*!state_dir)' : string
+        := state_raw = sm'.concat_list "\n" [ text_of (joined state_dir "agile.spi"); segments ]
         := state = $'kit_agile_records::kit_agile_records_as_lines(&*!state_raw)' : string
         := files = memory_files directory
         := names = names_from directory files ""

@@ -9,11 +9,12 @@
 :! artifact_bank = ()
 :! word_index bank = i32
 
-:== path_tag_indices = {
-    adjective : word_index adjective_bank
-    landmark : word_index landmark_bank
-    artifact : word_index artifact_bank
-}
+:== path_tag_indices =
+    {
+        adjective : word_index adjective_bank
+        landmark : word_index landmark_bank
+        artifact : word_index artifact_bank
+    }
 
 :| path_tag_policy =
     | RejectAbsolutePath
@@ -48,11 +49,12 @@
         ))
     ))
 
-:= path_tag_indices adjective landmark artifact : path_tag_indices = {
-    adjective = word_index adjective
-    landmark = word_index landmark
-    artifact = word_index artifact
-}
+:= path_tag_indices adjective landmark artifact : path_tag_indices =
+    {
+        adjective = word_index adjective
+        landmark = word_index landmark
+        artifact = word_index artifact
+    }
 
 :~ path_tag_relative_binding (is_absolute : i32) (has_parent : i32) (segments : i32) : i32 =
     ? 0i32 < is_absolute ?> 0i32

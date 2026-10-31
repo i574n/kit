@@ -189,10 +189,10 @@ fn agile_task_line_candidate_code_5(mut v0: Rc<str>) -> u64 {
     let v2: i32 = 0i32;
     let v3: i32 = method6(v0.clone(), v1, v2);
     let v4: i32 = v1.wrapping_sub(1i32);
-    let v5: Rc<str> = string_slice(&v0.clone(), v3 as i64, v4 as i64);
+    let v5: Rc<str> = string_slice(&v0, v3 as i64, v4 as i64);
     let v6: i32 = (v5.clone().len() as i32);
     let v7: i32 = method7(v5.clone(), v6);
-    let v8: Rc<str> = string_slice(&v5.clone(), 0i32 as i64, v7 as i64);
+    let v8: Rc<str> = string_slice(&v5, 0i32 as i64, v7 as i64);
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
     let v10: bool = v8.starts_with(&*v9);
     if v10 {
@@ -240,16 +240,16 @@ fn receipt_row_kind_text_11(mut v0: Rc<str>) -> Rc<str> {
     let v2: bool = v0 == v1 ;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("snapshot"); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     } else {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("2"); } LIT.with(|lit| lit.clone()) };
         let v5: bool = v0 == v4 ;
         if v5 {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("module"); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
         } else {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v7.clone()
+            v7
         }
     }
 }
@@ -296,7 +296,7 @@ fn receipt_attestation_kind_code_13(mut v0: Rc<str>) -> u64 {
             let v6: i32 = 0i32;
             let v7: i32 = 0i32;
             let v8: i32 = 6i32;
-            starts_with_loop_14(v0.clone(), v5.clone(), v6, v7, v8)
+            starts_with_loop_14(v0, v5, v6, v7, v8)
         };
         if v10 {
             2u64
@@ -318,10 +318,10 @@ fn receipt_attestation_text_16(mut v0: Rc<str>) -> Rc<str> {
     let v2: bool = v0 == v1 ;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     } else {
-        let v4: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) }, v0.clone()));
-        v4.clone()
+        let v4: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) }, v0));
+        v4
     }
 }
 fn agile_receipt_attestation_text_15(mut v0: Rc<str>) -> Rc<str> {
@@ -349,10 +349,10 @@ fn agile_prompt_lease_marker_text_18(mut v0: Rc<str>) -> Rc<str> {
     let v1: bool = &*v0 == "1";
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("PromptLease ("); } LIT.with(|lit| lit.clone()) };
-        v2.clone()
+        v2
     } else {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     }
 }
 fn closure11() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -435,42 +435,42 @@ fn agile_status_text_23(mut v0: Rc<str>) -> Rc<str> {
     let v2: bool = &*v0 == &*v1;
     let v5: Rc<str> = if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planned"); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     } else {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v4.clone()
+        v4
     };
     let v6: Rc<str> = std::rc::Rc::<str>::from((1i32).to_string());
     let v7: bool = &*v0 == &*v6;
     let v9: Rc<str> = if v7 {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Active"); } LIT.with(|lit| lit.clone()) };
-        v8.clone()
+        v8
     } else {
-        v5.clone()
+        v5
     };
     let v10: Rc<str> = std::rc::Rc::<str>::from((2i32).to_string());
     let v11: bool = &*v0 == &*v10;
     let v13: Rc<str> = if v11 {
         let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Blocked"); } LIT.with(|lit| lit.clone()) };
-        v12.clone()
+        v12
     } else {
-        v9.clone()
+        v9
     };
     let v14: Rc<str> = std::rc::Rc::<str>::from((3i32).to_string());
     let v15: bool = &*v0 == &*v14;
     let v17: Rc<str> = if v15 {
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Paused"); } LIT.with(|lit| lit.clone()) };
-        v16.clone()
+        v16
     } else {
-        v13.clone()
+        v13
     };
     let v18: Rc<str> = std::rc::Rc::<str>::from((4i32).to_string());
     let v19: bool = &*v0 == &*v18;
     if v19 {
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Done"); } LIT.with(|lit| lit.clone()) };
-        v20.clone()
+        v20
     } else {
-        v17.clone()
+        v17
     }
 }
 fn closure16() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -491,7 +491,7 @@ fn agile_spi_escape_text_24(mut v0: Rc<str>) -> Rc<str> {
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\r"); } LIT.with(|lit| lit.clone()) };
     let v12: Rc<str> = Rc::<str>::from(v9.replace(&*v10, &*v11));
-    v12.clone()
+    v12
 }
 fn closure17() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
@@ -506,7 +506,7 @@ fn agile_state_package_line_code_25(mut v0: Rc<str>) -> u64 {
     let v5: Rc<str> = string_slice(&v0.clone(), v3 as i64, v4 as i64);
     let v6: i32 = (v5.clone().len() as i32);
     let v7: i32 = method7(v5.clone(), v6);
-    let v8: Rc<str> = string_slice(&v5.clone(), 0i32 as i64, v7 as i64);
+    let v8: Rc<str> = string_slice(&v5, 0i32 as i64, v7 as i64);
     let v9: bool = &*v8 == "modules:";
     if v9 {
         1u64
@@ -581,20 +581,20 @@ fn agile_state_package_module_name_26(mut v0: Rc<str>) -> Rc<str> {
     let v2: i32 = 0i32;
     let v3: i32 = method6(v0.clone(), v1, v2);
     let v4: i32 = v1.wrapping_sub(1i32);
-    let v5: Rc<str> = string_slice(&v0.clone(), v3 as i64, v4 as i64);
+    let v5: Rc<str> = string_slice(&v0, v3 as i64, v4 as i64);
     let v6: i32 = (v5.clone().len() as i32);
     let v7: i32 = method7(v5.clone(), v6);
-    let v8: Rc<str> = string_slice(&v5.clone(), 0i32 as i64, v7 as i64);
-    let v9: Rc<str> = loop_27(v8.clone());
-    let v10: Rc<str> = loop_28(v9.clone());
+    let v8: Rc<str> = string_slice(&v5, 0i32 as i64, v7 as i64);
+    let v9: Rc<str> = loop_27(v8);
+    let v10: Rc<str> = loop_28(v9);
     let v11: i32 = (v10.clone().len() as i32);
     let v12: i32 = 0i32;
     let v13: i32 = method6(v10.clone(), v11, v12);
     let v14: i32 = v11.wrapping_sub(1i32);
-    let v15: Rc<str> = string_slice(&v10.clone(), v13 as i64, v14 as i64);
+    let v15: Rc<str> = string_slice(&v10, v13 as i64, v14 as i64);
     let v16: i32 = (v15.clone().len() as i32);
     let v17: i32 = method7(v15.clone(), v16);
-    let v18: Rc<str> = string_slice(&v15.clone(), 0i32 as i64, v17 as i64);
+    let v18: Rc<str> = string_slice(&v15, 0i32 as i64, v17 as i64);
     let v19: bool = &*v18 == "";
     let v22: bool = if v19 {
         true
@@ -612,11 +612,11 @@ fn agile_state_package_module_name_26(mut v0: Rc<str>) -> Rc<str> {
     };
     if v25 {
         let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v26.clone()
+        v26
     } else {
         let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".spi"); } LIT.with(|lit| lit.clone()) };
         let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v27));
-        v28.clone()
+        v28
     }
 }
 fn closure19() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {

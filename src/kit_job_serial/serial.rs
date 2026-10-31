@@ -103,11 +103,11 @@ fn method6(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_5(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method6(v2.clone(), v3.clone());
+    method6(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn method7(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
     loop {
@@ -524,10 +524,10 @@ fn serial_run_0() -> i32 {
     let mut v0: i32 = 2i32;
     let v1: i32 = command_line_argument_count_10();
     let v2: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let v3: Rc<UH1> = arguments_from_11(v0, v1, v2.clone());
+    let v3: Rc<UH1> = arguments_from_11(v0, v1, v2);
     let mut v4: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
     let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v6: Rc<UH0> = segments_13(v3.clone(), v4.clone(), v5.clone());
+    let v6: Rc<UH0> = segments_13(v3, v4, v5);
     let v48: US2 = match &*v6 {
         UH0::UH0_Cons(v9, v10) => {
             let v9: Rc<UH1> = v9.clone();
@@ -536,11 +536,11 @@ fn serial_run_0() -> i32 {
             let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v13: bool = false;
             let v14: bool = false;
-            let v15: US3 = head_from_15(v9.clone(), v11.clone(), v12.clone(), v13, v14);
+            let v15: US3 = head_from_15(v9, v11, v12, v13, v14);
             match &v15 {
                 US3::US3_None => {
                     let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside one job, so a waiting link holds no process)"); } LIT.with(|lit| lit.clone()) };
-                    US2::US2_ChainRefused(v16.clone())
+                    US2::US2_ChainRefused(v16)
                 }
                 US3::US3_Some(v18, v19, v20, v21) => {
                     let v18: US0 = v18.clone();
@@ -556,7 +556,7 @@ fn serial_run_0() -> i32 {
                         let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no job to start; "); } LIT.with(|lit| lit.clone()) };
                         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside one job, so a waiting link holds no process)"); } LIT.with(|lit| lit.clone()) };
                         let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no job to start; job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside one job, so a waiting link holds no process)"); } LIT.with(|lit| lit.clone()) };
-                        US2::US2_ChainRefused(v29.clone())
+                        US2::US2_ChainRefused(v29)
                     } else {
                         let v31: bool = v23 > 0i32;
                         if v31 {
@@ -565,14 +565,14 @@ fn serial_run_0() -> i32 {
                             let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v32));
                             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs <label> <timeout-ms> <program> [args...]"); } LIT.with(|lit| lit.clone()) };
                             let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
-                            US2::US2_ChainRefused(v36.clone())
+                            US2::US2_ChainRefused(v36)
                         } else {
                             let v38: bool = v20 && v21;
                             if v38 {
                                 let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--serial and --run-serial exclude each other"); } LIT.with(|lit| lit.clone()) };
-                                US2::US2_ChainRefused(v39.clone())
+                                US2::US2_ChainRefused(v39)
                             } else {
-                                US2::US2_ChainPlanned(v18.clone(), v19.clone(), v20, v21, v10.clone())
+                                US2::US2_ChainPlanned(v18, v19, v20, v21, v10)
                             }
                         }
                     }
@@ -581,7 +581,7 @@ fn serial_run_0() -> i32 {
         }
         UH0::UH0_Nil => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside one job, so a waiting link holds no process)"); } LIT.with(|lit| lit.clone()) };
-            US2::US2_ChainRefused(v7.clone())
+            US2::US2_ChainRefused(v7)
         }
     };
     match &v48 {
@@ -594,7 +594,7 @@ fn serial_run_0() -> i32 {
             let v57: Rc<str> = current_executable_18();
             let v58: i32 = 0i32;
             let v59: i32 = 0i32;
-            serial_ran_1(v57.clone(), v52.clone(), v56.clone(), v58, v59)
+            serial_ran_1(v57, v52, v56, v58, v59)
         }
         US2::US2_ChainRefused(v49) => {
             let v49: Rc<str> = v49.clone();

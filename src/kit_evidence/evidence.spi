@@ -12,8 +12,7 @@
     | MissingFile
     | WriteFailed : string
 
-:~ argument (index : i32) : string =
-    $'std::rc::Rc::<str>::from(std::env::args().nth(!index as usize).unwrap_or_default().as_str())' : string
+:~ argument (index : i32) : string = rust_std_env.model.argument_at index
 
 :~ has_flag (~flag : string) : bool = rust_std_env.model.argument_flag_present 0i32 flag
 

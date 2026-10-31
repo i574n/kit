@@ -93,9 +93,12 @@
         ?= mode ?|
         | CheckReplacement => receipt mode path matches expectation (text_bytes original) (text_bytes updated) started
         | ApplyReplacement =>
-            ?= replace_file_checked path updated ?|
-            | Replaced => receipt mode path matches expectation (text_bytes original) (text_bytes updated) started
-            | problem => rejected (file_replacement_problem problem)
+            ? file_text path <> original
+            ?> rejected ("text-replace: " ++# path ++# " changed since it was read; nothing written, run it again")
+            |:
+                ?= replace_file_checked path updated ?|
+                | Replaced => receipt mode path matches expectation (text_bytes original) (text_bytes updated) started
+                | problem => rejected (file_replacement_problem problem)
     |:
         := observed =
             "text-replace expected "

@@ -1,0 +1,5 @@
+:< run
+
+:= main () : i32 =
+    export "kit_schedule_run" ((\ () => schedule_run ()) : () -> i32)
+    0i32

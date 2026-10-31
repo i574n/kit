@@ -49,7 +49,7 @@ pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, 
         let flags = if with_parent { flags | 0x0008_0000 } else { flags };
         if unsafe { CreateProcessW(std::ptr::null(), line.as_mut_ptr(), std::ptr::null_mut(), std::ptr::null_mut(), 0, flags, std::ptr::null_mut(), cwd.as_ptr(), &mut startup as *mut StartupInfoEx as *mut StartupInfo, &mut info) } == 0 { 0 } else { unsafe { CloseHandle(info.thread); CloseHandle(info.process); } info.pid as u64 }
     };
-    let tries = [(0x0100_0228u32, true), (0x0000_0228u32, true), (0x0100_0228u32, false), (0x0000_0228u32, false)];
+    let tries = [(0x0900_0220u32, true), (0x0800_0220u32, true), (0x0900_0220u32, false), (0x0800_0220u32, false)];
     let mut parent_pid = 0u64;
     let mut pid = 0u64;
     for (flags, with_parent) in tries.iter() {
@@ -198,18 +198,18 @@ fn argument_2(mut v0: i32) -> Rc<str> {
     };
     let v8: US0 = if v4 {
         let v5: Rc<str> = command_line_argument_3(v0);
-        US0::US0_Some(v5.clone())
+        US0::US0_Some(v5)
     } else {
         US0::US0_None
     };
     match &v8 {
         US0::US0_None => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US0::US0_Some(v9) => {
             let v9: Rc<str> = v9.clone();
-            v9.clone()
+            v9
         }
     }
 }
@@ -249,7 +249,7 @@ fn process_run_0() -> i32 {
     } else {
         let v9: i32 = 3i32;
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let mut v11: Rc<str> = joined_args_4(v9, v0, v10.clone());
+        let mut v11: Rc<str> = joined_args_4(v9, v0, v10);
         let mut v12: Rc<str> = std::rc::Rc::<str>::from(kit_shell_parented_start_text(&*v2, &*v11).as_str());
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pid=0 "); } LIT.with(|lit| lit.clone()) };
         let v14: bool = v12.starts_with(&*v13);
@@ -434,7 +434,7 @@ fn loop_14(mut v0: Rc<str>) -> Rc<str> {
 }
 fn launcher_kind_of_13(mut v0: Rc<str>) -> US3 {
     let v1: Rc<str> = Rc::<str>::from(v0.to_lowercase());
-    let v2: Rc<str> = loop_14(v1.clone());
+    let v2: Rc<str> = loop_14(v1);
     let v3: bool = &*v2 == "cmd";
     let v5: bool = if v3 {
         true
@@ -516,17 +516,17 @@ fn method17(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_16(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method17(v2.clone(), v3.clone());
+    method17(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn owner_home_name_15(mut v0: US2) -> Rc<str> {
     match &v0 {
         US2::US2_NoOwner => {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         }
         US2::US2_OwnedBy(v1, v2, v3) => {
             let v1: u64 = *v1;
@@ -537,25 +537,25 @@ fn owner_home_name_15(mut v0: US2) -> Rc<str> {
             let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v5));
             let v7: Rc<str> = format_real_16(v3);
             let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
-            v8.clone()
+            v8
         }
     }
 }
 fn caller_owner_5() -> (Rc<str>, u64, u64) {
     let mut v0: Rc<str> = std::rc::Rc::<str>::from(kit_ancestry_text().as_str());
-    let v1: Rc<UH0> = ancestry_of_text_6(v0.clone());
-    let v2: US2 = owner_of_12(v1.clone());
+    let v1: Rc<UH0> = ancestry_of_text_6(v0);
+    let v2: US2 = owner_of_12(v1);
     match &v2 {
         US2::US2_NoOwner => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v7.clone(), 0u64, 0u64)
+            (v7, 0u64, 0u64)
         }
         US2::US2_OwnedBy(v3, v4, v5) => {
             let v3: u64 = *v3;
             let v4: Rc<str> = v4.clone();
             let v5: u64 = *v5;
-            let v6: Rc<str> = owner_home_name_15(v2.clone());
-            (v6.clone(), v3, v5)
+            let v6: Rc<str> = owner_home_name_15(v2);
+            (v6, v3, v5)
         }
     }
 }

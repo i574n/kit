@@ -62,17 +62,17 @@ fn baseline_saved_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v6: Rc<str> = std::rc::Rc::<str>::from([&*v3, &*v1, &*v4, &*v5, &*v5].concat());
-    let v7: bool = text_written_3(v0.clone(), v6.clone());
+    let v7: bool = text_written_3(v0.clone(), v6);
     if v7 {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit standards baseline ok packages="); } LIT.with(|lit| lit.clone()) };
         let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" path="); } LIT.with(|lit| lit.clone()) };
         let v10: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v2, &*v9, &*v0, &*v5].concat());
-        stdout_line_4(v10.clone());
+        stdout_line_4(v10);
         0i32
     } else {
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: standards could not write "); } LIT.with(|lit| lit.clone()) };
         let v12: Rc<str> = std::rc::Rc::<str>::from([&*v11, &*v0, &*v5, &*v5, &*v5].concat());
-        stderr_line_5(v12.clone());
+        stderr_line_5(v12);
         2i32
     }
 }
@@ -84,11 +84,11 @@ fn method8(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_7(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method8(v2.clone(), v3.clone());
+    method8(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn count_text_6(mut v0: i32) -> Rc<str> {
     format_real_7(v0)
@@ -133,7 +133,7 @@ fn appended_13(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v3, &*v1, &*v4, &*v4].concat());
-        v5.clone()
+        v5
     }
 }
 fn kept_rows_10(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<UH0>, mut v3: Rc<str>) -> Rc<str> {
@@ -272,18 +272,18 @@ fn argument_14(mut v0: i32) -> Rc<str> {
     };
     let mut v9: US1 = if v5 {
         let mut v6: Rc<str> = command_line_argument_16(v1);
-        US1::US1_Some(v6.clone())
+        US1::US1_Some(v6)
     } else {
         US1::US1_None
     };
     match &v9 {
         US1::US1_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US1::US1_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -382,17 +382,17 @@ fn sorted_lines_28(mut v0: Rc<str>) -> Rc<str> {
 }
 fn spi_paths_21(mut v0: Rc<str>) -> Rc<str> {
     let v1: US3 = US3::US3_SpiralFile;
-    let v2: Rc<str> = entry_list_27(v0.clone());
-    let v3: Rc<str> = sorted_lines_28(v2.clone());
+    let v2: Rc<str> = entry_list_27(v0);
+    let v3: Rc<str> = sorted_lines_28(v2);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    kept_entries_22(v1.clone(), v3.clone(), v4.clone())
+    kept_entries_22(v1, v3, v4)
 }
 fn child_dirs_29(mut v0: Rc<str>) -> Rc<str> {
     let v1: US3 = US3::US3_Directory;
-    let v2: Rc<str> = entry_list_27(v0.clone());
-    let v3: Rc<str> = sorted_lines_28(v2.clone());
+    let v2: Rc<str> = entry_list_27(v0);
+    let v3: Rc<str> = sorted_lines_28(v2);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    kept_entries_22(v1.clone(), v3.clone(), v4.clone())
+    kept_entries_22(v1, v3, v4)
 }
 fn package_children_30(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     loop {
@@ -491,9 +491,9 @@ fn census_of_32(mut v0: Rc<str>) -> (Rc<str>, i32, Rc<UH1>) {
     let v3: Rc<str> = text_of_files_33(v1.clone(), v2.clone());
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("^\\s*\\|\\s*[A-Z]\\w*\\s*::[^=]*$"); } LIT.with(|lit| lit.clone()) };
     let v5: i32 = matching_lines_34(v3.clone(), v4.clone());
-    let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\bexists\\s+\\w+\\."); } LIT.with(|lit| lit.clone()) };
+    let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\\\?\\s*\\w+\\.|\\bexists\\s+\\w+\\."); } LIT.with(|lit| lit.clone()) };
     let v7: i32 = matching_lines_34(v3.clone(), v6.clone());
-    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\bforall\\b"); } LIT.with(|lit| lit.clone()) };
+    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\\\*\\s*\\w+(\\s+\\w+)*\\.|\\bforall\\s+\\w+"); } LIT.with(|lit| lit.clone()) };
     let mut v9: i32 = matching_lines_34(v3.clone(), v8.clone());
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("^\\s*union\\s+(rec\\s+)?(private\\s+)?\\w+\\s+\\w+\\s*="); } LIT.with(|lit| lit.clone()) };
     let v11: i32 = matching_lines_34(v3.clone(), v10.clone());
@@ -586,16 +586,16 @@ fn counts_text_37(mut v0: Rc<UH1>) -> Rc<str> {
             let v3: US4 = v3.clone();
             let v4: i32 = *v4;
             let v5: Rc<UH1> = v5.clone();
-            let mut v6: Rc<str> = counts_text_37(v5.clone());
+            let mut v6: Rc<str> = counts_text_37(v5);
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("="); } LIT.with(|lit| lit.clone()) };
             let mut v9: Rc<str> = count_text_6(v4);
             let v10: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v7, &*v2, &*v8, &*v9].concat());
-            v10.clone()
+            v10
         }
         UH1::UH1_NoCounts => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v1.clone()
+            v1
         }
     }
 }
@@ -612,7 +612,7 @@ fn census_key_40(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v7: Rc<str> = quote_11();
     let v8: Rc<str> = std::rc::Rc::<str>::from([&*v5, &*v6, &*v1, &*v7, &*v5].concat());
     let mut v9: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v3, &*v0, &*v4, &*v8].concat());
-    v9.clone()
+    v9
 }
 fn baseline_rows_38(mut v0: Rc<UH1>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>) -> Rc<str> {
     loop {
@@ -719,32 +719,32 @@ fn feature_total_47(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
 }
 fn new_package_problem_45(mut v0: Rc<UH1>) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rust-global"); } LIT.with(|lit| lit.clone()) };
-    let v2: i32 = count_of_46(v0.clone(), v1.clone());
+    let v2: i32 = count_of_46(v0.clone(), v1);
     let v3: bool = v2 > 0i32;
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a new package carries rust_global"); } LIT.with(|lit| lit.clone()) };
-        v4.clone()
+        v4
     } else {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wide-host-macro"); } LIT.with(|lit| lit.clone()) };
-        let mut v6: i32 = count_of_46(v0.clone(), v5.clone());
+        let mut v6: i32 = count_of_46(v0.clone(), v5);
         let v7: bool = v6 > 0i32;
         if v7 {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a new package has host macros over 200 characters"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         } else {
             let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("encoded-row"); } LIT.with(|lit| lit.clone()) };
-            let v10: i32 = count_of_46(v0.clone(), v9.clone());
+            let v10: i32 = count_of_46(v0.clone(), v9);
             let v11: bool = v10 > 0i32;
             if v11 {
                 let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a new package encodes rows with tab or record separators"); } LIT.with(|lit| lit.clone()) };
-                v12.clone()
+                v12
             } else {
                 let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("type-decl"); } LIT.with(|lit| lit.clone()) };
-                let v14: i32 = count_of_46(v0.clone(), v13.clone());
+                let v14: i32 = count_of_46(v0.clone(), v13);
                 let v15: bool = v14 >= 2i32;
                 let v19: bool = if v15 {
                     let v16: i32 = 0i32;
-                    let v17: i32 = feature_total_47(v0.clone(), v16);
+                    let v17: i32 = feature_total_47(v0, v16);
                     let v18: bool = v17 == 0i32;
                     v18
                 } else {
@@ -752,10 +752,10 @@ fn new_package_problem_45(mut v0: Rc<UH1>) -> Rc<str> {
                 };
                 if v19 {
                     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a new package declares types but uses none of the typefeatureset (GADT cases, existentials, foralls, indexed unions, prototypes)"); } LIT.with(|lit| lit.clone()) };
-                    v20.clone()
+                    v20
                 } else {
                     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v21.clone()
+                    v21
                 }
             }
         }
@@ -836,7 +836,7 @@ fn probes_compared_48(mut v0: Rc<UH1>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3:
 }
 fn census_verdict_41(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH1>, mut v3: Rc<str>) -> US5 {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("type-decl"); } LIT.with(|lit| lit.clone()) };
-    let (mut v5, mut v6): (i32, i32) = entry_of_42(v3.clone(), v0.clone(), v4.clone());
+    let (mut v5, mut v6): (i32, i32) = entry_of_42(v3.clone(), v0.clone(), v4);
     let v7: bool = v5 < 0i32;
     if v7 {
         let v8: Rc<str> = new_package_problem_45(v2.clone());
@@ -847,16 +847,16 @@ fn census_verdict_41(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH1>, mut v3: Rc<s
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  new  "); } LIT.with(|lit| lit.clone()) };
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v13: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v11, &*v8, &*v12, &*v12].concat());
-            US5::US5_Regressed(v13.clone())
+            US5::US5_Regressed(v13)
         }
     } else {
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v17: Rc<str> = probes_compared_48(v2.clone(), v3.clone(), v0.clone(), v1, v16.clone());
+        let v17: Rc<str> = probes_compared_48(v2, v3, v0, v1, v16);
         let v18: bool = &*v17 == "";
         if v18 {
             US5::US5_Held
         } else {
-            US5::US5_Regressed(v17.clone())
+            US5::US5_Regressed(v17)
         }
     }
 }
@@ -866,7 +866,7 @@ fn census_walk_31(mut v0: US0, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4
         (v2, v3, v4.clone(), v5.clone())
     } else {
         let v7: Rc<str> = first_line_20(v1.clone());
-        let (mut v8, mut v9, mut v10): (Rc<str>, i32, Rc<UH1>) = census_of_32(v7.clone());
+        let (mut v8, mut v9, mut v10): (Rc<str>, i32, Rc<UH1>) = census_of_32(v7);
         let v11: i32 = v2.wrapping_add(1i32);
         let (mut v72, mut v73, mut v74, mut v75): (i32, i32, Rc<str>, Rc<UH0>) = match &v0 {
             US0::US0_PrintCensus => {
@@ -875,9 +875,9 @@ fn census_walk_31(mut v0: US0, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4
                 let v14: Rc<str> = counts_text_37(v10.clone());
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 let v16: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v12, &*v13, &*v14, &*v15].concat());
-                stdout_line_4(v16.clone());
+                stdout_line_4(v16);
                 let v17: Rc<str> = other_lines_23(v1.clone());
-                census_walk_31(v0.clone(), v17.clone(), v11, v3, v4.clone(), v5.clone())
+                census_walk_31(v0.clone(), v17, v11, v3, v4.clone(), v5.clone())
             }
             _ => {
                 let (mut v68, mut v69, mut v70, mut v71): (i32, i32, Rc<str>, Rc<UH0>) = match &v0 {
@@ -885,7 +885,7 @@ fn census_walk_31(mut v0: US0, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4
                         let v22: Rc<str> = v22.clone();
                         let mut v23: Rc<str> = other_lines_23(v1.clone());
                         let v24: Rc<str> = baseline_rows_38(v10.clone(), v8.clone(), v9, v4.clone());
-                        census_walk_31(v0.clone(), v23.clone(), v11, v3, v24.clone(), v5.clone())
+                        census_walk_31(v0.clone(), v23, v11, v3, v24, v5.clone())
                     }
                     _ => {
                         let (mut v64, mut v65, mut v66, mut v67): (i32, i32, Rc<str>, Rc<UH0>) = match &v0 {
@@ -894,48 +894,48 @@ fn census_walk_31(mut v0: US0, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4
                                 let v30: Rc<str> = other_lines_23(v1.clone());
                                 let v31: Rc<str> = baseline_rows_38(v10.clone(), v8.clone(), v9, v4.clone());
                                 let v32: Rc<UH0> = Rc::new(UH0::UH0_Cons(v8.clone(), v5.clone()));
-                                census_walk_31(v0.clone(), v30.clone(), v11, v3, v31.clone(), v32.clone())
+                                census_walk_31(v0.clone(), v30, v11, v3, v31, v32)
                             }
                             _ => {
                                 let (mut v60, mut v61, mut v62, mut v63): (i32, i32, Rc<str>, Rc<UH0>) = match &v0 {
                                     US0::US0_CheckRatchet(v37) => {
                                         let v37: Rc<str> = v37.clone();
-                                        let v38: Rc<str> = file_text_9(v37.clone());
-                                        let v39: US5 = census_verdict_41(v8.clone(), v9, v10.clone(), v38.clone());
+                                        let v38: Rc<str> = file_text_9(v37);
+                                        let v39: US5 = census_verdict_41(v8, v9, v10, v38);
                                         match &v39 {
                                             US5::US5_Held => {
                                                 let v40: Rc<str> = other_lines_23(v1.clone());
-                                                census_walk_31(v0.clone(), v40.clone(), v11, v3, v4.clone(), v5.clone())
+                                                census_walk_31(v0.clone(), v40, v11, v3, v4.clone(), v5.clone())
                                             }
                                             _ => {
                                                 let (mut v52, mut v53, mut v54, mut v55): (i32, i32, Rc<str>, Rc<UH0>) = match &v39 {
                                                     US5::US5_Regressed(v45) => {
                                                         let v45: Rc<str> = v45.clone();
-                                                        stdout_line_4(v45.clone());
-                                                        let v46: Rc<str> = other_lines_23(v1.clone());
+                                                        stdout_line_4(v45);
+                                                        let v46: Rc<str> = other_lines_23(v1);
                                                         let v47: i32 = v3.wrapping_add(1i32);
-                                                        census_walk_31(v0.clone(), v46.clone(), v11, v47, v4.clone(), v5.clone())
+                                                        census_walk_31(v0, v46, v11, v47, v4, v5)
                                                     }
                                                     _ => unreachable!(),
                                                 };
-                                                (v52, v53, v54.clone(), v55.clone())
+                                                (v52, v53, v54, v55)
                                             }
                                         }
                                     }
                                     _ => unreachable!(),
                                 };
-                                (v60, v61, v62.clone(), v63.clone())
+                                (v60, v61, v62, v63)
                             }
                         };
-                        (v64, v65, v66.clone(), v67.clone())
+                        (v64, v65, v66, v67)
                     }
                 };
-                (v68, v69, v70.clone(), v71.clone())
+                (v68, v69, v70, v71)
             }
         };
-        (v72, v73, v74.clone(), v75.clone())
+        (v72, v73, v74, v75)
     };
-    (v76, v77, v78.clone(), v79.clone())
+    (v76, v77, v78, v79)
 }
 fn census_run_0() -> i32 {
     let mut v0: i32 = 2i32;

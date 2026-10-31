@@ -280,18 +280,18 @@ fn argument_9(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
 fn requirements_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool, mut v3: u64) -> i32 {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("metadata"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--no-deps"); } LIT.with(|lit| lit.clone()) };
-    let v6: Rc<str> = argument_9(v4.clone(), v5.clone());
+    let v6: Rc<str> = argument_9(v4, v5);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--format-version"); } LIT.with(|lit| lit.clone()) };
-    let v8: Rc<str> = argument_9(v6.clone(), v7.clone());
+    let v8: Rc<str> = argument_9(v6, v7);
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1"); } LIT.with(|lit| lit.clone()) };
-    let v10: Rc<str> = argument_9(v8.clone(), v9.clone());
+    let v10: Rc<str> = argument_9(v8, v9);
     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--locked"); } LIT.with(|lit| lit.clone()) };
-    let v12: Rc<str> = argument_9(v10.clone(), v11.clone());
+    let v12: Rc<str> = argument_9(v10, v11);
     let v15: Rc<str> = if v2 {
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--offline"); } LIT.with(|lit| lit.clone()) };
-        argument_9(v12.clone(), v13.clone())
+        argument_9(v12.clone(), v13)
     } else {
-        v12.clone()
+        v12
     };
     let (mut v16, mut v17): (bool, Rc<str>) = { let mut command=std::process::Command::new("cargo"); command.current_dir(std::path::Path::new(&*v0).join("src")).args(v15.split(char::from(0u8))); match kit_process::run_bounded_capture_with_input(&mut command,v3,None) { Ok(capture) => match String::from_utf8(capture.stdout) { Ok(text) => (capture.termination == kit_process::ProcessTermination::Exited(0), std::rc::Rc::<str>::from(text)), Err(error) => (false,std::rc::Rc::<str>::from(error.to_string())) }, Err(error) => (false,std::rc::Rc::<str>::from(error)) } };
     let v20: i32 = if v16 {
@@ -306,20 +306,20 @@ fn requirements_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool, mut v3: u64) -
         let v22: bool = v20 == -2i32 ;
         let v31: Rc<str> = if v22 {
             let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Unknown selected Cargo package or ambiguous workspace name\n"); } LIT.with(|lit| lit.clone()) };
-            v23.clone()
+            v23
         } else {
             let v24: bool = v20 == -3i32 ;
             if v24 {
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit test metadata must be a table\n"); } LIT.with(|lit| lit.clone()) };
-                v25.clone()
+                v25
             } else {
                 let v26: bool = v20 == -4i32 ;
                 if v26 {
                     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test-requires-cli must be a boolean\n"); } LIT.with(|lit| lit.clone()) };
-                    v27.clone()
+                    v27
                 } else {
                     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Cannot inspect selected Cargo test requirements\n"); } LIT.with(|lit| lit.clone()) };
-                    v28.clone()
+                    v28
                 }
             }
         };
@@ -348,7 +348,7 @@ fn find_char_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i
 }
 fn method13() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_12() -> Rc<str> {
     method13()
@@ -362,7 +362,7 @@ fn quoted_arguments_10(mut v0: Rc<str>, mut v1: i32, mut v2: u8) -> Rc<str> {
     } else {
         let v7: i32 = v4 - 1i32 ;
         let v8: Rc<str> = string_slice(&v0.clone(), v1 as i64, v7 as i64);
-        v8.clone()
+        v8
     };
     let v10: Rc<str> = predicate_literal_domain::kit_predicate_encode(&*v9);
     let v11: bool = v4 == v3 ;
@@ -372,9 +372,9 @@ fn quoted_arguments_10(mut v0: Rc<str>, mut v1: i32, mut v2: u8) -> Rc<str> {
         let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
         let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v12));
         let v14: i32 = v4.wrapping_add(1i32);
-        let v15: Rc<str> = quoted_arguments_10(v0.clone(), v14, v2);
+        let v15: Rc<str> = quoted_arguments_10(v0, v14, v2);
         let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v15));
-        v16.clone()
+        v16
     }
 }
 fn spiral_main() -> i32 {

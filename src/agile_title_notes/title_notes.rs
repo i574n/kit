@@ -29,6 +29,7 @@ enum US2 {
     US2_RenameFailed,
     US2_RenameFailedTemporaryKept,
     US2_ReadbackMismatch,
+    US2_ChangedSinceRead,
 }
 #[derive(Clone)]
 enum US3 {
@@ -244,7 +245,7 @@ fn unquoted_7(mut v0: Rc<str>) -> Rc<str> {
     let v5: i32 = 0i32;
     let v6: i32 = (v3.clone().len() as i32);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    unescaped_from_8(v3.clone(), v4, v5, v6, v7.clone())
+    unescaped_from_8(v3, v4, v5, v6, v7)
 }
 fn method9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
@@ -387,10 +388,10 @@ fn utc_stamp_12(mut v0: u64) -> Rc<str> {
         let v12: Rc<str> = std::rc::Rc::<str>::from((v4).to_string());
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v14: Rc<str> = std::rc::Rc::<str>::from([&*v11, &*v12, &*v13, &*v13, &*v13].concat());
-        v14.clone()
+        v14
     } else {
         let v15: Rc<str> = std::rc::Rc::<str>::from((v4).to_string());
-        v15.clone()
+        v15
     };
     let v17: bool = v5 < 10u64;
     let v23: Rc<str> = if v17 {
@@ -398,10 +399,10 @@ fn utc_stamp_12(mut v0: u64) -> Rc<str> {
         let v19: Rc<str> = std::rc::Rc::<str>::from((v5).to_string());
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v21: Rc<str> = std::rc::Rc::<str>::from([&*v18, &*v19, &*v20, &*v20, &*v20].concat());
-        v21.clone()
+        v21
     } else {
         let v22: Rc<str> = std::rc::Rc::<str>::from((v5).to_string());
-        v22.clone()
+        v22
     };
     let v24: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v9, &*v16, &*v9, &*v23].concat());
     let v25: u64 = v7.wrapping_div(60u64);
@@ -411,10 +412,10 @@ fn utc_stamp_12(mut v0: u64) -> Rc<str> {
         let v28: Rc<str> = std::rc::Rc::<str>::from((v25).to_string());
         let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v30: Rc<str> = std::rc::Rc::<str>::from([&*v27, &*v28, &*v29, &*v29, &*v29].concat());
-        v30.clone()
+        v30
     } else {
         let v31: Rc<str> = std::rc::Rc::<str>::from((v25).to_string());
-        v31.clone()
+        v31
     };
     let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
     let v34: u64 = v7.wrapping_rem(60u64);
@@ -424,17 +425,17 @@ fn utc_stamp_12(mut v0: u64) -> Rc<str> {
         let v37: Rc<str> = std::rc::Rc::<str>::from((v34).to_string());
         let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v39: Rc<str> = std::rc::Rc::<str>::from([&*v36, &*v37, &*v38, &*v38, &*v38].concat());
-        v39.clone()
+        v39
     } else {
         let v40: Rc<str> = std::rc::Rc::<str>::from((v34).to_string());
-        v40.clone()
+        v40
     };
     let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Z"); } LIT.with(|lit| lit.clone()) };
     let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v44: Rc<str> = std::rc::Rc::<str>::from([&*v32, &*v33, &*v41, &*v42, &*v43].concat());
     let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("T"); } LIT.with(|lit| lit.clone()) };
     let v46: Rc<str> = std::rc::Rc::<str>::from([&*v24, &*v45, &*v44, &*v43, &*v43].concat());
-    v46.clone()
+    v46
 }
 fn last_declared_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32) -> i32 {
     loop {
@@ -489,7 +490,7 @@ fn notes_insertion_15(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     }
 }
 fn notes_appended_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
-    let v3: i32 = notes_insertion_15(v0.clone(), v1.clone());
+    let v3: i32 = notes_insertion_15(v0.clone(), v1);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = std::rc::Rc::<str>::from([&*v4, &*v2, &*v5, &*v5, &*v5].concat());
@@ -497,7 +498,25 @@ fn notes_appended_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<st
     let v8: i32 = (v0.clone().len() as i32);
     let v9: Rc<str> = std::rc::Rc::<str>::from(v0.get(v3 as usize..v8 as usize).unwrap_or(""));
     let v10: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v6, &*v9, &*v5, &*v5].concat());
-    v10.clone()
+    v10
+}
+fn renamed_within_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
+    loop {
+        let v3: bool = std::fs::rename(&*v1, &*v0).is_ok();
+        if v3 {
+            return true;
+        } else {
+            let v4: bool = v2 <= 1i32;
+            if v4 {
+                return false;
+            } else {
+                std::thread::sleep(std::time::Duration::from_millis(50u64));
+                let v5: i32 = v2.wrapping_sub(1i32);
+                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                continue;
+            }
+        }
+    }
 }
 fn state_written_17(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US1 {
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".paused"); } LIT.with(|lit| lit.clone()) };
@@ -509,18 +528,19 @@ fn state_written_17(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US1 {
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
         let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v7));
         let v9: bool = std::fs::write(&*v8, &*v2).is_ok();
-        let v21: US2 = if v9 {
-            let v10: bool = std::fs::rename(&*v8, &*v0).is_ok();
-            if v10 {
-                let v11: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
-                if v11 {
+        let v22: US2 = if v9 {
+            let v10: i32 = 40i32;
+            let v11: bool = renamed_within_18(v0.clone(), v8.clone(), v10);
+            if v11 {
+                let v12: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
+                if v12 {
                     US2::US2_Replaced
                 } else {
                     US2::US2_ReadbackMismatch
                 }
             } else {
-                let v15: bool = std::fs::remove_file(&*v8).is_ok() || !std::path::Path::new(&*v8).exists();
-                if v15 {
+                let v16: bool = std::fs::remove_file(&*v8).is_ok() || !std::path::Path::new(&*v8).exists();
+                if v16 {
                     US2::US2_RenameFailed
                 } else {
                     US2::US2_RenameFailedTemporaryKept
@@ -529,31 +549,35 @@ fn state_written_17(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US1 {
         } else {
             US2::US2_TemporaryWriteFailed
         };
-        match &v21 {
+        match &v22 {
             US2::US2_Replaced => {
                 US1::US1_StateWritten
             }
             _ => {
-                let v30: Rc<str> = match &v21 {
+                let v33: Rc<str> = match &v22 {
+                    US2::US2_ChangedSinceRead => {
+                        let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the file changed since it was read; nothing written, run the call again"); } LIT.with(|lit| lit.clone()) };
+                        v28.clone()
+                    }
                     US2::US2_ReadbackMismatch => {
-                        let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
-                        v26.clone()
+                        let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
+                        v27.clone()
                     }
                     US2::US2_RenameFailed => {
-                        let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
-                        v24.clone()
-                    }
-                    US2::US2_RenameFailedTemporaryKept => {
-                        let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                        let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
                         v25.clone()
                     }
+                    US2::US2_RenameFailedTemporaryKept => {
+                        let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                        v26.clone()
+                    }
                     US2::US2_TemporaryWriteFailed => {
-                        let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
-                        v23.clone()
+                        let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
+                        v24.clone()
                     }
                     _ => unreachable!(),
                 };
-                US1::US1_StateWriteFailed(v30.clone())
+                US1::US1_StateWriteFailed(v33.clone())
             }
         }
     } else {
@@ -684,14 +708,14 @@ fn title_moved_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
         }
     }
 }
-fn command_line_argument_count_19() -> i32 {
+fn command_line_argument_count_20() -> i32 {
     let v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
-fn argument_count_18() -> i32 {
-    let v0: i32 = command_line_argument_count_19();
+fn argument_count_19() -> i32 {
+    let v0: i32 = command_line_argument_count_20();
     let v1: bool = v0 > 0i32;
     if v1 {
         let v2: i32 = v0.wrapping_sub(1i32);
@@ -703,7 +727,7 @@ fn argument_count_18() -> i32 {
 fn from_title_entry_0() -> i32 {
     let v0: i32 = 3i32;
     let v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-    let v2: i32 = argument_count_18();
+    let v2: i32 = argument_count_19();
     let v3: bool = v2 == 4i32;
     if v3 {
         let v4: i32 = 1i32;

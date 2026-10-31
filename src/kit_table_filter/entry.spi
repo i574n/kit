@@ -1,0 +1,5 @@
+:< filter
+
+:= main () : i32 =
+    export "kit_table_filter_kept" ((\ (path, wheres) => rows_kept path wheres) : string * string -> bool * string)
+    0i32

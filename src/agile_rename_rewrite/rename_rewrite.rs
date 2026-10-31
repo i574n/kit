@@ -158,7 +158,7 @@ fn unquoted_7(mut v0: Rc<str>) -> Rc<str> {
     let v5: i32 = 0i32;
     let v6: i32 = (v3.clone().len() as i32);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    unescaped_from_8(v3.clone(), v4, v5, v6, v7.clone())
+    unescaped_from_8(v3, v4, v5, v6, v7)
 }
 fn method10(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
@@ -490,8 +490,8 @@ fn renamed_text_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<str>
     let v6: i32 = 0i32;
     let v7: i32 = 0i32;
     let v8: i32 = 0i32;
-    let (mut v9, mut v10, mut v11, mut v12, mut v13, mut v14): (Rc<str>, i32, Rc<str>, i32, Rc<str>, i32) = renamed_from_1(v0.clone(), v3, v4, v1.clone(), v2.clone(), v5.clone(), v6, v5.clone(), v7, v5.clone(), v8);
-    (v9.clone(), v10, v12, v11.clone(), v14, v13.clone())
+    let (mut v9, mut v10, mut v11, mut v12, mut v13, mut v14): (Rc<str>, i32, Rc<str>, i32, Rc<str>, i32) = renamed_from_1(v0, v3, v4, v1, v2, v5.clone(), v6, v5.clone(), v7, v5, v8);
+    (v9, v10, v12, v11, v14, v13)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (Rc<str>, i32, i32, Rc<str>, i32, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (Rc<str>, i32, i32, Rc<str>, i32, Rc<str>)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>| -> (Rc<str>, i32, i32, Rc<str>, i32, Rc<str>) {

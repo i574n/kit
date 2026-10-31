@@ -3,6 +3,7 @@ packages:
     spiral-
     command_spec_domain
     union_reflection
+    rust_std_env
 modules:
     argument_file
     model

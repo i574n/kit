@@ -115,6 +115,14 @@
         { package = "kit-jobs-doctor"; relative = "src/kit_jobs_doctor_model/model.spi" }
         { package = "kit-jobs-doctor-check"; relative = "src/kit_jobs_doctor/check.spi" }
         { package = "kit-agile-records"; relative = "src/kit_agile_records/model.spi" }
+        { package = "kit-lint-macros"; relative = "src/kit_lint_model/model.spi" }
+        { package = "kit-lint-flow"; relative = "src/kit_lint_pattern/pattern.spi" }
+        { package = "kit-lint-flow"; relative = "src/kit_lint_flow/flow.spi" }
+        { package = "kit-lint-flow-constructs"; relative = "src/kit_lint_flow_constructs/constructs.spi" }
+        { package = "kit-lint-flow-idioms"; relative = "src/kit_lint_flow_idioms/idioms.spi" }
+        { package = "kit-do-git"; relative = "src/kit_do_git/git_cli.spi" }
+        { package = "kit-machine-sample"; relative = "src/kit_machine_sample/sample.spi" }
+        { package = "kit-do-walk"; relative = "src/kit_do_walk/walk.spi" }
     ]
 
 := selects (names : string) (separator : string) (package : string) : bool =

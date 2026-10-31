@@ -333,48 +333,48 @@ fn loop_5(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
     let v2: bool = v1 == 10u64;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     } else {
         let v4: u64 = kit_source_topology::source_topology_counts(std::path::Path::new(&*v0)).unwrap()[v1 as usize] as u64;
         let v5: u64 = v4.wrapping_add(4294967296u64);
         let v6: bool = v1 == 9u64;
         let v9: Rc<str> = if v6 {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v7.clone()
+            v7
         } else {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         };
         let v10: Rc<str> = std::rc::Rc::<str>::from(v5.to_string());
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
         let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v9));
         let v14: u64 = v1.wrapping_add(1u64);
-        let v15: Rc<str> = loop_5(v0.clone(), v14);
+        let v15: Rc<str> = loop_5(v0, v14);
         let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v15));
-        v16.clone()
+        v16
     }
 }
 fn loop_6(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
     let v2: bool = v1 == 10u64;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     } else {
         let v4: bool = v1 == 9u64;
         let v7: Rc<str> = if v4 {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v5.clone()
+            v5
         } else {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
         };
         let v8: Rc<str> = std::rc::Rc::<str>::from(2147483647u64.to_string());
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v8, v9)), v7));
         let v12: u64 = v1.wrapping_add(1u64);
-        let v13: Rc<str> = loop_6(v0.clone(), v12);
+        let v13: Rc<str> = loop_6(v0, v12);
         let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v13));
-        v14.clone()
+        v14
     }
 }
 fn census_bounds_4(mut v0: Rc<str>) -> i32 {
@@ -456,7 +456,7 @@ fn census_bounds_4(mut v0: Rc<str>) -> i32 {
     let v100: bool = v98.contains(&*v99);
     if v100 { () } else { std::panic::panic_any("Spiral test assertion failed") };
     let v101: u64 = 0u64;
-    let v102: Rc<str> = loop_6(v0.clone(), v101);
+    let v102: Rc<str> = loop_6(v0, v101);
     let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("AuthorityCensus ("); } LIT.with(|lit| lit.clone()) };
     let v104: Rc<str> = Rc::<str>::from(format!("{}{}", v103, v102));
     let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };

@@ -2,4 +2,8 @@
 
 := main () : i32 =
     !!!!Export("kit_agile_records_as_lines", ((\ text => records_as_lines text) : string -> string))
+    !!!!Export(
+        "kit_agile_records_unchanged",
+        ((\ (path, original) => records_unchanged path original) : string * string -> bool)
+    )
     0i32

@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    agile_subcommand_domain
+    command_spec_domain
+modules:
+    usages

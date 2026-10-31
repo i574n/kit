@@ -5,10 +5,11 @@
 
 inl argument (~index : i32) : string = $'std::rc::Rc::<str>::from(std::env::args().nth(!index as \
     usize).unwrap_or_default())' : string
-:= argument_count () : i32 = $'std::env::args().count() as i32' : i32
-:= stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:= decimal_u64 (~text : string) : u64 = $'!text.trim().parse::<u64>().unwrap_or(0)' : u64
-:= u64_text (value : u64) : string = $'std::rc::Rc::<str>::from((!value).to_string())' : string
+:= argument_count () : i32 = rust_std_env.model.argument_count_after 0i32
+:~ stdout_line (~text : string) : () = console.write_line text
+:~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+:~ health_run () : i32 = $'kit_machine_health::kit_machine_health_run()' : i32
+:= u64_text (value : u64) : string = sm'.decimal_text value
 inl free_megabytes () : u64 = $'{ let mut system = sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing()\
     .with_memory(sysinfo::MemoryRefreshKind::nothing().with_ram())); system.refresh_memory(); \
     system.available_memory() / 1048576 }' : u64
@@ -45,6 +46,7 @@ inl now_text () : string = $'std::rc::Rc::<str>::from(format\!("{}", std::time::
 
 :~ ^ rogue_lines (limits : watch_limits) (~rows : process_rows) (at : i32) (~acc : string) : string =
     ? at >= row_count rows ?> acc
+    |? row_cores rows at < limits.rogue_cores ?> rogue_lines limits rows (at + 1i32) acc
     |:
         := busy = busy_at rows at
         ? rogue limits busy ?>
@@ -133,8 +135,10 @@ inl sorted_busy (~lines : string) : string = $'{ let mut rows = (&*!lines).lines
 
 :~ machine_run () : i32 =
     ? argument 2i32 = "watch" ?> watch_run ()
+    |? argument 2i32 = "health" ?> health_run ()
     |:
-        := _ = $'eprintln\!("kit error: machine: usage: machine watch [--sample-seconds n]")' : ()
+        := _ = $'eprintln\!("kit error: machine: usage: machine watch [--sample-seconds n] | machine health [--all] \
+            [--every s [--times n]]")' : ()
         2i32
 
 := main () : i32 =

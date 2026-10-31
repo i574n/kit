@@ -15,6 +15,7 @@
     | RenameFailed
     | RenameFailedTemporaryKept
     | ReadbackMismatch
+    | ChangedSinceRead
 
 := file_replacement_problem = \|
     | Replaced => ""
@@ -22,6 +23,7 @@
     | RenameFailed => "could not move the replacement file into place"
     | RenameFailedTemporaryKept => "could not move the replacement file into place or remove its .pending copy"
     | ReadbackMismatch => "readback did not match the written file"
+    | ChangedSinceRead => "the file changed since it was read; nothing written, run the call again"
 
 := pending_path (~path : string) : string = path ++# ".pending"
 
@@ -29,14 +31,24 @@
 :# every_writer_of_one_file_shares_one_pending_copy =
     ? pending_path "state/agile.spi" = "state/agile.spi.pending" ?> () |: failwith "one pending copy per file"
 
+:~ ^ renamed_within (~path : string) (~temporary : string) (tries : i32) : bool =
+    ? rename path temporary ?> !+
+    |? tries <= 1i32 ?> !-
+    |:
+        threading.sleep 50i32
+        renamed_within path temporary (tries - 1i32)
+
 := replace_file_checked (~path : string) (~text : string) : file_replacement =
     := temporary = pending_path path
     ? write_text temporary text ?>
-        ? rename path temporary ?>
+        ? renamed_within path temporary 40i32 ?>
             ? text_equals text path ?> Replaced |: ReadbackMismatch
         |? remove_file temporary ?> RenameFailed
         |: RenameFailedTemporaryKept
     |: TemporaryWriteFailed
+
+:= replace_file_unchanged (~path : string) (~original : string) (~text : string) : file_replacement =
+    ? text_equals original path ?> replace_file_checked path text |: ChangedSinceRead
 
 := measured_sizes (before : u64) (after : u64) (elapsed : u64) : string =
     " bytes_before=" ++# u64_text before ++# " bytes_after=" ++# u64_text after ++# " elapsed_ms=" ++# u64_text elapsed

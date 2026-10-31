@@ -21,13 +21,13 @@ fn agile_record_catalog_text_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3
     let v17: US0 = if v14 {
         US0::US0_RecordCatalogComplete
     } else {
-        US0::US0_RecordCatalogPartial(v3.clone())
+        US0::US0_RecordCatalogPartial(v3)
     };
     match &v17 {
         US0::US0_RecordCatalogComplete => {
             let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" missing=none"); } LIT.with(|lit| lit.clone()) };
             let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v18));
-            v19.clone()
+            v19
         }
         US0::US0_RecordCatalogPartial(v20) => {
             let v20: Rc<str> = v20.clone();
@@ -35,7 +35,7 @@ fn agile_record_catalog_text_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3
             let v23: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v13, v21)), v20));
             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (agile check does not need them)"); } LIT.with(|lit| lit.clone()) };
             let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-            v25.clone()
+            v25
         }
     }
 }

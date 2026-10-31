@@ -26,6 +26,17 @@
     fixture_root_remove root
 
 ///> rust
+:# subfolder_entries_of_the_package_are_checked_too =
+    := root = fixture_root_create "standards-subdirs"
+    fixture_write root "pkg/good.spi" "inl a = 1\n"
+    fixture_write root "pkg/sub/entry.spi" "///- --package ..\ninl b = 1\n// stray note\n"
+    fixture_write root "pkg/other/loose.spi" "inl c = 1\n// not this package\n"
+    := run = standards_run root (Arg (fixture_path root "pkg", NoArgs))
+    testing.expect (run.code = 1i32) (run_text run)
+    shows run.stdout "sub/entry.spi:3  no-comment-lines"
+    shows run.stdout "kit standards ok packages=1 declared=0 files=2 findings=1 "
+    fixture_root_remove root
+///> rust
 :# declared_rows_replace_the_defaults_and_a_clean_package_passes =
     := root = package_root ()
     fixture_write root "pkg/standards.spi" "inl width () = LineWidth 200u32\n"

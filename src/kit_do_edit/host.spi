@@ -1,13 +1,13 @@
-:! path_list = $'std::rc::Rc<Vec<std::rc::Rc<str>>>'
+:< kit_do_store.store
 
-:! pending_writes = $'std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>)>>>'
+:! path_list = $'std::rc::Rc<Vec<std::rc::Rc<str>>>'
 
 :! text_read = $'Result<std::rc::Rc<str>, std::rc::Rc<str>>'
 
 :! replacement_outcome = $'std::rc::Rc<(std::rc::Rc<str>, u64, std::rc::Rc<str>)>'
 
 := stdout_line (~text : string) : () = $'println\!("{}", &*!text)' : ()
-:= column () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
+:= column () : string = sm'.char_text 31u8
 
 :~ target_paths (~root : string) (~target : string) : path_list =
     $'{ fn wildcard(mask: &str, name: &str) -> bool { let parts = mask.split(char::from(42u8)).collect::<Vec<_>>(); \
@@ -51,8 +51,6 @@
 := path_count (~paths : path_list) : i32 = $'!paths.len() as i32' : i32
 := path_at (~paths : path_list) (~index : i32) : string = $'!paths[!index as usize].clone()' : string
 
-:= pending_new () : pending_writes = $'std::rc::Rc::new(std::cell::RefCell::new(Vec::new()))' : pending_writes
-:= pending_count (~pending : pending_writes) : u64 = $'!pending.borrow().len() as u64' : u64
 
 :~ text_now (~pending : pending_writes) (~root : string) (~path : string) : text_read =
     $'{ let staged = !pending.borrow().iter().find(|entry| &*entry.0 == &*!path).map(|entry| entry.1.clone()); \
@@ -65,21 +63,9 @@
 := read_text (~read : text_read) : string = $'!read.clone().unwrap_or_default()' : string
 := read_error (~read : text_read) : string = $'!read.clone().err().unwrap_or_default()' : string
 
-:~ staged (~pending : pending_writes) (~path : string) (~text : string) : () =
-    $'{ let mut writes = !pending.borrow_mut(); match writes.iter_mut().find(|entry| &*entry.0 == &*!path) { \
-        Some(entry) => entry.1 = !text.clone(), None => writes.push((!path.clone(), !text.clone())) } }' : ()
 
 :~ committed (~pending : pending_writes) (~root : string) : string =
-    $'{ let writes = !pending.borrow(); let root = std::path::Path::new(&*!root); let mut temporaries = Vec::new(); \
-        let mut problem = String::new(); for (path, text) in writes.iter() { let target = root.join(&**path); \
-        let temporary = target.with_file_name(format\!(".{}.kit-do.tmp", \
-        target.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_default())); \
-        match std::fs::write(&temporary, text.as_bytes()) { Ok(()) => temporaries.push((temporary, target)), \
-        Err(error) => { problem = format\!("write {path}: {error}"); break; \
-        } } } if problem.is_empty() { for (temporary, target) in &temporaries { if let Err(error) = \
-        std::fs::rename(temporary, target) { problem = format\!("rename {}: {error}", target.display()); break; \
-        } } } else { for (temporary, _) in &temporaries { let _ = std::fs::remove_file(temporary); \
-        } } std::rc::Rc::<str>::from(problem) }' : string
+    $'kit_do_commit::kit_do_committed(!pending.clone(), &*!root)' : string
 
 :~ replaced_in (~text : string) (~anchor : string) (~replacement : string) : replacement_outcome =
     $'{ let text = &*!text; let crlf = text.contains("\r\n"); let adapt = |value: &str| if crlf && \

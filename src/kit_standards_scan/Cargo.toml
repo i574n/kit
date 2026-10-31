@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "scan.spi"
+output = "scan.rs"
+
+[package]
+name = "kit-standards-scan"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_standards_scan"
+path = "scan.rs"

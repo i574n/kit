@@ -485,31 +485,31 @@ fn rust_tool_environment_binding_3(mut v0: Rc<str>) -> Rc<str> {
     let v1: bool = &*v0 == "rustfmt";
     let v4: Rc<str> = if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTFMT"); } LIT.with(|lit| lit.clone()) };
-        v2.clone()
+        v2
     } else {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     };
     let v5: bool = &*v0 == "rustdoc";
     let v7: Rc<str> = if v5 {
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTDOC"); } LIT.with(|lit| lit.clone()) };
-        v6.clone()
+        v6
     } else {
-        v4.clone()
+        v4
     };
     let v8: bool = &*v0 == "cargo";
     let v10: Rc<str> = if v8 {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CARGO"); } LIT.with(|lit| lit.clone()) };
-        v9.clone()
+        v9
     } else {
-        v7.clone()
+        v7
     };
     let v11: bool = &*v0 == "rustc";
     if v11 {
         let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTC"); } LIT.with(|lit| lit.clone()) };
-        v12.clone()
+        v12
     } else {
-        v10.clone()
+        v10
     }
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -527,7 +527,7 @@ fn evidence_public_binary_binding_4(mut v0: i32, mut v1: i32) -> Rc<str> {
     };
     if v4 {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) };
-        v5.clone()
+        v5
     } else {
         let v6: bool = v0 == 0i32;
         let v8: bool = if v6 {
@@ -538,10 +538,10 @@ fn evidence_public_binary_binding_4(mut v0: i32, mut v1: i32) -> Rc<str> {
         };
         if v8 {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         } else {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
     }
 }

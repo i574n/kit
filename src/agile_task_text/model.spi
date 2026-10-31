@@ -10,7 +10,7 @@
 := parse_agile_case \* t. (~text : string) : validation_result t =
     union_reflection.cases.union_cases_fold
         \ parsed (case_value : t) =>
-            ? rust_std_string.model.equals text (agile_case_text case_value) ?> Valid case_value |: parsed
+            ? (text = (agile_case_text case_value)) ?> Valid case_value |: parsed
         Invalid
 := parse_task_kind text : validation_result agile_task_kind = parse_agile_case text
 := parse_priority text : validation_result agile_priority = parse_agile_case text
@@ -55,14 +55,20 @@
     |: field_start text (skip_spaces text (field_end text offset length ScanPlain + 1i32)) length (position - 1i32)
 
 := spi_escaped (~value : string) : string =
-    := value = rust_std_string.model.replace value "\\" "\\\\"
-    := value = rust_std_string.model.replace value "\"" "\\\""
-    := value = rust_std_string.model.replace value "\n" "\\n"
-    := value = rust_std_string.model.replace value "\r" "\\r"
-    rust_std_string.model.replace value "\t" "\\t"
+    := value = sm'.replace "\\" "\\\\" value
+    := value = sm'.replace "\"" "\\\"" value
+    := value = sm'.replace "\n" "\\n" value
+    := value = sm'.replace "\r" "\\r" value
+    sm'.replace "\t" "\\t" value
 := spi_quoted (~value : string) : string = rust_std_string.model.concat5 "\"" (spi_escaped value) "\"" "" ""
 
 := records_text (~text : string) : string = $'kit_agile_records::kit_agile_records_as_lines(&*!text)' : string
+
+:= records_unchanged (~path : string) (~original : string) : bool =
+    $'kit_agile_records::kit_agile_records_unchanged(&*!path, &*!original)' : bool
+
+:~ replace_records_unchanged (~path : string) (~original : string) (~updated : string) : file_replacement =
+    ? records_unchanged path original ?> replace_file_checked path updated |: ChangedSinceRead
 := backlog_state_path (~root : string) : string = rust_std_string.model.concat5 root "/state/agile.spi" "" "" ""
 
 := task_marker () : string = "Task (\""
@@ -70,7 +76,7 @@
 := task_field_count () : i32 = 11i32
 := declared_task (text : string) (found : i32) : bool =
     := start = line_start_before text found
-    rust_std_string.model.starts_with (byte_slice text start found) "inl "
+    sm'.starts_with "inl " (byte_slice text start found)
 
 :~ ^ top_level_field_count (text : string) (offset : i32) (length : i32) (counted : i32) : i32 =
     := stop = field_end text offset length ScanPlain

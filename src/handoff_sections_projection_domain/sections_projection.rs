@@ -12,7 +12,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
 }
 fn method3() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_2() -> Rc<str> {
     method3()
@@ -522,7 +522,7 @@ fn handoff_sections_projection_0(mut v0: Rc<str>) -> Rc<str> {
     let v2: i32 = (v0.clone().len() as i32);
     let v3: i32 = 0i32;
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-    handoff_sections_projection_loop_1(v0.clone(), v1, v2, v3, v4.clone())
+    handoff_sections_projection_loop_1(v0, v1, v2, v3, v4)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {

@@ -16,3 +16,4 @@ path = "links.rs"
 [dependencies]
 kit-agile-records = { path = "../kit_agile_records" }
 agile-task-census = { path = "../agile_task_census" }
+agile-note-listing = { path = "../agile_note_listing" }

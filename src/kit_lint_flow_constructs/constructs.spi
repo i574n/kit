@@ -1,0 +1,87 @@
+///- --package .
+:# constructs static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_lint_pattern.pattern
+
+:| host_construct =
+    | ExceptionBoundary
+    | UnionBridge
+    | UnionBridgeHeader
+    | PlatformBoundary
+    | TypeDefinition
+    | SequenceComprehension
+    | CPointerArrow
+    | HostTypeText
+    | ZigCapture
+    | Comment
+    | LibraryBinding
+
+:= constructs () : list host_construct =
+    [
+        ExceptionBoundary; UnionBridge; UnionBridgeHeader; PlatformBoundary; TypeDefinition; SequenceComprehension
+        CPointerArrow; HostTypeText; ZigCapture; Comment; LibraryBinding
+    ]
+
+:= rule_of (construct : host_construct) : list (list piece) =
+    ?= construct ?|
+    | ExceptionBoundary => [ [ Words [ "try"; "with ex"; "except"; "catch" ] ] ]
+    | UnionBridge =>
+        := names = [ "Ok"; "Error"; "Err"; "Some"; "None"; "Choice1Of2"; "Choice2Of2"; "Poll" ]
+        [
+            [ Words [ "match" ]; anything (); Words names ]
+            [ Words [ "case" ]; anything (); Edge; Texts [ "Ok("; "Error(" ] ]
+        ]
+    | UnionBridgeHeader => [ [ Text "$'match !"; name_run (); Text " with'"; blanks (); End ] ]
+    | PlatformBoundary =>
+        [
+            [ Text "cfg"; Maybe "\\"; Text "!" ]
+            [ Texts [ "#[cfg"; "builtin.os.tag" ] ]
+            [ Texts [ "#if"; "#endif" ]; Edge ]
+        ]
+    | TypeDefinition =>
+        [ [ Text "$'"; blanks (); Text "class "; name_run () ]; [ Text "$'"; some_blanks (); Text "def __" ] ]
+    | SequenceComprehension =>
+        [
+            word "yield"
+            [
+                Text "["; Run (NoneOf "]", 0i32); Words [ "for" ]; Text " "; name_run (); Text " in "
+                Run (NoneOf "]", 0i32); Text "]"
+            ]
+        ]
+    | CPointerArrow => [ [ Text ")->"; name_run () ]; [ Text "->ptr"; Edge ] ]
+    | HostTypeText =>
+        [
+            [ Text "Fn"; Maybe "Once"; Text "() ->" ]
+            [ Texts [ "() => void"; "regex::Match"; "leptos::prelude::" ] ]
+        ]
+    | ZigCapture =>
+        [ [ Words [ "if"; "while"; "catch"; "orelse" ]; Run (NoneOf "|", 0i32); Text "|"; name_run (); Text "|" ] ]
+    | Comment => [ [ Text "$'"; blanks (); Texts [ "//"; "--"; "##"; "/*" ] ] ]
+    | LibraryBinding => [ [ Text "FParsec." ] ]
+
+:~ construct_of (~line : string) : option host_construct =
+    := text = sm'.to_lower line
+    := matching (construct : host_construct) = found text (rule_of construct |> listm.map (listm.map lowered))
+    listm'.try_find_ matching (constructs ())
+
+///> rust
+:# each_host_construct_has_a_sample_line =
+    :~ expect_construct (line : string) (construct : host_construct) : () =
+        ? construct_of line = Some construct ?> () |: failwith line
+    expect_construct "| f32 => $'strtof((!s)->ptr, NULL)' : f32" CPointerArrow
+    expect_construct "Fsharp = \\ () => $'with ex ->' : ()" ExceptionBoundary
+    expect_construct "TypeScript : $'() => void'" HostTypeText
+    expect_construct "$'| FParsec.CharParsers.Success (a, b, c) -> (' : ()" LibraryBinding
+    expect_construct "$'\\n\\#if _FREEBSD'" PlatformBoundary
+    expect_construct "$'for i = 0 to !items.Length - 1 do yield !items.[i]'" SequenceComprehension
+    expect_construct "$'match !choice { Ok(x) => (!c1of2)(x), Err(x) => (!c2of2)(x) }'" UnionBridge
+    expect_construct "$'match !x with'" UnionBridgeHeader
+    expect_construct "Zig = \\ () => $'(if (std.mem.indexOf(u8, !s, !x)) |i| @intCast(i) else -1)' : int" ZigCapture
+    expect_construct "$'class Box:\\n  if x' : ()" TypeDefinition
+    expect_construct "$'// if the host'" Comment
+    expect_construct "$'MATCH !x WITH'" UnionBridgeHeader
+    ? construct_of "| _ => $'(for (!a) |x| { if (x == !b) break true; } else false)' : bool" = None
+    ?> ()
+    |: failwith "a Zig for loop is logic, not a capture"

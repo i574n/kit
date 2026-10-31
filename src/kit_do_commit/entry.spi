@@ -1,0 +1,12 @@
+:< kit_do_store.store
+:< commit
+
+:= main () : i32 =
+    !!!!Export(
+        "kit_do_committed",
+        (
+            \ (pending, root) => committed_problem pending root
+            : pending_writes * string -> string
+        )
+    )
+    0i32

@@ -27,6 +27,7 @@ dependencies = [
 name = "agile-memory-links"
 version = "0.0.0"
 dependencies = [
+ "agile-note-listing",
  "agile-task-census",
  "kit-agile-records",
 ]
@@ -43,11 +44,27 @@ name = "agile-note-listing"
 version = "0.0.0"
 
 [[package]]
+name = "agile-note-seal"
+version = "0.0.0"
+dependencies = [
+ "agile-task-census",
+ "kit-agile-records",
+]
+
+[[package]]
+name = "agile-note-segments"
+version = "0.0.0"
+
+[[package]]
 name = "agile-planning-fields"
 version = "0.0.0"
 
 [[package]]
 name = "agile-planning-filters"
+version = "0.0.0"
+
+[[package]]
+name = "agile-planning-gaps"
 version = "0.0.0"
 
 [[package]]
@@ -135,6 +152,7 @@ dependencies = [
 name = "agile-task-listing"
 version = "0.0.0"
 dependencies = [
+ "agile-note-listing",
  "agile-planning-fields",
  "agile-planning-filters",
  "agile-task-census",
@@ -159,6 +177,8 @@ dependencies = [
 name = "agile-task-notes"
 version = "0.0.0"
 dependencies = [
+ "agile-note-listing",
+ "agile-note-segments",
  "agile-planning-rewrite",
  "agile-planning-values",
  "kit-agile-records",
@@ -201,6 +221,10 @@ name = "agile-title-tails"
 version = "0.0.0"
 
 [[package]]
+name = "agile-todo-cache"
+version = "0.0.0"
+
+[[package]]
 name = "agile-todo-fields"
 version = "0.0.0"
 
@@ -209,6 +233,17 @@ name = "agile-todo-lines"
 version = "0.0.0"
 dependencies = [
  "agile-todo-fields",
+]
+
+[[package]]
+name = "agile-todo-merge"
+version = "0.0.0"
+dependencies = [
+ "agile-task-census",
+ "agile-todo-cache",
+ "agile-todo-lines",
+ "agile-todo-paths",
+ "agile-todo-sources",
 ]
 
 [[package]]
@@ -549,6 +584,7 @@ dependencies = [
  "agile-backlog-scaffold",
  "agile-memory-links",
  "agile-note-edit",
+ "agile-note-seal",
  "agile-planning-migration",
  "agile-planning-revision",
  "agile-planning-rollup",
@@ -561,6 +597,7 @@ dependencies = [
  "agile-task-revision",
  "agile-task-views",
  "agile-title-notes",
+ "agile-todo-merge",
  "agile-todo-record",
  "agile-todo-roots",
  "agile-todo-scan",
@@ -604,6 +641,7 @@ name = "kit-agile-state"
 version = "0.0.0"
 dependencies = [
  "agile-lease-terms",
+ "agile-planning-gaps",
  "agile-record-catalog",
  "agile-state-decision-domain",
  "agile-state-runtime-policy-domain",
@@ -746,6 +784,7 @@ dependencies = [
  "kit-ceremonies",
  "kit-ci-parity",
  "kit-command-help",
+ "kit-command-usages",
  "kit-compiler-discovery",
  "kit-coverage-prune",
  "kit-crate-gate",
@@ -778,6 +817,7 @@ dependencies = [
  "kit-repo-affected",
  "kit-repo-state",
  "kit-resume",
+ "kit-schedule",
  "kit-standards",
  "kit-table-logs",
  "kit-table-query",
@@ -807,6 +847,10 @@ version = "0.0.0"
 
 [[package]]
 name = "kit-command-line"
+version = "0.0.0"
+
+[[package]]
+name = "kit-command-usages"
 version = "0.0.0"
 
 [[package]]
@@ -853,6 +897,10 @@ name = "kit-crate-largest"
 version = "0.0.0"
 
 [[package]]
+name = "kit-delete-guard"
+version = "0.0.0"
+
+[[package]]
 name = "kit-dev"
 version = "0.0.0"
 dependencies = [
@@ -877,6 +925,7 @@ version = "0.0.0"
 dependencies = [
  "kit-do-edit",
  "kit-do-facts",
+ "kit-do-file-steps",
  "kit-do-git",
  "kit-do-jobs",
  "kit-do-lab",
@@ -888,9 +937,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-do-commit"
+version = "0.0.0"
+
+[[package]]
 name = "kit-do-edit"
 version = "0.0.0"
 dependencies = [
+ "kit-do-commit",
  "kit-do-process",
  "kit-do-verbs",
  "regex",
@@ -964,6 +1018,7 @@ dependencies = [
 name = "kit-do-read"
 version = "0.0.0"
 dependencies = [
+ "kit-do-walk",
  "rayon",
  "regex",
 ]
@@ -974,6 +1029,10 @@ version = "0.0.0"
 
 [[package]]
 name = "kit-do-verbs"
+version = "0.0.0"
+
+[[package]]
+name = "kit-do-walk"
 version = "0.0.0"
 
 [[package]]
@@ -1208,12 +1267,22 @@ name = "kit-jobs-doctor"
 version = "0.0.0"
 dependencies = [
  "kit-jobs-doctor-env",
+ "kit-jobs-doctor-servers",
+ "kit-machine-sample",
  "sysinfo",
 ]
 
 [[package]]
 name = "kit-jobs-doctor-env"
 version = "0.0.0"
+
+[[package]]
+name = "kit-jobs-doctor-servers"
+version = "0.0.0"
+dependencies = [
+ "kit-machine-sample",
+ "sysinfo",
+]
 
 [[package]]
 name = "kit-lcov"
@@ -1228,6 +1297,7 @@ dependencies = [
  "kit-bundle-zip",
  "kit-cold-rebuild-matrix",
  "kit-coverage-prune",
+ "kit-delete-guard",
  "kit-ingest-frontier",
  "kit-patch-control-domain",
  "kit-process",
@@ -1252,16 +1322,60 @@ name = "kit-lint-classify"
 version = "0.0.0"
 
 [[package]]
+name = "kit-lint-flow"
+version = "0.0.0"
+
+[[package]]
+name = "kit-lint-flow-constructs"
+version = "0.0.0"
+
+[[package]]
+name = "kit-lint-flow-idioms"
+version = "0.0.0"
+
+[[package]]
 name = "kit-lint-macros"
 version = "0.0.0"
 dependencies = [
  "kit-lint-classify",
+ "kit-lint-flow",
+ "kit-lint-flow-constructs",
+ "kit-lint-flow-idioms",
  "kit-lint-scan",
+ "kit-lint-shadows",
+ "kit-lint-walk",
 ]
+
+[[package]]
+name = "kit-lint-opens"
+version = "0.0.0"
 
 [[package]]
 name = "kit-lint-scan"
 version = "0.0.0"
+
+[[package]]
+name = "kit-lint-shadows"
+version = "0.0.0"
+dependencies = [
+ "kit-lint-opens",
+ "kit-lint-shadows-core",
+]
+
+[[package]]
+name = "kit-lint-shadows-core"
+version = "0.0.0"
+
+[[package]]
+name = "kit-lint-walk"
+version = "0.0.0"
+
+[[package]]
+name = "kit-log-counts"
+version = "0.0.0"
+dependencies = [
+ "regex",
+]
 
 [[package]]
 name = "kit-log-sections"
@@ -1282,11 +1396,27 @@ name = "kit-machine-crowding"
 version = "0.0.0"
 
 [[package]]
+name = "kit-machine-health"
+version = "0.0.0"
+dependencies = [
+ "kit-machine-sample",
+]
+
+[[package]]
+name = "kit-machine-sample"
+version = "0.0.0"
+dependencies = [
+ "sysinfo",
+]
+
+[[package]]
 name = "kit-machine-watch"
 version = "0.0.0"
 dependencies = [
  "kit-job-control",
  "kit-machine-crowding",
+ "kit-machine-health",
+ "kit-machine-sample",
  "kit-machine-window-watch",
  "kit-notebook-progress",
  "sysinfo",
@@ -1303,9 +1433,11 @@ dependencies = [
 name = "kit-machine-windows"
 version = "0.0.0"
 dependencies = [
+ "kit-remote-status",
  "kit-window-admission",
  "kit-window-claim",
  "kit-window-query",
+ "kit-window-request",
  "kit-window-run",
  "kit-window-wait",
 ]
@@ -1316,6 +1448,7 @@ version = "0.0.0"
 dependencies = [
  "kit-memory-import",
  "kit-memory-query",
+ "kit-memory-save",
 ]
 
 [[package]]
@@ -1324,6 +1457,10 @@ version = "0.0.0"
 
 [[package]]
 name = "kit-memory-query"
+version = "0.0.0"
+
+[[package]]
+name = "kit-memory-save"
 version = "0.0.0"
 
 [[package]]
@@ -1462,6 +1599,7 @@ dependencies = [
 name = "kit-process-kill"
 version = "0.0.0"
 dependencies = [
+ "kit-machine-sample",
  "regex",
  "sysinfo",
 ]
@@ -1481,6 +1619,7 @@ version = "0.0.0"
 name = "kit-process-table"
 version = "0.0.0"
 dependencies = [
+ "kit-machine-sample",
  "kit-process-kill",
  "regex",
  "sysinfo",
@@ -1533,6 +1672,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-remote-status"
+version = "0.0.0"
+
+[[package]]
 name = "kit-repo-accept-review"
 version = "0.0.0"
 
@@ -1567,6 +1710,10 @@ name = "kit-rust-std-fs-mutation"
 version = "0.0.0"
 
 [[package]]
+name = "kit-schedule"
+version = "0.0.0"
+
+[[package]]
 name = "kit-source-map"
 version = "0.1.0"
 dependencies = [
@@ -1586,8 +1733,13 @@ dependencies = [
 name = "kit-standards"
 version = "0.0.0"
 dependencies = [
+ "kit-standards-scan",
  "kit-style-census",
 ]
+
+[[package]]
+name = "kit-standards-scan"
+version = "0.0.0"
 
 [[package]]
 name = "kit-style-census"
@@ -1597,7 +1749,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-table-counts"
+version = "0.0.0"
+dependencies = [
+ "kit-log-counts",
+]
+
+[[package]]
 name = "kit-table-diff"
+version = "0.0.0"
+dependencies = [
+ "kit-table-text",
+]
+
+[[package]]
+name = "kit-table-filter"
 version = "0.0.0"
 dependencies = [
  "kit-table-text",
@@ -1629,6 +1795,7 @@ name = "kit-table-query"
 version = "0.0.0"
 dependencies = [
  "kit-table-diff",
+ "kit-table-filter",
  "kit-table-measures",
  "kit-table-plain",
  "kit-table-text",
@@ -1642,11 +1809,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "kit-table-sequences"
+name = "kit-table-sequence-measures"
 version = "0.0.0"
 dependencies = [
  "kit-log-sequences",
+]
+
+[[package]]
+name = "kit-table-sequences"
+version = "0.0.0"
+dependencies = [
+ "kit-table-counts",
  "kit-table-sections",
+ "kit-table-sequence-measures",
 ]
 
 [[package]]
@@ -1717,6 +1892,13 @@ version = "0.0.0"
 dependencies = [
  "kit-window-admission",
  "kit-window-run",
+]
+
+[[package]]
+name = "kit-window-request"
+version = "0.0.0"
+dependencies = [
+ "kit-window-admission",
 ]
 
 [[package]]

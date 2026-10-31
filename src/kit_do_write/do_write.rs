@@ -67,19 +67,19 @@ fn append_parsed_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32)
     };
     if v7 {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("append: expected a file, then the quoted line"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_WriteRejected(v8.clone())
+        US0::US0_WriteRejected(v8)
     } else {
         let v10: i32 = 3i32;
         let v11: bool = quoted_at_7(v0.clone(), v1, v10);
         let v12: bool = v11 == false;
         if v12 {
             let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("append: expected the quoted line after the file"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_WriteRejected(v13.clone())
+            US0::US0_WriteRejected(v13)
         } else {
             let v15: i32 = 3i32;
-            let v16: Rc<str> = body_at_6(v0.clone(), v1, v15);
-            let v17: US1 = US1::US1_AppendLine(v3.clone(), v16.clone());
-            US0::US0_WriteParsed(v17.clone())
+            let v16: Rc<str> = body_at_6(v0, v1, v15);
+            let v17: US1 = US1::US1_AppendLine(v3, v16);
+            US0::US0_WriteParsed(v17)
         }
     }
 }
@@ -96,9 +96,9 @@ fn copy_parsed_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
     let v2: i32 = 2i32;
     let v3: Rc<str> = body_at_6(v0.clone(), v1, v2);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("to"); } LIT.with(|lit| lit.clone()) };
-    let v5: i32 = field_index_9(v0.clone(), v1, v4.clone());
+    let v5: i32 = field_index_9(v0.clone(), v1, v4);
     let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("except"); } LIT.with(|lit| lit.clone()) };
-    let v7: i32 = field_index_9(v0.clone(), v1, v6.clone());
+    let v7: i32 = field_index_9(v0.clone(), v1, v6);
     let v8: bool = &*v3 == "";
     let v10: bool = if v8 {
         true
@@ -108,23 +108,23 @@ fn copy_parsed_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
     };
     if v10 {
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("copy: expected copy <glob> to <folder> [except <glob,...>]"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_WriteRejected(v11.clone())
+        US0::US0_WriteRejected(v11)
     } else {
         let mut v13: bool = v5 < 0i32;
         if v13 {
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("copy: expected to <folder>"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_WriteRejected(v14.clone())
+            US0::US0_WriteRejected(v14)
         } else {
             let v16: i32 = v5.wrapping_add(1i32);
             let v17: Rc<str> = body_at_6(v0.clone(), v1, v16);
             let v18: bool = v7 < 0i32;
             let mut v23: Rc<str> = if v18 {
                 let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v19.clone()
+                v19
             } else {
                 let v20: i32 = v7.wrapping_add(1i32);
                 let v21: i32 = -1i32;
-                words_span_10(v0.clone(), v1, v20, v21)
+                words_span_10(v0, v1, v20, v21)
             };
             let v24: bool = &*v17 == "";
             let v26: bool = if v24 {
@@ -135,7 +135,7 @@ fn copy_parsed_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
             };
             if v26 {
                 let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("to: expected a folder after it"); } LIT.with(|lit| lit.clone()) };
-                US0::US0_WriteRejected(v27.clone())
+                US0::US0_WriteRejected(v27)
             } else {
                 let v29: bool = v7 > 0i32;
                 let v31: bool = if v29 {
@@ -146,10 +146,10 @@ fn copy_parsed_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -
                 };
                 if v31 {
                     let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("except: expected a glob after it"); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_WriteRejected(v32.clone())
+                    US0::US0_WriteRejected(v32)
                 } else {
-                    let v34: US1 = US1::US1_CopyTree(v3.clone(), v17.clone(), v23.clone());
-                    US0::US0_WriteParsed(v34.clone())
+                    let v34: US1 = US1::US1_CopyTree(v3, v17, v23);
+                    US0::US0_WriteParsed(v34)
                 }
             }
         }
@@ -159,7 +159,7 @@ fn move_parsed_11(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
     let v2: i32 = 2i32;
     let v3: Rc<str> = body_at_6(v0.clone(), v1, v2);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("to"); } LIT.with(|lit| lit.clone()) };
-    let v5: i32 = field_index_9(v0.clone(), v1, v4.clone());
+    let v5: i32 = field_index_9(v0.clone(), v1, v4);
     let mut v6: bool = &*v3 == "";
     let v8: bool = if v6 {
         true
@@ -169,22 +169,22 @@ fn move_parsed_11(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
     };
     if v8 {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("move: expected move <path> to <path>"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_WriteRejected(v9.clone())
+        US0::US0_WriteRejected(v9)
     } else {
         let v11: bool = v5 < 0i32;
         if v11 {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("move: expected to <path>"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_WriteRejected(v12.clone())
+            US0::US0_WriteRejected(v12)
         } else {
             let v14: i32 = v5.wrapping_add(1i32);
-            let v15: Rc<str> = body_at_6(v0.clone(), v1, v14);
+            let v15: Rc<str> = body_at_6(v0, v1, v14);
             let v16: bool = &*v15 == "";
             if v16 {
                 let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("to: expected a path after it"); } LIT.with(|lit| lit.clone()) };
-                US0::US0_WriteRejected(v17.clone())
+                US0::US0_WriteRejected(v17)
             } else {
-                let v19: US1 = US1::US1_MovePath(v3.clone(), v15.clone());
-                US0::US0_WriteParsed(v19.clone())
+                let v19: US1 = US1::US1_MovePath(v3, v15);
+                US0::US0_WriteParsed(v19)
             }
         }
     }
@@ -217,22 +217,22 @@ fn file_write_parsed_12(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1:
     };
     if v15 {
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write: expected a file, then a <<< block"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_WriteRejected(v16.clone())
+        US0::US0_WriteRejected(v16)
     } else {
         let v18: bool = quoted_at_7(v0.clone(), v1, v11);
         let v19: bool = v18 == false;
         if v19 {
             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write: expected the <<< block after the file"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_WriteRejected(v20.clone())
+            US0::US0_WriteRejected(v20)
         } else {
-            let mut v22: Rc<str> = body_at_6(v0.clone(), v1, v11);
+            let mut v22: Rc<str> = body_at_6(v0, v1, v11);
             let v25: US2 = if v10 {
                 US2::US2_Overwrite
             } else {
                 US2::US2_CreateOnly
             };
-            let v26: US1 = US1::US1_WriteFile(v3.clone(), v22.clone(), v25.clone());
-            US0::US0_WriteParsed(v26.clone())
+            let v26: US1 = US1::US1_WriteFile(v3, v22, v25);
+            US0::US0_WriteParsed(v26)
         }
     }
 }
@@ -248,12 +248,12 @@ fn write_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
     let mut v6: bool = &*v3 == "";
     if v6 {
         let v7: US1 = US1::US1_Blank;
-        US0::US0_WriteParsed(v7.clone())
+        US0::US0_WriteParsed(v7)
     } else {
         let v9: bool = &*v3 != "query";
         if v9 {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edit and write statements cannot share one program yet; run them as two calls"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_WriteRejected(v10.clone())
+            US0::US0_WriteRejected(v10)
         } else {
             let v12: bool = &*v5 == "append";
             if v12 {
@@ -269,37 +269,37 @@ fn write_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
                     } else {
                         let v18: bool = &*v5 == "write";
                         if v18 {
-                            file_write_parsed_12(v0.clone(), v1)
+                            file_write_parsed_12(v0, v1)
                         } else {
                             let v20: bool = &*v5 == "search";
                             let v44: US3 = if v20 {
                                 let v21: US4 = US4::US4_Search;
-                                US3::US3_Some(v21.clone())
+                                US3::US3_Some(v21)
                             } else {
                                 let mut v23: bool = &*v5 == "read";
                                 if v23 {
                                     let v24: US4 = US4::US4_ReadAround;
-                                    US3::US3_Some(v24.clone())
+                                    US3::US3_Some(v24)
                                 } else {
                                     let v26: bool = &*v5 == "files";
                                     if v26 {
                                         let v27: US4 = US4::US4_ListFiles;
-                                        US3::US3_Some(v27.clone())
+                                        US3::US3_Some(v27)
                                     } else {
                                         let v29: bool = &*v5 == "head";
                                         if v29 {
                                             let v30: US4 = US4::US4_Head;
-                                            US3::US3_Some(v30.clone())
+                                            US3::US3_Some(v30)
                                         } else {
                                             let v32: bool = &*v5 == "tail";
                                             if v32 {
                                                 let v33: US4 = US4::US4_Tail;
-                                                US3::US3_Some(v33.clone())
+                                                US3::US3_Some(v33)
                                             } else {
                                                 let v35: bool = &*v5 == "wait";
                                                 if v35 {
                                                     let v36: US4 = US4::US4_Wait;
-                                                    US3::US3_Some(v36.clone())
+                                                    US3::US3_Some(v36)
                                                 } else {
                                                     US3::US3_None
                                                 }
@@ -312,12 +312,12 @@ fn write_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
                                 US3::US3_None => {
                                     let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cannot share one program with append, copy or move yet; run it as its own call"); } LIT.with(|lit| lit.clone()) };
                                     let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v48));
-                                    US0::US0_WriteRejected(v49.clone())
+                                    US0::US0_WriteRejected(v49)
                                 }
                                 US3::US3_Some(v45) => {
                                     let v45: US4 = v45.clone();
                                     let v46: US1 = US1::US1_ReadAfter;
-                                    US0::US0_WriteParsed(v46.clone())
+                                    US0::US0_WriteParsed(v46)
                                 }
                             }
                         }
@@ -338,12 +338,12 @@ fn record_alone_16(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32)
 fn read_rejected_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: US1) -> Rc<str> {
     match &v2 {
         US1::US1_ReadAfter => {
-            let v3: Rc<str> = record_alone_16(v0.clone(), v1);
-            read_rejection_15(v3.clone())
+            let v3: Rc<str> = record_alone_16(v0, v1);
+            read_rejection_15(v3)
         }
         _ => {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v5.clone()
+            v5
         }
     }
 }
@@ -379,7 +379,7 @@ fn first_rejection_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i3
 }
 fn empty_write_tally_17() -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
+    (v0, false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
 }
 fn lines_joined_21(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: bool = &*v1 == "";
@@ -392,7 +392,7 @@ fn lines_joined_21(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         } else {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v4)), v1));
-            v6.clone()
+            v6
         }
     }
 }
@@ -427,23 +427,23 @@ fn moved_24(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     v3.clone()
 }
 fn move_run_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: bool, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: u64, mut v14: u64, mut v15: u64) -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) {
-    let v16: Rc<str> = moved_24(v0.clone(), v1.clone(), v2.clone());
+    let v16: Rc<str> = moved_24(v0, v1.clone(), v2.clone());
     let v17: bool = &*v16 == "";
     let (mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = if v17 {
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("move "); } LIT.with(|lit| lit.clone()) };
         let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v1));
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" -> "); } LIT.with(|lit| lit.clone()) };
         let mut v22: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v19, v20)), v2));
-        let mut v23: Rc<str> = lines_joined_21(v3.clone(), v22.clone());
+        let mut v23: Rc<str> = lines_joined_21(v3.clone(), v22);
         let v24: u64 = v12.wrapping_add(1u64);
         let v25: u64 = v13.wrapping_add(1u64);
-        (v23.clone(), v4, v5, v6, v7, v8, v9, v10, v11, v24, v25, v14, v15)
+        (v23, v4, v5, v6, v7, v8, v9, v10, v11, v24, v25, v14, v15)
     } else {
-        let v26: Rc<str> = lines_joined_21(v3.clone(), v16.clone());
+        let v26: Rc<str> = lines_joined_21(v3, v16);
         let v27: u64 = v13.wrapping_add(1u64);
-        (v26.clone(), true, v5, v6, v7, v8, v9, v10, v11, v12, v27, v14, v15)
+        (v26, true, v5, v6, v7, v8, v9, v10, v11, v12, v27, v14, v15)
     };
-    (v28.clone(), v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40)
+    (v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40)
 }
 fn method26(mut v0: Option<usize>) -> Option<usize> {
     v0
@@ -521,12 +521,12 @@ fn counted_32(mut v0: u64, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
     let mut v6: bool = v0 == 1u64;
     let v7: Rc<str> = if v6 {
-        v1.clone()
+        v1
     } else {
-        v2.clone()
+        v2
     };
     let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v7));
-    v8.clone()
+    v8
 }
 fn write_run_25(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US2, mut v4: Rc<str>, mut v5: bool, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: u64, mut v14: u64, mut v15: u64, mut v16: u64) -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) {
     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
@@ -765,13 +765,13 @@ fn written_counts_38(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
             let mut v23: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v22));
             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" copied"); } LIT.with(|lit| lit.clone()) };
             let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-            v25.clone()
+            v25
         } else {
             let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  copied "); } LIT.with(|lit| lit.clone()) };
             let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v26));
             let v28: Rc<str> = decimal_text_33(v4);
             let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
-            v29.clone()
+            v29
         }
     };
     let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  bytes "); } LIT.with(|lit| lit.clone()) };
@@ -785,7 +785,7 @@ fn written_counts_38(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
         let v38: Rc<str> = decimal_text_33(v5);
         let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v38));
-        v39.clone()
+        v39
     }
 }
 fn receipt_counts_37(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64) -> Rc<str> {
@@ -816,7 +816,7 @@ fn receipt_counts_37(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v23));
         let v25: Rc<str> = decimal_text_33(v6);
         let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v25));
-        v26.clone()
+        v26
     } else {
         let v27: bool = v7 == 0u64;
         let v29: bool = if v27 {
@@ -831,9 +831,9 @@ fn receipt_counts_37(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
             let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v30));
             let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" moved"); } LIT.with(|lit| lit.clone()) };
             let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v33));
-            v34.clone()
+            v34
         } else {
-            let v35: Rc<str> = written_counts_38(v0.clone(), v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12);
+            let v35: Rc<str> = written_counts_38(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12);
             let v36: bool = v10 == 0u64;
             if v36 {
                 v35.clone()
@@ -842,7 +842,7 @@ fn receipt_counts_37(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
                 let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v37));
                 let v39: Rc<str> = decimal_text_33(v9);
                 let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v39));
-                v40.clone()
+                v40
             }
         }
     }
@@ -864,11 +864,11 @@ fn receipt_line_39(mut v0: US5, mut v1: Rc<str>, mut v2: u64) -> () {
     let mut v6: Rc<str> = match &v0 {
         US5::US5_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US5::US5_Succeeded => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
@@ -882,14 +882,14 @@ fn receipt_line_39(mut v0: US5, mut v1: Rc<str>, mut v2: u64) -> () {
 }
 fn write_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v2: u64 = now_ms_1();
-    let v3: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1.clone());
+    let v3: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1);
     let v4: i32 = 1i32;
     let v5: Rc<str> = first_rejection_3(v3.clone(), v4);
     let mut v6: bool = &*v5 == "";
     if v6 {
         let v7: i32 = 1i32;
         let (mut v8, mut v9, mut v10, mut v11, mut v12, mut v13, mut v14, mut v15, mut v16, mut v17, mut v18, mut v19, mut v20): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = empty_write_tally_17();
-        let (mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = writes_run_18(v0.clone(), v3.clone(), v7, v8.clone(), v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20);
+        let (mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = writes_run_18(v0, v3, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20);
         let v34: bool = &*v21 == "";
         if v34 {
             ()
@@ -900,12 +900,12 @@ fn write_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v22 {
             let v35: US5 = US5::US5_Failed;
             let v36: Rc<str> = receipt_counts_37(v21.clone(), v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33);
-            receipt_line_39(v35.clone(), v36.clone(), v2);
+            receipt_line_39(v35, v36, v2);
             1i32
         } else {
             let v37: US5 = US5::US5_Succeeded;
-            let v38: Rc<str> = receipt_counts_37(v21.clone(), v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33);
-            receipt_line_39(v37.clone(), v38.clone(), v2);
+            let v38: Rc<str> = receipt_counts_37(v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33);
+            receipt_line_39(v37, v38, v2);
             0i32
         }
     } else {
@@ -914,7 +914,7 @@ fn write_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         println!("{}", v41);
         let v42: US5 = US5::US5_Failed;
         let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files 0"); } LIT.with(|lit| lit.clone()) };
-        receipt_line_39(v42.clone(), v43.clone(), v2);
+        receipt_line_39(v42, v43, v2);
         2i32
     }
 }

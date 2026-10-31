@@ -167,11 +167,11 @@ fn method6(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_5(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method6(v2.clone(), v3.clone());
+    method6(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn list_joined_8(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
     match &*v0 {
@@ -191,10 +191,10 @@ fn links_flattened_7(mut v0: Rc<UH0>) -> Rc<UH1> {
         UH0::UH0_Cons(v2, v3) => {
             let mut v2: Rc<UH1> = v2.clone();
             let v3: Rc<UH0> = v3.clone();
-            let mut v4: Rc<UH1> = links_flattened_7(v3.clone());
-            let v5: Rc<UH1> = list_joined_8(v2.clone(), v4.clone());
+            let mut v4: Rc<UH1> = links_flattened_7(v3);
+            let v5: Rc<UH1> = list_joined_8(v2, v4);
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--"); } LIT.with(|lit| lit.clone()) };
-            Rc::new(UH1::UH1_Cons(v6.clone(), v5.clone()))
+            Rc::new(UH1::UH1_Cons(v6, v5))
         }
         UH0::UH0_Nil => {
             { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) }
@@ -258,10 +258,10 @@ fn method12(mut v0: Rc<RefCell<std::process::Command>>, mut v1: Rc<UH1>) -> () {
 fn captured_9(mut v0: Rc<str>, mut v1: Rc<UH1>) -> US3 {
     let mut v2: Rc<RefCell<std::process::Command>> = Rc::new(RefCell::new(std::process::Command::new(&*v0)));
     let v3: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let mut v4: Rc<UH1> = method10(v1.clone(), v3.clone());
+    let mut v4: Rc<UH1> = method10(v1, v3);
     let v5: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let v6: Rc<UH1> = method11(v4.clone(), v5.clone());
-    method12(v2.clone(), v6.clone());
+    let v6: Rc<UH1> = method11(v4, v5);
+    method12(v2.clone(), v6);
     let mut v7: Rc<std::io::Result<std::process::Output>> = Rc::new(v2.borrow_mut().output());
     let v8: bool = v7.is_ok();
     let (mut v14, mut v15, mut v16): (bool, i32, Rc<str>) = if v8 {
@@ -269,10 +269,10 @@ fn captured_9(mut v0: Rc<str>, mut v1: Rc<UH1>) -> US3 {
         let v10: Rc<str> = Rc::<str>::from(String::from_utf8_lossy(&(&*v7).as_ref().unwrap().stdout).as_ref());
         let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v9));
         let mut v12: i32 = (&*v7).as_ref().unwrap().status.code().unwrap_or(-2);
-        (true, v12, v11.clone())
+        (true, v12, v11)
     } else {
         let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        (false, -1i32, v13.clone())
+        (false, -1i32, v13)
     };
     let v18: bool = if v14 {
         let v17: bool = v15 == 0i32;
@@ -281,7 +281,7 @@ fn captured_9(mut v0: Rc<str>, mut v1: Rc<UH1>) -> US3 {
         false
     };
     if v18 {
-        US3::US3_Some(v16.clone())
+        US3::US3_Some(v16)
     } else {
         US3::US3_None
     }
@@ -384,7 +384,7 @@ fn serial_started_1(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: bool,
                 US0::US0_AfterOk => {
                     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--ok"); } LIT.with(|lit| lit.clone()) };
                     let mut v11: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                    Rc::new(UH1::UH1_Cons(v10.clone(), v11.clone()))
+                    Rc::new(UH1::UH1_Cons(v10, v11))
                 }
             };
             let v25: Rc<str> = match &*v5 {
@@ -397,54 +397,54 @@ fn serial_started_1(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: bool,
                             let v19: Rc<UH1> = v19.clone();
                             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-serial"); } LIT.with(|lit| lit.clone()) };
                             let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v20));
-                            v21.clone()
+                            v21
                         }
                         _ => {
                             let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("chain-serial"); } LIT.with(|lit| lit.clone()) };
-                            v22.clone()
+                            v22
                         }
                     }
                 }
                 _ => {
                     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("chain-serial"); } LIT.with(|lit| lit.clone()) };
-                    v24.clone()
+                    v24
                 }
             };
             let v26: Rc<str> = format_real_5(v9);
             let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job"); } LIT.with(|lit| lit.clone()) };
             let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("chain"); } LIT.with(|lit| lit.clone()) };
             let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--run-serial"); } LIT.with(|lit| lit.clone()) };
-            let v30: Rc<UH1> = Rc::new(UH1::UH1_Cons(v29.clone(), v15.clone()));
-            let v31: Rc<UH1> = Rc::new(UH1::UH1_Cons(v28.clone(), v30.clone()));
-            let v32: Rc<UH1> = Rc::new(UH1::UH1_Cons(v27.clone(), v31.clone()));
-            let v33: Rc<UH1> = links_flattened_7(v5.clone());
-            let v34: Rc<UH1> = list_joined_8(v32.clone(), v33.clone());
+            let v30: Rc<UH1> = Rc::new(UH1::UH1_Cons(v29, v15));
+            let v31: Rc<UH1> = Rc::new(UH1::UH1_Cons(v28, v30));
+            let v32: Rc<UH1> = Rc::new(UH1::UH1_Cons(v27.clone(), v31));
+            let v33: Rc<UH1> = links_flattened_7(v5);
+            let v34: Rc<UH1> = list_joined_8(v32, v33);
             let v35: bool = &*v2 == "";
             let v48: Rc<UH1> = if v35 {
                 let v36: Rc<UH1> = Rc::new(UH1::UH1_Cons(v0.clone(), v34.clone()));
-                let v37: Rc<UH1> = Rc::new(UH1::UH1_Cons(v26.clone(), v36.clone()));
-                Rc::new(UH1::UH1_Cons(v25.clone(), v37.clone()))
+                let v37: Rc<UH1> = Rc::new(UH1::UH1_Cons(v26.clone(), v36));
+                Rc::new(UH1::UH1_Cons(v25.clone(), v37))
             } else {
                 let v42: Rc<str> = match &v1 {
                     US0::US0_AfterAny => {
                         let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--after"); } LIT.with(|lit| lit.clone()) };
-                        v39.clone()
+                        v39
                     }
                     US0::US0_AfterOk => {
                         let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--after-ok"); } LIT.with(|lit| lit.clone()) };
-                        v40.clone()
+                        v40
                     }
                 };
-                let v43: Rc<UH1> = Rc::new(UH1::UH1_Cons(v0.clone(), v34.clone()));
-                let mut v44: Rc<UH1> = Rc::new(UH1::UH1_Cons(v26.clone(), v43.clone()));
-                let mut v45: Rc<UH1> = Rc::new(UH1::UH1_Cons(v25.clone(), v44.clone()));
-                let v46: Rc<UH1> = Rc::new(UH1::UH1_Cons(v2.clone(), v45.clone()));
-                Rc::new(UH1::UH1_Cons(v42.clone(), v46.clone()))
+                let v43: Rc<UH1> = Rc::new(UH1::UH1_Cons(v0.clone(), v34));
+                let mut v44: Rc<UH1> = Rc::new(UH1::UH1_Cons(v26, v43));
+                let mut v45: Rc<UH1> = Rc::new(UH1::UH1_Cons(v25, v44));
+                let v46: Rc<UH1> = Rc::new(UH1::UH1_Cons(v2, v45));
+                Rc::new(UH1::UH1_Cons(v42, v46))
             };
             let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("start"); } LIT.with(|lit| lit.clone()) };
-            let v50: Rc<UH1> = Rc::new(UH1::UH1_Cons(v49.clone(), v48.clone()));
-            let v51: Rc<UH1> = Rc::new(UH1::UH1_Cons(v27.clone(), v50.clone()));
-            let v52: US3 = captured_9(v0.clone(), v51.clone());
+            let v50: Rc<UH1> = Rc::new(UH1::UH1_Cons(v49, v48));
+            let v51: Rc<UH1> = Rc::new(UH1::UH1_Cons(v27, v50));
+            let v52: US3 = captured_9(v0, v51);
             match &v52 {
                 US3::US3_None => {
                     let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: job chain could not start its serial job"); } LIT.with(|lit| lit.clone()) };
@@ -453,7 +453,7 @@ fn serial_started_1(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: bool,
                 }
                 US3::US3_Some(v53) => {
                     let v53: Rc<str> = v53.clone();
-                    printed_trimmed_13(v53.clone());
+                    printed_trimmed_13(v53);
                     0i32
                 }
             }
@@ -478,11 +478,11 @@ fn method17(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
 }
 fn format_real_18(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method6(v2.clone(), v3.clone());
+    method6(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn method19(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH1>, mut v2: i32) -> i32 {
     loop {
@@ -855,10 +855,10 @@ fn chain_run_0() -> i32 {
     let mut v0: i32 = 2i32;
     let v1: i32 = command_line_argument_count_20();
     let mut v2: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let v3: Rc<UH1> = arguments_from_21(v0, v1, v2.clone());
+    let v3: Rc<UH1> = arguments_from_21(v0, v1, v2);
     let mut v4: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
     let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v6: Rc<UH0> = segments_23(v3.clone(), v4.clone(), v5.clone());
+    let v6: Rc<UH0> = segments_23(v3, v4, v5);
     let v48: US4 = match &*v6 {
         UH0::UH0_Cons(v9, v10) => {
             let v9: Rc<UH1> = v9.clone();
@@ -867,11 +867,11 @@ fn chain_run_0() -> i32 {
             let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let mut v13: bool = false;
             let mut v14: bool = false;
-            let v15: US5 = head_from_25(v9.clone(), v11.clone(), v12.clone(), v13, v14);
+            let v15: US5 = head_from_25(v9, v11, v12, v13, v14);
             match &v15 {
                 US5::US5_None => {
                     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside one job, so a waiting link holds no process)"); } LIT.with(|lit| lit.clone()) };
-                    US4::US4_ChainRefused(v16.clone())
+                    US4::US4_ChainRefused(v16)
                 }
                 US5::US5_Some(v18, v19, v20, v21) => {
                     let v18: US0 = v18.clone();
@@ -887,7 +887,7 @@ fn chain_run_0() -> i32 {
                         let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no job to start; "); } LIT.with(|lit| lit.clone()) };
                         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside one job, so a waiting link holds no process)"); } LIT.with(|lit| lit.clone()) };
                         let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no job to start; job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside one job, so a waiting link holds no process)"); } LIT.with(|lit| lit.clone()) };
-                        US4::US4_ChainRefused(v29.clone())
+                        US4::US4_ChainRefused(v29)
                     } else {
                         let v31: bool = v23 > 0i32;
                         if v31 {
@@ -896,14 +896,14 @@ fn chain_run_0() -> i32 {
                             let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v32));
                             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs <label> <timeout-ms> <program> [args...]"); } LIT.with(|lit| lit.clone()) };
                             let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
-                            US4::US4_ChainRefused(v36.clone())
+                            US4::US4_ChainRefused(v36)
                         } else {
                             let v38: bool = v20 && v21;
                             if v38 {
                                 let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--serial and --run-serial exclude each other"); } LIT.with(|lit| lit.clone()) };
-                                US4::US4_ChainRefused(v39.clone())
+                                US4::US4_ChainRefused(v39)
                             } else {
-                                US4::US4_ChainPlanned(v18.clone(), v19.clone(), v20, v21, v10.clone())
+                                US4::US4_ChainPlanned(v18, v19, v20, v21, v10)
                             }
                         }
                     }
@@ -912,7 +912,7 @@ fn chain_run_0() -> i32 {
         }
         UH0::UH0_Nil => {
             let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside one job, so a waiting link holds no process)"); } LIT.with(|lit| lit.clone()) };
-            US4::US4_ChainRefused(v7.clone())
+            US4::US4_ChainRefused(v7)
         }
     };
     match &v48 {
@@ -927,7 +927,7 @@ fn chain_run_0() -> i32 {
                 serial_started_1(v57.clone(), v52.clone(), v53.clone(), v54, v55, v56.clone())
             } else {
                 let v59: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                chain_started_16(v57.clone(), v52.clone(), v53.clone(), v56.clone(), v59.clone())
+                chain_started_16(v57, v52, v53, v56, v59)
             }
         }
         US4::US4_ChainRefused(v49) => {

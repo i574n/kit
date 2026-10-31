@@ -1,6 +1,6 @@
 packages:
     |core-
-    rust_std_string
+    spiral-
     kit_machine_watch_model
 modules:
     windows

@@ -51,11 +51,11 @@ fn method9(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_8(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method9(v2.clone(), v3.clone());
+    method9(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn decimal_text_7(mut v0: u64) -> Rc<str> {
     format_real_8(v0)
@@ -108,9 +108,9 @@ fn decimal_u64_15(mut v0: Rc<str>) -> u64 {
 }
 fn slot_deadline_passed_13(mut v0: Rc<str>, mut v1: u64) -> bool {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot_by_ms"); } LIT.with(|lit| lit.clone()) };
-    let mut v3: Rc<str> = job_file_3(v0.clone(), v2.clone());
-    let mut v4: Rc<str> = text_or_empty_14(v3.clone());
-    let v5: u64 = decimal_u64_15(v4.clone());
+    let mut v3: Rc<str> = job_file_3(v0, v2);
+    let mut v4: Rc<str> = text_or_empty_14(v3);
+    let v5: u64 = decimal_u64_15(v4);
     let mut v6: bool = v5 != 0u64;
     if v6 {
         let v7: bool = v1 > v5;
@@ -123,38 +123,38 @@ fn settled_word_17(mut v0: US2) -> Rc<str> {
     match &v0 {
         US2::US2_JobExpiredInQueue => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expired-in-queue"); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US2::US2_JobFinished(v1) => {
             let v1: i32 = *v1;
             let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
-            v2.clone()
+            v2
         }
         US2::US2_JobLost => {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lost"); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         }
         US2::US2_JobMemoryCapped => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memory-capped"); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US2::US2_JobSkipped(v7) => {
             let v7: Rc<str> = v7.clone();
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US2::US2_JobSpawnFailed(v5) => {
             let v5: Rc<str> = v5.clone();
             let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spawn-failed"); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
         }
         US2::US2_JobStopped => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US2::US2_JobTimedOut => {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timed-out"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     }
 }
@@ -208,9 +208,13 @@ fn slot_free_25(mut v0: u64) -> bool {
     let v1: bool = { #[cfg(windows)] fn probe(name: &str) -> bool { unsafe extern "system" { fn OpenMutexW(access: u32, inherit: i32, name: *const u16) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn ReleaseMutex(handle: *mut std::ffi::c_void) -> i32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; } let name = name.encode_utf16().chain(std::iter::once(0u16)).collect::<Vec<u16>>(); unsafe { let handle = OpenMutexW(0x0010_0001, 0, name.as_ptr()); if handle.is_null() { return true; } let state = WaitForSingleObject(handle, 0); let taken = state == 0 || state == 0x80; if taken { ReleaseMutex(handle); } CloseHandle(handle); taken } } #[cfg(not(windows))] fn probe(_name: &str) -> bool { true } let base = std::env::var("KIT_HEAVY_MUTEX").unwrap_or_else(|_| format!("Global{}spiral-heavy-job", char::from(92u8))); probe(&base) || (v0 > 3072 && probe(&format!("{base}-2"))) };
     v1
 }
-fn ticket_adopted_26(mut v0: Rc<str>) -> () {
-    unsafe { std::env::set_var("SPIRAL_HEAVY_TICKET", &*v0); };
+fn set_environment_variable_27(mut v0: Rc<str>, mut v1: Rc<str>) -> () {
+    unsafe { std::env::set_var(&*v0, &*v1) };
     ()
+}
+fn ticket_adopted_26(mut v0: Rc<str>) -> () {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SPIRAL_HEAVY_TICKET"); } LIT.with(|lit| lit.clone()) };
+    set_environment_variable_27(v1, v0)
 }
 fn slot_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> i32 {
     loop {
@@ -337,15 +341,15 @@ fn slot_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -
         }
     }
 }
-fn heavy_queue_27() -> Rc<str> {
+fn heavy_queue_28() -> Rc<str> {
     let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_HEAVY_QUEUE").map(|queue| std::path::PathBuf::from(queue).to_string_lossy().into_owned()).or_else(|| std::env::var_os("LOCALAPPDATA").or_else(|| std::env::var_os("HOME")).map(|base| std::path::PathBuf::from(base).join("spiral-bin").join("heavy-queue").to_string_lossy().into_owned())).unwrap_or_default().as_str());
     v0.clone()
 }
-fn ticket_ticks_29(mut v0: Rc<str>) -> u64 {
+fn ticket_ticks_30(mut v0: Rc<str>) -> u64 {
     let v1: u64 = (v0).split(char::from(45u8)).next().and_then(|ticks| ticks.parse::<u64>().ok()).unwrap_or(0);
     v1
 }
-fn own_pid_30() -> u64 {
+fn own_pid_31() -> u64 {
     let mut v0: u64 = std::process::id() as u64;
     v0
 }
@@ -356,31 +360,31 @@ fn closure2(mut v0: i32, mut v1: Rc<str>, mut v2: i32) -> Rc<dyn Fn(Rc<str>) -> 
             v3.clone()
         } else {
             let v5: i32 = v2.wrapping_add(1i32);
-            let mut v6: Rc<dyn Fn(Rc<str>) -> Rc<str>> = method31(v0, v1.clone(), v5);
+            let mut v6: Rc<dyn Fn(Rc<str>) -> Rc<str>> = method32(v0, v1.clone(), v5);
             let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v1));
             v6(v7.clone())
         }
     })
 }
-fn method31(mut v0: i32, mut v1: Rc<str>, mut v2: i32) -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
+fn method32(mut v0: i32, mut v1: Rc<str>, mut v2: i32) -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     closure2(v0, v1, v2)
 }
-fn ticket_renamed_32(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> bool {
+fn ticket_renamed_33(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> bool {
     let mut v3: bool = std::fs::rename(std::path::Path::new(&*v0).join(&*v1), std::path::Path::new(&*v0).join(&*v2)).is_ok();
     v3
 }
-fn handed_ticket_28(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn handed_ticket_29(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot_ticket"); } LIT.with(|lit| lit.clone()) };
-    let mut v3: Rc<str> = job_file_3(v0.clone(), v2.clone());
-    let mut v4: Rc<str> = text_or_empty_14(v3.clone());
-    let v5: u64 = ticket_ticks_29(v4.clone());
-    let mut v6: u64 = own_pid_30();
+    let mut v3: Rc<str> = job_file_3(v0, v2);
+    let mut v4: Rc<str> = text_or_empty_14(v3);
+    let v5: u64 = ticket_ticks_30(v4.clone());
+    let mut v6: u64 = own_pid_31();
     let v7: Rc<str> = format_real_8(v5);
     let v8: Rc<str> = Rc::<str>::from((b'0' as char).encode_utf8(&mut [0u8; 4]) as &str);
     let v9: i32 = (v7.clone().len() as i32);
     let v10: i32 = 20i32.wrapping_sub(v9);
     let v11: i32 = 0i32;
-    let mut v12: Rc<dyn Fn(Rc<str>) -> Rc<str>> = method31(v10, v8.clone(), v11);
+    let mut v12: Rc<dyn Fn(Rc<str>) -> Rc<str>> = method32(v10, v8, v11);
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v14: Rc<str> = v12(v13.clone());
     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v7));
@@ -392,47 +396,47 @@ fn handed_ticket_28(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v20));
     let v22: bool = &*v4 != "";
     let v24: bool = if v22 {
-        ticket_renamed_32(v1.clone(), v4.clone(), v21.clone())
+        ticket_renamed_33(v1, v4, v21.clone())
     } else {
         false
     };
     if v24 {
-        v21.clone()
+        v21
     } else {
-        v13.clone()
+        v13
     }
 }
-fn ticket_created_34(mut v0: Rc<str>) -> Rc<str> {
+fn ticket_created_35(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from({ let ticks = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_nanos() as u64 / 100).unwrap_or(0) + 621355968000000000u64; let name = format!("{:020}-{}.t", ticks, std::process::id()); let _ = std::fs::create_dir_all(&*v0); match std::fs::write(std::path::Path::new(&*v0).join(&name), b"") { Ok(()) => name, Err(_) => String::new() } }.as_str());
     v1.clone()
 }
-fn ticket_written_35(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
+fn ticket_written_36(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let v2: bool = std::fs::create_dir_all(&*v0).and_then(|_| std::fs::write(std::path::Path::new(&*v0).join(&*v1), b"")).is_ok();
     v2
 }
-fn front_ticket_33(mut v0: Rc<str>) -> Rc<str> {
+fn front_ticket_34(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = tickets_sorted_18(v0.clone());
-    let v2: Rc<str> = first_live_ticket_19(v1.clone());
+    let v2: Rc<str> = first_live_ticket_19(v1);
     let mut v3: bool = &*v2 == "";
     let mut v6: bool = if v3 {
         true
     } else {
-        let mut v4: u64 = ticket_ticks_29(v2.clone());
+        let mut v4: u64 = ticket_ticks_30(v2.clone());
         let v5: bool = v4 == 0u64;
         v5
     };
     if v6 {
-        ticket_created_34(v0.clone())
+        ticket_created_35(v0.clone())
     } else {
-        let v8: u64 = ticket_ticks_29(v2.clone());
-        let v9: u64 = own_pid_30();
+        let v8: u64 = ticket_ticks_30(v2);
+        let v9: u64 = own_pid_31();
         let v10: u64 = v8.wrapping_sub(1u64);
         let v11: Rc<str> = format_real_8(v10);
         let mut v12: Rc<str> = Rc::<str>::from((b'0' as char).encode_utf8(&mut [0u8; 4]) as &str);
         let v13: i32 = (v11.clone().len() as i32);
         let v14: i32 = 20i32.wrapping_sub(v13);
         let v15: i32 = 0i32;
-        let mut v16: Rc<dyn Fn(Rc<str>) -> Rc<str>> = method31(v14, v12.clone(), v15);
+        let mut v16: Rc<dyn Fn(Rc<str>) -> Rc<str>> = method32(v14, v12, v15);
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v18: Rc<str> = v16(v17.clone());
         let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v11));
@@ -442,22 +446,22 @@ fn front_ticket_33(mut v0: Rc<str>) -> Rc<str> {
         let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
         let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".t"); } LIT.with(|lit| lit.clone()) };
         let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-        let v26: bool = ticket_written_35(v0.clone(), v25.clone());
+        let v26: bool = ticket_written_36(v0, v25.clone());
         if v26 {
-            v25.clone()
+            v25
         } else {
-            v17.clone()
+            v17
         }
     }
 }
 fn slot_gate_0(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = heavy_queue_27();
+    let v1: Rc<str> = heavy_queue_28();
     let v2: bool = &*v1 == "";
     let v5: Rc<str> = if v2 {
         let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     } else {
-        handed_ticket_28(v0.clone(), v1.clone())
+        handed_ticket_29(v0.clone(), v1.clone())
     };
     let v7: bool = if v2 {
         true
@@ -466,15 +470,15 @@ fn slot_gate_0(mut v0: Rc<str>) -> i32 {
         v6
     };
     let v14: Rc<str> = if v7 {
-        v5.clone()
+        v5
     } else {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("front"); } LIT.with(|lit| lit.clone()) };
-        let v9: Rc<str> = job_file_3(v0.clone(), v8.clone());
-        let v10: bool = file_exists_11(v9.clone());
+        let v9: Rc<str> = job_file_3(v0.clone(), v8);
+        let v10: bool = file_exists_11(v9);
         if v10 {
-            front_ticket_33(v1.clone())
+            front_ticket_34(v1.clone())
         } else {
-            ticket_created_34(v1.clone())
+            ticket_created_35(v1.clone())
         }
     };
     let v15: bool = &*v14 == "";
@@ -482,7 +486,7 @@ fn slot_gate_0(mut v0: Rc<str>) -> i32 {
         0i32
     } else {
         let mut v16: u64 = now_ms_2();
-        slot_loop_1(v0.clone(), v1.clone(), v14.clone(), v16)
+        slot_loop_1(v0, v1, v14, v16)
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
@@ -490,36 +494,36 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
         slot_gate_0(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn held_ticket_37(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn held_ticket_38(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot_ticket"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = job_file_3(v0.clone(), v2.clone());
-    let mut v4: Rc<str> = text_or_empty_14(v3.clone());
+    let mut v4: Rc<str> = text_or_empty_14(v3);
     let v5: bool = &*v4 != "";
     let v8: bool = if v5 {
         let mut v6: Rc<str> = joined_4(v1.clone(), v4.clone());
-        file_exists_11(v6.clone())
+        file_exists_11(v6)
     } else {
         false
     };
     if v8 {
-        v4.clone()
+        v4
     } else {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("front"); } LIT.with(|lit| lit.clone()) };
-        let v10: Rc<str> = job_file_3(v0.clone(), v9.clone());
-        let v11: bool = file_exists_11(v10.clone());
+        let v10: Rc<str> = job_file_3(v0.clone(), v9);
+        let v11: bool = file_exists_11(v10);
         let v14: Rc<str> = if v11 {
-            front_ticket_33(v1.clone())
+            front_ticket_34(v1.clone())
         } else {
-            ticket_created_34(v1.clone())
+            ticket_created_35(v1.clone())
         };
-        let v15: Rc<str> = job_file_3(v0.clone(), v2.clone());
-        let mut v16: Rc<str> = text_written_10(v15.clone(), v14.clone());
-        let v17: Rc<str> = joined_4(v1.clone(), v14.clone());
-        let v18: Rc<str> = text_written_10(v17.clone(), v0.clone());
-        v14.clone()
+        let v15: Rc<str> = job_file_3(v0.clone(), v2);
+        let mut v16: Rc<str> = text_written_10(v15, v14.clone());
+        let v17: Rc<str> = joined_4(v1, v14.clone());
+        let v18: Rc<str> = text_written_10(v17, v0);
+        v14
     }
 }
-fn abandoned_swept_38(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64) -> () {
+fn abandoned_swept_39(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64) -> () {
     let mut v3: Rc<str> = joined_4(v0.clone(), v1.clone());
     let mut v4: Rc<str> = text_or_empty_14(v3.clone());
     let v5: Rc<str> = first_row_20(v4.clone());
@@ -535,7 +539,7 @@ fn abandoned_swept_38(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64) -> () {
         true
     } else {
         let v14: u64 = ticket_pid_21(v1.clone());
-        let v15: u64 = own_pid_30();
+        let v15: u64 = own_pid_31();
         let mut v16: bool = v14 != v15;
         v16
     };
@@ -560,15 +564,15 @@ fn abandoned_swept_38(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64) -> () {
         ()
     }
 }
-fn slot_held_step_36(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = heavy_queue_27();
+fn slot_held_step_37(mut v0: Rc<str>) -> i32 {
+    let v1: Rc<str> = heavy_queue_28();
     let v2: bool = &*v1 == "";
     let v7: bool = if v2 {
         true
     } else {
         let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("heavy-wrapper.ps1"); } LIT.with(|lit| lit.clone()) };
-        let mut v4: Rc<str> = job_file_3(v0.clone(), v3.clone());
-        let v5: bool = file_exists_11(v4.clone());
+        let mut v4: Rc<str> = job_file_3(v0.clone(), v3);
+        let v5: bool = file_exists_11(v4);
         let mut v6: bool = v5 == false;
         v6
     };
@@ -576,12 +580,12 @@ fn slot_held_step_36(mut v0: Rc<str>) -> i32 {
         0i32
     } else {
         let v8: u64 = now_ms_2();
-        let v9: Rc<str> = held_ticket_37(v0.clone(), v1.clone());
+        let v9: Rc<str> = held_ticket_38(v0.clone(), v1.clone());
         let v10: Rc<str> = tickets_sorted_18(v1.clone());
-        let v11: Rc<str> = first_live_ticket_19(v10.clone());
-        abandoned_swept_38(v1.clone(), v11.clone(), v8);
+        let v11: Rc<str> = first_live_ticket_19(v10);
+        abandoned_swept_39(v1.clone(), v11, v8);
         let mut v12: Rc<str> = tickets_sorted_18(v1.clone());
-        let v13: Rc<str> = first_live_ticket_19(v12.clone());
+        let v13: Rc<str> = first_live_ticket_19(v12);
         let v14: bool = &*v9 == "";
         if v14 {
             0i32
@@ -589,12 +593,12 @@ fn slot_held_step_36(mut v0: Rc<str>) -> i32 {
             let v15: bool = slot_deadline_passed_13(v0.clone(), v8);
             if v15 {
                 let mut v16: Rc<str> = joined_4(v1.clone(), v9.clone());
-                let v17: bool = file_removed_12(v16.clone());
+                let v17: bool = file_removed_12(v16);
                 let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
-                let v19: Rc<str> = job_file_3(v0.clone(), v18.clone());
+                let v19: Rc<str> = job_file_3(v0.clone(), v18);
                 let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no heavy slot within --slot-within; the job never started"); } LIT.with(|lit| lit.clone()) };
                 let v21: US2 = US2::US2_JobExpiredInQueue;
-                let v22: Rc<str> = settled_word_17(v21.clone());
+                let v22: Rc<str> = settled_word_17(v21);
                 let v23: Rc<str> = std::rc::Rc::<str>::from((75i32).to_string());
                 let v24: Rc<str> = std::rc::Rc::<str>::from((v8).to_string());
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
@@ -602,14 +606,14 @@ fn slot_held_step_36(mut v0: Rc<str>) -> i32 {
                 let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 let v28: Rc<str> = std::rc::Rc::<str>::from([&*v22, &*v25, &*v20, &*v26, &*v27].concat());
                 let v29: Rc<str> = std::rc::Rc::<str>::from([&*v23, &*v25, &*v24, &*v25, &*v28].concat());
-                let v30: Rc<str> = text_written_10(v19.clone(), v29.clone());
+                let v30: Rc<str> = text_written_10(v19, v29);
                 let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
-                let v32: Rc<str> = job_file_3(v0.clone(), v31.clone());
+                let v32: Rc<str> = job_file_3(v0.clone(), v31);
                 let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("settled ticket="); } LIT.with(|lit| lit.clone()) };
                 let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v9));
                 let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" state=expired-in-queue"); } LIT.with(|lit| lit.clone()) };
                 let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
-                let v37: Rc<str> = text_written_10(v32.clone(), v36.clone());
+                let v37: Rc<str> = text_written_10(v32, v36);
                 2i32
             } else {
                 let v38: bool = &*v13 == &*v9;
@@ -620,26 +624,26 @@ fn slot_held_step_36(mut v0: Rc<str>) -> i32 {
                     false
                 };
                 if v41 {
-                    let v42: Rc<str> = joined_4(v1.clone(), v9.clone());
+                    let v42: Rc<str> = joined_4(v1, v9.clone());
                     let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                     let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v43));
                     let v45: Rc<str> = decimal_text_7(v8);
                     let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v45));
-                    let v47: Rc<str> = text_written_10(v42.clone(), v46.clone());
+                    let v47: Rc<str> = text_written_10(v42, v46);
                     let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
-                    let v49: Rc<str> = job_file_3(v0.clone(), v48.clone());
+                    let v49: Rc<str> = job_file_3(v0.clone(), v48);
                     let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("handed ticket="); } LIT.with(|lit| lit.clone()) };
                     let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v9));
-                    let v52: Rc<str> = text_written_10(v49.clone(), v51.clone());
+                    let v52: Rc<str> = text_written_10(v49, v51);
                     0i32
                 } else {
                     let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot"); } LIT.with(|lit| lit.clone()) };
-                    let v54: Rc<str> = job_file_3(v0.clone(), v53.clone());
+                    let v54: Rc<str> = job_file_3(v0, v53);
                     let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("held ticket="); } LIT.with(|lit| lit.clone()) };
                     let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v9));
                     let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" first="); } LIT.with(|lit| lit.clone()) };
                     let v59: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v56, v57)), v13));
-                    let v60: Rc<str> = text_written_10(v54.clone(), v59.clone());
+                    let v60: Rc<str> = text_written_10(v54, v59);
                     1i32
                 }
             }
@@ -648,26 +652,26 @@ fn slot_held_step_36(mut v0: Rc<str>) -> i32 {
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        slot_held_step_36(v0.clone())
+        slot_held_step_37(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn slot_ticket_dropped_39(mut v0: Rc<str>) -> () {
+fn slot_ticket_dropped_40(mut v0: Rc<str>) -> () {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("slot_ticket"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = job_file_3(v0.clone(), v1.clone());
-    let mut v3: Rc<str> = text_or_empty_14(v2.clone());
+    let v2: Rc<str> = job_file_3(v0, v1);
+    let mut v3: Rc<str> = text_or_empty_14(v2);
     let mut v4: bool = &*v3 == "";
     if v4 {
         ()
     } else {
-        let v5: Rc<str> = heavy_queue_27();
-        let mut v6: Rc<str> = joined_4(v5.clone(), v3.clone());
-        let v7: bool = file_removed_12(v6.clone());
+        let v5: Rc<str> = heavy_queue_28();
+        let mut v6: Rc<str> = joined_4(v5, v3);
+        let v7: bool = file_removed_12(v6);
         ()
     }
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>) -> ()> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> ()> = Rc::new(move |mut v0: Rc<str>| -> () {
-        slot_ticket_dropped_39(v0.clone())
+        slot_ticket_dropped_40(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_job_slot_gate(v0: &str) -> i32 {

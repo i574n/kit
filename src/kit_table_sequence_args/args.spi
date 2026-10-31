@@ -38,7 +38,7 @@
         word
         (
             "--time|--interval|--window|--order|--latency|--between|--from|--to|--ms|--modulo|--out|--section-on|--"
-            ^^ "carry|--first|--last"
+            ^^ "carry|--first|--last|--count|--count-in|--in-set"
         )
 
 :~ ^ paths_from (index : i32) (count : i32) (acc : list string) (~refusal : string) : list string * string =
@@ -49,6 +49,11 @@
             ? known_flag word ?> paths_from (index + 2i32) count acc refusal
             |: paths_from count count acc (? refusal = "" ?> "unknown option " ++# word |: refusal)
         |: paths_from (index + 1i32) count (word :: acc) refusal
+
+:~ ^ has_counts (index : i32) (count : i32) : bool =
+    ? index >= count ?> !-
+    |? argument index = "--count" ?> !+
+    |: has_counts (index + 1i32) count
 
 :~ ^ has_columns (index : i32) (count : i32) : bool =
     ? index >= count ?> !-
@@ -88,7 +93,8 @@
     "usage: table sequences <file|dir>... --time <regex with (?<ms>digits)> (--interval name=A [--between B] "
     ^^ "[--modulo ms] | --window name=A --from M --ms lo..hi | --order name=A,B | --latency name=A --to B | "
     ^^ "[--section-on <regex with (?<section>)>] [--carry <regex>] (--first|--last) name=<regex with (?<id>) and "
-    ^^ "(?<value>)>...) [--out file.tsv]"
+    ^^ "(?<value>)>... | [--section-on <regex>] (--count name=<regex [(?<value>)]>... [--count-in name=<regex with "
+    ^^ "(?<rest>)>] [--in-set name=<file>[:<regex with (?<value>)>]])) [--out file.tsv]"
 
 :~ refused (~reason : string) : i32 =
     console.write_error_line ("kit error: table sequences " ++# reason ++# "; " ++# usage ())

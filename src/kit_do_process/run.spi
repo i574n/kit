@@ -185,7 +185,7 @@
             | StepParsed _ => query_rejection records (index + 1i32)
     |: ""
 
-:= record_separator () : string = $'std::rc::Rc::<str>::from(char::from(30u8).to_string())' : string
+:= record_separator () : string = sm'.char_text 30u8
 
 :~ after_edits_run (~root : string) (~encoded : string) : string =
     := state = steps_run root (state_new ()) (records_of encoded) 1i32 (empty_run_tally ())

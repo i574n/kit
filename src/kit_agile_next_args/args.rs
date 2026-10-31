@@ -171,7 +171,7 @@ fn next_request_0() -> (bool, Rc<str>, Rc<str>, i32, Rc<str>, Rc<str>, bool) {
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("all"); } LIT.with(|lit| lit.clone()) };
     let v10: bool = false;
-    let v11: US0 = next_request_from_1(v0, v5, v6.clone(), v7, v8.clone(), v9.clone(), v10);
+    let v11: US0 = next_request_from_1(v0, v5, v6, v7, v8.clone(), v9, v10);
     match &v11 {
         US0::US0_ArgsParsed(v12, v13, v14, v15, v16) => {
             let v12: Rc<str> = v12.clone();
@@ -179,11 +179,11 @@ fn next_request_0() -> (bool, Rc<str>, Rc<str>, i32, Rc<str>, Rc<str>, bool) {
             let v14: Rc<str> = v14.clone();
             let v15: Rc<str> = v15.clone();
             let v16: bool = *v16;
-            (true, v8.clone(), v12.clone(), v13, v14.clone(), v15.clone(), v16)
+            (true, v8.clone(), v12, v13, v14, v15, v16)
         }
         US0::US0_ArgsRejected(v17) => {
             let v17: Rc<str> = v17.clone();
-            (false, v17.clone(), v8.clone(), 0i32, v8.clone(), v8.clone(), false)
+            (false, v17, v8.clone(), 0i32, v8.clone(), v8, false)
         }
     }
 }

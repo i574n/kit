@@ -1,0 +1,10 @@
+:< opens
+
+:= main () : i32 =
+    export
+        "kit_lint_open_rows"
+        (
+            (\ (root, lib, path, file, text, baseline) => open_rows_exported root lib path file text baseline)
+            : string * string * string * string * string * string -> array string * i32 * i32
+        )
+    0i32

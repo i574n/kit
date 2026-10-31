@@ -35,7 +35,7 @@
     else { String::new() } } })' : string
 := flag_width (~argument : string) : i32 =
     ? argument = "--id" ?> 2i32 |? argument = "--tagged" || argument = "--json" ?> 1i32 |: 0i32
-:= nul_text () : string = $'std::rc::Rc::<str>::from(char::from(0u8).to_string())' : string
+:= nul_text () : string = sm'.char_text 0u8
 
 := path_is_link (~path : string) : bool = $'std::fs::symlink_metadata(&*!path).map(|metadata| \
     metadata.file_type().is_symlink()).unwrap_or(false)' : bool
@@ -56,12 +56,12 @@
         std::rc::Rc::<str>::from(String::from_utf8_lossy(&bytes).as_ref())), Err(_) => (true, \
         std::rc::Rc::<str>::from("")) }' : bool * string
 
-:= forward_slashes (~path : string) : string = rust_std_string.model.replace path "\\" "/"
+:= forward_slashes (~path : string) : string = sm'.replace "\\" "/" path
 
 := joined_path (~base : string) (~relative : string) : string =
-    ? rust_std_string.model.equals relative "" ?> base
-    |? rust_std_string.model.equals base "" ?> relative
-    |? rust_std_string.model.ends_with base "/" ?> rust_std_string.model.concat5 base relative "" "" ""
+    ? (relative = "") ?> base
+    |? (base = "") ?> relative
+    |? sm'.ends_with "/" base ?> rust_std_string.model.concat5 base relative "" "" ""
     |: rust_std_string.model.concat5 base "/" relative "" ""
 
 :| todo_standing =
@@ -75,8 +75,8 @@
 
 := standing_of (~text : string) (~id : string) : todo_standing =
     := status = $'agile_task_census::kit_agile_task_status(&*!text, &*!id)' : string
-    ? rust_std_string.model.equals status "" ?> UnknownTodo
-    |? rust_std_string.model.equals status "Done" ?> StaleTodo
+    ? (status = "") ?> UnknownTodo
+    |? (status = "Done") ?> StaleTodo
     |: OpenTodo
 
 := standing_label = \|
@@ -94,7 +94,7 @@
         := backlog = state.backlog
         := id = $'agile_todo_lines::kit_agile_todo_id(&*!backlog, &*!line)' : string
         := next_state =
-            ? rust_std_string.model.equals id ""
+            ? (id = "")
             ?> state
             |:
                 ?= standing_of state.backlog id ?|
@@ -163,10 +163,13 @@
     := has_nul, text = read_content absolute
     ?= bytes_verdict has_nul ?|
     | ScanContent =>
-        := rendered, count, wides = crate_findings syntax state.only state.backlog text display state.json
-        := tallied = { state ?| tally = counted_todos (counted_content tally ScanContent) count }
-        := counted = widened tallied wides 0i32
-        ? count <= 0i32 ?> counted |: standings_from (emitted_findings counted rendered) rendered 0i32
+        ? state.only <> "" && byte_find_from text state.only 0i32 < 0i32
+        ?> { state ?| tally = counted_content tally ScanContent }
+        |:
+            := rendered, count, wides = crate_findings syntax state.only state.backlog text display state.json
+            := tallied = { state ?| tally = counted_todos (counted_content tally ScanContent) count }
+            := counted = widened tallied wides 0i32
+            ? count <= 0i32 ?> counted |: standings_from (emitted_findings counted rendered) rendered 0i32
     | verdict => { state ?| tally = counted_content tally verdict }
 
 :~ scanned_file (state : scan_state) (~display : string) (~absolute : string) (~relative : string) : scan_state =
@@ -199,7 +202,7 @@
         := stop = ? nul < 0i32 ?> byte_len listing |: nul
         := relative = byte_slice listing offset stop
         := next = stop + 1i32
-        ? rust_std_string.model.equals relative ""
+        ? (relative = "")
         ?> listed_files state base display listing next
         |:
             listed_files

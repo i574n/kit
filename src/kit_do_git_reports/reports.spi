@@ -1,4 +1,5 @@
 :< rust_std_string.model
+:< kit_receipt.receipt
 :< kit_do_git_host.host
 
 :~ joined (~left : string) (~right : string) : string =
@@ -47,6 +48,52 @@
         aligned (joined (row "day" "commits") counted), !-, line_count dates, line_count counted
     |: failure_row (concat5 "git log " repo "" "" "") outcome, !+, 0u64, 0u64
 
+:~ state_row (~repo : string) (~label : string) (~paths : string) : string =
+    ? paths = "" ?> "" |: row repo (row label (row (decimal_text (line_count paths)) (replace paths "\n" ", ")))
+
+:~ ^ staged_from (~rows : array string) (index : i32) (~found : string) : string =
+    ? index >= am'.length rows ?> found
+    |:
+        := row = am'.index index rows
+        := size : i32 = sm'.length row
+        := mark = ? size > 3i32 ?> sm'.substring 0i32 1i32 row |: " "
+        := path = ? size > 3i32 ?> sm'.replace "\"" "" (sm'.substring 3i32 (size - 3i32) row) |: ""
+        staged_from rows (index + 1i32) (? mark = " " || mark = "?" ?> found |: joined found path)
+
+:~ staged_paths (~lines : string) : string = staged_from (sm'.split "\n" lines |> array) 0i32 ""
+
+:~ ^ status_rows
+    (~root : string) (~repos : string) (~index : u64) (~rows : string) (failed : bool) (seen : u64) (changed : u64)
+    (fresh : u64)
+    : string * bool * u64 * u64 * u64
+    =
+    ? index < line_count repos
+    ?>
+        := repo = line_at repos index
+        := outcome = git_run root repo "status\n--porcelain\n--untracked-files=all" ""
+        ? succeeded outcome
+        ?>
+            := lines = part_at outcome 1i32
+            := modified = porcelain_paths lines !-
+            := untracked = porcelain_paths lines !+
+            := shown =
+                ? lines = ""
+                ?> row repo (row "clean" "0")
+                |:
+                    := staged = state_row repo "staged" (staged_paths lines)
+                    := tracked = joined (state_row repo "modified" modified) staged
+                    joined tracked (state_row repo "untracked" untracked)
+            := more = changed + line_count modified
+            := newer = fresh + line_count untracked
+            status_rows root repos (index + 1u64) (joined rows shown) failed (seen + 1u64) more newer
+        |:
+            := failure = row repo (row "failed" (row "-" (part_at outcome 2i32)))
+            status_rows root repos (index + 1u64) (joined rows failure) !+ seen changed fresh
+    |: aligned rows, failed, seen, changed, fresh
+
+:~ status_report (~root : string) (~repos : string) : string * bool * u64 * u64 * u64 =
+    status_rows root repos 0u64 (row "repo" (row "state" (row "count" "paths"))) !- 0u64 0u64 0u64
+
 := main () : i32 =
     !!!!Export(
         "kit_do_git_history",
@@ -58,5 +105,9 @@
     !!!!Export(
         "kit_do_git_days",
         ((\ (root, repo, since) => days_report root repo since) : string * string * string -> string * bool * u64 * u64)
+    )
+    !!!!Export(
+        "kit_do_git_status",
+        ((\ (root, repos) => status_report root repos) : string * string -> string * bool * u64 * u64 * u64)
     )
     0i32

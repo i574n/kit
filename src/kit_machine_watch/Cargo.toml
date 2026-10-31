@@ -19,3 +19,5 @@ kit-job-control = { path = "../kit_job_control" }
 kit-machine-window-watch = { path = "../kit_machine_window_watch" }
 kit-notebook-progress = { path = "../kit_notebook_progress" }
 sysinfo = "0.38.4"
+kit-machine-sample = { path = "../kit_machine_sample" }
+kit-machine-health = { path = "../kit_machine_health" }

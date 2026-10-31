@@ -47,7 +47,7 @@ pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, 
         let flags = if with_parent { flags | 0x0008_0000 } else { flags };
         if unsafe { CreateProcessW(std::ptr::null(), line.as_mut_ptr(), std::ptr::null_mut(), std::ptr::null_mut(), 0, flags, std::ptr::null_mut(), cwd.as_ptr(), &mut startup as *mut StartupInfoEx as *mut StartupInfo, &mut info) } == 0 { 0 } else { unsafe { CloseHandle(info.thread); CloseHandle(info.process); } info.pid as u64 }
     };
-    let tries = [(0x0100_0228u32, true), (0x0000_0228u32, true), (0x0100_0228u32, false), (0x0000_0228u32, false)];
+    let tries = [(0x0900_0220u32, true), (0x0800_0220u32, true), (0x0900_0220u32, false), (0x0800_0220u32, false)];
     let mut parent_pid = 0u64;
     let mut pid = 0u64;
     for (flags, with_parent) in tries.iter() {

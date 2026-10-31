@@ -12,7 +12,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
 }
 fn method3() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_2() -> Rc<str> {
     method3()
@@ -217,7 +217,7 @@ fn agile_tuple_parse_0(mut v0: Rc<str>) -> Rc<str> {
     let v4: bool = false;
     let v5: bool = false;
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    agile_tuple_parse_loop_1(v0.clone(), v1, v2, v3, v4, v5, v6.clone())
+    agile_tuple_parse_loop_1(v0, v1, v2, v3, v4, v5, v6)
 }
 fn starts_with_loop_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: i32) -> bool {
     loop {
@@ -350,7 +350,7 @@ fn agile_attestation_normalize_7(mut v0: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
     let v3: bool = v0 == v2 ;
     if v3 {
-        v2.clone()
+        v2
     } else {
         let v4: bool = v1 < 6i32;
         let v10: bool = if v4 {
@@ -360,7 +360,7 @@ fn agile_attestation_normalize_7(mut v0: Rc<str>) -> Rc<str> {
             let v6: i32 = 0i32;
             let v7: i32 = 0i32;
             let v8: i32 = 6i32;
-            starts_with_loop_8(v0.clone(), v5.clone(), v6, v7, v8)
+            starts_with_loop_8(v0.clone(), v5, v6, v7, v8)
         };
         if v10 {
             let v11: bool = 6i32 == v1 ;
@@ -368,17 +368,17 @@ fn agile_attestation_normalize_7(mut v0: Rc<str>) -> Rc<str> {
                 codec_empty_2()
             } else {
                 let v13: i32 = v1 - 1i32 ;
-                let v14: Rc<str> = string_slice(&v0.clone(), 6i32 as i64, v13 as i64);
-                v14.clone()
+                let v14: Rc<str> = string_slice(&v0, 6i32 as i64, v13 as i64);
+                v14
             };
-            let v16: Rc<str> = codec_u64_decimal_normalize_9(v15.clone());
+            let v16: Rc<str> = codec_u64_decimal_normalize_9(v15);
             let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v18: bool = v16 == v17 ;
             if v18 {
                 codec_empty_2()
             } else {
-                let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) }, v16.clone()));
-                v20.clone()
+                let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) }, v16));
+                v20
             }
         } else {
             codec_empty_2()
@@ -464,7 +464,7 @@ fn codec_u64_decimal_value_12(mut v0: Rc<str>) -> u64 {
     }
 }
 fn agile_attestation_value_11(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = agile_attestation_normalize_7(v0.clone());
+    let v1: Rc<str> = agile_attestation_normalize_7(v0);
     let v2: i32 = (v1.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
     let v4: bool = v1 == v3 ;
@@ -479,7 +479,7 @@ fn agile_attestation_value_11(mut v0: Rc<str>) -> u64 {
             let v7: i32 = 0i32;
             let v8: i32 = 0i32;
             let v9: i32 = 6i32;
-            starts_with_loop_8(v1.clone(), v6.clone(), v7, v8, v9)
+            starts_with_loop_8(v1.clone(), v6, v7, v8, v9)
         };
         if v11 {
             let v12: bool = 6i32 == v2 ;
@@ -487,10 +487,10 @@ fn agile_attestation_value_11(mut v0: Rc<str>) -> u64 {
                 codec_empty_2()
             } else {
                 let v14: i32 = v2 - 1i32 ;
-                let v15: Rc<str> = string_slice(&v1.clone(), 6i32 as i64, v14 as i64);
-                v15.clone()
+                let v15: Rc<str> = string_slice(&v1, 6i32 as i64, v14 as i64);
+                v15
             };
-            codec_u64_decimal_value_12(v16.clone())
+            codec_u64_decimal_value_12(v16)
         } else {
             0u64
         }

@@ -32,7 +32,6 @@
     stdout_line (head ++# (measured_sizes before after elapsed))
 
 := task_anchor (~id : string) : string = "Task (\"" ++# id ++# "\","
-:= task_arguments_offset () : i32 = 6i32
 
 := agile_edit (~root : string) (~id : string) (position : i32) (~field_name : string) (~value : string) : i32 =
     := started = unix_ms ()
@@ -52,7 +51,7 @@
             | TokenRejected => agile_edit_failure (edit_field_rule field_name) id
             | TokenRendered token =>
                 := updated = (byte_slice original 0i32 start) ++# token ++# (byte_slice original stop length)
-                ?= replace_file_checked state updated ?|
+                ?= replace_records_unchanged state original updated ?|
                 | Replaced =>
                     agile_edit_success id field_name (text_bytes original) (text_bytes updated) (ms_since started)
                 | problem => agile_edit_failure (file_replacement_problem problem) id

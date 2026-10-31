@@ -30,21 +30,23 @@
 := group_key (cells : table_cells) (row : i32) (group : i32) : string =
     ? group < 0i32 ?> "all" |: cell_at cells row group
 
+:= row_kept (kept : array u8) (row : i32) : bool = ? row >= am'.length kept ?> !- |: am'.index row kept = 49u8
+
 :~ ^ grouped_from
-    (cells : table_cells) (list : filters) (group : i32) (chosen : measures) (empty : measure_stats) (row : i32)
+    (cells : table_cells) (kept : array u8) (group : i32) (chosen : measures) (empty : measure_stats) (row : i32)
     (total : i32) (found : groups) (matched : i32)
     : groups * i32
     =
     ? total < row
     ?> found, matched
-    |? row_passes list cells row
+    |? row_kept kept row
     ?>
-        grouped_from cells list group chosen empty
+        grouped_from cells kept group chosen empty
             (row + 1i32)
             total
             (group_added found (group_key cells row group) empty (row_cells chosen cells row))
             (matched + 1i32)
-    |: grouped_from cells list group chosen empty (row + 1i32) total found matched
+    |: grouped_from cells kept group chosen empty (row + 1i32) total found matched
 
 :~ ^ groups_printed (chosen : measures) (sorted : groups) (limit : u64) (shown : i32) : i32 =
     ?= sorted ?|
@@ -55,10 +57,11 @@
             groups_printed chosen rest limit (shown + 1i32)
         |: shown
 
-:~ grouped_measures (cells : table_cells) (request : table_request) : i32 =
+:~ grouped_measures (filtered : bool) (~detail : string) (cells : table_cells) (request : table_request) : i32 =
     := whole = request.group = ""
     := group = ? whole ?> -1i32 |: column_of cells request.group
-    := list, missing_wheres = filters_from cells request.wheres
+    := mask, missing_wheres = ? filtered ?> detail, "" |: "", detail
+    := kept = sm'.utf8_get_bytes mask
     := chosen, missing_measures = measures_from cells request.measured
     := missing_group = ? whole = !- && group < 0i32 ?> request.group |: ""
     := missing = listed (listed missing_wheres missing_group) missing_measures
@@ -66,7 +69,7 @@
     ?> rejected ("unknown columns: " ++# missing ++# " (header: " ++# (header_joined cells ",") ++# ")")
     |:
         := found, matched =
-            grouped_from cells list group chosen (stats_empty chosen) 1i32 (row_total cells) NoGroups 0i32
+            grouped_from cells kept group chosen (stats_empty chosen) 1i32 (row_total cells) NoGroups 0i32
         stdout_line ("count\t" ++# (? whole ?> "all" |: request.group) ++# (measure_headers chosen))
         := shown = groups_printed chosen (groups_sorted found NoGroups) request.limit 0i32
         := counts =
@@ -78,24 +81,26 @@
 
 := measured (request : table_request) : bool = request.measured <> ""
 
-:~ measured_query (~file : string) (request : table_request) : i32 =
+:~ measured_query (~file : string) (filtered : bool) (~detail : string) (request : table_request) : i32 =
     ?= table_read file ?|
     | TableUnreadable problem => rejected problem
-    | TableLoaded cells => grouped_measures cells request
+    | TableLoaded cells => grouped_measures filtered detail cells request
 
 :~ measured_entry
-    (~file : string) (~wheres : string) (~group : string) (~measures : string) (limit : u64) (quiet : bool)
+    (~file : string) (~group : string) (~measures : string) (limit : u64) (quiet : bool) (filtered : bool)
+    (~detail : string)
     : i32
     =
     := base = no_request ()
-    measured_query file { base ?| wheres = wheres; group = group; measured = measures; limit = limit; quiet = quiet }
+    measured_query file filtered detail { base ?| group = group; measured = measures; limit = limit; quiet = quiet }
 
 := main () : i32 =
     !!!!Export(
         "kit_table_measured",
         (
-            \ (file, wheres, group, measures, limit, quiet) => measured_entry file wheres group measures limit quiet
-            : string * string * string * string * u64 * bool -> i32
+            \ (file, group, measures, limit, quiet, filtered, detail) =>
+                measured_entry file group measures limit quiet filtered detail
+            : string * string * string * u64 * bool * bool * string -> i32
         )
     )
     0i32

@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "health.spi"
+output = "health.rs"
+
+[package]
+name = "kit-machine-health"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_machine_health"
+path = "health.rs"
+
+[dependencies]
+kit-machine-sample = { path = "../kit_machine_sample" }

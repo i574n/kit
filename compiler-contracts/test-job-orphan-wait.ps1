@@ -1,7 +1,9 @@
 param([string]$Kit = (Join-Path $PSScriptRoot '..\src\target\debug\kit.exe'))
 $ErrorActionPreference = 'Stop'
 $Kit = (Resolve-Path $Kit).Path
-$env:KIT_JOBS_HOME = Join-Path ([IO.Path]::GetTempPath()) "kit-orphan-wait-$PID"
+if (-not $env:TEMP -or -not $env:TMP) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
+$jobsHome = Join-Path ([IO.Path]::GetTempPath()) "kit-orphan-wait-$PID"
+$env:KIT_JOBS_HOME = $jobsHome
 $started = & $Kit job start orphan-wait 90000 pwsh -NoProfile -Command 'Start-Sleep 60'
 $id = [regex]::Match("$started", 'id=(\S+)').Groups[1].Value
 $shell = Start-Process pwsh -ArgumentList '-NoProfile', '-Command', "& '$Kit' job wait $id 120000" -WindowStyle Hidden -PassThru
@@ -20,6 +22,6 @@ if ($kitWaiters -eq 1) { 'PASS one kit process per waiter (no relaunched copy)' 
 if ($after.Count -eq 0) { 'PASS job wait ends when its shell is killed' } else { $failures++; "FAIL $($after.Count) job wait processes outlived their shell: $($after.ProcessId -join ',')"; $after | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }
 $supervisor = [regex]::Match("$started", 'supervisor_pid=(\d+)').Groups[1].Value
 if ($supervisor) { & $Kit kill $supervisor --tree | Out-Null }
-Remove-Item -Recurse -Force $env:KIT_JOBS_HOME -ErrorAction SilentlyContinue
+if ((Split-Path $jobsHome -Leaf) -eq "kit-orphan-wait-$PID") { Remove-Item -LiteralPath $jobsHome -Recurse -Force -ErrorAction SilentlyContinue }
 "orphan wait: $(3 - $failures)/3 passed"
 exit $failures

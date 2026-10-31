@@ -1,3 +1,4 @@
+///- --package .
 :| tool_source =
     | OnPath : string
     | FileAt : string

@@ -77,8 +77,8 @@
 := probe_pattern \* side. (which : probe side) : string =
     ?= which ?|
     | GadtCase => "^\\s*\\|\\s*[A-Z]\\w*\\s*::[^=]*$"
-    | Existential => "\\bexists\\s+\\w+\\."
-    | Forall => "\\bforall\\b"
+    | Existential => "\\\\\\?\\s*\\w+\\.|\\bexists\\s+\\w+\\."
+    | Forall => "\\\\\\*\\s*\\w+(\\s+\\w+)*\\.|\\bforall\\s+\\w+"
     | IndexedUnion => "^\\s*union\\s+(rec\\s+)?(private\\s+)?\\w+\\s+\\w+\\s*="
     | Prototype => "^\\s*(prototype|instance)\\b"
     | TypeDecl => "^\\s*(union|type|nominal)\\b"
@@ -169,3 +169,9 @@
     testing.expect
         (starts_with (any_pattern (any_probe (\? TopLevelMacro))) "^\\S")
         "a one-line primitive at column 0 is counted as top-level-macro"
+    testing.expect
+        (starts_with (any_pattern (any_probe (\? Existential))) "\\\\\\?")
+        "Spiral's own existential binder is counted, not only the exists keyword"
+    testing.expect
+        (starts_with (any_pattern (any_probe (\? Forall))) "\\\\\\*")
+        "Spiral's own forall binder is counted, not only the forall keyword"

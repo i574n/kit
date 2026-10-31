@@ -1,0 +1,11 @@
+:< sample
+
+:= main () : i32 =
+    export "kit_machine_sampled" ((\ milliseconds => rows_sampled milliseconds) : u64 -> sampled_rows)
+    export "kit_machine_cells_vm" (
+        (\ command => kit_machine_watch_model.model.cells_vm_command command) : string -> bool
+    )
+    export "kit_machine_job_left" ((\ (parent, age) => job_left parent age) : u64 * u64 -> string)
+    export "kit_machine_stalled_jobs" ((\ () => stalled_jobs ()) : () -> string)
+    export "kit_machine_history_appended" ((\ row => history_appended row) : string -> string)
+    0i32

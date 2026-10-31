@@ -11,7 +11,7 @@
 := contains (~text : string) (~part : string) : bool = $'!text.contains(&*!part)' : bool
 := starts (~text : string) (~part : string) : bool = $'!text.starts_with(&*!part)' : bool
 := ends (~text : string) (~part : string) : bool = $'!text.ends_with(&*!part)' : bool
-:= unit_mark () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
+:= unit_mark () : string = sm'.char_text 31u8
 
 := ^ joined (args : cli_args) : string =
     ?= args ?|
@@ -33,7 +33,7 @@
     !root).join(&*!relative).to_string_lossy().as_ref())' : string
 := fixture_read (root : fixture_root) (~relative : string) : string =
     := path = fixture_path root relative
-    $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default().as_str())' : string
+    file_system.read_text_or_empty path
 := fixture_write (root : fixture_root) (~relative : string) (~text : string) : () =
     := path = fixture_path root relative
     $'{ let path = std::path::Path::new(&*!path); std::fs::create_dir_all(path.parent().unwrap()).unwrap(); \

@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    agile_planning_model
+    agile_task_text
+modules:
+    gaps
+    entry

@@ -29,7 +29,7 @@ fn task_summary_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<
     let v16: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v9, v4)), v9)), v5));
     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("%  "); } LIT.with(|lit| lit.clone()) };
     let v20: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v13, Rc::<str>::from(format!("{}{}", v16, v17)))), v6));
-    v20.clone()
+    v20
 }
 fn show_receipt_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: Rc<str>, mut v9: u64) -> Rc<str> {
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile show ok id="); } LIT.with(|lit| lit.clone()) };
@@ -98,19 +98,19 @@ fn archived_text_5(mut v0: Rc<str>) -> Rc<str> {
     let v6: US1 = if v3 {
         US1::US1_FileReadable(v2.clone())
     } else {
-        US1::US1_FileMissing(v2.clone())
+        US1::US1_FileMissing(v2)
     };
     match &v6 {
         US1::US1_FileMissing(v7) => {
             let v7: Rc<str> = v7.clone();
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US1::US1_FileReadable(v9) => {
             let v9: Rc<str> = v9.clone();
             let v10: Rc<str> = std::fs::read_to_string(&*v9).unwrap_or_default().into();
             let v11: Rc<str> = kit_agile_records::kit_agile_records_as_lines(&*v10);
-            v11.clone()
+            v11
         }
     }
 }
@@ -255,40 +255,40 @@ fn unquoted_10(mut v0: Rc<str>) -> Rc<str> {
     let v5: i32 = 0i32;
     let v6: i32 = (v3.clone().len() as i32);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    unescaped_from_11(v3.clone(), v4, v5, v6, v7.clone())
+    unescaped_from_11(v3, v4, v5, v6, v7)
 }
 fn task_record_at_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
     let v3: i32 = 0i32;
     let v4: i32 = field_start_7(v0.clone(), v1, v2, v3);
     let v5: US2 = US2::US2_ScanPlain;
-    let v6: i32 = field_end_8(v0.clone(), v4, v2, v5.clone());
+    let v6: i32 = field_end_8(v0.clone(), v4, v2, v5);
     let v7: Rc<str> = std::rc::Rc::<str>::from(v0.get(v4 as usize..v6 as usize).unwrap_or(""));
-    let v8: Rc<str> = unquoted_10(v7.clone());
+    let v8: Rc<str> = unquoted_10(v7);
     let v9: i32 = 1i32;
     let v10: i32 = field_start_7(v0.clone(), v1, v2, v9);
     let v11: US2 = US2::US2_ScanPlain;
-    let v12: i32 = field_end_8(v0.clone(), v10, v2, v11.clone());
+    let v12: i32 = field_end_8(v0.clone(), v10, v2, v11);
     let v13: Rc<str> = std::rc::Rc::<str>::from(v0.get(v10 as usize..v12 as usize).unwrap_or(""));
-    let v14: Rc<str> = unquoted_10(v13.clone());
+    let v14: Rc<str> = unquoted_10(v13);
     let v15: i32 = 2i32;
     let v16: i32 = field_start_7(v0.clone(), v1, v2, v15);
     let v17: US2 = US2::US2_ScanPlain;
-    let v18: i32 = field_end_8(v0.clone(), v16, v2, v17.clone());
+    let v18: i32 = field_end_8(v0.clone(), v16, v2, v17);
     let v19: Rc<str> = std::rc::Rc::<str>::from(v0.get(v16 as usize..v18 as usize).unwrap_or(""));
     let v20: i32 = 3i32;
     let v21: i32 = field_start_7(v0.clone(), v1, v2, v20);
     let v22: US2 = US2::US2_ScanPlain;
-    let v23: i32 = field_end_8(v0.clone(), v21, v2, v22.clone());
+    let v23: i32 = field_end_8(v0.clone(), v21, v2, v22);
     let v24: Rc<str> = std::rc::Rc::<str>::from(v0.get(v21 as usize..v23 as usize).unwrap_or(""));
     let v25: i32 = 4i32;
     let v26: i32 = field_start_7(v0.clone(), v1, v2, v25);
     let v27: US2 = US2::US2_ScanPlain;
-    let v28: i32 = field_end_8(v0.clone(), v26, v2, v27.clone());
+    let v28: i32 = field_end_8(v0.clone(), v26, v2, v27);
     let v29: Rc<str> = std::rc::Rc::<str>::from(v0.get(v26 as usize..v28 as usize).unwrap_or(""));
     let v30: i32 = 5i32;
     let v31: i32 = field_start_7(v0.clone(), v1, v2, v30);
     let v32: US2 = US2::US2_ScanPlain;
-    let v33: i32 = field_end_8(v0.clone(), v31, v2, v32.clone());
+    let v33: i32 = field_end_8(v0.clone(), v31, v2, v32);
     let v34: Rc<str> = std::rc::Rc::<str>::from(v0.get(v31 as usize..v33 as usize).unwrap_or(""));
     let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
     let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -296,21 +296,21 @@ fn task_record_at_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>, Rc<s
     let v38: i32 = 6i32;
     let v39: i32 = field_start_7(v0.clone(), v1, v2, v38);
     let v40: US2 = US2::US2_ScanPlain;
-    let v41: i32 = field_end_8(v0.clone(), v39, v2, v40.clone());
+    let v41: i32 = field_end_8(v0.clone(), v39, v2, v40);
     let v42: Rc<str> = std::rc::Rc::<str>::from(v0.get(v39 as usize..v41 as usize).unwrap_or(""));
     let v43: i32 = 7i32;
     let v44: i32 = field_start_7(v0.clone(), v1, v2, v43);
     let v45: US2 = US2::US2_ScanPlain;
-    let v46: i32 = field_end_8(v0.clone(), v44, v2, v45.clone());
+    let v46: i32 = field_end_8(v0.clone(), v44, v2, v45);
     let v47: Rc<str> = std::rc::Rc::<str>::from(v0.get(v44 as usize..v46 as usize).unwrap_or(""));
-    let v48: Rc<str> = unquoted_10(v47.clone());
+    let v48: Rc<str> = unquoted_10(v47);
     let v49: i32 = 8i32;
     let v50: i32 = field_start_7(v0.clone(), v1, v2, v49);
     let v51: US2 = US2::US2_ScanPlain;
-    let v52: i32 = field_end_8(v0.clone(), v50, v2, v51.clone());
+    let v52: i32 = field_end_8(v0.clone(), v50, v2, v51);
     let v53: Rc<str> = std::rc::Rc::<str>::from(v0.get(v50 as usize..v52 as usize).unwrap_or(""));
-    let v54: Rc<str> = unquoted_10(v53.clone());
-    (v8.clone(), v14.clone(), v19.clone(), v24.clone(), v29.clone(), v37.clone(), v42.clone(), v48.clone(), v54.clone())
+    let v54: Rc<str> = unquoted_10(v53);
+    (v8, v14, v19, v24, v29, v37, v42, v48, v54)
 }
 fn notes_or_archived_12(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: bool = &*v1 == "";
@@ -324,7 +324,7 @@ fn task_json_record_at_13(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>
     let v3: i32 = 0i32;
     let v4: i32 = field_start_7(v0.clone(), v1, v2, v3);
     let v5: US2 = US2::US2_ScanPlain;
-    let v6: i32 = field_end_8(v0.clone(), v4, v2, v5.clone());
+    let v6: i32 = field_end_8(v0.clone(), v4, v2, v5);
     let v7: Rc<str> = std::rc::Rc::<str>::from(v0.get(v4 as usize..v6 as usize).unwrap_or(""));
     let v8: i32 = (v7.clone().len() as i32);
     let v9: i32 = v8.wrapping_sub(1i32);
@@ -332,7 +332,7 @@ fn task_json_record_at_13(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>
     let v11: i32 = 1i32;
     let v12: i32 = field_start_7(v0.clone(), v1, v2, v11);
     let v13: US2 = US2::US2_ScanPlain;
-    let v14: i32 = field_end_8(v0.clone(), v12, v2, v13.clone());
+    let v14: i32 = field_end_8(v0.clone(), v12, v2, v13);
     let v15: Rc<str> = std::rc::Rc::<str>::from(v0.get(v12 as usize..v14 as usize).unwrap_or(""));
     let v16: i32 = (v15.clone().len() as i32);
     let v17: i32 = v16.wrapping_sub(1i32);
@@ -340,22 +340,22 @@ fn task_json_record_at_13(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>
     let v19: i32 = 2i32;
     let v20: i32 = field_start_7(v0.clone(), v1, v2, v19);
     let v21: US2 = US2::US2_ScanPlain;
-    let v22: i32 = field_end_8(v0.clone(), v20, v2, v21.clone());
+    let v22: i32 = field_end_8(v0.clone(), v20, v2, v21);
     let v23: Rc<str> = std::rc::Rc::<str>::from(v0.get(v20 as usize..v22 as usize).unwrap_or(""));
     let v24: i32 = 3i32;
     let v25: i32 = field_start_7(v0.clone(), v1, v2, v24);
     let v26: US2 = US2::US2_ScanPlain;
-    let v27: i32 = field_end_8(v0.clone(), v25, v2, v26.clone());
+    let v27: i32 = field_end_8(v0.clone(), v25, v2, v26);
     let v28: Rc<str> = std::rc::Rc::<str>::from(v0.get(v25 as usize..v27 as usize).unwrap_or(""));
     let v29: i32 = 4i32;
     let v30: i32 = field_start_7(v0.clone(), v1, v2, v29);
     let v31: US2 = US2::US2_ScanPlain;
-    let v32: i32 = field_end_8(v0.clone(), v30, v2, v31.clone());
+    let v32: i32 = field_end_8(v0.clone(), v30, v2, v31);
     let v33: Rc<str> = std::rc::Rc::<str>::from(v0.get(v30 as usize..v32 as usize).unwrap_or(""));
     let v34: i32 = 5i32;
     let v35: i32 = field_start_7(v0.clone(), v1, v2, v34);
     let v36: US2 = US2::US2_ScanPlain;
-    let v37: i32 = field_end_8(v0.clone(), v35, v2, v36.clone());
+    let v37: i32 = field_end_8(v0.clone(), v35, v2, v36);
     let v38: Rc<str> = std::rc::Rc::<str>::from(v0.get(v35 as usize..v37 as usize).unwrap_or(""));
     let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
     let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -363,12 +363,12 @@ fn task_json_record_at_13(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>
     let v42: i32 = 6i32;
     let v43: i32 = field_start_7(v0.clone(), v1, v2, v42);
     let v44: US2 = US2::US2_ScanPlain;
-    let v45: i32 = field_end_8(v0.clone(), v43, v2, v44.clone());
+    let v45: i32 = field_end_8(v0.clone(), v43, v2, v44);
     let v46: Rc<str> = std::rc::Rc::<str>::from(v0.get(v43 as usize..v45 as usize).unwrap_or(""));
     let v47: i32 = 7i32;
     let v48: i32 = field_start_7(v0.clone(), v1, v2, v47);
     let v49: US2 = US2::US2_ScanPlain;
-    let v50: i32 = field_end_8(v0.clone(), v48, v2, v49.clone());
+    let v50: i32 = field_end_8(v0.clone(), v48, v2, v49);
     let v51: Rc<str> = std::rc::Rc::<str>::from(v0.get(v48 as usize..v50 as usize).unwrap_or(""));
     let v52: i32 = (v51.clone().len() as i32);
     let v53: i32 = v52.wrapping_sub(1i32);
@@ -376,12 +376,12 @@ fn task_json_record_at_13(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>
     let v55: i32 = 8i32;
     let v56: i32 = field_start_7(v0.clone(), v1, v2, v55);
     let v57: US2 = US2::US2_ScanPlain;
-    let v58: i32 = field_end_8(v0.clone(), v56, v2, v57.clone());
+    let v58: i32 = field_end_8(v0.clone(), v56, v2, v57);
     let v59: Rc<str> = std::rc::Rc::<str>::from(v0.get(v56 as usize..v58 as usize).unwrap_or(""));
     let v60: i32 = (v59.clone().len() as i32);
     let v61: i32 = v60.wrapping_sub(1i32);
     let v62: Rc<str> = std::rc::Rc::<str>::from(v59.get(1i32 as usize..v61 as usize).unwrap_or(""));
-    (v10.clone(), v18.clone(), v23.clone(), v28.clone(), v33.clone(), v41.clone(), v46.clone(), v54.clone(), v62.clone())
+    (v10, v18, v23, v28, v33, v41, v46, v54, v62)
 }
 fn json_notes_of_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     let v3: Rc<str> = agile_note_listing::kit_agile_notes_json(&*v1, &*v2);
@@ -390,9 +390,9 @@ fn json_notes_of_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str
     let v6: bool = &*v3 == &*v5;
     if v6 {
         let v7: Rc<str> = agile_note_listing::kit_agile_notes_json(&*v0, &*v2);
-        v7.clone()
+        v7
     } else {
-        v3.clone()
+        v3
     }
 }
 fn task_json_15(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: Rc<str>, mut v9: Rc<str>, mut v10: u64) -> Rc<str> {
@@ -450,7 +450,7 @@ fn notes_joined_16(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         } else {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v4)), v1));
-            v6.clone()
+            v6
         }
     }
 }

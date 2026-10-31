@@ -549,7 +549,7 @@ fn bundle_archive_root_shape_binding_14(mut v0: i32, mut v1: i32) -> i32 {
 }
 fn method17() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_16() -> Rc<str> {
     method17()
@@ -679,7 +679,7 @@ fn bundle_workspace_members_parse_15(mut v0: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("members"); } LIT.with(|lit| lit.clone()) };
     let v3: i32 = 0i32;
     let v4: i32 = 7i32;
-    let v5: i32 = find_text_loop_20(v0.clone(), v2.clone(), v3, v1, v4);
+    let v5: i32 = find_text_loop_20(v0.clone(), v2, v3, v1, v4);
     let v6: bool = v5 == v1 ;
     if v6 {
         codec_empty_16()
@@ -702,14 +702,14 @@ fn bundle_workspace_members_parse_15(mut v0: Rc<str>) -> Rc<str> {
                     codec_empty_16()
                 } else {
                     let v19: i32 = v14 - 1i32 ;
-                    let v20: Rc<str> = string_slice(&v0.clone(), v12 as i64, v19 as i64);
-                    v20.clone()
+                    let v20: Rc<str> = string_slice(&v0, v12 as i64, v19 as i64);
+                    v20
                 };
                 let v22: i32 = 0i32;
                 let v23: i32 = (v21.clone().len() as i32);
                 let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                bundle_workspace_members_loop_18(v21.clone(), v22, v23, v24.clone(), v25.clone())
+                bundle_workspace_members_loop_18(v21, v22, v23, v24, v25)
             }
         }
     }

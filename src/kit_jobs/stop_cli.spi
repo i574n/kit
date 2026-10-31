@@ -69,6 +69,24 @@ fn main() {
         "the supervisor deletes the environment file once adopted"
     fixture_root_remove root
 
+:= refused_adoption (root : fixture_root) (~id : string) (~snapshot : string) (~missing : string) : () =
+    := job = cat "jobs/" id
+    fixture_write root (cat job "/env") snapshot
+    := supervised = job_call root (Arg ("supervise", Arg (id, NoArgs)))
+    expect (supervised.code = 125i32) (run_text supervised)
+    := status = succeeded (job_call root (Arg ("status", Arg (id, NoArgs))))
+    shows status "state=spawn-failed exit=125"
+    shows status (cat "job environment not adopted: its snapshot " missing)
+    expect (path_exists (fixture_path root (cat job "/env"))) "the refused snapshot stays as evidence"
+    expect (path_exists (fixture_path root (cat job "/stdout.log")) = !-) "the command never started"
+
+///> rust
+:# a_job_whose_environment_snapshot_is_empty_or_cut_short_never_starts =
+    := root = fixture_root_create "job env refused"
+    refused_adoption root "job-1-env-cut" "ALLUSERSPROFILE=C:/ProgramData" "has no PATH entry"
+    refused_adoption root "job-2-env-empty" "" "is empty"
+    fixture_root_remove root
+
 := started_tree (root : fixture_root) : string =
     := sleeper = rustc_program root "sleeper" (sleeper_source ())
     := started =
@@ -293,8 +311,8 @@ fn main() {
         := root = fixture_root_create "job memory cap"
         := allocator = rustc_program root "allocator" (allocator_source ())
         := started =
-            succeeded (job_call root (Arg ("start", Arg ("--max-private-mb", Arg ("192", Arg ("cap-me", Arg ("60000",
-                Arg (allocator, NoArgs))))))))
+            succeeded (job_call root (Arg ("start", Arg ("--settle-ms", Arg ("0", Arg ("--max-private-mb", Arg ("192",
+                Arg ("cap-me", Arg ("60000", Arg (allocator, NoArgs))))))))))
         shows started "max_private_mb=192"
         := id = word_after started "id="
         := waited = job_call root (Arg ("wait", Arg (id, Arg ("60000", NoArgs))))

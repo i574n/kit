@@ -679,19 +679,19 @@ fn method26(mut v0: Rc<RefCell<Mut2>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_25(mut v0: i32) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut2>> = Rc::new(RefCell::new(Mut2 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut2>> = Rc::new(RefCell::new(Mut2 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method26(v2.clone(), v3.clone());
+    method26(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn format_real_27(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut2>> = Rc::new(RefCell::new(Mut2 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut2>> = Rc::new(RefCell::new(Mut2 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method26(v2.clone(), v3.clone());
+    method26(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn mirror_run_0() -> i32 {
     let mut v0: i32 = command_line_argument_count_1();
@@ -700,18 +700,18 @@ fn mirror_run_0() -> i32 {
     let mut v7: US0 = if v2 {
         let v3: i32 = 2i32;
         let mut v4: Rc<str> = command_line_argument_2(v3);
-        US0::US0_Some(v4.clone())
+        US0::US0_Some(v4)
     } else {
         US0::US0_None
     };
     let v11: Rc<str> = match &v7 {
         US0::US0_None => {
             let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         }
         US0::US0_Some(v8) => {
             let mut v8: Rc<str> = v8.clone();
-            v8.clone()
+            v8
         }
     };
     let v12: i32 = command_line_argument_count_1();
@@ -719,18 +719,18 @@ fn mirror_run_0() -> i32 {
     let v18: US0 = if v13 {
         let v14: i32 = 3i32;
         let v15: Rc<str> = command_line_argument_2(v14);
-        US0::US0_Some(v15.clone())
+        US0::US0_Some(v15)
     } else {
         US0::US0_None
     };
     let v22: Rc<str> = match &v18 {
         US0::US0_None => {
             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v20.clone()
+            v20
         }
         US0::US0_Some(v19) => {
             let v19: Rc<str> = v19.clone();
-            v19.clone()
+            v19
         }
     };
     let v23: i32 = command_line_argument_count_1();
@@ -738,18 +738,18 @@ fn mirror_run_0() -> i32 {
     let v29: US0 = if v24 {
         let v25: i32 = 1i32;
         let mut v26: Rc<str> = command_line_argument_2(v25);
-        US0::US0_Some(v26.clone())
+        US0::US0_Some(v26)
     } else {
         US0::US0_None
     };
     let v33: Rc<str> = match &v29 {
         US0::US0_None => {
             let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v31.clone()
+            v31
         }
         US0::US0_Some(v30) => {
             let v30: Rc<str> = v30.clone();
-            v30.clone()
+            v30
         }
     };
     let v34: bool = &*v33 != "check";
@@ -785,18 +785,18 @@ fn mirror_run_0() -> i32 {
         } else {
             let v50: i32 = 4i32;
             let v51: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            let v52: Rc<UH0> = paths_from_4(v50, v0, v11.clone(), v22.clone(), v51.clone());
+            let v52: Rc<UH0> = paths_from_4(v50, v0, v11.clone(), v22.clone(), v51);
             let v53: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            let v54: Rc<UH0> = method13(v52.clone(), v53.clone());
+            let v54: Rc<UH0> = method13(v52, v53);
             let v55: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-            let v56: Rc<UH1> = mirrored_16(v11.clone(), v22.clone(), v54.clone(), v55.clone());
+            let v56: Rc<UH1> = mirrored_16(v11, v22, v54, v55);
             let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v58: u64 = 0u64;
             let (mut v59, mut v60): (Rc<str>, u64) = drift_lines_20(v56.clone(), v57.clone(), v58);
-            let v61: US4 = mirror_state_of_22(v56.clone(), v57.clone(), v57.clone());
+            let v61: US4 = mirror_state_of_22(v56.clone(), v57.clone(), v57);
             let v62: bool = &*v59 != "";
             if v62 {
-                let v63: Rc<str> = loop_23(v59.clone());
+                let v63: Rc<str> = loop_23(v59);
                 println!("{}", v63);
                 ()
             };
@@ -804,21 +804,21 @@ fn mirror_run_0() -> i32 {
                 US4::US4_Diverged(v69) => {
                     let v69: Rc<str> = v69.clone();
                     let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("diverged"); } LIT.with(|lit| lit.clone()) };
-                    v70.clone()
+                    v70
                 }
                 US4::US4_InStep => {
                     let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("in-step"); } LIT.with(|lit| lit.clone()) };
-                    v64.clone()
+                    v64
                 }
                 US4::US4_LeftAhead(v65) => {
                     let v65: Rc<str> = v65.clone();
                     let v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("left-ahead"); } LIT.with(|lit| lit.clone()) };
-                    v66.clone()
+                    v66
                 }
                 US4::US4_RightAhead(v67) => {
                     let v67: Rc<str> = v67.clone();
                     let v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("right-ahead"); } LIT.with(|lit| lit.clone()) };
-                    v68.clone()
+                    v68
                 }
             };
             let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit mirror check "); } LIT.with(|lit| lit.clone()) };
@@ -826,7 +826,7 @@ fn mirror_run_0() -> i32 {
             let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" files="); } LIT.with(|lit| lit.clone()) };
             let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v77));
             let v79: i32 = 0i32;
-            let v80: i32 = method24(v56.clone(), v79);
+            let v80: i32 = method24(v56, v79);
             let v81: Rc<str> = format_real_25(v80);
             let v82: Rc<str> = Rc::<str>::from(format!("{}{}", v78, v81));
             let v83: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" differing="); } LIT.with(|lit| lit.clone()) };

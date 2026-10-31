@@ -1,28 +1,32 @@
 :< kit_lint_model.model
 
-:~ classified (~text : string) (closed : bool) (place : i32) (origin : i32) : i32 =
+:~ classified (~text : string) (closed : bool) (flow : bool) (place : i32) (origin : i32) : i32 =
     := item =
         {
             line = 0i32; name = ""; place = place_of_code place; text = text; closed = closed
             origin = origin_of_code origin
         }
-    class_code (class_of item)
+    class_code (class_of item flow)
 
-:~ known_in (~baseline : string) (~file : string) (~name : string) (class : i32) : bool =
-    ?= class_of_code class ?|
-    | Some value => known (baseline_of baseline) { file = file; line = 0i32; name = name; class = value; text = "" }
-    | None => !-
+
+:~ tsv_row (~file : string) (line : i32) (~name : string) (class : i32) (~text : string) : string =
+    := word = ?= class_of_code class ?| | Some value => class_word value | None => ""
+    csv.tsv_line [ file; sm'.format line; name; word; csv.quoted_cell_text text ]
 
 := main () : i32 =
     !!!!Export(
         "kit_lint_class",
-        ((\ (text, closed, place, origin) => classified text closed place origin) : string * bool * i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_lint_known",
         (
-            (\ (baseline, file, name, class) => known_in baseline file name class)
-            : string * string * string * i32 -> bool
+            (\ (text, closed, flow, place, origin) => classified text closed flow place origin)
+            : string * bool * bool * i32 * i32 -> i32
+        )
+    )
+
+    !!!!Export(
+        "kit_lint_tsv_row",
+        (
+            (\ (file, line, name, class, text) => tsv_row file line name class text)
+            : string * i32 * string * i32 * string -> string
         )
     )
     0i32

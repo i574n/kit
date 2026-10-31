@@ -299,16 +299,16 @@ fn difference_counted_13(mut v0: Rc<UH1>, mut v1: Rc<str>) -> Rc<UH1> {
             } else {
                 let v10: bool = (v1.clone()) < (v4.clone());
                 if v10 {
-                    Rc::new(UH1::UH1_DifferenceThen(v1.clone(), 1i32, v0.clone()))
+                    Rc::new(UH1::UH1_DifferenceThen(v1.clone(), 1i32, v0))
                 } else {
-                    let v12: Rc<UH1> = difference_counted_13(v6.clone(), v1.clone());
-                    Rc::new(UH1::UH1_DifferenceThen(v4.clone(), v5, v12.clone()))
+                    let v12: Rc<UH1> = difference_counted_13(v6, v1.clone());
+                    Rc::new(UH1::UH1_DifferenceThen(v4, v5, v12))
                 }
             }
         }
         UH1::UH1_NoDifferences => {
             let v2: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_NoDifferences); } CASE.with(|case| case.clone()) };
-            Rc::new(UH1::UH1_DifferenceThen(v1.clone(), 1i32, v2.clone()))
+            Rc::new(UH1::UH1_DifferenceThen(v1, 1i32, v2))
         }
     }
 }
@@ -687,7 +687,7 @@ fn diff_files_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
 }
 fn no_request_16() -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), v0.clone(), v0.clone(), v0.clone(), 20u64, v0.clone(), v0.clone(), false)
+    (v0.clone(), v0.clone(), v0.clone(), v0.clone(), 20u64, v0.clone(), v0, false)
 }
 fn table_diff_run_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: u64) -> i32 {
     let (mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_16();

@@ -75,6 +75,10 @@
     shows (succeeded (requested root "heavy-build" "release" NoArgs)) "class=heavy-build"
     shows (succeeded (requested root "test-suite" "suite gate" NoArgs)) "class=test-suite"
     shows (succeeded (window_call root "8000" (Arg ("list", NoArgs)))) "windows=2"
+    := shared = succeeded (window_call root "8000" (Arg ("check", Arg ("test-suite", NoArgs))))
+    shows shared "kit window check ok class=test-suite free (shares with "
+    shows shared "test-suite suite gate"
+    shows shared "heavy-build release"
     := starved = window_call root "1000" (Arg ("request", Arg ("test-suite", Arg ("5", NoArgs))))
     testing.expect (starved.code = 1i32) (run_text starved)
     shows starved.stdout "reason=low-memory free_mb=0 need_mb=3072"

@@ -55,11 +55,11 @@ fn method5(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_4(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method5(v2.clone(), v3.clone());
+    method5(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn hit_reading_of_3(mut v0: Rc<str>) -> US4 {
     let v1: bool = { let parts = v0.split(char::from(44u8)).collect::<Vec<_>>(); (2..=3).contains(&parts.len()) && parts[..2].iter().all(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit())) };
@@ -384,55 +384,55 @@ fn lcov_reading_of_1(mut v0: Rc<str>) -> US0 {
     lcov_from_2(v0.clone(), v1, v12, v13.clone(), v14.clone())
 }
 fn lcov_error_0(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = lcov_reading_of_1(v0.clone());
+    let v1: US0 = lcov_reading_of_1(v0);
     match &v1 {
         US0::US0_LcovRecords(v2) => {
             let v2: Rc<str> = v2.clone();
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
         US0::US0_LcovRejected(v4) => {
             let v4: US1 = v4.clone();
             match &v4 {
                 US1::US1_EmptySource => {
                     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has an empty SF record"); } LIT.with(|lit| lit.clone()) };
-                    v6.clone()
+                    v6
                 }
                 US1::US1_EndBeforeSource => {
                     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has end_of_record before SF"); } LIT.with(|lit| lit.clone()) };
-                    v11.clone()
+                    v11
                 }
                 US1::US1_HitBeforeSource => {
                     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has DA before SF"); } LIT.with(|lit| lit.clone()) };
-                    v7.clone()
+                    v7
                 }
                 US1::US1_InvalidHitCount => {
                     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has invalid DA hits"); } LIT.with(|lit| lit.clone()) };
-                    v10.clone()
+                    v10
                 }
                 US1::US1_InvalidHitFields => {
                     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has invalid DA fields"); } LIT.with(|lit| lit.clone()) };
-                    v8.clone()
+                    v8
                 }
                 US1::US1_InvalidHitLine => {
                     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has invalid DA line"); } LIT.with(|lit| lit.clone()) };
-                    v9.clone()
+                    v9
                 }
                 US1::US1_MalformedRecord => {
                     let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has a malformed source or line record"); } LIT.with(|lit| lit.clone()) };
-                    v12.clone()
+                    v12
                 }
                 US1::US1_NoLineRecords => {
                     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage input has no line records"); } LIT.with(|lit| lit.clone()) };
-                    v14.clone()
+                    v14
                 }
                 US1::US1_SourceBeforeEnd => {
                     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has SF before end_of_record"); } LIT.with(|lit| lit.clone()) };
-                    v5.clone()
+                    v5
                 }
                 US1::US1_UnterminatedSource => {
                     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has an unterminated source record"); } LIT.with(|lit| lit.clone()) };
-                    v13.clone()
+                    v13
                 }
             }
         }
@@ -444,16 +444,16 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn lcov_rows_8(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = lcov_reading_of_1(v0.clone());
+    let v1: US0 = lcov_reading_of_1(v0);
     match &v1 {
         US0::US0_LcovRecords(v2) => {
             let v2: Rc<str> = v2.clone();
-            v2.clone()
+            v2
         }
         US0::US0_LcovRejected(v3) => {
             let v3: US1 = v3.clone();
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
     }
 }

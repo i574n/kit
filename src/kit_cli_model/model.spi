@@ -91,6 +91,7 @@
 := mirror_run () : i32 = $"kit_mirror::kit_mirror_run()" : i32
 := evidence_run () : i32 = $"kit_evidence::kit_evidence_run()" : i32
 := lint_run () : i32 = $"kit_lint_macros::kit_lint_run()" : i32
+:= schedule_run () : i32 = $"kit_schedule::kit_schedule_run()" : i32
 
 :~ direct_help (~usage : string) : i32 =
     $'println\!("usage: kit {}", &*!usage)' : ()
@@ -154,6 +155,7 @@
     | VerbStandup => ceremony_routed "standup"
     | VerbEvidence => evidence_run ()
     | VerbLint => lint_run ()
+    | VerbSchedule => schedule_run ()
 
 := run_direct () : i32 =
     := verb = argument_file.process_argument 1i32

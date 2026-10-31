@@ -42,7 +42,7 @@
     1) } else if let Some(value) = text.strip_suffix(char::from(115u8)) { (value, \
     1000) } else if let Some(value) = text.strip_suffix(char::from(109u8)) { (value, 60000) } else { (text, 1000) }; \
     digits.trim().parse::<u64>().map(|value| value * scale).unwrap_or(0) }' : u64
-:= all_digits (~text : string) : bool = $'\!!text.is_empty() && !text.bytes().all(|byte| byte.is_ascii_digit())' : bool
+:= all_digits (~text : string) : bool = sm'.all_digits text
 
 :~ verb_of (~word : string) : query_verb =
     ?= query_verb_named word ?|

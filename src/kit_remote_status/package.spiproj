@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+modules:
+    status
+    entry

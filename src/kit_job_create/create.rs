@@ -38,11 +38,11 @@ fn method6(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_5(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method6(v2.clone(), v3.clone());
+    method6(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn decimal_text_4(mut v0: u64) -> Rc<str> {
     format_real_5(v0)
@@ -68,16 +68,16 @@ fn text_written_12(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v2.clone()
 }
 fn heavy_gate_script_13() -> Rc<str> {
-    let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_HEAVY_GATE").map(std::path::PathBuf::from).filter(|path| path.is_file()).or_else(|| std::env::current_dir().ok().and_then(|cwd| cwd.ancestors().map(|base| base.join("spiral").join("apps").join("compiler").join("tmp").join("scripts").join("heavy.ps1")).find(|candidate| candidate.is_file()))).map(|path| path.to_string_lossy().into_owned()).unwrap_or_default());
+    let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_HEAVY_GATE").map(std::path::PathBuf::from).filter(|path| path.is_file()).or_else(|| std::env::current_dir().ok().and_then(|cwd| cwd.ancestors().find_map(|base| { let compiler = base.join("spiral").join("apps").join("compiler"); [compiler.join("scripts").join("heavy.ps1"), compiler.join("tmp").join("scripts").join("heavy.ps1")].into_iter().find(|candidate| candidate.is_file()) }))).map(|path| path.to_string_lossy().into_owned()).unwrap_or_default());
     v0.clone()
 }
 fn job_argv_10(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: u64) -> Rc<str> {
     match &v0 {
         US0::US0_CompileStart => {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("window-class"); } LIT.with(|lit| lit.clone()) };
-            let v6: Rc<str> = job_file_11(v1.clone(), v5.clone());
+            let v6: Rc<str> = job_file_11(v1.clone(), v5);
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compile"); } LIT.with(|lit| lit.clone()) };
-            let v8: Rc<str> = text_written_12(v6.clone(), v7.clone());
+            let v8: Rc<str> = text_written_12(v6, v7);
             v3.clone()
         }
         US0::US0_HeavyStart => {
@@ -85,23 +85,23 @@ fn job_argv_10(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, m
             let v10: bool = &*v9 == "";
             if v10 {
                 let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v11.clone()
+                v11
             } else {
                 let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("argv.inner"); } LIT.with(|lit| lit.clone()) };
                 let v13: Rc<str> = job_file_11(v1.clone(), v12.clone());
-                let v14: Rc<str> = text_written_12(v13.clone(), v3.clone());
+                let v14: Rc<str> = text_written_12(v13, v3.clone());
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("heavy-wrapper.ps1"); } LIT.with(|lit| lit.clone()) };
-                let v16: Rc<str> = job_file_11(v1.clone(), v15.clone());
-                let v17: Rc<str> = job_file_11(v1.clone(), v12.clone());
+                let v16: Rc<str> = job_file_11(v1.clone(), v15);
+                let v17: Rc<str> = job_file_11(v1.clone(), v12);
                 let v18: Rc<str> = kit_machine_windows::kit_heavy_wrapper(&*v9, &*v17, &*v2, &*v1, v4);
-                let v19: Rc<str> = text_written_12(v16.clone(), v18.clone());
+                let v19: Rc<str> = text_written_12(v16.clone(), v18);
                 let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pwsh\n-NoProfile\n-File\n"); } LIT.with(|lit| lit.clone()) };
                 let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v16));
-                v21.clone()
+                v21
             }
         }
         US0::US0_PlainStart => {
-            v3.clone()
+            v3
         }
     }
 }
@@ -344,19 +344,19 @@ fn job_launched_2(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: bool, m
     }
 }
 fn job_created_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: bool, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: bool, mut v11: Rc<str>, mut v12: u64, mut v13: Rc<str>, mut v14: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>) {
-    let v15: US0 = shape_of_word_1(v0.clone());
-    let v16: US1 = job_launched_2(v15.clone(), v1.clone(), v2.clone(), v3, v4, v5, v6, v7, v8, v9, v10, v11.clone(), v12, v13.clone(), v14.clone());
+    let v15: US0 = shape_of_word_1(v0);
+    let v16: US1 = job_launched_2(v15, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14);
     match &v16 {
         US1::US1_LaunchRefused(v20) => {
             let v20: Rc<str> = v20.clone();
             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v21.clone(), v21.clone(), v20.clone())
+            (v21.clone(), v21, v20)
         }
         US1::US1_Launched(v17, v18) => {
             let v17: Rc<str> = v17.clone();
             let v18: Rc<str> = v18.clone();
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v17.clone(), v18.clone(), v19.clone())
+            (v17, v18, v19)
         }
     }
 }

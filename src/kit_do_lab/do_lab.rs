@@ -56,13 +56,13 @@ fn lab_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
     let v2: i32 = 0i32;
     let v3: Rc<str> = field_at_5(v0.clone(), v1, v2);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("against"); } LIT.with(|lit| lit.clone()) };
-    let v5: i32 = field_index_6(v0.clone(), v1, v4.clone());
+    let v5: i32 = field_index_6(v0.clone(), v1, v4);
     let v6: i32 = 3i32;
     let v7: Rc<str> = body_at_7(v0.clone(), v1, v6);
     let v8: bool = &*v3 == "";
     if v8 {
         let v9: US1 = US1::US1_Blank;
-        US0::US0_LabParsed(v9.clone())
+        US0::US0_LabParsed(v9)
     } else {
         let v11: bool = &*v3 != "query";
         let v15: bool = if v11 {
@@ -78,14 +78,14 @@ fn lab_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
             let v17: Rc<str> = field_at_5(v0.clone(), v1, v16);
             let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cannot share one program with lab yet; run it as its own call"); } LIT.with(|lit| lit.clone()) };
             let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v18));
-            US0::US0_LabRejected(v19.clone())
+            US0::US0_LabRejected(v19)
         } else {
             let v21: i32 = 2i32;
             let v22: Rc<str> = body_at_7(v0.clone(), v1, v21);
             let v23: bool = &*v22 != "audit";
             if v23 {
                 let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lab: expected lab audit <folder> against <backlog>"); } LIT.with(|lit| lit.clone()) };
-                US0::US0_LabRejected(v24.clone())
+                US0::US0_LabRejected(v24)
             } else {
                 let v26: bool = &*v7 == "";
                 let v28: bool = if v26 {
@@ -96,7 +96,7 @@ fn lab_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
                 };
                 if v28 {
                     let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lab audit: expected the lab folder"); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_LabRejected(v29.clone())
+                    US0::US0_LabRejected(v29)
                 } else {
                     let v31: bool = v5 < 0i32;
                     let v35: bool = if v31 {
@@ -109,12 +109,12 @@ fn lab_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
                     };
                     if v35 {
                         let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lab audit: expected against <backlog root>"); } LIT.with(|lit| lit.clone()) };
-                        US0::US0_LabRejected(v36.clone())
+                        US0::US0_LabRejected(v36)
                     } else {
                         let v38: i32 = v5.wrapping_add(1i32);
-                        let v39: Rc<str> = body_at_7(v0.clone(), v1, v38);
-                        let v40: US1 = US1::US1_LabAudit(v7.clone(), v39.clone());
-                        US0::US0_LabParsed(v40.clone())
+                        let v39: Rc<str> = body_at_7(v0, v1, v38);
+                        let v40: US1 = US1::US1_LabAudit(v7, v39);
+                        US0::US0_LabParsed(v40)
                     }
                 }
             }
@@ -147,7 +147,7 @@ fn first_rejection_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i3
 }
 fn empty_lab_tally_8() -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
+    (v0, false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
 }
 fn backlog_items_12(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { let listed = std::env::current_exe().and_then(|program| std::process::Command::new(program).current_dir(&*v0).args(["agile", "list", &*v1, "all", "--json"]).stdin(std::process::Stdio::null()).output()); std::rc::Rc::<str>::from(match listed { Ok(output) if output.status.success() => serde_json::from_slice::<serde_json::Value>(&output.stdout).ok().and_then(|value| value.get("tasks").and_then(|tasks| tasks.as_array()).map(|tasks| tasks.iter().map(|task| format!("{}{tab}{}{tab}{}{tab}{}", task["id"].as_str().unwrap_or(""), task["status"].as_str().unwrap_or(""), task["progress"].as_u64().unwrap_or(0), task["last_note"].as_str().unwrap_or(""), tab = char::from(9u8))).collect::<Vec<_>>().join("
@@ -165,7 +165,7 @@ fn lines_joined_13(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         } else {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v4)), v1));
-            v6.clone()
+            v6
         }
     }
 }
@@ -354,17 +354,17 @@ fn verdict_text_26(mut v0: US2) -> Rc<str> {
     match &v0 {
         US2::US2_DoneItem => {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("done: promote or delete"); } LIT.with(|lit| lit.clone()) };
-            v5.clone()
+            v5
         }
         US2::US2_Keep => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("keep"); } LIT.with(|lit| lit.clone()) };
-            v1.clone()
+            v1
         }
         US2::US2_Orphan(v2) => {
             let v2: Rc<str> = v2.clone();
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("orphan: no backlog item "); } LIT.with(|lit| lit.clone()) };
             let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v2));
-            v4.clone()
+            v4
         }
         US2::US2_Stale(v6) => {
             let v6: u64 = *v6;
@@ -373,7 +373,7 @@ fn verdict_text_26(mut v0: US2) -> Rc<str> {
             let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v7));
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" days"); } LIT.with(|lit| lit.clone()) };
             let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
-            v11.clone()
+            v11
         }
     }
 }
@@ -432,42 +432,42 @@ fn labs_rows_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
         let v17: Rc<str> = line_at_19(v3.clone(), v4);
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
         let v20: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v1, v18)), v17));
-        let v21: Rc<str> = item_id_of_21(v17.clone());
+        let v21: Rc<str> = item_id_of_21(v17);
         let v22: Rc<str> = item_of_22(v2.clone(), v21.clone());
         let v23: i32 = 3i32;
         let v24: Rc<str> = tab_part_23(v22.clone(), v23);
-        let v25: u64 = note_age_days_24(v24.clone());
+        let v25: u64 = note_age_days_24(v24);
         let v26: US2 = verdict_of_25(v22.clone(), v21.clone(), v25);
         let v27: bool = &*v22 == "";
         let v43: Rc<str> = if v27 {
             let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
             let v29: Rc<str> = verdict_text_26(v26.clone());
-            let v30: Rc<str> = row_15(v28.clone(), v29.clone());
-            let v31: Rc<str> = row_15(v28.clone(), v30.clone());
-            let v32: Rc<str> = row_15(v28.clone(), v31.clone());
-            row_15(v20.clone(), v32.clone())
+            let v30: Rc<str> = row_15(v28.clone(), v29);
+            let v31: Rc<str> = row_15(v28.clone(), v30);
+            let v32: Rc<str> = row_15(v28, v31);
+            row_15(v20.clone(), v32)
         } else {
             let v34: i32 = 1i32;
             let v35: Rc<str> = tab_part_23(v22.clone(), v34);
             let v36: i32 = 2i32;
-            let v37: Rc<str> = tab_part_23(v22.clone(), v36);
+            let v37: Rc<str> = tab_part_23(v22, v36);
             let v38: Rc<str> = verdict_text_26(v26.clone());
-            let v39: Rc<str> = row_15(v37.clone(), v38.clone());
-            let v40: Rc<str> = row_15(v35.clone(), v39.clone());
-            let v41: Rc<str> = row_15(v21.clone(), v40.clone());
-            row_15(v20.clone(), v41.clone())
+            let v39: Rc<str> = row_15(v37, v38);
+            let v40: Rc<str> = row_15(v35, v39);
+            let v41: Rc<str> = row_15(v21, v40);
+            row_15(v20, v41)
         };
         let v44: u64 = v4.wrapping_add(1u64);
-        let v45: Rc<str> = lines_joined_13(v5.clone(), v43.clone());
-        let (mut v46, mut v47, mut v48, mut v49, mut v50, mut v51, mut v52, mut v53, mut v54): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = counted_28(v6.clone(), v7, v8, v9, v10, v11, v12, v13, v14, v26.clone());
-        let (mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = labs_rows_16(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v44, v45.clone(), v46.clone(), v47, v48, v49, v50, v51, v52, v53, v54);
-        (v55.clone(), v56, v57, v58, v59, v60, v61, v62, v63)
+        let v45: Rc<str> = lines_joined_13(v5.clone(), v43);
+        let (mut v46, mut v47, mut v48, mut v49, mut v50, mut v51, mut v52, mut v53, mut v54): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = counted_28(v6.clone(), v7, v8, v9, v10, v11, v12, v13, v14, v26);
+        let (mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = labs_rows_16(v0, v1, v2, v3, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54);
+        (v55, v56, v57, v58, v59, v60, v61, v62, v63)
     } else {
-        let v64: Rc<str> = aligned_29(v5.clone());
-        let v65: Rc<str> = lines_joined_13(v6.clone(), v64.clone());
-        (v65.clone(), v7, v8, v9, v10, v11, v12, v13, v14)
+        let v64: Rc<str> = aligned_29(v5);
+        let v65: Rc<str> = lines_joined_13(v6, v64);
+        (v65, v7, v8, v9, v10, v11, v12, v13, v14)
     };
-    (v66.clone(), v67, v68, v69, v70, v71, v72, v73, v74)
+    (v66, v67, v68, v69, v70, v71, v72, v73, v74)
 }
 fn non_portable_30(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { let (b, q, a) = (char::from(92u8), char::from(34u8), char::from(39u8)); let pattern = regex::Regex::new(&format!("[A-Za-z]:[{b}{b}/]Users[{b}{b}/][^{b}s{q}{a}<>|]+|(?:^|[{b}s{q}{a}=(])/home/[a-z_][a-z0-9_-]*/[^{b}s{q}{a}<>|]+")).unwrap(); fn files(path: &std::path::Path, found: &mut Vec<std::path::PathBuf>) { if path.is_dir() { let mut entries = std::fs::read_dir(path).into_iter().flatten().flatten().map(|entry| entry.path()).collect::<Vec<_>>(); entries.sort(); for entry in entries { files(&entry, found); } } else { found.push(path.to_path_buf()); } } let root = std::path::Path::new(&*v0); let mut found = Vec::new(); files(&root.join(&*v1), &mut found); let mut rows = Vec::new(); for path in found { let text = String::from_utf8_lossy(&std::fs::read(&path).unwrap_or_default()).into_owned(); let shown = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace(b, "/"); for (index, line) in text.lines().enumerate() { for hit in pattern.find_iter(line) { let text = hit.as_str(); let text = if text.get(1..2) == Some(":") { text } else { text.trim_start_matches(|c: char| c != char::from(47u8)) }; rows.push(format!("{}:{}  non-portable path {}", shown, index + 1, text)); } } } std::rc::Rc::<str>::from(rows.join("
@@ -480,14 +480,14 @@ fn ignored_paths_31(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v2.clone()
 }
 fn audit_run_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: bool, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64) -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) {
-    let v12: Rc<str> = backlog_items_12(v0.clone(), v2.clone());
+    let v12: Rc<str> = backlog_items_12(v0.clone(), v2);
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("error: "); } LIT.with(|lit| lit.clone()) };
     let v14: bool = v12.starts_with(&*v13);
     let (mut v46, mut v47, mut v48, mut v49, mut v50, mut v51, mut v52, mut v53, mut v54): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = if v14 {
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lab audit: "); } LIT.with(|lit| lit.clone()) };
         let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v12));
-        let v17: Rc<str> = lines_joined_13(v3.clone(), v16.clone());
-        (v17.clone(), true, v5, v6, v7, v8, v9, v10, v11)
+        let v17: Rc<str> = lines_joined_13(v3.clone(), v16);
+        (v17, true, v5, v6, v7, v8, v9, v10, v11)
     } else {
         let v18: Rc<str> = lab_directories_14(v0.clone(), v1.clone());
         let v19: u64 = 0u64;
@@ -496,22 +496,22 @@ fn audit_run_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
         let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status"); } LIT.with(|lit| lit.clone()) };
         let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("progress"); } LIT.with(|lit| lit.clone()) };
         let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("verdict"); } LIT.with(|lit| lit.clone()) };
-        let v25: Rc<str> = row_15(v23.clone(), v24.clone());
-        let v26: Rc<str> = row_15(v22.clone(), v25.clone());
-        let v27: Rc<str> = row_15(v21.clone(), v26.clone());
-        let v28: Rc<str> = row_15(v20.clone(), v27.clone());
-        let (mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = labs_rows_16(v0.clone(), v1.clone(), v12.clone(), v18.clone(), v19, v28.clone(), v3.clone(), v4, v5, v6, v7, v8, v9, v10, v11);
+        let v25: Rc<str> = row_15(v23, v24);
+        let v26: Rc<str> = row_15(v22, v25);
+        let v27: Rc<str> = row_15(v21, v26);
+        let v28: Rc<str> = row_15(v20, v27);
+        let (mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = labs_rows_16(v0.clone(), v1.clone(), v12, v18, v19, v28, v3, v4, v5, v6, v7, v8, v9, v10, v11);
         let v38: Rc<str> = non_portable_30(v0.clone(), v1.clone());
-        let v39: Rc<str> = ignored_paths_31(v0.clone(), v1.clone());
-        let v40: Rc<str> = lines_joined_13(v29.clone(), v38.clone());
-        let v41: Rc<str> = lines_joined_13(v40.clone(), v39.clone());
-        let v42: u64 = line_count_17(v38.clone());
+        let v39: Rc<str> = ignored_paths_31(v0, v1);
+        let v40: Rc<str> = lines_joined_13(v29, v38.clone());
+        let v41: Rc<str> = lines_joined_13(v40, v39.clone());
+        let v42: u64 = line_count_17(v38);
         let v43: u64 = v36.wrapping_add(v42);
-        let v44: u64 = line_count_17(v39.clone());
+        let v44: u64 = line_count_17(v39);
         let v45: u64 = v37.wrapping_add(v44);
-        (v41.clone(), v30, v31, v32, v33, v34, v35, v43, v45)
+        (v41, v30, v31, v32, v33, v34, v35, v43, v45)
     };
-    (v46.clone(), v47, v48, v49, v50, v51, v52, v53, v54)
+    (v46, v47, v48, v49, v50, v51, v52, v53, v54)
 }
 fn step_run_10(mut v0: Rc<str>, mut v1: US1, mut v2: Rc<str>, mut v3: bool, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64) -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) {
     let (mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = match &v1 {
@@ -593,7 +593,7 @@ fn receipt_counts_32(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v33));
         let v35: Rc<str> = decimal_text_27(v8);
         let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
-        v36.clone()
+        v36
     }
 }
 fn elapsed_text_34(mut v0: u64) -> Rc<str> {
@@ -613,11 +613,11 @@ fn receipt_line_33(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US3::US3_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US3::US3_Succeeded => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
@@ -631,14 +631,14 @@ fn receipt_line_33(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
 }
 fn lab_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v2: u64 = now_ms_1();
-    let v3: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1.clone());
+    let v3: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1);
     let v4: i32 = 1i32;
     let v5: Rc<str> = first_rejection_3(v3.clone(), v4);
     let v6: bool = &*v5 == "";
     if v6 {
         let v7: i32 = 1i32;
         let (mut v8, mut v9, mut v10, mut v11, mut v12, mut v13, mut v14, mut v15, mut v16): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = empty_lab_tally_8();
-        let (mut v17, mut v18, mut v19, mut v20, mut v21, mut v22, mut v23, mut v24, mut v25): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = labs_run_9(v0.clone(), v3.clone(), v7, v8.clone(), v9, v10, v11, v12, v13, v14, v15, v16);
+        let (mut v17, mut v18, mut v19, mut v20, mut v21, mut v22, mut v23, mut v24, mut v25): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64) = labs_run_9(v0, v3, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16);
         let v26: bool = &*v17 == "";
         if v26 {
             ()
@@ -659,12 +659,12 @@ fn lab_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         if v32 {
             let v33: US3 = US3::US3_Failed;
             let v34: Rc<str> = receipt_counts_32(v17.clone(), v18, v19, v20, v21, v22, v23, v24, v25);
-            receipt_line_33(v33.clone(), v34.clone(), v2);
+            receipt_line_33(v33, v34, v2);
             1i32
         } else {
             let v35: US3 = US3::US3_Succeeded;
-            let v36: Rc<str> = receipt_counts_32(v17.clone(), v18, v19, v20, v21, v22, v23, v24, v25);
-            receipt_line_33(v35.clone(), v36.clone(), v2);
+            let v36: Rc<str> = receipt_counts_32(v17, v18, v19, v20, v21, v22, v23, v24, v25);
+            receipt_line_33(v35, v36, v2);
             0i32
         }
     } else {
@@ -673,7 +673,7 @@ fn lab_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         println!("{}", v39);
         let v40: US3 = US3::US3_Failed;
         let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("labs 0"); } LIT.with(|lit| lit.clone()) };
-        receipt_line_33(v40.clone(), v41.clone(), v2);
+        receipt_line_33(v40, v41, v2);
         2i32
     }
 }

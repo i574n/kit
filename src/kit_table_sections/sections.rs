@@ -33,7 +33,7 @@ fn refused_1(mut v0: Rc<str>) -> i32 {
     let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v0));
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; "); } LIT.with(|lit| lit.clone()) };
     let mut v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
-    let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: table sequences <file|dir>... --time <regex with (?<ms>digits)> (--interval name=A [--between B] [--modulo ms] | --window name=A --from M --ms lo..hi | --order name=A,B | --latency name=A --to B | [--section-on <regex with (?<section>)>] [--carry <regex>] (--first|--last) name=<regex with (?<id>) and (?<value>)>...) [--out file.tsv]"); } LIT.with(|lit| lit.clone()) };
+    let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: table sequences <file|dir>... --time <regex with (?<ms>digits)> (--interval name=A [--between B] [--modulo ms] | --window name=A --from M --ms lo..hi | --order name=A,B | --latency name=A --to B | [--section-on <regex with (?<section>)>] [--carry <regex>] (--first|--last) name=<regex with (?<id>) and (?<value>)>... | [--section-on <regex>] (--count name=<regex [(?<value>)]>... [--count-in name=<regex with (?<rest>)>] [--in-set name=<file>[:<regex with (?<value>)>]])) [--out file.tsv]"); } LIT.with(|lit| lit.clone()) };
     let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v5));
     eprintln!("{}", v6);
     2i32
@@ -62,19 +62,19 @@ fn method5(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_4(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method5(v2.clone(), v3.clone());
+    method5(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn format_real_6(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method5(v2.clone(), v3.clone());
+    method5(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn loop_7(mut v0: Rc<str>) -> Rc<str> {
     loop {
@@ -97,7 +97,7 @@ fn sections_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3:
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v7)), v3));
     let v10: i32 = 0i32;
-    let v11: i32 = method3(v2.clone(), v10);
+    let v11: i32 = method3(v2, v10);
     let v12: Rc<str> = format_real_4(v11);
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit table sequences ok files="); } LIT.with(|lit| lit.clone()) };
     let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v12));
@@ -163,18 +163,18 @@ fn argument_11(mut v0: i32) -> Rc<str> {
     };
     let v8: US0 = if v4 {
         let mut v5: Rc<str> = command_line_argument_12(v0);
-        US0::US0_Some(v5.clone())
+        US0::US0_Some(v5)
     } else {
         US0::US0_None
     };
     match &v8 {
         US0::US0_None => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US0::US0_Some(v9) => {
             let v9: Rc<str> = v9.clone();
-            v9.clone()
+            v9
         }
     }
 }
@@ -273,7 +273,7 @@ fn loop_14(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut 
     }
 }
 fn known_flag_13(mut v0: Rc<str>) -> bool {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--time|--interval|--window|--order|--latency|--between|--from|--to|--ms|--modulo|--out|--section-on|--carry|--first|--last"); } LIT.with(|lit| lit.clone()) };
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--time|--interval|--window|--order|--latency|--between|--from|--to|--ms|--modulo|--out|--section-on|--carry|--first|--last|--count|--count-in|--in-set"); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v1.split(&*v2).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let mut v4: i32 = (v3.clone().borrow().len() as i32);
@@ -639,19 +639,19 @@ fn data_rows_34(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str>,
         let (mut v21, mut v22): (Rc<str>, u64) = if v10 {
             let v11: i32 = v1.wrapping_add(1i32);
             let (mut v12, mut v13): (Rc<str>, u64) = data_rows_34(v0.clone(), v11, v2.clone(), v3);
-            (v12.clone(), v13)
+            (v12, v13)
         } else {
             let v14: i32 = v1.wrapping_add(1i32);
             let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v6));
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
             let v18: u64 = v3.wrapping_add(1u64);
-            let (mut v19, mut v20): (Rc<str>, u64) = data_rows_34(v0.clone(), v14, v17.clone(), v18);
-            (v19.clone(), v20)
+            let (mut v19, mut v20): (Rc<str>, u64) = data_rows_34(v0, v14, v17, v18);
+            (v19, v20)
         };
-        (v21.clone(), v22)
+        (v21, v22)
     };
-    (v23.clone(), v24)
+    (v23, v24)
 }
 fn method37(mut v0: Option<u64>) -> Option<u64> {
     v0
@@ -752,20 +752,20 @@ fn sections_run_0() -> i32 {
     let v1: i32 = 2i32;
     let v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let (mut v4, mut v5): (Rc<UH0>, Rc<str>) = paths_from_9(v1, v0, v2.clone(), v3.clone());
+    let (mut v4, mut v5): (Rc<UH0>, Rc<str>) = paths_from_9(v1, v0, v2, v3.clone());
     let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--time"); } LIT.with(|lit| lit.clone()) };
     let v7: i32 = 2i32;
-    let v8: Rc<str> = value_after_17(v6.clone(), v7, v0);
+    let v8: Rc<str> = value_after_17(v6, v7, v0);
     let v9: i32 = 2i32;
     let v10: Rc<str> = columns_from_18(v9, v0, v3.clone());
     let v11: bool = &*v5 != "";
     if v11 {
-        refused_1(v5.clone())
+        refused_1(v5)
     } else {
         let v13: bool = &*v8 == "";
         if v13 {
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("needs --time and a measure name"); } LIT.with(|lit| lit.clone()) };
-            refused_1(v14.clone())
+            refused_1(v14)
         } else {
             match &*v4 {
                 UH0::UH0_Cons(v18, v19) => {
@@ -776,28 +776,28 @@ fn sections_run_0() -> i32 {
                     if v21 {
                         let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no such file or directory: "); } LIT.with(|lit| lit.clone()) };
                         let mut v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v20));
-                        refused_1(v23.clone())
+                        refused_1(v23)
                     } else {
                         let v25: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                        let v26: Rc<UH0> = files_in_24(v4.clone(), v25.clone());
+                        let v26: Rc<UH0> = files_in_24(v4, v25);
                         let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--section-on"); } LIT.with(|lit| lit.clone()) };
                         let v28: i32 = 2i32;
-                        let v29: Rc<str> = value_after_17(v27.clone(), v28, v0);
+                        let v29: Rc<str> = value_after_17(v27, v28, v0);
                         let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--carry"); } LIT.with(|lit| lit.clone()) };
                         let v31: i32 = 2i32;
-                        let mut v32: Rc<str> = value_after_17(v30.clone(), v31, v0);
+                        let mut v32: Rc<str> = value_after_17(v30, v31, v0);
                         let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--out"); } LIT.with(|lit| lit.clone()) };
                         let v34: i32 = 2i32;
-                        let v35: Rc<str> = value_after_17(v33.clone(), v34, v0);
+                        let v35: Rc<str> = value_after_17(v33, v34, v0);
                         let v36: u64 = 0u64;
                         let v37: u64 = 0u64;
-                        let (mut v38, mut v39, mut v40): (Rc<str>, u64, u64) = sections_of_files_31(v26.clone(), v8.clone(), v29.clone(), v32.clone(), v10.clone(), v3.clone(), v36, v37);
-                        sections_written_2(v10.clone(), v35.clone(), v26.clone(), v38.clone(), v39, v40)
+                        let (mut v38, mut v39, mut v40): (Rc<str>, u64, u64) = sections_of_files_31(v26.clone(), v8, v29, v32, v10.clone(), v3, v36, v37);
+                        sections_written_2(v10, v35, v26, v38, v39, v40)
                     }
                 }
                 UH0::UH0_Nil => {
                     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("needs at least one file or directory"); } LIT.with(|lit| lit.clone()) };
-                    refused_1(v16.clone())
+                    refused_1(v16)
                 }
             }
         }

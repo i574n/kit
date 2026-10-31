@@ -1,6 +1,6 @@
 
 inl emit_runtime () : () = global """
-    use kit_command_help::{kit_agile_subcommand_known, kit_command_more_usages}; use command_spec_domain::{kit_command_code, kit_command_count, kit_command_descriptor, kit_command_descriptor_named, kit_command_descriptor_json, kit_command_schema_witness, kit_command_proxy_usage, kit_proxy_route_code, kit_proxy_route_witness, kit_help_flag_code, kit_help_flag_witness};
+    use kit_command_help::kit_agile_subcommand_known; use kit_command_usages::kit_command_more_usages; use command_spec_domain::{kit_command_code, kit_command_count, kit_command_descriptor, kit_command_descriptor_named, kit_command_descriptor_json, kit_command_schema_witness, kit_command_proxy_usage, kit_proxy_route_code, kit_proxy_route_witness, kit_help_flag_code, kit_help_flag_witness};
     use canonical_plan_ir_domain::{kit_plan_ir_count, kit_plan_ir_decode_code, kit_plan_ir_descriptor, kit_plan_ir_index_valid, kit_plan_ir_projection_witness, kit_plan_ir_schema, kit_plan_ir_stage_witness};
     use kit_agile_lease::lease_authority_code;
 

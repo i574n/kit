@@ -1,0 +1,92 @@
+:< sm'_operators
+:< kit_table_sequence_args.args
+
+:== counts_table =
+    {
+        text : string
+        rows : u64
+        sections : u64
+    }
+
+:~ ^ counted_names (index : i32) (count : i32) (found : list string) : list string =
+    ? index + 1i32 >= count
+    ?> found
+    |? argument index = "--count"
+    ?>
+        := name, _ = split_pair (argument (index + 1i32)) "="
+        counted_names (index + 2i32) count (name :: found)
+    |: counted_names (index + 1i32) count found
+
+:~ ^ stray_name (names : list string) (index : i32) (count : i32) : string =
+    ? index + 1i32 >= count
+    ?> ""
+    |? argument index = "--count-in" || argument index = "--in-set"
+    ?>
+        := name, _ = split_pair (argument (index + 1i32)) "="
+        ? listm'.exists' (\ (counted : string) => counted = name) names
+        ?> stray_name names (index + 2i32) count
+        |: argument index ++# " " ++# name
+    |: stray_name names (index + 1i32) count
+
+:~ counts_of_file (~path : string) (~section_on : string) : counts_table =
+    := text, sections = $'kit_log_counts::kit_sequence_counts(&*!path, &*!section_on)' : string * u64
+    := table = data_rows (sm'.split "\n" text |> array) 0i32 { text = ""; rows = 0u64 }
+    { text = table.text; rows = table.rows; sections = sections }
+
+:~ ^ counts_of_files (files : list string) (~section_on : string) (acc : counts_table) : counts_table =
+    ?= files ?|
+    | [] => acc
+    | path :: rest =>
+        := found = counts_of_file path section_on
+        counts_of_files rest section_on {
+            text = acc.text ++# found.text
+            rows = acc.rows + found.rows
+            sections = acc.sections + found.sections
+        }
+
+:~ counts_written (~out : string) (files : list string) (found : counts_table) : i32 =
+    := header = $'kit_log_counts::kit_sequence_counts_header()' : string
+    := table = header ++# "\n" ++# found.text
+    := receipt =
+        "kit table sequences ok files="
+        ++# sm'.format (listm.length files : i32)
+        ++# " sections="
+        ++# sm'.format found.sections
+        ++# " rows="
+        ++# sm'.format found.rows
+    ? out = "" ?>
+        console.write_line (sm'.trim_end_suffix "\n" table)
+        console.write_error_line receipt
+    |:
+        file_system.write_all_text out table
+        console.write_error_line (receipt ++# " out=" ++# out)
+    0i32
+
+:~ counts_run () : i32 =
+    := count = env.command_line_argument_count ()
+    := paths, refusal = paths_from 2i32 count [] ""
+    := stray = stray_name (counted_names 2i32 count []) 2i32 count
+    := missing_set = $'kit_log_counts::kit_sequence_counts_missing_set()' : string
+    ? refusal <> ""
+    ?> refused refusal
+    |? stray <> ""
+    ?> refused (stray ++# " names no --count column")
+    |? missing_set <> ""
+    ?> refused ("no such set file: " ++# missing_set)
+    |:
+        ?= paths ?|
+        | [] => refused "needs at least one file or directory"
+        | _ =>
+            := missing = missing_path paths
+            ? missing <> ""
+            ?> refused ("no such file or directory: " ++# missing)
+            |:
+                := files = files_in paths []
+                := empty = { text = ""; rows = 0u64; sections = 0u64 }
+                counts_written (value_after "--out" 2i32 count)
+                    files
+                    (counts_of_files files (value_after "--section-on" 2i32 count) empty)
+
+:= main () : i32 =
+    !!!!Export("kit_table_counts_run", ((\ () => counts_run ()) : () -> i32))
+    0i32

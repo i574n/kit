@@ -17,3 +17,4 @@ path = "process_table.rs"
 kit-process-kill = { path = "../kit_process_kill" }
 regex = "1.13.1"
 sysinfo = "0.38.4"
+kit-machine-sample = { path = "../kit_machine_sample" }

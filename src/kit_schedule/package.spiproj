@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+modules:
+    schedule
+    run
+    entry

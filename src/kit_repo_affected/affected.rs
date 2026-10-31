@@ -330,16 +330,16 @@ fn node_at_8(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
     if v7 {
         let mut v9: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v6);
         let v11: Vec<u8> = v9.unwrap();
-        let mut v12: Vec<u8> = method10(v11.clone());
+        let mut v12: Vec<u8> = method10(v11);
         let v14: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v12);
         let v16: std::string::String = v14.unwrap();
         let v18: Rc<str> = Rc::<str>::from(String::as_str(&v16));
-        let v19: Rc<UH0> = project_uses_11(v18.clone());
+        let v19: Rc<UH0> = project_uses_11(v18);
         let v21: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v2)), v1));
         let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/Cargo.toml"); } LIT.with(|lit| lit.clone()) };
         let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
-        let v24: bool = file_exists_9(v23.clone());
-        US1::US1_Some(v1.clone(), v19.clone(), v24)
+        let v24: bool = file_exists_9(v23);
+        US1::US1_Some(v1, v19, v24)
     } else {
         US1::US1_None
     }
@@ -569,11 +569,11 @@ fn method25(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_24(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method25(v2.clone(), v3.clone());
+    method25(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn method26(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
     loop {
@@ -600,23 +600,23 @@ fn affected_run_0() -> i32 {
     let mut v7: US0 = if v2 {
         let v3: i32 = 2i32;
         let v4: Rc<str> = command_line_argument_2(v3);
-        US0::US0_Some(v4.clone())
+        US0::US0_Some(v4)
     } else {
         US0::US0_None
     };
     let v11: Rc<str> = match &v7 {
         US0::US0_None => {
             let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v9.clone()
+            v9
         }
         US0::US0_Some(v8) => {
             let v8: Rc<str> = v8.clone();
-            v8.clone()
+            v8
         }
     };
     let mut v12: i32 = 3i32;
     let v13: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v14: Rc<UH0> = arguments_from_3(v12, v0, v13.clone());
+    let v14: Rc<UH0> = arguments_from_3(v12, v0, v13);
     match &*v14 {
         UH0::UH0_Nil => {
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: repo usage: repo affected <src> <package>... (crates whose package graph reaches a changed package)"); } LIT.with(|lit| lit.clone()) };
@@ -626,18 +626,18 @@ fn affected_run_0() -> i32 {
         _ => {
             let v16: Rc<UH0> = directory_names_5(v11.clone());
             let v17: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-            let v18: Rc<UH1> = nodes_of_7(v11.clone(), v16.clone(), v17.clone());
+            let v18: Rc<UH1> = nodes_of_7(v11.clone(), v16, v17);
             let v19: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            let v20: Rc<UH0> = affected_crates_18(v18.clone(), v18.clone(), v14.clone(), v19.clone());
+            let v20: Rc<UH0> = affected_crates_18(v18.clone(), v18.clone(), v14, v19);
             let v21: i32 = 0i32;
-            let v22: i32 = lines_printed_23(v20.clone(), v21);
+            let v22: i32 = lines_printed_23(v20, v21);
             let v23: Rc<str> = format_real_24(v22);
             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit repo affected ok crates="); } LIT.with(|lit| lit.clone()) };
             let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v23));
             let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" packages="); } LIT.with(|lit| lit.clone()) };
             let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v26));
             let v28: i32 = 0i32;
-            let v29: i32 = method26(v18.clone(), v28);
+            let v29: i32 = method26(v18, v28);
             let v30: Rc<str> = format_real_24(v29);
             let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v30));
             let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" src="); } LIT.with(|lit| lit.clone()) };

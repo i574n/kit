@@ -1,0 +1,12 @@
+:< save
+
+:= main () : i32 =
+    export "kit_memory_save" (
+        (\ (dir, kind, slug, description, body) => memory_saved dir kind slug description body)
+        : string * string * string * string * string -> i32
+    )
+    export "kit_memory_forget" ((\ (dir, slug) => memory_forgotten dir slug) : string * string -> i32)
+    export "kit_memory_edit" (
+        (\ (dir, slug, field, text) => memory_edited dir slug field text) : string * string * string * string -> i32
+    )
+    0i32

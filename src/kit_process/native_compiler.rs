@@ -5,7 +5,7 @@ fn native_spiral_host(path: &std::path::Path) -> bool {
 fn spiral_compiler_command(path: &std::path::Path) -> std::process::Command {
     let managed = path.extension().and_then(|value| value.to_str()).is_some_and(|value| value.eq_ignore_ascii_case("dll"));
     let mut command = if managed {
-        let dotnet = std::env::var_os("KIT_DOTNET").or_else(|| std::env::var_os("SPIRAL_DOTNET")).unwrap_or_else(|| "dotnet".into());
+        let dotnet = std::env::var_os("KIT_DOTNET").or_else(|| std::env::var_os("SPIRAL_DOTNET")).or_else(|| std::env::var_os("LOCALAPPDATA").map(|root| std::path::PathBuf::from(root).join("spiral-bin").join("toolchains").join("dotnet").join("dotnet.exe")).filter(|candidate| candidate.is_file()).map(std::path::PathBuf::into_os_string)).unwrap_or_else(|| "dotnet".into());
         let mut command = std::process::Command::new(dotnet);
         command.arg(path);
         command

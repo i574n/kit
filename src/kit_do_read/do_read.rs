@@ -112,7 +112,7 @@ fn verb_of_6(mut v0: Rc<str>) -> US1 {
 }
 fn opened_query_7(mut v0: US1) -> (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), v1.clone(), false, v1.clone(), 0u64, 0u64, 0u64, v1.clone(), v1.clone(), false, 0u64, 0u64)
+    (v0, v1.clone(), false, v1.clone(), 0u64, 0u64, 0u64, v1.clone(), v1, false, 0u64, 0u64)
 }
 fn item_at_9(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> US3 {
     let mut v3: Rc<str> = field_at_5(v0, v1, v2);
@@ -131,19 +131,19 @@ fn item_at_9(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v
     }
 }
 fn value_at_10(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> Rc<str> {
-    let mut v3: US3 = item_at_9(v0.clone(), v1, v2);
+    let mut v3: US3 = item_at_9(v0, v1, v2);
     match &v3 {
         US3::US3_Bare(v4) => {
             let mut v4: Rc<str> = v4.clone();
-            v4.clone()
+            v4
         }
         US3::US3_Finished => {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
         }
         US3::US3_Text(v5) => {
             let v5: Rc<str> = v5.clone();
-            v5.clone()
+            v5
         }
     }
 }
@@ -372,35 +372,35 @@ fn query_problem_13(mut v0: US1, mut v1: Rc<str>, mut v2: bool, mut v3: Rc<str>,
             let v30: bool = &*v3 == "";
             if v30 {
                 let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("head: expected a path or glob"); } LIT.with(|lit| lit.clone()) };
-                v31.clone()
+                v31
             } else {
                 let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v32.clone()
+                v32
             }
         }
         US1::US1_ListFiles => {
             let v26: bool = &*v3 == "";
             if v26 {
                 let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files: expected a path or glob"); } LIT.with(|lit| lit.clone()) };
-                v27.clone()
+                v27
             } else {
                 let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v28.clone()
+                v28
             }
         }
         US1::US1_ReadAround => {
             let v19: bool = &*v3 == "";
             if v19 {
                 let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("read: expected a path"); } LIT.with(|lit| lit.clone()) };
-                v20.clone()
+                v20
             } else {
                 let v21: bool = &*v1 == "";
                 if v21 {
                     let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("read: expected around \"<text>\""); } LIT.with(|lit| lit.clone()) };
-                    v22.clone()
+                    v22
                 } else {
                     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v23.clone()
+                    v23
                 }
             }
         }
@@ -408,15 +408,15 @@ fn query_problem_13(mut v0: US1, mut v1: Rc<str>, mut v2: bool, mut v3: Rc<str>,
             let v12: bool = &*v1 == "";
             if v12 {
                 let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("search: expected a quoted pattern"); } LIT.with(|lit| lit.clone()) };
-                v13.clone()
+                v13
             } else {
                 let v14: bool = &*v3 == "";
                 if v14 {
                     let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("search: expected in <path|glob>"); } LIT.with(|lit| lit.clone()) };
-                    v15.clone()
+                    v15
                 } else {
                     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v16.clone()
+                    v16
                 }
             }
         }
@@ -424,25 +424,25 @@ fn query_problem_13(mut v0: US1, mut v1: Rc<str>, mut v2: bool, mut v3: Rc<str>,
             let v34: bool = &*v3 == "";
             if v34 {
                 let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tail: expected a path or glob"); } LIT.with(|lit| lit.clone()) };
-                v35.clone()
+                v35
             } else {
                 let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v36.clone()
+                v36
             }
         }
         US1::US1_Wait => {
             let v38: bool = &*v3 == "";
             if v38 {
                 let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait: expected a file"); } LIT.with(|lit| lit.clone()) };
-                v39.clone()
+                v39
             } else {
                 let v40: bool = &*v1 == "";
                 if v40 {
                     let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait: expected ~ \"<regex>\""); } LIT.with(|lit| lit.clone()) };
-                    v41.clone()
+                    v41
                 } else {
                     let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v42.clone()
+                    v42
                 }
             }
         }
@@ -532,7 +532,7 @@ fn first_rejection_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i3
 }
 fn empty_query_tally_14() -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
+    (v0, false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
 }
 fn git_marked_16(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> bool {
     let v2: bool = v0.get(v1 as usize).map(|fields| fields.iter().any(|field| &**field == "wgit") && fields.iter().any(|field| &**field == "wstatus")).unwrap_or(false);
@@ -568,8 +568,8 @@ fn waited_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> 
     v4.clone()
 }
 fn files_matching_24(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> std::rc::Rc<Vec<std::rc::Rc<str>>> {
-    let mut v4: std::rc::Rc<Vec<std::rc::Rc<str>>> = { fn wildcard(mask: &str, name: &str) -> bool { let parts = mask.split(char::from(42u8)).collect::<Vec<_>>(); if parts.len() == 1 { return mask == name; } let mut rest = name; if !rest.starts_with(parts[0]) { return false; } rest = &rest[parts[0].len()..]; for middle in &parts[1..parts.len() - 1] { match rest.find(middle) { Some(at) => rest = &rest[at + middle.len()..], None => return false } } rest.len() >= parts[parts.len() - 1].len() && rest.ends_with(parts[parts.len() - 1]) } fn glob_match(pattern: &[&str], path: &[&str]) -> bool { match pattern.split_first() { None => path.is_empty(), Some((head, rest)) if *head == "**" => (0..=path.len()).any(|skip| glob_match(rest, &path[skip..])), Some((head, rest)) => match path.split_first() { Some((name, tail)) => wildcard(head, name) && glob_match(rest, tail), None => false } } } fn segments(text: &str) -> Vec<String> { text.replace(char::from(92u8), "/").split(char::from(47u8)).filter(|segment| !segment.is_empty() && *segment != ".").map(str::to_owned).collect() } let root = std::path::Path::new(&*v0); let mut pattern = segments(&*v1); let star = char::from(42u8); let globbed = pattern.iter().any(|segment| segment.contains(star)); if !globbed { let joined = pattern.join("/"); if !root.join(&joined).is_dir() { return std::rc::Rc::new(vec![std::rc::Rc::<str>::from(joined)]); } pattern.push("**".to_owned()); } let base = pattern.iter().take_while(|segment| !segment.contains(star)).cloned().collect::<Vec<_>>(); let pattern_refs = pattern.iter().map(String::as_str).collect::<Vec<_>>(); let excluded = segments(&*v3); let excluded_refs = excluded.iter().map(String::as_str).collect::<Vec<_>>(); let masks = (&*v2).split(char::from(44u8)).map(str::trim).filter(|mask| !mask.is_empty()).collect::<Vec<_>>(); let skip = [".git", "target", "node_modules", "_build", "deps"]; let mut found = Vec::new(); let mut stack = vec![base.clone()]; while let Some(folder) = stack.pop() { let Ok(entries) = std::fs::read_dir(root.join(folder.join("/"))) else { continue }; for entry in entries.filter_map(|entry| entry.ok()) { let Ok(kind) = entry.file_type() else { continue }; if kind.is_symlink() { continue; } let name = entry.file_name().to_string_lossy().into_owned(); let mut relative = folder.clone(); relative.push(name.clone()); if kind.is_dir() { if !skip.contains(&name.as_str()) { stack.push(relative); } continue; } let relative_refs = relative.iter().map(String::as_str).collect::<Vec<_>>(); if glob_match(&pattern_refs, &relative_refs) && (masks.is_empty() || masks.iter().any(|mask| wildcard(mask, &name))) && (excluded_refs.is_empty() || !glob_match(&excluded_refs, &relative_refs)) { found.push(relative.join("/")); } } } found.sort(); std::rc::Rc::new(found.into_iter().map(std::rc::Rc::<str>::from).collect::<Vec<_>>()) };
-    v4.clone()
+    let mut v4: std::rc::Rc<Vec<std::rc::Rc<str>>> = kit_do_walk::kit_do_walk_matching(&*v0, &*v1, &*v2, &*v3);
+    v4
 }
 fn touched_with_25(mut v0: std::rc::Rc<std::cell::RefCell<std::collections::BTreeSet<std::rc::Rc<str>>>>, mut v1: std::rc::Rc<Vec<std::rc::Rc<str>>>) -> () {
     v0.borrow_mut().extend(v1.iter().cloned());
@@ -616,7 +616,7 @@ fn lines_joined_27(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         } else {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v4)), v1));
-            v6.clone()
+            v6
         }
     }
 }
@@ -740,12 +740,12 @@ fn receipt_counts_28(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v21: Rc<str> = decimal_text_29(v4);
         let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched  matches "); } LIT.with(|lit| lit.clone()) };
         let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v20, Rc::<str>::from(format!("{}{}", v22, v21))));
-        v24.clone()
+        v24
     } else {
         let v25: Rc<str> = decimal_text_29(v12);
         let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) };
         let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v25));
-        v27.clone()
+        v27
     };
     let v29: bool = v7 == 0u64;
     let v31: bool = if v29 {
@@ -759,9 +759,9 @@ fn receipt_counts_28(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v32));
         let v34: Rc<str> = decimal_text_29(v4);
         let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v34));
-        v35.clone()
+        v35
     } else {
-        v28.clone()
+        v28
     };
     let v37: bool = v8 > 0u64;
     let v42: Rc<str> = if v37 {
@@ -769,9 +769,9 @@ fn receipt_counts_28(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v36, v38));
         let v40: Rc<str> = decimal_text_29(v5);
         let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
-        v41.clone()
+        v41
     } else {
-        v36.clone()
+        v36
     };
     let v43: bool = v9 > 0u64;
     let v48: Rc<str> = if v43 {
@@ -779,16 +779,16 @@ fn receipt_counts_28(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
         let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v44));
         let v46: Rc<str> = decimal_text_29(v6);
         let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v46));
-        v47.clone()
+        v47
     } else {
-        v42.clone()
+        v42
     };
     let v49: Rc<str> = decimal_text_29(v10);
     let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("waits "); } LIT.with(|lit| lit.clone()) };
     let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v49));
     let v52: bool = v10 == 0u64;
     if v52 {
-        v48.clone()
+        v48
     } else {
         let v53: bool = v11 == 0u64;
         if v53 {
@@ -800,7 +800,7 @@ fn receipt_counts_28(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
             let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v56));
             let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  exit 3"); } LIT.with(|lit| lit.clone()) };
             let v59: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v58));
-            v59.clone()
+            v59
         }
     }
 }
@@ -821,11 +821,11 @@ fn receipt_line_30(mut v0: US7, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US7::US7_Failed => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US7::US7_Succeeded => {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
@@ -912,22 +912,22 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn report_text_35(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1.clone());
+    let v2: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1);
     let mut v3: std::rc::Rc<std::cell::RefCell<std::collections::BTreeSet<std::rc::Rc<str>>>> = std::rc::Rc::new(std::cell::RefCell::new(std::collections::BTreeSet::new()));
     let mut v4: i32 = 1i32;
     let (mut v5, mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13, mut v14, mut v15, mut v16): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = empty_query_tally_14();
-    let (mut v17, mut v18, mut v19, mut v20, mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = queries_run_15(v0.clone(), v3.clone(), v2.clone(), v4, v5.clone(), v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16);
+    let (mut v17, mut v18, mut v19, mut v20, mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = queries_run_15(v0, v3, v2, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16);
     let v29: Rc<str> = std::rc::Rc::<str>::from(char::from(30u8).to_string());
     let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v29));
     let v33: Rc<str> = if v18 {
         let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1"); } LIT.with(|lit| lit.clone()) };
-        v31.clone()
+        v31
     } else {
         let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0"); } LIT.with(|lit| lit.clone()) };
-        v32.clone()
+        v32
     };
     let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v33));
-    v34.clone()
+    v34
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {

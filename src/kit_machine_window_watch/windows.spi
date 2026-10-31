@@ -1,10 +1,10 @@
-:< rust_std_string.model
+:< sm'_operators
 :< kit_machine_watch_model.model
 
 := line_count (~text : string) : i32 = $'(&*!text).lines().filter(|line| \!line.is_empty()).count() as i32' : i32
 inl line_at (~text : string) (index : i32) : string = $'std::rc::Rc::<str>::from((&*!text).lines().filter(|line| \
     \!line.is_empty()).nth(!index as usize).unwrap_or(""))' : string
-:= appended (~text : string) (~line : string) : string = ? text = "" ?> line |: concat5 text "\n" line "" ""
+:= appended (~text : string) (~line : string) : string = ? text = "" ?> line |: text ++# "\n" ++# line
 := job_state_word (~id : string) : string = $'kit_job_control::kit_job_state_word(&*!id)' : string
 inl tab_field (~row : string) (index : i32) : string = $'std::rc::Rc::<str>::from((&*!row).split(char::from(9u8)).nth(\
     !index as usize).unwrap_or(""))' : string
@@ -18,9 +18,8 @@ inl label_job (~label : string) : string = $'std::rc::Rc::<str>::from((&*!label)
         := job = label_job (tab_field row 3i32)
         := state = ? job = "" ?> "" |: job_state_word job
         := line =
-            concat5 "  " (tab_field row 0i32) "  " (tab_field row 1i32) (
-                concat5 "  " (tab_field row 2i32) "  " (tab_field row 3i32) (window_text (
-                window_health_of (tab_field row 2i32 = "held") state)))
+            "  " ++# tab_field row 0i32 ++# "  " ++# tab_field row 1i32 ++# "  " ++# tab_field row 2i32 ++# "  "
+            ++# tab_field row 3i32 ++# window_text (window_health_of (tab_field row 2i32 = "held") state)
         windows_watched windows (index + 1i32) (appended report line)
 
 :~ gate_summary () : string =

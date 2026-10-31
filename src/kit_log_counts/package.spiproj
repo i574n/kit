@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    kit_log_sections
+modules:
+    count_scan
+    entry

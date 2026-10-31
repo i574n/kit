@@ -168,7 +168,7 @@
 :~ migration_written (~path : string) (migration : migration_pass) (~original : string) (started : u64) : i32 =
     ? migration.tasks = 0i32 ?> migration_receipt "ok unchanged" migration original started
     |:
-        ?= replace_file_checked path migration.state ?|
+        ?= replace_records_unchanged path original migration.state ?|
         | Replaced => migration_receipt "ok" migration original started
         | problem => migration_failure (file_replacement_problem problem)
 

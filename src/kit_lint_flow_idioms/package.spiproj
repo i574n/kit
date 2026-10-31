@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    kit_lint_pattern
+    kit_lint_flow
+    kit_lint_flow_constructs
+modules:
+    idioms
+    entry

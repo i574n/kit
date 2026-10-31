@@ -8,8 +8,7 @@
 
 := stdout_line (~text : string) : () = console.write_line text
 
-:~ part_at (~text : string) (~index : i32) : string =
-    $'std::rc::Rc::<str>::from(!text.split(char::from(30u8)).nth(!index as usize).unwrap_or(""))' : string
+:~ part_at (~text : string) (~index : i32) : string = sm'.split_nth 30u8 index text
 
 :~ duration_ms (~text : string) : u64 =
     $'{ let text = (&*!text).trim(); let (digits, scale) = if let Some(value) = text.strip_suffix("ms") { (value, \

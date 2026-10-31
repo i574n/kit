@@ -160,25 +160,25 @@ fn patch_plan_failure_binding_3(mut v0: i32) -> Rc<str> {
     let v1: bool = v0 == 0i32;
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("typed patch plan contains no PatchExact values"); } LIT.with(|lit| lit.clone()) };
-        v2.clone()
+        v2
     } else {
         let v3: bool = v0 == -1i32;
         if v3 {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("typed patch plan is malformed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         } else {
             let v5: bool = v0 == -2i32;
             if v5 {
                 let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("typed patch plan exceeds 256 KiB"); } LIT.with(|lit| lit.clone()) };
-                v6.clone()
+                v6
             } else {
                 let v7: bool = v0 == -3i32;
                 if v7 {
                     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("typed patch plan source is unavailable"); } LIT.with(|lit| lit.clone()) };
-                    v8.clone()
+                    v8
                 } else {
                     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("typed patch plan returned an invalid witness"); } LIT.with(|lit| lit.clone()) };
-                    v9.clone()
+                    v9
                 }
             }
         }

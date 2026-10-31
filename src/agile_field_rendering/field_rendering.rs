@@ -178,7 +178,7 @@ fn quoted_field_value_3(mut v0: Rc<str>) -> US2 {
     let v15: Rc<str> = std::rc::Rc::<str>::from(v12.replace(&*v13, &v14));
     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v17: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v15, &*v1, &*v16, &*v16].concat());
-    US2::US2_Valid(v17.clone())
+    US2::US2_Valid(v17)
 }
 fn edit_field_token_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     let v3: US0 = parse_edit_field_1(v0.clone());
@@ -533,7 +533,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn edit_field_rule_4(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = parse_edit_field_1(v0.clone());
+    let v1: US0 = parse_edit_field_1(v0);
     match &v1 {
         US0::US0_Invalid => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("field must be "); } LIT.with(|lit| lit.clone()) };
@@ -541,26 +541,26 @@ fn edit_field_rule_4(mut v0: Rc<str>) -> Rc<str> {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("field must be title, title-append, kind, priority, difficulty, deps, tags"); } LIT.with(|lit| lit.clone()) };
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", estimate, load or assignee"); } LIT.with(|lit| lit.clone()) };
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("field must be title, title-append, kind, priority, difficulty, deps, tags, estimate, load or assignee"); } LIT.with(|lit| lit.clone()) };
-            v14.clone()
+            v14
         }
         US0::US0_Valid(v2) => {
             let v2: US1 = v2.clone();
             match &v2 {
                 US1::US1_EditDifficulty => {
                     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("difficulty must be D0..D8"); } LIT.with(|lit| lit.clone()) };
-                    v5.clone()
+                    v5
                 }
                 US1::US1_EditKind => {
                     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kind must be Epic, Feature, Story or TaskKind"); } LIT.with(|lit| lit.clone()) };
-                    v3.clone()
+                    v3
                 }
                 US1::US1_EditPriority => {
                     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("priority must be P0..P5"); } LIT.with(|lit| lit.clone()) };
-                    v4.clone()
+                    v4
                 }
                 _ => {
                     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the value was rejected"); } LIT.with(|lit| lit.clone()) };
-                    v6.clone()
+                    v6
                 }
             }
         }

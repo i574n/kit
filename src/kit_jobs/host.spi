@@ -2,8 +2,7 @@
 
 :! spawn_outcome = $'Result<std::rc::Rc<std::cell::RefCell<std::process::Child>>, std::rc::Rc<str>>'
 
-:= argument (~index : i32) : string =
-    $'std::rc::Rc::<str>::from(std::env::args().nth(!index as usize).unwrap_or_default())' : string
+:= argument (~index : i32) : string = rust_std_env.model.argument_at index
 
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
 
@@ -24,9 +23,10 @@
 
 :~ heavy_gate_script () : string =
     $'std::rc::Rc::<str>::from(std::env::var_os("KIT_HEAVY_GATE").map(std::path::PathBuf::from).filter(|path| \
-        path.is_file()).or_else(|| std::env::current_dir().ok().and_then(|cwd| cwd.ancestors().map(|base| \
-        base.join("spiral").join("apps").join("compiler").join("tmp").join("scripts").join("heavy.ps1")).find(|candida\
-        te| candidate.is_file()))).map(|path| path.to_string_lossy().into_owned()).unwrap_or_default())' : string
+        path.is_file()).or_else(|| std::env::current_dir().ok().and_then(|cwd| cwd.ancestors().find_map(|base| { \
+        let compiler = base.join("spiral").join("apps").join("compiler"); [compiler.join("scripts").join("heavy.ps1"), \
+        compiler.join("tmp").join("scripts").join("heavy.ps1")].into_iter().find(|candidate| candidate.is_file()) \
+        }))).map(|path| path.to_string_lossy().into_owned()).unwrap_or_default())' : string
 
 :~ jobs_root () : string =
     $'std::rc::Rc::<str>::from(std::env::var_os("KIT_JOBS_HOME").map(std::path::PathBuf::from).or_else(|| \

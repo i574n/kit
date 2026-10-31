@@ -1,8 +1,13 @@
+function Get-KitSpiralScript {
+    param([Parameter(Mandatory)][string]$CompilerBundle, [Parameter(Mandatory)][string]$Name)
+    @('../scripts', 'scripts') | ForEach-Object { Join-Path $CompilerBundle "$_/$Name" } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+}
+
 function Resolve-KitSpiralBundle {
     param([string]$CompilerBundle)
     if (-not $CompilerBundle) { $CompilerBundle = $env:KIT_SPIRAL_BUNDLE }
     if (-not $CompilerBundle) { $CompilerBundle = Join-Path $PSScriptRoot '../../spiral/apps/compiler/tmp' }
-    if (-not (Test-Path -LiteralPath (Join-Path $CompilerBundle 'scripts/env.ps1'))) {
+    if (-not (Get-KitSpiralScript $CompilerBundle 'env.ps1')) {
         throw "Spiral compiler bundle not found at $CompilerBundle. Clone https://github.com/i574n/spiral beside this repository or set KIT_SPIRAL_BUNDLE to its apps/compiler/tmp."
     }
     $bundle = (Resolve-Path -LiteralPath $CompilerBundle).Path

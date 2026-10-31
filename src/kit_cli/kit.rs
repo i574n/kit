@@ -1,7 +1,7 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
-use kit_command_help::{kit_agile_subcommand_known, kit_command_more_usages}; use command_spec_domain::{kit_command_code, kit_command_count, kit_command_descriptor, kit_command_descriptor_named, kit_command_descriptor_json, kit_command_schema_witness, kit_command_proxy_usage, kit_proxy_route_code, kit_proxy_route_witness, kit_help_flag_code, kit_help_flag_witness};
+use kit_command_help::kit_agile_subcommand_known; use kit_command_usages::kit_command_more_usages; use command_spec_domain::{kit_command_code, kit_command_count, kit_command_descriptor, kit_command_descriptor_named, kit_command_descriptor_json, kit_command_schema_witness, kit_command_proxy_usage, kit_proxy_route_code, kit_proxy_route_witness, kit_help_flag_code, kit_help_flag_witness};
 use canonical_plan_ir_domain::{kit_plan_ir_count, kit_plan_ir_decode_code, kit_plan_ir_descriptor, kit_plan_ir_index_valid, kit_plan_ir_projection_witness, kit_plan_ir_schema, kit_plan_ir_stage_witness};
 use kit_agile_lease::lease_authority_code;
 
@@ -337,6 +337,7 @@ enum US2 {
     US2_VerbStandup,
     US2_VerbEvidence,
     US2_VerbLint,
+    US2_VerbSchedule,
 }
 #[derive(Clone)]
 enum US1 {
@@ -391,168 +392,175 @@ fn lowercase_named_3(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
 }
 fn direct_of_2(mut v0: Rc<str>) -> US1 {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Job"); } LIT.with(|lit| lit.clone()) };
-    let v2: bool = lowercase_named_3(v0.clone(), v1.clone());
+    let v2: bool = lowercase_named_3(v0.clone(), v1);
     if v2 {
         let v3: US2 = US2::US2_VerbJob;
-        US1::US1_DirectKnown(v3.clone())
+        US1::US1_DirectKnown(v3)
     } else {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Repo"); } LIT.with(|lit| lit.clone()) };
-        let v6: bool = lowercase_named_3(v0.clone(), v5.clone());
+        let v6: bool = lowercase_named_3(v0.clone(), v5);
         if v6 {
             let v7: US2 = US2::US2_VerbRepo;
-            US1::US1_DirectKnown(v7.clone())
+            US1::US1_DirectKnown(v7)
         } else {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Table"); } LIT.with(|lit| lit.clone()) };
-            let v10: bool = lowercase_named_3(v0.clone(), v9.clone());
+            let v10: bool = lowercase_named_3(v0.clone(), v9);
             if v10 {
                 let mut v11: US2 = US2::US2_VerbTable;
-                US1::US1_DirectKnown(v11.clone())
+                US1::US1_DirectKnown(v11)
             } else {
                 let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Read"); } LIT.with(|lit| lit.clone()) };
-                let v14: bool = lowercase_named_3(v0.clone(), v13.clone());
+                let v14: bool = lowercase_named_3(v0.clone(), v13);
                 if v14 {
                     let v15: US2 = US2::US2_VerbRead;
-                    US1::US1_DirectKnown(v15.clone())
+                    US1::US1_DirectKnown(v15)
                 } else {
                     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Lines"); } LIT.with(|lit| lit.clone()) };
-                    let v18: bool = lowercase_named_3(v0.clone(), v17.clone());
+                    let v18: bool = lowercase_named_3(v0.clone(), v17);
                     if v18 {
                         let v19: US2 = US2::US2_VerbLines;
-                        US1::US1_DirectKnown(v19.clone())
+                        US1::US1_DirectKnown(v19)
                     } else {
                         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Grep"); } LIT.with(|lit| lit.clone()) };
-                        let v22: bool = lowercase_named_3(v0.clone(), v21.clone());
+                        let v22: bool = lowercase_named_3(v0.clone(), v21);
                         if v22 {
                             let v23: US2 = US2::US2_VerbGrep;
-                            US1::US1_DirectKnown(v23.clone())
+                            US1::US1_DirectKnown(v23)
                         } else {
                             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Do"); } LIT.with(|lit| lit.clone()) };
-                            let v26: bool = lowercase_named_3(v0.clone(), v25.clone());
+                            let v26: bool = lowercase_named_3(v0.clone(), v25);
                             if v26 {
                                 let v27: US2 = US2::US2_VerbDo;
-                                US1::US1_DirectKnown(v27.clone())
+                                US1::US1_DirectKnown(v27)
                             } else {
                                 let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Ps"); } LIT.with(|lit| lit.clone()) };
-                                let v30: bool = lowercase_named_3(v0.clone(), v29.clone());
+                                let v30: bool = lowercase_named_3(v0.clone(), v29);
                                 if v30 {
                                     let v31: US2 = US2::US2_VerbPs;
-                                    US1::US1_DirectKnown(v31.clone())
+                                    US1::US1_DirectKnown(v31)
                                 } else {
                                     let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Kill"); } LIT.with(|lit| lit.clone()) };
-                                    let v34: bool = lowercase_named_3(v0.clone(), v33.clone());
+                                    let v34: bool = lowercase_named_3(v0.clone(), v33);
                                     if v34 {
                                         let v35: US2 = US2::US2_VerbKill;
-                                        US1::US1_DirectKnown(v35.clone())
+                                        US1::US1_DirectKnown(v35)
                                     } else {
                                         let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Standards"); } LIT.with(|lit| lit.clone()) };
-                                        let v38: bool = lowercase_named_3(v0.clone(), v37.clone());
+                                        let v38: bool = lowercase_named_3(v0.clone(), v37);
                                         if v38 {
                                             let v39: US2 = US2::US2_VerbStandards;
-                                            US1::US1_DirectKnown(v39.clone())
+                                            US1::US1_DirectKnown(v39)
                                         } else {
                                             let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Window"); } LIT.with(|lit| lit.clone()) };
-                                            let v42: bool = lowercase_named_3(v0.clone(), v41.clone());
+                                            let v42: bool = lowercase_named_3(v0.clone(), v41);
                                             if v42 {
                                                 let v43: US2 = US2::US2_VerbWindow;
-                                                US1::US1_DirectKnown(v43.clone())
+                                                US1::US1_DirectKnown(v43)
                                             } else {
                                                 let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Experiment"); } LIT.with(|lit| lit.clone()) };
-                                                let v46: bool = lowercase_named_3(v0.clone(), v45.clone());
+                                                let v46: bool = lowercase_named_3(v0.clone(), v45);
                                                 if v46 {
                                                     let v47: US2 = US2::US2_VerbExperiment;
-                                                    US1::US1_DirectKnown(v47.clone())
+                                                    US1::US1_DirectKnown(v47)
                                                 } else {
                                                     let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Guide"); } LIT.with(|lit| lit.clone()) };
-                                                    let v50: bool = lowercase_named_3(v0.clone(), v49.clone());
+                                                    let v50: bool = lowercase_named_3(v0.clone(), v49);
                                                     if v50 {
                                                         let v51: US2 = US2::US2_VerbGuide;
-                                                        US1::US1_DirectKnown(v51.clone())
+                                                        US1::US1_DirectKnown(v51)
                                                     } else {
                                                         let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Machine"); } LIT.with(|lit| lit.clone()) };
-                                                        let v54: bool = lowercase_named_3(v0.clone(), v53.clone());
+                                                        let v54: bool = lowercase_named_3(v0.clone(), v53);
                                                         if v54 {
                                                             let v55: US2 = US2::US2_VerbMachine;
-                                                            US1::US1_DirectKnown(v55.clone())
+                                                            US1::US1_DirectKnown(v55)
                                                         } else {
                                                             let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Adoption"); } LIT.with(|lit| lit.clone()) };
-                                                            let v58: bool = lowercase_named_3(v0.clone(), v57.clone());
+                                                            let v58: bool = lowercase_named_3(v0.clone(), v57);
                                                             if v58 {
                                                                 let v59: US2 = US2::US2_VerbAdoption;
-                                                                US1::US1_DirectKnown(v59.clone())
+                                                                US1::US1_DirectKnown(v59)
                                                             } else {
                                                                 let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Memory"); } LIT.with(|lit| lit.clone()) };
-                                                                let v62: bool = lowercase_named_3(v0.clone(), v61.clone());
+                                                                let v62: bool = lowercase_named_3(v0.clone(), v61);
                                                                 if v62 {
                                                                     let v63: US2 = US2::US2_VerbMemory;
-                                                                    US1::US1_DirectKnown(v63.clone())
+                                                                    US1::US1_DirectKnown(v63)
                                                                 } else {
                                                                     let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Resume"); } LIT.with(|lit| lit.clone()) };
-                                                                    let v66: bool = lowercase_named_3(v0.clone(), v65.clone());
+                                                                    let v66: bool = lowercase_named_3(v0.clone(), v65);
                                                                     if v66 {
                                                                         let v67: US2 = US2::US2_VerbResume;
-                                                                        US1::US1_DirectKnown(v67.clone())
+                                                                        US1::US1_DirectKnown(v67)
                                                                     } else {
                                                                         let v69: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Ci"); } LIT.with(|lit| lit.clone()) };
-                                                                        let v70: bool = lowercase_named_3(v0.clone(), v69.clone());
+                                                                        let v70: bool = lowercase_named_3(v0.clone(), v69);
                                                                         if v70 {
                                                                             let v71: US2 = US2::US2_VerbCi;
-                                                                            US1::US1_DirectKnown(v71.clone())
+                                                                            US1::US1_DirectKnown(v71)
                                                                         } else {
                                                                             let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Process"); } LIT.with(|lit| lit.clone()) };
-                                                                            let v74: bool = lowercase_named_3(v0.clone(), v73.clone());
+                                                                            let v74: bool = lowercase_named_3(v0.clone(), v73);
                                                                             if v74 {
                                                                                 let v75: US2 = US2::US2_VerbProcess;
-                                                                                US1::US1_DirectKnown(v75.clone())
+                                                                                US1::US1_DirectKnown(v75)
                                                                             } else {
                                                                                 let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Crate"); } LIT.with(|lit| lit.clone()) };
-                                                                                let v78: bool = lowercase_named_3(v0.clone(), v77.clone());
+                                                                                let v78: bool = lowercase_named_3(v0.clone(), v77);
                                                                                 if v78 {
                                                                                     let v79: US2 = US2::US2_VerbCrate;
-                                                                                    US1::US1_DirectKnown(v79.clone())
+                                                                                    US1::US1_DirectKnown(v79)
                                                                                 } else {
                                                                                     let v81: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Env"); } LIT.with(|lit| lit.clone()) };
-                                                                                    let v82: bool = lowercase_named_3(v0.clone(), v81.clone());
+                                                                                    let v82: bool = lowercase_named_3(v0.clone(), v81);
                                                                                     if v82 {
                                                                                         let v83: US2 = US2::US2_VerbEnv;
-                                                                                        US1::US1_DirectKnown(v83.clone())
+                                                                                        US1::US1_DirectKnown(v83)
                                                                                     } else {
                                                                                         let v85: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Mirror"); } LIT.with(|lit| lit.clone()) };
-                                                                                        let v86: bool = lowercase_named_3(v0.clone(), v85.clone());
+                                                                                        let v86: bool = lowercase_named_3(v0.clone(), v85);
                                                                                         if v86 {
                                                                                             let v87: US2 = US2::US2_VerbMirror;
-                                                                                            US1::US1_DirectKnown(v87.clone())
+                                                                                            US1::US1_DirectKnown(v87)
                                                                                         } else {
                                                                                             let v89: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Backlog"); } LIT.with(|lit| lit.clone()) };
-                                                                                            let v90: bool = lowercase_named_3(v0.clone(), v89.clone());
+                                                                                            let v90: bool = lowercase_named_3(v0.clone(), v89);
                                                                                             if v90 {
                                                                                                 let v91: US2 = US2::US2_VerbBacklog;
-                                                                                                US1::US1_DirectKnown(v91.clone())
+                                                                                                US1::US1_DirectKnown(v91)
                                                                                             } else {
                                                                                                 let v93: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Story"); } LIT.with(|lit| lit.clone()) };
-                                                                                                let v94: bool = lowercase_named_3(v0.clone(), v93.clone());
+                                                                                                let v94: bool = lowercase_named_3(v0.clone(), v93);
                                                                                                 if v94 {
                                                                                                     let v95: US2 = US2::US2_VerbStory;
-                                                                                                    US1::US1_DirectKnown(v95.clone())
+                                                                                                    US1::US1_DirectKnown(v95)
                                                                                                 } else {
                                                                                                     let v97: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Standup"); } LIT.with(|lit| lit.clone()) };
-                                                                                                    let v98: bool = lowercase_named_3(v0.clone(), v97.clone());
+                                                                                                    let v98: bool = lowercase_named_3(v0.clone(), v97);
                                                                                                     if v98 {
                                                                                                         let v99: US2 = US2::US2_VerbStandup;
-                                                                                                        US1::US1_DirectKnown(v99.clone())
+                                                                                                        US1::US1_DirectKnown(v99)
                                                                                                     } else {
                                                                                                         let v101: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Evidence"); } LIT.with(|lit| lit.clone()) };
-                                                                                                        let v102: bool = lowercase_named_3(v0.clone(), v101.clone());
+                                                                                                        let v102: bool = lowercase_named_3(v0.clone(), v101);
                                                                                                         if v102 {
                                                                                                             let v103: US2 = US2::US2_VerbEvidence;
-                                                                                                            US1::US1_DirectKnown(v103.clone())
+                                                                                                            US1::US1_DirectKnown(v103)
                                                                                                         } else {
                                                                                                             let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Lint"); } LIT.with(|lit| lit.clone()) };
-                                                                                                            let v106: bool = lowercase_named_3(v0.clone(), v105.clone());
+                                                                                                            let v106: bool = lowercase_named_3(v0.clone(), v105);
                                                                                                             if v106 {
                                                                                                                 let v107: US2 = US2::US2_VerbLint;
-                                                                                                                US1::US1_DirectKnown(v107.clone())
+                                                                                                                US1::US1_DirectKnown(v107)
                                                                                                             } else {
-                                                                                                                US1::US1_DirectUnknown
+                                                                                                                let v109: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Schedule"); } LIT.with(|lit| lit.clone()) };
+                                                                                                                let v110: bool = lowercase_named_3(v0, v109);
+                                                                                                                if v110 {
+                                                                                                                    let v111: US2 = US2::US2_VerbSchedule;
+                                                                                                                    US1::US1_DirectKnown(v111)
+                                                                                                                } else {
+                                                                                                                    US1::US1_DirectUnknown
+                                                                                                                }
                                                                                                             }
                                                                                                         }
                                                                                                     }
@@ -719,6 +727,10 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
                             let v53: i32 = kit_resume::kit_resume_run();
                             v53
                         }
+                        US2::US2_VerbSchedule => {
+                            let v67: i32 = kit_schedule::kit_schedule_run();
+                            v67
+                        }
                         US2::US2_VerbStandards => {
                             let v46: i32 = kit_standards::kit_standards_run();
                             v46
@@ -766,37 +778,37 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
                     }
                 }
                 US1::US1_DirectUnknown => {
-                    let v94: i32 = kit_legacy_operations::dogfood_shim_argv0_code();
-                    let v95: bool = 0i32 == v94;
-                    if v95 {
-                        let v96: i32 = KitProcessVerbCode();
-                        let v97: bool = v96 == 7i32;
-                        let v136: US3 = if v97 {
+                    let v96: i32 = kit_legacy_operations::dogfood_shim_argv0_code();
+                    let v97: bool = 0i32 == v96;
+                    if v97 {
+                        let v98: i32 = KitProcessVerbCode();
+                        let v99: bool = v98 == 7i32;
+                        let v138: US3 = if v99 {
                             US3::US3_LeaseDeniedHandler
                         } else {
-                            let v99: i32 = v96.wrapping_add(1i32);
-                            let v100: bool = v99 == 1i32;
-                            let v121: US4 = if v100 {
+                            let v101: i32 = v98.wrapping_add(1i32);
+                            let v102: bool = v101 == 1i32;
+                            let v123: US4 = if v102 {
                                 US4::US4_StatusSpec
                             } else {
-                                let v102: bool = v99 == 2i32;
-                                if v102 {
+                                let v104: bool = v101 == 2i32;
+                                if v104 {
                                     US4::US4_PatchSpec
                                 } else {
-                                    let v104: bool = v99 == 3i32;
-                                    if v104 {
+                                    let v106: bool = v101 == 3i32;
+                                    if v106 {
                                         US4::US4_AgileSpec
                                     } else {
-                                        let v106: bool = v99 == 4i32;
-                                        if v106 {
+                                        let v108: bool = v101 == 4i32;
+                                        if v108 {
                                             US4::US4_BundleSpec
                                         } else {
-                                            let v108: bool = v99 == 5i32;
-                                            if v108 {
+                                            let v110: bool = v101 == 5i32;
+                                            if v110 {
                                                 US4::US4_ProxySpec
                                             } else {
-                                                let v110: bool = v99 == 6i32;
-                                                if v110 {
+                                                let v112: bool = v101 == 6i32;
+                                                if v112 {
                                                     US4::US4_HelpSpec
                                                 } else {
                                                     US4::US4_UnknownSpec
@@ -806,7 +818,7 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
                                     }
                                 }
                             };
-                            match &v121 {
+                            match &v123 {
                                 US4::US4_AgileSpec => {
                                     US3::US3_AgileHandler
                                 }
@@ -830,92 +842,92 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
                                 }
                             }
                         };
-                        match &v136 {
+                        match &v138 {
                             US3::US3_AgileHandler => {
-                                let v168: i32 = KitAgileAdapter();
-                                v168
+                                let v170: i32 = KitAgileAdapter();
+                                v170
                             }
                             US3::US3_BundleHandler => {
-                                let v169: i32 = KitBundleAdapter();
-                                v169
+                                let v171: i32 = KitBundleAdapter();
+                                v171
                             }
                             US3::US3_HelpHandler => {
-                                let v171: i32 = KitHelpRejected();
-                                v171
+                                let v173: i32 = KitHelpRejected();
+                                v173
                             }
                             US3::US3_LeaseDeniedHandler => {
                                 2i32
                             }
                             US3::US3_PatchHandler => {
-                                let v167: i32 = KitPatchAdapter();
-                                v167
+                                let v169: i32 = KitPatchAdapter();
+                                v169
                             }
                             US3::US3_ProxyHandler => {
-                                let v170: i32 = KitProxyAdapter();
-                                v170
+                                let v172: i32 = KitProxyAdapter();
+                                v172
                             }
                             US3::US3_StatusHandler => {
-                                let v137: i32 = std::env::args().skip(2).count() as i32;
-                                let v138: bool = 0i32 == v137;
-                                if v138 {
-                                    let v139: i32 = bootstrap_authority_status::kit_bootstrap_workspace_state_status();
-                                    let v140: bool = 1i32 == v139;
-                                    if v140 {
-                                        let v141: i32 = bootstrap_authority_status::kit_bootstrap_compiler_session_status();
-                                        let v142: bool = 1i32 == v141;
-                                        if v142 {
-                                            let v143: i32 = bootstrap_authority_status::kit_bootstrap_legacy_bundle_writer_status();
-                                            let v144: bool = 1i32 == v143;
-                                            if v144 {
-                                                let v145: i32 = bootstrap_authority_status::kit_bootstrap_ingest_frontier_status();
-                                                let v146: bool = 1i32 == v145;
-                                                if v146 {
-                                                    let v147: i32 = process_batch_plan_domain::kit_batch_matrix_auto_chain_budget(60000, 16000);
-                                                    let v148: bool = 1i32 == v147;
-                                                    if v148 {
-                                                        let v149: i32 = bootstrap_authority_status::kit_bootstrap_settled_migration_status();
-                                                        let v150: i32 = KitStatusOk(v149);
-                                                        v150
+                                let v139: i32 = std::env::args().skip(2).count() as i32;
+                                let v140: bool = 0i32 == v139;
+                                if v140 {
+                                    let v141: i32 = bootstrap_authority_status::kit_bootstrap_workspace_state_status();
+                                    let v142: bool = 1i32 == v141;
+                                    if v142 {
+                                        let v143: i32 = bootstrap_authority_status::kit_bootstrap_compiler_session_status();
+                                        let v144: bool = 1i32 == v143;
+                                        if v144 {
+                                            let v145: i32 = bootstrap_authority_status::kit_bootstrap_legacy_bundle_writer_status();
+                                            let v146: bool = 1i32 == v145;
+                                            if v146 {
+                                                let v147: i32 = bootstrap_authority_status::kit_bootstrap_ingest_frontier_status();
+                                                let v148: bool = 1i32 == v147;
+                                                if v148 {
+                                                    let v149: i32 = process_batch_plan_domain::kit_batch_matrix_auto_chain_budget(60000, 16000);
+                                                    let v150: bool = 1i32 == v149;
+                                                    if v150 {
+                                                        let v151: i32 = bootstrap_authority_status::kit_bootstrap_settled_migration_status();
+                                                        let v152: i32 = KitStatusOk(v151);
+                                                        v152
                                                     } else {
-                                                        let v151: i32 = KitStatusAuthorityError();
-                                                        v151
+                                                        let v153: i32 = KitStatusAuthorityError();
+                                                        v153
                                                     }
                                                 } else {
-                                                    let v153: i32 = KitStatusAuthorityError();
-                                                    v153
+                                                    let v155: i32 = KitStatusAuthorityError();
+                                                    v155
                                                 }
                                             } else {
-                                                let v155: i32 = KitStatusAuthorityError();
-                                                v155
+                                                let v157: i32 = KitStatusAuthorityError();
+                                                v157
                                             }
                                         } else {
-                                            let v157: i32 = KitStatusAuthorityError();
-                                            v157
+                                            let v159: i32 = KitStatusAuthorityError();
+                                            v159
                                         }
                                     } else {
-                                        let v159: i32 = KitStatusAuthorityError();
-                                        v159
+                                        let v161: i32 = KitStatusAuthorityError();
+                                        v161
                                     }
                                 } else {
-                                    let v161: bool = 1i32 == v137;
-                                    if v161 {
-                                        let v162: i32 = bootstrap_authority_status::kit_bootstrap_settled_migration_status();
-                                        let v163: i32 = KitStatusLive(v162);
-                                        v163
+                                    let v163: bool = 1i32 == v139;
+                                    if v163 {
+                                        let v164: i32 = bootstrap_authority_status::kit_bootstrap_settled_migration_status();
+                                        let v165: i32 = KitStatusLive(v164);
+                                        v165
                                     } else {
-                                        let v164: i32 = KitStatusArityError();
-                                        v164
+                                        let v166: i32 = KitStatusArityError();
+                                        v166
                                     }
                                 }
                             }
                             US3::US3_UnknownHandler => {
-                                let v172: i32 = KitUnknownRejected();
-                                v172
+                                let v174: i32 = KitUnknownRejected();
+                                v174
                             }
                         }
                     } else {
-                        let v181: i32 = kit_legacy_operations::dogfood_shim_dispatch();
-                        v181
+                        let v183: i32 = kit_legacy_operations::dogfood_shim_dispatch();
+                        v183
                     }
                 }
             }

@@ -39,7 +39,7 @@
 := harvest_roots (~text : string) : string = harvest_roots_from text 0i32 ""
 
 := first_item_offset (~text : string) : i32 =
-    ? rust_std_string.model.starts_with text "inl " ?> 0i32
+    ? sm'.starts_with "inl " text ?> 0i32
     |:
         := found = byte_find text "\ninl "
         ? found < 0i32 ?> byte_len text |: found + 1i32
@@ -47,7 +47,7 @@
 :~ ^ rows_end_from (~text : string) (offset : i32) : i32 =
     := line_end = byte_find_from text "\n" offset
     := stop = ? line_end < 0i32 ?> byte_len text |: line_end + 1i32
-    ? rust_std_string.model.contains (byte_slice text offset stop) (harvest_row_marker ())
+    ? sm'.contains (harvest_row_marker ()) (byte_slice text offset stop)
     ?> rows_end_from text stop
     |: offset
 
@@ -55,16 +55,16 @@
     rust_std_string.model.concat5 (byte_slice text 0i32 at) middle (byte_slice text at (byte_len text)) "" ""
 
 := schema_ensured (~text : string) : string =
-    ? rust_std_string.model.contains text (harvest_schema_head ()) ?> text
+    ? sm'.contains (harvest_schema_head ()) text ?> text
     |: spliced text (first_item_offset text) (harvest_schema ())
 
 := root_listed (~text : string) (~path : string) : bool =
-    rust_std_string.model.contains text (rust_std_string.model.concat5 (harvest_row_marker ()) path "\"\n" "" "")
+    sm'.contains (rust_std_string.model.concat5 (harvest_row_marker ()) path "\"\n" "" "") text
 
 :~ root_added (~text : string) (~raw : string) : roots_edit =
     := path = root_normalized raw
     ? path = "" ?> RootsRefused "a harvest root needs a path"
-    |? rust_std_string.model.contains path "\"" ?> RootsRefused "a harvest root cannot contain a double quote"
+    |? sm'.contains "\"" path ?> RootsRefused "a harvest root cannot contain a double quote"
     |? root_listed text path ?> RootsRefused (rust_std_string.model.concat5 path " is already a harvest root" "" "" "")
     |:
         := ensured = schema_ensured text
@@ -102,10 +102,10 @@
     expect (harvest_roots first = "C:/work/repo") first
     expect
         (
-            rust_std_string.model.contains first (
+            sm'.contains (
                 "union harvest_root =\n    | HarvestRoot :: string -> harvest_root\n\n"
                 ^^ "inl harvest_root_c__work_repo () = HarvestRoot \"C:/work/repo\"\ninl a () = Task"
-            )
+            ) first
         )
         first
     := second = edited_text (root_added first "C:/work/tools")

@@ -1,0 +1,5 @@
+:< kit_machine_windows.windows
+
+:= main () : i32 =
+    export "kit_window_request_run" ((\ () => window_requested ()) : () -> i32)
+    0i32

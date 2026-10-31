@@ -54,6 +54,18 @@
     fixture_root_remove root
 
 ///> rust
+:# items_batched_for_the_user_are_not_offered =
+    := root = fixture_root_create "agile next user batch"
+    := rows =
+        cat (task_row "MINE" "P2" "D2" "Planned" "" "kit") (task_row "THEIRS" "P0" "D1" "Planned" "" "kit, user-batch")
+    fixture_write root "state/agile.spi" rows
+    := out = succeeded (next_run root NoArgs)
+    same (ranked_word out "1") "MINE"
+    hides out "THEIRS"
+    shows out "ready=1 shown=1"
+    fixture_root_remove root
+
+///> rust
 :# subagents_get_the_longest_items_first_and_a_count_limits_the_list =
     := root = backlog_root ()
     := out = succeeded (next_run root (Arg ("--as", Arg ("subagent", Arg ("2", NoArgs)))))

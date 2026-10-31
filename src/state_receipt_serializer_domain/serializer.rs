@@ -34,7 +34,7 @@ fn find_char_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
 }
 fn method5() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_4() -> Rc<str> {
     method5()
@@ -44,16 +44,16 @@ fn receipt_row_kind_text_6(mut v0: Rc<str>) -> Rc<str> {
     let v2: bool = v0 == v1 ;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("snapshot"); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     } else {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("2"); } LIT.with(|lit| lit.clone()) };
         let v5: bool = v0 == v4 ;
         if v5 {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("module"); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
         } else {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v7.clone()
+            v7
         }
     }
 }
@@ -92,7 +92,7 @@ fn receipt_attestation_kind_code_8(mut v0: Rc<str>) -> u64 {
             let v6: i32 = 0i32;
             let v7: i32 = 0i32;
             let v8: i32 = 6i32;
-            starts_with_loop_7(v0.clone(), v5.clone(), v6, v7, v8)
+            starts_with_loop_7(v0, v5, v6, v7, v8)
         };
         if v10 {
             2u64

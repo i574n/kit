@@ -15,3 +15,4 @@ path = "measures.rs"
 
 [dependencies]
 kit-table-text = { path = "../kit_table_text" }
+

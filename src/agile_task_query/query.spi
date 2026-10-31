@@ -13,7 +13,8 @@
 := team_id_prefix (~word : string) : string = (sm'.to_upper word) ++# "-"
 
 :~ on_team (~word : string) (~id : string) (~tags : string) : bool =
-    tag_listed tags word || sm'.starts_with (team_id_prefix word) id
+    tag_listed tags word || tag_listed tags ("team:" ++# word) || tag_listed tags (word ++# "-team")
+    || sm'.starts_with (team_id_prefix word) id
 
 := open_status (~status : string) : bool = status = "Planned" || status = "Active"
 
@@ -241,6 +242,10 @@
     testing.expect (on_team "ops" "OPSX-A" "" = !-) "the prefix ends at its dash"
     testing.expect (on_team "ops" "CI-A" "devops" = !-) "a tag is a whole item, not a substring"
     testing.expect (on_team "web" "OPS-A" "web" && on_team "ops" "OPS-A" "web") "an item can sit on several teams"
+    testing.expect
+        (on_team "ops" "CI-A" "team:ops,deploy" && on_team "ops" "CI-A" "deploy,ops-team")
+        "team:<t> and <t>-team name it too"
+    testing.expect (on_team "ops" "CI-A" "team:devops" = !-) "team: forms match the whole team word"
     testing.expect
         (team_word_valid "ops" && team_word_valid "team-2" && team_word_valid "Ops" = !- && team_word_valid "" = !-)
         "team words are lower-case"

@@ -1,0 +1,40 @@
+///- --package .
+:# servers static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_jobs_doctor_model.model
+
+:~ ^ servers_from
+    (rows : kit_machine_watch.host.process_rows) (at : i32) (count : i32) (found : list server_fact)
+    : list server_fact
+    =
+    ? count <= at
+    ?> listm.rev found
+    |:
+        := command = kit_machine_watch.host.row_command rows at
+        ? serves_cells command |> not
+        ?> servers_from rows (at + 1i32) count found
+        |:
+            := owner = cells_owner_of command
+            := server =
+                {
+                    pid = kit_machine_watch.host.row_pid rows at
+                    owner = owner
+                    owner_alive = kit_machine_watch.host.row_of_pid rows owner >= 0i32
+                }
+            servers_from rows (at + 1i32) count (server :: found)
+
+:~ server_facts () : list server_fact =
+    := rows = kit_machine_watch.host.process_rows_sampled 50u64
+    servers_from rows 0i32 (kit_machine_watch.host.row_count rows) []
+
+:~ server_report () : i32 * string =
+    := findings = server_findings (server_facts ())
+    := text =
+        findings
+        |> listm.fold
+            \ (joined : string) (item : finding) =>
+                ? joined = "" ?> finding_line item |: joined ++# "\n" ++# finding_line item
+            ""
+    (listm.length findings : i32), text

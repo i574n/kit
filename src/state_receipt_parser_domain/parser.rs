@@ -34,7 +34,7 @@ fn find_char_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
 }
 fn method5() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_4() -> Rc<str> {
     method5()
@@ -483,7 +483,7 @@ fn receipt_parse_0(mut v0: Rc<str>) -> Rc<str> {
     let v1: i32 = 0i32;
     let v2: i32 = (v0.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    parse_source_loop_1(v0.clone(), v1, v2, v3.clone())
+    parse_source_loop_1(v0, v1, v2, v3)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {

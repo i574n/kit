@@ -16,3 +16,4 @@ path = "kill.rs"
 [dependencies]
 regex = "1.13.1"
 sysinfo = "0.38.4"
+kit-machine-sample = { path = "../kit_machine_sample" }

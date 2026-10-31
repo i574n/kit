@@ -113,7 +113,7 @@
             ++# decimal_text before
         )
         0i32
-:= record_mark () : string = $'std::rc::Rc::<str>::from(char::from(30u8).to_string())' : string
+:= record_mark () : string = sm'.char_text 30u8
 
 :~ launched_text (~label : string) (~timeout : u64) (~inner : string) (~cwd : string) : string =
     $'kit_job_launch::kit_job_launched_text(&*!label, !timeout, &*!inner, &*!cwd)' : string

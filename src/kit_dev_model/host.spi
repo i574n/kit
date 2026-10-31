@@ -1,7 +1,7 @@
 := argument (index : i32) : string = $'std::env::args().nth(!index as usize).map(std::rc::Rc::<str>::from).unwrap_or_d\
     efault()' : string
 :~ count () : i32 = env.command_line_argument_count () + 1i32
-:= separator () : string = $'std::rc::Rc::<str>::from(char::from(0u8).to_string())' : string
+:= separator () : string = sm'.char_text 0u8
 := absolute (value : string) : string = $'std::path::absolute(&*!value).ok().and_then(|p| \
     p.to_str().map(std::rc::Rc::<str>::from)).unwrap_or_default()' : string
 := valid_root (value : string) : bool = $'std::path::Path::new(&*!value).join("src/Cargo.toml").is_file()' : bool

@@ -72,18 +72,18 @@ fn argument_2(mut v0: i32) -> Rc<str> {
     };
     let mut v8: US0 = if v4 {
         let v5: Rc<str> = command_line_argument_3(v0);
-        US0::US0_Some(v5.clone())
+        US0::US0_Some(v5)
     } else {
         US0::US0_None
     };
     match &v8 {
         US0::US0_None => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US0::US0_Some(v9) => {
             let mut v9: Rc<str> = v9.clone();
-            v9.clone()
+            v9
         }
     }
 }
@@ -427,7 +427,7 @@ fn leaf_name_22(mut v0: Rc<str>) -> Rc<str> {
 }
 fn measured_9(mut v0: Rc<str>) -> US1 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Cargo.toml"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = method10(v0.clone(), v1.clone());
+    let v2: Rc<str> = method10(v0.clone(), v1);
     let mut v3: bool = file_exists_12(v2.clone());
     let mut v4: bool = v3 == false;
     if v4 {
@@ -435,11 +435,11 @@ fn measured_9(mut v0: Rc<str>) -> US1 {
     } else {
         let mut v7: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v2);
         let mut v9: Vec<u8> = v7.unwrap();
-        let v10: Vec<u8> = method13(v9.clone());
+        let v10: Vec<u8> = method13(v9);
         let v12: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v10);
         let mut v14: std::string::String = v12.unwrap();
         let v16: Rc<str> = Rc::<str>::from(String::as_str(&v14));
-        let v17: US2 = manifest_of_14(v16.clone());
+        let v17: US2 = manifest_of_14(v16);
         match &v17 {
             US2::US2_NotSpiralCrate => {
                 US1::US1_None
@@ -452,14 +452,14 @@ fn measured_9(mut v0: Rc<str>) -> US1 {
                 let v35: Rc<str> = if v22 {
                     let v24: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v21);
                     let v26: Vec<u8> = v24.unwrap();
-                    let v27: Vec<u8> = method13(v26.clone());
+                    let v27: Vec<u8> = method13(v26);
                     let v29: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v27);
                     let v31: std::string::String = v29.unwrap();
                     let v33: Rc<str> = Rc::<str>::from(String::as_str(&v31));
-                    v33.clone()
+                    v33
                 } else {
                     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v34.clone()
+                    v34
                 };
                 let v37: i32 = if v22 {
                     line_count_20(v35.clone())
@@ -468,13 +468,13 @@ fn measured_9(mut v0: Rc<str>) -> US1 {
                 };
                 let v38: bool = v37 > 0i32;
                 let v41: Rc<str> = if v38 {
-                    largest_of_21(v35.clone())
+                    largest_of_21(v35)
                 } else {
                     let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v40.clone()
+                    v40
                 };
-                let v42: Rc<str> = leaf_name_22(v0.clone());
-                US1::US1_Some(v42.clone(), v20.clone(), v37, v41.clone())
+                let v42: Rc<str> = leaf_name_22(v0);
+                US1::US1_Some(v42, v20, v37, v41)
             }
         }
     }
@@ -627,11 +627,11 @@ fn method31(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_30(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method31(v2.clone(), v3.clone());
+    method31(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn verdict_of_33(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>) -> US3 {
     let v5: bool = v3 < 0i32;
@@ -647,21 +647,21 @@ fn verdict_of_33(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut
     }
 }
 fn verdict_text_32(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>) -> Rc<str> {
-    let v5: US3 = verdict_of_33(v0, v1.clone(), v2.clone(), v3, v4.clone());
+    let v5: US3 = verdict_of_33(v0, v1, v2, v3, v4);
     match &v5 {
         US3::US3_CrateOver => {
             let mut v7: Rc<str> = format_real_30(v0);
             let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("OVER "); } LIT.with(|lit| lit.clone()) };
             let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v7));
-            v9.clone()
+            v9
         }
         US3::US3_CrateUnbuilt => {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no generated output yet"); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US3::US3_CrateWithin => {
             let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
         }
     }
 }
@@ -674,9 +674,9 @@ fn measure_line_29(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" lines "); } LIT.with(|lit| lit.clone()) };
     let mut v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
-    let v15: Rc<str> = verdict_text_32(v0, v1.clone(), v2.clone(), v3, v4.clone());
+    let v15: Rc<str> = verdict_text_32(v0, v1, v2, v3, v4.clone());
     let v17: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v14, v15)), v4));
-    v17.clone()
+    v17
 }
 fn lines_printed_28(mut v0: i32, mut v1: Rc<UH1>) -> () {
     loop {
@@ -843,7 +843,7 @@ fn gate_run_0() -> i32 {
     let v2: Rc<str> = argument_2(v1);
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--limit"); } LIT.with(|lit| lit.clone()) };
     let mut v4: i32 = 3i32;
-    let v5: Rc<str> = value_after_4(v3.clone(), v4, v0);
+    let v5: Rc<str> = value_after_4(v3, v4, v0);
     let mut v6: bool = &*v5 == "";
     let v10: i32 = if v6 {
         1000i32
@@ -873,9 +873,9 @@ fn gate_run_0() -> i32 {
             2i32
         } else {
             let v19: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            let v20: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v19.clone()));
+            let v20: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v19));
             let v21: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-            let v22: Rc<UH1> = walked_8(v20.clone(), v21.clone());
+            let v22: Rc<UH1> = walked_8(v20, v21);
             lines_printed_28(v10, v22.clone());
             let v23: i32 = over_count_34(v10, v22.clone());
             let v24: i32 = 0i32;
@@ -895,8 +895,8 @@ fn gate_run_0() -> i32 {
             let v39: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v36, v37)), v2));
             let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--enforce"); } LIT.with(|lit| lit.clone()) };
             let v41: i32 = 3i32;
-            let v42: bool = flag_given_37(v40.clone(), v41, v0);
-            let v43: US4 = gate_outcome_of_38(v42, v10, v22.clone());
+            let v42: bool = flag_given_37(v40, v41, v0);
+            let v43: US4 = gate_outcome_of_38(v42, v10, v22);
             match &v43 {
                 US4::US4_GateFailedMissing(v53) => {
                     let v53: i32 = *v53;

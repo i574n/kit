@@ -28,7 +28,7 @@
         ? task_id_bytes_allowed 0i32 length ?> Valid (argument_owned 2i32) |: Invalid
     |: Invalid
 
-:= task_binding (~id : string) : string = ascii_lowercase (rust_std_string.model.replace id "-" "_")
+:= task_binding (~id : string) : string = ascii_lowercase (sm'.replace "-" "_" id)
 :| add_flag =
     | FlagEstimate
     | FlagLoad
@@ -144,7 +144,7 @@
             |:
                 rust_std_string.model.concat5
                     " planned="
-                    (rust_std_string.model.replace (rust_std_string.model.trim planning) " " ",")
+                    (sm'.replace " " "," (rust_std_string.model.trim planning))
                     ""
                     ""
                     ""
@@ -168,7 +168,7 @@
             (rust_std_string.model.concat5 " status=Planned progress=0" (extras_receipt extras) "" "" "")
     stdout_line (rust_std_string.model.concat5 head (measured_sizes before after elapsed) "" "" "")
 := task_listed (~id : string) (~original : string) : bool =
-    rust_std_string.model.contains original (rust_std_string.model.concat5 "Task (\"" id "\"," "" "")
+    sm'.contains (rust_std_string.model.concat5 "Task (\"" id "\"," "" "") original
 := agile_add
     (~root : string) (~id : string) kind priority difficulty (~title : string) (~tags : string) (extras : add_extras)
     : i32
@@ -192,7 +192,7 @@
             ?= extras_applied appended id extras ?|
             | AddedRefused reason => agile_add_failure reason id
             | AddedText updated =>
-                ?= replace_file_checked state updated ?|
+                ?= replace_records_unchanged state original updated ?|
                 | Replaced =>
                     agile_add_success id
                         (task_binding id)
@@ -212,7 +212,7 @@
             parse_difficulty (argument_owned 5i32)
         ?|
         | Valid id, Valid kind, Valid priority, Valid difficulty =>
-            ?= extras_checked (extras_from 8i32 ($'std::env::args().skip(2).count() as i32' : i32) (no_extras ())) ?|
+            ?= extras_checked (extras_from 8i32 (rust_std_env.model.argument_count_after 2i32) (no_extras ())) ?|
             | ExtrasRead extras =>
                 agile_add
                     (argument_owned 1i32)

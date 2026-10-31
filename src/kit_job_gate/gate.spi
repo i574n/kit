@@ -12,7 +12,7 @@
     |:
         := now = now_ms ()
         := terms =
-            verdict_text ask.wanted ask.id ask.since ask.minutes
+            verdict_text ask.wanted ask.label ask.id ask.since ask.minutes
                 (live_rows root (stored_rows root) now "")
                 (free_mb ())
                 now

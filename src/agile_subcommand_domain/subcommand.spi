@@ -24,10 +24,12 @@
     | AgileNoteEdit
     | AgileNotes
     | AgileRename
+    | AgileSeal
     | AgileTodos
     | AgileNext
     | AgileRoots
     | AgileLinks
+    | AgileWip
     | AgileViews
     | AgileView
     | AgileViewAdd
@@ -74,6 +76,7 @@
         }
     | AgileNotes => { name = "notes"; shape = "from-title <root> <id>" }
     | AgileRename => { name = "rename"; shape = "<root> <old-id> <new-id>" }
+    | AgileSeal => { name = "seal"; shape = "<root> [--dry-run]" }
     | AgileTodos => { name = "todos"; shape = "<root> [<path>...] [--json] [--tagged | --id <ID>] | <root> --record" }
     | AgileNext =>
         {
@@ -84,6 +87,7 @@
         }
     | AgileRoots => { name = "roots"; shape = "<root> [add|drop <path>...]" }
     | AgileLinks => { name = "links"; shape = "<root> --memory <dir> [--json]" }
+    | AgileWip => { name = "wip"; shape = "<root>" }
     | AgileViews => { name = "views"; shape = "<root>" }
     | AgileView => { name = "view"; shape = "<root> <name> [extra flags...]" }
     | AgileViewAdd => { name = "view-add"; shape = "<root> <name> <list|next> [flags...]" }

@@ -1,0 +1,5 @@
+:< constructs
+
+:= main () : i32 =
+    export "kit_lint_flow_construct" ((\ line => construct_of line <> None) : string -> bool)
+    0i32

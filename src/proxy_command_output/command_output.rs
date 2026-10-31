@@ -17,11 +17,11 @@ fn command_output_receipt_text_0(mut v0: i32, mut v1: u64, mut v2: u64, mut v3: 
         US0::US0_ChildFailed(v9) => {
             let v9: i32 = *v9;
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("child-failed"); } LIT.with(|lit| lit.clone()) };
-            v10.clone()
+            v10
         }
         US0::US0_ChildSucceeded => {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
     };
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit proxy command-output "); } LIT.with(|lit| lit.clone()) };
@@ -41,7 +41,7 @@ fn command_output_receipt_text_0(mut v0: i32, mut v1: u64, mut v2: u64, mut v3: 
     let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v26));
     let v28: Rc<str> = std::rc::Rc::<str>::from((v1).to_string());
     let v30: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v20, v28)), v27));
-    v30.clone()
+    v30
 }
 fn closure0() -> Rc<dyn Fn(i32, u64, u64, u64) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(i32, u64, u64, u64) -> Rc<str>> = Rc::new(move |mut v0: i32, mut v1: u64, mut v2: u64, mut v3: u64| -> Rc<str> {

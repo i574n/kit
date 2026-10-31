@@ -1,0 +1,5 @@
+:< gaps
+
+:= main () : i32 =
+    export "kit_agile_planning_gaps_text" ((\ text => planning_gaps_text text) : string -> string)
+    0i32

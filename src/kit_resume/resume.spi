@@ -14,8 +14,8 @@
     \!item.is_empty())).output().ok()).map(|out| String::from_utf8_lossy(&out.stdout).trim_end().to_owned()).unwrap_or\
     _default().as_str())' : string
 := count_text (value : i32) : string = (sm'.show value)
-:= state_text (~root : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(format\!("{}/state/agile.\
-    spi", &*!root)).unwrap_or_default().as_str())' : string
+:~ state_text (~root : string) : string =
+    agile_note_model.model.state_text_with_notes (sm'.concat_list "/" [ root; "state" ])
 := one_line_clipped (~text : string) (limit : i32) : string = $'std::rc::Rc::<str>::from((!text).replace(char::from(10\
     u8), " ").chars().take(!limit as usize).collect::<String>().as_str())' : string
 := newest_first (~rows : string) (limit : i32) : string = $'std::rc::Rc::<str>::from({ let mut rows = \

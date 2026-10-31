@@ -36,6 +36,7 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      enableServiceLinks: false
       terminationGracePeriodSeconds: 30
       containers:
         - name: iggy
@@ -50,6 +51,18 @@ spec:
               value: 0.0.0.0:8080
             - name: IGGY_WEBSOCKET_ADDRESS
               value: 0.0.0.0:8092
+            - name: IGGY_NODE_ADVERTISED_ADDRESS
+              value: 127.0.0.1
+            - name: IGGY_HTTP_JWT_ENCODING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iggy-jwt
+                  key: secret
+            - name: IGGY_HTTP_JWT_DECODING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iggy-jwt
+                  key: secret
             - name: IGGY_ROOT_USERNAME
               valueFrom:
                 secretKeyRef:

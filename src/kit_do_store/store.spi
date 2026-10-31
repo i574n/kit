@@ -1,0 +1,26 @@
+:! pending_writes = $'std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>'
+
+:= pending_new () : pending_writes = $'std::rc::Rc::new(std::cell::RefCell::new(Vec::new()))' : pending_writes
+:= entry_count (~pending : pending_writes) : i32 = $'!pending.borrow().len() as i32' : i32
+
+:= entry_path (~pending : pending_writes) (index : i32) : string =
+    $'!pending.borrow()[!index as usize].0.clone()' : string
+
+:= entry_text (~pending : pending_writes) (index : i32) : string =
+    $'!pending.borrow()[!index as usize].1.clone()' : string
+
+:= entry_base (~pending : pending_writes) (index : i32) : string =
+    $'!pending.borrow()[!index as usize].2.clone()' : string
+
+:= entry_index (~pending : pending_writes) (~path : string) : i32 =
+    $'!pending.borrow().iter().position(|entry| *entry.0 == *!path).map_or(-1, |at| at as i32)' : i32
+
+:= restaged (~pending : pending_writes) (index : i32) (~text : string) : () =
+    $'!pending.borrow_mut()[!index as usize].1 = !text.clone()' : ()
+
+:= first_staged (~pending : pending_writes) (~path : string) (~text : string) (~base : string) : () =
+    $'!pending.borrow_mut().push((!path.clone(), !text.clone(), !base.clone()))' : ()
+
+:= staged (~pending : pending_writes) (~path : string) (~text : string) (~base : string) : () =
+    := at = entry_index pending path
+    ? at < 0i32 ?> first_staged pending path text base |: restaged pending at text

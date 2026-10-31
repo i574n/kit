@@ -107,29 +107,29 @@ fn series_error_0(mut v0: Rc<str>) -> Rc<str> {
             let v2: Rc<str> = v2.clone();
             let mut v3: u64 = *v3;
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US0::US0_SeriesRejected(v5) => {
             let v5: US1 = v5.clone();
             match &v5 {
                 US1::US1_AlphaOutOfRange(v12) => {
                     let v12: Rc<str> = v12.clone();
-                    v12.clone()
+                    v12
                 }
                 US1::US1_InvalidAlphaSuffix => {
                     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("retention current has invalid alpha suffix: "); } LIT.with(|lit| lit.clone()) };
                     let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v0));
-                    v11.clone()
+                    v11
                 }
                 US1::US1_MissingAlphaSuffix => {
                     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("retention current has no alpha suffix: "); } LIT.with(|lit| lit.clone()) };
                     let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v0));
-                    v9.clone()
+                    v9
                 }
                 US1::US1_MissingZipSuffix => {
                     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("retention current must end in .zip: "); } LIT.with(|lit| lit.clone()) };
                     let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v0));
-                    v7.clone()
+                    v7
                 }
             }
         }
@@ -141,17 +141,17 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn series_prefix_2(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = read_series_1(v0.clone());
+    let v1: US0 = read_series_1(v0);
     match &v1 {
         US0::US0_SeriesMember(v2, v3) => {
             let v2: Rc<str> = v2.clone();
             let mut v3: u64 = *v3;
-            v2.clone()
+            v2
         }
         US0::US0_SeriesRejected(v4) => {
             let v4: US1 = v4.clone();
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v5.clone()
+            v5
         }
     }
 }
@@ -496,16 +496,16 @@ fn receipt_reading_of_5(mut v0: Rc<str>) -> US2 {
     }
 }
 fn receipt_error_4(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US2 = receipt_reading_of_5(v0.clone());
+    let v1: US2 = receipt_reading_of_5(v0);
     match &v1 {
         US2::US2_ReceiptRead(v2) => {
             let v2: Rc<str> = v2.clone();
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
         US2::US2_ReceiptRejected(v4) => {
             let v4: Rc<str> = v4.clone();
-            v4.clone()
+            v4
         }
     }
 }
@@ -515,16 +515,16 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn receipt_row_8(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US2 = receipt_reading_of_5(v0.clone());
+    let v1: US2 = receipt_reading_of_5(v0);
     match &v1 {
         US2::US2_ReceiptRead(v2) => {
             let v2: Rc<str> = v2.clone();
-            v2.clone()
+            v2
         }
         US2::US2_ReceiptRejected(v3) => {
             let mut v3: Rc<str> = v3.clone();
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
     }
 }

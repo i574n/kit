@@ -36,7 +36,7 @@ enum US5 {
 }
 fn counts_start_2() -> (i32, i32, Rc<str>) {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (0i32, 0i32, v0.clone())
+    (0i32, 0i32, v0)
 }
 fn method6(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let v2: Rc<str> = v0.borrow().l0.clone();
@@ -46,11 +46,11 @@ fn method6(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_5(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method6(v2.clone(), v3.clone());
+    method6(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn json_matches_4(mut v0: std::rc::Rc<(u64, Vec<(String, Vec<usize>, Vec<String>)>)>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: Rc<str>) -> Rc<str> {
     loop {
@@ -249,11 +249,11 @@ fn receipt_line_11(mut v0: US1, mut v1: Rc<str>, mut v2: u64) -> () {
     let mut v6: Rc<str> = match &v0 {
         US1::US1_Failed => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US1::US1_Succeeded => {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
@@ -268,7 +268,7 @@ fn receipt_line_11(mut v0: US1, mut v1: Rc<str>, mut v2: u64) -> () {
 fn search_receipt_1(mut v0: std::rc::Rc<(u64, Vec<(String, Vec<usize>, Vec<String>)>)>, mut v1: bool, mut v2: i32, mut v3: i32, mut v4: US0, mut v5: u64) -> i32 {
     let mut v6: i32 = 0i32;
     let (mut v7, mut v8, mut v9): (i32, i32, Rc<str>) = counts_start_2();
-    let (mut v10, mut v11, mut v12): (i32, i32, Rc<str>) = files_rendered_3(v0.clone(), v1, v2, v3, v6, v7, v8, v9.clone());
+    let (mut v10, mut v11, mut v12): (i32, i32, Rc<str>) = files_rendered_3(v0.clone(), v1, v2, v3, v6, v7, v8, v9);
     let v13: u64 = (v0.clone()).0;
     let v14: Rc<str> = decimal_text_10(v13);
     let v15: i32 = (v0).1.len() as i32;
@@ -306,28 +306,28 @@ fn search_receipt_1(mut v0: std::rc::Rc<(u64, Vec<(String, Vec<usize>, Vec<Strin
             let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v46));
             let v48: Rc<str> = format_real_5(v10);
             let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v48));
-            v49.clone()
+            v49
         } else {
-            v43.clone()
+            v43
         };
         let v51: bool = v11 != 0i32;
         let v57: Rc<str> = if v51 {
             let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v52.clone()
+            v52
         } else {
             match &v4 {
                 US0::US0_LiteralLooksLikePattern => {
                     let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  hint: the needle is literal; pass --regex to use it as a pattern"); } LIT.with(|lit| lit.clone()) };
-                    v54.clone()
+                    v54
                 }
                 US0::US0_NoNeedleHint => {
                     let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v53.clone()
+                    v53
                 }
             }
         };
         let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v57));
-        receipt_line_11(v44.clone(), v58.clone(), v5);
+        receipt_line_11(v44, v58, v5);
         0i32
     }
 }
@@ -348,7 +348,7 @@ fn argument_count_16() -> i32 {
 }
 fn search_start_18() -> (Rc<str>, u64, u64, bool, bool, bool) {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (v0.clone(), 0u64, 200u64, false, false, false)
+    (v0, 0u64, 200u64, false, false, false)
 }
 fn command_line_argument_21(mut v0: i32) -> Rc<str> {
     let v1: i32 = v0.wrapping_add(1i32);
@@ -368,18 +368,18 @@ fn argument_20(mut v0: i32) -> Rc<str> {
     };
     let v9: US2 = if v5 {
         let mut v6: Rc<str> = command_line_argument_21(v1);
-        US2::US2_Some(v6.clone())
+        US2::US2_Some(v6)
     } else {
         US2::US2_None
     };
     match &v9 {
         US2::US2_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US2::US2_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }

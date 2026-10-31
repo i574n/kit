@@ -13,26 +13,65 @@ param(
     [switch]$Publish,
     [switch]$CompilerContracts,
     [switch]$Offline,
-    [switch]$KeepStaged
+    [switch]$KeepStaged,
+    [switch]$Incremental
 )
 $ErrorActionPreference = 'Stop'
 if ($TargetDirectory) { $TargetDirectory = [IO.Path]::GetFullPath($TargetDirectory, $PWD.Path) }
 if ($CompilerContracts -and -not $Test) { throw '-CompilerContracts requires -Test.' }
 if ($Publish -and -not ($CargoCheck -or $Test)) { throw '-Publish requires -CargoCheck or -Test.' }
 . $PSScriptRoot/workspace.ps1
-if ($Publish) {
-    $leaseDir = Join-Path ($env:LOCALAPPDATA ?? $HOME) 'kit/tree-leases'
-    New-Item -ItemType Directory -Force $leaseDir | Out-Null
-    $publishLease = Join-Path $leaseDir "regeneration-$PID.lease"
-    "root=$((Resolve-Path -LiteralPath ($KitRoot ? $KitRoot : (Split-Path $PSScriptRoot))).Path)`npid=$PID`nholder=kit regeneration -Publish`nsince=$(Get-Date -Format HH:mm)" | Set-Content $publishLease
-}
-trap { if ($publishLease) { Remove-Item -LiteralPath $publishLease -ErrorAction SilentlyContinue }; break }
+$publishLeases = @()
+trap { foreach ($lease in $publishLeases) { foreach ($try in 1..10) { Remove-Item -LiteralPath $lease -ErrorAction SilentlyContinue; if (-not (Test-Path -LiteralPath $lease)) { break }; Start-Sleep -Milliseconds 200 } }; break }
 if (-not $KitRoot) { $KitRoot = Join-Path $PSScriptRoot '..' }
 $KitRoot = (Resolve-Path -LiteralPath $KitRoot).Path
 $selected = @(Get-KitOwners -Root $KitRoot -Package $Package -Filter $Filter -IncludeAuxiliary:$IncludeAuxiliary)
 if (-not $selected.Count) { throw 'No regeneration owners selected.' }
+if ($Package.Count) { $Package = @($selected | ForEach-Object Package | Select-Object -Unique) }
+function Get-PackageInputs([string]$Member) {
+    $folder = Join-Path $KitRoot "src/$Member"
+    $project = Join-Path $folder 'package.spiproj'
+    if (Test-Path -LiteralPath $project) {
+        $section = ''
+        foreach ($line in Get-Content -LiteralPath $project) {
+            if ($line -match '^(\S[^:]*):') { $section = $Matches[1]; continue }
+            if ($section -eq 'packages' -and $line -match '^\s+\|?([A-Za-z0-9_]+)\s*$') { $Matches[1] }
+        }
+    }
+    $manifest = Join-Path $folder 'Cargo.toml'
+    if (Test-Path -LiteralPath $manifest) {
+        foreach ($match in [regex]::Matches([IO.File]::ReadAllText($manifest), 'path\s*=\s*"\.\./([^"/]+)"')) { $match.Groups[1].Value }
+    }
+}
+$watchedMembers = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$pendingMembers = [Collections.Generic.Queue[string]]::new()
+foreach ($owner in $selected) { if ($watchedMembers.Add($owner.Member)) { $pendingMembers.Enqueue($owner.Member) } }
+while ($pendingMembers.Count) {
+    foreach ($dependency in Get-PackageInputs $pendingMembers.Dequeue()) {
+        if ((Test-Path -LiteralPath (Join-Path $KitRoot "src/$dependency") -PathType Container) -and $watchedMembers.Add($dependency)) { $pendingMembers.Enqueue($dependency) }
+    }
+}
+$watchedDirectories = @(@($watchedMembers | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $KitRoot "src/$_")) }) + [IO.Path]::GetFullPath((Join-Path $KitRoot 'compiler-contracts')))
+$watchedFiles = @(@(Get-ChildItem -LiteralPath $KitRoot -File) + @(Get-ChildItem -LiteralPath (Join-Path $KitRoot 'src') -File) | Where-Object { $_.Name -notin @('kit', 'kit.exe') } | ForEach-Object FullName)
+function Test-Watched([string]$Path) {
+    if ($Path -in $watchedFiles) { return $true }
+    foreach ($directory in $watchedDirectories) { if ($Path.StartsWith($directory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { return $true } }
+    $false
+}
+if ($Publish) {
+    $leaseDir = Join-Path ($env:LOCALAPPDATA ?? $HOME) 'kit/tree-leases'
+    New-Item -ItemType Directory -Force $leaseDir | Out-Null
+    $leaseIndex = 0
+    foreach ($leased in @($watchedDirectories) + @($watchedFiles)) {
+        $lease = Join-Path $leaseDir "regeneration-$PID-$leaseIndex.lease"
+        "root=$leased`npid=$PID`nholder=kit regeneration -Publish of $($selected.Count) owners`nsince=$(Get-Date -Format HH:mm)" | Set-Content $lease
+        $publishLeases += $lease
+        $leaseIndex++
+    }
+    Write-Host "Leased $($watchedDirectories.Count) package folders and $($watchedFiles.Count) workspace files; the rest of $KitRoot stays writable."
+}
 $CompilerBundle = Resolve-KitSpiralBundle $CompilerBundle
-. (Join-Path $CompilerBundle 'scripts/env.ps1')
+. (Get-KitSpiralScript $CompilerBundle 'env.ps1')
 $dotnet = Resolve-SpiralDotnet
 $compiler = Get-SpiralCompilerDll 'single-flight'
 $regenerationRoot = Join-Path (Get-SpiralCacheDir) 'kit-regeneration'
@@ -65,7 +104,7 @@ function Copy-Workspace([string]$From, [string]$To) {
         } else {
             $copy = Join-Path $To $entry.Name
             Copy-Item -LiteralPath $entry.FullName -Destination $copy
-            if ($Publish) {
+            if ($Publish -and (Test-Watched $entry.FullName)) {
                 $snapshot.Add([pscustomobject]@{ Path = $entry.FullName; Hash = (Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash })
             }
         }
@@ -94,6 +133,38 @@ foreach ($owner in $selected) {
     $output = Join-Path $work "outputs/$($owner.Id).rs"
     $rows += [pscustomobject]@{ Member = $owner.Id; Package = $owner.Package; Input = $entry; Output = $output; Target = $target; Original = $owner.Target }
 }
+$keyStore = Join-Path ($env:LOCALAPPDATA ?? $HOME) 'kit/regen-keys'
+$ownerKeys = @{}
+if ($Incremental) {
+    New-Item -ItemType Directory -Force $keyStore | Out-Null
+    $shared = [Text.StringBuilder]::new()
+    [void]$shared.AppendLine("compiler $((Get-FileHash -LiteralPath $compiler -Algorithm SHA256).Hash)")
+    foreach ($file in $($(if ($libRoot) { Get-ChildItem -LiteralPath $libRoot -Recurse -File -Include *.spi, *.spir, package.spiproj }) | Where-Object { $_.FullName -notmatch '[\\/](target|node_modules|bench)[\\/]' } | Sort-Object FullName)) {
+        [void]$shared.AppendLine("lib $($file.FullName.Substring($libRoot.Length)) $((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash)")
+    }
+    $sharedText = $shared.ToString()
+    foreach ($owner in $selected) {
+        $closure = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+        $queue = [Collections.Generic.Queue[string]]::new()
+        if ($closure.Add($owner.Member)) { $queue.Enqueue($owner.Member) }
+        while ($queue.Count) {
+            foreach ($dependency in Get-PackageInputs $queue.Dequeue()) {
+                if ((Test-Path -LiteralPath (Join-Path $KitRoot "src/$dependency") -PathType Container) -and $closure.Add($dependency)) { $queue.Enqueue($dependency) }
+            }
+        }
+        $lines = [Text.StringBuilder]::new($sharedText)
+        foreach ($member in @($closure | Sort-Object)) {
+            foreach ($file in @(Get-ChildItem -LiteralPath (Join-Path $KitRoot "src/$member") -File -Include *.spi, *.spir, package.spiproj, Cargo.toml -Recurse | Where-Object { $_.FullName -notmatch '[\\/]target[\\/]' } | Sort-Object FullName)) {
+                [void]$lines.AppendLine("src $($file.FullName.Substring($KitRoot.Length)) $((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash)")
+            }
+        }
+        $ownerKeys[$owner.Id] = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($lines.ToString())))
+    }
+}
+function Get-StoredKey([string]$Id) {
+    $file = Join-Path $keyStore "$($Id -replace '[\\/]', '__').key"
+    if (Test-Path -LiteralPath $file) { (Get-Content -LiteralPath $file -Raw).Trim() -split ' ' } else { @('', '') }
+}
 $sidecars = @(Get-KitCompilerSidecarGuards -Rows $rows)
 New-Item -ItemType Directory -Path (Join-Path $work 'outputs') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $work 'logs') -Force | Out-Null
@@ -109,6 +180,15 @@ try {
     try {
         $writer.AutoFlush = $true
         foreach ($row in $rows) {
+            if ($Incremental) {
+                $stored = Get-StoredKey $row.Member
+                if ($stored[0] -and $stored[0] -eq $ownerKeys[$row.Member] -and (Test-Path -LiteralPath $row.Original) -and (Get-FileHash -LiteralPath $row.Original -Algorithm SHA256).Hash -eq $stored[1]) {
+                    Copy-Item -LiteralPath $row.Original -Destination $row.Output -Force
+                    $writer.WriteLine("$($row.Member)`tok`t0`tbytes=$((Get-Item -LiteralPath $row.Output).Length) entry=main revision=unchanged-inputs")
+                    Write-Host "$($row.Member) unchanged inputs; compile skipped"
+                    continue
+                }
+            }
             $timeoutMs = $TimeoutSec * 1000
             $stdout = Join-Path $work "logs/$($row.Member).out"
             $stderr = Join-Path $work "logs/$($row.Member).err"
@@ -222,7 +302,7 @@ if ($Test) {
 }
 if ($Publish) {
     $currentFiles = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-    foreach ($path in Get-WorkspaceFiles $KitRoot) { [void]$currentFiles.Add($path) }
+    foreach ($path in Get-WorkspaceFiles $KitRoot) { if (Test-Watched $path) { [void]$currentFiles.Add($path) } }
     if ($currentFiles.Count -ne $snapshot.Count -or @($snapshot | Where-Object { -not $currentFiles.Contains($_.Path) }).Count) {
         throw 'Checkout changed during validation; source file inventory differs and generated outputs were not published.'
     }
@@ -236,6 +316,10 @@ if ($Publish) {
         if (Set-KitGeneratedFile -Source $row.Output -Destination $row.Original) { $changed++ }
     }
     Write-Host "Published $changed changed owners; $($rows.Count - $changed) unchanged."
+    if ($Incremental) {
+        foreach ($row in $rows) { Set-Content -LiteralPath (Join-Path $keyStore "$($row.Member -replace '[\\/]', '__').key") -Value "$($ownerKeys[$row.Member]) $((Get-FileHash -LiteralPath $row.Original -Algorithm SHA256).Hash)" }
+        Write-Host "Recorded input keys for $($rows.Count) owners in $keyStore"
+    }
 }
 if ($KeepStaged) {
     Write-Host "KIT regeneration passed for $($rows.Count) selected owners. Staged workspace: $staged"
@@ -243,4 +327,4 @@ if ($KeepStaged) {
     Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "KIT regeneration passed for $($rows.Count) selected owners. Staged workspace removed: $work"
 }
-if ($publishLease) { Remove-Item -LiteralPath $publishLease -ErrorAction SilentlyContinue }
+foreach ($lease in $publishLeases) { foreach ($try in 1..10) { Remove-Item -LiteralPath $lease -ErrorAction SilentlyContinue; if (-not (Test-Path -LiteralPath $lease)) { break }; Start-Sleep -Milliseconds 200 } }

@@ -49,18 +49,18 @@ fn argument_2(mut v0: i32) -> Rc<str> {
     };
     let v9: US0 = if v5 {
         let v6: Rc<str> = command_line_argument_4(v1);
-        US0::US0_Some(v6.clone())
+        US0::US0_Some(v6)
     } else {
         US0::US0_None
     };
     match &v9 {
         US0::US0_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US0::US0_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -103,31 +103,31 @@ fn path_of_8(mut v0: Rc<str>) -> Rc<str> {
     match &v21 {
         US1::US1_HeaderLine => {
             let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v30.clone()
+            v30
         }
         US1::US1_OtherLine => {
             let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v31.clone()
+            v31
         }
         US1::US1_RenamedChange => {
             let v24: u64 = 9u64;
             let v25: Rc<str> = std::rc::Rc::<str>::from(v0.splitn((v24 as usize) + 1, char::from(32u8)).nth(v24 as usize).unwrap_or("").split(char::from(9u8)).next().unwrap_or(""));
-            v25.clone()
+            v25
         }
         US1::US1_TrackedChange => {
             let v22: u64 = 8u64;
             let v23: Rc<str> = std::rc::Rc::<str>::from(v0.splitn((v22 as usize) + 1, char::from(32u8)).nth(v22 as usize).unwrap_or("").split(char::from(9u8)).next().unwrap_or(""));
-            v23.clone()
+            v23
         }
         US1::US1_UnmergedEntry => {
             let v28: u64 = 10u64;
             let v29: Rc<str> = std::rc::Rc::<str>::from(v0.splitn((v28 as usize) + 1, char::from(32u8)).nth(v28 as usize).unwrap_or("").split(char::from(9u8)).next().unwrap_or(""));
-            v29.clone()
+            v29
         }
         US1::US1_UntrackedEntry => {
             let v26: u64 = 1u64;
             let v27: Rc<str> = std::rc::Rc::<str>::from(v0.splitn((v26 as usize) + 1, char::from(32u8)).nth(v26 as usize).unwrap_or("").split(char::from(9u8)).next().unwrap_or(""));
-            v27.clone()
+            v27
         }
     }
 }
@@ -315,11 +315,11 @@ fn method11(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_10(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method11(v2.clone(), v3.clone());
+    method11(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
     let v2: bool = std::path::Path::new(&*v0).join(".git").exists();

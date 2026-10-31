@@ -24,7 +24,7 @@ enum US1 {
 struct Mut0 { l0: Rc<str> }
 fn state_host_of_3(mut v0: Rc<str>, mut v1: Rc<str>) -> (i32, std::rc::Rc<str>) {
     let v2: (i32, std::rc::Rc<str>) = { let path = std::path::Path::new(&*v0).join(&*v1); match std::fs::read_to_string(&path) { Ok(source) => (1, std::rc::Rc::<str>::from(source)), Err(error) if error.kind() == std::io::ErrorKind::NotFound => (0, { thread_local!{ static LIT: std::rc::Rc<str> = std::rc::Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }), Err(error) => (2, std::rc::Rc::<str>::from(format!("read {}: {error}", path.display()))) } };
-    v2.clone()
+    v2
 }
 fn state_read_of_2(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
     let v2: (i32, std::rc::Rc<str>) = state_host_of_3(v0, v1);
@@ -50,14 +50,14 @@ fn sections_block_4(mut v0: Rc<str>) -> US0 {
     let v8: US0 = if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("handoff sections projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_Refused(v5.clone())
+        US0::US0_Refused(v5)
     } else {
-        US0::US0_Rendered(v2.clone())
+        US0::US0_Rendered(v2)
     };
     match &v8 {
         US0::US0_Refused(v9) => {
             let v9: Rc<str> = v9.clone();
-            US0::US0_Refused(v9.clone())
+            US0::US0_Refused(v9)
         }
         US0::US0_Rendered(v11) => {
             let v11: Rc<str> = v11.clone();
@@ -67,10 +67,10 @@ fn sections_block_4(mut v0: Rc<str>) -> US0 {
                 let v14: Rc<str> = std::rc::Rc::<str>::from(&(&*v11)[2i32 as usize..]);
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                 let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
-                US0::US0_Rendered(v16.clone())
+                US0::US0_Rendered(v16)
             } else {
                 let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("handoff sections projection returned invalid envelope"); } LIT.with(|lit| lit.clone()) };
-                US0::US0_Refused(v18.clone())
+                US0::US0_Refused(v18)
             }
         }
     }
@@ -83,11 +83,11 @@ fn method8(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_7(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method8(v2.clone(), v3.clone());
+    method8(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
     let v3: i32 = authority_state_domain::kit_authority_declared_mask(0, 0);
@@ -101,15 +101,15 @@ fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
     };
     if v7 {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compiled authority projection rejected"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_Refused(v8.clone())
+        US0::US0_Refused(v8)
     } else {
         let v10: bool = v4 == 1i32;
         let v13: Rc<str> = if v10 {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exclusive"); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         } else {
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("blocked"); } LIT.with(|lit| lit.clone()) };
-            v12.clone()
+            v12
         };
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\nauthority="); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v13));
@@ -123,16 +123,16 @@ fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
         let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v19, Rc::<str>::from(format!("{}{}", v21, v22))));
         let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n## Recorded state\n\nSaved ratings, census and receipts are shown below with compiled authority declarations. This command does not revalidate their freshness or certify a release.\n"); } LIT.with(|lit| lit.clone()) };
         let v29: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v25, v22)), v1)), v22)), v24));
-        let v30: US0 = US0::US0_Rendered(v29.clone());
+        let v30: US0 = US0::US0_Rendered(v29);
         let v61: US0 = match &v30 {
             US0::US0_Refused(v31) => {
                 let v31: Rc<str> = v31.clone();
-                US0::US0_Refused(v31.clone())
+                US0::US0_Refused(v31)
             }
             US0::US0_Rendered(v33) => {
                 let v33: Rc<str> = v33.clone();
                 let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/toolchain_identity.spi"); } LIT.with(|lit| lit.clone()) };
-                let v35: US1 = state_read_of_2(v0.clone(), v34.clone());
+                let v35: US1 = state_read_of_2(v0.clone(), v34);
                 match &v35 {
                     US1::US1_StateMissing => {
                         US0::US0_Rendered(v33.clone())
@@ -145,25 +145,25 @@ fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
                         let v47: US0 = if v42 {
                             let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
                             let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("toolchain projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
-                            US0::US0_Refused(v44.clone())
+                            US0::US0_Refused(v44)
                         } else {
-                            US0::US0_Rendered(v41.clone())
+                            US0::US0_Rendered(v41)
                         };
                         match &v47 {
                             US0::US0_Refused(v48) => {
                                 let v48: Rc<str> = v48.clone();
-                                US0::US0_Refused(v48.clone())
+                                US0::US0_Refused(v48)
                             }
                             US0::US0_Rendered(v50) => {
                                 let v50: Rc<str> = v50.clone();
                                 let v53: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v33, v22)), v50)), v22));
-                                US0::US0_Rendered(v53.clone())
+                                US0::US0_Rendered(v53)
                             }
                         }
                     }
                     US1::US1_StateUnreadable(v37) => {
                         let v37: Rc<str> = v37.clone();
-                        US0::US0_Refused(v37.clone())
+                        US0::US0_Refused(v37)
                     }
                 }
             }
@@ -171,12 +171,12 @@ fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
         match &v61 {
             US0::US0_Refused(v62) => {
                 let v62: Rc<str> = v62.clone();
-                US0::US0_Refused(v62.clone())
+                US0::US0_Refused(v62)
             }
             US0::US0_Rendered(v64) => {
                 let v64: Rc<str> = v64.clone();
                 let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/cold_proof.spi"); } LIT.with(|lit| lit.clone()) };
-                let v66: US1 = state_read_of_2(v0.clone(), v65.clone());
+                let v66: US1 = state_read_of_2(v0, v65);
                 match &v66 {
                     US1::US1_StateMissing => {
                         US0::US0_Rendered(v64.clone())
@@ -189,25 +189,25 @@ fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
                         let v78: US0 = if v73 {
                             let v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
                             let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cold proof projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
-                            US0::US0_Refused(v75.clone())
+                            US0::US0_Refused(v75)
                         } else {
-                            US0::US0_Rendered(v72.clone())
+                            US0::US0_Rendered(v72)
                         };
                         match &v78 {
                             US0::US0_Refused(v79) => {
                                 let v79: Rc<str> = v79.clone();
-                                US0::US0_Refused(v79.clone())
+                                US0::US0_Refused(v79)
                             }
                             US0::US0_Rendered(v81) => {
                                 let v81: Rc<str> = v81.clone();
                                 let v84: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v64, v22)), v81)), v22));
-                                US0::US0_Rendered(v84.clone())
+                                US0::US0_Rendered(v84)
                             }
                         }
                     }
                     US1::US1_StateUnreadable(v68) => {
                         let v68: Rc<str> = v68.clone();
-                        US0::US0_Refused(v68.clone())
+                        US0::US0_Refused(v68)
                     }
                 }
             }
@@ -216,20 +216,20 @@ fn recorded_lines_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
 }
 fn recorded_block_5(mut v0: Rc<str>) -> US0 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/ratings.spi"); } LIT.with(|lit| lit.clone()) };
-    let v2: US1 = state_read_of_2(v0.clone(), v1.clone());
+    let v2: US1 = state_read_of_2(v0.clone(), v1);
     match &v2 {
         US1::US1_StateMissing => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            US0::US0_Rendered(v3.clone())
+            US0::US0_Rendered(v3)
         }
         US1::US1_StateText(v7) => {
             let v7: Rc<str> = v7.clone();
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/authority_census.spi"); } LIT.with(|lit| lit.clone()) };
-            let v9: US1 = state_read_of_2(v0.clone(), v8.clone());
+            let v9: US1 = state_read_of_2(v0.clone(), v8);
             match &v9 {
                 US1::US1_StateMissing => {
                     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    US0::US0_Rendered(v10.clone())
+                    US0::US0_Rendered(v10)
                 }
                 US1::US1_StateText(v14) => {
                     let v14: Rc<str> = v14.clone();
@@ -239,14 +239,14 @@ fn recorded_block_5(mut v0: Rc<str>) -> US0 {
                     let v22: US0 = if v17 {
                         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
                         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ratings projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
-                        US0::US0_Refused(v19.clone())
+                        US0::US0_Refused(v19)
                     } else {
-                        US0::US0_Rendered(v16.clone())
+                        US0::US0_Rendered(v16)
                     };
                     match &v22 {
                         US0::US0_Refused(v23) => {
                             let v23: Rc<str> = v23.clone();
-                            US0::US0_Refused(v23.clone())
+                            US0::US0_Refused(v23)
                         }
                         US0::US0_Rendered(v25) => {
                             let v25: Rc<str> = v25.clone();
@@ -256,18 +256,18 @@ fn recorded_block_5(mut v0: Rc<str>) -> US0 {
                             let v33: US0 = if v28 {
                                 let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
                                 let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("authority census projection rejected typed state"); } LIT.with(|lit| lit.clone()) };
-                                US0::US0_Refused(v30.clone())
+                                US0::US0_Refused(v30)
                             } else {
-                                US0::US0_Rendered(v27.clone())
+                                US0::US0_Rendered(v27)
                             };
                             match &v33 {
                                 US0::US0_Refused(v34) => {
                                     let v34: Rc<str> = v34.clone();
-                                    US0::US0_Refused(v34.clone())
+                                    US0::US0_Refused(v34)
                                 }
                                 US0::US0_Rendered(v36) => {
                                     let v36: Rc<str> = v36.clone();
-                                    recorded_lines_6(v0.clone(), v25.clone(), v36.clone())
+                                    recorded_lines_6(v0, v25, v36)
                                 }
                             }
                         }
@@ -275,13 +275,13 @@ fn recorded_block_5(mut v0: Rc<str>) -> US0 {
                 }
                 US1::US1_StateUnreadable(v12) => {
                     let v12: Rc<str> = v12.clone();
-                    US0::US0_Refused(v12.clone())
+                    US0::US0_Refused(v12)
                 }
             }
         }
         US1::US1_StateUnreadable(v5) => {
             let v5: Rc<str> = v5.clone();
-            US0::US0_Refused(v5.clone())
+            US0::US0_Refused(v5)
         }
     }
 }
@@ -429,19 +429,19 @@ fn active_block_9(mut v0: Rc<str>) -> US0 {
 }
 fn handoff_text_1(mut v0: Rc<str>) -> US0 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/handoff.spi"); } LIT.with(|lit| lit.clone()) };
-    let v2: US1 = state_read_of_2(v0.clone(), v1.clone());
+    let v2: US1 = state_read_of_2(v0.clone(), v1);
     match &v2 {
         US1::US1_StateMissing => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/handoff.spi is missing"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_Refused(v3.clone())
+            US0::US0_Refused(v3)
         }
         US1::US1_StateText(v7) => {
             let v7: Rc<str> = v7.clone();
-            let v8: US0 = sections_block_4(v7.clone());
+            let v8: US0 = sections_block_4(v7);
             match &v8 {
                 US0::US0_Refused(v9) => {
                     let v9: Rc<str> = v9.clone();
-                    US0::US0_Refused(v9.clone())
+                    US0::US0_Refused(v9)
                 }
                 US0::US0_Rendered(v11) => {
                     let v11: Rc<str> = v11.clone();
@@ -449,21 +449,21 @@ fn handoff_text_1(mut v0: Rc<str>) -> US0 {
                     match &v12 {
                         US0::US0_Refused(v13) => {
                             let v13: Rc<str> = v13.clone();
-                            US0::US0_Refused(v13.clone())
+                            US0::US0_Refused(v13)
                         }
                         US0::US0_Rendered(v15) => {
                             let v15: Rc<str> = v15.clone();
-                            let v16: US0 = active_block_9(v0.clone());
+                            let v16: US0 = active_block_9(v0);
                             match &v16 {
                                 US0::US0_Refused(v17) => {
                                     let v17: Rc<str> = v17.clone();
-                                    US0::US0_Refused(v17.clone())
+                                    US0::US0_Refused(v17)
                                 }
                                 US0::US0_Rendered(v19) => {
                                     let v19: Rc<str> = v19.clone();
                                     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("# KIT handoff\n"); } LIT.with(|lit| lit.clone()) };
                                     let v23: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v20, v15)), v11)), v19));
-                                    US0::US0_Rendered(v23.clone())
+                                    US0::US0_Rendered(v23)
                                 }
                             }
                         }
@@ -473,7 +473,7 @@ fn handoff_text_1(mut v0: Rc<str>) -> US0 {
         }
         US1::US1_StateUnreadable(v5) => {
             let v5: Rc<str> = v5.clone();
-            US0::US0_Refused(v5.clone())
+            US0::US0_Refused(v5)
         }
     }
 }

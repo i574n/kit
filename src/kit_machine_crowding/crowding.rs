@@ -11,6 +11,7 @@ enum US1 {
     US1_TreeRead,
     US1_Bench,
     US1_CompileHold,
+    US1_TreeWrite,
 }
 #[derive(Clone)]
 enum US2 {
@@ -59,35 +60,39 @@ fn class_word_9(mut v0: US1) -> Rc<str> {
     match &v0 {
         US1::US1_Bench => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bench"); } LIT.with(|lit| lit.clone()) };
-            v7.clone()
+            v7
         }
         US1::US1_Compile => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compile"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US1::US1_CompileHold => {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compile-hold"); } LIT.with(|lit| lit.clone()) };
-            v8.clone()
+            v8
         }
         US1::US1_CompilerInstall => {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("compiler-install"); } LIT.with(|lit| lit.clone()) };
-            v5.clone()
+            v5
         }
         US1::US1_HeavyBuild => {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("heavy-build"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
         US1::US1_LiveGui => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("live-gui"); } LIT.with(|lit| lit.clone()) };
-            v1.clone()
+            v1
         }
         US1::US1_TestSuite => {
             let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test-suite"); } LIT.with(|lit| lit.clone()) };
-            v2.clone()
+            v2
         }
         US1::US1_TreeRead => {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tree-read"); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
+        }
+        US1::US1_TreeWrite => {
+            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tree-write"); } LIT.with(|lit| lit.clone()) };
+            v9
         }
     }
 }
@@ -148,7 +153,15 @@ fn class_of_8(mut v0: Rc<str>) -> US3 {
                                     let v39: US1 = US1::US1_CompileHold;
                                     US3::US3_ClassKnown(v39)
                                 } else {
-                                    US3::US3_ClassUnknown
+                                    let v41: US1 = US1::US1_TreeWrite;
+                                    let v42: Rc<str> = class_word_9(v41);
+                                    let v43: bool = &*v0 == &*v42;
+                                    if v43 {
+                                        let v44: US1 = US1::US1_TreeWrite;
+                                        US3::US3_ClassKnown(v44)
+                                    } else {
+                                        US3::US3_ClassUnknown
+                                    }
                                 }
                             }
                         }
@@ -243,6 +256,9 @@ fn needed_mb_12(mut v0: US1) -> u64 {
         US1::US1_TreeRead => {
             0u64
         }
+        US1::US1_TreeWrite => {
+            0u64
+        }
     }
 }
 fn crowd_with_5(mut v0: u64, mut v1: u64, mut v2: u64, mut v3: Rc<str>, mut v4: u64) -> (u64, u64, u64) {
@@ -312,16 +328,16 @@ fn method14(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_13(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method14(v2.clone(), v3.clone());
+    method14(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn machine_crowding_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> Rc<str> {
     let mut v3: u64 = 0u64;
     let mut v4: u64 = 0u64;
-    let (mut v5, mut v6, mut v7): (u64, u64, u64) = crowd_of_2(v0.clone(), v2, v3, v4, v1);
+    let (mut v5, mut v6, mut v7): (u64, u64, u64) = crowd_of_2(v0, v2, v3, v4, v1);
     let v8: bool = v5 >= 2u64;
     let v10: bool = if v8 {
         let v9: bool = v6 > v7;
@@ -337,7 +353,7 @@ fn machine_crowding_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> Rc<str> {
     match &v13 {
         US5::US5_Calm => {
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v14.clone()
+            v14
         }
         US5::US5_Crowded(v15, v16, v17) => {
             let v15: u64 = *v15;
@@ -356,7 +372,7 @@ fn machine_crowding_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> Rc<str> {
             let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
             let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" MB free: hold new heavy work until they settle"); } LIT.with(|lit| lit.clone()) };
             let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
-            v30.clone()
+            v30
         }
     }
 }

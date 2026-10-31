@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+    kit_lint_macros
+    kit_lint_walk
+    kit_lint_shadows_core
+modules:
+    shadows_run

@@ -50,7 +50,7 @@ fn tally_json_6(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32)
     let v32: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v30)), v8));
     let v33: Rc<str> = std::rc::Rc::<str>::from((v4).to_string());
     let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v29, Rc::<str>::from(format!("{}{}", v32, v33))));
-    v35.clone()
+    v35
 }
 fn tally_columns_7(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32) -> Rc<str> {
     let v5: Rc<str> = { let text = (v0).to_string(); let filler = (5i32 as usize).saturating_sub(text.chars().count()); std::rc::Rc::<str>::from(" ".repeat(filler) + &text) };
@@ -69,10 +69,10 @@ fn rollup_line_5(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>,
         US0::US0_RollupJson => {
             let v17: Rc<str> = if v9 {
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v15.clone()
+                v15
             } else {
                 let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                v16.clone()
+                v16
             };
             let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"group\":\""); } LIT.with(|lit| lit.clone()) };
             let v20: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v17, v18)), v2));
@@ -84,7 +84,7 @@ fn rollup_line_5(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>,
             let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v26));
             let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
             let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
-            v29.clone()
+            v29
         }
         US0::US0_RollupText => {
             let v10: Rc<str> = { let text = v2; let filler = (11i32 as usize).saturating_sub(text.chars().count()); std::rc::Rc::<str>::from(text.to_string() + &" ".repeat(filler)) };
@@ -92,7 +92,7 @@ fn rollup_line_5(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>,
             let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
             let v13: Rc<str> = tally_columns_7(v4, v5, v6, v7, v8);
             let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
-            v14.clone()
+            v14
         }
     }
 }
@@ -263,7 +263,7 @@ fn planning_epic_ids_8(mut v0: Rc<str>) -> Rc<str> {
     let v1: i32 = 0i32;
     let v2: i32 = (v0.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    epic_ids_from_9(v0.clone(), v1, v2, v3.clone())
+    epic_ids_from_9(v0, v1, v2, v3)
 }
 fn print_rollup_2(mut v0: Rc<str>, mut v1: US0, mut v2: u64) -> i32 {
     let v12: Rc<str> = match &v1 {

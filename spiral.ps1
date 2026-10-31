@@ -20,10 +20,10 @@ $CompilerBundle = Resolve-KitSpiralBundle $CompilerBundle
 $previousWorkspace = $env:SPIRAL_WORKSPACE_ROOT
 $previousDotnet = $env:DOTNET_ROOT
 try {
-    . (Join-Path $CompilerBundle 'scripts/env.ps1')
+    . (Get-KitSpiralScript $CompilerBundle 'env.ps1')
     $dotnet = Resolve-SpiralDotnet
     $compiler = Get-SpiralCompilerDll 'single-flight'
-    if (-not (Test-Path -LiteralPath $compiler)) { throw "Build the compiler first: pwsh $CompilerBundle/scripts/build.ps1" }
+    if (-not (Test-Path -LiteralPath $compiler)) { throw "Build the compiler first: pwsh $(Get-KitSpiralScript $CompilerBundle 'build.ps1')" }
     $work = Join-Path (Get-SpiralCacheDir) ('kit/' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $work -Force | Out-Null
     function Copy-SpiralSources([string]$From, [string]$To) {

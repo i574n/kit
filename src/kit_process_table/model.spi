@@ -25,7 +25,7 @@
 := process_command_of (~word : string) : process_command =
     ? word = "ps" ?> ListProcesses |? word = "kill" ?> StopProcesses |: ProcessUnknown
 
-:= all_digits (~text : string) : bool = $'\!!text.is_empty() && !text.bytes().all(|byte| byte.is_ascii_digit())' : bool
+:= all_digits (~text : string) : bool = sm'.all_digits text
 :~ decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
 
 :~ stop_refusal_of (~pid_text : string) (~own : u64) (~ancestors : string) : stop_refusal =

@@ -10,8 +10,7 @@
 
 := standard_input_marker () : string = "-"
 
-:= process_argument (~index : i32) : string =
-    $'std::rc::Rc::<str>::from(std::env::args().nth(!index as usize).unwrap_or_default())' : string
+:= process_argument (~index : i32) : string = rust_std_env.model.argument_at index
 
 :~ argument_source () : argument_source =
     ? process_argument 1i32 = argument_flag () ?>

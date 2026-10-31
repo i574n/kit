@@ -45,11 +45,11 @@ fn method5(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_4(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method5(v2.clone(), v3.clone());
+    method5(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn field_json_3(mut v0: US0) -> Rc<str> {
     match &v0 {
@@ -59,14 +59,14 @@ fn field_json_3(mut v0: US0) -> Rc<str> {
             let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v21));
             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
             let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-            v25.clone()
+            v25
         }
         US0::US0_EstimateMinutes(v17) => {
             let v17: i32 = *v17;
             let v18: Rc<str> = format_real_4(v17);
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"est\":"); } LIT.with(|lit| lit.clone()) };
             let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v18));
-            v20.clone()
+            v20
         }
         US0::US0_KindField(v1) => {
             let v1: Rc<str> = v1.clone();
@@ -74,29 +74,29 @@ fn field_json_3(mut v0: US0) -> Rc<str> {
             let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
             let mut v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
-            v5.clone()
+            v5
         }
         US0::US0_LoadField(v6) => {
             let mut v6: US1 = v6.clone();
             let mut v12: Rc<str> = match &v6 {
                 US1::US1_HeavyLoad => {
                     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("heavy"); } LIT.with(|lit| lit.clone()) };
-                    v9.clone()
+                    v9
                 }
                 US1::US1_LightLoad => {
                     let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("light"); } LIT.with(|lit| lit.clone()) };
-                    v7.clone()
+                    v7
                 }
                 US1::US1_MediumLoad => {
                     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("medium"); } LIT.with(|lit| lit.clone()) };
-                    v8.clone()
+                    v8
                 }
             };
             let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"load\":\""); } LIT.with(|lit| lit.clone()) };
             let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v12));
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
             let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
-            v16.clone()
+            v16
         }
         US0::US0_PriorityField(v26) => {
             let v26: Rc<str> = v26.clone();
@@ -104,7 +104,7 @@ fn field_json_3(mut v0: US0) -> Rc<str> {
             let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v26));
             let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
             let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
-            v30.clone()
+            v30
         }
         US0::US0_UnknownField(v31) => {
             let v31: Rc<str> = v31.clone();
@@ -116,7 +116,7 @@ fn field_json_3(mut v0: US0) -> Rc<str> {
             let v37: Rc<str> = Rc::<str>::from(v34.replace(&*v35, &*v36));
             let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"unknown\":\""); } LIT.with(|lit| lit.clone()) };
             let v40: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v38, v37)), v35));
-            v40.clone()
+            v40
         }
     }
 }
@@ -146,12 +146,12 @@ fn joined_2(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
 }
 fn fields_json_1(mut v0: Rc<UH0>) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = joined_2(v0.clone(), v1.clone());
+    let v2: Rc<str> = joined_2(v0, v1);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{"); } LIT.with(|lit| lit.clone()) };
     let mut v4: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v2));
     let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
     let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v5));
-    v6.clone()
+    v6
 }
 fn method7(mut v0: Option<usize>) -> Option<usize> {
     v0

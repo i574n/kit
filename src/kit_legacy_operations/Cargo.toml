@@ -34,5 +34,6 @@ proxy-directory-listing = { path = "../proxy_directory_listing" }
 proxy-file-reading = { path = "../proxy_file_reading" }
 proxy-failure-classification = { path = "../proxy_failure_classification" }
 kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-delete-guard = { path = "../kit_delete_guard" }
 kit-proxy-search = { path = "../kit_proxy_search" }
 legacy-capability-domain = { path = "../legacy_capability_domain" }

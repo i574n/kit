@@ -42,7 +42,7 @@
 := token_kind (~tokens : token_list) (~index : i32) : i32 = $'!tokens[!index as usize].0' : i32
 := token_text (~tokens : token_list) (~index : i32) : string = $'!tokens[!index as usize].1.clone()' : string
 := decimal_of (~text : string) : u64 = $'!text.trim().parse::<u64>().unwrap_or(0)' : u64
-:= all_digits (~text : string) : bool = $'\!!text.is_empty() && !text.bytes().all(|byte| byte.is_ascii_digit())' : bool
+:= all_digits (~text : string) : bool = sm'.all_digits text
 
 :! hunk_list = $'std::rc::Rc<Vec<(std::rc::Rc<str>, std::rc::Rc<str>)>>'
 
@@ -245,7 +245,7 @@
         | Parsed (NoRules, _) => Rejected (concat5 "edit " header.target ": no replace or patch lines under it" "" "")
         | Parsed (rules, after) => Parsed (EditStep { header ?| rules = rules }, after)
 
-:= field_separator () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
+:= field_separator () : string = sm'.char_text 31u8
 
 :~ ^ query_words (~tokens : token_list) (~index : i32) (~text : string) : parsed string =
     := joined word = ? text = "" ?> word |: concat5 text (field_separator ()) word "" ""
@@ -357,6 +357,14 @@
             = "replace: expected once, all or <n> times"
         )
         "bad count"
+    expect
+        (
+            rejection_of (
+                program_knowing_search ("edit a.txt expect files two replacements 3\n" ^^ " replace once \"a\" with \"b\"")
+            )
+            = "edit: expect files <n> replacements <n>"
+        )
+        "a non-numeric expectation"
 
 ///> rust
 :# regex_escapes_survive_the_tokenizer =

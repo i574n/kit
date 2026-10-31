@@ -1,8 +1,10 @@
 ///- --package .
 :# model static =
     :< rust_std_string.model
+    :< sm'_operators
 
 :< rust_std_string.model
+:< sm'_operators
 
 :| job_command =
     | JobStart
@@ -46,8 +48,8 @@
     ^^ "[--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] "
     ^^ "[--quiet-wait <min>]] [--settle-ms <n>] <label> <timeout-ms> <program> [args...] (the cap covers the whole "
     ^^ "job tree; reaching it stops the job as memory-capped, exit 137; a plain start without --after watches the job "
-    ^^ "for --settle-ms, default 2000, 0 skips, and a job that already failed prints 'job start failed' with its exit "
-    ^^ "and first stderr line and exits with its code) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] "
+    ^^ "for --settle-ms, default 2000, 0 skips, and a job that already settled badly prints 'job start failed' with "
+    ^^ "its state, exit and detail and exits with that code) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] "
     ^^ "[--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet "
     ^^ "[--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this "
     ^^ "process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for "
@@ -247,6 +249,31 @@
     | StopRequested => ""
     | StopRefused reason => reason
 
+:| snapshot_verdict =
+    | SnapshotUsable
+    | SnapshotEmpty
+    | SnapshotDropsRoot : string
+
+:= path_roots () : list string = [ "PATH"; "SystemRoot"; "TEMP"; "TMP"; "USERPROFILE"; "LOCALAPPDATA"; "APPDATA" ]
+
+:= snapshot_holds (snapshot : string) (name : string) : bool =
+    := separator = unicode.char_of 0i32
+    sm'.contains (separator ++# sm'.to_lower name ++# "=") (separator ++# sm'.to_lower snapshot)
+
+:= snapshot_verdict_of (snapshot : string) (is_set : string -> bool) : snapshot_verdict =
+    ? snapshot = "" ?> SnapshotEmpty
+    |:
+        ?= listm'.try_find_ (\ name => is_set name && not (snapshot_holds snapshot name)) (path_roots ()) ?|
+        | Some name => SnapshotDropsRoot name
+        | None => SnapshotUsable
+
+:= snapshot_refusal = \|
+    | SnapshotUsable => ""
+    | SnapshotEmpty => "job environment not adopted: its snapshot is empty, and restoring it would remove every variable"
+    | SnapshotDropsRoot name =>
+        := removal = " entry (empty or cut short), and restoring it would remove "
+        "job environment not adopted: its snapshot has no " ++# name ++# removal ++# name
+
 := label_safe (~label : string) : string =
     $'std::rc::Rc::<str>::from(!label.chars().map(|c| if c.is_ascii_alphanumeric() || c == char::from(45u8) { c } \
         else { char::from(95u8) }).take(40).collect::<String>())' : string
@@ -357,3 +384,22 @@
     expect
         (round (Settled (JobSkipped "after failed")) && round (Settled (JobSpawnFailed "no such program")))
         "states with a detail"
+
+///> rust
+:# a_snapshot_that_would_remove_a_path_root_is_refused =
+    := nul = unicode.char_of 0i32
+    := windows_set (name : string) : bool = name = "PATH" || name = "SystemRoot" || name = "TEMP"
+    := whole = "=C:=C:/home" ++# nul ++# "Path=C:/bin" ++# nul ++# "SystemRoot=C:/Windows" ++# nul ++# "TEMP=C:/t"
+    expect (snapshot_verdict_of whole windows_set = SnapshotUsable) "every set root is kept, keys matched without case"
+    expect (snapshot_verdict_of "" windows_set = SnapshotEmpty) "an empty snapshot"
+    := cut = "=C:=C:/home" ++# nul ++# "Path=C:/bin" ++# nul ++# "Syst"
+    expect (snapshot_verdict_of cut windows_set = SnapshotDropsRoot "SystemRoot") "a cut snapshot names the root it drops"
+    := longer = "PATHEXT=.EXE" ++# nul ++# "TEMP=C:/t"
+    expect (snapshot_verdict_of longer windows_set = SnapshotDropsRoot "PATH") "a longer key is not the root"
+    expect (snapshot_verdict_of "TEMP=C:/t" (\ _ => !-) = SnapshotUsable) "a root unset now needs no entry"
+    := host_has_home (name : string) : bool = windows_set name || name = "HOME" || name = "KIT_JOBS_HOME"
+    expect
+        (snapshot_verdict_of whole host_has_home = SnapshotUsable)
+        "a caller without HOME or KIT_JOBS_HOME under a host that has them is a legitimate difference"
+    expect (snapshot_refusal SnapshotUsable = "") "a usable snapshot has no refusal"
+    expect (sm'.contains "would remove TEMP" (snapshot_refusal (SnapshotDropsRoot "TEMP"))) "the refusal names the root"

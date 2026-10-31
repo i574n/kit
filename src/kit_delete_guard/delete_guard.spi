@@ -1,0 +1,28 @@
+///- --package .
+:# delete_guard static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:= delete_path_absolute (~path : string) : bool =
+    := forward = sm'.replace "\\" "/" (sm'.trim path)
+    sm'.starts_with "/" forward || (sm'.length forward >= 3i32 && sm'.contains ":/" forward)
+
+:~ delete_target_refusal (~path : string) : string =
+    ? not (delete_path_absolute path)
+    ?> "kit refuses to remove a relative path, which resolves against the current folder: " ++# path
+    |? file_system.delete_target_is_protected path
+    ?>
+        "kit refuses to remove a protected folder (a drive or system root, a user profile, its AppData or temp, "
+        ^^ "or an ancestor of one): "
+        ++# path
+    |: ""
+
+///> rust
+:# a_tree_removal_refuses_relative_paths_and_protected_roots =
+    ? delete_target_refusal "build/out" <> "" ?> () |: failwith "a relative path"
+    ? delete_target_refusal "" <> "" ?> () |: failwith "an empty path"
+    ? delete_target_refusal "C:\\Users" <> "" ?> () |: failwith "the users root"
+    ? delete_target_refusal "C:\\" <> "" ?> () |: failwith "a drive root"
+    ? delete_target_refusal "C:\\home\\git\\kit\\.cache\\x" = "" ?> () |: failwith "a cache folder under the tree"
+    ? delete_path_absolute "C:\\home\\git\\kit\\.cache\\x" && delete_path_absolute "/tmp/x" ?> () |: failwith "absolute forms"

@@ -29,7 +29,8 @@
     | Edits => delegated_run Edits root (dry_headed encoded)
     | Reads => delegated_run Reads root encoded
     | Facts => delegated_run Facts root encoded
-    | _ => rejected "--dry-run covers edit, read and fact programs; this one writes, runs or changes state" started
+    | Writes => $'kit_do_file_steps::kit_do_writes_preview(&*!root, &*!encoded)' : i32
+    | _ => rejected "--dry-run previews edits, reads, facts and appends; this one runs or changes state" started
 
 :~ program_run (~mode : write_mode) (~root : string) (~text : string) : i32 =
     := started = now_ms ()

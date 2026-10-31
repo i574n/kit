@@ -14,7 +14,7 @@ fn literals_merged_2(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\" ^^ \""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
-    v3.clone()
+    v3
 }
 fn method5(mut v0: Option<char>) -> Option<char> {
     v0
@@ -40,7 +40,7 @@ fn depth_after_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4:
         if v5 {
             return v3;
         } else {
-            let v6: usize = ((v1) as usize);
+            let mut v6: usize = ((v1) as usize);
             let v7: Option<char> = (&*v0)[v6..].chars().next();
             let v8: Option<char> = method5(v7.clone());
             let mut v9: Rc<dyn Fn((char)) -> u32> = closure1();
@@ -121,7 +121,7 @@ fn method6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             let v11: bool = if v5 {
                 true
             } else {
-                let v6: bool = v4 == b'\t';
+                let mut v6: bool = v4 == b'\t';
                 if v6 {
                     true
                 } else {
@@ -156,7 +156,7 @@ fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
             let v11: bool = if v5 {
                 true
             } else {
-                let v6: bool = v4 == b'\t';
+                let mut v6: bool = v4 == b'\t';
                 if v6 {
                     true
                 } else {
@@ -183,10 +183,10 @@ fn joined_8(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v3: i32 = 0i32;
     let v4: i32 = method6(v1.clone(), v2, v3);
     let v5: i32 = v2.wrapping_sub(1i32);
-    let v6: Rc<str> = string_slice(&v1.clone(), v4 as i64, v5 as i64);
+    let mut v6: Rc<str> = string_slice(&v1, v4 as i64, v5 as i64);
     let v7: i32 = (v6.clone().len() as i32);
     let v8: i32 = method7(v6.clone(), v7);
-    let mut v9: Rc<str> = string_slice(&v6.clone(), 0i32 as i64, v8 as i64);
+    let mut v9: Rc<str> = string_slice(&v6, 0i32 as i64, v8 as i64);
     let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("("); } LIT.with(|lit| lit.clone()) };
     let v11: bool = v0.ends_with(&*v10);
     let v14: bool = if v11 {
@@ -198,17 +198,17 @@ fn joined_8(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     };
     if v14 {
         let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v9));
-        v15.clone()
+        v15
     } else {
         let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
         let v18: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v16)), v9));
-        v18.clone()
+        v18
     }
 }
 fn records_into_1(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<RefCell<Vec<Rc<str>>>>) -> () {
     loop {
         let v5: i32 = (v0.clone().borrow().len() as i32);
-        let v6: bool = v5 <= v1;
+        let mut v6: bool = v5 <= v1;
         if v6 {
             let v7: bool = &*v2 != "";
             if v7 {
@@ -287,7 +287,7 @@ fn records_as_lines_0(mut v0: Rc<str>) -> Rc<str> {
     let v3: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v2).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let v4: i32 = 0i32;
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v6: i32 = 0i32;
+    let mut v6: i32 = 0i32;
     records_into_1(v3.clone(), v4, v5.clone(), v6, v1.clone());
     let v7: Rc<str> = Rc::<str>::from((*v1).borrow().iter().map(|x| &**x).collect::<Vec<&str>>().join(&*v2).as_str());
     v7.clone()
@@ -297,6 +297,45 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         records_as_lines_0(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
+fn file_exists_10(mut v0: Rc<str>) -> bool {
+    let v2: &str = &*v0;
+    let v4: std::string::String = String::from(v2);
+    let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
+    let v8: bool = v6.exists();
+    if v8 {
+        let mut v10: bool = v6.is_file();
+        v10
+    } else {
+        false
+    }
+}
+fn method11(mut v0: Vec<u8>) -> Vec<u8> {
+    v0
+}
+fn records_unchanged_9(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
+    let v2: bool = file_exists_10(v0.clone());
+    if v2 {
+        let v4: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v0);
+        let mut v6: Vec<u8> = v4.unwrap();
+        let v7: Vec<u8> = method11(v6);
+        let mut v9: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v7);
+        let v11: std::string::String = v9.unwrap();
+        let v13: Rc<str> = Rc::<str>::from(String::as_str(&v11));
+        let v14: Rc<str> = records_as_lines_0(v13);
+        let v15: bool = &*v14 == &*v1;
+        v15
+    } else {
+        false
+    }
+}
+fn closure3() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> bool> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> bool> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> bool {
+        records_unchanged_9(v0.clone(), v1.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
 pub fn kit_agile_records_as_lines(v0: &str) -> Rc<str> {
     closure0()(Rc::<str>::from(v0))
+}
+pub fn kit_agile_records_unchanged(v0: &str, v1: &str) -> bool {
+    closure3()(Rc::<str>::from(v0), Rc::<str>::from(v1))
 }

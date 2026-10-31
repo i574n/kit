@@ -1,0 +1,23 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= agent () : cli_args = Arg ("CLAUDECODE=1", NoArgs)
+:= person () : cli_args = Arg ("AI_AGENT", Arg ("CLAUDECODE", NoArgs))
+
+:= git_do (root : fixture_root) (sets : cli_args) (drops : cli_args) (~program : string) : cli_run =
+    kit_run (fixture_text_of root) sets drops (Arg ("do", Arg (fixture_text_of root, Arg (program, NoArgs))))
+
+///> rust
+:# an_agent_session_commits_only_to_repos_its_program_created =
+    := root = fixture_root_create "do git agent commit"
+    fixture_write root "repo/a.txt" "one"
+    := program = "git init repo; git commit repo all \"init\" at 2026-10-01T10:00:00Z"
+    := made = git_do root (agent ()) NoArgs program
+    shows (succeeded made) "initialized 1  committed 1"
+    fixture_write root "repo/a.txt" "change"
+    := refused = git_do root (agent ()) NoArgs "git commit repo all \"agent change\""
+    expect (refused.code = 1i32) (run_text refused)
+    shows refused.stdout "refused: an agent session commits only to a repo this program created with git init"
+    := person_run = git_do root NoArgs (person ()) "git commit repo all \"user change\" at 2026-10-02T10:00:00Z"
+    shows (succeeded person_run) "committed 1"
+    fixture_root_remove root

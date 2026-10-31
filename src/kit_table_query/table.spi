@@ -23,10 +23,14 @@
 
 := measured (request : table_request) : bool = request.measured <> ""
 
+:~ rows_kept (~path : string) (~wheres : string) : bool * string =
+    $'kit_table_filter::kit_table_filter_kept(&*!path, &*!wheres)' : bool * string
+
 :~ measured_query (~file : string) (request : table_request) : i32 =
     := wheres, group, measures, limit, quiet =
         request.wheres, request.group, request.measured, request.limit, request.quiet
-    $'kit_table_measures::kit_table_measured(&*!file, &*!wheres, &*!group, &*!measures, !limit, !quiet)' : i32
+    := kept, detail = rows_kept file wheres
+    $'kit_table_measures::kit_table_measured(&*!file, &*!group, &*!measures, !limit, !quiet, !kept, &*!detail)' : i32
 
 :~ table_run () : i32 =
     ?= table_command_of (argument 2i32) ?|
@@ -53,22 +57,6 @@
             | StepRejected reason => rejected reason
     | TableUnknown => rejected (table_usage ())
 
-:~ ^ kept_mask (list : filters) (cells : table_cells) (row : i32) (total : i32) (~acc : string) : string =
-    ? row > total
-    ?> acc
-    |:
-        kept_mask list cells
-            (row + 1i32)
-            total
-            (rust_std_string.model.concat5 acc (? row_passes list cells row ?> "1" |: "0") "" "" "")
-
-:~ rows_kept (~path : string) (~wheres : string) : bool * string =
-    ?= table_read path ?|
-    | TableUnreadable problem => !-, problem
-    | TableLoaded cells =>
-        := list, missing = filters_from cells wheres
-        ? missing <> "" ?> !-, missing
-        |: !+, kept_mask list cells 1i32 (row_total cells) "-"
 := main () : i32 =
     !!!!Export("kit_table_run", ((\ () => table_run ()) : () -> i32))
     !!!!Export("kit_table_rows_kept", ((\ (path, wheres) => rows_kept path wheres) : string * string -> bool * string))

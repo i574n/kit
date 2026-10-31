@@ -3,5 +3,6 @@ packages:
     spiral-
     kit_receipt
     kit_lint_model
+    kit_lint_walk
 modules:
     lint

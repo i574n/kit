@@ -1,0 +1,32 @@
+///- --package .
+:# flow static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_lint_pattern.pattern
+
+:~ flow_region (~region : string) : bool =
+    := question : i32 = sm'.index_of "? " region
+    := rest = ? question < 0i32 ?> "" |: sm'.substring question ((sm'.length region : i32) - question) region
+    sm'.contains ":" rest || sm'.contains "=>" region || sm'.contains "->" region
+    || has_word region [ "if"; "else"; "match"; "for"; "while"; "case"; "switch" ]
+
+:~ flow_line (~line : string) : bool =
+    := text = sm'.to_lower line
+    := opening : i32 = sm'.index_of "$'" text
+    := closing : i32 = sm'.last_index_of "'" text
+    opening >= 0i32 && closing > opening + 1i32
+    && flow_region (sm'.substring (opening + 2i32) (closing - opening - 2i32) text)
+
+///> rust
+:# the_flow_test_is_the_census_flow_test =
+    ? flow_line "$'{ let t = &*!s; if t.len() <= 3 { t } else { \"...\" } }' : string" ?> () |: failwith "if and else"
+    ? flow_line "| _ => $'(for (!a) |x| { x })' : bool" ?> () |: failwith "a for loop"
+    ? flow_line "$'(f(!p) ? g(!p) : 0)' : u64" ?> () |: failwith "a ternary"
+    ? flow_line "$'MATCH !x WITH'" ?> () |: failwith "words ignore case"
+    ? flow_line "$'(fun () ->'" ?> () |: failwith "an arrow"
+    ? flow_line "$'!a |> Array.map !fn '" |> not ?> () |: failwith "a variable named fn"
+    ? flow_line "$'[`el; 10]'" |> not ?> () |: failwith "an array type"
+    ? flow_line "inl f x = x ? y : z" |> not ?> () |: failwith "no macro on the line"
+    ? flow_line "$'x' ; y => z" |> not ?> () |: failwith "a flow mark after the last quote"
+    ? flow_line "$'elsewhere(!x)'" |> not ?> () |: failwith "a flow word inside a longer word"

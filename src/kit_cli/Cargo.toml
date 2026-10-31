@@ -32,6 +32,7 @@ kit-table-sequences = { path = "../kit_table_sequences" }
 kit-guide = { path = "../kit_guide" }
 kit-machine-watch = { path = "../kit_machine_watch" }
 kit-adoption = { path = "../kit_adoption" }
+kit-schedule = { path = "../kit_schedule" }
 kit-memory = { path = "../kit_memory" }
 kit-resume = { path = "../kit_resume" }
 kit-ci-parity = { path = "../kit_ci_parity" }
@@ -72,6 +73,7 @@ semantic-evidence-domain = { path = "../semantic_evidence_domain" }
 cold-proof-domain = { path = "../cold_proof_domain" }
 command-spec-domain = { path = "../command_spec_domain" }
 kit-command-help = { path = "../kit_command_help" }
+kit-command-usages = { path = "../kit_command_usages" }
 canonical-plan-ir-domain = { path = "../canonical_plan_ir_domain" }
 
 [lints.clippy]

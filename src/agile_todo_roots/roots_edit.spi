@@ -36,7 +36,7 @@
     stdout_line ("kit agile roots ok action=" ++# action ++# " roots=" ++# (i32_text counted) ++# sizes)
 
 :~ roots_written (~state : string) (~action : string) (~original : string) (~updated : string) (started : u64) : i32 =
-    ?= replace_file_checked state updated ?|
+    ?= replace_records_unchanged state original updated ?|
     | Replaced =>
         roots_receipt action updated (measured_sizes (text_bytes original) (text_bytes updated) (ms_since started))
     | problem => roots_failure (file_replacement_problem problem)

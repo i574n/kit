@@ -1,0 +1,153 @@
+///- --package .
+:# seal static =
+    :< sm'_operators
+    :< rust_std_fs.model
+    :< agile_task_text.model
+    :< agile_note_model.model
+    :< workspace_primitives.bytes
+    :< workspace_primitives.clock
+    :< workspace_primitives.console
+    :< workspace_primitives.files
+    :< workspace_primitives.numbers
+
+:< sm'_operators
+:< rust_std_fs.model
+:< agile_task_text.model
+:< agile_note_model.model
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+:< workspace_primitives.numbers
+
+:== sealing =
+    {
+        kept : string
+        sealed : array string
+        kept_count : i32
+        sealed_count : i32
+        line_count : i32
+    }
+
+:| seal_mode =
+    | SealApply
+    | SealDryRun
+
+:= note_marker () : string = " () = Note (\""
+
+:~ note_owner (~line : string) : string =
+    := at = sm'.index_of (note_marker ()) line
+    ? sm'.starts_with "inl note_of_" line |> not || at < 0i32
+    ?> ""
+    |:
+        := rest = byte_slice line (at + byte_len (note_marker ())) (byte_len line)
+        := close = sm'.index_of "\"" rest
+        ? close < 0i32 ?> "" |: byte_slice rest 0i32 close
+
+:~ binding_of (~line : string) : string =
+    := tail = byte_slice line 4i32 (byte_len line)
+    := space = sm'.index_of " " tail
+    ? sm'.starts_with "inl " line |> not || space < 0i32 ?> "" |: byte_slice tail 0i32 space
+
+:~ member (~set : string) (~word : string) : bool = word <> "" && sm'.contains ("\n" ++# word ++# "\n") set
+
+:~ sealed_line (~done : string) (~line : string) : bool = member done (note_owner line)
+
+:~ joined_lines (lines : array string) : string = sm'.concat_array "\n" lines
+
+:~ filtered (predicate : string -> bool) (lines : array string) : array string =
+    am'.to_list' lines |> listm'.filter' predicate |> listm'.to_array' |> array
+
+:~ sealing_of (~done : string) (~text : string) : sealing =
+    := lines = sm'.lines text
+    := kept = filtered (\ line => sealed_line done line |> not) lines
+    := sealed = filtered (\ line => sealed_line done line) lines
+    {
+        kept = joined_lines kept
+        sealed = sealed
+        kept_count = am'.length kept
+        sealed_count = am'.length sealed
+        line_count = am'.length lines
+    }
+
+:~ archived_binding (~known : string) (~line : string) : bool = sm'.contains ("\ninl " ++# binding_of line ++# " () =") known
+
+:~ archive_path (~root : string) : string = root ++# "/archive/done-notes.spi"
+
+:~ done_ids (~text : string) : string = "\n" ++# ($'agile_task_census::kit_agile_done_ids(&*!text)' : string)
+
+:~ seal_failure (~reason : string) : i32 = stderr_failure ("agile seal rejected: " ++# reason)
+
+:~ seal_receipt (mode : seal_mode) (split : sealing) (fresh : i32) (before : u64) (after : u64) (started : u64) : i32 =
+    := word = ?= mode ?| | SealApply => "ok" | SealDryRun => "dry-run"
+    := counts = " sealed=" ++# i32_text split.sealed_count ++# " new_in_archive=" ++# i32_text fresh
+    stdout_line ("kit agile seal " ++# word ++# counts ++# (measured_sizes before after (ms_since started)))
+
+:~ sealed_written (~root : string) (~path : string) (~raw : string) (split : sealing) (~ending : string) : string =
+    := archive = archive_path root
+    := previous = ? file_exists archive ?> file_system.read_all_text archive |: ""
+    := known = "\n" ++# previous
+    := fresh = filtered (\ line => archived_binding known line |> not) split.sealed
+    := _ = file_system.create_dir_all (root ++# "/archive")
+    := lead = ? previous = "" || sm'.ends_with "\n" previous ?> previous |: previous ++# "\n"
+    := appended = ? am'.length fresh = 0i32 ?> previous |: lead ++# joined_lines fresh ++# "\n"
+    ?= replace_file_checked archive appended ?|
+    | Replaced =>
+        ?= state_written path raw (split.kept ++# ending) ?|
+        | StateWritten => i32_text (am'.length fresh)
+        | problem => "!" ++# state_write_problem problem
+    | problem => "!archive " ++# file_replacement_problem problem
+
+:~ seal_run (~root : string) (mode : seal_mode) : i32 =
+    := started = unix_ms ()
+    := path = backlog_state_path root
+    ?= probe (unchecked path) ?|
+    | FileMissing _ => seal_failure "state/agile.spi is missing"
+    | FileReadable file =>
+        := raw = loaded_string (read_text file)
+        := text = records_text raw
+        ? sm'.contains "\r" text
+        ?> seal_failure "state/agile.spi has CR line endings; sealing keeps LF only"
+        |:
+            := split = sealing_of (done_ids text) text
+            := ending = ? sm'.ends_with "\n" text ?> "\n" |: ""
+            ? split.kept_count + split.sealed_count <> split.line_count
+            ?> seal_failure "the split is not a partition of the state lines; nothing written"
+            |:
+                ?= mode ?|
+                | SealDryRun => seal_receipt mode split 0i32 (text_bytes text) (text_bytes (split.kept ++# ending)) started
+                | SealApply =>
+                    := outcome = sealed_written root path raw split ending
+                    ? sm'.starts_with "!" outcome
+                    ?> seal_failure (byte_slice outcome 1i32 (byte_len outcome))
+                    |:
+                        := fresh = optionm'.default_value 0i32 (convert.try_convert outcome)
+                        seal_receipt mode split fresh (text_bytes text) (text_bytes (split.kept ++# ending)) started
+
+:~ seal_entry () : i32 =
+    := root = rust_std_env.model.argument_owned 1i32
+    := flag = rust_std_env.model.argument_owned 2i32
+    ? flag = "--dry-run" ?> seal_run root SealDryRun
+    |? flag = "" ?> seal_run root SealApply
+    |: seal_failure "usage: agile seal <root> [--dry-run]"
+
+///> rust
+:# a_note_line_names_its_owner_and_binding =
+    := line = "inl note_of_kit_x_2 () = Note (\"KIT-X\", 2u32, \"t\", \"a\", \"b\")"
+    ? note_owner line = "KIT-X" ?> () |: failwith "owner"
+    ? binding_of line = "note_of_kit_x_2" ?> () |: failwith "binding"
+    ? note_owner "inl kit_x () = Task (\"KIT-X\", \"t\")" = "" ?> () |: failwith "a task line has no owner"
+
+///> rust
+:# sealing_moves_only_done_notes_and_partitions_the_lines =
+    := text =
+        "inl a () = Task (\"A\", \"t\")\ninl note_of_a_1 () = Note (\"A\", 1u32, \"t\", \"x\", \"y\")\n"
+        ^^ "inl b () = Task (\"B\", \"t\")\ninl note_of_b_1 () = Note (\"B\", 1u32, \"t\", \"x\", \"y\")"
+    := split = sealing_of "\nA\n" text
+    ? split.sealed_count = 1i32 && split.kept_count = 3i32 && split.line_count = 4i32 ?> () |: failwith "counts"
+    ? sm'.contains "note_of_a_1" split.kept |> not && sm'.contains "note_of_b_1" split.kept ?> () |: failwith "kept"
+
+///> _
+:= main () : i32 =
+    !!!!Export("kit_agile_seal_run", ((\ () => seal_entry ()) : () -> i32))
+    0i32

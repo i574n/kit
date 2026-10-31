@@ -64,8 +64,9 @@
         "src/client/lib.rs"
         (
             "#[test] fn fresh_cli_is_available() { let current=std::env::current_exe().unwrap(); let "
-            ^^ "binary=current.parent().unwrap().parent().unwrap().join(format!(\"kit{}\",std::env::consts::EXE_SUFFIX"
-            ^^ ")); let output=std::process::Command::new(binary).output().expect(\"selected test requires the "
+            ^^ "name=format!(\"kit{}\",std::env::consts::EXE_SUFFIX); let binary=current.ancestors().map(|folder| "
+            ^^ "folder.join(&name)).find(|candidate| candidate.is_file()).expect(\"selected test requires the CLI\"); "
+            ^^ "let output=std::process::Command::new(binary).output().expect(\"selected test requires the "
             ^^ "CLI\"); assert!(output.status.success()); assert_eq!(String::from_utf8(output.stdout).unwrap().trim(),"
             ^^ "include_str!(\"expected.txt\").trim()); }\n"
         )

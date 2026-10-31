@@ -27,6 +27,9 @@
     | VerbCheck
     | VerbList
     | VerbRecall
+    | VerbSave
+    | VerbForget
+    | VerbEdit
 
 :| verb_parse =
     | VerbKnown : memory_verb
@@ -36,7 +39,10 @@
 
 :~ memory_usage () : string =
     "usage: kit memory import <memory-dir> <data.spi> | render <data.spi> <out-dir> | check <data.spi> | list "
-    ^^ "<data.spi> [--kind user|feedback|project|reference] | recall <data.spi> \"<words>\" [--limit n]"
+    ^^ "<data.spi> [--kind user|feedback|project|reference] | recall <data.spi> \"<words>\" [--limit n] | save "
+    ^^ "<memory-dir> <user|feedback|project|reference> <slug> \"<description>\" \"<body>\"|- [--title <text>] | "
+    ^^ "forget <memory-dir> <slug> (moves it to archive/ and drops its index line) | edit <memory-dir> <slug> "
+    ^^ "description|body \"<text>\"|-"
 
 :~ memory_run () : i32 =
     := word = argument 2i32
@@ -68,6 +74,19 @@
             := limit = decimal_of (option_value "--limit") 10i32
             ? query = "" ?> failed (memory_usage ()) |: $'kit_memory_query::kit_memory_recall(&*!data, &*!query, \
                 !limit)' : i32
+        | VerbSave =>
+            ? argument 7i32 = "" ?> failed (memory_usage ())
+            |:
+                := dir, kind, slug = argument 3i32, argument 4i32, argument 5i32
+                := description, body = argument 6i32, argument 7i32
+                $'kit_memory_save::kit_memory_save(&*!dir, &*!kind, &*!slug, &*!description, &*!body)' : i32
+        | VerbForget =>
+            := dir, slug = argument 3i32, argument 4i32
+            ? slug = "" ?> failed (memory_usage ()) |: $'kit_memory_save::kit_memory_forget(&*!dir, &*!slug)' : i32
+        | VerbEdit =>
+            := dir, slug, field, text = argument 3i32, argument 4i32, argument 5i32, argument 6i32
+            ? text = "" ?> failed (memory_usage ())
+            |: $'kit_memory_save::kit_memory_edit(&*!dir, &*!slug, &*!field, &*!text)' : i32
 
 := main () : i32 =
     !!!!Export("kit_memory_run", ((\ () => memory_run ()) : () -> i32))

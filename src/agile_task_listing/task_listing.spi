@@ -9,7 +9,7 @@
 :< workspace_primitives.files
 
 := argument_owned index : string = rust_std_env.model.argument_owned index
-:= argument_count () : i32 = $'std::env::args().skip(2).count() as i32' : i32
+:= argument_count () : i32 = rust_std_env.model.argument_count_after 2i32
 
 :== task_row =
     {
@@ -45,10 +45,6 @@
 := right_aligned (~text : string) (width : i32) : string =
     $'{ let text = !text; let filler = (!width as usize).saturating_sub(text.chars().count()); \
         std::rc::Rc::<str>::from(" ".repeat(filler) + &*text) }' : string
-:= clipped (~text : string) (width : i32) : string =
-    $'{ let text = !text; if text.chars().count() <= !width as usize { text } else { \
-        std::rc::Rc::<str>::from(text.chars().take((!width as usize).saturating_sub(3)).collect::<String>() + "...") \
-        } }' : string
 
 :~ task_row_at (text : string) (arguments : i32) (length : i32) : task_row =
     := field = tuple_field text arguments length
@@ -89,7 +85,7 @@
             ++# "  "
             ++# (padded row.status 8i32)
             ++# (padded row.kind 9i32)
-    head ++# middle ++# planning ++# (clipped row.title (title_width ()))
+    head ++# middle ++# planning ++# (sm'.clip (title_width ()) row.title)
 
 :| listing_format =
     | TableFormat
@@ -203,16 +199,21 @@
             )
     head ++# middle ++# tail ++# "," ++# (extra ++# planning ++# "}")
 
+:= waits_column (~unsettled : string) (~deps : string) : string =
+    $'agile_task_census::kit_agile_waits_column(&*!unsettled, &*!deps)' : string
+
 :~ row_line (text : string) (request : list_request) (row : task_row) (first : bool) : string =
     := planning = planning_row_in request.planning row.id
     ?= request.format ?|
-    | TableFormat => table_line row (planning_columns planning row.id 0i32)
+    | TableFormat =>
+        := waits = ? request.unsettled = "" ?> "" |: waits_column request.unsettled row.deps
+        table_line row (planning_columns planning row.id 0i32) ++# waits
     | JsonFormat => json_line row (planning_json planning row.id 0i32) request.notes first
 
 := any_planning (~filter : string) : bool = (filter = "all")
 
 := planning_selected (~text : string) (~id : string) (at : i32) (~load : string) (~assignee : string) : bool =
-    $'agile_planning_filters::kit_agile_planning_selected_near(&*!text, &*!id, !at, &*!load, &*!assignee)' : bool
+    $'agile_planning_filters::kit_agile_planning_selected_near(&!text, &!id, !at, &!load, &!assignee)' : bool
 
 := query_passes
     (~query : string) (~id : string) (~title : string) (~tags : string) (~status : string) (settled : bool)
@@ -372,6 +373,10 @@
             ++# " fields)"
     )
 
+:~ state_segments (~root : string) : string =
+    := state_dir = root ++# "/state"
+    $'agile_note_listing::kit_agile_state_segments(&*!state_dir)' : string
+
 :~ agile_list (~root : string) (request : list_request) : i32 =
     := started = unix_ms ()
     ?= probe (unchecked (backlog_state_path root)) ?|
@@ -382,7 +387,8 @@
         := malformed = $'agile_task_census::kit_agile_first_malformed_task(&*!text)' : i32
         ? malformed < 0i32 ?>
             := unsettled = ? query_reads_deps request.query ?> unsettled_ids text |: ""
-            := noted = { request ?| notes = note_index_of text; unsettled = unsettled }
+            := noted_text = text ++# "\n" ++# state_segments root
+            := noted = { request ?| notes = note_index_of noted_text; unsettled = unsettled }
             print_listing text length { noted ?| planning = planning_index_of text } started
         |: malformed_task_failure malformed
 

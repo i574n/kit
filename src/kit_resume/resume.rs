@@ -44,18 +44,18 @@ fn argument_1(mut v0: i32) -> Rc<str> {
     };
     let v9: US0 = if v5 {
         let v6: Rc<str> = command_line_argument_3(v1);
-        US0::US0_Some(v6.clone())
+        US0::US0_Some(v6)
     } else {
         US0::US0_None
     };
     match &v9 {
         US0::US0_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US0::US0_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -222,7 +222,7 @@ fn unquoted_12(mut v0: Rc<str>) -> Rc<str> {
     let v5: i32 = 0i32;
     let v6: i32 = (v3.clone().len() as i32);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    unescaped_from_13(v3.clone(), v4, v5, v6, v7.clone())
+    unescaped_from_13(v3, v4, v5, v6, v7)
 }
 fn note_at_8(mut v0: Rc<str>, mut v1: i32) -> (Rc<str>, Rc<str>, Rc<str>) {
     let v2: i32 = v1.wrapping_add(6i32);
@@ -255,13 +255,13 @@ fn authored_row_14(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str
     let v8: i32 = 0i32;
     let v9: i32 = field_start_9(v0.clone(), v6, v7, v8);
     let v10: US2 = US2::US2_ScanPlain;
-    let v11: i32 = field_end_10(v0.clone(), v9, v7, v10.clone());
+    let v11: i32 = field_end_10(v0.clone(), v9, v7, v10);
     let v12: Rc<str> = std::rc::Rc::<str>::from(v0.get(v9 as usize..v11 as usize).unwrap_or(""));
-    let v13: Rc<str> = unquoted_12(v12.clone());
+    let v13: Rc<str> = unquoted_12(v12);
     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v5, v13)), v4));
     let v16: Rc<str> = std::rc::Rc::<str>::from((v2).replace(char::from(10u8), " ").chars().take(160i32 as usize).collect::<String>().as_str());
     let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
-    v17.clone()
+    v17
 }
 fn authored_rows_from_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>) -> Rc<str> {
     loop {
@@ -389,11 +389,11 @@ fn method16(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_15(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method16(v2.clone(), v3.clone());
+    method16(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn resume_run_0() -> i32 {
     let mut v0: i32 = 2i32;

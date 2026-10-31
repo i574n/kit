@@ -37,28 +37,28 @@ fn kind_of_word_4(mut v0: Rc<str>) -> US2 {
     let v3: bool = &*v0 == &*v2;
     if v3 {
         let v4: US0 = US0::US0_KindUser;
-        US2::US2_KindKnown(v4.clone())
+        US2::US2_KindKnown(v4)
     } else {
         let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Feedback"); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = std::rc::Rc::<str>::from((v6).to_ascii_lowercase().as_str());
         let v8: bool = &*v0 == &*v7;
         if v8 {
             let v9: US0 = US0::US0_KindFeedback;
-            US2::US2_KindKnown(v9.clone())
+            US2::US2_KindKnown(v9)
         } else {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Project"); } LIT.with(|lit| lit.clone()) };
             let v12: Rc<str> = std::rc::Rc::<str>::from((v11).to_ascii_lowercase().as_str());
             let v13: bool = &*v0 == &*v12;
             if v13 {
                 let v14: US0 = US0::US0_KindProject;
-                US2::US2_KindKnown(v14.clone())
+                US2::US2_KindKnown(v14)
             } else {
                 let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Reference"); } LIT.with(|lit| lit.clone()) };
                 let v17: Rc<str> = std::rc::Rc::<str>::from((v16).to_ascii_lowercase().as_str());
                 let v18: bool = &*v0 == &*v17;
                 if v18 {
                     let v19: US0 = US0::US0_KindReference;
-                    US2::US2_KindKnown(v19.clone())
+                    US2::US2_KindKnown(v19)
                 } else {
                     US2::US2_KindUnknown
                 }
@@ -75,74 +75,74 @@ fn rendered_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, mu
     let v13: bool = &*v4 == "";
     let v19: Rc<str> = if v13 {
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v14.clone()
+        v14
     } else {
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v18: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v12, &*v16, &*v4, &*v17].concat());
-        v18.clone()
+        v18
     };
     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("type"); } LIT.with(|lit| lit.clone()) };
     let v25: Rc<str> = match &v3 {
         US0::US0_KindFeedback => {
             let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Feedback"); } LIT.with(|lit| lit.clone()) };
-            v22.clone()
+            v22
         }
         US0::US0_KindProject => {
             let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Project"); } LIT.with(|lit| lit.clone()) };
-            v23.clone()
+            v23
         }
         US0::US0_KindReference => {
             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Reference"); } LIT.with(|lit| lit.clone()) };
-            v24.clone()
+            v24
         }
         US0::US0_KindUser => {
             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("User"); } LIT.with(|lit| lit.clone()) };
-            v21.clone()
+            v21
         }
     };
     let v26: Rc<str> = std::rc::Rc::<str>::from((v25).to_ascii_lowercase().as_str());
     let v27: bool = &*v26 == "";
     let v33: Rc<str> = if v27 {
         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v28.clone()
+        v28
     } else {
         let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v32: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v20, &*v30, &*v26, &*v31].concat());
-        v32.clone()
+        v32
     };
     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("originSessionId"); } LIT.with(|lit| lit.clone()) };
     let v35: bool = &*v5 == "";
     let v41: Rc<str> = if v35 {
         let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v36.clone()
+        v36
     } else {
         let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v40: Rc<str> = std::rc::Rc::<str>::from([&*v37, &*v34, &*v38, &*v5, &*v39].concat());
-        v40.clone()
+        v40
     };
     let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("modified"); } LIT.with(|lit| lit.clone()) };
     let v43: bool = &*v6 == "";
     let v49: Rc<str> = if v43 {
         let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v44.clone()
+        v44
     } else {
         let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v48: Rc<str> = std::rc::Rc::<str>::from([&*v45, &*v42, &*v46, &*v6, &*v47].concat());
-        v48.clone()
+        v48
     };
     let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v51: Rc<str> = std::rc::Rc::<str>::from([&*v19, &*v33, &*v41, &*v49, &*v50].concat());
     let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("---\n"); } LIT.with(|lit| lit.clone()) };
     let v53: Rc<str> = std::rc::Rc::<str>::from([&*v11, &*v51, &*v52, &*v7, &*v50].concat());
-    v53.clone()
+    v53
 }
 fn entry_of_file_3(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
     let v2: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(&*v1).to_string_lossy().as_ref());
@@ -290,19 +290,19 @@ fn memory_line_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0,
     let v22: Rc<str> = match &v3 {
         US0::US0_KindFeedback => {
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Feedback"); } LIT.with(|lit| lit.clone()) };
-            v19.clone()
+            v19
         }
         US0::US0_KindProject => {
             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Project"); } LIT.with(|lit| lit.clone()) };
-            v20.clone()
+            v20
         }
         US0::US0_KindReference => {
             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Reference"); } LIT.with(|lit| lit.clone()) };
-            v21.clone()
+            v21
         }
         US0::US0_KindUser => {
             let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("User"); } LIT.with(|lit| lit.clone()) };
-            v18.clone()
+            v18
         }
     };
     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
@@ -364,7 +364,7 @@ fn memory_line_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0,
     let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")\n"); } LIT.with(|lit| lit.clone()) };
     let v80: Rc<str> = std::rc::Rc::<str>::from([&*v72, &*v23, &*v78, &*v79, &*v15].concat());
     let v81: Rc<str> = std::rc::Rc::<str>::from([&*v24, &*v53, &*v66, &*v80, &*v15].concat());
-    v81.clone()
+    v81
 }
 fn memory_lines_8(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
     loop {
@@ -548,7 +548,7 @@ fn entry_of_line_11(mut v0: Rc<str>) -> US1 {
             let v28: bool = v27 < 0i32;
             if v28 {
                 let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("malformed memory line: "); } LIT.with(|lit| lit.clone()) };
-                let v30: Rc<str> = { let text = v0; if text.chars().count() <= 80i32 as usize { text } else { std::rc::Rc::<str>::from(text.chars().take((80i32 as usize).saturating_sub(3)).collect::<String>() + "...") } };
+                let v30: Rc<str> = { let text = &*v0; if text.chars().count() <= 80i32 as usize { std::rc::Rc::<str>::from(text) } else { std::rc::Rc::<str>::from(text.chars().take((80i32 as usize).saturating_sub(3)).collect::<String>() + "...") } };
                 let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 let v32: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v30, &*v31, &*v31, &*v31].concat());
                 US1::US1_EntryRefused(v32.clone())
@@ -558,7 +558,7 @@ fn entry_of_line_11(mut v0: Rc<str>) -> US1 {
         }
         US2::US2_KindUnknown => {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown memory kind in: "); } LIT.with(|lit| lit.clone()) };
-            let v9: Rc<str> = { let text = v0; if text.chars().count() <= 80i32 as usize { text } else { std::rc::Rc::<str>::from(text.chars().take((80i32 as usize).saturating_sub(3)).collect::<String>() + "...") } };
+            let v9: Rc<str> = { let text = &*v0; if text.chars().count() <= 80i32 as usize { std::rc::Rc::<str>::from(text) } else { std::rc::Rc::<str>::from(text.chars().take((80i32 as usize).saturating_sub(3)).collect::<String>() + "...") } };
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v11: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v9, &*v10, &*v10, &*v10].concat());
             US1::US1_EntryRefused(v11.clone())
@@ -679,11 +679,11 @@ fn method18(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_17(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method18(v2.clone(), v3.clone());
+    method18(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn import_receipt_16(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>) -> Rc<str> {
     let v4: Rc<str> = format_real_17(v0);
@@ -697,7 +697,7 @@ fn import_receipt_16(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>)
     let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v2));
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" data="); } LIT.with(|lit| lit.clone()) };
     let v16: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v13, v14)), v3));
-    v16.clone()
+    v16
 }
 fn memory_import_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("MEMORY.md"); } LIT.with(|lit| lit.clone()) };

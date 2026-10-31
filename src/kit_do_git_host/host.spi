@@ -1,5 +1,4 @@
-:~ part_at (~text : string) (~index : i32) : string =
-    $'std::rc::Rc::<str>::from(!text.split(char::from(30u8)).nth(!index as usize).unwrap_or(""))' : string
+:~ part_at (~text : string) (~index : i32) : string = sm'.split_nth 30u8 index text
 
 :~ line_count (~text : string) : u64 = convert.u64 (sm'.nonempty_line_count text)
 
@@ -10,7 +9,7 @@
 
 := stdout_line (~text : string) : () = console.write_line text
 
-:= column () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
+:= column () : string = sm'.char_text 31u8
 
 :~ git_run (~root : string) (~directory : string) (~arguments : string) (~date : string) : string =
     $'{ let mut command = std::process::Command::new("git"); command.current_dir(std::path::Path::new(&*!root).join(&*\

@@ -19,7 +19,9 @@ $work = Join-Path $KitRoot ('.cache/native-probes/' + [guid]::NewGuid().ToString
 $encoding = [Text.UTF8Encoding]::new($false)
 Copy-Item -LiteralPath $KitBinary -Destination (Join-Path $work "kit$suffix")
 $KitBinary = Join-Path $work "kit$suffix"
-$isolatedCwd = [IO.Path]::GetTempPath()
+if (-not $env:TEMP -or -not $env:TMP) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
+$isolatedCwd = Join-Path ([IO.Path]::GetTempPath()) ('kit-native-probes-' + [guid]::NewGuid().ToString('N'))
+[void][IO.Directory]::CreateDirectory($isolatedCwd)
 
 function Invoke-ProbeCapture([string]$Name, [string]$Program, [string[]]$Arguments, [int]$Budget = $TimeoutMs) {
     $receiptPath = Join-Path $work "$Name.txt"

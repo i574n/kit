@@ -10,9 +10,6 @@
 := argument_byte index offset : i32 = rust_std_env.model.argument_byte index offset
 := argument_owned index : string = rust_std_env.model.argument_owned index
 := argument_equals index expected : bool = rust_std_env.model.argument_equals index expected
-:= i32_eq a b : bool = (a = b)
-:= i32_le a b : bool = (a <= b)
-:= i32_nonnegative value : bool = $"0 <= !value"
 := i32_positive value : bool = $"0 < !value"
 := i32_digit value : bool = ? 48i32 <= value ?> value <= 57i32 |: !-
 := i32_digit_value value : i32 = $"!value - 48"
@@ -27,7 +24,7 @@
     := ~message =
         !!!!StaticStringConcat("agile supports ", agile_subcommand_domain.subcommand.agile_subcommand_usage ", ")
     agile_mutation_error message
-:= received_operands () : string = $'std::rc::Rc::<str>::from(std::env::args().skip(3).count().to_string())' : string
+:= received_operands () : string = sm'.show (rust_std_env.model.argument_count_after 3i32)
 := agile_shape_error (~subcommand : string) (~shape : string) : i32 =
     := head = "agile " ++# subcommand ++# " expects " ++# shape ++# ", received "
     := message = head ++# (received_operands ()) ++# " operands; see kit agile --help"

@@ -51,11 +51,11 @@ fn receipt_line_3(mut v0: US0, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
         US0::US0_Failed => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
-            v4.clone()
+            v4
         }
         US0::US0_Succeeded => {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
-            v3.clone()
+            v3
         }
     };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
@@ -88,7 +88,7 @@ fn lines_receipt_1(mut v0: [u64; 4], mut v1: u64) -> i32 {
     let v21: bool = v12 == 0u64;
     if v21 {
         let v22: US0 = US0::US0_Succeeded;
-        receipt_line_3(v22.clone(), v20.clone(), v1);
+        receipt_line_3(v22, v20.clone(), v1);
         0i32
     } else {
         let v23: US0 = US0::US0_Failed;
@@ -96,7 +96,7 @@ fn lines_receipt_1(mut v0: [u64; 4], mut v1: u64) -> i32 {
         let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v24));
         let v26: Rc<str> = decimal_text_2(v12);
         let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v26));
-        receipt_line_3(v23.clone(), v27.clone(), v1);
+        receipt_line_3(v23, v27, v1);
         2i32
     }
 }
@@ -128,7 +128,7 @@ fn read_receipt_7(mut v0: u64, mut v1: u64, mut v2: u64, mut v3: Rc<str>, mut v4
             let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v6));
             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  lines "); } LIT.with(|lit| lit.clone()) };
             let v27: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v24, v25)), v7));
-            receipt_line_3(v22.clone(), v27.clone(), v5);
+            receipt_line_3(v22, v27, v5);
             0i32
         } else {
             let v28: US0 = US0::US0_Failed;
@@ -140,7 +140,7 @@ fn read_receipt_7(mut v0: u64, mut v1: u64, mut v2: u64, mut v3: Rc<str>, mut v4
             let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v33));
             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  lines "); } LIT.with(|lit| lit.clone()) };
             let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v34, Rc::<str>::from(format!("{}{}", v35, v7))));
-            receipt_line_3(v28.clone(), v37.clone(), v5);
+            receipt_line_3(v28, v37, v5);
             2i32
         }
     }
@@ -173,18 +173,18 @@ fn argument_9(mut v0: i32) -> Rc<str> {
     };
     let v9: US1 = if v5 {
         let v6: Rc<str> = command_line_argument_11(v1);
-        US1::US1_Some(v6.clone())
+        US1::US1_Some(v6)
     } else {
         US1::US1_None
     };
     match &v9 {
         US1::US1_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US1::US1_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -310,7 +310,7 @@ fn max_lines_from_16(mut v0: i32, mut v1: i32) -> u64 {
 }
 fn read_start_19() -> (u64, u64, u64, Rc<str>) {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    (0u64, 0u64, 0u64, v0.clone())
+    (0u64, 0u64, 0u64, v0)
 }
 fn decimal_or_zero_22(mut v0: Rc<str>) -> u64 {
     let v1: Option<u64> = (v0).trim().parse::<u64>().ok();
@@ -442,11 +442,11 @@ fn method28(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_27(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method28(v2.clone(), v3.clone());
+    method28(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn slice_json_29(mut v0: std::rc::Rc<Result<Vec<String>, String>>, mut v1: u64, mut v2: u64, mut v3: Rc<str>) -> Rc<str> {
     loop {
@@ -594,7 +594,7 @@ fn file_slice_25(mut v0: Rc<str>, mut v1: US4, mut v2: u64, mut v3: bool) -> (i6
     (v93, v94.clone())
 }
 fn slice_tallied_24(mut v0: Rc<str>, mut v1: US4, mut v2: u64, mut v3: bool, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: Rc<str>) -> (u64, u64, u64, Rc<str>) {
-    let (mut v8, mut v9): (i64, Rc<str>) = file_slice_25(v0.clone(), v1.clone(), v2, v3);
+    let (mut v8, mut v9): (i64, Rc<str>) = file_slice_25(v0, v1, v2, v3);
     let v10: u64 = v4.wrapping_add(1u64);
     let v11: bool = &*v7 == "";
     let v15: Rc<str> = if v11 {
@@ -602,7 +602,7 @@ fn slice_tallied_24(mut v0: Rc<str>, mut v1: US4, mut v2: u64, mut v3: bool, mut
     } else {
         let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
         let v14: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v7, v12)), v9));
-        v14.clone()
+        v14
     };
     let v16: bool = v8 < 0i64;
     let (mut v20, mut v21, mut v22, mut v23): (u64, u64, u64, Rc<str>) = if v16 {
@@ -611,9 +611,9 @@ fn slice_tallied_24(mut v0: Rc<str>, mut v1: US4, mut v2: u64, mut v3: bool, mut
     } else {
         let v18: u64 = (v8 as u64);
         let v19: u64 = v6.wrapping_add(v18);
-        (v10, v5, v19, v15.clone())
+        (v10, v5, v19, v15)
     };
-    (v20, v21, v22, v23.clone())
+    (v20, v21, v22, v23)
 }
 fn globbed_from_31(mut v0: Rc<str>, mut v1: i32, mut v2: US4, mut v3: u64, mut v4: bool, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: Rc<str>) -> (u64, u64, u64, Rc<str>) {
     let v9: Rc<str> = std::rc::Rc::<str>::from((v0).split(char::from(10u8)).nth(v1 as usize).unwrap_or(""));

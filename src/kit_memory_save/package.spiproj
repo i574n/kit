@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    union_reflection
+    kit_memory_model
+modules:
+    save
+    entry

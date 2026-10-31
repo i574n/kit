@@ -176,7 +176,7 @@ fn list_request_0() -> (bool, Rc<str>, Rc<str>, Rc<str>, Rc<str>, bool, Rc<str>,
     let v7: bool = false;
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("priority"); } LIT.with(|lit| lit.clone()) };
-    let v10: US0 = list_args_from_1(v0, v5, v6.clone(), v6.clone(), v6.clone(), v7, v8.clone(), v9.clone());
+    let v10: US0 = list_args_from_1(v0, v5, v6.clone(), v6.clone(), v6, v7, v8.clone(), v9);
     match &v10 {
         US0::US0_ListParsed(v11, v12, v13, v14, v15, v16) => {
             let v11: Rc<str> = v11.clone();
@@ -185,11 +185,11 @@ fn list_request_0() -> (bool, Rc<str>, Rc<str>, Rc<str>, Rc<str>, bool, Rc<str>,
             let v14: bool = *v14;
             let v15: Rc<str> = v15.clone();
             let v16: Rc<str> = v16.clone();
-            (true, v8.clone(), v11.clone(), v12.clone(), v13.clone(), v14, v15.clone(), v16.clone())
+            (true, v8.clone(), v11, v12, v13, v14, v15, v16)
         }
         US0::US0_ListRejected(v17) => {
             let v17: Rc<str> = v17.clone();
-            (false, v17.clone(), v8.clone(), v8.clone(), v8.clone(), false, v8.clone(), v8.clone())
+            (false, v17, v8.clone(), v8.clone(), v8.clone(), false, v8.clone(), v8)
         }
     }
 }

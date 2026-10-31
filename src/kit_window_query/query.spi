@@ -28,15 +28,27 @@
         " heavy_slots=" ++# (number_text slots)))
     0i32
 
+:~ ^ shared_with (~rows : string) (~found : string) : string =
+    ? rows = ""
+    ?> found
+    |:
+        := row = first_row rows
+        := item = (tab_field row 1i32) ++# " " ++# (tab_field row 3i32)
+        := held = tab_field row 2i32 = "held"
+        shared_with (other_rows rows) (? held && found <> "" ?> found ++# ", " ++# item |? held ?> item |: found)
+
 :~ window_checked () : i32 =
     ?= class_of (argument 3i32) ?|
     | ClassUnknown => refused ("check: unknown class '" ++# (argument 3i32) ++# "'; " ++# (window_usage ()))
     | ClassKnown wanted =>
         := root = windows_root ()
         := now = now_ms ()
-        := terms = verdict_text wanted "" now 0u64 (live_rows root (stored_rows root) now "") (free_mb ()) now 0u64
+        := rows = live_rows root (stored_rows root) now ""
+        := terms = verdict_text wanted "" "" now 0u64 rows (free_mb ()) now 0u64
         ? terms = "" ?>
-            stdout_line ("kit window check ok class=" ++# (class_word wanted) ++# " free")
+            := shared = shared_with rows ""
+            := note = ? shared = "" ?> "" |: " (shares with " ++# shared ++# ")"
+            stdout_line ("kit window check ok class=" ++# (class_word wanted) ++# " free" ++# note)
             0i32
         |:
             stdout_line ("kit window check blocked class=" ++# (class_word wanted) ++# " " ++# terms)
@@ -49,7 +61,7 @@
         := root = windows_root ()
         := moment = now_ms ()
         := rows = live_rows root (stored_rows root) moment ""
-        verdict_text wanted "" moment 0u64 rows (free_mb ()) moment 0u64 = ""
+        verdict_text wanted "" "" moment 0u64 rows (free_mb ()) moment 0u64 = ""
 
 :~ fitting_loads () : string =
     := holders = $'kit_window_run::kit_heavy_holders_text()' : string

@@ -103,7 +103,7 @@
 
 :~ home_of (~home : string) : host_home = ? directory_exists (requests_directory home) ?> HomePresent |: HomeGone
 
-:~ args_mark () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
+:~ args_mark () : string = sm'.char_text 31u8
 
 :~ ^ host_served
     (~children : supervisor_children) (~home : string) (owner_pid : u64) (owner_start : u64) (~idle_since : u64)

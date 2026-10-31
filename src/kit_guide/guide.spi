@@ -23,8 +23,7 @@
     ? problem = "" ?> Written |: WriteFailed problem
 := line_end_from (~text : string) (offset : i32) : i32 = $'(!text).get(!offset as usize..).and_then(|rest| \
     rest.find(char::from(10u8))).map(|at| at as i32 + !offset).unwrap_or((!text).len() as i32)' : i32
-:= text_between (~text : string) (start : i32) (stop : i32) : string = $'std::rc::Rc::<str>::from((!text).get(!start \
-    as usize..!stop as usize).unwrap_or(""))' : string
+:= text_between (~text : string) (start : i32) (stop : i32) : string = sm'.bytes_between start stop text
 := text_length (~text : string) : i32 = sm'.length text
 := count_text (value : i32) : string = (sm'.show value)
 

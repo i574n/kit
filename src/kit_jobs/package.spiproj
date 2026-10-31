@@ -2,6 +2,7 @@ packages:
     |core-
     spiral-
     rust_std_string
+    rust_std_env
 modules:
     model
     host

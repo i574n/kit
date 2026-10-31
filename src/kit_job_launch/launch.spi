@@ -28,7 +28,7 @@
 
 :| start_settle =
     | SettleHealthy
-    | SettleFailed : i32 * string
+    | SettleFailed : job_settled * string
 
 :~ ^ settled_within (~id : string) (~left_ms : u64) : job_state =
     := state = shared_state id
@@ -47,10 +47,21 @@
 :~ start_settle_of (~id : string) (~settle_ms : u64) : start_settle =
     ?= settled_within id settle_ms ?|
     | Settled (JobFinished code) =>
-        ? code = 0i32 ?> SettleHealthy |: SettleFailed (code, first_line_of (text_or_empty (job_file id "stderr.log")))
-    | Settled (JobSpawnFailed problem) => SettleFailed (127i32, problem)
-    | Settled (JobLost) => SettleFailed (125i32, "the supervisor ended before the job settled")
-    | _ => SettleHealthy
+        ? code = 0i32
+        ?> SettleHealthy
+        |: SettleFailed (JobFinished code, first_line_of (text_or_empty (job_file id "stderr.log")))
+    | Settled (JobLost) => SettleFailed (JobLost, "the supervisor ended before the job settled")
+    | Settled settled => SettleFailed (settled, state_detail (Settled settled))
+    | Live _ => SettleHealthy
+
+:= settle_failure_line (~id : string) (settled : job_settled) (~detail : string) : string =
+    "kit job start failed id="
+    ++# id
+    ++# " state="
+    ++# settled_word settled
+    ++# " exit="
+    ++# sm'.format (settled_exit settled)
+    ++# (? detail = "" ?> "" |: " detail=\"" ++# detail ++# "\"")
 
 :~ job_started (attached : bool) : i32 * string =
     := ok
@@ -86,11 +97,9 @@
         | Launched (id, supervisor) =>
             := settles = attached = !- && after_mode = "" && shape = PlainStart && settle_ms > 0u64
             ?= (? settles ?> start_settle_of id settle_ms |: SettleHealthy) ?|
-            | SettleFailed (code, detail) =>
-                stderr_line (
-                    "kit job start failed id=" ++# id ++# " exit=" ++# sm'.format code ++# " stderr=" ++# detail
-                )
-                code, id
+            | SettleFailed (settled, detail) =>
+                stderr_line (settle_failure_line id settled detail)
+                settled_exit settled, id
             | SettleHealthy =>
                 stdout_line (
                     (? attached ?> "kit job run started id=" |: "kit job start ok id=")
@@ -128,7 +137,7 @@
     := code, id = job_started attached
     ($'std::rc::Rc::<str>::from((!code).to_string().as_str())' : string) ++# "\t" ++# id
 
-:= record_mark () : string = $'std::rc::Rc::<str>::from(char::from(30u8).to_string())' : string
+:= record_mark () : string = sm'.char_text 30u8
 
 :~ launched_text (~label : string) (~timeout : u64) (~inner : string) (~cwd : string) : string =
     ?= job_launched PlainStart "" "" !- 0u64 0u64 0u64 0u64 0u64 0u64 !- label timeout inner cwd ?|

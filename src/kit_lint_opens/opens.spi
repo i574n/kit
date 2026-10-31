@@ -1,0 +1,85 @@
+///- --package .
+:# opens static =
+    :< testing
+    :< sm'_operators
+    :< file_system_operators
+
+:< sm'_operators
+:< file_system_operators
+
+:== open_clash = kit_lint_shadows_core.shadows.open_clash
+
+:== definition = kit_lint_shadows_core.shadows.definition
+
+:~ module_path (~root : string) (~dir : string) (~lib : string) (~name : string) : string =
+    := dot = sm'.index_of "." name
+    ? dot >= 0i32
+    ?>
+        := rest = sm'.substring (dot + 1i32) (sm'.length name - dot - 1i32) name
+        (root </> sm'.substring 0i32 dot name </> sm'.replace "." "/" rest) ++# ".spi"
+    |:
+        := local = (dir </> name) ++# ".spi"
+        ? file_system.file_exists local ?> local |? lib <> "" ?> (lib </> name) ++# ".spi" |: ""
+
+:~ module_text (~path : string) : string =
+    ? path <> "" && file_system.file_exists path ?> file_system.read_all_text path |: ""
+
+:~ opened_definitions
+    (~root : string) (~dir : string) (~lib : string) (names : list string)
+    : list (string * list definition)
+    =
+    names
+    |> listm.map \ (name : string) =>
+        := text = module_text (module_path root dir lib name)
+        name, kit_lint_shadows_core.shadows.definitions (kit_lint_shadows_core.shadows.rows_of text)
+
+:~ known_open (~baseline : string) (~file : string) (~name : string) : bool =
+    sm'.split_list "\n" baseline
+    |> listm'.exists' \ (row : string) =>
+        sm'.starts_with (file ++# ":") row && sm'.contains ("  " ++# name ++# "  open-shadow") row
+
+:~ open_row (~file : string) (c : open_clash) : string =
+    file ++# ":" ++# sm'.obj_to_string c.line ++# "  " ++# c.name ++# "  open-shadow  from " ++# c.opened
+
+:~ open_rows
+    (~root : string) (~lib : string) (~path : string) (~file : string) (~text : string) (~baseline : string)
+    : list string * i32 * i32
+    =
+    := rows = kit_lint_shadows_core.shadows.rows_of text
+    := dir = optionm'.default_value' "" (file_system.directory_get_parent path)
+    := opened = opened_definitions root dir lib (kit_lint_shadows_core.shadows.opened_modules rows)
+    := found = kit_lint_shadows_core.shadows.open_clashes (kit_lint_shadows_core.shadows.definitions rows) opened
+    := fresh = found |> listm'.filter \ (c : open_clash) => not (known_open baseline file c.name)
+    fresh |> listm.map (\ (c : open_clash) => open_row file c), listm.length found, listm.length fresh
+
+:~ rows_array (rows : list string) : array string =
+    := out : array string = create (listm.length rows)
+    := _ =
+        rows
+        |> listm.fold
+            \ index (row : string) =>
+                set out index row
+                index + 1i32
+            0i32
+    out
+
+:~ open_rows_exported
+    (~root : string) (~lib : string) (~path : string) (~file : string) (~text : string) (~baseline : string)
+    : array string * i32 * i32
+    =
+    := rows, total, fresh = open_rows root lib path file text baseline
+    rows_array rows, total, fresh
+
+///> rust
+:# an_opened_package_module_is_resolved_and_its_names_checked =
+    := root = file_system.get_temp_path () </> "kit-lint-opens-test"
+    file_system.remove_dir_all root |> ignore
+    file_system.create_dir_all (root </> "pkg") |> ignore
+    file_system.write_all_text (root </> "pkg" </> "b.spi") ":= helper = 2\n:= other = 3\n"
+    := path = root </> "pkg" </> "a.spi"
+    := text = ":< pkg.b\n:< missing\n:= helper = 1\n:= fresh = 2\n"
+    := rows, total, fresh = open_rows root "" path "pkg/a.spi" text ""
+    := known_rows, known_total, known_fresh = open_rows root "" path "pkg/a.spi" text "pkg/a.spi:3  helper  open-shadow"
+    file_system.remove_dir_all root |> ignore
+    (sm'.concat_list "|" rows, total, fresh, sm'.concat_list "|" known_rows, known_total, known_fresh)
+    |> _assert_eq ("pkg/a.spi:3  helper  open-shadow  from pkg.b", 1i32, 1i32, "", 1i32, 0i32)

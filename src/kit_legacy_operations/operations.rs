@@ -225,6 +225,8 @@ fn kit_proxy(args: &[String]) -> Result<(), String> {
             if args.len() > 4 || (args.len() == 4 && !missing_ok) { return Err("fs-remove-tree expects root relative [--missing-ok]".to_owned()); }
             if missing_ok { let safe = kit_safe_relative(relative)?; let candidate = root.join(&safe); if !candidate.exists() { println!("kit proxy fs-remove-tree ok removed=0 missing_ok=1{}", proxy_file_receipt::kit_elapsed_field(started)); return Ok(()); } }
             let path = kit_rooted(root, relative)?;
+            let refusal = kit_delete_guard::kit_delete_target_refusal(&path.to_string_lossy());
+            if !refusal.is_empty() { return Err(refusal.to_string()); }
             let count = kit_remove_tree_within(root, &path)?;
             println!("kit proxy fs-remove-tree ok removed={count} missing_ok={}{}", i32::from(missing_ok), proxy_file_receipt::kit_elapsed_field(started));
             Ok(())

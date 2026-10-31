@@ -30,7 +30,7 @@ fn find_char_loop_2(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
 }
 fn method4() -> Rc<str> {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn codec_empty_3() -> Rc<str> {
     method4()
@@ -562,7 +562,7 @@ fn inspect_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
     };
     let v12: i32 = if v9 {
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("packages"); } LIT.with(|lit| lit.clone()) };
-        fields_8(v0.clone(), v4, v10.clone())
+        fields_8(v0.clone(), v4, v10)
     } else {
         -2i32
     };
@@ -576,7 +576,7 @@ fn inspect_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
     };
     let v22: i32 = if v19 {
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("workspace_members"); } LIT.with(|lit| lit.clone()) };
-        fields_8(v0.clone(), v14, v20.clone())
+        fields_8(v0.clone(), v14, v20)
     } else {
         -2i32
     };
@@ -609,9 +609,9 @@ fn inspect_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
         };
         if v40 {
             let v41: i32 = 0i32;
-            let v42: u8 = v2.clone().as_bytes()[0i32 as usize];
+            let v42: u8 = v2.as_bytes()[0i32 as usize];
             let v43: i32 = 0i32;
-            selected_1(v0.clone(), v1.clone(), v41, v42, v27, v31, v43)
+            selected_1(v0, v1, v41, v42, v27, v31, v43)
         } else {
             -5i32
         }

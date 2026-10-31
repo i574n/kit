@@ -7,8 +7,28 @@
 
 := now_ms () : u64 = convert.u64 (reactors.physical_micros () / 1000i64)
 
+:~ ^ logs_from (out : string) (names : array string) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found
+    |:
+        := name = sm'.trim (am'.index at names)
+        := path = out </> log_name_of name
+        := log = ? name <> "" && file_system.file_exists path ?> file_system.read_all_text path |: ""
+        logs_from out names (at - 1i32) (? name = "" ?> found |: log :: found)
+
+:~ train_line (command : string) : string =
+    := name = train_name_of command
+    := root = train_root_of command
+    ? name = "" || root = "" ?> ""
+    |:
+        := out = root </> ".cache/release-train" </> name
+        := listed = out </> "notebooks.txt"
+        ? not (file_system.file_exists listed) ?> "release train " ++# name ++# ": no notebook set yet"
+        |:
+            := names = sm'.split "\n" (file_system.read_all_text listed) |> array
+            train_progress_text name (train_progress_of (logs_from out names (am'.length names - 1i32) []))
+
 :~ notebook_batch_line (command : string) (age_minutes : u64) (now : u64) : string =
-    ? run_notebook_batch command |> not ?> ""
+    ? run_notebook_batch command |> not ?> train_line command
     |:
         := dir = batch_output_dir command
         := started_ms = now - (age_minutes + 1u64) * 60000u64

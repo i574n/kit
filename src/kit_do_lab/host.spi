@@ -1,6 +1,6 @@
 := stdout_line (~text : string) : () = console.write_line text
 
-:= column () : string = $'std::rc::Rc::<str>::from(char::from(31u8).to_string())' : string
+:= column () : string = sm'.char_text 31u8
 
 :~ line_count (~text : string) : u64 = convert.u64 (sm'.nonempty_line_count text)
 

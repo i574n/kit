@@ -17,11 +17,11 @@ fn table_problem_0(mut v0: Rc<str>) -> Rc<str> {
     let v1: bool = file_exists_1(v0.clone());
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v2.clone()
+        v2
     } else {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": file not found"); } LIT.with(|lit| lit.clone()) };
         let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v3));
-        v4.clone()
+        v4
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -137,14 +137,14 @@ fn table_tsv_2(mut v0: Rc<str>) -> Rc<str> {
     if v1 {
         let v3: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v0);
         let v5: Vec<u8> = v3.unwrap();
-        let mut v6: Vec<u8> = method7(v5.clone());
+        let mut v6: Vec<u8> = method7(v5);
         let v8: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v6);
         let v10: std::string::String = v8.unwrap();
         let v12: Rc<str> = Rc::<str>::from(String::as_str(&v10));
-        tsv_of_text_3(v0.clone(), v12.clone())
+        tsv_of_text_3(v0, v12)
     } else {
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v14.clone()
+        v14
     }
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {

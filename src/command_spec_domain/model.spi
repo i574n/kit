@@ -149,7 +149,7 @@
     ?> effect_code_value Wrap
     |? rust_std_string.model.pipe_member "agile:begin|agile:init" input
     ?> effect_code_value Renew
-    |? rust_std_string.model.equals input "bundle:retention-apply"
+    |? (input = "bundle:retention-apply")
     ?> effect_code_value Mutate
     |: 4u64
 
@@ -342,9 +342,9 @@
     ?> rust_std_string.model.pipe_index (proxy_direct_route_names ()) input
     |? rust_std_string.model.pipe_member (proxy_search_route_names ()) input
     ?> proxy_route_code_value SearchRoute
-    |? rust_std_string.model.equals input "archive-extract"
+    |? (input = "archive-extract")
     ?> proxy_route_code_value ArchiveExtractRoute
-    |? rust_std_string.model.equals input "zip-extract"
+    |? (input = "zip-extract")
     ?> proxy_route_code_value ZipExtractRoute
     |: proxy_route_code_value LegacyProxyRoute
 
@@ -368,7 +368,7 @@
 := process_argument_count () : i32 = env.host_argument_count ()
 := u64_text (value : u64) : string = (sm'.show value)
 := proxy_capability (~name : string) : bool =
-    ? rust_std_string.model.equals name "" ?> !- |: ? rust_std_string.model.equals (proxy_usage name) "" ?> !- |: !+
+    ? (name = "") ?> !- |: ? ((proxy_usage name) = "") ?> !- |: !+
 
 :~ ^ help_flag_from (index : i32) (count : i32) : bool =
     ? (index >= count) ?> !-
@@ -378,10 +378,10 @@
 := help_request () : help_request =
     := verb = process_argument 1i32
     := second = process_argument 2i32
-    ? rust_std_string.model.equals verb "help" ?>
+    ? (verb = "help") ?>
         ? proxy_capability second ?> CapabilityHelp second |: NoHelpRequested
     |? help_flag_from 2i32 (process_argument_count ()) ?>
-        ? rust_std_string.model.equals verb "proxy" ?>
+        ? (verb = "proxy") ?>
             ? proxy_capability second ?> CapabilityHelp second |: VerbHelp verb
         |: VerbHelp verb
     |: NoHelpRequested
@@ -442,7 +442,7 @@
     := name, effect, usage, summary, handler = command_descriptor_by_index "3"
     expect (name = "bundle" && effect = "wrap" && handler = "bundle") "bundle descriptor"
     expect (summary = "check create verify rehydrate and retain bundles") summary
-    expect (rust_std_string.model.starts_with usage "bundle: growth-baseline") usage
+    expect (sm'.starts_with "bundle: growth-baseline" usage) usage
     := unknown, unknown_effect, unknown_usage, unknown_summary, _ = command_descriptor_by_index "6"
     := signed, _, _, _, _ = command_descriptor_by_index "+3"
     expect (signed = "unknown") "only canonical index text selects a verb"

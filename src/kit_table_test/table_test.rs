@@ -42,7 +42,7 @@ fn stderr_line_3(mut v0: Rc<str>) -> () {
 fn refused_2(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table test "); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v0));
-    stderr_line_3(v2.clone());
+    stderr_line_3(v2);
     2i32
 }
 fn where_clauses_4() -> Rc<str> {
@@ -74,18 +74,18 @@ fn argument_5(mut v0: i32) -> Rc<str> {
     };
     let v9: US1 = if v5 {
         let v6: Rc<str> = command_line_argument_7(v1);
-        US1::US1_Some(v6.clone())
+        US1::US1_Some(v6)
     } else {
         US1::US1_None
     };
     match &v9 {
         US1::US1_None => {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
         US1::US1_Some(v10) => {
             let v10: Rc<str> = v10.clone();
-            v10.clone()
+            v10
         }
     }
 }
@@ -196,8 +196,8 @@ fn tallied_11(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, 
 }
 fn confidence_given_17() -> f64 {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--confidence"); } LIT.with(|lit| lit.clone()) };
-    let v1: Rc<str> = option_value_8(v0.clone());
-    let v2: f64 = number_parsed_15(v1.clone());
+    let v1: Rc<str> = option_value_8(v0);
+    let v2: f64 = number_parsed_15(v1);
     let v3: bool = v2 == v2;
     if v3 {
         v2
@@ -285,10 +285,10 @@ fn numeric_note_22(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" numeric)"); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v16: Rc<str> = std::rc::Rc::<str>::from([&*v12, &*v13, &*v14, &*v15, &*v15].concat());
-        v16.clone()
+        v16
     } else {
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v17.clone()
+        v17
     }
 }
 fn stdout_line_23(mut v0: Rc<str>) -> () {
@@ -536,17 +536,17 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
     let v7: bool = &*v5 == "";
     if v7 {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--metric names the primary metric column"); } LIT.with(|lit| lit.clone()) };
-        US4::US4_PlanRejected(v8.clone())
+        US4::US4_PlanRejected(v8)
     } else {
         let v10: bool = &*v6 == "";
         if v10 {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--decision states the decision rule before any data"); } LIT.with(|lit| lit.clone()) };
-            US4::US4_PlanRejected(v11.clone())
+            US4::US4_PlanRejected(v11)
         } else {
             let v13: bool = v3 < 2i32;
             if v13 {
                 let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--runs is the planned count per arm, at least 2"); } LIT.with(|lit| lit.clone()) };
-                US4::US4_PlanRejected(v14.clone())
+                US4::US4_PlanRejected(v14)
             } else {
                 let v16: bool = &*v1 == "";
                 let v19: bool = if v16 {
@@ -566,33 +566,33 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                     let v33: Rc<str> = match &v0 {
                         US0::US0_BinomialAtMost => {
                             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binomial"); } LIT.with(|lit| lit.clone()) };
-                            v24.clone()
+                            v24
                         }
                         US0::US0_BinomialBand => {
                             let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binomial-band"); } LIT.with(|lit| lit.clone()) };
-                            v27.clone()
+                            v27
                         }
                         US0::US0_MedianBand => {
                             let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("median"); } LIT.with(|lit| lit.clone()) };
-                            v26.clone()
+                            v26
                         }
                         US0::US0_OneSampleT => {
                             let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("one-sample"); } LIT.with(|lit| lit.clone()) };
-                            v23.clone()
+                            v23
                         }
                         US0::US0_WelchTwoSided => {
                             let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("welch"); } LIT.with(|lit| lit.clone()) };
-                            v22.clone()
+                            v22
                         }
                         US0::US0_WilsonBand => {
                             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wilson"); } LIT.with(|lit| lit.clone()) };
-                            v25.clone()
+                            v25
                         }
                     };
                     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" with --group needs --arms naming the group value (without both it measures the whole table)"); } LIT.with(|lit| lit.clone()) };
                     let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     let v36: Rc<str> = std::rc::Rc::<str>::from([&*v33, &*v34, &*v35, &*v35, &*v35].concat());
-                    US4::US4_PlanRejected(v36.clone())
+                    US4::US4_PlanRejected(v36)
                 } else {
                     let v38: i32 = comma_count_26(v1.clone());
                     let v39: i32 = arms_needed_10(v0.clone());
@@ -613,27 +613,27 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                         let v57: Rc<str> = match &v0 {
                             US0::US0_BinomialAtMost => {
                                 let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binomial"); } LIT.with(|lit| lit.clone()) };
-                                v48.clone()
+                                v48
                             }
                             US0::US0_BinomialBand => {
                                 let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binomial-band"); } LIT.with(|lit| lit.clone()) };
-                                v51.clone()
+                                v51
                             }
                             US0::US0_MedianBand => {
                                 let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("median"); } LIT.with(|lit| lit.clone()) };
-                                v50.clone()
+                                v50
                             }
                             US0::US0_OneSampleT => {
                                 let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("one-sample"); } LIT.with(|lit| lit.clone()) };
-                                v47.clone()
+                                v47
                             }
                             US0::US0_WelchTwoSided => {
                                 let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("welch"); } LIT.with(|lit| lit.clone()) };
-                                v46.clone()
+                                v46
                             }
                             US0::US0_WilsonBand => {
                                 let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wilson"); } LIT.with(|lit| lit.clone()) };
-                                v49.clone()
+                                v49
                             }
                         };
                         let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs --arms with "); } LIT.with(|lit| lit.clone()) };
@@ -641,14 +641,14 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                         let v60: bool = v59 == 2i32;
                         let v63: Rc<str> = if v60 {
                             let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("two group values (a,b)"); } LIT.with(|lit| lit.clone()) };
-                            v61.clone()
+                            v61
                         } else {
                             let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("one group value"); } LIT.with(|lit| lit.clone()) };
-                            v62.clone()
+                            v62
                         };
                         let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                         let v65: Rc<str> = std::rc::Rc::<str>::from([&*v57, &*v58, &*v63, &*v64, &*v64].concat());
-                        US4::US4_PlanRejected(v65.clone())
+                        US4::US4_PlanRejected(v65)
                     } else {
                         let v67: bool = match &v0 {
                             US0::US0_MedianBand => {
@@ -667,7 +667,7 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                         };
                         if v70 {
                             let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("median needs --prediction low,high (the band the median must fall in)"); } LIT.with(|lit| lit.clone()) };
-                            US4::US4_PlanRejected(v71.clone())
+                            US4::US4_PlanRejected(v71)
                         } else {
                             let v73: bool = needs_prediction_27(v0.clone());
                             let v75: bool = if v73 {
@@ -680,33 +680,33 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                                 let v87: Rc<str> = match &v0 {
                                     US0::US0_BinomialAtMost => {
                                         let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binomial"); } LIT.with(|lit| lit.clone()) };
-                                        v78.clone()
+                                        v78
                                     }
                                     US0::US0_BinomialBand => {
                                         let v81: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binomial-band"); } LIT.with(|lit| lit.clone()) };
-                                        v81.clone()
+                                        v81
                                     }
                                     US0::US0_MedianBand => {
                                         let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("median"); } LIT.with(|lit| lit.clone()) };
-                                        v80.clone()
+                                        v80
                                     }
                                     US0::US0_OneSampleT => {
                                         let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("one-sample"); } LIT.with(|lit| lit.clone()) };
-                                        v77.clone()
+                                        v77
                                     }
                                     US0::US0_WelchTwoSided => {
                                         let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("welch"); } LIT.with(|lit| lit.clone()) };
-                                        v76.clone()
+                                        v76
                                     }
                                     US0::US0_WilsonBand => {
                                         let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wilson"); } LIT.with(|lit| lit.clone()) };
-                                        v79.clone()
+                                        v79
                                     }
                                 };
                                 let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs --prediction (the model value or rate it is tested against)"); } LIT.with(|lit| lit.clone()) };
                                 let v89: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                                 let v90: Rc<str> = std::rc::Rc::<str>::from([&*v87, &*v88, &*v89, &*v89, &*v89].concat());
-                                US4::US4_PlanRejected(v90.clone())
+                                US4::US4_PlanRejected(v90)
                             } else {
                                 US4::US4_PlanAccepted
                             }

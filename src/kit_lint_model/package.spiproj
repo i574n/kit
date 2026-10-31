@@ -1,5 +1,8 @@
 packages:
     |core-
     spiral-
+    kit_lint_flow
+    kit_lint_flow_constructs
+    kit_lint_flow_idioms
 modules:
     model

@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    rust_std_env
+    kit_standards
+modules:
+    scan

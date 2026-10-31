@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "usages.spi"
+output = "usages.rs"
+
+[package]
+name = "kit-command-usages"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_command_usages"
+path = "usages.rs"

@@ -4,6 +4,7 @@ packages:
     rust_std_string
     union_reflection
     kit_jobs
+    rust_std_env
 modules:
     window_model
     windows

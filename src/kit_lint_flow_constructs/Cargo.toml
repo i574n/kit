@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "lint_flow_constructs.rs"
+
+[package]
+name = "kit-lint-flow-constructs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_flow_constructs"
+path = "lint_flow_constructs.rs"

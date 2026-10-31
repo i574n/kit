@@ -477,7 +477,7 @@ fn spiral_main() -> i32 {
                 if v9 {
                     let v10: i32 = 0i32;
                     let v11: i32 = 0i32;
-                    scan_plan_0(v0.clone(), v10, v6, v11)
+                    scan_plan_0(v0, v10, v6, v11)
                 } else {
                     US0::US0_PatchPlanTooLarge
                 }

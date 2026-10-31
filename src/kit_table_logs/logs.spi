@@ -125,10 +125,8 @@
         marker.find(&*!text)).map(|found| (&(!text)[found.end()..]).split_once(char::from(10u8)).map(|(_, \
         after)| after).unwrap_or("")).unwrap_or(""))' : string
 
-:~ first_of (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split(char::from(10u8)).next().unwrap_or(\
-    ""))' : string
-:~ rest_of (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split_once(char::from(10u8)).map(|(_, \
-    rest)| rest).unwrap_or(""))' : string
+:~ first_of (~lines : string) : string = sm'.first_line lines
+:~ rest_of (~lines : string) : string = sm'.after_first_line lines
 :~ missing_marker (~line : string) : bool = $'(!line).starts_with(char::from(1u8))' : bool
 
 :~ ^ rows_of

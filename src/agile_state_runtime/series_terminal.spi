@@ -61,7 +61,10 @@ inl emit_runtime () : () = global """
             if observed_sequence != sequence || observed_units != settled_units || observed_score != migration_score { return Err("series runtime validation mismatch".to_owned()); }
             agile_attest_known_mutation(root, &history_path, Some(original.as_bytes()))
         })();
-        if let Err(error) = validate { agile_atomic_write(&history_path, original.as_bytes())?; return Err(format!("series append rolled back: {error}")); }
+        if let Err(error) = validate {
+            if agile_read_regular_text_limited(&history_path, 64 * 1024 * 1024).ok().as_deref() == Some(updated.as_str()) { agile_atomic_write(&history_path, original.as_bytes())?; return Err(format!("series append rolled back: {error}")); }
+            return Err(format!("series append not rolled back: another writer changed the history meanwhile, and their write is kept: {error}"));
+        }
         println!("kit agile record ok sequence={sequence} units={settled_units} migration={migration_score}/1000 ratings_tag={ratings_tag} bench_tag={bench_tag} validation=runtime-attested compiler=not-required");
         Ok(())
     }

@@ -14,5 +14,6 @@ name = "kit_table_sequences"
 path = "verb.rs"
 
 [dependencies]
-kit-log-sequences = { path = "../kit_log_sequences" }
+kit-table-sequence-measures = { path = "../kit_table_sequence_measures" }
 kit-table-sections = { path = "../kit_table_sections" }
+kit-table-counts = { path = "../kit_table_counts" }

@@ -1,0 +1,220 @@
+///- --package .
+:# shadows static =
+    :< testing
+    :< sm'_operators
+
+:< sm'_operators
+
+:| namespace =
+    | TypeSpace
+    | TermSpace
+
+:| shadow_kind =
+    | TypeTwice
+    | ShadowedUnused
+
+:== definition = { name : string; line : i32; space : namespace }
+
+:== shadow = { name : string; first : i32; second : i32; kind : shadow_kind }
+
+:= space_code (s : namespace) : i32 =
+    ?= s ?|
+    | TypeSpace => 0i32
+    | TermSpace => 1i32
+
+:= kind_name (k : shadow_kind) : string =
+    ?= k ?|
+    | TypeTwice => "type-twice"
+    | ShadowedUnused => "shadowed-unused"
+
+:= ident_char (c : string) : bool =
+    sm'.length c = 1i32 && sm'.index_of c "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'" >= 0i32
+
+:= rest_after (n : i32) (s : string) : string = sm'.substring n (sm'.length s - n) s
+
+:~ ^ ident_length (s : string) (i : i32) : i32 =
+    ? i < sm'.length s && ident_char (sm'.substring i 1i32 s) ?> ident_length s (i + 1i32) |: i
+
+:= declared (line : string) : option (namespace * string) =
+    ? sm'.starts_with ":== " line ?> Some (TypeSpace, rest_after 4i32 line)
+    |? sm'.starts_with ":! " line ?> Some (TypeSpace, rest_after 3i32 line)
+    |? sm'.starts_with ":| " line ?> Some (TypeSpace, rest_after 3i32 line)
+    |? sm'.starts_with ":= " line ?> Some (TermSpace, rest_after 3i32 line)
+    |? sm'.starts_with ":~ " line ?> Some (TermSpace, rest_after 3i32 line)
+    |: None
+
+:= unhatted (s : string) : string = ? sm'.starts_with "^ " s ?> rest_after 2i32 s |: s
+
+:= definition_of (line : string) (number : i32) : option definition =
+    ?= declared line ?|
+    | Some (space, rest) =>
+        := body = unhatted rest
+        := name = sm'.substring 0i32 (ident_length body 0i32) body
+        ? name = "" ?> None |: Some { name line = number; space }
+    | None => None
+
+:~ ^ word_count (name : string) (text : string) (before : string) (n : i32) : i32 =
+    := at = sm'.index_of name text
+    ? at < 0i32 || name = "" ?> n
+    |:
+        := prev = ? at = 0i32 ?> before |: sm'.substring (at - 1i32) 1i32 text
+        := after_at = at + sm'.length name
+        := next = ? after_at >= sm'.length text ?> "" |: sm'.substring after_at 1i32 text
+        := whole = not (ident_char prev) && prev <> "." && not (ident_char next)
+        := matched_end = sm'.substring (after_at - 1i32) 1i32 text
+        word_count name (rest_after after_at text) matched_end (? whole ?> n + 1i32 |: n)
+
+:~ numbered (lines : list string) : list (i32 * string) =
+    := _, rows = lines |> listm.fold (\ (n, acc) line => n + 1i32, (n + 1i32, line) :: acc) (0i32, [])
+    listm.rev rows
+
+:~ definitions (rows : list (i32 * string)) : list definition =
+    rows
+    |> listm.fold
+        \ acc (n, line) =>
+            ?= definition_of line n ?|
+            | Some d => d :: acc
+            | None => acc
+        []
+    |> listm.rev
+
+:~ same_binding (a : definition) (b : definition) : bool = a.name = b.name && space_code a.space = space_code b.space
+
+:~ ^ next_same (d : definition) (later : list definition) : option definition =
+    ?= later ?|
+    | [] => None
+    | x :: rest => ? same_binding d x ?> Some x |: next_same d rest
+
+:~ uses_between (rows : list (i32 * string)) (d : definition) (later : definition) : i32 =
+    := counted =
+        rows
+        |> listm.fold
+            \ n (at, line) => ? at > d.line && at <= later.line ?> word_count d.name line "" n |: n
+            0i32
+    counted - 1i32
+
+:~ shadow_of (rows : list (i32 * string)) (d : definition) (later : definition) : option shadow =
+    := first, second = d.line, later.line
+    ?= d.space ?|
+    | TypeSpace => Some { name = d.name; first; second; kind = TypeTwice }
+    | TermSpace =>
+        ? uses_between rows d later = 0i32 ?> Some { name = d.name; first; second; kind = ShadowedUnused } |: None
+
+:~ ^ shadows_in (rows : list (i32 * string)) (defs : list definition) (found : list shadow) : list shadow =
+    ?= defs ?|
+    | [] => listm.rev found
+    | d :: rest =>
+        ?= optionm.bind (\ later => shadow_of rows d later) (next_same d rest) ?|
+        | Some s => shadows_in rows rest (s :: found)
+        | None => shadows_in rows rest found
+
+:~ file_shadows (text : string) : list shadow =
+    := rows = sm'.split_list "\n" (sm'.replace "\r" "" text) |> numbered
+    shadows_in rows (definitions rows) []
+
+:= shadow_text (s : shadow) : string =
+    s.name ++# " " ++# sm'.obj_to_string s.first ++# " " ++# sm'.obj_to_string s.second ++# " " ++# kind_name s.kind
+
+:= shadows_text (text : string) : string = file_shadows text |> listm.map shadow_text |> sm'.concat_list "|"
+
+///> rust
+:# a_second_type_alias_is_a_finding =
+    := ~text = ":== chunker = string -> i32\n\n:= f (c : chunker) = c\n:== chunker = i32 -> string\n"
+    shadows_text text |> _assert_eq "chunker 1 4 type-twice"
+
+///> rust
+:# a_term_used_before_its_redefinition_is_not =
+    := ~text = ":= f x = x\n:= g = f 1\n:= f x y = x\n"
+    shadows_text text |> _assert_eq ""
+
+///> rust
+:# a_term_shadowed_before_any_use_is_a_finding =
+    := ~text = ":= f x = x\n:= g = 1\n:= f x y = x\n"
+    shadows_text text |> _assert_eq "f 1 3 shadowed-unused"
+
+///> rust
+:# a_use_in_the_redefinition_signature_counts =
+    := ~text = ":= a = 1\n:= a (v : a) = v\n"
+    shadows_text text |> _assert_eq ""
+
+///> rust
+:# qualified_and_partial_names_are_not_uses =
+    := ~text = ":= f = 1\n:= g = m.f + ff\n:~ ^ f = 2\n"
+    shadows_text text |> _assert_eq "f 1 3 shadowed-unused"
+
+:== open_clash = { name : string; line : i32; space : namespace; opened : string }
+
+:= opened_module (line : string) : option string =
+    ? sm'.starts_with ":< " line ?> Some (sm'.trim (rest_after 3i32 line)) |: None
+
+:~ opened_modules (rows : list (i32 * string)) : list string =
+    rows
+    |> listm.fold
+        \ acc (_, line) =>
+            ?= opened_module line ?|
+            | Some name => name :: acc
+            | None => acc
+        []
+    |> listm.rev
+
+:~ defined_in (defs : list definition) (d : definition) : bool = listm'.exists' (\ (x : definition) => same_binding d x) defs
+
+:~ open_clashes (defs : list definition) (opened : list (string * list definition)) : list open_clash =
+    defs
+    |> listm.fold
+        \ acc (d : definition) =>
+            ? d.name = "main" ?> acc
+            |:
+                opened
+                |> listm.fold
+                    \ found (name, opened_defs) =>
+                        ? defined_in opened_defs d
+                        ?> { name = d.name; line = d.line; space = d.space; opened = name } :: found
+                        |: found
+                    acc
+        []
+    |> listm.rev
+
+:= open_clash_text (c : open_clash) : string = c.name ++# " " ++# sm'.obj_to_string c.line ++# " " ++# c.opened
+
+:~ rows_of (text : string) : list (i32 * string) = sm'.split_list "\n" (sm'.replace "\r" "" text) |> numbered
+
+///> rust
+:# a_definition_named_like_an_opened_member_is_a_finding =
+    := rows = rows_of ":< numbers\n:< model\n:= i32_text x = x\n:== row = i32\n:= main () = 0\n:= fresh = 1\n"
+    := numbers = definitions (rows_of ":= i32_text (n : i32) = n\n:= other = 2\n")
+    := model = definitions (rows_of ":| row =\n    | A\n:= main () = 1\n:== fresh = i32\n")
+    := clashes = open_clashes (definitions rows) [ "numbers", numbers; "model", model ]
+    (sm'.concat_list "," (opened_modules rows), clashes |> listm.map open_clash_text |> sm'.concat_list "|")
+    |> _assert_eq ("numbers,model", "i32_text 3 numbers|row 4 model")
+
+:= kind_code (k : shadow_kind) : i32 =
+    ?= k ?|
+    | TypeTwice => 0i32
+    | ShadowedUnused => 1i32
+
+:= kind_of_code (code : i32) : shadow_kind = ? code = 0i32 ?> TypeTwice |: ShadowedUnused
+
+:~ filled \* t. (fn : shadow -> t) (items : list shadow) : array t =
+    := out : array t = create (listm.length items)
+    := _ =
+        items
+        |> listm.fold
+            \ index (item : shadow) =>
+                set out index (fn item)
+                index + 1i32
+            0i32
+    out
+
+:~ scanned (text : string) : array string * array i32 * array i32 * array i32 =
+    := found = file_shadows text
+    filled (\ s => s.name) found, filled (\ s => s.first) found, filled (\ s => s.second) found,
+    filled (\ s => kind_code s.kind) found
+
+///> _
+:= main () : i32 =
+    !!!!Export(
+        "kit_lint_shadows_scan",
+        ((\ text => scanned text) : string -> array string * array i32 * array i32 * array i32)
+    )
+    0i32

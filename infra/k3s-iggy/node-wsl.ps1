@@ -54,6 +54,7 @@ if (-not $recipe.StartsWith('/')) { throw "node-wsl.ps1: wslpath could not map $
 Invoke-Distro "K3S_VERSION='$K3sVersion' sh '$recipe/bootstrap.sh'"
 Invoke-Distro "k3s kubectl create namespace iggy --dry-run=client -o yaml | k3s kubectl apply -f - >/dev/null"
 Invoke-Distro "k3s kubectl -n iggy get secret iggy-root >/dev/null 2>&1 || k3s kubectl -n iggy create secret generic iggy-root --from-literal=username='$RootUsername' --from-literal=password=`"`$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')`" >/dev/null"
+Invoke-Distro "k3s kubectl -n iggy get secret iggy-jwt >/dev/null 2>&1 || k3s kubectl -n iggy create secret generic iggy-jwt --from-literal=secret=`"`$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')`" >/dev/null"
 Invoke-Distro "k3s kubectl apply -f '$recipe/iggy.yaml'"
 Invoke-Distro "k3s kubectl -n iggy set image deployment/iggy iggy='$IggyImage' >/dev/null"
 Invoke-Distro "k3s kubectl -n iggy rollout status deployment/iggy --timeout=${ReadySeconds}s"
@@ -61,11 +62,11 @@ Invoke-Distro "k3s kubectl -n iggy rollout status deployment/iggy --timeout=${Re
 $deadline = (Get-Date).AddSeconds($ReadySeconds)
 while ($true) {
     try {
-        $ping = Invoke-WebRequest 'http://localhost:3000/ping' -TimeoutSec 5 -UseBasicParsing
+        $ping = Invoke-WebRequest 'http://127.0.0.1:3000/ping' -TimeoutSec 5 -UseBasicParsing
         if ($ping.StatusCode -eq 200) { break }
     } catch { }
-    if ((Get-Date) -gt $deadline) { throw "node-wsl.ps1: http://localhost:3000/ping not answering after $ReadySeconds s" }
+    if ((Get-Date) -gt $deadline) { throw "node-wsl.ps1: http://127.0.0.1:3000/ping not answering after $ReadySeconds s" }
     Start-Sleep -Seconds 3
 }
 $k3s = (wsl.exe -d $Distro -u root -- sh -c 'k3s --version | head -n 1').Trim()
-"IGGY-READY $IggyImage on $k3s in WSL '$Distro' (memory cap ${MemoryGB}GB): http://localhost:3000, tcp localhost:8090, quic udp 8080, websocket 8092; root credentials in secret iggy/iggy-root"
+"IGGY-READY $IggyImage on $k3s in WSL '$Distro' (memory cap ${MemoryGB}GB): http://127.0.0.1:3000, tcp 127.0.0.1:8090, quic udp 8080, websocket 8092; root credentials in secret iggy/iggy-root"

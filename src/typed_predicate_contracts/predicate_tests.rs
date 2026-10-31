@@ -188,15 +188,15 @@ fn differential_0() -> i32 {
     let v2: bool = v1 == 128u64;
     require_4(v2);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    check_3(v3.clone());
+    check_3(v3);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("aB09-._/"); } LIT.with(|lit| lit.clone()) };
-    check_3(v4.clone());
+    check_3(v4);
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("é"); } LIT.with(|lit| lit.clone()) };
-    check_3(v5.clone());
+    check_3(v5);
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("路/receipt"); } LIT.with(|lit| lit.clone()) };
-    check_3(v6.clone());
+    check_3(v6);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ABCDEFabcdef0123456789ABCDEFabcdef0123456789ABCDEFabcdef0123456789ABCD"); } LIT.with(|lit| lit.clone()) };
-    check_3(v7.clone());
+    check_3(v7);
     0i32
 }
 fn closure0() -> Rc<dyn Fn() -> i32> {

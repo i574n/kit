@@ -1,0 +1,162 @@
+///- --package .
+:# walk static =
+    :< sm'_operators
+    :< file_system_operators
+
+:< sm'_operators
+:< file_system_operators
+
+:! path_list = $'std::rc::Rc<Vec<std::rc::Rc<str>>>'
+:! path_buffer = $'std::rc::Rc<std::cell::RefCell<std::collections::BTreeSet<std::rc::Rc<str>>>>'
+:! entry_list = $'std::rc::Rc<Vec<(std::rc::Rc<str>, bool, bool)>>'
+
+:= buffer_new () : path_buffer =
+    $'std::rc::Rc::new(std::cell::RefCell::new(std::collections::BTreeSet::new()))' : path_buffer
+
+:= buffer_added (~buffer : path_buffer) (~path : string) : bool = $'!buffer.borrow_mut().insert(!path)' : bool
+
+:= paths_of (~buffer : path_buffer) : path_list =
+    $'std::rc::Rc::new(!buffer.borrow().iter().cloned().collect::<Vec<_>>())' : path_list
+
+:= entries_of (~folder : string) : entry_list =
+    $'std::rc::Rc::new(std::fs::read_dir(&*!folder).map(|entries| entries.filter_map(Result::ok).filter_map(|entry| \
+        entry.file_type().ok().map(|kind| (std::rc::Rc::<str>::from(entry.file_name().to_string_lossy().as_ref()), \
+        kind.is_dir(), kind.is_symlink()))).collect::<Vec<_>>()).unwrap_or_default())' : entry_list
+
+:= entry_count (~entries : entry_list) : i32 = ($'!entries.len()' : convert.unativeint) |> convert.convert
+
+:= entry_index (at : i32) : convert.unativeint = convert.convert at
+
+:= entry_name (~entries : entry_list) (at : i32) : string =
+    := index = entry_index at
+    $'!entries[!index].0.clone()' : string
+
+:= entry_is_dir (~entries : entry_list) (at : i32) : bool =
+    := index = entry_index at
+    $'!entries[!index].1' : bool
+
+:= entry_is_link (~entries : entry_list) (at : i32) : bool =
+    := index = entry_index at
+    $'!entries[!index].2' : bool
+
+:= skipped_folders () : list string = [ ".git"; "target"; "node_modules"; "_build"; "deps"; ".cache" ]
+
+:~ segments (~text : string) : list string =
+    sm'.split_list "/" (sm'.replace "\\" "/" text) |> listm'.filter (\ (part : string) => part <> "" && part <> ".")
+
+:~ ^ rest_matches (~rest : string) (parts : list string) : bool =
+    ?= parts ?|
+    | [] => !+
+    | last :: [] => sm'.ends_with last rest
+    | middle :: more =>
+        := at : i32 = sm'.index_of middle rest
+        := after = at + (sm'.length middle : i32)
+        at >= 0i32 && rest_matches (sm'.substring after ((sm'.length rest : i32) - after) rest) more
+
+:~ wildcard (~mask : string) (~name : string) : bool =
+    ?= sm'.split_list "*" mask ?|
+    | [] => name = ""
+    | _ :: [] => mask = name
+    | first :: rest =>
+        := skip : i32 = sm'.length first
+        sm'.starts_with first name && rest_matches (sm'.substring skip ((sm'.length name : i32) - skip) name) rest
+
+:~ ^ glob_match (pattern : list string) (path : list string) : bool =
+    ?= pattern ?|
+    | [] => ?= path ?| | [] => !+ | _ => !-
+    | head :: rest =>
+        ? head = "**"
+        ?>
+            :~ ^ any_suffix (tail : list string) : bool =
+                glob_match rest tail || (?= tail ?| | _ :: shorter => any_suffix shorter | [] => !-)
+            any_suffix path
+        |:
+            ?= path ?|
+            | name :: tail => wildcard head name && glob_match rest tail
+            | [] => !-
+
+:~ ^ base_of (pattern : list string) : list string =
+    ?= pattern ?|
+    | head :: rest => ? sm'.contains "*" head ?> [] |: head :: base_of rest
+    | [] => []
+
+:== walk_rules =
+    {
+        root : string
+        pattern : list string
+        excluded : list string
+        masks : list string
+    }
+
+:~ kept (rules : walk_rules) (~name : string) (relative : list string) : bool =
+    := matched_mask (mask : string) = wildcard mask name
+    := masked = ?= rules.masks ?| | [] => !+ | _ => listm'.try_find_ matched_mask rules.masks <> None
+    := excluded = ?= rules.excluded ?| | [] => !- | _ => glob_match rules.excluded relative
+    glob_match rules.pattern relative && masked && not excluded
+
+:~ ^ walked (rules : walk_rules) (~buffer : path_buffer) (stack : list (list string)) : () =
+    ?= stack ?|
+    | [] => ()
+    | folder :: rest =>
+        := entries = entries_of (rules.root </> sm'.concat_list "/" folder)
+        :~ ^ scan (at : i32) (folders : list (list string)) : list (list string) =
+            ? at >= entry_count entries ?> folders
+            |:
+                := name = entry_name entries at
+                := relative = listm.append folder [ name ]
+                ? entry_is_link entries at ?> scan (at + 1i32) folders
+                |? entry_is_dir entries at
+                ?> scan (at + 1i32) (? listm'.contains name (skipped_folders ()) ?> folders |: relative :: folders)
+                |:
+                    := _ = ? kept rules name relative ?> buffer_added buffer (sm'.concat_list "/" relative) |: !-
+                    scan (at + 1i32) folders
+        walked rules buffer (listm.append (scan 0i32 []) rest)
+
+:~ matching (~root : string) (~target : string) (~include : string) (~exclude : string) : path_list =
+    := pattern = segments target
+    := globbed = listm'.try_find_ (\ (part : string) => sm'.contains "*" part) pattern <> None
+    := joined = sm'.concat_list "/" pattern
+    := buffer = buffer_new ()
+    ? not globbed && not (file_system.directory_exists (root </> joined))
+    ?>
+        := _ = buffer_added buffer joined
+        paths_of buffer
+    |:
+        := full = ? globbed ?> pattern |: listm.append pattern [ "**" ]
+        := masks = sm'.split_list "," include |> listm.map sm'.trim |> listm'.filter (\ (mask : string) => mask <> "")
+        walked { root = root; pattern = full; excluded = segments exclude; masks = masks } buffer [ base_of full ]
+        paths_of buffer
+
+:= listed (~paths : path_list) : string = $'std::rc::Rc::<str>::from(!paths.join("\n"))' : string
+
+///> rust
+:# globs_match_like_the_walker_did =
+    ? wildcard "*.spi" "a.spi" && wildcard "a*b*c" "axxbyyc" && not (wildcard "a*b" "ab c") ?> () |: failwith "wildcard"
+    ? wildcard "exact" "exact" && not (wildcard "exact" "exactly") ?> () |: failwith "a mask without a star is exact"
+    ? glob_match [ "src"; "**" ] [ "src"; "a"; "b.spi" ] && glob_match [ "**"; "*.spi" ] [ "x.spi" ] ?> ()
+    |: failwith "double star spans any depth, including none"
+    ? not (glob_match [ "src"; "*.spi" ] [ "src"; "a"; "b.spi" ]) ?> () |: failwith "a single star stays in one folder"
+    ? segments "./src\\a//b/" = [ "src"; "a"; "b" ] ?> () |: failwith "segments"
+    ? base_of [ "src"; "a"; "*.spi" ] = [ "src"; "a" ] ?> () |: failwith "base"
+
+:= same_paths (~actual : string) (~expected : string) : () =
+    ? actual = expected ?> () |: failwith ("expected " ++# expected ++# " but got " ++# actual)
+
+:= fixture_file (~root : string) (~path : string) : () =
+    := target = root </> path
+    file_system.create_dir_all (file_system.directory_get_parent target |> optionm'.default_value' "") |> ignore
+    file_system.write_all_text target "x"
+
+///> rust
+:# a_walk_skips_build_and_cache_folders_but_not_an_explicit_base =
+    := root = file_system.get_temp_path () </> "kit-do-walk-test"
+    file_system.remove_dir_all root |> ignore
+    [ "src/pkg/a.spi"; "src/b.spi"; "src/.cache/deep/c.spi"; "src/target/d.spi"; "src/pkg/e.txt" ]
+    |> listm.iter (fixture_file root)
+    same_paths (listed (matching root "src/**" "" "")) "src/b.spi\nsrc/pkg/a.spi\nsrc/pkg/e.txt"
+    same_paths (listed (matching root "src/**/*.spi" "" "")) "src/b.spi\nsrc/pkg/a.spi"
+    same_paths (listed (matching root "src" "*.txt" "")) "src/pkg/e.txt"
+    same_paths (listed (matching root "src/**" "" "src/pkg/**")) "src/b.spi"
+    same_paths (listed (matching root "src/.cache/**" "" "")) "src/.cache/deep/c.spi"
+    same_paths (listed (matching root "missing.txt" "" "")) "missing.txt"
+    file_system.remove_dir_all root |> ignore

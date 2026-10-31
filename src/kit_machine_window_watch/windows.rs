@@ -49,40 +49,42 @@ fn windows_watched_0(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
                 let v10: Rc<str> = kit_job_control::kit_job_state_word(&*v7);
                 v10.clone()
             };
-            let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
-            let v13: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(0i32 as usize).unwrap_or(""));
-            let v14: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(1i32 as usize).unwrap_or(""));
-            let v15: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(2i32 as usize).unwrap_or(""));
-            let v16: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(3i32 as usize).unwrap_or(""));
-            let v17: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(2i32 as usize).unwrap_or(""));
-            let v18: bool = &*v17 == "held";
-            let v19: US0 = window_health_of_1(v18, v11.clone());
-            let v26: Rc<str> = match &v19 {
+            let v12: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(0i32 as usize).unwrap_or(""));
+            let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
+            let v15: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v13, v12)), v13));
+            let v16: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(1i32 as usize).unwrap_or(""));
+            let v18: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v15, v16)), v13));
+            let v19: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(2i32 as usize).unwrap_or(""));
+            let v21: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v18, v19)), v13));
+            let v22: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(3i32 as usize).unwrap_or(""));
+            let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
+            let v24: Rc<str> = std::rc::Rc::<str>::from((&*v5).split(char::from(9u8)).nth(2i32 as usize).unwrap_or(""));
+            let v25: bool = &*v24 == "held";
+            let v26: US0 = window_health_of_1(v25, v11.clone());
+            let v33: Rc<str> = match &v26 {
                 US0::US0_WindowFine => {
-                    let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v20.clone()
+                    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    v27.clone()
                 }
-                US0::US0_WindowStale(v21) => {
-                    let v21: Rc<str> = v21.clone();
-                    let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  <- STALE: job is "); } LIT.with(|lit| lit.clone()) };
-                    let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v24: Rc<str> = std::rc::Rc::<str>::from([&*v22, &*v21, &*v23, &*v23, &*v23].concat());
-                    v24.clone()
+                US0::US0_WindowStale(v28) => {
+                    let v28: Rc<str> = v28.clone();
+                    let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  <- STALE: job is "); } LIT.with(|lit| lit.clone()) };
+                    let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    let v31: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v28, &*v30, &*v30, &*v30].concat());
+                    v31.clone()
                 }
             };
-            let v27: Rc<str> = std::rc::Rc::<str>::from([&*v12, &*v15, &*v12, &*v16, &*v26].concat());
-            let v28: Rc<str> = std::rc::Rc::<str>::from([&*v12, &*v13, &*v12, &*v14, &*v27].concat());
-            let v29: i32 = v1.wrapping_add(1i32);
-            let v30: bool = &*v2 == "";
-            let v34: Rc<str> = if v30 {
-                v28.clone()
+            let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v33));
+            let v35: i32 = v1.wrapping_add(1i32);
+            let v36: bool = &*v2 == "";
+            let v40: Rc<str> = if v36 {
+                v34.clone()
             } else {
-                let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v33: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v31, &*v28, &*v32, &*v32].concat());
-                v33.clone()
+                let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                let v39: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v2, v37)), v34));
+                v39.clone()
             };
-            (v0, v1, v2) = (v0.clone(), v29, v34.clone());
+            (v0, v1, v2) = (v0.clone(), v35, v40.clone());
             continue;
         }
     }

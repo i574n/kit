@@ -16,6 +16,8 @@
 
 := default_author () : string = "user"
 
+:~ note_text_of (~raw : string) : string = sm'.trim (? sm'.trim raw = "-" ?> console.read_to_end () |: raw)
+
 :| note_author_choice =
     | AuthorDefault
     | AuthorNamed : string
@@ -42,12 +44,12 @@
 := note_request_of () : note_request =
     := count = argument_count ()
     ? count = 4i32
-    ?> { body = sm'.trim (argument_owned 3i32); author = unnamed_choice () }
+    ?> { body = note_text_of (argument_owned 3i32); author = unnamed_choice () }
     |? count = 6i32 && argument_owned 4i32 = "--as"
-    ?> { body = sm'.trim (argument_owned 3i32); author = named_author (argument_owned 5i32) }
+    ?> { body = note_text_of (argument_owned 3i32); author = named_author (argument_owned 5i32) }
     |? count = 6i32 && argument_owned 3i32 = "--as"
-    ?> { body = sm'.trim (argument_owned 5i32); author = named_author (argument_owned 4i32) }
-    |: { body = sm'.trim (argument_owned 3i32); author = AuthorMalformed }
+    ?> { body = note_text_of (argument_owned 5i32); author = named_author (argument_owned 4i32) }
+    |: { body = note_text_of (argument_owned 3i32); author = AuthorMalformed }
 
 := note_failure (~reason : string) (~id : string) : i32 =
     stderr_failure ("agile note " ++# id ++# " rejected: " ++# reason)
@@ -68,12 +70,23 @@
         := original = records_text raw
         ? task_declared original id ?>
             := schema_ready = note_schema_ensured original
-            := seq = note_count schema_ready id + 1i32
+            := state_dir = root ++# "/state"
+            := segments = $'agile_note_listing::kit_agile_state_segments(&*!state_dir)' : string
+            := seq = note_count (schema_ready ++# "\n" ++# segments) id + 1i32
             := note = { at = utc_stamp started; author = author; text = body }
-            := updated = notes_appended schema_ready id (note_row id seq note)
-            ?= state_written state raw updated ?|
-            | StateWritten => note_success id seq note (text_bytes original) (text_bytes updated) (ms_since started)
-            | problem => note_failure (state_write_problem problem) id
+            := row = note_row id seq note
+            ? env.get_environment_variable "KIT_AGILE_NOTE_SEGMENTS" = "1"
+            ?>
+                := stamp = note.at
+                := problem = $'agile_note_segments::kit_agile_note_appended(&*!state_dir, &*!row, &*!stamp)' : string
+                := size = text_bytes original
+                ? problem = "" ?> note_success id seq note size size (ms_since started)
+                |: note_failure problem id
+            |:
+                := updated = notes_appended schema_ready id row
+                ?= state_written state raw updated ?|
+                | StateWritten => note_success id seq note (text_bytes original) (text_bytes updated) (ms_since started)
+                | problem => note_failure (state_write_problem problem) id
         |: note_failure "no task with this id" id
 
 :~ note_entry () : i32 =

@@ -1,0 +1,11 @@
+:= main () : i32 =
+    !!!!Export(
+        "kit_sequence_counts",
+        (
+            \ (path, section_on) => count_scan.counts_of_file path section_on (count_scan.command_specs ())
+            : string * string -> string * u64
+        )
+    )
+    !!!!Export("kit_sequence_counts_header", ((\ () => count_scan.counts_header (count_scan.command_specs ())) : () -> string))
+    !!!!Export("kit_sequence_counts_missing_set", ((\ () => count_scan.missing_set (count_scan.command_specs ())) : () -> string))
+    0i32

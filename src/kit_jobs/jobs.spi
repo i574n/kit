@@ -6,12 +6,17 @@
 :~ job_directory (~id : string) : string = joined (jobs_root ()) id
 :~ job_file (~id : string) (~name : string) : string = joined (job_directory id) name
 
-:~ job_environment_adopted (~id : string) : () =
+:~ job_environment_adopted (~id : string) : snapshot_verdict =
     := path = job_file id "env"
     ? file_exists path ?>
-        env.environment_restored (text_or_empty path) "KIT_JOB_"
-        file_system.file_delete path
-    |: ()
+        := snapshot = text_or_empty path
+        := verdict = snapshot_verdict_of snapshot (\ name => env.get_environment_variable name <> "")
+        ? verdict = SnapshotUsable ?>
+            env.environment_restored snapshot "KIT_JOB_"
+            file_system.file_delete path
+            verdict
+        |: verdict
+    |: SnapshotUsable
 
 :~ job_record_of (~id : string) : job_record =
     record_at
@@ -61,16 +66,21 @@
 :| gate_wait =
     | NotWaiting
     | WaitingAfter : string
-    | WaitingWindow : string
+    | WaitingWindow : string * string
     | WaitingSlot
+
+:~ window_reason (~window : string) : string =
+    := at : i32 = sm'.index_of " reason=" window
+    ? at < 0i32 ?> "" |: sm'.trim (sm'.substring (at + 1i32) ((sm'.length window : i32) - at - 1i32) window)
 
 :~ gate_wait_of (~id : string) : gate_wait =
     ? file_exists (job_file id "after") && not (file_exists (job_file id "after-done"))
     ?> WaitingAfter (sm'.split "\t" (text_or_empty (job_file id "after")) |> array |> am'.index 0i32 |> sm'.trim)
     |? file_exists (job_file id "window-class")
     ?>
-        ? sm'.starts_with "granted" (text_or_empty (job_file id "window")) ?> NotWaiting
-        |: WaitingWindow (sm'.trim (text_or_empty (job_file id "window-class")))
+        := window = text_or_empty (job_file id "window")
+        ? sm'.starts_with "granted" window ?> NotWaiting
+        |: WaitingWindow (sm'.trim (text_or_empty (job_file id "window-class")), window_reason window)
     |?
         file_exists (job_file id "heavy-wrapper.ps1") && not (sm'.contains "Invoke-Heavy: acquired slot" (
             text_or_empty (job_file id "stdout.log")))
@@ -81,7 +91,8 @@
     ?= wait ?|
     | NotWaiting => ""
     | WaitingAfter predecessor => " waiting_for=after:" ++# predecessor
-    | WaitingWindow window_class => " waiting_for=window:" ++# window_class
+    | WaitingWindow (window_class, reason) =>
+        " waiting_for=window:" ++# window_class ++# (? reason = "" ?> "" |: " " ++# reason)
     | WaitingSlot => " waiting_for=heavy-slot"
 
 :~ gate_queued (~id : string) : bool = gate_wait_of id <> NotWaiting

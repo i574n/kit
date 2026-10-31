@@ -65,7 +65,7 @@
     |? changes = "" ?> None
     |: Some (HostEnvironmentDiffers changes)
 
-:~ doctor_run (env_drift : () -> bool * string) : i32 =
+:~ doctor_run (env_drift : () -> bool * string) (server_report : () -> i32 * string) : i32 =
     := with_environment = optionm'.default_value "" (env.try_command_line_argument 2i32) = "--env"
     := processes = process_facts ()
     := findings = process_findings processes standing_of
@@ -79,16 +79,15 @@
             | Some item => listm.rev (item :: listm.rev findings)
             | None => findings
     findings |> listm.iter \ (item : finding) => console.write_line (finding_line item)
-    := summary =
-        " processes="
-        ++# sm'.format (listm.length processes : i32)
-        ++# " findings="
-        ++# sm'.format (listm.length findings : i32)
-    ?= findings ?|
-    | [] =>
+    := server_count, server_text = server_report ()
+    ? server_text <> "" ?> console.write_line server_text |: ()
+    := total = (listm.length findings : i32) + server_count
+    := summary = " processes=" ++# sm'.format (listm.length processes : i32) ++# " findings=" ++# sm'.format total
+    ? total = 0i32
+    ?>
         console.write_line ("kit job doctor ok" ++# summary)
         0i32
-    | _ =>
+    |:
         console.write_line ("kit job doctor refused:" ++# summary)
         1i32
 

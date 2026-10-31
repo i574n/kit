@@ -293,11 +293,11 @@ fn method7(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
 }
 fn format_real_6(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1.clone() }));
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method7(v2.clone(), v3.clone());
+    method7(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
-    v4.clone()
+    v4
 }
 fn rows_text_5(mut v0: Rc<str>, mut v1: Rc<UH1>, mut v2: Rc<str>) -> Rc<str> {
     loop {
@@ -629,10 +629,10 @@ fn latency_rows_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3: Rc
     let (mut v32, mut v33): (Rc<UH1>, u64) = match &*v2 {
         UH0::UH0_Nil => {
             let v5: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-            let v6: Rc<UH1> = method4(v4.clone(), v5.clone());
+            let v6: Rc<UH1> = method4(v4.clone(), v5);
             let v7: u64 = 0u64;
             let v8: u64 = pending_count_15(v3.clone(), v7);
-            (v6.clone(), v8)
+            (v6, v8)
         }
         _ => {
             let (mut v30, mut v31): (Rc<UH1>, u64) = match &*v2 {
@@ -644,30 +644,30 @@ fn latency_rows_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3: Rc
                     let mut v13: bool = &*v9 == &*v0;
                     if v13 {
                         let v14: Rc<UH0> = Rc::new(UH0::UH0_Cons(v9.clone(), v10, v11, v3.clone()));
-                        let (mut v15, mut v16): (Rc<UH1>, u64) = latency_rows_14(v0.clone(), v1.clone(), v12.clone(), v14.clone(), v4.clone());
-                        (v15.clone(), v16)
+                        let (mut v15, mut v16): (Rc<UH1>, u64) = latency_rows_14(v0.clone(), v1.clone(), v12.clone(), v14, v4.clone());
+                        (v15, v16)
                     } else {
                         let v17: bool = &*v9 == &*v1;
                         let (mut v26, mut v27): (Rc<UH1>, u64) = if v17 {
                             let v18: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
                             let v19: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                            let v20: Rc<UH0> = method16(v3.clone(), v19.clone());
-                            let v21: Rc<UH1> = paired_17(v9.clone(), v10, v11, v20.clone(), v4.clone());
-                            let (mut v22, mut v23): (Rc<UH1>, u64) = latency_rows_14(v0.clone(), v1.clone(), v12.clone(), v18.clone(), v21.clone());
-                            (v22.clone(), v23)
+                            let v20: Rc<UH0> = method16(v3.clone(), v19);
+                            let v21: Rc<UH1> = paired_17(v9, v10, v11, v20, v4.clone());
+                            let (mut v22, mut v23): (Rc<UH1>, u64) = latency_rows_14(v0.clone(), v1.clone(), v12.clone(), v18, v21);
+                            (v22, v23)
                         } else {
-                            let (mut v24, mut v25): (Rc<UH1>, u64) = latency_rows_14(v0.clone(), v1.clone(), v12.clone(), v3.clone(), v4.clone());
-                            (v24.clone(), v25)
+                            let (mut v24, mut v25): (Rc<UH1>, u64) = latency_rows_14(v0, v1, v12, v3, v4);
+                            (v24, v25)
                         };
-                        (v26.clone(), v27)
+                        (v26, v27)
                     }
                 }
                 _ => unreachable!(),
             };
-            (v30.clone(), v31)
+            (v30, v31)
         }
     };
-    (v32.clone(), v33)
+    (v32, v33)
 }
 fn latency_text_13(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> Rc<str> {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
@@ -724,7 +724,7 @@ fn regex_captures_21(mut v0: Rc<str>, mut v1: regex::Regex) -> Vec<std::collecti
 }
 fn method23() -> Rc<str> {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ms"); } LIT.with(|lit| lit.clone()) };
-    v0.clone()
+    v0
 }
 fn stamp_in_20(mut v0: Rc<str>, mut v1: regex::Regex) -> u64 {
     let mut v2: Vec<std::collections::HashMap<Rc<str>, Rc<str>>> = regex_captures_21(v0.clone(), v1.clone());
@@ -776,7 +776,7 @@ fn event_row_25(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> Rc<str> {
     let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
-    v11.clone()
+    v11
 }
 fn events_in_19(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: regex::Regex, mut v3: regex::Regex, mut v4: US6, mut v5: Rc<str>) -> Rc<str> {
     loop {

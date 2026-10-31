@@ -5,14 +5,11 @@
 :~ stdout_line (~text : string) : () = console.write_line text
 :~ stderr_line (~text : string) : () = console.write_error_line text
 :~ count_text (value : i32) : string = (sm'.show value)
-:~ file_text (~path : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default\
-    ().as_str())' : string
+:~ file_text (~path : string) : string = file_system.read_text_or_empty path
 :~ text_written (~path : string) (~text : string) : bool = $'std::fs::write(&*!path, (!text).as_bytes()).is_ok()' : bool
 :~ quote () : string = $'std::rc::Rc::<str>::from(char::from(34u8).to_string().as_str())' : string
-:~ first_line (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split(char::from(10u8)).next().unwrap_o\
-    r(""))' : string
-:~ other_lines (~lines : string) : string = $'std::rc::Rc::<str>::from((!lines).split_once(char::from(10u8)).map(|(_, \
-    rest)| rest).unwrap_or(""))' : string
+:~ first_line (~lines : string) : string = sm'.first_line lines
+:~ other_lines (~lines : string) : string = sm'.after_first_line lines
 :~ appended (~lines : string) (~line : string) : string = ? lines = "" ?> line |: concat5 lines "\n" line "" ""
 
 :~ entry_list (~dir : string) : string = $'std::rc::Rc::<str>::from(std::fs::read_dir(&*!dir).into_iter().flatten().fl\

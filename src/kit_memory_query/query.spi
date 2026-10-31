@@ -100,7 +100,7 @@
     | NoMemories => shown
     | MemoryThen (entry, rest) =>
         ? kind = "" || kind = kind_word entry.kind ?>
-            stdout_line (concat5 (kind_word entry.kind) "  " entry.slug "  " (clipped entry.description 100i32))
+            stdout_line (concat5 (kind_word entry.kind) "  " entry.slug "  " (sm'.clip 100i32 entry.description))
             listed rest kind (shown + 1i32)
         |: listed rest kind shown
 
@@ -177,7 +177,7 @@
                     "  "
                     (kind_word entry.kind)
                     "  "
-                    (concat5 entry.slug "  " (clipped entry.description 100i32) "" "")
+                    (concat5 entry.slug "  " (sm'.clip 100i32 entry.description) "" "")
             )
             ranked_printed rest limit (shown + 1i32)
         |: shown
