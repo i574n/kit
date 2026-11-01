@@ -1,7 +1,7 @@
 param([string]$Kit = (Join-Path $PSScriptRoot '..\src\target\debug\kit.exe'))
 $ErrorActionPreference = 'Stop'
 $Kit = (Resolve-Path $Kit).Path
-if (-not $env:TEMP -or -not $env:TMP) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
+if ($IsWindows -and (-not $env:TEMP -or -not $env:TMP)) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
 $jobsHome = Join-Path ([IO.Path]::GetTempPath()) "kit-orphan-wait-$PID"
 $env:KIT_JOBS_HOME = $jobsHome
 $started = & $Kit job start orphan-wait 90000 pwsh -NoProfile -Command 'Start-Sleep 60'

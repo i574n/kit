@@ -1,0 +1,88 @@
+///- --package .
+:# rows static =
+    :< sm'_operators
+    :< agile_sprint.model
+
+:< sm'_operators
+:< agile_sprint.model
+
+:= binding_of (text : string) : string = sm'.to_lower (sm'.replace "-" "_" text)
+
+:= status_word (status : sprint_status) : string =
+    ?= status ?|
+    | SprintOpen => "SprintOpen"
+    | SprintClosed => "SprintClosed"
+
+:= fate_word (fate : item_fate) : string =
+    ?= fate ?|
+    | Committed => "Committed"
+    | Dropped => "Dropped"
+
+:= quoted (text : string) : string = "\"" ++# text ++# "\""
+
+:= row_text (head : string) (ctor : string) (fields : list string) : string =
+    sm'.concat_list "" [ "inl "; head; " () = "; ctor; " ("; sm'.concat_list ", " fields; ")" ]
+
+:= sprint_row (s : sprint) : string =
+    := t = s.terms
+    := fields = [ quoted t.id; quoted t.goal; quoted t.start; quoted t.finish; status_word s.status ]
+    row_text ("sprint_" ++# binding_of t.id) "Sprint" fields
+
+:= sprint_item_row (id : string) (item : sprint_item) : string =
+    := head = sm'.concat_list "" [ "sprint_item_"; binding_of id; "_"; binding_of item.task ]
+    row_text head "SprintItem" [ quoted id; quoted item.task; sm'.show item.minutes ++# "i32"; fate_word item.fate ]
+
+:= sprint_rows (s : sprint) : list string = sprint_row s :: (s.items |> listm.map (sprint_item_row s.terms.id))
+
+:| sprint_line =
+    | SprintLine : sprint_terms * sprint_status
+    | ItemLine : string * sprint_item
+    | NoSprintLine
+
+:= field (parts : array string) (index : i32) : string = am'.index index parts
+
+:= minutes_of (text : string) : i32 =
+    ?= sm'.split_list "," text ?|
+    | _ :: minutes :: _ => convert.try_convert (sm'.trim (sm'.replace "i32" "" minutes)) |> optionm'.default_value 0i32
+    | _ => 0i32
+
+:= item_line (line : string) (parts : array string) : sprint_line =
+    := fate = ? sm'.ends_with "Dropped)" line ?> Dropped |: Committed
+    ItemLine (field parts 1i32, { task = field parts 3i32; minutes = minutes_of (field parts 4i32); fate = fate })
+
+:= head_line (parts : array string) : sprint_line =
+    := terms = { id = field parts 1i32; goal = field parts 3i32; start = field parts 5i32; finish = field parts 7i32 }
+    SprintLine (terms, ? sm'.contains "SprintClosed" (field parts 8i32) ?> SprintClosed |: SprintOpen)
+
+:= sprint_line_of (line : string) : sprint_line =
+    := parts = sm'.split "\"" line |> array
+    := count = am'.length parts
+    ? sm'.starts_with "inl sprint_item_" line && count >= 5i32 ?> item_line line parts
+    |? sm'.starts_with "inl sprint_" line && count >= 9i32 ?> head_line parts
+    |: NoSprintLine
+
+:= head_of (acc : list sprint) (line : sprint_line) : list sprint =
+    ?= line ?|
+    | SprintLine (t, st) => { terms = t; status = st; items = [] } :: acc
+    | _ => acc
+
+:= items_of (id : string) (acc : list sprint_item) (line : sprint_line) : list sprint_item =
+    ?= line ?|
+    | ItemLine (owner, item) => ? owner = id ?> item :: acc |: acc
+    | _ => acc
+
+:= sprints_of (text : string) : list sprint =
+    := lines = sm'.split_list "\n" (sm'.replace "\r" "" text) |> listm.map sprint_line_of
+    := attach (s : sprint) : sprint = { s ?| items = lines |> listm.fold (items_of s.terms.id) [] |> listm.rev }
+    lines |> listm.fold head_of [] |> listm.rev |> listm.map attach
+
+///> rust
+:# sprint_rows_round_trip_through_the_state_text =
+    := a = { task = "KIT-A"; minutes = 60i32; fate = Committed }
+    := b = { task = "KIT-B"; minutes = 45i32; fate = Dropped }
+    := s = { terms = fixture_terms "S-1"; status = SprintOpen; items = [ a; b ] }
+    := text = sm'.concat_list "\n" ("inl task_x () = Task (\"X\")" :: sprint_rows s)
+    testing.expect (sm'.starts_with "inl sprint_s_1 () = Sprint (\"S-1\"" (sprint_row s)) (sprint_row s)
+    testing.expect (sprints_of text = [ s ]) "the sprint and both items read back, other rows ignored"
+    := closed = { s ?| status = SprintClosed }
+    testing.expect (sprints_of (sm'.concat_list "\n" (sprint_rows closed)) = [ closed ]) "a closed sprint stays closed"

@@ -1,0 +1,173 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! sprint_planned = ()
+:! sprint_running = ()
+:! sprint_closed = ()
+
+:| sprint_op from to =
+    | CommitItems :: sprint_op sprint_planned sprint_planned
+    | StartSprint :: sprint_op sprint_planned sprint_running
+    | ChangeItems :: sprint_op sprint_running sprint_running
+    | CloseSprint :: sprint_op sprint_running sprint_closed
+
+:| ^ sprint_plan from to =
+    | SprintStep :: \* from to. sprint_op from to -> sprint_plan from to
+    | SprintThen :: \* from to.
+        (\? middle. sprint_plan from middle * sprint_plan middle to) ->
+        sprint_plan from to
+
+:= sprint_lifecycle () : sprint_plan sprint_planned sprint_closed =
+    SprintThen (\? (
+        SprintStep CommitItems,
+        SprintThen (\? (
+            SprintStep StartSprint,
+            SprintThen (\? (
+                SprintStep ChangeItems,
+                SprintStep CloseSprint
+            ))
+        ))
+    ))
+
+:== sprint_terms =
+    {
+        id : string
+        goal : string
+        start : string
+        finish : string
+    }
+
+:| item_standing =
+    | ItemOpen
+    | ItemDone
+    | ItemUnknown
+
+:== candidate =
+    {
+        task : string
+        minutes : i32
+        standing : item_standing
+    }
+
+:| item_fate =
+    | Committed
+    | Dropped
+
+:== sprint_item =
+    {
+        task : string
+        minutes : i32
+        fate : item_fate
+    }
+
+:| sprint_status =
+    | SprintOpen
+    | SprintClosed
+
+:== sprint =
+    {
+        terms : sprint_terms
+        status : sprint_status
+        items : list sprint_item
+    }
+
+:| start_outcome =
+    | Started : sprint
+    | AnotherSprintOpen : string
+    | ItemNotOpen : string
+    | ItemUnestimated : string
+
+:== sprint_review =
+    {
+        done_minutes : i32
+        carried_minutes : i32
+        dropped_minutes : i32
+        goal_met : bool
+    }
+
+:= first_open (sprints : list sprint) : option sprint =
+    sprints
+    |> listm.fold
+        \ found (s : sprint) =>
+            ?= found ?|
+            | Some _ => found
+            | None => ? s.status = SprintOpen ?> Some s |: None
+        None
+
+:= first_refusal (candidates : list candidate) : option start_outcome =
+    candidates
+    |> listm.fold
+        \ found (c : candidate) =>
+            ?= found ?|
+            | Some _ => found
+            | None =>
+                ? c.standing <> ItemOpen ?> Some (ItemNotOpen c.task)
+                |? c.minutes <= 0i32 ?> Some (ItemUnestimated c.task)
+                |: None
+        None
+
+:= started (sprints : list sprint) (terms : sprint_terms) (candidates : list candidate) : start_outcome =
+    ?= first_open sprints ?|
+    | Some s => AnotherSprintOpen s.terms.id
+    | None =>
+        ?= first_refusal candidates ?|
+        | Some refused => refused
+        | None =>
+            := committed (c : candidate) : sprint_item = { task = c.task; minutes = c.minutes; fate = Committed }
+            Started { terms = terms; status = SprintOpen; items = candidates |> listm.map committed }
+
+:= committed_minutes (items : list sprint_item) (counted : sprint_item -> bool) : i32 =
+    items |> listm.fold (\ total (item : sprint_item) => ? counted item ?> total + item.minutes |: total) 0i32
+
+:= reviewed (s : sprint) (finished : string -> bool) : sprint * sprint_review =
+    := live = \ (item : sprint_item) => item.fate = Committed
+    := done = committed_minutes s.items (\ item => live item && finished item.task)
+    := carried = committed_minutes s.items (\ item => live item && not (finished item.task))
+    := dropped = committed_minutes s.items (\ item => item.fate = Dropped)
+    := review = { done_minutes = done; carried_minutes = carried; dropped_minutes = dropped; goal_met = carried = 0i32 }
+    { s ?| status = SprintClosed }, review
+
+:= velocity (reviews : list sprint_review) (last : i32) : i32 =
+    := step (count, total) (r : sprint_review) = ? count < last ?> count + 1i32, total + r.done_minutes |: count, total
+    := count, total = reviews |> listm.fold step (0i32, 0i32)
+    ? count = 0i32 ?> 0i32 |: total / count
+
+:= fixture_terms (id : string) : sprint_terms =
+    { id = id; goal = "ship the sprint verbs"; start = "2026-11-01"; finish = "2026-11-08" }
+
+///> rust
+:# a_second_open_sprint_and_bad_items_are_refused =
+    := running = [ { terms = fixture_terms "S1"; status = SprintOpen; items = [] } ]
+    := good = [ { task = "A"; minutes = 60i32; standing = ItemOpen } ]
+    testing.expect (started running (fixture_terms "S2") good = AnotherSprintOpen "S1") "one open sprint at a time"
+    := done_item = [ { task = "B"; minutes = 30i32; standing = ItemDone } ]
+    testing.expect (started [] (fixture_terms "S2") done_item = ItemNotOpen "B") "a Done item cannot be committed"
+    := unknown = [ { task = "C"; minutes = 30i32; standing = ItemUnknown } ]
+    testing.expect (started [] (fixture_terms "S2") unknown = ItemNotOpen "C") "an unknown item cannot be committed"
+    := unestimated = [ { task = "D"; minutes = 0i32; standing = ItemOpen } ]
+    testing.expect (started [] (fixture_terms "S2") unestimated = ItemUnestimated "D") "every item needs an estimate"
+    ?= started [] (fixture_terms "S2") good ?|
+    | Started s =>
+        := count = (listm.length s.items : i32)
+        testing.expect (s.status = SprintOpen && count = 1i32) "a clean start opens the sprint"
+    | _ => failwith "a clean start must open the sprint"
+
+///> rust
+:# closing_reports_done_carried_and_dropped_minutes_and_velocity =
+    := items =
+        [
+            { task = "A"; minutes = 95i32; fate = Committed };
+            { task = "B"; minutes = 120i32; fate = Committed };
+            { task = "C"; minutes = 30i32; fate = Dropped }
+        ]
+    := s = { terms = fixture_terms "S1"; status = SprintOpen; items = items }
+    := closed, review = reviewed s (\ task => task = "A")
+    testing.expect (closed.status = SprintClosed) "closing closes the sprint"
+    testing.expect (review.done_minutes = 95i32 && review.carried_minutes = 120i32) "done and carried minutes"
+    testing.expect (review.dropped_minutes = 30i32 && not review.goal_met) "dropped minutes and a missed goal"
+    := later = { done_minutes = 205i32; carried_minutes = 0i32; dropped_minutes = 0i32; goal_met = true }
+    testing.expect (velocity [ later; review ] 3i32 = 150i32) "velocity is the mean done minutes of recent sprints"
+    testing.expect (velocity [] 3i32 = 0i32) "no closed sprint, no velocity"

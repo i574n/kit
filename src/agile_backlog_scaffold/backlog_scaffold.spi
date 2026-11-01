@@ -23,7 +23,7 @@
 := expired_lease_text (now : u64) : string =
     := started = now - 5100000u64
     := head =
-        "union lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\n"
+        "///- --no-respell\nunion lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\n"
         ^^ "union prompt_lease = | PromptLease :: string * string * u64 * u64 * u64 * u64 * lease_status -> "
         ^^ "prompt_lease\n"
     := row =
@@ -46,6 +46,7 @@
         """
     | BacklogSchema =>
         inl kinds = """
+            ///- --no-respell
             union task_kind =
                 | Epic :: task_kind
                 | Feature :: task_kind

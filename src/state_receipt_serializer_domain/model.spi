@@ -100,6 +100,7 @@
 
 := receipt_header () : string =
     """
+        ///- --no-respell
         union state_check_snapshot = | StateCheckSnapshot :: u64 -> state_check_snapshot
         union module_attestation = | RuntimeAttestation | BuildAttestation :: u64 -> module_attestation
         union module_typecheck_receipt = | ModuleTypecheckReceipt :: string * u64 * u64 * module_attestation -> module_typecheck_receipt
@@ -119,6 +120,7 @@
 
 := serializer_fixture_source () : string =
     """
+        ///- --no-respell
         union state_check_snapshot = | StateCheckSnapshot :: u64 -> state_check_snapshot
         union module_attestation = | RuntimeAttestation | BuildAttestation :: u64 -> module_attestation
         union module_typecheck_receipt = | ModuleTypecheckReceipt :: string * u64 * u64 * module_attestation -> module_typecheck_receipt

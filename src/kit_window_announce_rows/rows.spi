@@ -1,0 +1,71 @@
+///- --package .
+:# rows static =
+    :< sm'_operators
+    :< kit_machine_windows.window_model
+    :< kit_window_announce.announce
+
+:< sm'_operators
+:< kit_machine_windows.window_model
+:< kit_window_announce.announce
+
+:= u64_field (value : u64) : string = sm'.show value ++# "u64"
+
+:= announced_row (index : i32) (block : announced) : string =
+    := head = sm'.concat_list "" [ "inl announced_"; sm'.show index; " () = Announced (\""; block.holder; "\", \"" ]
+    := times = sm'.concat_list ", " [ u64_field block.from_ms; u64_field block.until_ms; u64_field block.work_minutes ]
+    sm'.concat_list "" [ head; class_word block.kind; "\", "; times; ")" ]
+
+:= number_of (text : string) : u64 =
+    convert.try_convert (sm'.trim (sm'.replace "u64" "" (sm'.replace ")" "" text))) |> optionm'.default_value 0u64
+
+:| announced_line =
+    | AnnouncedLine : announced
+    | OtherAnnouncedLine
+
+:= announced_line_of (line : string) : announced_line =
+    := parts = sm'.split "\"" line |> array
+    ? sm'.starts_with "inl announced_" line |> not || am'.length parts < 5i32 ?> OtherAnnouncedLine
+    |:
+        := numbers = sm'.split_list "," (am'.index 4i32 parts) |> listm'.filter (\ (t : string) => sm'.trim t <> "")
+        ?= class_of (am'.index 3i32 parts) ?|
+        | ClassUnknown => OtherAnnouncedLine
+        | ClassKnown kind =>
+            ?= numbers ?|
+            | from :: until :: work :: [] =>
+                AnnouncedLine {
+                    holder = am'.index 1i32 parts
+                    kind = kind
+                    from_ms = number_of from
+                    until_ms = number_of until
+                    work_minutes = number_of work
+                }
+            | _ => OtherAnnouncedLine
+
+:= announced_of (text : string) : list announced =
+    sm'.split_list "\n" (sm'.replace "\r" "" text)
+    |> listm.fold
+        \ acc line =>
+            ?= announced_line_of line ?|
+            | AnnouncedLine block => block :: acc
+            | OtherAnnouncedLine => acc
+        []
+    |> listm.rev
+
+///> rust
+:# announced_blocks_round_trip_as_typed_rows =
+    := install =
+        {
+            holder = "compiler"
+            kind = CompilerInstall
+            from_ms = 1200000u64
+            until_ms = 1800000u64
+            work_minutes = 10u64
+        }
+    := row = announced_row 1i32 install
+    := expected = "inl announced_1 () = Announced (\"compiler\", \"compiler-install\", 1200000u64, 1800000u64, 10u64)"
+    testing.expect (row = expected) row
+    := second = { install ?| holder = "main" }
+    := text = sm'.concat_list "\n" [ "union announced_row = | Announced :: string"; row; announced_row 2i32 second ]
+    testing.expect (announced_of text = [ install; second ]) "both rows read back in order"
+    := unknown = "inl announced_9 () = Announced (\"x\", \"no-such-class\", 1u64, 2u64, 3u64)"
+    testing.expect (announced_of unknown = []) "an unknown class is not read as a block"

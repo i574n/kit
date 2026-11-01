@@ -197,7 +197,7 @@ inl emit_mutations () : () = global """
         let deadline_unix_ms = started_unix_ms.checked_add(budget_ms).and_then(|value| value.checked_add(guard_ms)).ok_or_else(|| "prompt lease deadline overflow".to_owned())?;
         let state = root.join("state/prompt.spi");
         let original = agile_read_regular_limited(&state, 1024 * 1024).ok();
-        let source = format!("union lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\nunion prompt_lease = | PromptLease :: string * string * u64 * u64 * u64 * u64 * lease_status -> prompt_lease\ninl current () : prompt_lease = PromptLease (\"{}\", \"{}\", {}u64, {}u64, {}u64, {}u64, LeaseActive)\ninl main () : i32 = 0i32\n", agile_escape_spi(&prompt_id), agile_escape_spi(title), budget_ms, guard_ms, started_unix_ms, deadline_unix_ms);
+        let source = format!("///- --no-respell\nunion lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\nunion prompt_lease = | PromptLease :: string * string * u64 * u64 * u64 * u64 * lease_status -> prompt_lease\ninl current () : prompt_lease = PromptLease (\"{}\", \"{}\", {}u64, {}u64, {}u64, {}u64, LeaseActive)\ninl main () : i32 = 0i32\n", agile_escape_spi(&prompt_id), agile_escape_spi(title), budget_ms, guard_ms, started_unix_ms, deadline_unix_ms);
         agile_atomic_write(&state, source.as_bytes())?;
         let validate = (|| -> Result<(), String> {
             let (observed_started, observed_deadline, _, _, _, _) = agile_prompt_lease_clock(root)?;

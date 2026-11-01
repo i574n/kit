@@ -1,0 +1,184 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| item_status =
+    | Planned
+    | Active
+    | Blocked
+    | Paused
+    | Done
+
+:== tracked =
+    {
+        id : string
+        status : item_status
+        teams : list string
+        deps : list string
+        last_note_hour : i64
+    }
+
+:== team_day =
+    {
+        team : string
+        day : i64
+        done : i32
+    }
+
+:| done_dating =
+    | ByLastNote
+    | ByStatusChange : list (string * i64)
+
+:= done_hour (dating : done_dating) (item : tracked) : i64 =
+    ?= dating ?|
+    | ByLastNote => item.last_note_hour
+    | ByStatusChange changes =>
+        changes |> listm.fold (\ found (id, hour) => ? id = item.id ?> hour |: found) item.last_note_hour
+
+:= same (team : string) (day : i64) (row : team_day) : bool = row.team = team && row.day = day
+
+:= counted (rows : list team_day) (team : string) (day : i64) : list team_day =
+    := present = rows |> listm.fold (\ seen (row : team_day) => seen || same team day row) !-
+    := bumped (row : team_day) : team_day = ? same team day row ?> { row ?| done = row.done + 1i32 } |: row
+    ? present ?> rows |> listm.map bumped |: { team = team; day = day; done = 1i32 } :: rows
+
+:= done_per_team_day (dating : done_dating) (since_day : i64) (items : list tracked) : list team_day =
+    items
+    |> listm.fold
+        \ rows (item : tracked) =>
+            := day = done_hour dating item / 24i64
+            ? item.status <> Done || day < since_day ?> rows
+            |: item.teams |> listm.fold (\ acc team => counted acc team day) rows
+        []
+
+:= stale_active (now_hour : i64) (hours : i64) (items : list tracked) : list tracked =
+    items |> listm'.filter (\ (item : tracked) => item.status = Active && now_hour - item.last_note_hour > hours)
+
+:= done_on (rows : list team_day) (team : string) (day : i64) : i32 =
+    rows |> listm.fold (\ total (row : team_day) => ? same team day row ?> total + row.done |: total) 0i32
+
+:= status_of (items : list tracked) (id : string) : option item_status =
+    items |> listm.fold (\ found (item : tracked) => ? item.id = id ?> Some item.status |: found) None
+
+:= holding (items : list tracked) (dep : string) : bool =
+    ?= status_of items dep ?|
+    | Some status => status <> Done
+    | None => !+
+
+:= bumped_dep (rows : list (string * i32)) (dep : string) : list (string * i32) =
+    := present = rows |> listm.fold (\ seen (name, _) => seen || name = dep) !-
+    := bump (name, count) = ? name = dep ?> name, count + 1i32 |: name, count
+    ? present ?> rows |> listm.map bump |: (dep, 1i32) :: rows
+
+:= hidden_behind (items : list tracked) : list (string * i32) =
+    items
+    |> listm.fold
+        \ rows (item : tracked) =>
+            ? item.status = Done ?> rows
+            |: item.deps |> listm'.filter (holding items) |> listm.fold bumped_dep rows
+        []
+
+:= hidden_count (rows : list (string * i32)) (dep : string) : i32 =
+    rows |> listm.fold (\ total (name, count) => ? name = dep ?> total + count |: total) 0i32
+
+:== note_event =
+    {
+        id : string
+        hour : i64
+        author : string
+    }
+
+:== round_counters =
+    {
+        notes : i32
+        items_touched : i32
+    }
+
+:= inside_round (author : string) (from_hour : i64) (until_hour : i64) (e : note_event) : bool =
+    e.author = author && e.hour >= from_hour && e.hour < until_hour
+
+:= round_counters_of
+    (author : string) (from_hour : i64) (until_hour : i64) (events : list note_event)
+    : round_counters
+    =
+    := inside = events |> listm'.filter (inside_round author from_hour until_hour)
+    := ids = inside |> listm.fold (\ seen (e : note_event) => ? listm'.contains e.id seen ?> seen |: e.id :: seen) []
+    { notes = (listm.length inside : i32); items_touched = (listm.length ids : i32) }
+
+:== groom_round =
+    {
+        team : string
+        until_minute : i64
+        report_to : string
+    }
+
+:| idle_verdict =
+    | MayIdle
+    | KeepWorking : i64
+
+:= idle_verdict_of (rounds : list groom_round) (team : string) (now_minute : i64) : idle_verdict =
+    rounds
+    |> listm.fold
+        \ verdict (round : groom_round) =>
+            ? round.team <> team || round.until_minute <= now_minute ?> verdict
+            |:
+                := left = round.until_minute - now_minute
+                ?= verdict ?|
+                | KeepWorking current => ? left > current ?> KeepWorking left |: verdict
+                | MayIdle => KeepWorking left
+        MayIdle
+:= fixture () : list tracked =
+    [
+        { id = "A"; status = Done; teams = [ "kit" ]; deps = []; last_note_hour = 10i64 };
+        { id = "B"; status = Done; teams = [ "kit"; "main" ]; deps = [ "A" ]; last_note_hour = 30i64 };
+        { id = "C"; status = Active; teams = [ "kit" ]; deps = []; last_note_hour = 20i64 };
+        { id = "D"; status = Active; teams = [ "main" ]; deps = []; last_note_hour = 45i64 };
+        { id = "E"; status = Blocked; teams = [ "kit" ]; deps = [ "D" ]; last_note_hour = 40i64 };
+        { id = "F"; status = Planned; teams = [ "kit" ]; deps = [ "E"; "A" ]; last_note_hour = 41i64 };
+        { id = "G"; status = Planned; teams = [ "kit" ]; deps = [ "E" ]; last_note_hour = 42i64 }
+    ]
+
+///> rust
+:# done_items_count_per_team_per_day =
+    := rows = done_per_team_day ByLastNote 0i64 (fixture ())
+    testing.expect (done_on rows "kit" 0i64 = 1i32 && done_on rows "kit" 1i64 = 1i32) "kit closed one item each day"
+    testing.expect (done_on rows "main" 1i64 = 1i32 && done_on rows "main" 0i64 = 0i32) "a shared item counts twice"
+    := later = done_per_team_day ByLastNote 1i64 (fixture ())
+    testing.expect (done_on later "kit" 0i64 = 0i32) "since cuts earlier days"
+    := exact = done_per_team_day (ByStatusChange [ ("A", 40i64) ]) 0i64 (fixture ())
+    testing.expect (done_on exact "kit" 1i64 = 2i32) "a recorded status change wins over the last note"
+
+///> rust
+:# active_items_without_a_recent_note_are_stale =
+    := stale = stale_active 48i64 12i64 (fixture ())
+    := ids = stale |> listm.map (\ (item : tracked) => item.id)
+    testing.expect (ids = [ "C" ]) "only C is Active and quiet for over 12 hours"
+    testing.expect ((listm.length (stale_active 48i64 1i64 (fixture ())) : i32) = 2i32) "a 1-hour window flags both"
+
+///> rust
+:# open_items_hidden_behind_unfinished_deps_are_counted_per_dep =
+    := rows = hidden_behind (fixture ())
+    testing.expect (hidden_count rows "E" = 2i32) "F and G wait on the Blocked E"
+    testing.expect (hidden_count rows "D" = 1i32) "E waits on the Active D"
+    testing.expect (hidden_count rows "A" = 0i32) "a Done dep hides nothing"
+
+///> rust
+:# a_groom_round_counts_its_own_notes_inside_the_window =
+    := events =
+        [
+            { id = "A"; hour = 1i64; author = "kit" };
+            { id = "A"; hour = 2i64; author = "kit" };
+            { id = "B"; hour = 2i64; author = "kit" };
+            { id = "C"; hour = 2i64; author = "main" };
+            { id = "D"; hour = 5i64; author = "kit" }
+        ]
+    := counters = round_counters_of "kit" 1i64 3i64 events
+    testing.expect (counters.notes = 3i32 && counters.items_touched = 2i32) "three notes on two items, in the window"
+///> rust
+:# an_open_groom_round_keeps_its_team_working_until_the_deadline =
+    := rounds = [ { team = "kit"; until_minute = 180i64; report_to = "main" } ]
+    testing.expect (idle_verdict_of rounds "kit" 150i64 = KeepWorking 30i64) "30 minutes left in kit's round"
+    testing.expect (idle_verdict_of rounds "kit" 180i64 = MayIdle) "at the deadline the round is over"
+    testing.expect (idle_verdict_of rounds "fiscal" 150i64 = MayIdle) "another team's round does not hold fiscal"

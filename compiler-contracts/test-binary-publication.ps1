@@ -2,7 +2,7 @@
 param()
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'workspace.ps1')
-if (-not $env:TEMP -or -not $env:TMP) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
+if ($IsWindows -and (-not $env:TEMP -or -not $env:TMP)) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
 $fixture = Join-Path ([IO.Path]::GetTempPath()) ('kit publication ü ' + [guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($fixture)
 $source = Join-Path $fixture ('candidate' + $(if ($IsWindows) { '.exe' } else { '' }))

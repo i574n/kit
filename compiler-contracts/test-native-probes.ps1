@@ -19,7 +19,7 @@ $work = Join-Path $KitRoot ('.cache/native-probes/' + [guid]::NewGuid().ToString
 $encoding = [Text.UTF8Encoding]::new($false)
 Copy-Item -LiteralPath $KitBinary -Destination (Join-Path $work "kit$suffix")
 $KitBinary = Join-Path $work "kit$suffix"
-if (-not $env:TEMP -or -not $env:TMP) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
+if ($IsWindows -and (-not $env:TEMP -or -not $env:TMP)) { throw 'TEMP and TMP must be set: without them the temp root resolves to the profile folder.' }
 $isolatedCwd = Join-Path ([IO.Path]::GetTempPath()) ('kit-native-probes-' + [guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($isolatedCwd)
 

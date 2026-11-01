@@ -1,0 +1,97 @@
+///- --package .
+:# announce static =
+    :< kit_machine_windows.window_model
+
+:< kit_machine_windows.window_model
+
+:== announced =
+    {
+        holder : string
+        kind : window_class
+        from_ms : u64
+        until_ms : u64
+        work_minutes : u64
+    }
+
+:| start_verdict =
+    | StartNow
+    | WouldOverlap : string * u64
+
+:= overlaps (wanted : window_class) (now : u64) (expected_minutes : u64) (block : announced) : bool =
+    := finish = now + expected_minutes * 60000u64
+    clashes block.kind wanted && block.until_ms > now && block.from_ms < finish
+
+:= start_verdict_of
+    (wanted : window_class) (now : u64) (expected_minutes : u64) (blocks : list announced)
+    : start_verdict
+    =
+    blocks
+    |> listm.fold
+        \ verdict (block : announced) =>
+            ?= verdict ?|
+            | WouldOverlap _ => verdict
+            | StartNow =>
+                ? overlaps wanted now expected_minutes block
+                ?> WouldOverlap (block.holder, minutes_left block.from_ms now)
+                |: StartNow
+        StartNow
+
+:= minutes (n : u64) : u64 = n * 60000u64
+
+:== waiter =
+    {
+        holder : string
+        kind : window_class
+        work_minutes : u64
+        waited_ms : u64
+    }
+
+:| yield_verdict =
+    | Continue
+    | YieldTo : string * u64
+
+:= short_work () : u64 = 20u64
+:= patience_ms () : u64 = minutes 5u64
+
+:= deserves_slot (held : window_class) (w : waiter) : bool =
+    w.kind <> held && w.kind <> HeavyBuild && w.work_minutes <= short_work () && w.waited_ms >= patience_ms ()
+
+:= yield_verdict_of (held : window_class) (waiters : list waiter) : yield_verdict =
+    waiters
+    |> listm.fold
+        \ verdict (w : waiter) =>
+            ?= verdict ?|
+            | YieldTo _ => verdict
+            | Continue => ? deserves_slot held w ?> YieldTo (w.holder, w.work_minutes) |: Continue
+        Continue
+
+///> rust
+:# a_heavy_start_waits_for_an_announced_install_it_would_overlap =
+    := install =
+        {
+            holder = "compiler"
+            kind = CompilerInstall
+            from_ms = minutes 20u64
+            until_ms = minutes 30u64
+            work_minutes = 10u64
+        }
+    := verdict = start_verdict_of HeavyBuild 0u64 30u64 [ install ]
+    testing.expect (verdict = WouldOverlap ("compiler", 20u64)) "a 30-minute build would hit the install at minute 20"
+    testing.expect (start_verdict_of HeavyBuild 0u64 15u64 [ install ] = StartNow) "a 15-minute build ends before it"
+    := later = { install ?| from_ms = minutes 40u64; until_ms = minutes 50u64 }
+    testing.expect (start_verdict_of HeavyBuild 0u64 30u64 [ later ] = StartNow) "a later install does not block it"
+    := ended = { install ?| from_ms = 0u64; until_ms = minutes 5u64 }
+    := after = start_verdict_of HeavyBuild (minutes 6u64) 30u64 [ ended ]
+    testing.expect (after = StartNow) "an ended block never blocks"
+
+///> rust
+:# a_long_heavy_window_yields_to_a_short_install_that_has_waited =
+    := install = { holder = "compiler"; kind = CompilerInstall; work_minutes = 10u64; waited_ms = minutes 6u64 }
+    := slot = yield_verdict_of HeavyBuild [ install ]
+    testing.expect (slot = YieldTo ("compiler", 10u64)) "a 10-min install gets a slot"
+    := fresh = { install ?| waited_ms = minutes 1u64 }
+    testing.expect (yield_verdict_of HeavyBuild [ fresh ] = Continue) "a waiter of one minute keeps waiting"
+    := long = { install ?| work_minutes = 90u64 }
+    testing.expect (yield_verdict_of HeavyBuild [ long ] = Continue) "a long job does not preempt"
+    := train = { install ?| holder = "kit"; kind = HeavyBuild }
+    testing.expect (yield_verdict_of HeavyBuild [ train ] = Continue) "two heavy builds never yield to each other"

@@ -110,7 +110,7 @@ $entry = Get-ToolRow $compiler; $facade = Get-ToolRow $dotnet
 $identityPath = Join-Path $KitRoot 'state/toolchain_identity.spi'
 $identity = [IO.File]::ReadAllText($identityPath)
 function Set-Identity([string]$Text, [string]$Function, $Row) {
-    $pattern = "(?m)^(inl $Function \(\) : \w+ =\r?\n\s+\w+ \(\w+, EvidenceRef \()`"[^`"]*`", `"[0-9a-f]{64}`", \d+u64"
+    $pattern = "(?m)^((?:inl|:=) $Function \(\) : \w+ =\r?\n\s+\w+ \(\w+, EvidenceRef \()`"[^`"]*`", `"[0-9a-f]{64}`", \d+u64"
     if (-not [regex]::IsMatch($Text, $pattern)) { throw "toolchain identity row not found: $Function" }
     [regex]::Replace($Text, $pattern, "`${1}`"$($Row.Name)`", `"$($Row.Sha)`", $($Row.Bytes)u64")
 }

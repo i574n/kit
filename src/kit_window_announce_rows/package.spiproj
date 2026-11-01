@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_jobs
+    kit_machine_windows
+    kit_window_announce
+modules:
+    rows

@@ -48,7 +48,7 @@
 := views_module () : string = "    views\n"
 := views_module_listed (~text : string) : bool =
     sm'.contains (concat5 "\n" (views_module ()) "" "" "") text || sm'.ends_with "\n    views" text
-:= view_schema () : string = "union agile_view =\n    | View :: string * string * string -> agile_view\n"
+:= view_schema () : string = "///- --no-respell\nunion agile_view =\n    | View :: string * string * string -> agile_view\n"
 := view_constructor () : string = "View ("
 := view_needle () : string = concat5 (view_constructor ()) "\"" "" "" ""
 := view_anchor (~name : string) : string = concat5 (view_constructor ()) (spi_quoted name) "," "" ""
