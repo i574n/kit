@@ -4,4 +4,11 @@
     export
         "kit_agile_note_appended"
         ((\ (state_dir, row, stamp) => note_appended state_dir row stamp) : string * string * string -> string)
+    export
+        "kit_agile_note_persisted"
+        (
+            \ (state_dir, state, raw, schema_ready, id, row, stamp) =>
+                note_persisted state_dir state raw schema_ready id row stamp
+            : string * string * string * string * string * string * string -> string * u64
+        )
     0i32

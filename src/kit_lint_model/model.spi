@@ -307,6 +307,29 @@
 :~ baseline_of (text : string) : list known_violation =
     baseline_from (sm'.split "\n" (sm'.replace "\r" "" text) |> array) 0i32 []
 
+:~ baseline_row_spi (index : i32) (row : known_violation) : string =
+    := head = sm'.concat_list "" [ "inl lint_known_"; sm'.show index; " () = LintKnown (\"" ]
+    sm'.concat_list "" [ head; row.file; "\", \""; row.name; "\", \""; row.class; "\")" ]
+
+:~ baseline_spi (text : string) : string =
+    := rows = baseline_of text |> listm.rev
+    := step (index, acc) (row : known_violation) = index + 1i32, baseline_row_spi index row :: acc
+    := _, lines = rows |> listm.fold step (1i32, [])
+    sm'.concat_list "" [ sm'.concat_list "\n" (listm.rev lines); "\n" ]
+
+:~ baseline_row_of_spi (line : string) : string =
+    := parts = sm'.split "\"" line |> array
+    ? not (sm'.starts_with "inl lint_known_" line) || am'.length parts < 7i32 ?> ""
+    |:
+        := file, name, class = am'.index 1i32 parts, am'.index 3i32 parts, am'.index 5i32 parts
+        ? name = "" ?> sm'.concat_list "" [ file; ":0  "; class; "  -" ]
+        |: sm'.concat_list "" [ file; ":0  "; name; "  "; class ]
+
+:~ baseline_rows_of_spi (text : string) : string =
+    sm'.split_list "inl lint_known_" (sm'.replace "\n" " " (sm'.replace "\r" "" text))
+    |> listm.map (\ (part : string) => baseline_row_of_spi ("inl lint_known_" ++# part))
+    |> listm'.filter (\ (row : string) => row <> "")
+    |> sm'.concat_list "\n"
 :~ known (baseline : list known_violation) (item : violation) : bool =
     listm'.try_find_
         \ (row : known_violation) =>
@@ -470,3 +493,19 @@
     := known_two = baseline_of "lib/sample.spi:9  widen  cast\nlib/sample.spi:9  pick  flow\n"
     := fresh = found |> listm'.filter \ (item : violation) => not (known known_two item)
     expect ((listm.length fresh : i32) = 1i32) "the baseline hides two"
+
+///> rust
+:# a_baseline_round_trips_through_typed_rows =
+    := rows = "a/b.spi:12  run_it              block  @'x'\nc.spi:3  cast  @'y as i32'\n"
+    := spi = baseline_spi rows
+    expect (sm'.starts_with "inl lint_known_1 () = LintKnown (\"a/b.spi\", \"run_it\", \"block\")" spi) spi
+    expect (sm'.contains "LintKnown (\"c.spi\", \"\", \"cast\")" spi) "an unnamed row keeps its class"
+    := back = baseline_of (baseline_rows_of_spi spi)
+    expect (listm.length back = 2i32) "both rows read back"
+    := item = { file = "c.spi"; line = 3i32; name = ""; class = MacroCast; text = "" }
+    expect (known back item) "the typed baseline knows the unnamed row"
+    := wrapped =
+        "inl lint_known_1 () =\n    LintKnown (\n        \"d.spi\",\n"
+        ++# "        \"long_name\",\n        \"arith\"\n    )\n"
+    := read = baseline_rows_of_spi wrapped
+    expect (sm'.contains "d.spi:0  long_name  arith" read) "a row the formatter wrapped reads back"

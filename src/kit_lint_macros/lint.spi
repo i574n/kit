@@ -118,19 +118,35 @@
     := given = value_after "--baseline" 3i32 count
     := baseline_path = ? given = "" || file_system.file_exists given ?> given |: root </> given
     ? root = "" || file_system.directory_exists root |> not ?>
-        console.write_error_line "kit error: lint usage: lint macros <root> [<path>...] [--baseline <rows>] [--tsv]"
+        console.write_error_line (
+            "kit error: lint usage: lint macros <root> [<path>...] [--baseline <rows|file.spi>] [--tsv]"
+            ++# " [--write-baseline <file.spi>]"
+        )
         2i32
     |? baseline_path <> "" && file_system.file_exists baseline_path |> not ?>
         console.write_error_line ("kit error: lint macros: no baseline file at " ++# given)
         2i32
     |:
-        := baseline = ? baseline_path = "" ?> "" |: file_system.read_all_text baseline_path
-        := report = lint_report root (paths_from 3i32 count []) baseline (flag_given "--tsv" 3i32 count)
-        report.rows |> listm.iter console.write_line
-        := elapsed = kit_receipt.receipt.elapsed_text started
-        := clock = kit_receipt.receipt.clock_text ()
-        console.write_line (tally_text report.tally ++# "  " ++# elapsed ++# "  " ++# clock)
-        ? report.tally.fresh = 0i32 ?> 0i32 |: 1i32
+        := raw = ? baseline_path = "" ?> "" |: file_system.read_all_text baseline_path
+        := typed = sm'.ends_with ".spi" baseline_path
+        := baseline = ? typed ?> $'kit_lint_walk::kit_lint_baseline_rows(&*!raw)' : string |: raw
+        := write_to = value_after "--write-baseline" 3i32 count
+        ? write_to <> ""
+        ?>
+            := every = lint_report root (paths_from 3i32 count []) "" !-
+            := rows = ? baseline <> "" ?> baseline |: sm'.concat_list "\n" every.rows
+            := spi = $'kit_lint_walk::kit_lint_baseline_spi(&*!rows)' : string
+            file_system.write_all_text write_to spi
+            := counted = sm'.format (listm.length (sm'.split_list "\n" rows |> listm'.filter (\ (row : string) => row <> "")) : i32)
+            console.write_line ("kit lint baseline written " ++# write_to ++# "  rows " ++# counted)
+            0i32
+        |:
+            := report = lint_report root (paths_from 3i32 count []) baseline (flag_given "--tsv" 3i32 count)
+            report.rows |> listm.iter console.write_line
+            := elapsed = kit_receipt.receipt.elapsed_text started
+            := clock = kit_receipt.receipt.clock_text ()
+            console.write_line (tally_text report.tally ++# "  " ++# elapsed ++# "  " ++# clock)
+            ? report.tally.fresh = 0i32 ?> 0i32 |: 1i32
 
 :~ shadows_run () : i32 = $'kit_lint_shadows::kit_lint_shadows_run()' : i32
 

@@ -2,6 +2,10 @@
 /infra/**/target/
 /eoie.exe
 /eoie
+/eoie.exe.*
+/kit.exe
+/kit
+/kit.exe.*
 /src/**/*.c
 /src/**/*.spiral-entry
 /src/**/*.eoie-plan-ir-*.ir

@@ -428,6 +428,11 @@
     | TaggedTodos => negated (id = "")
     | TodosOf wanted => (id = wanted)
 
+:= text_may_hold (filter : todo_filter) (~text : string) : bool =
+    ?= filter ?|
+    | TodosOf wanted => byte_find_from text wanted 0i32 >= 0i32
+    | _ => !+
+
 := wide_limit () : i32 = 120i32
 := widest_line (~segment : string) : i32 = $'(!segment).lines().map(|line| line.trim_end().chars().count()).max().unwr\
     ap_or(0) as i32' : i32
@@ -674,6 +679,13 @@
     expect (unknown = 3i32) "bad values are unknown fields"
     := bare = marker_fields.fields_json (marker_fields.marker_fields "swap the codec")
     expect (bare = "{}") "bare marker"
+
+///> rust
+:# only_an_id_filter_lets_a_file_be_skipped_unread =
+    expect (text_may_hold (todo_filter_of "") "no marker here") "a plain scan reads every file"
+    expect (text_may_hold (todo_filter_of "*") "no star here") "a tagged scan reads every file"
+    expect (text_may_hold (todo_filter_of "KIT-A") "x KIT-A y") "the id is in the file"
+    expect (negated (text_may_hold (todo_filter_of "KIT-A") "x KIT-B y")) "the id is not in the file"
 
 ///> rust
 :# paths_skip_vendor_generated_and_unknown_files =

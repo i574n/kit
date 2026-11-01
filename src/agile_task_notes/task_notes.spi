@@ -75,18 +75,12 @@
             := seq = note_count (schema_ready ++# "\n" ++# segments) id + 1i32
             := note = { at = utc_stamp started; author = author; text = body }
             := row = note_row id seq note
-            ? env.get_environment_variable "KIT_AGILE_NOTE_SEGMENTS" = "1"
-            ?>
-                := stamp = note.at
-                := problem = $'agile_note_segments::kit_agile_note_appended(&*!state_dir, &*!row, &*!stamp)' : string
-                := size = text_bytes original
-                ? problem = "" ?> note_success id seq note size size (ms_since started)
-                |: note_failure problem id
-            |:
-                := updated = notes_appended schema_ready id row
-                ?= state_written state raw updated ?|
-                | StateWritten => note_success id seq note (text_bytes original) (text_bytes updated) (ms_since started)
-                | problem => note_failure (state_write_problem problem) id
+            := stamp = note.at
+            := problem, after =
+                $'agile_note_segments::kit_agile_note_persisted(&*!state_dir, &*!state, &*!raw, &*!schema_ready, \
+                    &*!id, &*!row, &*!stamp)' : string * u64
+            ? problem = "" ?> note_success id seq note (text_bytes original) after (ms_since started)
+            |: note_failure problem id
         |: note_failure "no task with this id" id
 
 :~ note_entry () : i32 =

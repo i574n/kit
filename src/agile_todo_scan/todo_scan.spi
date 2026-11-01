@@ -163,7 +163,7 @@
     := has_nul, text = read_content absolute
     ?= bytes_verdict has_nul ?|
     | ScanContent =>
-        ? state.only <> "" && byte_find_from text state.only 0i32 < 0i32
+        ? negated (text_may_hold (todo_filter_of state.only) text)
         ?> { state ?| tally = counted_content tally ScanContent }
         |:
             := rendered, count, wides = crate_findings syntax state.only state.backlog text display state.json

@@ -2,8 +2,10 @@
 :# segments static =
     :< testing
     :< workspace_primitives.files
+    :< agile_note_model.model
 
 :< workspace_primitives.files
+:< agile_note_model.model
 
 :~ state_path (~state_dir : string) (~name : string) : string = sm'.concat_list "/" [ state_dir; name ]
 
@@ -35,6 +37,19 @@
         := original = text_or_empty path
         := base = ? original = "" ?> "open agile\n" |: original
         written path original (sm'.concat_list "" [ base; row; "\n" ])
+
+:~ note_persisted
+    (~state_dir : string) (~state : string) (~raw : string) (~schema_ready : string) (~id : string) (~row : string)
+    (~stamp : string)
+    : string * u64
+    =
+    ? env.get_environment_variable "KIT_AGILE_NOTE_SEGMENTS" = "1"
+    ?> note_appended state_dir row stamp, convert.u64 (sm'.length raw : i32)
+    |:
+        := updated = notes_appended schema_ready id row
+        ?= state_written state raw updated ?|
+        | StateWritten => "", convert.u64 (sm'.length updated : i32)
+        | problem => state_write_problem problem, 0u64
 
 ///> rust
 :# a_note_row_lands_in_this_months_registered_segment =

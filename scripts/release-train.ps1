@@ -187,6 +187,9 @@ if ($Resume -and (Test-Path -LiteralPath $verdictsFile)) {
     foreach ($notebook in $notebooks) {
         $notebookLog = Join-Path $out "$($notebook -replace '[\\/]', '_').log"
         if (-not (Test-Path -LiteralPath $notebookLog)) { continue }
+        $logged = (Get-Item -LiteralPath $notebookLog).LastWriteTime
+        $source = Join-Path (Split-Path $src -Parent) $notebook
+        if ($logged -lt $built -or ((Test-Path -LiteralPath $source) -and $logged -lt (Get-Item -LiteralPath $source).LastWriteTime)) { continue }
         $text = Get-Content -Raw -LiteralPath $notebookLog
         $total = [regex]::Match("$text", 'spiral-tests total (\{[^\r\n]*\})')
         $totals = if ($total.Success) { try { $total.Groups[1].Value | ConvertFrom-Json } catch { $null } } else { $null }
