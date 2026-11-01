@@ -1,0 +1,68 @@
+///- --package .
+:# tree static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| parent_link =
+    | TopLevel
+    | ChildOf : string
+
+:== node =
+    {
+        id : string
+        parent : parent_link
+        progress : i32
+    }
+
+:| parent_check =
+    | ParentOk
+    | ParentUnknown : string
+    | ParentCycle : string
+
+:= parent_of (nodes : list node) (id : string) : option parent_link =
+    nodes |> listm.fold (\ found (n : node) => ? n.id = id ?> Some n.parent |: found) None
+
+:~ ^ chain_check (nodes : list node) (start : string) (current : string) (steps : i32) : parent_check =
+    ? steps > (listm.length nodes : i32) ?> ParentCycle start
+    |:
+        ?= parent_of nodes current ?|
+        | None => ParentUnknown current
+        | Some link =>
+            ?= link ?|
+            | TopLevel => ParentOk
+            | ChildOf next => ? next = start ?> ParentCycle start |: chain_check nodes start next (steps + 1i32)
+
+:= checked (nodes : list node) (n : node) : parent_check =
+    ?= n.parent ?|
+    | TopLevel => ParentOk
+    | ChildOf p => ? p = n.id ?> ParentCycle n.id |: chain_check nodes n.id p 0i32
+
+:= children_of (nodes : list node) (id : string) : list string =
+    nodes
+    |> listm'.filter (\ (n : node) => n.parent = ChildOf id)
+    |> listm.map (\ (n : node) => n.id)
+
+:= rollup (nodes : list node) (id : string) : i32 =
+    := kids = nodes |> listm'.filter (\ (n : node) => n.parent = ChildOf id)
+    := count = (listm.length kids : i32)
+    ? count = 0i32 ?> 0i32 |: (kids |> listm.fold (\ total (n : node) => total + n.progress) 0i32) / count
+
+///> rust
+:# children_roll_up_and_parent_chains_are_checked =
+    := nodes =
+        [
+            { id = "EPIC"; parent = TopLevel; progress = 0i32 };
+            { id = "S1"; parent = ChildOf "EPIC"; progress = 100i32 };
+            { id = "S2"; parent = ChildOf "EPIC"; progress = 50i32 };
+            { id = "T1"; parent = ChildOf "S2"; progress = 10i32 }
+        ]
+    testing.expect (children_of nodes "EPIC" = [ "S1"; "S2" ]) "the epic's direct children in order"
+    testing.expect (rollup nodes "EPIC" = 75i32) "the epic rolls up its children's progress"
+    := grandchild = { id = "T1"; parent = ChildOf "S2"; progress = 10i32 }
+    testing.expect (checked nodes grandchild = ParentOk) "a grandchild is fine"
+    := a = { id = "A"; parent = ChildOf "B"; progress = 0i32 }
+    := looped = [ a; { id = "B"; parent = ChildOf "A"; progress = 0i32 } ]
+    testing.expect (checked looped a = ParentCycle "A") "a cycle is refused"
+    := orphan = { id = "X"; parent = ChildOf "NOPE"; progress = 0i32 }
+    testing.expect (checked nodes orphan = ParentUnknown "NOPE") "an unknown parent is named"

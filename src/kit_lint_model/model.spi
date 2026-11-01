@@ -239,10 +239,27 @@
     [ "+"; "-"; "*"; "/"; "%" ]
     |> listm.fold (\ found (mark : string) => found || operator_between (sm'.split mark body |> array) 0i32) !-
 
+:~ ^ escaped_at (text : string) (i : i32) (count : i32) : bool =
+    ? i < 0i32 || sm'.substring i 1i32 text <> "\\" ?> count % 2i32 = 1i32
+    |: escaped_at text (i - 1i32) (count + 1i32)
+
+:~ quote_merged (acc : list string) (part : string) : list string =
+    ?= acc ?|
+    | last :: rest =>
+        ? escaped_at last ((sm'.length last : i32) - 1i32) 0i32 ?> (last ++# "\"" ++# part) :: rest |: part :: acc
+    | [] => [ part ]
+
+:~ outside_strings (body : string) : string =
+    := parts = sm'.split_list "\"" body |> listm.fold quote_merged [] |> listm.rev
+    := keep (index, text) (part : string) = index + 1i32, ? index % 2i32 = 0i32 ?> text ++# part |: text ++# "literal"
+    := _, kept = parts |> listm.fold keep (0i32, "")
+    kept
+
 :~ term_class (body : string) (flow : bool) : option macro_class =
+    := code = outside_strings body
     ? flow ?> Some MacroFlow
     |? listm'.try_find_ (\ (word : string) => word = "as") (words_of body) <> None ?> Some MacroCast
-    |? arith_in body || sm'.contains "==" body || sm'.contains "!=" body ?> Some MacroArith
+    |? arith_in code || sm'.contains "==" code || sm'.contains "!=" code ?> Some MacroArith
     |: None
 
 :~ class_of (item : host_macro) (flow : bool) : option macro_class =
@@ -509,3 +526,10 @@
         ++# "        \"long_name\",\n        \"arith\"\n    )\n"
     := read = baseline_rows_of_spi wrapped
     expect (sm'.contains "d.spi:0  long_name  arith" read) "a row the formatter wrapped reads back"
+
+///> rust
+:# minus_signs_inside_string_literals_are_not_arithmetic =
+    expect (term_class "\"n --o --p q --r s:/t-u\"" !- = None) "a dash inside a string literal is data"
+    expect (term_class "\"x -y \\\"z -a\\\" b\"" !- = None) "escaped quotes keep the literal open"
+    expect (term_class "Ord((!s)[!i + 1])" !- = Some MacroArith) "index arithmetic outside strings is still arith"
+    expect (term_class "\"a\" + !b" !- = Some MacroArith) "an operator between literals is arith"
