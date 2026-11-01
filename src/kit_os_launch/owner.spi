@@ -18,6 +18,7 @@
 :| launcher_kind =
     | ShellLauncher
     | KitLauncher
+    | RemoteSession
     | OwnerProcess
 
 :| owner =
@@ -29,10 +30,13 @@
 := shell_base (~base : string) : bool =
     base = "cmd" || base = "pwsh" || base = "powershell" || base = "sh" || base = "bash"
 
+:= remote_session_base (~base : string) : bool = base = "sshd" || base = "sshd-session"
+
 :~ launcher_kind_of (~name : string) : launcher_kind =
     := base = sm'.trim_end_suffix ".exe" (sm'.to_lower name)
     ? shell_base base || console_base base ?> ShellLauncher
     |? sm'.starts_with "kit" base ?> KitLauncher
+    |? remote_session_base base ?> RemoteSession
     |: OwnerProcess
 
 :~ number_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert (sm'.trim text))
@@ -62,6 +66,7 @@
     | Ancestor (row, rest) =>
         ?= launcher_kind_of row.name ?|
         | OwnerProcess => OwnedBy row
+        | RemoteSession => NoOwner
         | _ => owner_of rest
 
 :~ owner_home_name (found : owner) : string =
@@ -94,3 +99,12 @@
         (owner_home_name (owner_of (ancestry_of_text "13|agent.exe|2")) = "13-2")
         "pid and start name the home"
     testing.expect (owner_home_name NoOwner = "") "no owner keeps the shared home"
+
+///> rust
+:# a_job_started_over_ssh_belongs_to_the_machine_not_the_session =
+    := windows = ancestry_of_text "40|pwsh.exe|9\n41|sshd.exe|8\n42|sshd.exe|7\n43|services.exe|1"
+    testing.expect (owned_pid (owner_of windows) = 0u64) "the per-connection sshd is not an owner"
+    := linux = ancestry_of_text "50|pwsh|9\n51|bash|8\n52|sshd-session|7\n53|sshd|6\n54|systemd|1"
+    testing.expect (owned_pid (owner_of linux) = 0u64) "sshd-session on newer OpenSSH too"
+    := local = ancestry_of_text "60|pwsh.exe|9\n61|claude.exe|8\n62|sshd.exe|7"
+    testing.expect (owned_pid (owner_of local) = 61u64) "an owner below the ssh session still owns its jobs"

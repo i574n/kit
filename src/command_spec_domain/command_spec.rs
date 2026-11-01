@@ -114,11 +114,10 @@ fn command_subcommand_effect_code_2(mut v0: Rc<str>) -> u64 {
                 let v9: u64 = (4i32 - 1) as u64;
                 v9
             } else {
-                let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bundle:retention-apply"); } LIT.with(|lit| lit.clone()) };
-                let v11: bool = v0 == v10 ;
-                if v11 {
-                    let v12: u64 = (3i32 - 1) as u64;
-                    v12
+                let v10: bool = &*v0 == "bundle:retention-apply";
+                if v10 {
+                    let v11: u64 = (3i32 - 1) as u64;
+                    v11
                 } else {
                     4u64
                 }
@@ -285,14 +284,12 @@ fn proxy_route_code_9(mut v0: Rc<str>) -> u64 {
         if v5 {
             29u64
         } else {
-            let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("archive-extract"); } LIT.with(|lit| lit.clone()) };
-            let v7: bool = v0 == v6 ;
-            if v7 {
+            let v6: bool = &*v0 == "archive-extract";
+            if v6 {
                 30u64
             } else {
-                let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("zip-extract"); } LIT.with(|lit| lit.clone()) };
-                let v9: bool = v0 == v8 ;
-                if v9 {
+                let v7: bool = &*v0 == "zip-extract";
+                if v7 {
                     31u64
                 } else {
                     32u64
@@ -441,44 +438,40 @@ fn format_real_15(mut v0: u64) -> Rc<str> {
 fn help_request_text_13() -> Rc<str> {
     let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(1i32 as usize).unwrap_or_default());
     let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(2i32 as usize).unwrap_or_default());
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("help"); } LIT.with(|lit| lit.clone()) };
-    let v3: bool = v0 == v2 ;
-    let v32: US0 = if v3 {
-        let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v5: bool = v1 == v4 ;
-        let v9: bool = if v5 {
+    let v2: bool = &*v0 == "help";
+    let v28: US0 = if v2 {
+        let v3: bool = &*v1 == "";
+        let v7: bool = if v3 {
             false
         } else {
-            let v6: Rc<str> = proxy_usage_8(v1.clone());
-            let v7: bool = v6 == v4 ;
-            let v8: bool = v7 == false;
-            v8
+            let v4: Rc<str> = proxy_usage_8(v1.clone());
+            let v5: bool = &*v4 == "";
+            let v6: bool = v5 == false;
+            v6
         };
-        if v9 {
+        if v7 {
             US0::US0_CapabilityHelp(v1.clone())
         } else {
             US0::US0_NoHelpRequested
         }
     } else {
-        let v13: i32 = 2i32;
-        let v14: usize = std::env::args().count();
-        let v15: i32 = ((v14) as i32);
-        let v16: bool = help_flag_from_14(v13, v15);
-        if v16 {
-            let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("proxy"); } LIT.with(|lit| lit.clone()) };
-            let v18: bool = v0 == v17 ;
-            if v18 {
-                let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v20: bool = v1 == v19 ;
-                let v24: bool = if v20 {
+        let v11: i32 = 2i32;
+        let v12: usize = std::env::args().count();
+        let v13: i32 = ((v12) as i32);
+        let v14: bool = help_flag_from_14(v11, v13);
+        if v14 {
+            let v15: bool = &*v0 == "proxy";
+            if v15 {
+                let v16: bool = &*v1 == "";
+                let v20: bool = if v16 {
                     false
                 } else {
-                    let v21: Rc<str> = proxy_usage_8(v1.clone());
-                    let v22: bool = v21 == v19 ;
-                    let v23: bool = v22 == false;
-                    v23
+                    let v17: Rc<str> = proxy_usage_8(v1.clone());
+                    let v18: bool = &*v17 == "";
+                    let v19: bool = v18 == false;
+                    v19
                 };
-                if v24 {
+                if v20 {
                     US0::US0_CapabilityHelp(v1)
                 } else {
                     US0::US0_VerbHelp(v0.clone())
@@ -490,34 +483,34 @@ fn help_request_text_13() -> Rc<str> {
             US0::US0_NoHelpRequested
         }
     };
-    match &v32 {
-        US0::US0_CapabilityHelp(v51) => {
-            let v51: Rc<str> = v51.clone();
-            let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit "); } LIT.with(|lit| lit.clone()) };
-            let v53: Rc<str> = proxy_usage_8(v51);
-            let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v55: Rc<str> = std::rc::Rc::<str>::from([&*v52, &*v53, &*v54, &*v54, &*v54].concat());
-            v55
+    match &v28 {
+        US0::US0_CapabilityHelp(v47) => {
+            let v47: Rc<str> = v47.clone();
+            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit "); } LIT.with(|lit| lit.clone()) };
+            let v49: Rc<str> = proxy_usage_8(v47);
+            let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let v51: Rc<str> = std::rc::Rc::<str>::from([&*v48, &*v49, &*v50, &*v50, &*v50].concat());
+            v51
         }
         US0::US0_NoHelpRequested => {
-            let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v33
+            let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            v29
         }
-        US0::US0_VerbHelp(v34) => {
-            let v34: Rc<str> = v34.clone();
-            let v35: u64 = command_code_0(v34);
-            let v36: Rc<str> = format_real_15(v35);
-            let (mut v37, mut v38, mut v39, mut v40, mut v41): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) = command_descriptor_by_index_3(v36);
-            let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name="); } LIT.with(|lit| lit.clone()) };
-            let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" effect="); } LIT.with(|lit| lit.clone()) };
-            let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" handler="); } LIT.with(|lit| lit.clone()) };
-            let v45: Rc<str> = std::rc::Rc::<str>::from([&*v42, &*v37, &*v43, &*v38, &*v44].concat());
-            let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\nsummary="); } LIT.with(|lit| lit.clone()) };
-            let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\nusage: kit "); } LIT.with(|lit| lit.clone()) };
-            let v48: Rc<str> = std::rc::Rc::<str>::from([&*v41, &*v46, &*v40, &*v47, &*v39].concat());
-            let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v50: Rc<str> = std::rc::Rc::<str>::from([&*v45, &*v48, &*v49, &*v49, &*v49].concat());
-            v50
+        US0::US0_VerbHelp(v30) => {
+            let v30: Rc<str> = v30.clone();
+            let v31: u64 = command_code_0(v30);
+            let v32: Rc<str> = format_real_15(v31);
+            let (mut v33, mut v34, mut v35, mut v36, mut v37): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) = command_descriptor_by_index_3(v32);
+            let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name="); } LIT.with(|lit| lit.clone()) };
+            let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" effect="); } LIT.with(|lit| lit.clone()) };
+            let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" handler="); } LIT.with(|lit| lit.clone()) };
+            let v41: Rc<str> = std::rc::Rc::<str>::from([&*v38, &*v33, &*v39, &*v34, &*v40].concat());
+            let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\nsummary="); } LIT.with(|lit| lit.clone()) };
+            let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\nusage: kit "); } LIT.with(|lit| lit.clone()) };
+            let v44: Rc<str> = std::rc::Rc::<str>::from([&*v37, &*v42, &*v36, &*v43, &*v35].concat());
+            let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let v46: Rc<str> = std::rc::Rc::<str>::from([&*v41, &*v44, &*v45, &*v45, &*v45].concat());
+            v46
         }
     }
 }

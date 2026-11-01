@@ -110,7 +110,8 @@
     : i32
     =
     := dir = requests_directory home
-    := name = next_request dir
+    := cap = slot_cap_of (rust_std_env.model.variable_or_empty "KIT_JOB_SLOTS")
+    := name = ? may_take cap (live_children children) ?> next_request dir |: ""
     ? name <> "" ?>
         := path = joined dir name
         := executable = text_or_empty path

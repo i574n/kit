@@ -1,0 +1,4 @@
+:= kit_bindings_module_of (~crate : string) (~text : string) : string =
+    $'kit_bindings_model::kit_bindings_module_of(&*!crate, &*!text)' : string
+:= kit_bindings_counted (~text : string) : i32 * i32 =
+    $'kit_bindings_model::kit_bindings_counted(&*!text)' : i32 * i32

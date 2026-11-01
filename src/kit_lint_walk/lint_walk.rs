@@ -16,17 +16,17 @@ enum UH0 {
     UH0_Cons(Rc<str>, Rc<UH0>),
 }
 #[derive(Clone)]
+enum UH1 {
+    UH1_Nil,
+    UH1_Cons(Rc<str>, Rc<str>, Rc<str>, Rc<UH1>),
+}
+#[derive(Clone)]
 enum US0 {
     US0_MacroLong,
     US0_MacroBlock,
     US0_MacroFlow,
     US0_MacroCast,
     US0_MacroArith,
-}
-#[derive(Clone)]
-enum UH1 {
-    UH1_Nil,
-    UH1_Cons(Rc<str>, Rc<str>, Rc<str>, Rc<UH1>),
 }
 #[derive(Clone)]
 enum US1 {
@@ -38,31 +38,7 @@ enum US2 {
     US2_Some(US0),
     US2_None,
 }
-fn file_exists_2(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
-    let mut v4: std::string::String = String::from(v2);
-    let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
-    let v8: bool = v6.exists();
-    if v8 {
-        let mut v10: bool = v6.is_file();
-        v10
-    } else {
-        false
-    }
-}
-fn directory_exists_3(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
-    let mut v4: std::string::String = String::from(v2);
-    let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
-    let v8: bool = v6.exists();
-    if v8 {
-        let mut v10: bool = v6.is_dir();
-        v10
-    } else {
-        false
-    }
-}
-fn method5(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
+fn method2(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3) => {
@@ -78,7 +54,31 @@ fn method5(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
         }
     }
 }
-fn entry_names_4(mut v0: Rc<str>) -> Rc<UH0> {
+fn file_exists_3(mut v0: Rc<str>) -> bool {
+    let v2: &str = &*v0;
+    let mut v4: std::string::String = String::from(v2);
+    let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
+    let v8: bool = v6.exists();
+    if v8 {
+        let mut v10: bool = v6.is_file();
+        v10
+    } else {
+        false
+    }
+}
+fn directory_exists_4(mut v0: Rc<str>) -> bool {
+    let v2: &str = &*v0;
+    let mut v4: std::string::String = String::from(v2);
+    let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
+    let v8: bool = v6.exists();
+    if v8 {
+        let mut v10: bool = v6.is_dir();
+        v10
+    } else {
+        false
+    }
+}
+fn entry_names_5(mut v0: Rc<str>) -> Rc<UH0> {
     let v2: Result<Vec<std::string::String>, std::io::Error> = std::fs::read_dir(&*v0).map(|entries| entries.filter_map(|entry| entry.ok().map(|entry| entry.file_name().to_string_lossy().into_owned())).collect::<Vec<std::string::String>>());
     let mut v4: Vec<std::string::String> = v2.unwrap();
     let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
@@ -90,7 +90,7 @@ fn entry_names_4(mut v0: Rc<str>) -> Rc<UH0> {
     let v16: bool = true; v15 });
     let v18: Rc<UH0> = _vec_fold_;
     let v19: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    method5(v18.clone(), v19.clone())
+    method2(v18.clone(), v19.clone())
 }
 fn method8(mut v0: std::path::PathBuf) -> std::path::PathBuf {
     v0
@@ -173,7 +173,7 @@ fn spi_files_1(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
             UH0::UH0_Cons(v4, v5) => {
                 let mut v4: Rc<str> = v4.clone();
                 let v5: Rc<UH0> = v5.clone();
-                let mut v6: bool = file_exists_2(v4.clone());
+                let mut v6: bool = file_exists_3(v4.clone());
                 if v6 {
                     let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".spi"); } LIT.with(|lit| lit.clone()) };
                     let v8: bool = v4.ends_with(&*v7);
@@ -185,11 +185,11 @@ fn spi_files_1(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
                     (v0, v1) = (v5.clone(), v10.clone());
                     continue;
                 } else {
-                    let v12: bool = directory_exists_3(v4.clone());
+                    let v12: bool = directory_exists_4(v4.clone());
                     if v12 {
-                        let v13: Rc<UH0> = entry_names_4(v4.clone());
+                        let v13: Rc<UH0> = entry_names_5(v4.clone());
                         let mut v14: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                        let v15: Rc<UH0> = method5(v13.clone(), v14.clone());
+                        let v15: Rc<UH0> = method2(v13.clone(), v14.clone());
                         let v16: Rc<UH0> = method6(v4.clone(), v15.clone(), v5.clone());
                         (v0, v1) = (v16.clone(), v1.clone());
                         continue;
@@ -201,7 +201,7 @@ fn spi_files_1(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
             }
             UH0::UH0_Nil => {
                 let v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                return method5(v1.clone(), v2.clone());
+                return method2(v1.clone(), v2.clone());
             }
         }
     }
@@ -394,7 +394,7 @@ fn words_in_20(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<UH0>) 
         let mut v4: bool = v3 <= v1;
         if v4 {
             let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            return method5(v2.clone(), v5.clone());
+            return method2(v2.clone(), v5.clone());
         } else {
             let mut v7: Rc<str> = v0.clone().borrow()[v1 as usize].clone();
             let v8: i32 = v1.wrapping_add(1i32);

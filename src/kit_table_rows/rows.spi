@@ -15,15 +15,27 @@
 := list_literal (cells : list string) : string =
     "[ " ++# sm'.concat_list "; " (cells |> listm.map (\ (c : string) => "\"" ++# escaped c ++# "\"")) ++# " ]"
 
-:= table_header () : string =
-    "///- --no-respell\nunion table_row = | Columns :: list string -> table_row | Row :: list string -> table_row\n"
+:| row_union =
+    | DeclaredHere
+    | OpenedFrom : string
 
-:= rows_spi_of_table (t : table) : string =
-    := step (index, acc) (cells : list string) =
-        index + 1i32, ("inl row_" ++# sm'.show index ++# " () = Row " ++# list_literal cells) :: acc
-    := _, rows = t.rows |> listm.fold step (1i32, [])
+:= table_header (u : row_union) : string =
+    ?= u ?|
+    | DeclaredHere =>
+        "///- --no-respell\nunion table_row = | Columns :: list string -> table_row | Row :: list string -> table_row\n"
+    | OpenedFrom name => "///- --no-respell\nopen " ++# name ++# "\n"
+
+:= row_index (names : list string) : string =
+    "inl rows () : list table_row = [ " ++# sm'.concat_list "; " (names |> listm.map (\ n => n ++# " ()")) ++# " ]"
+
+:= rows_spi_of_table (u : row_union) (t : table) : string =
+    := step (index, acc, names) (cells : list string) =
+        := name = "row_" ++# sm'.show index
+        index + 1i32, ("inl " ++# name ++# " () = Row " ++# list_literal cells) :: acc, name :: names
+    := _, rows, names = t.rows |> listm.fold step (1i32, [], [])
     := columns = "inl columns () = Columns " ++# list_literal t.columns
-    table_header () ++# sm'.concat_list "\n" (columns :: listm.rev rows) ++# "\n"
+    := body = sm'.concat_list "\n" (columns :: listm.rev rows)
+    table_header u ++# body ++# "\n" ++# row_index (listm.rev names) ++# "\n"
 
 :| scan =
     | Outside
@@ -67,8 +79,11 @@
             columns = [ "timestamp"; "competitor"; "run"; "gold" ]
             rows = [ [ "2026-10-14T10:37:12"; "nexbot"; ""; "0" ]; [ "t2"; "spiral \"retreat\""; "1"; "a\\b" ] ]
         }
-    := spi = rows_spi_of_table t
+    := spi = rows_spi_of_table DeclaredHere t
     := columns = "inl columns () = Columns [ \"timestamp\"; \"competitor\"; \"run\"; \"gold\" ]"
     testing.expect (sm'.contains columns spi) spi
     testing.expect (sm'.contains "inl row_1 () = Row [ \"2026-10-14T10:37:12\"; \"nexbot\"; \"\"; \"0\" ]" spi) spi
     testing.expect (table_of_rows_spi spi = t) "empty cells, quotes and backslashes survive the round trip"
+    testing.expect (sm'.contains "inl rows () : list table_row = [ row_1 (); row_2 () ]" spi) spi
+    := shared = rows_spi_of_table (OpenedFrom "table_rows") t
+    testing.expect (sm'.contains "\nopen table_rows\n" shared && not (sm'.contains "union table_row" shared)) shared

@@ -281,44 +281,42 @@ fn table_run_0() -> i32 {
     };
     match &v8 {
         US1::US1_TableDiff => {
-            let v49: i32 = argument_count_7();
-            let v50: bool = v49 < 5i32;
-            if v50 {
-                let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"); } LIT.with(|lit| lit.clone()) };
-                let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-                let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v54: Rc<str> = std::rc::Rc::<str>::from([&*v52, &*v51, &*v53, &*v53, &*v53].concat());
-                eprintln!("{}", v54);
+            let v47: i32 = argument_count_7();
+            let v48: bool = v47 < 5i32;
+            if v48 {
+                let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"); } LIT.with(|lit| lit.clone()) };
+                let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
+                let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"); } LIT.with(|lit| lit.clone()) };
+                eprintln!("{}", v51);
                 2i32
             } else {
-                let v55: i32 = 5i32;
-                let v56: i32 = argument_count_7();
-                let (mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_8();
-                let v65: US2 = options_from_9(v55, v56, v57.clone(), v58.clone(), v59.clone(), v60.clone(), v61, v62.clone(), v63.clone(), v64);
-                match &v65 {
-                    US2::US2_StepRejected(v79) => {
-                        let v79: Rc<str> = v79.clone();
-                        let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-                        let v81: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v82: Rc<str> = std::rc::Rc::<str>::from([&*v80, &*v79, &*v81, &*v81, &*v81].concat());
-                        eprintln!("{}", v82);
+                let v52: i32 = 5i32;
+                let v53: i32 = argument_count_7();
+                let (mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_8();
+                let v62: US2 = options_from_9(v52, v53, v54.clone(), v55.clone(), v56.clone(), v57.clone(), v58, v59.clone(), v60.clone(), v61);
+                match &v62 {
+                    US2::US2_StepRejected(v76) => {
+                        let v76: Rc<str> = v76.clone();
+                        let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
+                        let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v77, v76));
+                        eprintln!("{}", v78);
                         2i32
                     }
-                    US2::US2_StepTaken(v66, v67, v68, v69, v70, v71, v72, v73) => {
+                    US2::US2_StepTaken(v63, v64, v65, v66, v67, v68, v69, v70) => {
+                        let v63: Rc<str> = v63.clone();
+                        let v64: Rc<str> = v64.clone();
+                        let v65: Rc<str> = v65.clone();
                         let v66: Rc<str> = v66.clone();
-                        let v67: Rc<str> = v67.clone();
+                        let v67: u64 = *v67;
                         let v68: Rc<str> = v68.clone();
                         let v69: Rc<str> = v69.clone();
-                        let v70: u64 = *v70;
-                        let v71: Rc<str> = v71.clone();
-                        let v72: Rc<str> = v72.clone();
-                        let v73: bool = *v73;
-                        let v74: i32 = 3i32;
-                        let v75: Rc<str> = argument_4(v74);
-                        let v76: i32 = 4i32;
-                        let v77: Rc<str> = argument_4(v76);
-                        let v78: i32 = kit_table_diff::kit_table_diff_run(&*v75, &*v77, &*v69, &*v67, &*v72, v70);
-                        v78
+                        let v70: bool = *v70;
+                        let v71: i32 = 3i32;
+                        let v72: Rc<str> = argument_4(v71);
+                        let v73: i32 = 4i32;
+                        let v74: Rc<str> = argument_4(v73);
+                        let v75: i32 = kit_table_diff::kit_table_diff_run(&*v72, &*v74, &*v66, &*v64, &*v69, v67);
+                        v75
                     }
                 }
             }
@@ -329,53 +327,50 @@ fn table_run_0() -> i32 {
             if v10 {
                 let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"); } LIT.with(|lit| lit.clone()) };
                 let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-                let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v14: Rc<str> = std::rc::Rc::<str>::from([&*v12, &*v11, &*v13, &*v13, &*v13].concat());
-                eprintln!("{}", v14);
+                let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"); } LIT.with(|lit| lit.clone()) };
+                eprintln!("{}", v13);
                 2i32
             } else {
-                let v15: i32 = 4i32;
-                let v16: i32 = argument_count_7();
-                let (mut v17, mut v18, mut v19, mut v20, mut v21, mut v22, mut v23, mut v24): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_8();
-                let v25: US2 = options_from_9(v15, v16, v17.clone(), v18.clone(), v19.clone(), v20.clone(), v21, v22.clone(), v23.clone(), v24);
-                match &v25 {
-                    US2::US2_StepRejected(v42) => {
-                        let v42: Rc<str> = v42.clone();
-                        let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-                        let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v45: Rc<str> = std::rc::Rc::<str>::from([&*v43, &*v42, &*v44, &*v44, &*v44].concat());
-                        eprintln!("{}", v45);
+                let v14: i32 = 4i32;
+                let v15: i32 = argument_count_7();
+                let (mut v16, mut v17, mut v18, mut v19, mut v20, mut v21, mut v22, mut v23): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_8();
+                let v24: US2 = options_from_9(v14, v15, v16.clone(), v17.clone(), v18.clone(), v19.clone(), v20, v21.clone(), v22.clone(), v23);
+                match &v24 {
+                    US2::US2_StepRejected(v41) => {
+                        let v41: Rc<str> = v41.clone();
+                        let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
+                        let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v41));
+                        eprintln!("{}", v43);
                         2i32
                     }
-                    US2::US2_StepTaken(v26, v27, v28, v29, v30, v31, v32, v33) => {
+                    US2::US2_StepTaken(v25, v26, v27, v28, v29, v30, v31, v32) => {
+                        let v25: Rc<str> = v25.clone();
                         let v26: Rc<str> = v26.clone();
                         let v27: Rc<str> = v27.clone();
                         let v28: Rc<str> = v28.clone();
-                        let v29: Rc<str> = v29.clone();
-                        let v30: u64 = *v30;
+                        let v29: u64 = *v29;
+                        let v30: Rc<str> = v30.clone();
                         let v31: Rc<str> = v31.clone();
-                        let v32: Rc<str> = v32.clone();
-                        let v33: bool = *v33;
-                        let v34: bool = &*v31 != "";
-                        if v34 {
-                            let v35: i32 = 3i32;
-                            let v36: Rc<str> = argument_4(v35);
-                            measured_query_1(v36.clone(), v26.clone(), v27.clone(), v28.clone(), v29.clone(), v30, v31.clone(), v32.clone(), v33)
+                        let v32: bool = *v32;
+                        let v33: bool = &*v30 != "";
+                        if v33 {
+                            let v34: i32 = 3i32;
+                            let v35: Rc<str> = argument_4(v34);
+                            measured_query_1(v35.clone(), v25.clone(), v26.clone(), v27.clone(), v28.clone(), v29, v30.clone(), v31.clone(), v32)
                         } else {
-                            let v38: i32 = 3i32;
-                            let v39: Rc<str> = argument_4(v38);
-                            plain_query_3(v39.clone(), v26.clone(), v27.clone(), v28.clone(), v29.clone(), v30, v31.clone(), v32.clone(), v33)
+                            let v37: i32 = 3i32;
+                            let v38: Rc<str> = argument_4(v37);
+                            plain_query_3(v38.clone(), v25.clone(), v26.clone(), v27.clone(), v28.clone(), v29, v30.clone(), v31.clone(), v32)
                         }
                     }
                 }
             }
         }
         US1::US1_TableUnknown => {
-            let v86: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"); } LIT.with(|lit| lit.clone()) };
-            let v87: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-            let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v89: Rc<str> = std::rc::Rc::<str>::from([&*v87, &*v86, &*v88, &*v88, &*v88].concat());
-            eprintln!("{}", v89);
+            let v82: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"); } LIT.with(|lit| lit.clone()) };
+            let v83: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
+            let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] [--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | table diff <left> <right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"); } LIT.with(|lit| lit.clone()) };
+            eprintln!("{}", v84);
             2i32
         }
     }

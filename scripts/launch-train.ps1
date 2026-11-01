@@ -3,7 +3,7 @@ param(
     [switch] $Snapshot,
     [switch] $SkipRegen,
     [switch] $Resume,
-    [string] $RunnerHash = '2E5F532E73EEAF14',
+    [string] $RunnerHash = 'F1DD2E34F1E816C8',
     [int] $CellsPort = 13977,
     [int] $HoldWaitMinutes = 240
 )

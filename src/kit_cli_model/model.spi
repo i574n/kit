@@ -86,6 +86,7 @@
 := ci_run () : i32 = $"kit_ci_parity::kit_ci_parity_run()" : i32
 := os_launch_run () : i32 = $"kit_os_launch::kit_process_launch_run()" : i32
 := crate_run () : i32 = $"kit_crate_gate::kit_crate_gate_run()" : i32
+:= k3s_run () : i32 = $"kit_k3s::kit_k3s_run()" : i32
 := table_test_run () : i32 = $"kit_table_test::kit_table_test_run()" : i32
 := env_run () : i32 = $"kit_env_pins::kit_env_run()" : i32
 := mirror_run () : i32 = $"kit_mirror::kit_mirror_run()" : i32
@@ -156,6 +157,7 @@
     | VerbEvidence => evidence_run ()
     | VerbLint => lint_run ()
     | VerbSchedule => schedule_run ()
+    | VerbK3s => k3s_run ()
 
 := run_direct () : i32 =
     := verb = argument_file.process_argument 1i32

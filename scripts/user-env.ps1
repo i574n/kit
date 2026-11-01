@@ -1,3 +1,4 @@
+if (-not $IsWindows) { return }
 $skip = 'Path', 'PSModulePath', 'TEMP', 'TMP'
 foreach ($scope in 'Machine', 'User') {
     $vars = [Environment]::GetEnvironmentVariables($scope)

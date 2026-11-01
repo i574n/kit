@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "k3s.spi"
+output = "k3s.rs"
+
+[package]
+name = "kit-k3s"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_k3s"
+path = "k3s.rs"

@@ -438,7 +438,7 @@ fn receipt_serialize_0(mut v0: Rc<str>) -> Rc<str> {
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = serialize_rows_loop_1(v0.clone(), v1, v2, v3, v4.clone());
     let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl main () : i32 = 0i32\n"); } LIT.with(|lit| lit.clone()) }));
-    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("union state_check_snapshot = | StateCheckSnapshot :: u64 -> state_check_snapshot\nunion module_attestation = | RuntimeAttestation | BuildAttestation :: u64 -> module_attestation\nunion module_typecheck_receipt = | ModuleTypecheckReceipt :: string * u64 * u64 * module_attestation -> module_typecheck_receipt\n\n"); } LIT.with(|lit| lit.clone()) }, v6.clone()));
+    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("///- --no-respell\nunion state_check_snapshot = | StateCheckSnapshot :: u64 -> state_check_snapshot\nunion module_attestation = | RuntimeAttestation | BuildAttestation :: u64 -> module_attestation\nunion module_typecheck_receipt = | ModuleTypecheckReceipt :: string * u64 * u64 * module_attestation -> module_typecheck_receipt\n\n"); } LIT.with(|lit| lit.clone()) }, v6.clone()));
     v7.clone()
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {

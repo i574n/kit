@@ -2,9 +2,9 @@ param([Parameter(Mandatory)][string[]] $Module, [string] $Out = (Join-Path ([IO.
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'user-env.ps1')
 $kitRoot = Split-Path $PSScriptRoot -Parent
-$spiral = (Resolve-Path -LiteralPath (Join-Path $kitRoot '..\spiral')).Path
-$runner = Join-Path $spiral 'apps\cells\spi\run_notebook.ps1'
-$env:SPIRAL_LIB = Join-Path $spiral 'lib\spiral'
+$spiral = (Resolve-Path -LiteralPath (Join-Path $kitRoot '..' 'spiral')).Path
+$runner = Join-Path $spiral 'apps' 'cells' 'spi' 'run_notebook.ps1'
+$env:SPIRAL_LIB = Join-Path $spiral 'lib' 'spiral'
 $env:SPIRAL_CELLS_LIB = $env:SPIRAL_LIB
 $env:SPIRAL_CELLS_WARM = '0'; $env:SPIRAL_CELLS_MEMO = '0'; $env:SPIRAL_CELLS_COMPILER = 'process'
 [void][IO.Directory]::CreateDirectory($Out)

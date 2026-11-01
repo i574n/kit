@@ -64,50 +64,15 @@
     |? sm'.ends_with "/" base ?> rust_std_string.model.concat5 base relative "" "" ""
     |: rust_std_string.model.concat5 base "/" relative "" ""
 
-:| todo_standing =
-    | OpenTodo
-    | StaleTodo
-    | UnknownTodo
-
 := state_text (~root : string) : string =
     := _, text = read_content (rust_std_string.model.concat5 root "/state/agile.spi" "" "" "")
     $'kit_agile_records::kit_agile_records_as_lines(&*!text)' : string
 
-:= standing_of (~text : string) (~id : string) : todo_standing =
-    := status = $'agile_task_census::kit_agile_task_status(&*!text, &*!id)' : string
-    ? (status = "") ?> UnknownTodo
-    |? (status = "Done") ?> StaleTodo
-    |: OpenTodo
-
-:= standing_label = \|
-    | OpenTodo => ""
-    | StaleTodo => "stale (item is Done): "
-    | UnknownTodo => "unknown (no backlog item): "
-
-:~ ^ standings_from (state : scan_state) (~rendered : string) (offset : i32) : scan_state =
-    ? byte_len rendered <= offset
-    ?> state
-    |:
-        := newline = byte_find_from rendered "\n" offset
-        := stop = ? newline < 0i32 ?> byte_len rendered |: newline
-        := line = byte_slice rendered offset stop
-        := backlog = state.backlog
-        := id = $'agile_todo_lines::kit_agile_todo_id(&*!backlog, &*!line)' : string
-        := next_state =
-            ? (id = "")
-            ?> state
-            |:
-                ?= standing_of state.backlog id ?|
-                | OpenTodo => state
-                | standing =>
-                    := _ =
-                        ? state.json || state.quiet
-                        ?> 0i32
-                        |: stdout_line (rust_std_string.model.concat5 (standing_label standing) id " at " line "")
-                    ?= standing ?|
-                    | StaleTodo => { state ?| stale = (state.stale + 1i32) }
-                    | _ => { state ?| unknown = (state.unknown + 1i32) }
-        standings_from next_state rendered (stop + 1i32)
+:= standings_from (state : scan_state) (~rendered : string) : scan_state =
+    := backlog = state.backlog
+    := silent = state.json || state.quiet
+    := stale, unknown = $'agile_todo_standing::kit_agile_todo_standings(&*!backlog, &*!rendered, !silent)' : i32 * i32
+    { state ?| stale = state.stale + stale; unknown = state.unknown + unknown }
 
 := standing_receipt (state : scan_state) : string =
     rust_std_string.model.concat5
@@ -169,7 +134,7 @@
             := rendered, count, wides = crate_findings syntax state.only state.backlog text display state.json
             := tallied = { state ?| tally = counted_todos (counted_content tally ScanContent) count }
             := counted = widened tallied wides 0i32
-            ? count <= 0i32 ?> counted |: standings_from (emitted_findings counted rendered) rendered 0i32
+            ? count <= 0i32 ?> counted |: standings_from (emitted_findings counted rendered) rendered
     | verdict => { state ?| tally = counted_content tally verdict }
 
 :~ scanned_file (state : scan_state) (~display : string) (~absolute : string) (~relative : string) : scan_state =

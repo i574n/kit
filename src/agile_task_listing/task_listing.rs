@@ -762,11 +762,17 @@ fn print_listing_2(mut v0: Rc<str>, mut v1: i32, mut v2: US0, mut v3: Rc<str>, m
         }
     }
 }
-fn note_index_of_24(mut v0: Rc<str>) -> std::rc::Rc<std::collections::HashMap<String, (u32, String)>> {
+fn state_segments_24(mut v0: Rc<str>) -> Rc<str> {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state"); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let v3: Rc<str> = agile_note_listing::kit_agile_state_segments(&*v2);
+    v3
+}
+fn note_index_of_25(mut v0: Rc<str>) -> std::rc::Rc<std::collections::HashMap<String, (u32, String)>> {
     let v1: std::rc::Rc<std::collections::HashMap<String, (u32, String)>> = std::rc::Rc::new(v0.lines().filter(|line| line.starts_with("inl note_of_")).filter_map(|line| { let body = line.split_once("= Note (")?.1; let mut fields = body.splitn(4, ", "); let id = fields.next()?.trim_matches(char::from(34u8)).to_owned(); let _seq = fields.next()?; let at = fields.next()?.trim_matches(char::from(34u8)).to_owned(); Some((id, at)) }).fold(std::collections::HashMap::new(), |mut index, (id, at)| { let entry = index.entry(id).or_insert((0u32, String::new())); entry.0 += 1; entry.1 = at; index }));
     v1.clone()
 }
-fn method28(mut v0: Option<usize>) -> Option<usize> {
+fn method29(mut v0: Option<usize>) -> Option<usize> {
     v0
 }
 fn closure2() -> Rc<dyn Fn((usize)) -> i32> {
@@ -776,7 +782,7 @@ fn closure2() -> Rc<dyn Fn((usize)) -> i32> {
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn method29(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
+fn method30(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
         let v3: bool = v2 >= v1;
         if v3 {
@@ -794,10 +800,10 @@ fn method29(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
         }
     }
 }
-fn planning_id_27(mut v0: Rc<str>) -> Rc<str> {
+fn planning_id_28(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("= Planning ("); } LIT.with(|lit| lit.clone()) };
     let v2: Option<usize> = v0.find(&*v1);
-    let v3: Option<usize> = method28(v2.clone());
+    let v3: Option<usize> = method29(v2.clone());
     let mut v4: Rc<dyn Fn((usize)) -> i32> = closure2();
     let mut v5: Option<i32> = v3.map(|x| v4(x));
     let v7: i32 = v5.unwrap_or(-1i32);
@@ -815,12 +821,12 @@ fn planning_id_27(mut v0: Rc<str>) -> Rc<str> {
         let v16: Rc<str> = Rc::<str>::from(&(v0)[v13..v15]);
         let v17: i32 = (v16.clone().len() as i32);
         let v18: i32 = 0i32;
-        let v19: i32 = method29(v16.clone(), v17, v18);
+        let v19: i32 = method30(v16.clone(), v17, v18);
         let v20: i32 = v17.wrapping_sub(1i32);
         let v21: Rc<str> = string_slice(&v16.clone(), v19 as i64, v20 as i64);
         let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
         let mut v23: Option<usize> = v21.find(&*v22);
-        let v24: Option<usize> = method28(v23.clone());
+        let v24: Option<usize> = method29(v23.clone());
         let mut v25: Option<i32> = v24.map(|x| v4(x));
         let v27: i32 = v25.unwrap_or(-1i32);
         let v28: bool = v27 < 0i32;
@@ -834,7 +840,7 @@ fn planning_id_27(mut v0: Rc<str>) -> Rc<str> {
         }
     }
 }
-fn planning_entries_26(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>>) -> std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>> {
+fn planning_entries_27(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>>) -> std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>> {
     loop {
         let v3: i32 = (v0.clone().borrow().len() as i32);
         let mut v4: bool = v3 <= v1;
@@ -845,7 +851,7 @@ fn planning_entries_26(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: s
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl planning_of_"); } LIT.with(|lit| lit.clone()) };
             let v7: bool = v5.starts_with(&*v6);
             let v10: Rc<str> = if v7 {
-                planning_id_27(v5.clone())
+                planning_id_28(v5.clone())
             } else {
                 let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 v9.clone()
@@ -867,12 +873,12 @@ fn planning_entries_26(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: s
         }
     }
 }
-fn planning_index_of_25(mut v0: Rc<str>) -> std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>> {
+fn planning_index_of_26(mut v0: Rc<str>) -> std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>> {
     let v1: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.lines().map(Rc::<str>::from).collect::<Vec<Rc<str>>>()));
     let v2: i32 = 0i32;
     let mut v4: std::collections::BTreeMap<Rc<str>, Rc<str>> = std::collections::BTreeMap::new();
     let mut v5: std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>> = std::rc::Rc::new(v4);
-    planning_entries_26(v1, v2, v5)
+    planning_entries_27(v1, v2, v5)
 }
 fn agile_list_1(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: US1, mut v5: std::rc::Rc<std::collections::HashMap<String, (u32, String)>>, mut v6: std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>>, mut v7: Rc<str>, mut v8: US2, mut v9: Rc<str>) -> i32 {
     let v10: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
@@ -916,24 +922,28 @@ fn agile_list_1(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: Rc<str>, 
                 } else {
                     v12.clone()
                 };
-                let v34: std::rc::Rc<std::collections::HashMap<String, (u32, String)>> = note_index_of_24(v25.clone());
-                let v35: std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>> = planning_index_of_25(v25.clone());
-                print_listing_2(v25.clone(), v26, v1.clone(), v2.clone(), v3.clone(), v4.clone(), v34.clone(), v35.clone(), v7.clone(), v8.clone(), v33.clone(), v10)
+                let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v34));
+                let v36: Rc<str> = state_segments_24(v0.clone());
+                let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
+                let v38: std::rc::Rc<std::collections::HashMap<String, (u32, String)>> = note_index_of_25(v37.clone());
+                let v39: std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>> = planning_index_of_26(v25.clone());
+                print_listing_2(v25.clone(), v26, v1.clone(), v2.clone(), v3.clone(), v4.clone(), v38.clone(), v39.clone(), v7.clone(), v8.clone(), v33.clone(), v10)
             } else {
-                let v37: Rc<str> = std::rc::Rc::<str>::from((v27).to_string());
-                let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("malformed Task fields at byte "); } LIT.with(|lit| lit.clone()) };
-                let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v37));
-                let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (expected "); } LIT.with(|lit| lit.clone()) };
-                let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
-                let v42: Rc<str> = std::rc::Rc::<str>::from((11i32).to_string());
-                let mut v43: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v42));
-                let mut v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" fields)"); } LIT.with(|lit| lit.clone()) };
+                let v41: Rc<str> = std::rc::Rc::<str>::from((v27).to_string());
+                let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("malformed Task fields at byte "); } LIT.with(|lit| lit.clone()) };
+                let mut v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v41));
+                let mut v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (expected "); } LIT.with(|lit| lit.clone()) };
                 let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v44));
-                let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile list rejected: "); } LIT.with(|lit| lit.clone()) };
-                let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v45));
-                let v48: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v47 + "
+                let v46: Rc<str> = std::rc::Rc::<str>::from((11i32).to_string());
+                let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v46));
+                let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" fields)"); } LIT.with(|lit| lit.clone()) };
+                let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v48));
+                let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile list rejected: "); } LIT.with(|lit| lit.clone()) };
+                let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v49));
+                let v52: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v51 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-                v48
+                v52
             }
         }
     }

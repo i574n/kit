@@ -8,15 +8,9 @@
 
 := binding_of (text : string) : string = sm'.to_lower (sm'.replace "-" "_" text)
 
-:= status_word (status : sprint_status) : string =
-    ?= status ?|
-    | SprintOpen => "SprintOpen"
-    | SprintClosed => "SprintClosed"
+:= status_word (status : sprint_status) : string = reflection.union_to_string status
 
-:= fate_word (fate : item_fate) : string =
-    ?= fate ?|
-    | Committed => "Committed"
-    | Dropped => "Dropped"
+:= fate_word (fate : item_fate) : string = reflection.union_to_string fate
 
 := quoted (text : string) : string = "\"" ++# text ++# "\""
 

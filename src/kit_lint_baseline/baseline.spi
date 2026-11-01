@@ -1,0 +1,10 @@
+:< kit_lint_model.model
+
+:~ baseline_written (~path : string) (~rows : string) : string =
+    file_system.write_all_text path (baseline_spi rows)
+    sm'.format (listm.length (sm'.split_list "\n" rows |> listm'.filter (\ (row : string) => row <> "")) : i32)
+
+:= main () : i32 =
+    export "kit_lint_baseline_rows" ((\ spi => baseline_rows_of_spi spi) : string -> string)
+    export "kit_lint_baseline_write" ((\ (path, rows) => baseline_written path rows) : string * string -> string)
+    0i32

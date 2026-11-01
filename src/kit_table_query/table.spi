@@ -3,6 +3,7 @@
 :< cells
 :< stats
 :< wheres
+:< tospi
 
 :~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
@@ -42,6 +43,9 @@
                 ? measured request ?> measured_query (argument 3i32) request
                 |: plain_query (argument 3i32) request
             | StepRejected reason => rejected reason
+    | TableToSpi =>
+        := opened = ? argument 5i32 = "--open" ?> argument 6i32 |: ""
+        ? argument_count () < 5i32 ?> rejected (table_usage ()) |: to_spi_run (argument 3i32) (argument 4i32) opened
     | TableDiff =>
         ? argument_count () < 5i32 ?> rejected (table_usage ())
         |:

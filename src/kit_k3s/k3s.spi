@@ -1,0 +1,20 @@
+:< k3s_manifest.manifest
+:< sm'_operators
+:< file_system_operators
+
+:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:~ render (spec_path : string) : i32 =
+    console.write (rendered (file_system.read_all_text spec_path))
+    0i32
+
+:~ usage () : i32 =
+    console.write_line "kit error: k3s usage: k3s render <spec.json> (prints a v1 List manifest for kubectl apply -f -)"
+    2i32
+
+:~ k3s_run () : i32 =
+    ? argument 1i32 = "render" && file_system.file_exists (argument 2i32) ?> render (argument 2i32) |: usage ()
+
+:= main () : i32 =
+    export "kit_k3s_run" ((\ () => k3s_run ()) : () -> i32)
+    0i32

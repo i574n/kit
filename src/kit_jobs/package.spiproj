@@ -3,6 +3,7 @@ packages:
     spiral-
     rust_std_string
     rust_std_env
+    kit_job_placement
 modules:
     model
     host

@@ -83,6 +83,20 @@
 := hidden_count (rows : list (string * i32)) (dep : string) : i32 =
     rows |> listm.fold (\ total (name, count) => ? name = dep ?> total + count |: total) 0i32
 
+:= deps_done (items : list tracked) (closed : string) (item : tracked) : bool =
+    item.deps
+    |> listm.fold
+        \ ok dep =>
+            ok
+            && (dep = closed || (?= status_of items dep ?| | Some status => status = Done | None => !-))
+        !+
+
+:= promoted_by (items : list tracked) (closed : string) : list string =
+    items
+    |> listm'.filter (\ (item : tracked) => item.status = Blocked && listm'.contains closed item.deps)
+    |> listm'.filter (deps_done items closed)
+    |> listm.map (\ (item : tracked) => item.id)
+
 :== note_event =
     {
         id : string
@@ -129,6 +143,48 @@
                 | KeepWorking current => ? left > current ?> KeepWorking left |: verdict
                 | MayIdle => KeepWorking left
         MayIdle
+
+:| gate_verdict =
+    | PullItem : string
+    | KeepWaiting : string
+    | MayStop
+
+:== gate_input =
+    {
+        held : bool
+        ready_light : list string
+        own_jobs : list string
+        pulled : list (string * i64)
+        now_minute : i64
+    }
+
+:= held_by (verdict : idle_verdict) (armed : bool) : bool =
+    ?= verdict ?|
+    | KeepWorking _ => !+
+    | MayIdle => armed
+
+:= recently_pulled (pulled : list (string * i64)) (now_minute : i64) (id : string) : bool =
+    pulled |> listm.fold (\ seen (name, at) => seen || name = id && now_minute - at < 10i64) !-
+
+:= first_of (ids : list string) : option string =
+    ids
+    |> listm.fold
+        \ found id =>
+            ?= found ?|
+            | Some _ => found
+            | None => Some id
+        None
+
+:= gate_verdict_of (input : gate_input) : gate_verdict =
+    := fresh = input.ready_light |> listm'.filter (\ id => recently_pulled input.pulled input.now_minute id = !-)
+    := pick = ? input.held ?> first_of fresh |: None
+    ?= pick ?|
+    | Some id => PullItem id
+    | None =>
+        ?= first_of input.own_jobs ?|
+        | Some job => KeepWaiting job
+        | None => MayStop
+
 := fixture () : list tracked =
     [
         { id = "A"; status = Done; teams = [ "kit" ]; deps = []; last_note_hour = 10i64 };
@@ -165,6 +221,19 @@
     testing.expect (hidden_count rows "A" = 0i32) "a Done dep hides nothing"
 
 ///> rust
+:# closing_an_item_promotes_only_dependents_whose_deps_are_now_all_done =
+    testing.expect (promoted_by (fixture ()) "D" = [ "E" ]) "E was blocked only on D"
+    testing.expect (promoted_by (fixture ()) "E" = []) "F and G are Planned, not Blocked"
+    := two = [
+        { id = "X"; status = Active; teams = [ "kit" ]; deps = []; last_note_hour = 1i64 };
+        { id = "Y"; status = Active; teams = [ "kit" ]; deps = []; last_note_hour = 1i64 };
+        { id = "Z"; status = Blocked; teams = [ "kit" ]; deps = [ "X"; "Y" ]; last_note_hour = 1i64 }
+    ]
+    testing.expect (promoted_by two "X" = []) "Z still waits on Y"
+    := y_done = two |> listm.map (\ (t : tracked) => ? t.id = "Y" ?> { t ?| status = Done } |: t)
+    testing.expect (promoted_by y_done "X" = [ "Z" ]) "closing the last open dep promotes Z"
+
+///> rust
 :# a_groom_round_counts_its_own_notes_inside_the_window =
     := events =
         [
@@ -182,3 +251,16 @@
     testing.expect (idle_verdict_of rounds "kit" 150i64 = KeepWorking 30i64) "30 minutes left in kit's round"
     testing.expect (idle_verdict_of rounds "kit" 180i64 = MayIdle) "at the deadline the round is over"
     testing.expect (idle_verdict_of rounds "fiscal" 150i64 = MayIdle) "another team's round does not hold fiscal"
+
+///> rust
+:# the_stop_gate_pulls_a_ready_light_item_waits_on_own_jobs_and_never_spins =
+    := held = held_by (KeepWorking 20i64) !-
+    := base = { held = held; ready_light = [ "A"; "B" ]; own_jobs = []; pulled = []; now_minute = 100i64 }
+    testing.expect (gate_verdict_of base = PullItem "A") "an open round pulls the first ready light item"
+    testing.expect (gate_verdict_of { base ?| pulled = [ ("A", 97i64) ] } = PullItem "B") "A was pulled 3 minutes ago"
+    := only_a = { base ?| ready_light = [ "A" ]; pulled = [ ("A", 97i64) ] }
+    testing.expect (gate_verdict_of only_a = MayStop) "the same item twice inside 10 minutes stops the lane"
+    testing.expect (gate_verdict_of { only_a ?| now_minute = 108i64 } = PullItem "A") "11 minutes later, A again"
+    := waiting = { base ?| ready_light = []; own_jobs = [ "job-1" ] }
+    testing.expect (gate_verdict_of waiting = KeepWaiting "job-1") "an own running job is the wake source"
+    testing.expect (gate_verdict_of { base ?| held = held_by MayIdle !- } = MayStop) "no round and not armed: stop"

@@ -170,6 +170,7 @@
     expect (copy_base "src" !- = "src") "a literal folder keeps its contents' paths"
     expect (copy_base "src/**/*.spi" !- = "src") "a glob keeps its base"
 
+///> _
 := main () : i32 =
     !!!!Export(
         "kit_do_append_step",

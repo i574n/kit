@@ -11,6 +11,4 @@
     export "kit_lint_known" (
         (\ (baseline, file, name, class) => known_in baseline file name class) : string * string * string * i32 -> bool
     )
-    export "kit_lint_baseline_spi" ((\ rows => baseline_spi rows) : string -> string)
-    export "kit_lint_baseline_rows" ((\ spi => baseline_rows_of_spi spi) : string -> string)
     0i32

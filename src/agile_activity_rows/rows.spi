@@ -1,0 +1,109 @@
+///- --package .
+:# rows static =
+    :< sm'_operators
+    :< agile_activity.model
+
+:< sm'_operators
+:< agile_activity.model
+
+:= binding_of (text : string) : string = sm'.to_lower (sm'.replace "-" "_" text)
+
+:= quoted (text : string) : string = "\"" ++# sm'.replace "\"" "'" text ++# "\""
+
+:= status_word (status : task_status) : string = reflection.union_to_string status
+
+:= status_of_word (word : string) : option task_status = reflection.union_try_pick word
+
+:= row_text (head : string) (ctor : string) (fields : list string) : string =
+    sm'.concat_list "" [ "inl "; head; " () = "; ctor; " ("; sm'.concat_list ", " fields; ")" ]
+
+:= change_row (index : i32) (c : state_change) : string =
+    := from, to = ends c.change
+    := fields = [ quoted c.item; quoted (status_word from); quoted (status_word to); quoted c.at; quoted c.author ]
+    := head = "state_change_" ++# binding_of c.item ++# "_" ++# sm'.show index
+    row_text head "StateChange" (listm.append fields [ quoted (reason_text c.why) ])
+
+:= actual_row (index : i32) (a : actual_minutes) : string =
+    := fields = [ quoted a.item; quoted a.lane; sm'.show a.minutes ++# "i32"; quoted a.at ]
+    row_text ("actual_minutes_" ++# binding_of a.item ++# "_" ++# sm'.show index) "ActualMinutes" fields
+
+:| activity_line =
+    | ChangeLine : state_change
+    | ActualLine : actual_minutes
+    | OtherLine
+
+:= field (parts : array string) (index : i32) : string = ? am'.length parts > index ?> am'.index index parts |: ""
+
+:= minutes_of (line : string) : i32 =
+    ?= sm'.split_list "," line ?|
+    | _ :: _ :: minutes :: _ =>
+        convert.try_convert (sm'.trim (sm'.replace "i32" "" minutes)) |> optionm'.default_value 0i32
+    | _ => 0i32
+
+:= change_line (parts : array string) : activity_line =
+    ?= status_of_word (field parts 3i32), status_of_word (field parts 5i32) ?|
+    | Some from, Some to =>
+        ?= changed (field parts 1i32) from to (field parts 7i32) (field parts 9i32) (field parts 11i32) ?|
+        | Changed c => ChangeLine c
+        | Refused _ => OtherLine
+    | _ => OtherLine
+
+:= actual_line (line : string) (parts : array string) : activity_line =
+    ActualLine { item = field parts 1i32; lane = field parts 3i32; minutes = minutes_of line; at = field parts 5i32 }
+
+:= activity_line_of (line : string) : activity_line =
+    := parts = sm'.split "\"" line |> array
+    ? sm'.starts_with "inl state_change_" line ?> change_line parts
+    |? sm'.starts_with "inl actual_minutes_" line ?> actual_line line parts
+    |: OtherLine
+
+:= changes_of (text : string) : list state_change =
+    sm'.split_list "\n" (sm'.replace "\r" "" text)
+    |> listm.fold (\ acc line => ?= activity_line_of line ?| | ChangeLine c => c :: acc | _ => acc) []
+    |> listm.rev
+
+:= actuals_of (text : string) : list actual_minutes =
+    sm'.split_list "\n" (sm'.replace "\r" "" text)
+    |> listm.fold (\ acc line => ?= activity_line_of line ?| | ActualLine a => a :: acc | _ => acc) []
+    |> listm.rev
+
+:= activity_schema_text () : string =
+    sm'.concat_list "" [
+        "///- --no-respell\n"
+        "union activity_row =\n"
+        "    | StateChange :: string * string * string * string * string * string -> activity_row\n"
+        "    | ActualMinutes :: string * string * i32 * string -> activity_row\n"
+    ]
+
+:| schema_verdict =
+    | NoActivityRows
+    | SchemaPresent
+    | SchemaMissing : i32
+
+:= schema_verdict_of (activity_rows : i32) (schema_declared : bool) : schema_verdict =
+    ? activity_rows = 0i32 ?> NoActivityRows |? schema_declared ?> SchemaPresent |: SchemaMissing activity_rows
+
+///> rust
+:# the_activity_schema_declares_both_row_kinds_and_check_refuses_rows_without_it =
+    := schema = activity_schema_text ()
+    testing.expect (sm'.contains "| StateChange :: string * string * string * string * string * string" schema) schema
+    testing.expect (sm'.contains "| ActualMinutes :: string * string * i32 * string" schema) schema
+    testing.expect (schema_verdict_of 0i32 !- = NoActivityRows) "no rows: nothing to check"
+    testing.expect (schema_verdict_of 3i32 !+ = SchemaPresent) "rows with the schema pass"
+    testing.expect (schema_verdict_of 3i32 !- = SchemaMissing 3i32) "rows without the schema are refused"
+
+///> rust
+:# activity_rows_round_trip_through_the_state_text =
+    ?= changed "KIT-A" Active Done "2026-11-01T19:00Z" "kit" "acceptance \"passed\"" ?|
+    | Refused _ => failwith "the fixture change must be legal"
+    | Changed c =>
+        := a = actual_of "KIT-A" "kit" 0i64 90000i64 "2026-11-01T19:01Z"
+        := text = sm'.concat_list "\n" [ "inl task_x () = Task (\"X\")"; change_row 1i32 c; actual_row 1i32 a ]
+        testing.expect (sm'.starts_with "inl state_change_kit_a_1 () = StateChange (\"KIT-A\"" (change_row 1i32 c)) text
+        := back = changes_of text
+        testing.expect ((listm.length back : i32) = 1i32) text
+        := moves = back |> listm.map (\ (b : state_change) => ends b.change)
+        testing.expect (moves = [ (Active, Done) ]) "the move reads back"
+        := reasons = back |> listm.map (\ (b : state_change) => reason_text b.why)
+        testing.expect (reasons = [ "acceptance 'passed'" ]) "quotes are folded"
+        testing.expect (actuals_of text = [ a ]) "the actual minutes read back, other rows ignored"

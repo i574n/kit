@@ -1,0 +1,211 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== param =
+    {
+        name : string
+        ty : string
+    }
+
+:== export_decl =
+    {
+        export_name : string
+        params : list param
+        range : string
+    }
+
+:| passing =
+    | ByStr
+    | ByValue
+
+:= passing_of (ty : string) : passing = ? sm'.trim ty = "string" ?> ByStr |: ByValue
+
+:~ chars (text : string) : list string = sm'.to_char_list text |> listm.map sm'.of_char
+
+:= depth_step (depth : i32) (ch : string) : i32 = ? ch = "(" ?> depth + 1i32 |? ch = ")" ?> depth - 1i32 |: depth
+
+:== mark =
+    {
+        at : i32
+        ch : string
+        depth : i32
+    }
+
+:~ marks (text : string) : list mark =
+    := kept (ch : string) = ch = "(" || ch = ")" || ch = ":" || ch = "," || ch = "*" || ch = ">"
+    := step (offset, depth, acc) (ch : string) =
+        := found = ? kept ch ?> { at = offset; ch = ch; depth = depth } :: acc |: acc
+        offset + (sm'.length ch : i32), depth_step depth ch, found
+    := _, _, found = chars text |> listm.fold step (0i32, 0i32, [])
+    listm.rev found
+
+:~ top_at (ms : list mark) (ch : string) : list i32 =
+    ms |> listm'.filter (\ (m : mark) => m.ch = ch && m.depth = 0i32) |> listm.map (\ (m : mark) => m.at)
+
+:~ cut (text : string) (from : i32) (until : i32) : string = sm'.trim (sm'.substring from (until - from) text)
+
+:~ split_top (sep : string) (text : string) : list string =
+    := step (from, parts) (at : i32) = at + 1i32, cut text from at :: parts
+    := from, parts = top_at (marks text) sep |> listm.fold step (0i32, [])
+    cut text from (sm'.length text : i32) :: parts |> listm.rev |> listm'.filter (\ (part : string) => part <> "")
+
+:~ unparen (text : string) : string =
+    := t = sm'.trim text
+    := n : i32 = sm'.length t
+    ? n >= 2i32 && sm'.starts_with "(" t && sm'.ends_with ")" t ?> sm'.trim (sm'.substring 1i32 (n - 2i32) t) |: t
+
+:~ arrow_split (ty : string) : string * string =
+    := dashed (at : i32) = at > 0i32 && sm'.substring (at - 1i32) 1i32 ty = "-"
+    := arrow (found : i32) (at : i32) = ? found < 0i32 && dashed at ?> at |: found
+    := at = top_at (marks ty) ">" |> listm.fold arrow -1i32
+    ? at < 0i32 ?> sm'.trim ty, "" |: cut ty 0i32 (at - 1i32), cut ty (at + 1i32) (sm'.length ty : i32)
+
+:~ colon_split (body : string) : option (string * string) =
+    := at = top_at (marks body) ":" |> listm.fold (\ _ at => at) -1i32
+    ? at < 0i32 ?> None |: Some (cut body 0i32 at, cut body (at + 1i32) (sm'.length body : i32))
+
+:~ lambda_names (body : string) : list string =
+    := at = sm'.index_of "\\" body
+    := arrow = sm'.index_of "=>" body
+    ? at < 0i32 || arrow < at ?> []
+    |:
+        := head = unparen (sm'.substring (at + 1i32) (arrow - at - 1i32) body)
+        ? head = "" ?> [] |: split_top "," head
+
+:~ named (names : list string) (types : list string) : list param =
+    := step (i, acc) (ty : string) =
+        := given = names |> listm.fold (\ (j, found) name => j + 1i32, ? j = i ?> name |: found) (0i32, "") |> snd
+        := name = ? given = "" || given = "_" ?> "v" ++# sm'.show i |: given
+        i + 1i32, { name = name; ty = ty } :: acc
+    types |> listm.fold step (0i32, []) |> snd |> listm.rev
+
+:~ decl_of (export_name : string) (body : string) : option export_decl =
+    ?= colon_split body ?|
+    | None => None
+    | Some (head, ty) =>
+        := domain, range = arrow_split ty
+        ? range = "" ?> None
+        |:
+            := types = ? unparen domain = "" ?> [] |: split_top "*" (unparen domain)
+            Some { export_name = export_name; params = named (lambda_names head) types; range = range }
+
+:~ body_after (whole : string) (start : i32) : string =
+    := text = sm'.substring start ((sm'.length whole : i32) - start) whole
+    := step (opened, closed) (m : mark) =
+        ? opened < 0i32 && m.ch = "(" && m.depth = 0i32 ?> m.at, closed
+        |? opened >= 0i32 && closed < 0i32 && m.ch = ")" && m.depth = 1i32 ?> opened, m.at
+        |: opened, closed
+    := opened, closed = marks text |> listm.fold step (-1i32, -1i32)
+    ? opened < 0i32 || closed < 0i32 ?> "" |: sm'.substring (opened + 1i32) (closed - opened - 1i32) text
+
+:~ quoted_after (text : string) (start : i32) : string * i32 =
+    := rest = sm'.substring start ((sm'.length text : i32) - start) text
+    := first = sm'.index_of "\"" rest
+    := tail = sm'.substring (first + 1i32) ((sm'.length rest : i32) - first - 1i32) rest
+    := second = sm'.index_of "\"" tail
+    sm'.substring 0i32 second tail, start + first + second + 2i32
+
+:~ in_string_line (text : string) (at : i32) : bool =
+    := before = sm'.substring 0i32 at text
+    := line_start = sm'.last_index_of "\n" before + 1i32
+    sm'.starts_with "\"" (sm'.trim (sm'.substring line_start (at - line_start) text))
+
+:~ ^ decls_from (text : string) (from : i32) (acc : list export_decl) : list export_decl =
+    := rest = sm'.substring from ((sm'.length text : i32) - from) text
+    := plain = sm'.index_of "export \"" rest
+    := bang = sm'.index_of "!!!!Export(" rest
+    := at = ? plain < 0i32 ?> bang |? bang < 0i32 ?> plain |? plain < bang ?> plain |: bang
+    ? at < 0i32 ?> listm.rev acc
+    |? in_string_line text (from + at) ?> decls_from text (from + at + 1i32) acc
+    |:
+        := name, after = quoted_after text (from + at)
+        := body = sm'.trim (unparen (sm'.trim (body_after text after)))
+        := found = ?= decl_of name body ?| | Some d => d :: acc | None => acc
+        decls_from text after found
+
+:= decls (text : string) : list export_decl = decls_from (sm'.replace "\r" "" text) 0i32 []
+:= arg_text (p : param) : string =
+    ?= passing_of p.ty ?|
+    | ByStr => "&*!" ++# p.name
+    | ByValue => "!" ++# p.name
+
+:~ binding_line (crate : string) (d : export_decl) : string =
+    := heads = d.params |> listm.map (\ (p : param) => "(~" ++# p.name ++# " : " ++# p.ty ++# ")")
+    := args = sm'.concat_list ", " (d.params |> listm.map arg_text)
+    := domain = ? d.params = [] ?> "()" |: sm'.concat_list " " heads
+    := call = "$'" ++# crate ++# "::" ++# d.export_name ++# "(" ++# args ++# ")' : " ++# d.range
+    sm'.concat_list "" [ ":= "; d.export_name; " "; domain; " : "; d.range; " =\n    "; call ]
+
+:~ primitive (word : string) : bool =
+    sm'.contains (" " ++# word ++# " ") " string bool char i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 list array option () "
+
+:~ type_words (ty : string) : list string =
+    sm'.split_list " " (sm'.replace "(" " " (sm'.replace ")" " " (sm'.replace "*" " " (sm'.replace "->" " " ty))))
+    |> listm'.filter (\ (w : string) => w <> "")
+
+:~ imported (ds : list export_decl) : list string =
+    := words (d : export_decl) = type_words d.range :: (d.params |> listm.map (\ (p : param) => type_words p.ty))
+    := add (seen : list string) (w : string) = ? primitive w || listm'.contains w seen ?> seen |: w :: seen
+    ds |> listm.fold (\ seen d => words d |> listm.fold (listm.fold add) seen) [] |> listm.rev
+
+:~ import_header (crate : string) (ds : list export_decl) : string =
+    ?= imported ds ?|
+    | [] => ""
+    | names => "///- --import-types " ++# crate ++# ":" ++# sm'.concat_list "," names
+
+:~ marker_count (text : string) : i32 =
+    := count (line : string) (marker : string) : i32 = (listm.length (sm'.split_list marker line) : i32) - 1i32
+    := code (line : string) = sm'.starts_with "\"" (sm'.trim line) |> not
+    sm'.split_list "\n" text
+    |> listm'.filter code
+    |> listm.fold (\ total line => total + count line "export \"" + count line "!!!!Export(") 0i32
+
+:~ counted (text : string) : i32 * i32 = marker_count text, (listm.length (decls text) : i32)
+
+:~ binding_module (crate : string) (ds : list export_decl) : string =
+    := header = import_header crate ds
+    := lines = ds |> listm.map (binding_line crate)
+    sm'.concat_list "\n" (? header = "" ?> lines |: header :: lines) ++# "\n"
+
+
+///> rust
+:# typed_exports_become_typed_binding_lines =
+    := typed = "(\\ (relative, spiral_sibling) => path_verdict relative spiral_sibling)"
+    := text =
+        sm'.concat_list "\n" [
+            ":= note () : string = \"a — b\"";
+            ":= main () : i32 =";
+            "    export \"kit_agile_todo_path_verdict\" (";
+            "        " ++# typed ++# " : string * bool -> path_verdict";
+            "    )";
+            "    !!!!Export(\"kit_lint_count\", ((\\ (text, limit) => counted text limit) : string * i32 -> i32))";
+            "    export \"kit_ping\" ((\\ () => 1i32) : () -> i32)";
+            "    0i32"
+        ]
+    := found = decls text
+    testing.expect ((listm.length found : i32) = 3i32) "three exports, both spellings"
+    := lines = found |> listm.map (binding_line "agile_todo_paths")
+    := shown = sm'.concat_list "\n" lines
+    := call = "$'agile_todo_paths::kit_agile_todo_path_verdict(&*!relative, !spiral_sibling)' : path_verdict"
+    := head = ":= kit_agile_todo_path_verdict (~relative : string) (~spiral_sibling : bool) : path_verdict =\n    "
+    testing.expect (listm'.contains (head ++# call) lines) shown
+    testing.expect (listm'.contains ":= kit_ping () : i32 =\n    $'agile_todo_paths::kit_ping()' : i32" lines) shown
+    := header = import_header "agile_todo_paths" found
+    testing.expect (header = "///- --import-types agile_todo_paths:path_verdict") header
+
+///> rust
+:# nested_types_split_only_at_the_top_level =
+    := parts = split_top "*" "string * (i32 * bool) * list string"
+    testing.expect (parts = [ "string"; "(i32 * bool)"; "list string" ]) "tuples inside stay whole"
+    testing.expect (arrow_split "(string -> i32) -> option u64" = ("(string -> i32)", "option u64")) "first top arrow"
+    := numbered = named [] [ "string"; "i32" ]
+    testing.expect (numbered = [ { name = "v0"; ty = "string" }; { name = "v1"; ty = "i32" } ]) "missing names numbered"
+
+///> _
+:= main () : i32 =
+    export "kit_bindings_module_of" ((\ (crate, text) => binding_module crate (decls text)) : string * string -> string)
+    export "kit_bindings_counted" ((\ text => counted text) : string -> i32 * i32)
+    0i32

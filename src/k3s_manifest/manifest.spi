@@ -1,0 +1,216 @@
+///- --package .
+:# manifest static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! cpu = ()
+
+:! memory = ()
+
+:| quantity u =
+    | Millicores :: u32 -> quantity cpu
+    | Mebibytes :: u32 -> quantity memory
+
+:= quantity_text \* u. (q : quantity u) : string =
+    ?= q ?|
+    | Millicores n => sm'.concat_list "" [ sm'.show n; "m" ]
+    | Mebibytes n => sm'.concat_list "" [ sm'.show n; "Mi" ]
+
+:| access =
+    | ReadOnly
+    | ReadWrite
+
+:| volume_source =
+    | HostPath : string
+    | EmptyDir
+
+:== volume = { name : string; source : volume_source; mount : string; access : access }
+
+:== resources = { cpu_request : quantity cpu; memory_request : quantity memory; memory_limit : quantity memory }
+
+:| strategy =
+    | Recreate
+    | Rolling
+
+:== container = { name : string; image : string; command : list string; workdir : string }
+
+:== deployment =
+    {
+        name : string
+        namespace : string
+        lane : string
+        strategy : strategy
+        container : container
+        resources : resources
+        volumes : list volume
+    }
+
+:= text_value (s : string) : string = json.quote s
+
+:= field (key : string) (value : string) : string = sm'.concat_list "" [ json.quote key; ":"; value ]
+
+:= object (fields : list string) : string = sm'.concat_list "" [ "{"; sm'.concat_list "," fields; "}" ]
+
+:= items (values : list string) : string = sm'.concat_list "" [ "["; sm'.concat_list "," values; "]" ]
+
+:= labels (d : deployment) : string = object [ field "app" (text_value d.name); field "lane" (text_value d.lane) ]
+
+:= resources_json (r : resources) : string =
+    := cpu_request = field "cpu" (text_value (quantity_text r.cpu_request))
+    := memory_request = field "memory" (text_value (quantity_text r.memory_request))
+    := limits = object [ field "memory" (text_value (quantity_text r.memory_limit)) ]
+    object [ field "requests" (object [ cpu_request; memory_request ]); field "limits" limits ]
+
+:= strategy_json (s : strategy) : string =
+    ?= s ?|
+    | Recreate => object [ field "type" (text_value "Recreate") ]
+    | Rolling => object [ field "type" (text_value "RollingUpdate") ]
+
+:= volume_json (v : volume) : string =
+    ?= v.source ?|
+    | HostPath path =>
+        := host = object [ field "path" (text_value path); field "type" (text_value "Directory") ]
+        object [ field "name" (text_value v.name); field "hostPath" host ]
+    | EmptyDir => object [ field "name" (text_value v.name); field "emptyDir" "{}" ]
+
+:= mount_json (v : volume) : string =
+    := read_only = ?= v.access ?| | ReadOnly => "true" | ReadWrite => "false"
+    object [ field "name" (text_value v.name); field "mountPath" (text_value v.mount); field "readOnly" read_only ]
+
+:= container_json (d : deployment) : string =
+    := c = d.container
+    := command = items (c.command |> listm.map text_value)
+    := mounts = items (d.volumes |> listm.map mount_json)
+    := identity = [ field "name" (text_value c.name); field "image" (text_value c.image) ]
+    := run = [ field "workingDir" (text_value c.workdir); field "command" command ]
+    := limits = [ field "resources" (resources_json d.resources); field "volumeMounts" mounts ]
+    object (listm.append identity (listm.append run limits))
+
+:= header (api : string) (kind : string) : list string =
+    [ field "apiVersion" (text_value api); field "kind" (text_value kind) ]
+
+:= deployment_json (d : deployment) : string =
+    := naming = [ field "name" (text_value d.name); field "namespace" (text_value d.namespace) ]
+    := meta = object (listm.append naming [ field "labels" (labels d) ])
+    := selector = object [ field "matchLabels" (object [ field "app" (text_value d.name) ]) ]
+    := volumes = items (d.volumes |> listm.map volume_json)
+    := pod = object [ field "containers" (items [ container_json d ]); field "volumes" volumes ]
+    := template = object [ field "metadata" (object [ field "labels" (labels d) ]); field "spec" pod ]
+    := rollout = [ field "replicas" "1"; field "strategy" (strategy_json d.strategy) ]
+    := spec = object (listm.append rollout [ field "selector" selector; field "template" template ])
+    object (listm.append (header "apps/v1" "Deployment") [ field "metadata" meta; field "spec" spec ])
+
+:= namespace_json (name : string) : string =
+    := meta = object [ field "name" (text_value name) ]
+    object (listm.append (header "v1" "Namespace") [ field "metadata" meta ])
+
+:= with_namespace (acc : list string) (d : deployment) : list string =
+    listm.append acc [ namespace_json d.namespace; deployment_json d ]
+
+:= manifest_json (deployments : list deployment) : string =
+    := documents = deployments |> listm.fold with_namespace []
+    object (listm.append (header "v1" "List") [ field "items" (items documents) ])
+
+:== spec_volume = { name : string; host_path : string; mount : string; read_only : bool }
+
+:== spec_deployment =
+    {
+        name : string
+        namespace : string
+        lane : string
+        recreate : bool
+        image : string
+        command : array_base string
+        workdir : string
+        cpu_millicores : i32
+        memory_request_mib : i32
+        memory_limit_mib : i32
+        volumes : array_base spec_volume
+    }
+
+:== spec = { deployments : array_base spec_deployment }
+
+:= listed \* t. (items : array_base t) : list t =
+    := a = array items
+    listm.init (length a) (\ i => index a i)
+
+:= volume_of (v : spec_volume) : volume =
+    := source = ? v.host_path = "" ?> EmptyDir |: HostPath v.host_path
+    { name = v.name; source = source; mount = v.mount; access = ? v.read_only ?> ReadOnly |: ReadWrite }
+
+:= resources_of (s : spec_deployment) : resources =
+    := cpu = Millicores (convert.convert s.cpu_millicores)
+    := request = Mebibytes (convert.convert s.memory_request_mib)
+    := limit = Mebibytes (convert.convert s.memory_limit_mib)
+    { cpu_request = cpu; memory_request = request; memory_limit = limit }
+
+:= deployment_of (s : spec_deployment) : deployment =
+    := c = { name = s.name; image = s.image; command = listed s.command; workdir = s.workdir }
+    := volumes = listed s.volumes |> listm.map volume_of
+    := how = ? s.recreate ?> Recreate |: Rolling
+    {
+        name = s.name
+        namespace = s.namespace
+        lane = s.lane
+        strategy = how
+        container = c
+        resources = resources_of s
+        volumes = volumes
+    }
+
+:= rendered (spec_text : string) : string =
+    := s : spec = json.decode spec_text
+    manifest_json (listed s.deployments |> listm.map deployment_of)
+
+:= fixture_resources () : resources =
+    { cpu_request = Millicores 50u32; memory_request = Mebibytes 64u32; memory_limit = Mebibytes 512u32 }
+
+:= fixture_container () : container =
+    := command = [ "/bin/sh"; "-c"; "echo up\nsleep 1" ]
+    { name = "web"; image = "docker.io/library/busybox:1"; command = command; workdir = "/srv" }
+
+:= fixture () : deployment =
+    {
+        name = "web"
+        namespace = "demo"
+        lane = "demo-lane"
+        strategy = Recreate
+        container = fixture_container ()
+        resources = fixture_resources ()
+        volumes = [ { name = "data"; source = HostPath "/srv/data"; mount = "/srv"; access = ReadWrite } ]
+    }
+
+///> rust
+:# quantities_render_with_their_unit =
+    testing.expect (quantity_text (Millicores 50u32) = "50m") "cpu is in millicores"
+    testing.expect (quantity_text (Mebibytes 512u32) = "512Mi") "memory is in mebibytes"
+
+///> rust
+:# a_deployment_renders_as_kubernetes_json =
+    := text = deployment_json (fixture ())
+    testing.expect (text |> sm'.starts_with "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\"") "apps/v1 Deployment"
+    testing.expect (text |> sm'.contains "\"strategy\":{\"type\":\"Recreate\"}") "the strategy is a typed case"
+    := requests = "\"requests\":{\"cpu\":\"50m\",\"memory\":\"64Mi\"}"
+    testing.expect (text |> sm'.contains requests) "requests carry their units"
+    := host = "\"hostPath\":{\"path\":\"/srv/data\",\"type\":\"Directory\"}"
+    testing.expect (text |> sm'.contains host) "host paths are directories"
+    := command = "\"command\":[\"/bin/sh\",\"-c\",\"echo up\\nsleep 1\"]"
+    testing.expect (text |> sm'.contains command) "commands are escaped json"
+
+///> rust
+:# a_manifest_lists_each_namespace_before_its_deployment =
+    := text = manifest_json [ fixture () ]
+    := first = "{\"apiVersion\":\"v1\",\"kind\":\"List\",\"items\":[{\"apiVersion\":\"v1\",\"kind\":\"Namespace\""
+    testing.expect (text |> sm'.starts_with first) "namespace first"
+    testing.expect (text |> sm'.contains "\"readOnly\":false") "access renders as readOnly"
+
+///> rust
+:# a_json_spec_decodes_into_the_same_manifest =
+    := volume = "{\"name\":\"data\",\"host_path\":\"/srv/data\",\"mount\":\"/srv\",\"read_only\":false}"
+    := naming = "\"name\":\"web\",\"namespace\":\"demo\",\"lane\":\"demo-lane\",\"recreate\":true"
+    := running = "\"image\":\"docker.io/library/busybox:1\",\"command\":[\"/bin/sh\",\"-c\",\"echo up\\nsleep 1\"]"
+    := sizing = "\"workdir\":\"/srv\",\"cpu_millicores\":50,\"memory_request_mib\":64,\"memory_limit_mib\":512"
+    := one = sm'.concat_list "," [ naming; running; sizing; sm'.concat_list "" [ "\"volumes\":["; volume; "]" ] ]
+    := spec_text = sm'.concat_list "" [ "{\"deployments\":[{"; one; "}]}" ]
+    testing.expect (rendered spec_text = manifest_json [ fixture () ]) "the spec and the typed fixture render alike"

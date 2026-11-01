@@ -100,116 +100,94 @@ fn syntax_of_path_3(mut v0: Rc<str>) -> US3 {
         v17.clone()
     };
     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spi|spir|rs|c|h|cc|cpp|cxx|hpp|hh|cs|js|mjs|cjs|ts|tsx|jsx|go|java|kt|kts|swift|zig|gleam|scala|dart|wgsl|glsl|hlsl|proto|jsonc|css|scss|less|php|sv|v"); } LIT.with(|lit| lit.clone()) };
-    let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v21: bool = v18 == v20 ;
-    let v22: bool = v21 == false;
-    let v23: bool = v19.split("|").any(|item| item == &*v18);
-    let v24: bool = v22 && v23;
-    if v24 {
-        let v25: US1 = US1::US1_CFamily;
-        US3::US3_KnownSyntax(v25.clone())
+    let v20: bool = &*v18 == "";
+    let mut v21: bool = v20 == false;
+    let v22: bool = v19.split("|").any(|item| item == &*v18);
+    let v23: bool = v21 && v22;
+    if v23 {
+        let v24: US1 = US1::US1_CFamily;
+        US3::US3_KnownSyntax(v24.clone())
     } else {
-        let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps1|psm1|psd1|py|pyi|sh|bash|zsh|fish|rb|toml|yml|yaml|ex|exs|r|pl|pm|cmake|nix|conf|cfg|mk|tf|jl|nu|ini|gitignore|gitattributes|editorconfig|dockerignore"); } LIT.with(|lit| lit.clone()) };
-        let v28: bool = v18 == v20 ;
-        let v29: bool = v28 == false;
-        let v30: bool = v27.split("|").any(|item| item == &*v18);
-        let v31: bool = v29 && v30;
-        if v31 {
-            let v32: US1 = US1::US1_HashFamily;
-            US3::US3_KnownSyntax(v32.clone())
+        let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps1|psm1|psd1|py|pyi|sh|bash|zsh|fish|rb|toml|yml|yaml|ex|exs|r|pl|pm|cmake|nix|conf|cfg|mk|tf|jl|nu|ini|gitignore|gitattributes|editorconfig|dockerignore"); } LIT.with(|lit| lit.clone()) };
+        let v27: bool = v26.split("|").any(|item| item == &*v18);
+        let v28: bool = v21 && v27;
+        if v28 {
+            let v29: US1 = US1::US1_HashFamily;
+            US3::US3_KnownSyntax(v29.clone())
         } else {
-            let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("makefile|dockerfile|justfile|gemfile|rakefile|vagrantfile"); } LIT.with(|lit| lit.clone()) };
-            let v35: bool = v34.split("|").any(|item| item == &*v8);
-            if v35 {
-                let v36: US1 = US1::US1_HashFamily;
-                US3::US3_KnownSyntax(v36.clone())
+            let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("makefile|dockerfile|justfile|gemfile|rakefile|vagrantfile"); } LIT.with(|lit| lit.clone()) };
+            let v32: bool = v31.split("|").any(|item| item == &*v8);
+            if v32 {
+                let v33: US1 = US1::US1_HashFamily;
+                US3::US3_KnownSyntax(v33.clone())
             } else {
-                let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lua|sql|ada|adb|ads|vhd|vhdl"); } LIT.with(|lit| lit.clone()) };
-                let v39: bool = v18 == v20 ;
-                let v40: bool = v39 == false;
-                let v41: bool = v38.split("|").any(|item| item == &*v18);
-                let v42: bool = v40 && v41;
-                if v42 {
-                    let v43: US1 = US1::US1_DashFamily;
-                    US3::US3_KnownSyntax(v43.clone())
+                let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lua|sql|ada|adb|ads|vhd|vhdl"); } LIT.with(|lit| lit.clone()) };
+                let v36: bool = v35.split("|").any(|item| item == &*v18);
+                let v37: bool = v21 && v36;
+                if v37 {
+                    let v38: US1 = US1::US1_DashFamily;
+                    US3::US3_KnownSyntax(v38.clone())
                 } else {
-                    let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("hs|lhs|elm|purs|agda|idr"); } LIT.with(|lit| lit.clone()) };
-                    let v46: bool = v18 == v20 ;
-                    let v47: bool = v46 == false;
-                    let v48: bool = v45.split("|").any(|item| item == &*v18);
-                    let v49: bool = v47 && v48;
-                    if v49 {
-                        let v50: US1 = US1::US1_HaskellFamily;
-                        US3::US3_KnownSyntax(v50.clone())
+                    let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("hs|lhs|elm|purs|agda|idr"); } LIT.with(|lit| lit.clone()) };
+                    let v41: bool = v40.split("|").any(|item| item == &*v18);
+                    let v42: bool = v21 && v41;
+                    if v42 {
+                        let v43: US1 = US1::US1_HaskellFamily;
+                        US3::US3_KnownSyntax(v43.clone())
                     } else {
-                        let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lean"); } LIT.with(|lit| lit.clone()) };
-                        let v53: bool = v18 == v52 ;
-                        if v53 {
-                            let v54: US1 = US1::US1_LeanFamily;
-                            US3::US3_KnownSyntax(v54.clone())
+                        let v45: bool = &*v18 == "lean";
+                        if v45 {
+                            let v46: US1 = US1::US1_LeanFamily;
+                            US3::US3_KnownSyntax(v46.clone())
                         } else {
-                            let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("clj|cljs|cljc|edn|lisp|lsp|el|scm|ss|rkt|asm|nasm"); } LIT.with(|lit| lit.clone()) };
-                            let v57: bool = v18 == v20 ;
-                            let v58: bool = v57 == false;
-                            let v59: bool = v56.split("|").any(|item| item == &*v18);
-                            let v60: bool = v58 && v59;
-                            if v60 {
-                                let v61: US1 = US1::US1_LispFamily;
-                                US3::US3_KnownSyntax(v61.clone())
+                            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("clj|cljs|cljc|edn|lisp|lsp|el|scm|ss|rkt|asm|nasm"); } LIT.with(|lit| lit.clone()) };
+                            let v49: bool = v48.split("|").any(|item| item == &*v18);
+                            let v50: bool = v21 && v49;
+                            if v50 {
+                                let v51: US1 = US1::US1_LispFamily;
+                                US3::US3_KnownSyntax(v51.clone())
                             } else {
-                                let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("erl|hrl|tex|sty|bib"); } LIT.with(|lit| lit.clone()) };
-                                let v64: bool = v18 == v20 ;
-                                let v65: bool = v64 == false;
-                                let v66: bool = v63.split("|").any(|item| item == &*v18);
-                                let v67: bool = v65 && v66;
-                                if v67 {
-                                    let v68: US1 = US1::US1_ErlangFamily;
-                                    US3::US3_KnownSyntax(v68.clone())
+                                let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("erl|hrl|tex|sty|bib"); } LIT.with(|lit| lit.clone()) };
+                                let v54: bool = v53.split("|").any(|item| item == &*v18);
+                                let v55: bool = v21 && v54;
+                                if v55 {
+                                    let v56: US1 = US1::US1_ErlangFamily;
+                                    US3::US3_KnownSyntax(v56.clone())
                                 } else {
-                                    let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("md|markdown|livemd|html|htm|xhtml|xml|svg|xaml|vue|svelte|csproj|fsproj|props|targets|plist"); } LIT.with(|lit| lit.clone()) };
-                                    let v71: bool = v18 == v20 ;
-                                    let v72: bool = v71 == false;
-                                    let v73: bool = v70.split("|").any(|item| item == &*v18);
-                                    let v74: bool = v72 && v73;
-                                    if v74 {
-                                        let v75: US1 = US1::US1_MarkupFamily;
-                                        US3::US3_KnownSyntax(v75.clone())
+                                    let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("md|markdown|livemd|html|htm|xhtml|xml|svg|xaml|vue|svelte|csproj|fsproj|props|targets|plist"); } LIT.with(|lit| lit.clone()) };
+                                    let v59: bool = v58.split("|").any(|item| item == &*v18);
+                                    let v60: bool = v21 && v59;
+                                    if v60 {
+                                        let v61: US1 = US1::US1_MarkupFamily;
+                                        US3::US3_KnownSyntax(v61.clone())
                                     } else {
-                                        let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ml|mli|sml"); } LIT.with(|lit| lit.clone()) };
-                                        let v78: bool = v18 == v20 ;
-                                        let v79: bool = v78 == false;
-                                        let v80: bool = v77.split("|").any(|item| item == &*v18);
-                                        let v81: bool = v79 && v80;
-                                        if v81 {
-                                            let v82: US1 = US1::US1_MlFamily;
-                                            US3::US3_KnownSyntax(v82.clone())
+                                        let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ml|mli|sml"); } LIT.with(|lit| lit.clone()) };
+                                        let v64: bool = v63.split("|").any(|item| item == &*v18);
+                                        let v65: bool = v21 && v64;
+                                        if v65 {
+                                            let v66: US1 = US1::US1_MlFamily;
+                                            US3::US3_KnownSyntax(v66.clone())
                                         } else {
-                                            let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pas|pp|dpr|dpk|lpr|inc"); } LIT.with(|lit| lit.clone()) };
-                                            let v85: bool = v18 == v20 ;
-                                            let v86: bool = v85 == false;
-                                            let v87: bool = v84.split("|").any(|item| item == &*v18);
-                                            let v88: bool = v86 && v87;
-                                            if v88 {
-                                                let v89: US1 = US1::US1_PascalFamily;
-                                                US3::US3_KnownSyntax(v89.clone())
+                                            let v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pas|pp|dpr|dpk|lpr|inc"); } LIT.with(|lit| lit.clone()) };
+                                            let v69: bool = v68.split("|").any(|item| item == &*v18);
+                                            let v70: bool = v21 && v69;
+                                            if v70 {
+                                                let v71: US1 = US1::US1_PascalFamily;
+                                                US3::US3_KnownSyntax(v71.clone())
                                             } else {
-                                                let v91: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bat|cmd"); } LIT.with(|lit| lit.clone()) };
-                                                let v92: bool = v18 == v20 ;
-                                                let v93: bool = v92 == false;
-                                                let v94: bool = v91.split("|").any(|item| item == &*v18);
-                                                let v95: bool = v93 && v94;
-                                                if v95 {
-                                                    let v96: US1 = US1::US1_BatchFamily;
-                                                    US3::US3_KnownSyntax(v96.clone())
+                                                let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bat|cmd"); } LIT.with(|lit| lit.clone()) };
+                                                let v74: bool = v73.split("|").any(|item| item == &*v18);
+                                                let v75: bool = v21 && v74;
+                                                if v75 {
+                                                    let v76: US1 = US1::US1_BatchFamily;
+                                                    US3::US3_KnownSyntax(v76.clone())
                                                 } else {
-                                                    let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs|fsx|fsi"); } LIT.with(|lit| lit.clone()) };
-                                                    let v99: bool = v18 == v20 ;
-                                                    let v100: bool = v99 == false;
-                                                    let v101: bool = v98.split("|").any(|item| item == &*v18);
-                                                    let v102: bool = v100 && v101;
-                                                    if v102 {
-                                                        let v103: US1 = US1::US1_FsharpFamily;
-                                                        US3::US3_KnownSyntax(v103.clone())
+                                                    let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs|fsx|fsi"); } LIT.with(|lit| lit.clone()) };
+                                                    let v79: bool = v78.split("|").any(|item| item == &*v18);
+                                                    let v80: bool = v21 && v79;
+                                                    if v80 {
+                                                        let v81: US1 = US1::US1_FsharpFamily;
+                                                        US3::US3_KnownSyntax(v81.clone())
                                                     } else {
                                                         US3::US3_UnknownSyntax
                                                     }

@@ -450,9 +450,9 @@ fn unblocked_weight_16(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                 let v21: bool = if v14 {
                     let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
                     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) };
-                    let v17: Rc<str> = std::rc::Rc::<str>::from(v9.replace(&*v15, &v16));
+                    let v17: Rc<str> = Rc::<str>::from(v9.replace(&*v15, &*v16));
                     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                    let v19: Rc<str> = std::rc::Rc::<str>::from(v17.replace(&*v18, &v16));
+                    let v19: Rc<str> = Rc::<str>::from(v17.replace(&*v18, &*v16));
                     let v20: bool = v19.split("|").any(|item| item == &*v1);
                     v20
                 } else {
@@ -610,9 +610,9 @@ fn ranked_from_11(mut v0: US0, mut v1: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, i32,
                     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("user-batch"); } LIT.with(|lit| lit.clone()) };
                     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
                     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) };
-                    let v24: Rc<str> = std::rc::Rc::<str>::from(v12.replace(&*v22, &v23));
+                    let v24: Rc<str> = Rc::<str>::from(v12.replace(&*v22, &*v23));
                     let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                    let v26: Rc<str> = std::rc::Rc::<str>::from(v24.replace(&*v25, &v23));
+                    let v26: Rc<str> = Rc::<str>::from(v24.replace(&*v25, &*v23));
                     let v27: bool = v26.split("|").any(|item| item == &*v21);
                     let v28: bool = v27 == false;
                     v28

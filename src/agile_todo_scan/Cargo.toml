@@ -15,7 +15,7 @@ path = "todo_scan.rs"
 
 [dependencies]
 kit-agile-records = { path = "../kit_agile_records" }
-agile-task-census = { path = "../agile_task_census" }
 agile-todo-lines = { path = "../agile_todo_lines" }
 agile-todo-paths = { path = "../agile_todo_paths" }
 agile-todo-sources = { path = "../agile_todo_sources" }
+agile-todo-standing = { path = "../agile_todo_standing" }

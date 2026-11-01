@@ -2,6 +2,7 @@ packages:
     |core-
     spiral-
     kit_jobs
+    rust_std_env
 modules:
     host_model
     queue

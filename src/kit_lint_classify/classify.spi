@@ -14,19 +14,12 @@
     csv.tsv_line [ file; sm'.format line; name; word; csv.quoted_cell_text text ]
 
 := main () : i32 =
-    !!!!Export(
-        "kit_lint_class",
-        (
-            (\ (text, closed, flow, place, origin) => classified text closed flow place origin)
-            : string * bool * bool * i32 * i32 -> i32
-        )
+    export "kit_lint_class" (
+        (\ (text, closed, flow, place, origin) => classified text closed flow place origin)
+        : string * bool * bool * i32 * i32 -> i32
     )
-
-    !!!!Export(
-        "kit_lint_tsv_row",
-        (
-            (\ (file, line, name, class, text) => tsv_row file line name class text)
-            : string * i32 * string * i32 * string -> string
-        )
+    export "kit_lint_tsv_row" (
+        (\ (file, line, name, class, text) => tsv_row file line name class text)
+        : string * i32 * string * i32 * string -> string
     )
     0i32

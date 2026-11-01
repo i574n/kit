@@ -45,6 +45,20 @@
 :~ host_state_of (recorded : u64) (recorded_alive : bool) : host_state =
     ? recorded <> 0u64 && recorded_alive ?> HostRunning recorded |: HostMissing
 
+:| slot_cap =
+    | Unlimited
+    | AtMost : u64
+
+:= slot_cap_of (~text : string) : slot_cap =
+    ?= convert.try_convert (sm'.trim text) ?|
+    | Some n => ? n > 0u64 ?> AtMost n |: Unlimited
+    | None => Unlimited
+
+:= may_take (cap : slot_cap) (live : u64) : bool =
+    ?= cap ?|
+    | Unlimited => !+
+    | AtMost n => live < n
+
 :~ request_name (~id : string) : string = id ++# request_suffix ()
 
 :~ request_id (~name : string) : string = sm'.trim_end_suffix (request_suffix ()) name
@@ -62,6 +76,13 @@
         (host_step_of 0u64 1000u64 300000u64 HomePresent !+ = KeepServing)
         "five quiet minutes are not enough"
     testing.expect (host_step_of 0u64 1000u64 601000u64 HomePresent !+ = HostIdleExit) "ten quiet minutes end the host"
+
+///> rust
+:# a_slot_cap_holds_new_requests_while_the_machine_is_full =
+    testing.expect (slot_cap_of "" = Unlimited && slot_cap_of "0" = Unlimited) "unset or 0 means no cap"
+    testing.expect (slot_cap_of " 1 " = AtMost 1u64 && slot_cap_of "two" = Unlimited) "a whole number caps"
+    testing.expect (may_take (AtMost 1u64) 0u64 && may_take (AtMost 1u64) 1u64 = !-) "one slot: the second waits"
+    testing.expect (may_take Unlimited 50u64) "no cap takes every request"
 
 ///> rust
 :# a_host_whose_jobs_home_was_removed_exits_once_its_children_end =

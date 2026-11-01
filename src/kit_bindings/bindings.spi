@@ -1,0 +1,73 @@
+:< kit_bindings_model_api.api
+:< sm'_operators
+:< file_system_operators
+
+:== crate_census =
+    {
+        crate : string
+        markers : i32
+        parsed : i32
+    }
+
+:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:~ leaf_name (path : string) : string =
+    := slashed = sm'.replace "\\" "/" path
+    := at = sm'.last_index_of "/" slashed
+    ? at < 0i32 ?> slashed |: sm'.substring (at + 1i32) ((sm'.length slashed : i32) - at - 1i32) slashed
+
+:~ entries (dir : string) (directories : bool) : list string =
+    file_system.read_dir_names dir
+    |> resultm.unwrap'
+    |> am'.vec_fold' (\ found name => (sm'.from_std_string name :: found)) Nil
+    |> listm.rev
+    |> listm'.filter (\ (name : string) => file_system.directory_exists (dir </> name) = directories)
+
+:~ crate_text (dir : string) : string =
+    entries dir !-
+    |> listm'.filter (\ (name : string) => sm'.ends_with ".spi" name)
+    |> listm.map (\ (name : string) => file_system.read_all_text (dir </> name))
+    |> sm'.concat_list "\n"
+
+:~ census_of (dir : string) : crate_census =
+    := text = crate_text dir
+    := markers, parsed = kit_bindings_counted text
+    { crate = leaf_name dir; markers = markers; parsed = parsed }
+
+:~ census_line (c : crate_census) : string =
+    sm'.concat_list "" [ c.crate; "  exports "; sm'.format c.markers; "  typed "; sm'.format c.parsed ]
+
+:~ census_run (root : string) : i32 =
+    := crates =
+        entries root !+
+        |> listm'.filter (\ (name : string) => file_system.file_exists (root </> name </> "Cargo.toml"))
+        |> listm.map (\ (name : string) => census_of (root </> name))
+    := gaps = crates |> listm'.filter (\ (c : crate_census) => c.parsed < c.markers)
+    gaps |> listm.iter (\ (c : crate_census) => console.write_line (census_line c))
+    := total (pick : crate_census -> i32) = crates |> listm.fold (\ sum c => sum + pick c) 0i32
+    := markers = total (\ c => c.markers)
+    := parsed = total (\ c => c.parsed)
+    console.write_line (
+        sm'.concat_list "" [
+            "kit bindings census ok crates="; sm'.format (listm.length crates : i32); " exports="; sm'.format markers
+            " typed="; sm'.format parsed; " untyped="; sm'.format (markers - parsed); " root="; root
+        ]
+    )
+    0i32
+
+
+:~ module_run (dir : string) : i32 =
+    console.write (kit_bindings_module_of (leaf_name dir) (crate_text dir))
+    0i32
+
+:~ bindings_run () : i32 =
+    := first = argument 1i32
+    ? first = "--census" && file_system.directory_exists (argument 2i32) ?> census_run (argument 2i32)
+    |? first <> "" && file_system.directory_exists first ?> module_run first
+    |:
+        console.write_line "kit error: bindings usage: bindings <crate dir> | bindings --census <src root>"
+        2i32
+
+:= main () : i32 =
+    export "kit_bindings_run" ((\ () => bindings_run ()) : () -> i32)
+    0i32

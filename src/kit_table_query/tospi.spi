@@ -1,0 +1,26 @@
+:< sm'_operators
+:< cells
+
+:~ ^ row_cells (cells : table_cells) (row : i32) (column : i32) (found : list string) : list string =
+    ? column < 0i32 ?> found |: row_cells cells row (column - 1i32) (cell_at cells row column :: found)
+
+:~ cells_in_row (cells : table_cells) (row : i32) : list string = row_cells cells row (row_width cells row - 1i32) []
+
+:~ ^ data_rows (cells : table_cells) (row : i32) (found : list (list string)) : list (list string) =
+    ? row < 1i32 ?> found |: data_rows cells (row - 1i32) (cells_in_row cells row :: found)
+
+:~ typed_table (cells : table_cells) : kit_table_rows.rows.table =
+    { columns = cells_in_row cells 0i32; rows = data_rows cells (row_total cells) [] }
+
+:~ to_spi_run (~file : string) (~out : string) (~opened : string) : i32 =
+    := problem = table_problem file
+    ? problem <> "" ?> rejected problem
+    |:
+        := t = typed_table (cells_of_tsv file)
+        := chosen = ? opened = "" ?> kit_table_rows.rows.DeclaredHere |: kit_table_rows.rows.OpenedFrom opened
+        file_system.write_all_text out (kit_table_rows.rows.rows_spi_of_table chosen t)
+        stdout_line (
+            "kit table to-spi ok rows=" ++# i32_text (listm.length t.rows : i32)
+            ++# " columns=" ++# i32_text (listm.length t.columns : i32) ++# " out=" ++# out
+        )
+        0i32

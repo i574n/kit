@@ -2,6 +2,7 @@
 :< sm'_operators
 :< model
 :< host
+:< kit_job_placement.placement
 
 :~ job_directory (~id : string) : string = joined (jobs_root ()) id
 :~ job_file (~id : string) (~name : string) : string = joined (job_directory id) name
@@ -97,6 +98,9 @@
 
 :~ gate_queued (~id : string) : bool = gate_wait_of id <> NotWaiting
 
+:~ job_placement (~id : string) : placement =
+    optionm'.default_value Local (placement_of_text (text_or_empty (job_file id "placement")))
+
 :~ job_summary (~verb : string) (~id : string) : string =
     := state = job_state_now id
     := head = concat5 "kit job " verb " ok id=" id " state="
@@ -129,7 +133,7 @@
                 " peak_private_mb="
                 (? file_exists (job_file id "peak_private_mb") ?> text_or_empty (job_file id "peak_private_mb") |: "0")
                 ""
-    concat5 head codes sizes detail_text (concat5 memory label "" "" "")
+    concat5 head codes sizes detail_text (concat5 memory label (shown_suffix (job_placement id)) "" "")
 
 :~ shared_state (~id : string) : job_state =
     := word, code, detail = $'kit_job_state::kit_job_state_parts(&*!id)' : string * i32 * string

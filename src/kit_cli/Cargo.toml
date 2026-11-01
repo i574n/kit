@@ -38,6 +38,7 @@ kit-resume = { path = "../kit_resume" }
 kit-ci-parity = { path = "../kit_ci_parity" }
 kit-os-launch = { path = "../kit_os_launch" }
 kit-crate-gate = { path = "../kit_crate_gate" }
+kit-k3s = { path = "../kit_k3s" }
 kit-table-test = { path = "../kit_table_test" }
 kit-grep-query = { path = "../kit_grep_query" }
 kit-read-query = { path = "../kit_read_query" }

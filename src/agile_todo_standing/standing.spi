@@ -1,0 +1,59 @@
+:< sm'_operators
+:< workspace_primitives.bytes
+:< workspace_primitives.console
+
+:| todo_standing =
+    | OpenTodo
+    | StaleTodo
+    | UnknownTodo
+
+:== standings =
+    {
+        stale : i32
+        unknown : i32
+    }
+
+:= standing_of (~text : string) (~id : string) : todo_standing =
+    := status = $'agile_task_census::kit_agile_task_status(&*!text, &*!id)' : string
+    ? (status = "") ?> UnknownTodo
+    |? (status = "Done") ?> StaleTodo
+    |: OpenTodo
+
+:= standing_label = \|
+    | OpenTodo => ""
+    | StaleTodo => "stale (item is Done): "
+    | UnknownTodo => "unknown (no backlog item): "
+
+:= counted (counts : standings) (standing : todo_standing) : standings =
+    ?= standing ?|
+    | OpenTodo => counts
+    | StaleTodo => { counts ?| stale = counts.stale + 1i32 }
+    | UnknownTodo => { counts ?| unknown = counts.unknown + 1i32 }
+
+:~ ^ standings_from
+    (counts : standings) (~backlog : string) (~rendered : string) (silent : bool) (offset : i32)
+    : standings
+    =
+    ? byte_len rendered <= offset
+    ?> counts
+    |:
+        := newline = byte_find_from rendered "\n" offset
+        := stop = ? newline < 0i32 ?> byte_len rendered |: newline
+        := line = byte_slice rendered offset stop
+        := id = $'agile_todo_lines::kit_agile_todo_id(&*!backlog, &*!line)' : string
+        := standing = ? id = "" ?> OpenTodo |: standing_of backlog id
+        := _ =
+            ? silent || standing = OpenTodo
+            ?> 0i32
+            |: stdout_line (standing_label standing ++# id ++# " at " ++# line)
+        standings_from (counted counts standing) backlog rendered silent (stop + 1i32)
+
+:~ standings_of (~backlog : string) (~rendered : string) (silent : bool) : i32 * i32 =
+    := counts = standings_from { stale = 0i32; unknown = 0i32 } backlog rendered silent 0i32
+    counts.stale, counts.unknown
+
+:= main () : i32 =
+    export "kit_agile_todo_standings" (
+        (\ (backlog, rendered, silent) => standings_of backlog rendered silent) : string * string * bool -> i32 * i32
+    )
+    0i32

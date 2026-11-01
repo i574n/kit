@@ -146,3 +146,21 @@
     shows out "a, b"
     shows out "kit table query ok total=2"
     fixture_root_remove root
+
+///> rust
+:# to_spi_writes_a_typed_row_module_that_keeps_empty_cells =
+    := root = runs_root ()
+    := out = succeeded (table_run root (Arg ("to-spi", Arg ("runs.tsv", Arg ("runs.spi", NoArgs)))))
+    shows out "kit table to-spi ok rows=4 columns=4 out=runs.spi"
+    := spi = fixture_read root "runs.spi"
+    shows spi "///- --no-respell"
+    shows spi "inl columns () = Columns [ \"timestamp\"; \"variant\"; \"retries\"; \"latency_ms\" ]"
+    shows spi "inl row_2 () = Row [ \"2\"; \"fast\"; \"2\"; \"\" ]"
+    shows spi "inl rows () : list table_row = [ row_1 (); row_2 (); row_3 (); row_4 () ]"
+    := opened = Arg ("to-spi", Arg ("runs.tsv", Arg ("shared.spi", Arg ("--open", Arg ("table_rows", NoArgs))))))
+    := shared = succeeded (table_run root opened)
+    shows shared "out=shared.spi"
+    shows (fixture_read root "shared.spi") "open table_rows"
+    hides (fixture_read root "shared.spi") "union table_row"
+    rejected_with (table_run root (Arg ("to-spi", Arg ("runs.tsv", NoArgs)))) 2i32 "table to-spi <file.tsv> <out.spi>"
+    fixture_root_remove root

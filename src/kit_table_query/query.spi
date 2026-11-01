@@ -7,18 +7,22 @@
 :| table_command =
     | TableQuery
     | TableDiff
+    | TableToSpi
     | TableUnknown
 
 := table_command_of (~word : string) : table_command =
     ? word = "query" ?> TableQuery
     |? word = "diff" ?> TableDiff
+    |? word = "to-spi" ?> TableToSpi
     |: TableUnknown
 
 := table_usage () : string =
     "table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] "
     ^^ "[--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | "
     ^^ "table diff <left> "
-    ^^ "<right> --key a,b [--cols x,y] [--latest-by col] [--limit n]"
+    ^^ "<right> --key a,b [--cols x,y] [--latest-by col] [--limit n] | "
+    ^^ "table to-spi <file.tsv> <out.spi> [--open <module>] (typed row module; --open uses that module's table_row "
+    ^^ "union instead of declaring one, plus an inl rows () index)"
 
 :== table_request =
     {

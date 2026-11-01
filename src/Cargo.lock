@@ -270,10 +270,10 @@ dependencies = [
 name = "agile-todo-scan"
 version = "0.0.0"
 dependencies = [
- "agile-task-census",
  "agile-todo-lines",
  "agile-todo-paths",
  "agile-todo-sources",
+ "agile-todo-standing",
  "kit-agile-records",
 ]
 
@@ -283,6 +283,14 @@ version = "0.0.0"
 dependencies = [
  "kit-process",
  "kit-rust-std-fs",
+]
+
+[[package]]
+name = "agile-todo-standing"
+version = "0.0.0"
+dependencies = [
+ "agile-task-census",
+ "agile-todo-lines",
 ]
 
 [[package]]
@@ -797,6 +805,7 @@ dependencies = [
  "kit-guide",
  "kit-handoff",
  "kit-jobs",
+ "kit-k3s",
  "kit-legacy-operations",
  "kit-lint-macros",
  "kit-machine-watch",
@@ -1285,6 +1294,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-k3s"
+version = "0.0.0"
+
+[[package]]
 name = "kit-lcov"
 version = "0.0.0"
 
@@ -1318,6 +1331,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-lint-baseline"
+version = "0.0.0"
+
+[[package]]
 name = "kit-lint-classify"
 version = "0.0.0"
 
@@ -1337,6 +1354,7 @@ version = "0.0.0"
 name = "kit-lint-macros"
 version = "0.0.0"
 dependencies = [
+ "kit-lint-baseline",
  "kit-lint-classify",
  "kit-lint-flow",
  "kit-lint-flow-constructs",

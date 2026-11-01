@@ -371,9 +371,9 @@ fn todo_in_line_2(mut v0: US0, mut v1: Rc<str>) -> US2 {
                 let v38: i32 = v36.wrapping_sub(v37);
                 let v39: i32 = 0i32;
                 let v40: i32 = first_visible_offset_7(v1.clone(), v39);
-                let v41: bool = v31 == v4 ;
+                let v41: bool = &*v31 == "";
                 if v41 {
-                    let v42: bool = v35 == v4 ;
+                    let v42: bool = &*v35 == "";
                     let v43: bool = v42 == false;
                     let v44: bool = v28.ends_with(&*v35);
                     let v45: i32 = (v35.clone().len() as i32);
@@ -392,7 +392,7 @@ fn todo_in_line_2(mut v0: US0, mut v1: Rc<str>) -> US2 {
                 } else {
                     let v56: i32 = v31.as_bytes().get(0i32 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
                     let v57: i32 = leader_run_start_9(v1.clone(), v38, v56);
-                    let mut v60: bool = match &v0 {
+                    let v60: bool = match &v0 {
                         US0::US0_DashFamily => {
                             true
                         }
@@ -614,19 +614,19 @@ fn todo_id_17(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
 fn json_escaped_20(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\"); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = std::rc::Rc::<str>::from(v0.replace(&*v1, &v2));
+    let v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\""); } LIT.with(|lit| lit.clone()) };
-    let mut v6: Rc<str> = std::rc::Rc::<str>::from(v3.replace(&*v4, &v5));
+    let mut v6: Rc<str> = Rc::<str>::from(v3.replace(&*v4, &*v5));
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
-    let v9: Rc<str> = std::rc::Rc::<str>::from(v6.replace(&*v7, &v8));
+    let v9: Rc<str> = Rc::<str>::from(v6.replace(&*v7, &*v8));
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\r"); } LIT.with(|lit| lit.clone()) };
-    let mut v12: Rc<str> = std::rc::Rc::<str>::from(v9.replace(&*v10, &v11));
+    let mut v12: Rc<str> = Rc::<str>::from(v9.replace(&*v10, &*v11));
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\n"); } LIT.with(|lit| lit.clone()) };
-    let v15: Rc<str> = std::rc::Rc::<str>::from(v12.replace(&*v13, &v14));
+    let v15: Rc<str> = Rc::<str>::from(v12.replace(&*v13, &*v14));
     v15
 }
 fn finding_json_19(mut v0: Rc<dyn Fn(Rc<str>) -> Rc<dyn Fn(Rc<str>) -> Rc<str>>>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>) -> Rc<str> {
@@ -702,43 +702,43 @@ fn findings_from_1(mut v0: Rc<dyn Fn(Rc<str>) -> Rc<dyn Fn(Rc<str>) -> Rc<str>>>
                     let v37: i32 = v9.wrapping_add(1i32);
                     let v38: i32 = v37.wrapping_add(v36);
                     let v39: Rc<str> = todo_id_17(v4.clone(), v34.clone());
-                    let v47: bool = match &v2 {
+                    let v46: bool = match &v2 {
                         US1::US1_AllTodos => {
                             true
                         }
                         US1::US1_TaggedTodos => {
-                            let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                            let v41: bool = v39 == v40 ;
-                            let v42: bool = v41 == false;
-                            v42
+                            let v40: bool = &*v39 == "";
+                            let v41: bool = v40 == false;
+                            v41
                         }
-                        US1::US1_TodosOf(v43) => {
-                            let v43: Rc<str> = v43.clone();
-                            let v44: bool = v39 == v43 ;
-                            v44
+                        US1::US1_TodosOf(v42) => {
+                            let v42: Rc<str> = v42.clone();
+                            let v43: bool = &*v39 == &*v42;
+                            v43
                         }
                     };
-                    if v47 {
-                        let v53: Rc<str> = if v7 {
+                    if v46 {
+                        let v52: Rc<str> = if v7 {
                             finding_json_19(v0.clone(), v4.clone(), v6.clone(), v9, v34.clone())
                         } else {
-                            let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
-                            let v50: Rc<str> = std::rc::Rc::<str>::from((v9).to_string());
-                            let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
-                            let v52: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v49, &*v50, &*v51, &*v34].concat());
-                            v52.clone()
+                            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
+                            let v49: Rc<str> = std::rc::Rc::<str>::from((v9).to_string());
+                            let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
+                            let v51: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v48, &*v49, &*v50, &*v34].concat());
+                            v51.clone()
                         };
-                        let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v55: bool = v10 == v54 ;
-                        let mut v60: Rc<str> = if v55 {
-                            v53.clone()
+                        let v53: bool = &*v10 == "";
+                        let v60: Rc<str> = if v53 {
+                            v52.clone()
                         } else {
                             if v7 {
-                                let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\n"); } LIT.with(|lit| lit.clone()) };
-                                let v57: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v56, &*v53, &*v54, &*v54].concat());
-                                v57.clone()
+                                let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\n"); } LIT.with(|lit| lit.clone()) };
+                                let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                let v56: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v54, &*v52, &*v55, &*v55].concat());
+                                v56.clone()
                             } else {
-                                let v58: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v15, &*v53, &*v54, &*v54].concat());
+                                let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                let mut v58: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v15, &*v52, &*v57, &*v57].concat());
                                 v58.clone()
                             }
                         };
@@ -863,47 +863,47 @@ fn todo_findings_0(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str
             }
         }
     };
-    let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v44: bool = v1 == v43 ;
-    let v51: US1 = if v44 {
+    let v43: bool = &*v1 == "";
+    let v49: US1 = if v43 {
         US1::US1_AllTodos
     } else {
-        let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("*"); } LIT.with(|lit| lit.clone()) };
-        let v47: bool = v1 == v46 ;
-        if v47 {
+        let v45: bool = &*v1 == "*";
+        if v45 {
             US1::US1_TaggedTodos
         } else {
             US1::US1_TodosOf(v1.clone())
         }
     };
-    let v52: Rc<dyn Fn(Rc<str>) -> Rc<dyn Fn(Rc<str>) -> Rc<str>>> = closure1();
-    let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spi|spir"); } LIT.with(|lit| lit.clone()) };
-    let v54: i32 = 47i32;
-    let v55: i32 = 0i32;
-    let v56: i32 = -1i32;
-    let v57: i32 = last_offset_of_22(v4.clone(), v54, v55, v56);
-    let v58: i32 = v57.wrapping_add(1i32);
-    let v59: i32 = (v4.clone().len() as i32);
-    let mut v60: Rc<str> = std::rc::Rc::<str>::from(v4.get(v58 as usize..v59 as usize).unwrap_or(""));
-    let v61: Rc<str> = std::rc::Rc::<str>::from(v60.to_ascii_lowercase());
-    let v62: i32 = 46i32;
-    let v63: i32 = 0i32;
-    let v64: i32 = -1i32;
-    let v65: i32 = last_offset_of_22(v61.clone(), v62, v63, v64);
-    let v66: bool = v65 < 0i32;
-    let v70: Rc<str> = if v66 {
-        v43.clone()
+    let v50: Rc<dyn Fn(Rc<str>) -> Rc<dyn Fn(Rc<str>) -> Rc<str>>> = closure1();
+    let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spi|spir"); } LIT.with(|lit| lit.clone()) };
+    let v52: i32 = 47i32;
+    let v53: i32 = 0i32;
+    let v54: i32 = -1i32;
+    let v55: i32 = last_offset_of_22(v4.clone(), v52, v53, v54);
+    let v56: i32 = v55.wrapping_add(1i32);
+    let v57: i32 = (v4.clone().len() as i32);
+    let mut v58: Rc<str> = std::rc::Rc::<str>::from(v4.get(v56 as usize..v57 as usize).unwrap_or(""));
+    let v59: Rc<str> = std::rc::Rc::<str>::from(v58.to_ascii_lowercase());
+    let v60: i32 = 46i32;
+    let v61: i32 = 0i32;
+    let v62: i32 = -1i32;
+    let v63: i32 = last_offset_of_22(v59.clone(), v60, v61, v62);
+    let v64: bool = v63 < 0i32;
+    let v69: Rc<str> = if v64 {
+        let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v65.clone()
     } else {
-        let v67: i32 = v65.wrapping_add(1i32);
-        let v68: i32 = (v61.clone().len() as i32);
-        let v69: Rc<str> = std::rc::Rc::<str>::from(v61.get(v67 as usize..v68 as usize).unwrap_or(""));
-        v69.clone()
+        let v66: i32 = v63.wrapping_add(1i32);
+        let v67: i32 = (v59.clone().len() as i32);
+        let v68: Rc<str> = std::rc::Rc::<str>::from(v59.get(v66 as usize..v67 as usize).unwrap_or(""));
+        v68.clone()
     };
-    let v71: bool = v53.split("|").any(|item| item == &*v70);
-    let v72: i32 = 0i32;
-    let v73: i32 = 1i32;
+    let v70: bool = v51.split("|").any(|item| item == &*v69);
+    let v71: i32 = 0i32;
+    let v72: i32 = 1i32;
+    let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v74: i32 = 0i32;
-    findings_from_1(v52.clone(), v42.clone(), v51.clone(), v71, v2.clone(), v3.clone(), v4.clone(), v5, v72, v73, v43.clone(), v74, v43.clone())
+    findings_from_1(v50.clone(), v42.clone(), v49.clone(), v70, v2.clone(), v3.clone(), v4.clone(), v5, v71, v72, v73.clone(), v74, v73.clone())
 }
 fn closure0() -> Rc<dyn Fn(i32, Rc<str>, Rc<str>, Rc<str>, Rc<str>, bool) -> (Rc<str>, i32, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(i32, Rc<str>, Rc<str>, Rc<str>, Rc<str>, bool) -> (Rc<str>, i32, Rc<str>)> = Rc::new(move |mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: bool| -> (Rc<str>, i32, Rc<str>) {
