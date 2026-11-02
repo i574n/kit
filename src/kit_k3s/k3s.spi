@@ -2,17 +2,30 @@
 :< sm'_operators
 :< file_system_operators
 
-:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+:~ ^ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
 
-:~ render (spec_path : string) : i32 =
-    console.write (rendered (file_system.read_all_text spec_path))
-    0i32
+:~ ^ refusal_text (why : spec_error) : string =
+    ?= why ?|
+    | UnknownRow name => sm'.concat_list "" [ "unknown row constructor "; name ]
+    | MissingCells name => sm'.concat_list "" [ "missing cells in a "; name; " row" ]
+    | UnknownUnit cells => sm'.concat_list "" [ "unknown unit or number in Resources: "; cells ]
+    | BadNumber cell => sm'.concat_list "" [ "not a number: "; cell ]
+    | RowBeforeDeployment name => sm'.concat_list "" [ name; " row before any Deployment row" ]
 
-:~ usage () : i32 =
-    console.write_line "kit error: k3s usage: k3s render <spec.json> (prints a v1 List manifest for kubectl apply -f -)"
+:~ ^ render (spec_path : string) : i32 =
+    ?= rendered (file_system.read_all_text spec_path) ?|
+    | Rendered text =>
+        console.write text
+        0i32
+    | Refused why =>
+        console.write_line (sm'.concat_list "" [ "kit error: k3s render: "; refusal_text why; " in "; spec_path ])
+        1i32
+
+:~ ^ usage () : i32 =
+    console.write_line "kit error: k3s usage: k3s render <spec.spi> (typed row spec; prints a v1 List for kubectl apply -f -)"
     2i32
 
-:~ k3s_run () : i32 =
+:~ ^ k3s_run () : i32 =
     ? argument 1i32 = "render" && file_system.file_exists (argument 2i32) ?> render (argument 2i32) |: usage ()
 
 := main () : i32 =

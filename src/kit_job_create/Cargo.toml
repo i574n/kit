@@ -16,3 +16,4 @@ path = "create.rs"
 [dependencies]
 kit-machine-windows = { path = "../kit_machine_windows" }
 kit-job-host = { path = "../kit_job_host" }
+kit-job-host-request = { path = "../kit_job_host_request" }

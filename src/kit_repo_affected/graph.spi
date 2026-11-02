@@ -20,7 +20,7 @@
 
 :~ ^ section_uses (lines : list string) (inside : bool) (acc : list string) : list string =
     ?= lines ?|
-    | Nil => listm.rev acc
+    | [] => listm.rev acc
     | (line :: rest) =>
         := trimmed = sm'.trim line
         ? trimmed = "packages:" ?> section_uses rest !+ acc
@@ -30,16 +30,16 @@
 
 :~ project_uses (~text : string) : list string =
     := parts = sm'.split "\n" text |> array
-    section_uses (lines_list parts (am'.length parts - 1i32) Nil) !- Nil
+    section_uses (lines_list parts (am'.length parts - 1i32) []) !- []
 
 :~ ^ node_named (~name : string) (nodes : list package_node) : option package_node =
     ?= nodes ?|
-    | Nil => None
+    | [] => None
     | (node :: rest) => ? node.name = name ?> Some node |: node_named name rest
 
 :~ ^ prepended (front : list string) (back : list string) : list string =
     ?= front ?|
-    | Nil => back
+    | [] => back
     | (name :: rest) => (name :: prepended rest back)
 
 :~ ^ reaches
@@ -47,7 +47,7 @@
     : bool
     =
     ?= pending ?|
-    | Nil => !-
+    | [] => !-
     | (name :: rest) =>
         ? listm'.contains name changed ?> !+
         |? listm'.contains name visited ?> reaches nodes changed visited rest
@@ -61,9 +61,9 @@
     : list string
     =
     ?= nodes ?|
-    | Nil => listm.rev acc
+    | [] => listm.rev acc
     | (node :: rest) =>
-        := hit = node.crate && reaches all changed Nil (node.name :: Nil)
+        := hit = node.crate && reaches all changed [] (node.name :: [])
         affected_crates rest all changed (? hit ?> (node.name :: acc) |: acc)
 
 
@@ -71,7 +71,7 @@
     { name = name; uses = uses; crate = crate }
 
 := sample_graph () : list package_node =
-    ((node "jobs" ("core" :: ("spiral" :: Nil)) !-) :: ((node "job_after" ("core" :: ("jobs" :: Nil)) !+) :: ((node "windows" ("jobs" :: Nil) !+) :: ((node "watch" ("windows" :: Nil) !+) :: ((node "notes" ("core" :: Nil) !+) :: ((node "loop_a" ("loop_b" :: Nil) !+) :: ((node "loop_b" ("loop_a" :: Nil) !+) :: Nil)))))))
+    ((node "jobs" ("core" :: ("spiral" :: [])) !-) :: ((node "job_after" ("core" :: ("jobs" :: [])) !+) :: ((node "windows" ("jobs" :: []) !+) :: ((node "watch" ("windows" :: []) !+) :: ((node "notes" ("core" :: []) !+) :: ((node "loop_a" ("loop_b" :: []) !+) :: ((node "loop_b" ("loop_a" :: []) !+) :: [])))))))
 
 := joined (names : list string) : string =
     listm.fold (\ text name => ? text = "" ?> name |: text ++# "," ++# name) "" names
@@ -86,13 +86,13 @@
 :# crates_reaching_a_changed_package_are_affected_transitively =
     testing.expect
         (
-            joined (affected_crates (sample_graph ()) (sample_graph ()) ("jobs" :: Nil) Nil)
+            joined (affected_crates (sample_graph ()) (sample_graph ()) ("jobs" :: []) [])
             = "job_after,windows,watch"
         )
         "direct and transitive users, never the unrelated crate"
     testing.expect
-        (joined (affected_crates (sample_graph ()) (sample_graph ()) ("watch" :: Nil) Nil) = "watch")
+        (joined (affected_crates (sample_graph ()) (sample_graph ()) ("watch" :: []) []) = "watch")
         "a changed crate is affected itself"
     testing.expect
-        (joined (affected_crates (sample_graph ()) (sample_graph ()) ("missing" :: Nil) Nil) = "")
+        (joined (affected_crates (sample_graph ()) (sample_graph ()) ("missing" :: []) []) = "")
         "cycles end without a match"

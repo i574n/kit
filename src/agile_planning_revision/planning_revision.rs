@@ -17,8 +17,14 @@ enum US1 {
 }
 #[derive(Clone)]
 enum US2 {
-    US2_FileReadable(Rc<str>),
-    US2_FileMissing(Rc<str>),
+    US2_PlanningUnchanged,
+    US2_PlanningRewritten(Rc<str>),
+    US2_PlanningRefused(Rc<str>),
+}
+#[derive(Clone)]
+enum US3 {
+    US3_FileReadable(Rc<str>),
+    US3_FileMissing(Rc<str>),
 }
 fn planning_edit_failure_2(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile edit "); } LIT.with(|lit| lit.clone()) };
@@ -146,15 +152,57 @@ fn rewritten_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str
     }
 }
 fn planning_revised_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: u64) -> i32 {
-    let v6: US1 = rewritten_7(v4.clone(), v1.clone(), v2.clone(), v3);
-    match &v6 {
+    let v6: US1 = rewritten_7(v4.clone(), v1.clone(), v2.clone(), v3.clone());
+    let v15: US2 = match &v6 {
         US1::US1_StepRejected(v7) => {
             let v7: Rc<str> = v7.clone();
-            planning_edit_failure_2(v7, v1.clone())
+            US2::US2_PlanningRefused(v7.clone())
         }
         US1::US1_StepText(v9) => {
             let v9: Rc<str> = v9.clone();
-            planning_written_4(v0, v1, v2, v4, v9, v5)
+            let v10: bool = &*v9 == &*v4;
+            if v10 {
+                US2::US2_PlanningUnchanged
+            } else {
+                US2::US2_PlanningRewritten(v9.clone())
+            }
+        }
+    };
+    match &v15 {
+        US2::US2_PlanningRefused(v16) => {
+            let v16: Rc<str> = v16.clone();
+            planning_edit_failure_2(v16.clone(), v1.clone())
+        }
+        US2::US2_PlanningRewritten(v43) => {
+            let v43: Rc<str> = v43.clone();
+            planning_written_4(v0.clone(), v1.clone(), v2.clone(), v4.clone(), v43.clone(), v5)
+        }
+        US2::US2_PlanningUnchanged => {
+            let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile edit ok id="); } LIT.with(|lit| lit.clone()) };
+            let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v1));
+            let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" field="); } LIT.with(|lit| lit.clone()) };
+            let v22: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v19, v20)), v2));
+            let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" unchanged "); } LIT.with(|lit| lit.clone()) };
+            let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v23));
+            let v25: u64 = v4.len() as u64;
+            let v26: u64 = v4.len() as u64;
+            let v27: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v5);
+            let v28: Rc<str> = std::rc::Rc::<str>::from((v25).to_string());
+            let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_before="); } LIT.with(|lit| lit.clone()) };
+            let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v28));
+            let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_after="); } LIT.with(|lit| lit.clone()) };
+            let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
+            let v33: Rc<str> = std::rc::Rc::<str>::from((v26).to_string());
+            let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v33));
+            let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
+            let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
+            let v37: Rc<str> = std::rc::Rc::<str>::from((v27).to_string());
+            let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v36, v37));
+            let v39: Rc<str> = agile_planning_fields::kit_agile_planning_summary(&*v4, &*v1);
+            let v41: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v24, v39)), v38));
+            let v42: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v41.to_string() + "
+").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
+            v42
         }
     }
 }
@@ -173,18 +221,18 @@ fn planning_edit_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v7: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v5, &*v6, &*v6, &*v6].concat());
     let v8: bool = std::path::Path::new(&*v7).is_file();
-    let v11: US2 = if v8 {
-        US2::US2_FileReadable(v7.clone())
+    let v11: US3 = if v8 {
+        US3::US3_FileReadable(v7.clone())
     } else {
-        US2::US2_FileMissing(v7.clone())
+        US3::US3_FileMissing(v7.clone())
     };
     match &v11 {
-        US2::US2_FileMissing(v12) => {
+        US3::US3_FileMissing(v12) => {
             let v12: Rc<str> = v12.clone();
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/agile.spi is missing"); } LIT.with(|lit| lit.clone()) };
             planning_edit_failure_2(v13.clone(), v1.clone())
         }
-        US2::US2_FileReadable(v15) => {
+        US3::US3_FileReadable(v15) => {
             let v15: Rc<str> = v15.clone();
             let v16: US1 = value_token_8(v2.clone(), v3.clone());
             match &v16 {

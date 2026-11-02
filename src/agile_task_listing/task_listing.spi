@@ -104,7 +104,7 @@
 
 := empty_note_index () : note_index = $'std::rc::Rc::new(std::collections::HashMap::new())' : note_index
 
-:== planning_index = dictm.dict string string
+:== planning_index = dict.dict string string
 
 :~ planning_id (~line : string) : string =
     := marker = "= Planning ("
@@ -121,13 +121,13 @@
     |:
         := line = am'.index at lines
         := id = ? sm'.starts_with "inl planning_of_" line ?> planning_id line |: ""
-        planning_entries lines (at + 1i32) (? id = "" ?> index |: dictm.insert id line index)
+        planning_entries lines (at + 1i32) (? id = "" ?> index |: dict.insert id line index)
 
-:~ planning_index_of (~text : string) : planning_index = planning_entries (sm'.lines text) 0i32 (dictm.empty ())
+:~ planning_index_of (~text : string) : planning_index = planning_entries (sm'.lines text) 0i32 (dict.empty ())
 
-:= empty_planning_index () : planning_index = dictm.empty ()
+:= empty_planning_index () : planning_index = dict.empty ()
 
-:= planning_row_in (index : planning_index) (~id : string) : string = optionm'.default_value "" (dictm.find id index)
+:= planning_row_in (index : planning_index) (~id : string) : string = optionm'.default_value "" (dict.find id index)
 
 := note_count_in (index : note_index) (~id : string) : u32 =
     $'!index.get(&*!id).map(|entry| entry.0).unwrap_or(0)' : u32

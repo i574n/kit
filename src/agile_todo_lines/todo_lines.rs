@@ -611,23 +611,9 @@ fn todo_id_17(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         }
     }
 }
-fn json_escaped_20(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\"); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
-    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\""); } LIT.with(|lit| lit.clone()) };
-    let mut v6: Rc<str> = Rc::<str>::from(v3.replace(&*v4, &*v5));
-    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
-    let v9: Rc<str> = Rc::<str>::from(v6.replace(&*v7, &*v8));
-    let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
-    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\r"); } LIT.with(|lit| lit.clone()) };
-    let mut v12: Rc<str> = Rc::<str>::from(v9.replace(&*v10, &*v11));
-    let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-    let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\n"); } LIT.with(|lit| lit.clone()) };
-    let v15: Rc<str> = Rc::<str>::from(v12.replace(&*v13, &*v14));
-    v15
+fn json_text_20(mut v0: Rc<str>) -> Rc<str> {
+    let v1: Rc<str> = std::rc::Rc::<str>::from({ let q = char::from(34u8); let b = char::from(92u8); let mut out = String::from(q); for c in (v0).chars() { let n = c as u32; match n { 34 | 92 => { out.push(b); out.push(c); } 8 | 9 | 10 | 12 | 13 => { out.push(b); out.push(char::from(b"btn_fr"[(n - 8) as usize])); } n if n < 32 => out.push_str(&format!("{b}u{n:04x}")), _ => out.push(c) } } out.push(q); out }.as_str());
+    v1.clone()
 }
 fn finding_json_19(mut v0: Rc<dyn Fn(Rc<str>) -> Rc<dyn Fn(Rc<str>) -> Rc<str>>>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>) -> Rc<str> {
     let v5: Rc<str> = todo_id_17(v1, v4.clone());
@@ -638,29 +624,29 @@ fn finding_json_19(mut v0: Rc<dyn Fn(Rc<str>) -> Rc<dyn Fn(Rc<str>) -> Rc<str>>>
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v9
     } else {
-        let v10: Rc<str> = json_escaped_20(v5);
-        let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"id\":\""); } LIT.with(|lit| lit.clone()) };
+        let v10: Rc<str> = json_text_20(v5);
+        let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"id\":"); } LIT.with(|lit| lit.clone()) };
         let mut v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v10));
-        let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\",\"fields\":"); } LIT.with(|lit| lit.clone()) };
+        let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"fields\":"); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v13)), v7));
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
         let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
         v17
     };
-    let v19: Rc<str> = json_escaped_20(v2);
-    let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"path\":\""); } LIT.with(|lit| lit.clone()) };
+    let v19: Rc<str> = json_text_20(v2);
+    let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"path\":"); } LIT.with(|lit| lit.clone()) };
     let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v19));
-    let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\",\"line\":"); } LIT.with(|lit| lit.clone()) };
+    let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"line\":"); } LIT.with(|lit| lit.clone()) };
     let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
     let v24: Rc<str> = std::rc::Rc::<str>::from((v3).to_string());
     let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v28: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v25, v26)), v18));
-    let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"text\":\""); } LIT.with(|lit| lit.clone()) };
+    let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"text\":"); } LIT.with(|lit| lit.clone()) };
     let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
-    let v31: Rc<str> = json_escaped_20(v4);
+    let v31: Rc<str> = json_text_20(v4);
     let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
-    let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"}"); } LIT.with(|lit| lit.clone()) };
+    let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
     let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v33));
     v34
 }

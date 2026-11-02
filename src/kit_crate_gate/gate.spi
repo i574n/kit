@@ -18,7 +18,7 @@
 :~ dir_names (path : string) : list string =
     file_system.read_dir_names path
     |> resultm.unwrap'
-    |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) Nil
+    |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) []
     |> listm.rev
 
 :~ largest_of (~text : string) : string = $'kit_crate_largest::kit_crate_largest(&*!text)' : string
@@ -39,7 +39,7 @@
 
 :~ ^ walked (todo : list string) (found : list crate_measure) : list crate_measure =
     ?= todo ?|
-    | Nil => listm.rev found
+    | [] => listm.rev found
     | (dir :: rest) =>
         := found = ?= measured dir ?| | Some m => (m :: found) | None => found
         := deeper =
@@ -70,7 +70,7 @@
 
 :~ ^ lines_printed (limit : i32) (measures : list crate_measure) : () =
     ?= measures ?|
-    | Nil => ()
+    | [] => ()
     | (m :: rest) =>
         console.write_line (measure_line limit m)
         lines_printed limit rest
@@ -92,7 +92,7 @@
         console.write_line ("kit error: crate gate: --limit expects a positive whole number, got " ++# given)
         2i32
     |:
-        := measures = walked [ root ] Nil
+        := measures = walked [ root ] []
         lines_printed limit measures
         := over = over_count limit measures
         := summary =

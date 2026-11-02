@@ -52,12 +52,12 @@ enum US3 {
 #[derive(Clone)]
 enum UH2 {
     UH2_Nil,
-    UH2_Cons(Rc<str>, Rc<str>, US3, Rc<UH2>),
+    UH2_Cons(Rc<str>, Rc<UH2>),
 }
 #[derive(Clone)]
 enum UH3 {
     UH3_Nil,
-    UH3_Cons(Rc<str>, Rc<UH3>),
+    UH3_Cons(Rc<str>, Rc<str>, US3, Rc<UH3>),
 }
 #[derive(Clone)]
 enum US4 {
@@ -497,12 +497,12 @@ fn method21(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
 fn method24(mut v0: Vec<u8>) -> Vec<u8> {
     v0
 }
-fn method23(mut v0: Rc<UH3>, mut v1: Rc<UH2>) -> Rc<UH2> {
+fn method23(mut v0: Rc<UH2>, mut v1: Rc<UH3>) -> Rc<UH3> {
     loop {
         match &*v0 {
-            UH3::UH3_Cons(v2, v3) => {
+            UH2::UH2_Cons(v2, v3) => {
                 let v2: Rc<str> = v2.clone();
-                let v3: Rc<UH3> = v3.clone();
+                let v3: Rc<UH2> = v3.clone();
                 let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after"); } LIT.with(|lit| lit.clone()) };
                 let v5: Rc<str> = job_file_19(v2.clone(), v4.clone());
                 let mut v6: bool = file_exists_20(v5.clone());
@@ -524,7 +524,7 @@ fn method23(mut v0: Rc<UH3>, mut v1: Rc<UH2>) -> Rc<UH2> {
                 } else {
                     false
                 };
-                let v41: Rc<UH2> = if v16 {
+                let v41: Rc<UH3> = if v16 {
                     let v18: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v5);
                     let v20: Vec<u8> = v18.unwrap();
                     let v21: Vec<u8> = method24(v20.clone());
@@ -543,34 +543,34 @@ fn method23(mut v0: Rc<UH3>, mut v1: Rc<UH2>) -> Rc<UH2> {
                     let v37: i32 = method10(v35.clone(), v36);
                     let v38: Rc<str> = string_slice(&v35.clone(), 0i32 as i64, v37 as i64);
                     let v39: US3 = standing_of_14(v38.clone());
-                    Rc::new(UH2::UH2_Cons(v2.clone(), v38.clone(), v39.clone(), v1.clone()))
+                    Rc::new(UH3::UH3_Cons(v2.clone(), v38.clone(), v39.clone(), v1.clone()))
                 } else {
                     v1.clone()
                 };
                 (v0, v1) = (v3.clone(), v41.clone());
                 continue;
             }
-            UH3::UH3_Nil => {
+            UH2::UH2_Nil => {
                 return v1.clone();
             }
         }
     }
 }
-fn method26(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
+fn method26(mut v0: Rc<UH2>, mut v1: Rc<UH2>) -> Rc<UH2> {
     match &*v0 {
-        UH3::UH3_Cons(v2, v3) => {
+        UH2::UH2_Cons(v2, v3) => {
             let v2: Rc<str> = v2.clone();
-            let v3: Rc<UH3> = v3.clone();
-            let v4: Rc<UH3> = method26(v3, v1.clone());
+            let v3: Rc<UH2> = v3.clone();
+            let v4: Rc<UH2> = method26(v3, v1.clone());
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job-"); } LIT.with(|lit| lit.clone()) };
             let mut v6: bool = v2.starts_with(&*v5);
             if v6 {
-                Rc::new(UH3::UH3_Cons(v2, v4.clone()))
+                Rc::new(UH2::UH2_Cons(v2, v4.clone()))
             } else {
                 v4
             }
         }
-        UH3::UH3_Nil => {
+        UH2::UH2_Nil => {
             v1
         }
     }
@@ -587,40 +587,40 @@ fn directory_exists_27(mut v0: Rc<str>) -> bool {
         false
     }
 }
-fn job_names_25() -> Rc<UH3> {
+fn job_names_25() -> Rc<UH2> {
     let mut v0: Rc<str> = jobs_root_17();
     let mut v1: bool = directory_exists_27(v0.clone());
     let v2: bool = v1 == false;
     if v2 {
-        { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) }
+        { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) }
     } else {
         let v5: Result<Vec<std::string::String>, std::io::Error> = std::fs::read_dir(&*v0).map(|entries| entries.filter_map(|entry| entry.ok().map(|entry| entry.file_name().to_string_lossy().into_owned())).collect::<Vec<std::string::String>>());
         let mut v7: Vec<std::string::String> = v5.unwrap();
-        let v8: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
+        let v8: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
         let v10: bool = true; let _vec_fold_ = v7.into_iter().fold(v8, |acc, x| { //;
-        let v12: Rc<UH3> = acc;
+        let v12: Rc<UH2> = acc;
         let v14: std::string::String = x;
         let v16: Rc<str> = Rc::<str>::from(String::as_str(&v14));
-        let v18: Rc<UH3> = Rc::new(UH3::UH3_Cons(v16.clone(), v12.clone()));
+        let v18: Rc<UH2> = Rc::new(UH2::UH2_Cons(v16.clone(), v12.clone()));
         let v19: bool = true; v18 });
-        let v21: Rc<UH3> = _vec_fold_;
-        let v22: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
+        let v21: Rc<UH2> = _vec_fold_;
+        let v22: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
         method26(v21.clone(), v22.clone())
     }
 }
-fn chain_facts_22() -> Rc<UH2> {
-    let mut v0: Rc<UH3> = job_names_25();
-    let mut v1: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
+fn chain_facts_22() -> Rc<UH3> {
+    let mut v0: Rc<UH2> = job_names_25();
+    let mut v1: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
     method23(v0, v1)
 }
-fn method28(mut v0: Rc<UH2>, mut v1: Rc<UH1>) -> Rc<UH1> {
+fn method28(mut v0: Rc<UH3>, mut v1: Rc<UH1>) -> Rc<UH1> {
     loop {
         match &*v0 {
-            UH2::UH2_Cons(v2, v3, v4, v5) => {
+            UH3::UH3_Cons(v2, v3, v4, v5) => {
                 let v2: Rc<str> = v2.clone();
                 let v3: Rc<str> = v3.clone();
                 let v4: US3 = v4.clone();
-                let v5: Rc<UH2> = v5.clone();
+                let v5: Rc<UH3> = v5.clone();
                 let v8: Rc<UH1> = match &v4 {
                     US3::US3_JobMissing => {
                         let mut v6: US2 = US2::US2_ChainToMissing(v2.clone(), v3.clone());
@@ -633,7 +633,7 @@ fn method28(mut v0: Rc<UH2>, mut v1: Rc<UH1>) -> Rc<UH1> {
                 (v0, v1) = (v5.clone(), v8.clone());
                 continue;
             }
-            UH2::UH2_Nil => {
+            UH3::UH3_Nil => {
                 return v1.clone();
             }
         }
@@ -846,7 +846,7 @@ fn doctor_run_2(mut v0: Rc<dyn Fn() -> (bool, Rc<str>)>, mut v1: Rc<dyn Fn() -> 
     let v21: Rc<UH1> = method21(v19, v20);
     let v22: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
     let v23: Rc<UH1> = method21(v21, v22);
-    let v24: Rc<UH2> = chain_facts_22();
+    let v24: Rc<UH3> = chain_facts_22();
     let mut v25: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
     let mut v26: Rc<UH1> = method28(v24, v25);
     let v27: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };

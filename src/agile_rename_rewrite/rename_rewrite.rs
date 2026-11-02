@@ -322,18 +322,18 @@ fn dependent_line_3(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<st
         let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
         let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
         let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\"); } LIT.with(|lit| lit.clone()) };
-        let v51: Rc<str> = std::rc::Rc::<str>::from(v46.replace(&*v49, &v50));
+        let v51: Rc<str> = Rc::<str>::from(v46.replace(&*v49, &*v50));
         let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\""); } LIT.with(|lit| lit.clone()) };
-        let v53: Rc<str> = std::rc::Rc::<str>::from(v51.replace(&*v48, &v52));
+        let v53: Rc<str> = Rc::<str>::from(v51.replace(&*v48, &*v52));
         let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\n"); } LIT.with(|lit| lit.clone()) };
-        let v56: Rc<str> = std::rc::Rc::<str>::from(v53.replace(&*v54, &v55));
+        let v56: Rc<str> = Rc::<str>::from(v53.replace(&*v54, &*v55));
         let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
         let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\r"); } LIT.with(|lit| lit.clone()) };
-        let v59: Rc<str> = std::rc::Rc::<str>::from(v56.replace(&*v57, &v58));
+        let v59: Rc<str> = Rc::<str>::from(v56.replace(&*v57, &*v58));
         let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
         let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
-        let v62: Rc<str> = std::rc::Rc::<str>::from(v59.replace(&*v60, &v61));
+        let v62: Rc<str> = Rc::<str>::from(v59.replace(&*v60, &*v61));
         let mut v63: Rc<str> = std::rc::Rc::<str>::from([&*v48, &*v62, &*v48, &*v44, &*v44].concat());
         let v64: Rc<str> = std::rc::Rc::<str>::from(v0.get(0i32 as usize..v37 as usize).unwrap_or(""));
         let v65: Rc<str> = std::rc::Rc::<str>::from(v0.get(v39 as usize..v9 as usize).unwrap_or(""));
@@ -374,7 +374,7 @@ fn renamed_line_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32
         if v24 {
             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
             let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
-            let mut v27: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v25, &v26));
+            let mut v27: Rc<str> = Rc::<str>::from(v2.replace(&*v25, &*v26));
             let v28: Rc<str> = std::rc::Rc::<str>::from(v27.to_ascii_lowercase());
             let v29: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v11, &*v1, &*v12, &*v13].concat());
             let v30: i32 = (v29.clone().len() as i32);
@@ -394,7 +394,7 @@ fn renamed_line_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32
                 let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("planning_of_"); } LIT.with(|lit| lit.clone()) };
                 let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
                 let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
-                let mut v45: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v43, &v44));
+                let mut v45: Rc<str> = Rc::<str>::from(v2.replace(&*v43, &*v44));
                 let v46: Rc<str> = std::rc::Rc::<str>::from(v45.to_ascii_lowercase());
                 let v47: Rc<str> = std::rc::Rc::<str>::from([&*v42, &*v46, &*v13, &*v13, &*v13].concat());
                 let v48: Rc<str> = std::rc::Rc::<str>::from([&*v16, &*v11, &*v1, &*v12, &*v13].concat());
@@ -414,7 +414,7 @@ fn renamed_line_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32
                 if v60 {
                     let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
                     let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
-                    let mut v63: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v61, &v62));
+                    let mut v63: Rc<str> = Rc::<str>::from(v2.replace(&*v61, &*v62));
                     let v64: Rc<str> = std::rc::Rc::<str>::from(v63.to_ascii_lowercase());
                     let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("note_of_"); } LIT.with(|lit| lit.clone()) };
                     let v67: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v65, v64)), v62));

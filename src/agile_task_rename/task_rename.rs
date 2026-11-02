@@ -209,11 +209,11 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
                 } else {
                     let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
                     let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
-                    let mut v55: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v53, &v54));
+                    let mut v55: Rc<str> = Rc::<str>::from(v2.replace(&*v53, &*v54));
                     let v56: Rc<str> = std::rc::Rc::<str>::from(v55.to_ascii_lowercase());
                     let v57: bool = binding_declared_3(v21.clone(), v56.clone());
                     if v57 {
-                        let mut v58: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v53, &v54));
+                        let mut v58: Rc<str> = Rc::<str>::from(v2.replace(&*v53, &*v54));
                         let v59: Rc<str> = std::rc::Rc::<str>::from(v58.to_ascii_lowercase());
                         let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the name inl "); } LIT.with(|lit| lit.clone()) };
                         let v61: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v59));
@@ -228,12 +228,12 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
                         v69
                     } else {
                         let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("planning_of_"); } LIT.with(|lit| lit.clone()) };
-                        let mut v71: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v53, &v54));
+                        let mut v71: Rc<str> = Rc::<str>::from(v2.replace(&*v53, &*v54));
                         let v72: Rc<str> = std::rc::Rc::<str>::from(v71.to_ascii_lowercase());
                         let v73: Rc<str> = std::rc::Rc::<str>::from([&*v70, &*v72, &*v5, &*v5, &*v5].concat());
                         let v74: bool = binding_declared_3(v21.clone(), v73.clone());
                         if v74 {
-                            let mut v75: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v53, &v54));
+                            let mut v75: Rc<str> = Rc::<str>::from(v2.replace(&*v53, &*v54));
                             let v76: Rc<str> = std::rc::Rc::<str>::from(v75.to_ascii_lowercase());
                             let v77: Rc<str> = std::rc::Rc::<str>::from([&*v70, &*v76, &*v5, &*v5, &*v5].concat());
                             let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the name inl "); } LIT.with(|lit| lit.clone()) };

@@ -50,7 +50,7 @@ $rows = [IO.File]::ReadAllLines($manifest)
 $expected = @('op') + (@('patch-exact', 'value.txt', '{old}', '}new{', 'write') | ForEach-Object {
     [Convert]::ToHexString([Text.Encoding]::UTF8.GetBytes($_)).ToLowerInvariant()
 })
-if ($rows.Count -ne 2 -or $rows[0] -notin @("KIT-PLAN-IR`t1", "EOIE-PLAN-IR`t1") -or $rows[1] -cne ($expected -join "`t")) { throw "Plan payload changed.`n$($rows -join "`n")" }
+if ($rows.Count -ne 2 -or $rows[0] -cne "KIT-PLAN-IR`t1" -or $rows[1] -cne ($expected -join "`t")) { throw "Plan payload changed.`n$($rows -join "`n")" }
 $conditional = Fixture 'conditional-plan' @'
 inl main () : i32 =
     inl flag = $"true" : bool

@@ -71,7 +71,7 @@
                 |: MarkToken, at + width_at line at
             tokens_from line stop count ({ kind = kind; text = sm'.substring at (stop - at) line } :: found)
 
-:~ tokens_of (line : string) : list token = tokens_from line 0i32 (sm'.length line : i32) Nil
+:~ tokens_of (line : string) : list token = tokens_from line 0i32 (sm'.length line : i32) []
 
 := boolean_word (text : string) : bool = text = "true" || text = "false"
 := comparison_run (text : string) : bool =
@@ -87,7 +87,7 @@
 
 :~ ^ tokens_change (before : list token) (after : list token) (seen : change_kind) : change_kind =
     ?= before, after ?|
-    | Nil, Nil => seen
+    | [], [] => seen
     | (b :: before_rest), (a :: after_rest) =>
         tokens_change before_rest after_rest (? b.text = a.text ?> seen |: worse seen (token_change b a))
     | _ => ShapeChange

@@ -119,10 +119,10 @@
         ?= column.scope ?|
         | Some scope => group_in line scope "rest"
         | None => line
-    := counted (total : u64) (captures : mapm.hash_map string string) : u64 =
+    := counted (total : u64) (captures : map.hash_map string string) : u64 =
         ?= column.set ?|
         | None => total + 1u64
-        | Some set => ? in_set set (optionm'.default_value' "" (mapm.get "value" captures)) ?> total + 1u64 |: total
+        | Some set => ? in_set set (optionm'.default_value' "" (map.get "value" captures)) ?> total + 1u64 |: total
     ? scoped = "" ?> 0u64 |: sm'.regex_captures scoped column.pattern |> am'.vec_fold' counted 0u64
 
 :~ ^ counts_added (~line : string) (columns : list count_column) (counts : list u64) : list u64 =

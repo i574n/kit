@@ -13,22 +13,22 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
 struct Mut0 { l0: Rc<str> }
 #[derive(Clone)]
 enum US0 {
-    US0_LiteralChange,
-    US0_BooleanChange,
-    US0_ComparisonChange,
-    US0_ShapeChange,
-}
-#[derive(Clone)]
-enum US1 {
-    US1_WordToken,
-    US1_NumberToken,
-    US1_OperatorToken,
-    US1_MarkToken,
+    US0_WordToken,
+    US0_NumberToken,
+    US0_OperatorToken,
+    US0_MarkToken,
 }
 #[derive(Clone)]
 enum UH0 {
     UH0_Nil,
-    UH0_Cons(US1, Rc<str>, Rc<UH0>),
+    UH0_Cons(US0, Rc<str>, Rc<UH0>),
+}
+#[derive(Clone)]
+enum US1 {
+    US1_LiteralChange,
+    US1_BooleanChange,
+    US1_ComparisonChange,
+    US1_ShapeChange,
 }
 #[derive(Clone)]
 enum US2 {
@@ -52,21 +52,21 @@ fn format_real_4(mut v0: i32) -> Rc<str> {
     let v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
-fn token_change_9(mut v0: US1, mut v1: Rc<str>, mut v2: US1, mut v3: Rc<str>) -> US0 {
+fn token_change_9(mut v0: US0, mut v1: Rc<str>, mut v2: US0, mut v3: Rc<str>) -> US1 {
     match &v0 {
-        US1::US1_NumberToken => {
+        US0::US0_NumberToken => {
             match &v2 {
-                US1::US1_NumberToken => {
-                    US0::US0_LiteralChange
+                US0::US0_NumberToken => {
+                    US1::US1_LiteralChange
                 }
                 _ => {
-                    US0::US0_ShapeChange
+                    US1::US1_ShapeChange
                 }
             }
         }
-        US1::US1_OperatorToken => {
+        US0::US0_OperatorToken => {
             match &v2 {
-                US1::US1_OperatorToken => {
+                US0::US0_OperatorToken => {
                     let mut v19: bool = &*v1 == "<";
                     let v21: bool = if v19 {
                         true
@@ -158,19 +158,19 @@ fn token_change_9(mut v0: US1, mut v1: Rc<str>, mut v2: US1, mut v3: Rc<str>) ->
                         }
                     };
                     if v49 {
-                        US0::US0_ComparisonChange
+                        US1::US1_ComparisonChange
                     } else {
-                        US0::US0_ShapeChange
+                        US1::US1_ShapeChange
                     }
                 }
                 _ => {
-                    US0::US0_ShapeChange
+                    US1::US1_ShapeChange
                 }
             }
         }
-        US1::US1_WordToken => {
+        US0::US0_WordToken => {
             match &v2 {
-                US1::US1_WordToken => {
+                US0::US0_WordToken => {
                     let v7: bool = &*v1 == "true";
                     let mut v9: bool = if v7 {
                         true
@@ -190,63 +190,63 @@ fn token_change_9(mut v0: US1, mut v1: Rc<str>, mut v2: US1, mut v3: Rc<str>) ->
                         false
                     };
                     if v13 {
-                        US0::US0_BooleanChange
+                        US1::US1_BooleanChange
                     } else {
-                        US0::US0_ShapeChange
+                        US1::US1_ShapeChange
                     }
                 }
                 _ => {
-                    US0::US0_ShapeChange
+                    US1::US1_ShapeChange
                 }
             }
         }
         _ => {
-            US0::US0_ShapeChange
+            US1::US1_ShapeChange
         }
     }
 }
-fn tokens_change_8(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: US0) -> US0 {
+fn tokens_change_8(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: US1) -> US1 {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v5, v6, v7) => {
-                let v5: US1 = v5.clone();
+                let v5: US0 = v5.clone();
                 let mut v6: Rc<str> = v6.clone();
                 let v7: Rc<UH0> = v7.clone();
                 match &*v1 {
                     UH0::UH0_Cons(v8, v9, v10) => {
-                        let mut v8: US1 = v8.clone();
+                        let mut v8: US0 = v8.clone();
                         let mut v9: Rc<str> = v9.clone();
                         let mut v10: Rc<UH0> = v10.clone();
                         let mut v11: bool = &*v6 == &*v9;
-                        let v23: US0 = if v11 {
+                        let v23: US1 = if v11 {
                             v2.clone()
                         } else {
-                            let v12: US0 = token_change_9(v5.clone(), v6.clone(), v8.clone(), v9.clone());
+                            let v12: US1 = token_change_9(v5.clone(), v6.clone(), v8.clone(), v9.clone());
                             let v16: i32 = match &v12 {
-                                US0::US0_BooleanChange => {
+                                US1::US1_BooleanChange => {
                                     2i32
                                 }
-                                US0::US0_ComparisonChange => {
+                                US1::US1_ComparisonChange => {
                                     3i32
                                 }
-                                US0::US0_LiteralChange => {
+                                US1::US1_LiteralChange => {
                                     1i32
                                 }
-                                US0::US0_ShapeChange => {
+                                US1::US1_ShapeChange => {
                                     4i32
                                 }
                             };
                             let mut v20: i32 = match &v2 {
-                                US0::US0_BooleanChange => {
+                                US1::US1_BooleanChange => {
                                     2i32
                                 }
-                                US0::US0_ComparisonChange => {
+                                US1::US1_ComparisonChange => {
                                     3i32
                                 }
-                                US0::US0_LiteralChange => {
+                                US1::US1_LiteralChange => {
                                     1i32
                                 }
-                                US0::US0_ShapeChange => {
+                                US1::US1_ShapeChange => {
                                     4i32
                                 }
                             };
@@ -261,7 +261,7 @@ fn tokens_change_8(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: US0) -> US0 {
                         continue;
                     }
                     _ => {
-                        return US0::US0_ShapeChange;
+                        return US1::US1_ShapeChange;
                     }
                 }
             }
@@ -271,7 +271,7 @@ fn tokens_change_8(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: US0) -> US0 {
                         return v2.clone();
                     }
                     _ => {
-                        return US0::US0_ShapeChange;
+                        return US1::US1_ShapeChange;
                     }
                 }
             }
@@ -282,7 +282,7 @@ fn method12(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3, v4) => {
-                let v2: US1 = v2.clone();
+                let v2: US0 = v2.clone();
                 let mut v3: Rc<str> = v3.clone();
                 let v4: Rc<UH0> = v4.clone();
                 let v5: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v3.clone(), v1.clone()));
@@ -542,9 +542,9 @@ fn tokens_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) ->
                 } else {
                     false
                 };
-                let (mut v63, mut v64): (US1, i32) = if v23 {
+                let (mut v63, mut v64): (US0, i32) = if v23 {
                     let v24: i32 = number_end_14(v0.clone(), v1, v2);
-                    let v25: US1 = US1::US1_NumberToken;
+                    let v25: US0 = US0::US0_NumberToken;
                     (v25.clone(), v24)
                 } else {
                     let v26: bool = 65u32 <= v13;
@@ -580,7 +580,7 @@ fn tokens_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) ->
                     if v36 {
                         let v37: Rc<dyn Fn(u32) -> bool> = closure5();
                         let v38: i32 = run_end_15(v0.clone(), v1, v2, v37.clone());
-                        let v39: US1 = US1::US1_WordToken;
+                        let v39: US0 = US0::US0_WordToken;
                         (v39.clone(), v38)
                     } else {
                         let v40: bool = v13 == 60u32;
@@ -605,7 +605,7 @@ fn tokens_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) ->
                         if v46 {
                             let v47: Rc<dyn Fn(u32) -> bool> = closure6();
                             let v48: i32 = run_end_15(v0.clone(), v1, v2, v47.clone());
-                            let v49: US1 = US1::US1_OperatorToken;
+                            let v49: US0 = US0::US0_OperatorToken;
                             (v49.clone(), v48)
                         } else {
                             let v50: usize = ((v1) as usize);
@@ -615,7 +615,7 @@ fn tokens_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) ->
                             let mut v54: Option<i32> = v52.map(|x| v53(x));
                             let v56: i32 = v54.unwrap_or(1i32);
                             let v57: i32 = v1.wrapping_add(v56);
-                            let v58: US1 = US1::US1_MarkToken;
+                            let v58: US0 = US0::US0_MarkToken;
                             (v58.clone(), v57)
                         }
                     }
@@ -638,10 +638,10 @@ fn tokens_of_10(mut v0: Rc<str>) -> Rc<UH0> {
     let mut v3: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
     tokens_from_11(v0, v1, v2, v3)
 }
-fn line_change_7(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
+fn line_change_7(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
     let v2: Rc<UH0> = tokens_of_10(v0);
     let mut v3: Rc<UH0> = tokens_of_10(v1);
-    let v4: US0 = US0::US0_LiteralChange;
+    let v4: US1 = US1::US1_LiteralChange;
     tokens_change_8(v2, v3, v4)
 }
 fn method16(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
@@ -726,7 +726,7 @@ fn reviewed_lines_6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<RefCell<Vec<Rc
             let (mut v11, mut v12): (bool, Rc<str>) = reviewed_lines_6(v0.clone(), v1.clone(), v10, v3, v4.clone());
             (v11, v12)
         } else {
-            let v13: US0 = line_change_7(v7, v8.clone());
+            let v13: US1 = line_change_7(v7, v8.clone());
             let v14: i32 = v2.wrapping_add(1i32);
             let v15: Rc<str> = format_real_4(v14);
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("line "); } LIT.with(|lit| lit.clone()) };
@@ -734,19 +734,19 @@ fn reviewed_lines_6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<RefCell<Vec<Rc
             let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
             let mut v19: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v18));
             let v27: Rc<str> = match &v13 {
-                US0::US0_BooleanChange => {
+                US1::US1_BooleanChange => {
                     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("BOOLEAN"); } LIT.with(|lit| lit.clone()) };
                     v21
                 }
-                US0::US0_ComparisonChange => {
+                US1::US1_ComparisonChange => {
                     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("COMPARISON"); } LIT.with(|lit| lit.clone()) };
                     v22
                 }
-                US0::US0_LiteralChange => {
+                US1::US1_LiteralChange => {
                     let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("literal"); } LIT.with(|lit| lit.clone()) };
                     v20
                 }
-                US0::US0_ShapeChange => {
+                US1::US1_ShapeChange => {
                     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SHAPE"); } LIT.with(|lit| lit.clone()) };
                     v23
                 }
@@ -765,16 +765,16 @@ fn reviewed_lines_6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<RefCell<Vec<Rc
             let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v38));
             let v45: bool = if v3 {
                 let v43: i32 = match &v13 {
-                    US0::US0_BooleanChange => {
+                    US1::US1_BooleanChange => {
                         2i32
                     }
-                    US0::US0_ComparisonChange => {
+                    US1::US1_ComparisonChange => {
                         3i32
                     }
-                    US0::US0_LiteralChange => {
+                    US1::US1_LiteralChange => {
                         1i32
                     }
-                    US0::US0_ShapeChange => {
+                    US1::US1_ShapeChange => {
                         4i32
                     }
                 };

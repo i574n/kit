@@ -2,25 +2,25 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 #[derive(Clone)]
-enum US1 {
-    US1_JobPending,
-    US1_JobRunning,
+enum US0 {
+    US0_JobFinished(i32),
+    US0_JobTimedOut,
+    US0_JobStopped,
+    US0_JobSpawnFailed(Rc<str>),
+    US0_JobSkipped(Rc<str>),
+    US0_JobLost,
+    US0_JobMemoryCapped,
+    US0_JobExpiredInQueue,
 }
 #[derive(Clone)]
 enum US2 {
-    US2_JobFinished(i32),
-    US2_JobTimedOut,
-    US2_JobStopped,
-    US2_JobSpawnFailed(Rc<str>),
-    US2_JobSkipped(Rc<str>),
-    US2_JobLost,
-    US2_JobMemoryCapped,
-    US2_JobExpiredInQueue,
+    US2_JobPending,
+    US2_JobRunning,
 }
 #[derive(Clone)]
-enum US0 {
-    US0_Live(US1),
-    US0_Settled(US2),
+enum US1 {
+    US1_Live(US2),
+    US1_Settled(US0),
 }
 #[derive(Clone)]
 enum US3 {
@@ -49,15 +49,26 @@ enum US5 {
     US5_Some(Rc<str>),
     US5_None,
 }
-fn shared_summary_2(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn stderr_line_2(mut v0: Rc<str>) -> () {
+    eprintln!("{}", v0);
+    ()
+}
+fn rejected_1(mut v0: Rc<str>) -> i32 {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: job "); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v3: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v0, &*v2, &*v2, &*v2].concat());
+    stderr_line_2(v3);
+    2i32
+}
+fn shared_summary_4(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = kit_job_state::kit_job_summary(&*v0, &*v1);
     v2
 }
-fn stdout_line_3(mut v0: Rc<str>) -> () {
+fn stdout_line_5(mut v0: Rc<str>) -> () {
     println!("{}", v0);
     ()
 }
-fn started_code_1(mut v0: bool) -> i32 {
+fn started_code_3(mut v0: bool) -> i32 {
     let mut v3: Rc<str> = if v0 {
         let v1: Rc<str> = kit_job_launch::kit_job_start(true);
         v1.clone()
@@ -75,21 +86,10 @@ fn started_code_1(mut v0: bool) -> i32 {
     };
     if v7 {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run"); } LIT.with(|lit| lit.clone()) };
-        let v9: Rc<str> = shared_summary_2(v8.clone(), v5.clone());
-        stdout_line_3(v9.clone())
+        let v9: Rc<str> = shared_summary_4(v8.clone(), v5.clone());
+        stdout_line_5(v9.clone())
     };
     v4
-}
-fn stderr_line_6(mut v0: Rc<str>) -> () {
-    eprintln!("{}", v0);
-    ()
-}
-fn rejected_5(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: job "); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let mut v3: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v0, &*v2, &*v2, &*v2].concat());
-    stderr_line_6(v3);
-    2i32
 }
 fn joined_8(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(&*v1).to_string_lossy().as_ref());
@@ -110,7 +110,7 @@ fn directory_exists_10(mut v0: Rc<str>) -> bool {
     let v8: bool = v6.is_dir();
     v8
 }
-fn job_status_4() -> i32 {
+fn job_status_6() -> i32 {
     let v0: i32 = 3i32;
     let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job-"); } LIT.with(|lit| lit.clone()) };
@@ -122,57 +122,57 @@ fn job_status_4() -> i32 {
         false
     };
     if v6 {
-        let v7: Rc<str> = kit_job_host::kit_job_host_revive();
+        let v7: Rc<str> = kit_job_host_request::kit_job_host_revive();
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status"); } LIT.with(|lit| lit.clone()) };
-        let v9: Rc<str> = shared_summary_2(v8, v1.clone());
-        stdout_line_3(v9);
+        let v9: Rc<str> = shared_summary_4(v8, v1.clone());
+        stdout_line_5(v9);
         0i32
     } else {
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status: unknown job id "); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v12: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v1, &*v11, &*v11, &*v11].concat());
-        rejected_5(v12)
+        rejected_1(v12)
     }
 }
-fn settled_exit_13(mut v0: US2) -> i32 {
+fn settled_exit_13(mut v0: US0) -> i32 {
     match &v0 {
-        US2::US2_JobExpiredInQueue => {
+        US0::US0_JobExpiredInQueue => {
             75i32
         }
-        US2::US2_JobFinished(v1) => {
+        US0::US0_JobFinished(v1) => {
             let v1: i32 = *v1;
             v1
         }
-        US2::US2_JobLost => {
+        US0::US0_JobLost => {
             125i32
         }
-        US2::US2_JobMemoryCapped => {
+        US0::US0_JobMemoryCapped => {
             137i32
         }
-        US2::US2_JobSkipped(v3) => {
+        US0::US0_JobSkipped(v3) => {
             let mut v3: Rc<str> = v3.clone();
             125i32
         }
-        US2::US2_JobSpawnFailed(v2) => {
+        US0::US0_JobSpawnFailed(v2) => {
             let v2: Rc<str> = v2.clone();
             125i32
         }
-        US2::US2_JobStopped => {
+        US0::US0_JobStopped => {
             143i32
         }
-        US2::US2_JobTimedOut => {
+        US0::US0_JobTimedOut => {
             124i32
         }
     }
 }
-fn state_exit_12(mut v0: US0) -> i32 {
+fn state_exit_12(mut v0: US1) -> i32 {
     match &v0 {
-        US0::US0_Live(v1) => {
-            let v1: US1 = v1.clone();
+        US1::US1_Live(v1) => {
+            let v1: US2 = v1.clone();
             3i32
         }
-        US0::US0_Settled(v2) => {
-            let v2: US2 = v2.clone();
+        US1::US1_Settled(v2) => {
+            let v2: US0 = v2.clone();
             settled_exit_13(v2)
         }
     }
@@ -232,54 +232,54 @@ fn watched_caller_19() -> u64 {
         v0
     }
 }
-fn state_of_parts_23(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
+fn state_of_parts_23(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US1 {
     let mut v3: bool = &*v0 == "pending";
     if v3 {
-        let mut v4: US1 = US1::US1_JobPending;
-        US0::US0_Live(v4)
+        let mut v4: US2 = US2::US2_JobPending;
+        US1::US1_Live(v4)
     } else {
         let mut v6: bool = &*v0 == "running";
         if v6 {
-            let v7: US1 = US1::US1_JobRunning;
-            US0::US0_Live(v7)
+            let v7: US2 = US2::US2_JobRunning;
+            US1::US1_Live(v7)
         } else {
             let v9: bool = &*v0 == "finished";
             if v9 {
-                let v10: US2 = US2::US2_JobFinished(v1);
-                US0::US0_Settled(v10)
+                let v10: US0 = US0::US0_JobFinished(v1);
+                US1::US1_Settled(v10)
             } else {
                 let v12: bool = &*v0 == "timed-out";
                 if v12 {
-                    let v13: US2 = US2::US2_JobTimedOut;
-                    US0::US0_Settled(v13)
+                    let v13: US0 = US0::US0_JobTimedOut;
+                    US1::US1_Settled(v13)
                 } else {
                     let v15: bool = &*v0 == "stopped";
                     if v15 {
-                        let v16: US2 = US2::US2_JobStopped;
-                        US0::US0_Settled(v16)
+                        let v16: US0 = US0::US0_JobStopped;
+                        US1::US1_Settled(v16)
                     } else {
                         let v18: bool = &*v0 == "lost";
                         if v18 {
-                            let v19: US2 = US2::US2_JobLost;
-                            US0::US0_Settled(v19)
+                            let v19: US0 = US0::US0_JobLost;
+                            US1::US1_Settled(v19)
                         } else {
                             let v21: bool = &*v0 == "memory-capped";
                             if v21 {
-                                let v22: US2 = US2::US2_JobMemoryCapped;
-                                US0::US0_Settled(v22)
+                                let v22: US0 = US0::US0_JobMemoryCapped;
+                                US1::US1_Settled(v22)
                             } else {
                                 let v24: bool = &*v0 == "expired-in-queue";
                                 if v24 {
-                                    let v25: US2 = US2::US2_JobExpiredInQueue;
-                                    US0::US0_Settled(v25)
+                                    let v25: US0 = US0::US0_JobExpiredInQueue;
+                                    US1::US1_Settled(v25)
                                 } else {
                                     let v27: bool = &*v0 == "skipped";
                                     if v27 {
-                                        let v28: US2 = US2::US2_JobSkipped(v2.clone());
-                                        US0::US0_Settled(v28)
+                                        let v28: US0 = US0::US0_JobSkipped(v2.clone());
+                                        US1::US1_Settled(v28)
                                     } else {
-                                        let v30: US2 = US2::US2_JobSpawnFailed(v2);
-                                        US0::US0_Settled(v30)
+                                        let v30: US0 = US0::US0_JobSpawnFailed(v2);
+                                        US1::US1_Settled(v30)
                                     }
                                 }
                             }
@@ -290,18 +290,18 @@ fn state_of_parts_23(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
         }
     }
 }
-fn shared_state_22(mut v0: Rc<str>) -> US0 {
+fn shared_state_22(mut v0: Rc<str>) -> US1 {
     let (mut v1, mut v2, mut v3): (Rc<str>, i32, Rc<str>) = kit_job_state::kit_job_state_parts(&*v0);
     state_of_parts_23(v1, v2, v3)
 }
-fn state_settled_24(mut v0: US0) -> bool {
+fn state_settled_24(mut v0: US1) -> bool {
     match &v0 {
-        US0::US0_Live(v1) => {
-            let v1: US1 = v1.clone();
+        US1::US1_Live(v1) => {
+            let v1: US2 = v1.clone();
             false
         }
-        US0::US0_Settled(v2) => {
-            let v2: US2 = v2.clone();
+        US1::US1_Settled(v2) => {
+            let v2: US0 = v2.clone();
             true
         }
     }
@@ -310,9 +310,9 @@ fn process_alive_25(mut v0: u64) -> bool {
     let v1: bool = { #[cfg(windows)] fn alive(pid: u64) -> bool { unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; fn GetLastError() -> u32; } if pid == 0 { return true; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid as u32); if handle.is_null() { return GetLastError() == 5; } let running = WaitForSingleObject(handle, 0) == 258; CloseHandle(handle); running } } #[cfg(not(windows))] fn alive(pid: u64) -> bool { pid == 0 || std::os::unix::process::parent_id() as u64 == pid } alive(v0) };
     v1
 }
-fn waited_21(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> US0 {
+fn waited_21(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> US1 {
     loop {
-        let mut v3: US0 = shared_state_22(v0.clone());
+        let mut v3: US1 = shared_state_22(v0.clone());
         let mut v4: bool = state_settled_24(v3.clone());
         let v7: bool = if v4 {
             true
@@ -350,7 +350,7 @@ fn job_waited_11() -> i32 {
         false
     };
     if v6 {
-        let v7: Rc<str> = kit_job_host::kit_job_host_revive();
+        let v7: Rc<str> = kit_job_host_request::kit_job_host_revive();
         let v8: u64 = now_ms_14();
         let v9: i32 = argument_count_15();
         let v10: bool = v9 > 4i32;
@@ -363,16 +363,16 @@ fn job_waited_11() -> i32 {
         };
         let v15: u64 = v8.wrapping_add(v14);
         let v16: u64 = watched_caller_19();
-        let v17: US0 = waited_21(v1.clone(), v15, v16);
+        let v17: US1 = waited_21(v1.clone(), v15, v16);
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait"); } LIT.with(|lit| lit.clone()) };
-        let v19: Rc<str> = shared_summary_2(v18, v1.clone());
-        stdout_line_3(v19);
+        let v19: Rc<str> = shared_summary_4(v18, v1.clone());
+        stdout_line_5(v19);
         state_exit_12(v17)
     } else {
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("wait: unknown job id "); } LIT.with(|lit| lit.clone()) };
         let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v23: Rc<str> = std::rc::Rc::<str>::from([&*v21, &*v1, &*v22, &*v22, &*v22].concat());
-        rejected_5(v23)
+        rejected_1(v23)
     }
 }
 fn command_line_argument_26(mut v0: i32) -> Rc<str> {
@@ -452,68 +452,77 @@ fn job_run_0() -> i32 {
     };
     match &v41 {
         US4::US4_JobAfter => {
-            let v55: i32 = kit_job_rechain::kit_job_rechain_run();
-            v55
+            let v62: i32 = kit_job_rechain::kit_job_rechain_run();
+            v62
         }
         US4::US4_JobAmend => {
-            let v71: i32 = kit_job_control::kit_job_amend_run();
-            v71
+            let v78: i32 = kit_job_control::kit_job_amend_run();
+            v78
         }
         US4::US4_JobChain => {
-            let v56: i32 = command_line_argument_count_16();
-            let v57: bool = 2i32 < v56;
-            let v62: US5 = if v57 {
-                let v58: i32 = 2i32;
-                let v59: Rc<str> = command_line_argument_26(v58);
-                US5::US5_Some(v59.clone())
+            let v63: i32 = command_line_argument_count_16();
+            let v64: bool = 2i32 < v63;
+            let v69: US5 = if v64 {
+                let v65: i32 = 2i32;
+                let v66: Rc<str> = command_line_argument_26(v65);
+                US5::US5_Some(v66.clone())
             } else {
                 US5::US5_None
             };
-            let v66: Rc<str> = match &v62 {
+            let v73: Rc<str> = match &v69 {
                 US5::US5_None => {
-                    let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v64.clone()
+                    let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    v71.clone()
                 }
-                US5::US5_Some(v63) => {
-                    let v63: Rc<str> = v63.clone();
-                    v63.clone()
+                US5::US5_Some(v70) => {
+                    let v70: Rc<str> = v70.clone();
+                    v70.clone()
                 }
             };
-            let v67: bool = &*v66 == "--run-serial";
-            if v67 {
-                let v68: i32 = kit_job_serial::kit_job_serial_run();
-                v68
+            let v74: bool = &*v73 == "--run-serial";
+            if v74 {
+                let v75: i32 = kit_job_serial::kit_job_serial_run();
+                v75
             } else {
-                let v69: i32 = kit_job_chain::kit_job_chain_run();
-                v69
+                let v76: i32 = kit_job_chain::kit_job_chain_run();
+                v76
             }
         }
         US4::US4_JobDoctor => {
-            let v72: i32 = kit_jobs_doctor::kit_job_doctor_run();
-            v72
+            let v79: i32 = kit_jobs_doctor::kit_job_doctor_run();
+            v79
         }
         US4::US4_JobHost => {
-            let v49: i32 = kit_job_host::kit_job_host_run();
-            v49
+            let v49: i32 = 3i32;
+            let v50: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v49 as usize).unwrap_or_default());
+            let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
+            let v52: bool = v50.starts_with(&*v51);
+            if v52 {
+                let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job host is started by kit itself and takes no flags; see job --help"); } LIT.with(|lit| lit.clone()) };
+                rejected_1(v53.clone())
+            } else {
+                let v55: i32 = kit_job_host::kit_job_host_run();
+                v55
+            }
         }
         US4::US4_JobList => {
-            let v52: i32 = kit_job_control::kit_job_list_run();
-            v52
+            let v59: i32 = kit_job_control::kit_job_list_run();
+            v59
         }
         US4::US4_JobRun => {
             let v44: bool = true;
-            started_code_1(v44)
+            started_code_3(v44)
         }
         US4::US4_JobStart => {
             let v42: bool = false;
-            started_code_1(v42)
+            started_code_3(v42)
         }
         US4::US4_JobStatus => {
-            job_status_4()
+            job_status_6()
         }
         US4::US4_JobStop => {
-            let v54: i32 = kit_job_control::kit_job_stop_run();
-            v54
+            let v61: i32 = kit_job_control::kit_job_stop_run();
+            v61
         }
         US4::US4_JobSupervise => {
             let v46: i32 = 3i32;
@@ -522,12 +531,12 @@ fn job_run_0() -> i32 {
             v48
         }
         US4::US4_JobTail => {
-            let v53: i32 = kit_job_control::kit_job_tail_run();
-            v53
+            let v60: i32 = kit_job_control::kit_job_tail_run();
+            v60
         }
         US4::US4_JobUnknown => {
-            let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job doctor [--env] (audits kit processes, job files and after-chains; --env also compares a detached job's environment with this shell's; exit 1 on a finding) | job after <queued-id> <predecessor-id> [--ok] (re-points a job still waiting on --after/--after-ok; label, timeout, gate and command are kept) | job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one and prints every id; --serial runs the links in order inside one job, so waiting links hold no process) | job start [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] [--settle-ms <n>] <label> <timeout-ms> <program> [args...] (the cap covers the whole job tree; reaching it stops the job as memory-capped, exit 137; a plain start without --after watches the job for --settle-ms, default 2000, 0 skips, and a job that already settled badly prints 'job start failed' with its state, exit and detail and exits with that code) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for long runs from an agent shell that can be reaped, use job start plus a background job wait) | job status <id> | job wait <id> [max-ms, default until it settles] | job list [count] | job tail <id> [lines] | job stop <id> | job amend <id> --timeout <ms> (a queued job only; the limit is read when its child starts)"); } LIT.with(|lit| lit.clone()) };
-            rejected_5(v73.clone())
+            let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job doctor [--env] (audits kit processes, job files and after-chains; --env also compares a detached job's environment with this shell's; exit 1 on a finding) | job after <queued-id> <predecessor-id> [--ok] (re-points a job still waiting on --after/--after-ok; label, timeout, gate and command are kept) | job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job after the previous one and prints every id; --serial runs the links in order inside one job, so waiting links hold no process) | job start [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] [--settle-ms <n>] <label> <timeout-ms> <program> [args...] (the cap covers the whole job tree; reaching it stops the job as memory-capped, exit 137; a plain start without --after watches the job for --settle-ms, default 2000, 0 skips, and a job that already settled badly prints 'job start failed' with its state, exit and detail and exits with that code) | job run [--after <id>|--after-ok <id>] [--heavy|--compile] [--max-private-mb <n>] [--slot-within <minutes>] [--done-within <minutes>] [--min-free-mb <n>] [--quiet [--quiet-hold <min>] [--quiet-wait <min>]] <label> <timeout-ms> <program> [args...] (supervises in this process, so the job's processes stay in the caller's tree and end with it; exits with the job's code; for long runs from an agent shell that can be reaped, use job start plus a background job wait) | job status <id> | job wait <id> [max-ms, default until it settles] | job list [count] | job tail <id> [lines] | job stop <id> | job amend <id> --timeout <ms> (a queued job only; the limit is read when its child starts)"); } LIT.with(|lit| lit.clone()) };
+            rejected_1(v80.clone())
         }
         US4::US4_JobWait => {
             job_waited_11()

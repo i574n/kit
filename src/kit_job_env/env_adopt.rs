@@ -371,7 +371,7 @@ fn environment_restored_9(mut v0: Rc<str>, mut v1: Rc<str>) -> () {
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v0));
     let v4: Rc<str> = Rc::<str>::from(v3.to_lowercase());
     let v5: bool = cfg!(windows);
-    let v38: Rc<UH0> = if v5 {
+    let v26: Rc<UH0> = if v5 {
         let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("PATH"); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SystemRoot"); } LIT.with(|lit| lit.clone()) };
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("TEMP"); } LIT.with(|lit| lit.clone()) };
@@ -389,43 +389,31 @@ fn environment_restored_9(mut v0: Rc<str>, mut v1: Rc<str>) -> () {
         Rc::new(UH0::UH0_Cons(v6.clone(), v19.clone()))
     } else {
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("PATH"); } LIT.with(|lit| lit.clone()) };
-        let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SystemRoot"); } LIT.with(|lit| lit.clone()) };
-        let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("TEMP"); } LIT.with(|lit| lit.clone()) };
-        let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("TMP"); } LIT.with(|lit| lit.clone()) };
-        let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("USERPROFILE"); } LIT.with(|lit| lit.clone()) };
-        let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("LOCALAPPDATA"); } LIT.with(|lit| lit.clone()) };
-        let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("APPDATA"); } LIT.with(|lit| lit.clone()) };
-        let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("HOME"); } LIT.with(|lit| lit.clone()) };
-        let v29: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-        let v30: Rc<UH0> = Rc::new(UH0::UH0_Cons(v28.clone(), v29.clone()));
-        let v31: Rc<UH0> = Rc::new(UH0::UH0_Cons(v27.clone(), v30.clone()));
-        let v32: Rc<UH0> = Rc::new(UH0::UH0_Cons(v26.clone(), v31.clone()));
-        let v33: Rc<UH0> = Rc::new(UH0::UH0_Cons(v25.clone(), v32.clone()));
-        let v34: Rc<UH0> = Rc::new(UH0::UH0_Cons(v24.clone(), v33.clone()));
-        let mut v35: Rc<UH0> = Rc::new(UH0::UH0_Cons(v23.clone(), v34.clone()));
-        let mut v36: Rc<UH0> = Rc::new(UH0::UH0_Cons(v22.clone(), v35.clone()));
-        Rc::new(UH0::UH0_Cons(v21.clone(), v36.clone()))
+        let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("HOME"); } LIT.with(|lit| lit.clone()) };
+        let v23: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+        let v24: Rc<UH0> = Rc::new(UH0::UH0_Cons(v22.clone(), v23.clone()));
+        Rc::new(UH0::UH0_Cons(v21.clone(), v24.clone()))
     };
-    let mut v39: bool = &*v0 != "";
-    let v42: bool = if v39 {
-        let mut v40: bool = true;
-        method13(v2.clone(), v4.clone(), v38.clone(), v40)
+    let v27: bool = &*v0 != "";
+    let v30: bool = if v27 {
+        let v28: bool = true;
+        method13(v2.clone(), v4.clone(), v26.clone(), v28)
     } else {
         false
     };
-    let v43: bool = v42 == false;
-    if v43 {
+    let v31: bool = v30 == false;
+    if v31 {
         std::panic::panic_any::<std::string::String>(format!("{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("env.environment_restored: refusing an empty or truncated snapshot"); } LIT.with(|lit| lit.clone()) }))
     };
-    let v44: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
-    let v45: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v44).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
-    let v46: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
-    let v47: Rc<str> = environment_snapshot_14();
-    let v48: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v47.split(&*v46).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
-    let v49: i32 = 0i32;
-    removed_extras_15(v48.clone(), v45.clone(), v1.clone(), v49);
-    let v50: i32 = 0i32;
-    set_changed_10(v45.clone(), v48.clone(), v50)
+    let v32: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
+    let v33: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v32).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+    let v34: Rc<str> = environment_snapshot_14();
+    let mut v35: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
+    let mut v36: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v34.split(&*v35).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+    let v37: i32 = 0i32;
+    removed_extras_15(v36.clone(), v33.clone(), v1.clone(), v37);
+    let v38: i32 = 0i32;
+    set_changed_10(v33.clone(), v36.clone(), v38)
 }
 fn file_exists_16(mut v0: Rc<str>) -> bool {
     let v2: &str = &*v0;

@@ -3,34 +3,34 @@ use std::cell::RefCell;
 use std::rc::Rc;
 #[derive(Clone)]
 enum US0 {
-    US0_Apply,
-    US0_Preview,
+    US0_Succeeded,
+    US0_Failed,
 }
 #[derive(Clone)]
 enum US1 {
-    US1_Succeeded,
-    US1_Failed,
+    US1_Edits,
+    US1_Reads,
+    US1_Facts,
+    US1_Runs,
+    US1_Writes,
+    US1_Git,
+    US1_Jobs,
+    US1_Labs,
 }
 #[derive(Clone)]
 enum US2 {
-    US2_Edits,
-    US2_Reads,
-    US2_Facts,
-    US2_Runs,
-    US2_Writes,
-    US2_Git,
-    US2_Jobs,
-    US2_Labs,
+    US2_Apply,
+    US2_Preview,
 }
 #[derive(Clone)]
 enum US3 {
     US3_CompileRejected(Rc<str>),
-    US3_Delegated(US2, Rc<str>),
+    US3_Delegated(US1, Rc<str>),
     US3_Split(Rc<str>, Rc<str>),
 }
 #[derive(Clone)]
 enum US4 {
-    US4_Some(US2),
+    US4_Some(US1),
     US4_None,
 }
 #[derive(Clone)]
@@ -51,13 +51,13 @@ fn clock_text_5() -> Rc<str> {
     let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_3(mut v0: US1, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_3(mut v0: US0, mut v1: Rc<str>, mut v2: u64) -> () {
     let mut v6: Rc<str> = match &v0 {
-        US1::US1_Failed => {
+        US0::US0_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
             v4
         }
-        US1::US1_Succeeded => {
+        US0::US0_Succeeded => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
             v3
         }
@@ -75,42 +75,42 @@ fn rejected_2(mut v0: Rc<str>, mut v1: u64) -> i32 {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v0));
     println!("{}", v3);
-    let v4: US1 = US1::US1_Failed;
+    let v4: US0 = US0::US0_Failed;
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files 0  replacements 0"); } LIT.with(|lit| lit.clone()) };
     receipt_line_3(v4, v5, v1);
     2i32
 }
-fn delegated_run_7(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
+fn delegated_run_7(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
     match &v0 {
-        US2::US2_Edits => {
+        US1::US1_Edits => {
             let v3: i32 = kit_do_edit::kit_do_edit_run(&*v1, &*v2);
             v3
         }
-        US2::US2_Facts => {
+        US1::US1_Facts => {
             let v5: i32 = kit_do_facts::kit_do_facts_run(&*v1, &*v2);
             v5
         }
-        US2::US2_Git => {
+        US1::US1_Git => {
             let v8: i32 = kit_do_git::kit_do_git_run(&*v1, &*v2);
             v8
         }
-        US2::US2_Jobs => {
+        US1::US1_Jobs => {
             let v9: i32 = kit_do_jobs::kit_do_jobs_run(&*v1, &*v2);
             v9
         }
-        US2::US2_Labs => {
+        US1::US1_Labs => {
             let v10: i32 = kit_do_lab::kit_do_lab_run(&*v1, &*v2);
             v10
         }
-        US2::US2_Reads => {
+        US1::US1_Reads => {
             let v4: i32 = kit_do_read::kit_do_read_run(&*v1, &*v2);
             v4
         }
-        US2::US2_Runs => {
+        US1::US1_Runs => {
             let mut v6: i32 = kit_do_process::kit_do_process_run(&*v1, &*v2);
             v6
         }
-        US2::US2_Writes => {
+        US1::US1_Writes => {
             let v7: i32 = kit_do_write::kit_do_write_run(&*v1, &*v2);
             v7
         }
@@ -127,22 +127,22 @@ fn dry_headed_9(mut v0: Rc<str>) -> Rc<str> {
     let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v6));
     v8
 }
-fn previewed_run_8(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> i32 {
+fn previewed_run_8(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> i32 {
     match &v0 {
-        US2::US2_Edits => {
-            let v4: US2 = US2::US2_Edits;
+        US1::US1_Edits => {
+            let v4: US1 = US1::US1_Edits;
             let v5: Rc<str> = dry_headed_9(v2.clone());
             delegated_run_7(v4, v1.clone(), v5)
         }
-        US2::US2_Facts => {
-            let v9: US2 = US2::US2_Facts;
+        US1::US1_Facts => {
+            let v9: US1 = US1::US1_Facts;
             delegated_run_7(v9, v1.clone(), v2.clone())
         }
-        US2::US2_Reads => {
-            let v7: US2 = US2::US2_Reads;
+        US1::US1_Reads => {
+            let v7: US1 = US1::US1_Reads;
             delegated_run_7(v7, v1.clone(), v2.clone())
         }
-        US2::US2_Writes => {
+        US1::US1_Writes => {
             let v11: i32 = kit_do_file_steps::kit_do_writes_preview(&*v1, &*v2);
             v11
         }
@@ -171,42 +171,42 @@ fn field_at_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut
 fn program_family_named_16(mut v0: Rc<str>) -> US4 {
     let v1: bool = &*v0 == "edits";
     if v1 {
-        let v2: US2 = US2::US2_Edits;
+        let v2: US1 = US1::US1_Edits;
         US4::US4_Some(v2)
     } else {
         let v4: bool = &*v0 == "reads";
         if v4 {
-            let v5: US2 = US2::US2_Reads;
+            let v5: US1 = US1::US1_Reads;
             US4::US4_Some(v5)
         } else {
             let v7: bool = &*v0 == "facts";
             if v7 {
-                let v8: US2 = US2::US2_Facts;
+                let v8: US1 = US1::US1_Facts;
                 US4::US4_Some(v8)
             } else {
                 let v10: bool = &*v0 == "runs";
                 if v10 {
-                    let v11: US2 = US2::US2_Runs;
+                    let v11: US1 = US1::US1_Runs;
                     US4::US4_Some(v11)
                 } else {
                     let v13: bool = &*v0 == "writes";
                     if v13 {
-                        let v14: US2 = US2::US2_Writes;
+                        let v14: US1 = US1::US1_Writes;
                         US4::US4_Some(v14)
                     } else {
                         let v16: bool = &*v0 == "git";
                         if v16 {
-                            let v17: US2 = US2::US2_Git;
+                            let v17: US1 = US1::US1_Git;
                             US4::US4_Some(v17)
                         } else {
                             let v19: bool = &*v0 == "jobs";
                             if v19 {
-                                let v20: US2 = US2::US2_Jobs;
+                                let v20: US1 = US1::US1_Jobs;
                                 US4::US4_Some(v20)
                             } else {
                                 let v22: bool = &*v0 == "labs";
                                 if v22 {
-                                    let v23: US2 = US2::US2_Labs;
+                                    let v23: US1 = US1::US1_Labs;
                                     US4::US4_Some(v23)
                                 } else {
                                     US4::US4_None
@@ -219,15 +219,15 @@ fn program_family_named_16(mut v0: Rc<str>) -> US4 {
         }
     }
 }
-fn program_family_of_15(mut v0: Rc<str>) -> US2 {
+fn program_family_of_15(mut v0: Rc<str>) -> US1 {
     let v1: Rc<str> = kit_do_verbs::kit_do_program_family(&*v0);
     let v2: US4 = program_family_named_16(v1);
     match &v2 {
         US4::US4_None => {
-            US2::US2_Edits
+            US1::US1_Edits
         }
         US4::US4_Some(v3) => {
-            let v3: US2 = v3.clone();
+            let v3: US1 = v3.clone();
             v3
         }
     }
@@ -244,18 +244,18 @@ fn program_decoded_11(mut v0: Rc<str>) -> US3 {
     let v5: Rc<str> = field_at_14(v2.clone(), v3, v4);
     let mut v6: bool = &*v5 == "ok";
     if v6 {
-        let v7: US2 = program_family_of_15(v1.clone());
+        let v7: US1 = program_family_of_15(v1.clone());
         match &v7 {
-            US2::US2_Runs => {
+            US1::US1_Runs => {
                 let v8: bool = v2.iter().skip(1).any(|fields| fields.first().map(|kind| &**kind == "edit").unwrap_or(false));
-                let v11: US2 = if v8 {
-                    US2::US2_Edits
+                let v11: US1 = if v8 {
+                    US1::US1_Edits
                 } else {
-                    US2::US2_Runs
+                    US1::US1_Runs
                 };
                 US3::US3_Delegated(v11.clone(), v1.clone())
             }
-            US2::US2_Writes => {
+            US1::US1_Writes => {
                 let v13: bool = v2.iter().skip(1).any(|fields| fields.first().map(|kind| &**kind == "edit").unwrap_or(false));
                 if v13 {
                     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edit|except|replace|pattern|show"); } LIT.with(|lit| lit.clone()) };
@@ -265,7 +265,7 @@ fn program_decoded_11(mut v0: Rc<str>) -> US3 {
                     let v18: Rc<str> = records_by_kinds_17(v2.clone(), v14.clone(), v17);
                     US3::US3_Split(v16.clone(), v18.clone())
                 } else {
-                    let v20: US2 = US2::US2_Writes;
+                    let v20: US1 = US1::US1_Writes;
                     US3::US3_Delegated(v20.clone(), v1.clone())
                 }
             }
@@ -280,7 +280,7 @@ fn program_decoded_11(mut v0: Rc<str>) -> US3 {
         US3::US3_CompileRejected(v28.clone())
     }
 }
-fn program_run_1(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
+fn program_run_1(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
     let v3: u64 = now_ms_10();
     let v4: US3 = program_decoded_11(v2);
     match &v4 {
@@ -289,13 +289,13 @@ fn program_run_1(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
             rejected_2(v5, v3)
         }
         US3::US3_Delegated(v7, v8) => {
-            let v7: US2 = v7.clone();
+            let v7: US1 = v7.clone();
             let v8: Rc<str> = v8.clone();
             match &v0 {
-                US0::US0_Apply => {
+                US2::US2_Apply => {
                     delegated_run_7(v7.clone(), v1.clone(), v8.clone())
                 }
-                US0::US0_Preview => {
+                US2::US2_Preview => {
                     previewed_run_8(v7, v1.clone(), v8, v3)
                 }
             }
@@ -304,19 +304,19 @@ fn program_run_1(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
             let v13: Rc<str> = v13.clone();
             let v14: Rc<str> = v14.clone();
             match &v0 {
-                US0::US0_Apply => {
-                    let v15: US2 = US2::US2_Edits;
+                US2::US2_Apply => {
+                    let v15: US1 = US1::US1_Edits;
                     let v16: i32 = delegated_run_7(v15, v1.clone(), v13);
                     let v17: bool = v16 != 0i32;
                     if v17 {
                         v16
                     } else {
-                        let v18: US2 = US2::US2_Writes;
+                        let v18: US1 = US1::US1_Writes;
                         delegated_run_7(v18, v1.clone(), v14.clone())
                     }
                 }
-                US0::US0_Preview => {
-                    let v21: US2 = US2::US2_Writes;
+                US2::US2_Preview => {
+                    let v21: US1 = US1::US1_Writes;
                     previewed_run_8(v21, v1, v14, v3)
                 }
             }
@@ -410,16 +410,16 @@ fn do_run_0() -> i32 {
     let v3: i32 = 3i32;
     let v4: Rc<str> = argument_20(v3);
     let v5: bool = &*v4 == "--dry-run";
-    let v8: US0 = if v5 {
-        US0::US0_Preview
+    let v8: US2 = if v5 {
+        US2::US2_Preview
     } else {
-        US0::US0_Apply
+        US2::US2_Apply
     };
     let v10: i32 = match &v8 {
-        US0::US0_Apply => {
+        US2::US2_Apply => {
             3i32
         }
-        US0::US0_Preview => {
+        US2::US2_Preview => {
             4i32
         }
     };

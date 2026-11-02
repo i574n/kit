@@ -301,7 +301,7 @@
     ? dirs = "" ?>
         stderr_line (concat5 "kit error: standards found no Spiral packages; " (census_usage ()) "" "" "")
         2i32
-    |: census_report mode (census_walk mode dirs { packages = 0i32; regressions = 0i32; rows = ""; walked = Nil })
+    |: census_report mode (census_walk mode dirs { packages = 0i32; regressions = 0i32; rows = ""; walked = [] })
 
 := main () : i32 =
     !!!!Export("kit_census_run", ((\ () => census_run ()) : () -> i32))

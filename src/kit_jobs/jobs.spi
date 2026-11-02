@@ -193,7 +193,10 @@
     | JobSupervise =>
         := id = argument 3i32
         $'kit_job_supervise::kit_job_supervise(&*!id)' : i32
-    | JobHost => $'kit_job_host::kit_job_host_run()' : i32
+    | JobHost =>
+        ? sm'.starts_with "-" (argument 3i32)
+        ?> rejected "host is started by kit itself and takes no flags; see job --help"
+        |: $'kit_job_host::kit_job_host_run()' : i32
     | JobStatus => job_status ()
     | JobWait => job_waited ()
     | JobList => $'kit_job_control::kit_job_list_run()' : i32

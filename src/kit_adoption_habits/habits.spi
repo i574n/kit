@@ -80,7 +80,7 @@
 
 :~ ^ counted (commands : list string) (h : habit) (calls : u64) : u64 =
     ?= commands ?|
-    | Nil => calls
+    | [] => calls
     | (command :: rest) => counted rest h (? habit_in command h ?> calls + 1u64 |: calls)
 
 :~ habit_counts (commands : list string) : list habit_count =

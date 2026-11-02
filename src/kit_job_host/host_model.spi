@@ -32,11 +32,28 @@
 
 := request_suffix () : string = ".start"
 
-:~ host_step_of (live : u64) (idle_since : u64) (now : u64) (home : host_home) (owner_present : bool) : host_step =
+:| idle_policy =
+    | ExitAfter : u64
+    | NeverExit
+
+:= idle_policy_of (~text : string) : idle_policy =
+    ?= convert.try_convert (sm'.trim text) ?|
+    | Some seconds => ? seconds = 0u64 ?> NeverExit |: ExitAfter (seconds * 1000u64)
+    | None => ExitAfter (idle_limit_ms ())
+
+:= idle_reached (policy : idle_policy) (quiet_ms : u64) : bool =
+    ?= policy ?|
+    | ExitAfter limit => quiet_ms >= limit
+    | NeverExit => !-
+
+:~ host_step_of
+    (policy : idle_policy) (live : u64) (idle_since : u64) (now : u64) (home : host_home) (owner_present : bool)
+    : host_step
+    =
     ? owner_present = !- ?> (? live > 0u64 ?> HostDraining |: HostIdleExit)
     |? live > 0u64 ?> KeepServing
     |? home = HomeGone ?> HostIdleExit
-    |? now - idle_since >= idle_limit_ms () ?> HostIdleExit
+    |? idle_reached policy (now - idle_since) ?> HostIdleExit
     |: KeepServing
 
 :~ host_claim_of (recorded : u64) (own : u64) (recorded_alive : bool) : host_claim =
@@ -59,6 +76,25 @@
     | Unlimited => !+
     | AtMost n => live < n
 
+:| queue_verdict =
+    | StartNow
+    | HoldBack
+    | DropRequest
+
+:= queue_verdict_of (code : i32) : queue_verdict = ? code = 0i32 ?> StartNow |? code = 1i32 ?> HoldBack |: DropRequest
+
+:= admitted (cap : slot_cap) (live : u64) (verdict : queue_verdict) : queue_verdict =
+    ? verdict = StartNow && may_take cap live = !- ?> HoldBack |: verdict
+
+:== host_terms =
+    {
+        home : string
+        owner_pid : u64
+        owner_start : u64
+        policy : idle_policy
+        cap : slot_cap
+    }
+
 :~ request_name (~id : string) : string = id ++# request_suffix ()
 
 :~ request_id (~name : string) : string = sm'.trim_end_suffix (request_suffix ()) name
@@ -68,14 +104,26 @@
     |? now >= deadline ?> Some SupervisorLate
     |: None
 
+:= unset () : idle_policy = idle_policy_of ""
+
+///> rust
+:# a_host_idle_policy_reads_seconds_and_zero_means_never =
+    testing.expect (unset () = ExitAfter 600000u64) "unset keeps the ten-minute idle exit"
+    testing.expect (idle_policy_of "0" = NeverExit && idle_policy_of " 30 " = ExitAfter 30000u64) "0 never exits"
+    testing.expect (host_step_of NeverExit 0u64 0u64 3600000u64 HomePresent !+ = KeepServing) "a pod host stays up"
+    testing.expect (host_step_of NeverExit 0u64 0u64 1000u64 HomePresent !- = HostIdleExit) "its owner still ends it"
 
 ///> rust
 :# an_idle_host_exits_only_after_ten_quiet_minutes_without_children =
-    testing.expect (host_step_of 1u64 0u64 900000u64 HomePresent !+ = KeepServing) "a live supervisor keeps the host"
     testing.expect
-        (host_step_of 0u64 1000u64 300000u64 HomePresent !+ = KeepServing)
+        (host_step_of (unset ()) 1u64 0u64 900000u64 HomePresent !+ = KeepServing)
+        "a live supervisor keeps the host"
+    testing.expect
+        (host_step_of (unset ()) 0u64 1000u64 300000u64 HomePresent !+ = KeepServing)
         "five quiet minutes are not enough"
-    testing.expect (host_step_of 0u64 1000u64 601000u64 HomePresent !+ = HostIdleExit) "ten quiet minutes end the host"
+    testing.expect
+        (host_step_of (unset ()) 0u64 1000u64 601000u64 HomePresent !+ = HostIdleExit)
+        "ten quiet minutes end the host"
 
 ///> rust
 :# a_slot_cap_holds_new_requests_while_the_machine_is_full =
@@ -83,18 +131,27 @@
     testing.expect (slot_cap_of " 1 " = AtMost 1u64 && slot_cap_of "two" = Unlimited) "a whole number caps"
     testing.expect (may_take (AtMost 1u64) 0u64 && may_take (AtMost 1u64) 1u64 = !-) "one slot: the second waits"
     testing.expect (may_take Unlimited 50u64) "no cap takes every request"
+    testing.expect (admitted (AtMost 1u64) 1u64 StartNow = HoldBack) "a full machine holds a ready job"
+    testing.expect (admitted (AtMost 2u64) 1u64 StartNow = StartNow) "a free slot starts it"
+    testing.expect (admitted (AtMost 1u64) 1u64 DropRequest = DropRequest) "the cap never revives a dropped job"
 
 ///> rust
 :# a_host_whose_jobs_home_was_removed_exits_once_its_children_end =
     testing.expect
-        (host_step_of 0u64 1000u64 2000u64 HomeGone !+ = HostIdleExit)
+        (host_step_of (unset ()) 0u64 1000u64 2000u64 HomeGone !+ = HostIdleExit)
         "a removed home ends an idle host at once"
-    testing.expect (host_step_of 1u64 1000u64 2000u64 HomeGone !+ = KeepServing) "a running supervisor still keeps it"
+    testing.expect
+        (host_step_of (unset ()) 1u64 1000u64 2000u64 HomeGone !+ = KeepServing)
+        "a running supervisor still keeps it"
 
 ///> rust
 :# a_host_drains_when_its_owner_ends =
-    testing.expect (host_step_of 2u64 0u64 1000u64 HomePresent !- = HostDraining) "running children finish first"
-    testing.expect (host_step_of 0u64 0u64 1000u64 HomePresent !- = HostIdleExit) "with no children left it exits"
+    testing.expect
+        (host_step_of (unset ()) 2u64 0u64 1000u64 HomePresent !- = HostDraining)
+        "running children finish first"
+    testing.expect
+        (host_step_of (unset ()) 0u64 0u64 1000u64 HomePresent !- = HostIdleExit)
+        "with no children left it exits"
 
 ///> rust
 :# one_host_serves_an_owner =

@@ -172,12 +172,12 @@ fn filters_from_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<st
                     let v66: Rc<str> = if v60 {
                         v8.clone()
                     } else {
-                        let v61: bool = &*v8 == "";
+                        let mut v61: bool = &*v8 == "";
                         if v61 {
                             v55.clone()
                         } else {
                             let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                            let mut v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                            let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                             let v64: Rc<str> = std::rc::Rc::<str>::from([&*v55, &*v62, &*v8, &*v63, &*v63].concat());
                             v64.clone()
                         }
@@ -646,140 +646,139 @@ fn plain_query_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
         US0::US0_TableLoaded(v12.clone())
     };
     match &v14 {
-        US0::US0_TableLoaded(v19) => {
-            let v19: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = v19.clone();
-            let (mut v20, mut v21): (Rc<UH0>, Rc<str>) = filters_from_2(v19.clone(), v1.clone());
-            let v22: bool = &*v2 == "";
-            let (mut v28, mut v29): (Rc<UH1>, Rc<str>) = if v22 {
-                let v23: i32 = (v19).get(0i32 as usize).map_or(0, |r| r.len()) as i32;
-                let v24: i32 = 0i32;
-                let v25: Rc<UH1> = all_columns_4(v23, v24);
-                (v25.clone(), v21.clone())
+        US0::US0_TableLoaded(v18) => {
+            let v18: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = v18.clone();
+            let (mut v19, mut v20): (Rc<UH0>, Rc<str>) = filters_from_2(v18.clone(), v1.clone());
+            let v21: bool = &*v2 == "";
+            let (mut v27, mut v28): (Rc<UH1>, Rc<str>) = if v21 {
+                let v22: i32 = (v18).get(0i32 as usize).map_or(0, |r| r.len()) as i32;
+                let v23: i32 = 0i32;
+                let v24: Rc<UH1> = all_columns_4(v22, v23);
+                (v24.clone(), v20.clone())
             } else {
-                named_columns_5(v19.clone(), v2.clone(), v21.clone())
+                named_columns_5(v18.clone(), v2.clone(), v20.clone())
             };
-            let v30: bool = &*v3 == "";
-            let v32: i32 = if v30 {
+            let mut v29: bool = &*v3 == "";
+            let v31: i32 = if v29 {
                 -1i32
             } else {
-                let v31: i32 = (v19).first().and_then(|header| header.iter().position(|item| &**item == &*v3)).map(|index| index as i32).unwrap_or(-1);
-                v31
+                let v30: i32 = (v18).first().and_then(|header| header.iter().position(|item| &**item == &*v3)).map(|index| index as i32).unwrap_or(-1);
+                v30
             };
-            let v33: bool = &*v3 != "";
-            let v35: bool = if v33 {
-                let v34: bool = v32 < 0i32;
-                v34
+            let v32: bool = &*v3 != "";
+            let v34: bool = if v32 {
+                let v33: bool = v31 < 0i32;
+                v33
             } else {
                 false
             };
-            let v42: Rc<str> = if v35 {
-                let v36: bool = &*v29 == "";
-                if v36 {
+            let v41: Rc<str> = if v34 {
+                let v35: bool = &*v28 == "";
+                if v35 {
                     v3.clone()
                 } else {
-                    if v30 {
-                        v29.clone()
+                    if v29 {
+                        v28.clone()
                     } else {
-                        let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                        let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v39: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v37, &*v3, &*v38, &*v38].concat());
-                        v39.clone()
+                        let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+                        let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                        let v38: Rc<str> = std::rc::Rc::<str>::from([&*v28, &*v36, &*v3, &*v37, &*v37].concat());
+                        v38.clone()
                     }
                 }
             } else {
-                v29.clone()
+                v28.clone()
             };
-            let v43: bool = &*v42 != "";
-            if v43 {
-                let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown columns: "); } LIT.with(|lit| lit.clone()) };
-                let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v42));
-                let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (header: "); } LIT.with(|lit| lit.clone()) };
-                let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v46));
-                let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                let v49: Rc<str> = std::rc::Rc::<str>::from((v19).first().map(|header| header.iter().map(|item| &**item).collect::<Vec<_>>().join(&*v48)).unwrap_or_default().as_str());
-                let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v49));
-                let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
-                let v52: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v51));
-                let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-                let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v55: Rc<str> = std::rc::Rc::<str>::from([&*v53, &*v52, &*v54, &*v54, &*v54].concat());
-                eprintln!("{}", v55);
+            let v42: bool = &*v41 != "";
+            if v42 {
+                let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown columns: "); } LIT.with(|lit| lit.clone()) };
+                let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v41));
+                let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (header: "); } LIT.with(|lit| lit.clone()) };
+                let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v45));
+                let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+                let v48: Rc<str> = std::rc::Rc::<str>::from((v18).first().map(|header| header.iter().map(|item| &**item).collect::<Vec<_>>().join(&*v47)).unwrap_or_default().as_str());
+                let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v48));
+                let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
+                let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v50));
+                let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
+                let v53: Rc<str> = Rc::<str>::from(format!("{}{}", v52, v51));
+                eprintln!("{}", v53);
                 2i32
             } else {
-                let v56: bool = v32 >= 0i32;
-                if v56 {
-                    let v57: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = std::rc::Rc::new(std::cell::RefCell::new(std::collections::HashMap::new()));
-                    let v58: i32 = 1i32;
+                let v54: bool = v31 >= 0i32;
+                if v54 {
+                    let v55: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = std::rc::Rc::new(std::cell::RefCell::new(std::collections::HashMap::new()));
+                    let v56: i32 = 1i32;
+                    let v57: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
+                    let v58: Rc<UH2> = grouped_rows_6(v18.clone(), v19.clone(), v31, v55.clone(), v56, v57.clone());
                     let v59: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                    let v60: Rc<UH2> = grouped_rows_6(v19.clone(), v20.clone(), v32, v57.clone(), v58, v59.clone());
-                    let v61: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                    let v62: Rc<UH2> = method8(v57.clone(), v60.clone(), v61.clone());
-                    let mut v63: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-                    let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count"); } LIT.with(|lit| lit.clone()) };
-                    v63.borrow_mut().push(v64);
-                    v63.borrow_mut().push(v3);
-                    let v65: Rc<Vec<Rc<str>>> = Rc::new(v63.borrow().clone());
-                    let v66: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v65).as_ref().clone()));
-                    let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                    let v68: Rc<str> = Rc::<str>::from((*v66.borrow()).join(&*v67));
-                    println!("{}", v68);
-                    let v69: i32 = 0i32;
-                    let v70: i32 = printed_groups_12(v57.clone(), v62.clone(), v5, v69);
-                    let v71: bool = v8 == false;
-                    if v71 {
-                        let v72: i32 = 0i32;
-                        let v73: i32 = method13(v60.clone(), v72);
-                        let v74: Rc<str> = std::rc::Rc::<str>::from((v73).to_string().as_str());
-                        let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" groups="); } LIT.with(|lit| lit.clone()) };
-                        let v76: Rc<str> = Rc::<str>::from(format!("{}{}", v75, v74));
-                        let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shown="); } LIT.with(|lit| lit.clone()) };
+                    let v60: Rc<UH2> = method8(v55.clone(), v58.clone(), v59.clone());
+                    let mut v61: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+                    let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count"); } LIT.with(|lit| lit.clone()) };
+                    v61.borrow_mut().push(v62);
+                    v61.borrow_mut().push(v3);
+                    let v63: Rc<Vec<Rc<str>>> = Rc::new(v61.borrow().clone());
+                    let v64: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v63).as_ref().clone()));
+                    let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+                    let v66: Rc<str> = Rc::<str>::from((*v64.borrow()).join(&*v65));
+                    println!("{}", v66);
+                    let v67: i32 = 0i32;
+                    let v68: i32 = printed_groups_12(v55.clone(), v60.clone(), v5, v67);
+                    let v69: bool = v8 == false;
+                    if v69 {
+                        let v70: i32 = 0i32;
+                        let v71: i32 = method13(v58.clone(), v70);
+                        let v72: Rc<str> = std::rc::Rc::<str>::from((v71).to_string().as_str());
+                        let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" groups="); } LIT.with(|lit| lit.clone()) };
+                        let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v73, v72));
+                        let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shown="); } LIT.with(|lit| lit.clone()) };
+                        let v76: Rc<str> = Rc::<str>::from(format!("{}{}", v74, v75));
+                        let v77: Rc<str> = std::rc::Rc::<str>::from((v68).to_string().as_str());
                         let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v77));
-                        let v79: Rc<str> = std::rc::Rc::<str>::from((v70).to_string().as_str());
-                        let v80: Rc<str> = Rc::<str>::from(format!("{}{}", v78, v79));
-                        let v81: i32 = ((v19).len().max(1) - 1) as i32;
-                        let v82: i32 = 0i32;
-                        let v83: i32 = method14(v57.clone(), v60.clone(), v82);
-                        let v84: Rc<str> = std::rc::Rc::<str>::from((v81).to_string().as_str());
-                        let v85: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit table query ok total="); } LIT.with(|lit| lit.clone()) };
-                        let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v85, v84));
-                        let v87: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched="); } LIT.with(|lit| lit.clone()) };
-                        let v88: Rc<str> = Rc::<str>::from(format!("{}{}", v86, v87));
-                        let v89: Rc<str> = std::rc::Rc::<str>::from((v83).to_string().as_str());
-                        let v91: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v88, v89)), v80));
-                        println!("{}", v91);
+                        let v79: i32 = ((v18).len().max(1) - 1) as i32;
+                        let v80: i32 = 0i32;
+                        let v81: i32 = method14(v55.clone(), v58.clone(), v80);
+                        let v82: Rc<str> = std::rc::Rc::<str>::from((v79).to_string().as_str());
+                        let v83: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit table query ok total="); } LIT.with(|lit| lit.clone()) };
+                        let v84: Rc<str> = Rc::<str>::from(format!("{}{}", v83, v82));
+                        let v85: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched="); } LIT.with(|lit| lit.clone()) };
+                        let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v84, v85));
+                        let v87: Rc<str> = std::rc::Rc::<str>::from((v81).to_string().as_str());
+                        let v89: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v86, v87)), v78));
+                        println!("{}", v89);
                         ()
                     };
                     0i32
                 } else {
-                    let v92: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                    let v93: Rc<UH2> = method15(v19.clone(), v28.clone(), v92.clone());
-                    let v94: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-                    let v95: i32 = 0i32;
-                    let v96: i32 = method16(v94.clone(), v93.clone(), v95);
-                    let v97: Rc<Vec<Rc<str>>> = Rc::new(v94.borrow().clone());
-                    let v98: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v97).as_ref().clone()));
-                    let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                    let v100: Rc<str> = Rc::<str>::from((*v98.borrow()).join(&*v99));
-                    println!("{}", v100);
-                    let v101: i32 = 1i32;
+                    let v90: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
+                    let v91: Rc<UH2> = method15(v18.clone(), v27.clone(), v90.clone());
+                    let v92: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+                    let v93: i32 = 0i32;
+                    let v94: i32 = method16(v92.clone(), v91.clone(), v93);
+                    let v95: Rc<Vec<Rc<str>>> = Rc::new(v92.borrow().clone());
+                    let v96: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v95).as_ref().clone()));
+                    let v97: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+                    let v98: Rc<str> = Rc::<str>::from((*v96.borrow()).join(&*v97));
+                    println!("{}", v98);
+                    let v99: i32 = 1i32;
+                    let v100: i32 = 0i32;
+                    let v101: i32 = 0i32;
                     let v102: i32 = 0i32;
-                    let v103: i32 = 0i32;
-                    let v104: i32 = 0i32;
-                    let (mut v105, mut v106, mut v107): (i32, i32, i32) = listed_rows_17(v19.clone(), v20.clone(), v28.clone(), v5, v101, v102, v103, v104);
-                    let v108: bool = v8 == false;
-                    if v108 {
-                        let v109: Rc<str> = std::rc::Rc::<str>::from((v105).to_string().as_str());
-                        let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit table query ok total="); } LIT.with(|lit| lit.clone()) };
-                        let v111: Rc<str> = Rc::<str>::from(format!("{}{}", v110, v109));
-                        let v112: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched="); } LIT.with(|lit| lit.clone()) };
+                    let (mut v103, mut v104, mut v105): (i32, i32, i32) = listed_rows_17(v18.clone(), v19.clone(), v27.clone(), v5, v99, v100, v101, v102);
+                    let v106: bool = v8 == false;
+                    if v106 {
+                        let v107: Rc<str> = std::rc::Rc::<str>::from((v103).to_string().as_str());
+                        let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit table query ok total="); } LIT.with(|lit| lit.clone()) };
+                        let v109: Rc<str> = Rc::<str>::from(format!("{}{}", v108, v107));
+                        let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched="); } LIT.with(|lit| lit.clone()) };
+                        let v111: Rc<str> = Rc::<str>::from(format!("{}{}", v109, v110));
+                        let v112: Rc<str> = std::rc::Rc::<str>::from((v104).to_string().as_str());
                         let v113: Rc<str> = Rc::<str>::from(format!("{}{}", v111, v112));
-                        let v114: Rc<str> = std::rc::Rc::<str>::from((v106).to_string().as_str());
+                        let v114: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shown="); } LIT.with(|lit| lit.clone()) };
                         let v115: Rc<str> = Rc::<str>::from(format!("{}{}", v113, v114));
-                        let v116: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shown="); } LIT.with(|lit| lit.clone()) };
+                        let v116: Rc<str> = std::rc::Rc::<str>::from((v105).to_string().as_str());
                         let v117: Rc<str> = Rc::<str>::from(format!("{}{}", v115, v116));
-                        let v118: Rc<str> = std::rc::Rc::<str>::from((v107).to_string().as_str());
-                        let v119: Rc<str> = Rc::<str>::from(format!("{}{}", v117, v118));
-                        println!("{}", v119);
+                        println!("{}", v117);
                         ()
                     };
                     0i32
@@ -789,9 +788,8 @@ fn plain_query_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
         US0::US0_TableUnreadable(v15) => {
             let v15: Rc<str> = v15.clone();
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-            let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v18: Rc<str> = std::rc::Rc::<str>::from([&*v16, &*v15, &*v17, &*v17, &*v17].concat());
-            eprintln!("{}", v18);
+            let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v15));
+            eprintln!("{}", v17);
             2i32
         }
     }

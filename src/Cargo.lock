@@ -1178,6 +1178,7 @@ name = "kit-job-create"
 version = "0.0.0"
 dependencies = [
  "kit-job-host",
+ "kit-job-host-request",
  "kit-machine-windows",
 ]
 
@@ -1198,6 +1199,14 @@ name = "kit-job-host"
 version = "0.0.0"
 dependencies = [
  "kit-job-queue",
+ "kit-job-state",
+ "kit-os-launch",
+]
+
+[[package]]
+name = "kit-job-host-request"
+version = "0.0.0"
+dependencies = [
  "kit-job-state",
  "kit-os-launch",
 ]
@@ -1261,6 +1270,7 @@ dependencies = [
  "kit-job-control",
  "kit-job-gate",
  "kit-job-host",
+ "kit-job-host-request",
  "kit-job-launch",
  "kit-job-rechain",
  "kit-job-serial",

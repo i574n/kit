@@ -48,7 +48,7 @@
     |:
         file_system.read_dir_names directory
         |> resultm.unwrap'
-        |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) Nil
+        |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) []
 
 :~ scoop_apps () : string =
     optionm'.default_value "" (env.try_get_environment_variable "USERPROFILE") </> "scoop" </> "apps"

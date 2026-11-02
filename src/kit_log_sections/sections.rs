@@ -314,7 +314,24 @@ fn method10(mut v0: Rc<UH1>, mut v1: Rc<UH2>) -> Rc<UH2> {
         }
     }
 }
-fn method12(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
+fn method12(mut v0: Rc<UH4>, mut v1: Rc<UH4>) -> Rc<UH4> {
+    loop {
+        match &*v0 {
+            UH4::UH4_Cons(v2, v3, v4) => {
+                let v2: Rc<str> = v2.clone();
+                let mut v3: Rc<str> = v3.clone();
+                let v4: Rc<UH4> = v4.clone();
+                let v5: Rc<UH4> = Rc::new(UH4::UH4_Cons(v2.clone(), v3.clone(), v1.clone()));
+                (v0, v1) = (v4.clone(), v5.clone());
+                continue;
+            }
+            UH4::UH4_Nil => {
+                return v1.clone();
+            }
+        }
+    }
+}
+fn method13(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
     loop {
         match &*v0 {
             UH3::UH3_Cons(v2, v3) => {
@@ -326,22 +343,6 @@ fn method12(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
             }
             UH3::UH3_Nil => {
                 return v1.clone();
-            }
-        }
-    }
-}
-fn method13(mut v0: Rc<str>, mut v1: Rc<UH3>, mut v2: Rc<UH4>) -> Rc<UH4> {
-    loop {
-        match &*v1 {
-            UH3::UH3_Cons(v3, v4) => {
-                let mut v3: Rc<str> = v3.clone();
-                let v4: Rc<UH3> = v4.clone();
-                let v5: Rc<UH4> = Rc::new(UH4::UH4_Cons(v0.clone(), v3.clone(), v2.clone()));
-                (v0, v1, v2) = (v0.clone(), v4.clone(), v5.clone());
-                continue;
-            }
-            UH3::UH3_Nil => {
-                return v2.clone();
             }
         }
     }
@@ -362,19 +363,18 @@ fn method14(mut v0: Rc<str>, mut v1: Rc<UH3>, mut v2: Rc<UH4>) -> Rc<UH4> {
         }
     }
 }
-fn method15(mut v0: Rc<UH4>, mut v1: Rc<UH4>) -> Rc<UH4> {
+fn method15(mut v0: Rc<str>, mut v1: Rc<UH3>, mut v2: Rc<UH4>) -> Rc<UH4> {
     loop {
-        match &*v0 {
-            UH4::UH4_Cons(v2, v3, v4) => {
-                let v2: Rc<str> = v2.clone();
+        match &*v1 {
+            UH3::UH3_Cons(v3, v4) => {
                 let mut v3: Rc<str> = v3.clone();
-                let v4: Rc<UH4> = v4.clone();
-                let v5: Rc<UH4> = Rc::new(UH4::UH4_Cons(v2.clone(), v3.clone(), v1.clone()));
-                (v0, v1) = (v4.clone(), v5.clone());
+                let v4: Rc<UH3> = v4.clone();
+                let v5: Rc<UH4> = Rc::new(UH4::UH4_Cons(v0.clone(), v3.clone(), v2.clone()));
+                (v0, v1, v2) = (v0.clone(), v4.clone(), v5.clone());
                 continue;
             }
-            UH4::UH4_Nil => {
-                return v1.clone();
+            UH3::UH3_Nil => {
+                return v2.clone();
             }
         }
     }
@@ -395,8 +395,8 @@ fn placed_from_11(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<UH3>, mut v3: Rc<
                     US1::US1_Header(v14) => {
                         let mut v14: Rc<str> = v14.clone();
                         let v15: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
-                        let v16: Rc<UH3> = method12(v2.clone(), v15.clone());
-                        let v17: Rc<UH4> = method13(v14.clone(), v16.clone(), v3.clone());
+                        let v16: Rc<UH3> = method13(v2.clone(), v15.clone());
+                        let v17: Rc<UH4> = method14(v14.clone(), v16.clone(), v3.clone());
                         let v18: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
                         let v19: Rc<UH4> = Rc::new(UH4::UH4_Cons(v14.clone(), v10.clone(), v17.clone()));
                         (v0, v1, v2, v3) = (v11.clone(), v14.clone(), v18.clone(), v19.clone());
@@ -411,10 +411,10 @@ fn placed_from_11(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<UH3>, mut v3: Rc<
             }
             UH0::UH0_Nil => {
                 let v4: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
-                let v5: Rc<UH3> = method12(v2.clone(), v4.clone());
-                let mut v6: Rc<UH4> = method14(v1.clone(), v5.clone(), v3.clone());
+                let v5: Rc<UH3> = method13(v2.clone(), v4.clone());
+                let mut v6: Rc<UH4> = method15(v1.clone(), v5.clone(), v3.clone());
                 let mut v7: Rc<UH4> = { thread_local!{ static CASE: Rc<UH4> = Rc::new(UH4::UH4_Nil); } CASE.with(|case| case.clone()) };
-                return method15(v6.clone(), v7.clone());
+                return method12(v6.clone(), v7.clone());
             }
         }
     }
@@ -513,7 +513,25 @@ fn method20(mut v0: Rc<UH5>, mut v1: Rc<UH5>) -> Rc<UH5> {
         }
     }
 }
-fn method22(mut v0: Rc<str>, mut v1: Rc<UH2>) -> US6 {
+fn method22(mut v0: Rc<UH6>, mut v1: Rc<UH6>) -> Rc<UH6> {
+    loop {
+        match &*v0 {
+            UH6::UH6_Cons(v2, v3, v4, v5) => {
+                let v2: Rc<str> = v2.clone();
+                let mut v3: Rc<str> = v3.clone();
+                let v4: Rc<UH7> = v4.clone();
+                let v5: Rc<UH6> = v5.clone();
+                let mut v6: Rc<UH6> = Rc::new(UH6::UH6_Cons(v2.clone(), v3.clone(), v4.clone(), v1.clone()));
+                (v0, v1) = (v5.clone(), v6.clone());
+                continue;
+            }
+            UH6::UH6_Nil => {
+                return v1.clone();
+            }
+        }
+    }
+}
+fn method23(mut v0: Rc<str>, mut v1: Rc<UH2>) -> US6 {
     loop {
         match &*v1 {
             UH2::UH2_Cons(v3, v4, v5) => {
@@ -534,7 +552,7 @@ fn method22(mut v0: Rc<str>, mut v1: Rc<UH2>) -> US6 {
         }
     }
 }
-fn method23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH6>) -> US7 {
+fn method24(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH6>) -> US7 {
     loop {
         match &*v2 {
             UH6::UH6_Cons(v4, v5, v6, v7) => {
@@ -562,7 +580,7 @@ fn method23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH6>) -> US7 {
         }
     }
 }
-fn cell_of_25(mut v0: Rc<UH7>, mut v1: Rc<str>) -> US8 {
+fn cell_of_26(mut v0: Rc<UH7>, mut v1: Rc<str>) -> US8 {
     loop {
         match &*v0 {
             UH7::UH7_Cons(v3, v4, v5, v6) => {
@@ -584,14 +602,14 @@ fn cell_of_25(mut v0: Rc<UH7>, mut v1: Rc<str>) -> US8 {
         }
     }
 }
-fn method26(mut v0: Rc<str>, mut v1: Rc<UH7>, mut v2: Rc<UH7>) -> Rc<UH7> {
+fn method27(mut v0: Rc<str>, mut v1: Rc<UH7>, mut v2: Rc<UH7>) -> Rc<UH7> {
     match &*v1 {
         UH7::UH7_Cons(v3, v4, v5, v6) => {
             let mut v3: Rc<str> = v3.clone();
             let v4: i64 = *v4;
             let v5: Rc<str> = v5.clone();
             let mut v6: Rc<UH7> = v6.clone();
-            let mut v7: Rc<UH7> = method26(v0.clone(), v6, v2.clone());
+            let mut v7: Rc<UH7> = method27(v0.clone(), v6, v2.clone());
             let v8: bool = &*v3 != &*v0;
             if v8 {
                 Rc::new(UH7::UH7_Cons(v3, v4, v5, v7.clone()))
@@ -604,14 +622,14 @@ fn method26(mut v0: Rc<str>, mut v1: Rc<UH7>, mut v2: Rc<UH7>) -> Rc<UH7> {
         }
     }
 }
-fn method24(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: i64, mut v5: i64, mut v6: Rc<str>, mut v7: US2, mut v8: Rc<UH6>, mut v9: Rc<UH6>) -> Rc<UH6> {
+fn method25(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: i64, mut v5: i64, mut v6: Rc<str>, mut v7: US2, mut v8: Rc<UH6>, mut v9: Rc<UH6>) -> Rc<UH6> {
     match &*v8 {
         UH6::UH6_Cons(v10, v11, v12, v13) => {
             let v10: Rc<str> = v10.clone();
             let v11: Rc<str> = v11.clone();
             let v12: Rc<UH7> = v12.clone();
             let mut v13: Rc<UH6> = v13.clone();
-            let mut v14: Rc<UH6> = method24(v0.clone(), v1.clone(), v2.clone(), v3, v4, v5, v6.clone(), v7.clone(), v13, v9.clone());
+            let mut v14: Rc<UH6> = method25(v0.clone(), v1.clone(), v2.clone(), v3, v4, v5, v6.clone(), v7.clone(), v13, v9.clone());
             let v15: bool = &*v10 == &*v0;
             let v17: bool = if v15 {
                 let v16: bool = &*v11 == &*v2;
@@ -620,7 +638,7 @@ fn method24(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, 
                 false
             };
             let (mut v28, mut v29, mut v30): (Rc<str>, Rc<str>, Rc<UH7>) = if v17 {
-                let v18: US8 = cell_of_25(v12.clone(), v1.clone());
+                let v18: US8 = cell_of_26(v12.clone(), v1.clone());
                 let (mut v23, mut v24): (i64, Rc<str>) = match &v18 {
                     US8::US8_Some(v19, v20) => {
                         let v19: i64 = *v19;
@@ -639,7 +657,7 @@ fn method24(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, 
                     }
                 };
                 let v25: Rc<UH7> = { thread_local!{ static CASE: Rc<UH7> = Rc::new(UH7::UH7_Nil); } CASE.with(|case| case.clone()) };
-                let v26: Rc<UH7> = method26(v1.clone(), v12.clone(), v25);
+                let v26: Rc<UH7> = method27(v1.clone(), v12.clone(), v25);
                 let v27: Rc<UH7> = Rc::new(UH7::UH7_Cons(v1, v23, v24, v26));
                 (v10.clone(), v11.clone(), v27)
             } else {
@@ -649,24 +667,6 @@ fn method24(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, 
         }
         UH6::UH6_Nil => {
             v9
-        }
-    }
-}
-fn method27(mut v0: Rc<UH6>, mut v1: Rc<UH6>) -> Rc<UH6> {
-    loop {
-        match &*v0 {
-            UH6::UH6_Cons(v2, v3, v4, v5) => {
-                let v2: Rc<str> = v2.clone();
-                let mut v3: Rc<str> = v3.clone();
-                let v4: Rc<UH7> = v4.clone();
-                let v5: Rc<UH6> = v5.clone();
-                let mut v6: Rc<UH6> = Rc::new(UH6::UH6_Cons(v2.clone(), v3.clone(), v4.clone(), v1.clone()));
-                (v0, v1) = (v5.clone(), v6.clone());
-                continue;
-            }
-            UH6::UH6_Nil => {
-                return v1.clone();
-            }
         }
     }
 }
@@ -680,7 +680,7 @@ fn rows_from_21(mut v0: Rc<UH2>, mut v1: Rc<UH5>, mut v2: Rc<UH6>) -> Rc<UH6> {
                 let v8: Rc<str> = v8.clone();
                 let v9: i64 = *v9;
                 let v10: Rc<UH5> = v10.clone();
-                let v11: US6 = method22(v6.clone(), v0.clone());
+                let v11: US6 = method23(v6.clone(), v0.clone());
                 let v16: US2 = match &v11 {
                     US6::US6_None => {
                         US2::US2_First
@@ -691,7 +691,7 @@ fn rows_from_21(mut v0: Rc<UH2>, mut v1: Rc<UH5>, mut v2: Rc<UH6>) -> Rc<UH6> {
                         v13.clone()
                     }
                 };
-                let v17: US7 = method23(v5.clone(), v7.clone(), v2.clone());
+                let v17: US7 = method24(v5.clone(), v7.clone(), v2.clone());
                 let v27: Rc<UH6> = match &v17 {
                     US7::US7_None => {
                         let v18: Rc<UH7> = { thread_local!{ static CASE: Rc<UH7> = Rc::new(UH7::UH7_Nil); } CASE.with(|case| case.clone()) };
@@ -703,7 +703,7 @@ fn rows_from_21(mut v0: Rc<UH2>, mut v1: Rc<UH5>, mut v2: Rc<UH6>) -> Rc<UH6> {
                         let v22: Rc<str> = v22.clone();
                         let mut v23: Rc<UH7> = v23.clone();
                         let v24: Rc<UH6> = { thread_local!{ static CASE: Rc<UH6> = Rc::new(UH6::UH6_Nil); } CASE.with(|case| case.clone()) };
-                        method24(v5.clone(), v6.clone(), v7.clone(), v8.clone(), v9, v9, v8.clone(), v16.clone(), v2.clone(), v24.clone())
+                        method25(v5.clone(), v6.clone(), v7.clone(), v8.clone(), v9, v9, v8.clone(), v16.clone(), v2.clone(), v24.clone())
                     }
                 };
                 (v0, v1, v2) = (v0.clone(), v10.clone(), v27.clone());
@@ -711,7 +711,7 @@ fn rows_from_21(mut v0: Rc<UH2>, mut v1: Rc<UH5>, mut v2: Rc<UH6>) -> Rc<UH6> {
             }
             UH5::UH5_Nil => {
                 let mut v3: Rc<UH6> = { thread_local!{ static CASE: Rc<UH6> = Rc::new(UH6::UH6_Nil); } CASE.with(|case| case.clone()) };
-                return method27(v2.clone(), v3.clone());
+                return method22(v2.clone(), v3.clone());
             }
         }
     }
@@ -737,7 +737,7 @@ fn method29(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH7>, mut v3: Rc<UH2>, 
                 let v5: Rc<str> = v5.clone();
                 let mut v6: US2 = v6.clone();
                 let mut v7: Rc<UH2> = v7.clone();
-                let v8: US8 = cell_of_25(v2.clone(), v5.clone());
+                let v8: US8 = cell_of_26(v2.clone(), v5.clone());
                 let v20: Rc<str> = match &v8 {
                     US8::US8_None => {
                         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t-\t-"); } LIT.with(|lit| lit.clone()) };

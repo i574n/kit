@@ -326,12 +326,6 @@
 
 :~ counted_todos (tally : scan_tally) (found : i32) : scan_tally = { tally ?| todos = i32_add tally.todos found }
 
-:~ json_escaped (~text : string) : string =
-    := backslashes = sm'.replace "\\" "\\\\" text
-    := quotes = sm'.replace "\"" "\\\"" backslashes
-    := tabs = sm'.replace "\t" "\\t" quotes
-    sm'.replace "\n" "\\n" (sm'.replace "\r" "\\r" tabs)
-
 := id_byte (code : i32) : bool =
     ? 65i32 <= code ?> code <= 90i32
     |? 48i32 <= code ?> code <= 57i32
@@ -361,15 +355,17 @@
 := finding_line (~path : string) (line : i32) (~text : string) : string =
     rust_std_string.model.concat5 path ":" (i32_text line) "  " text
 
+:~ json_text (~text : string) : string = json.quote text
+
 :~ finding_json
     (fields_of : string -> string -> string) (~backlog : string) (~path : string) (line : i32) (~text : string)
     : string
     =
     := id = todo_id backlog text
     := fields = fields_of id text
-    := identified = ? id = "" ?> "" |: "\"id\":\"" ++# json_escaped id ++# "\",\"fields\":" ++# fields ++# ","
-    := head = "{\"path\":\"" ++# json_escaped path ++# "\",\"line\":" ++# i32_text line ++# ","
-    head ++# identified ++# "\"text\":\"" ++# json_escaped text ++# "\"}"
+    := identified = ? id = "" ?> "" |: "\"id\":" ++# json_text id ++# ",\"fields\":" ++# fields ++# ","
+    := head = "{\"path\":" ++# json_text path ++# ",\"line\":" ++# i32_text line ++# ","
+    head ++# identified ++# "\"text\":" ++# json_text text ++# "}"
 
 :~ ^ leader_prefix (~leaders : string) (~text : string) (~offset : i32) : bool =
     := bar = byte_find_from leaders "|" offset
@@ -874,3 +870,10 @@
     expect (sm'.contains "large:0" (tally_skips compiler_sized)) (tally_skips compiler_sized)
     := oversized = counted_content (empty_tally ()) (size_verdict 33554433u64)
     expect (sm'.contains "large:1" (tally_skips oversized)) (tally_skips oversized)
+
+///> rust
+:# finding_json_escapes_quotes_backslashes_newlines_and_controls =
+    := text = "say \"hi\" \\ there\nnext" ++# sm'.char_text 1u8
+    := line = finding_json (\ _ _ => "{}") "" "src/a \"b\".spi" 7i32 text
+    expect (sm'.contains "\"path\":\"src/a \\\"b\\\".spi\"" line) line
+    expect (sm'.contains "\"text\":\"say \\\"hi\\\" \\\\ there\\nnext\\u0001\"" line) line

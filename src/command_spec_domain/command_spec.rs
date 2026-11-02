@@ -748,7 +748,7 @@ fn direct_verb_usage_18(mut v0: Rc<str>) -> Rc<str> {
                                                                         } else {
                                                                             let v37: bool = "process" == &*v0;
                                                                             if v37 {
-                                                                                let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("process start-under-shell <program> [args...] (detached, the user shell as its live parent, no inherited handles, no caller job; prints pid and parent)"); } LIT.with(|lit| lit.clone()) };
+                                                                                let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("process start-under-shell <program> [args...] (the caller's session as its live parent, inside the caller's kit job so it ends with that session; no inherited handles; prints pid and parent)"); } LIT.with(|lit| lit.clone()) };
                                                                                 v38.clone()
                                                                             } else {
                                                                                 let v39: bool = "crate" == &*v0;

@@ -404,12 +404,12 @@ fn normalize_path_8(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn method20(mut v0: Rc<RefCell<Mut0>>) -> bool {
-    let mut v1: i32 = v0.borrow().l0.clone();
+    let mut v1: i32 = v0.borrow().l0;
     let v2: bool = v1 > 0i32;
     v2
 }
 fn method21(mut v0: i32, mut v1: Rc<RefCell<Mut1>>) -> bool {
-    let v2: i32 = v1.borrow().l0.clone();
+    let v2: i32 = v1.borrow().l0;
     let mut v3: bool = v2 < v0;
     v3
 }
@@ -427,9 +427,9 @@ fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
     let mut v7: i32 = (v5.clone().borrow().len() as i32);
     let mut v8: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v7, l1: 0i32, l2: v6.clone() }));
     while method20(v8.clone()) {
-        let v10: i32 = v8.borrow().l0.clone();
+        let v10: i32 = v8.borrow().l0;
         let v11: i32 = v10.wrapping_sub(1i32);
-        let (mut v12, mut v13): (i32, Rc<RefCell<Vec<Rc<str>>>>) = (v8.borrow().l1.clone(), v8.borrow().l2.clone());
+        let (mut v12, mut v13): (i32, Rc<RefCell<Vec<Rc<str>>>>) = (v8.borrow().l1, v8.borrow().l2.clone());
         let mut v14: Rc<str> = v5.clone().borrow()[v11 as usize].clone();
         let v15: bool = ".." == &*v14;
         let (mut v64, mut v65): (i32, Rc<RefCell<Vec<Rc<str>>>>) = if v15 {
@@ -464,7 +464,7 @@ fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
                         let v33: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v32 as usize]));
                         let mut v34: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: 0i32 }));
                         while method21(v32, v34.clone()) {
-                            let v36: i32 = v34.borrow().l0.clone();
+                            let v36: i32 = v34.borrow().l0;
                             let v37: bool = v36 < v30;
                             let v41: Rc<str> = if v37 {
                                 let v38: Rc<str> = v29.clone().borrow()[v36 as usize].clone();
@@ -488,7 +488,7 @@ fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
                         let v47: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v46 as usize]));
                         let mut v48: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: 0i32 }));
                         while method21(v46, v48.clone()) {
-                            let v50: i32 = v48.borrow().l0.clone();
+                            let v50: i32 = v48.borrow().l0;
                             let v51: bool = v50 < v44;
                             let v55: Rc<str> = if v51 {
                                 let v52: Rc<str> = v43.clone().borrow()[v50 as usize].clone();
@@ -516,7 +516,7 @@ fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
         v8.borrow_mut().l2 = v65.clone();
         ()
     };
-    let (mut v66, mut v67): (i32, Rc<RefCell<Vec<Rc<str>>>>) = (v8.borrow().l1.clone(), v8.borrow().l2.clone());
+    let (mut v66, mut v67): (i32, Rc<RefCell<Vec<Rc<str>>>>) = (v8.borrow().l1, v8.borrow().l2.clone());
     let v68: Rc<Vec<Rc<str>>> = Rc::new(v67.borrow().clone());
     let v69: u8 = directory_separator_char_22();
     let v70: Rc<str> = Rc::<str>::from((v69 as char).encode_utf8(&mut [0u8; 4]) as &str);

@@ -81,11 +81,7 @@ inl taken_line (hits : search_hits) (file : i32) (taken : i32) (line : i32) : bo
     $'std::rc::Rc::<str>::from(format\!("{:>width$}{} {}", !number, if !taken { char::from(62u8) } else { \
         char::from(32u8) }, &*!text, width = !width as usize).as_str())' : string
 := digits (value : i32) : i32 = $'(!value).to_string().len() as i32' : i32
-:= json_text (~text : string) : string =
-    $'std::rc::Rc::<str>::from({ let q = char::from(34u8); let b = char::from(92u8); let mut out = String::from(q); \
-        for c in (!text).chars() { match c { c if c == q || c == b => { out.push(b); out.push(c); } c if (c as u32) < \
-        32 => out.push_str(&format\!("{b}u{:04x}", c as u32)), c => out.push(c) } } out.push(q); out }.as_str())'
-    : string
+:~ json_text (~text : string) : string = json.quote text
 := stdout_text (~text : string) : () = console.write_line text
 := i32_text (value : i32) : string = (sm'.show value)
 := at_least_zero (value : i32) : i32 = ? value < 0i32 ?> 0i32 |: value

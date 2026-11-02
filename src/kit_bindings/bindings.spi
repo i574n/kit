@@ -19,7 +19,7 @@
 :~ entries (dir : string) (directories : bool) : list string =
     file_system.read_dir_names dir
     |> resultm.unwrap'
-    |> am'.vec_fold' (\ found name => (sm'.from_std_string name :: found)) Nil
+    |> am'.vec_fold' (\ found name => (sm'.from_std_string name :: found)) []
     |> listm.rev
     |> listm'.filter (\ (name : string) => file_system.directory_exists (dir </> name) = directories)
 

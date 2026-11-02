@@ -11,27 +11,27 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
     match std::str::from_utf8(slice) { Ok(text) => Rc::<str>::from(text), Err(error) => Rc::<str>::from(std::str::from_utf8(&slice[..error.valid_up_to()]).unwrap_or("")) }
 }
 #[derive(Clone)]
-enum US1 {
-    US1_SourceBeforeEnd,
-    US1_EmptySource,
-    US1_HitBeforeSource,
-    US1_InvalidHitFields,
-    US1_InvalidHitLine,
-    US1_InvalidHitCount,
-    US1_EndBeforeSource,
-    US1_MalformedRecord,
-    US1_UnterminatedSource,
-    US1_NoLineRecords,
-}
-#[derive(Clone)]
 enum US0 {
-    US0_LcovRecords(Rc<str>),
-    US0_LcovRejected(US1),
+    US0_BetweenSources,
+    US0_InSource(Rc<str>),
 }
 #[derive(Clone)]
 enum US2 {
-    US2_BetweenSources,
-    US2_InSource(Rc<str>),
+    US2_SourceBeforeEnd,
+    US2_EmptySource,
+    US2_HitBeforeSource,
+    US2_InvalidHitFields,
+    US2_InvalidHitLine,
+    US2_InvalidHitCount,
+    US2_EndBeforeSource,
+    US2_MalformedRecord,
+    US2_UnterminatedSource,
+    US2_NoLineRecords,
+}
+#[derive(Clone)]
+enum US1 {
+    US1_LcovRecords(Rc<str>),
+    US1_LcovRejected(US2),
 }
 #[derive(Clone)]
 enum US3 {
@@ -44,7 +44,7 @@ enum US3 {
 #[derive(Clone)]
 enum US4 {
     US4_HitRead(Rc<str>),
-    US4_HitRejected(US1),
+    US4_HitRejected(US2),
 }
 struct Mut0 { l0: Rc<str> }
 fn method5(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
@@ -67,7 +67,7 @@ fn hit_reading_of_3(mut v0: Rc<str>) -> US4 {
         let v2: u64 = v0.split(char::from(44u8)).next().and_then(|line| line.parse::<u32>().ok()).filter(|line| *line > 0).map(|line| line as u64).unwrap_or(0);
         let v3: bool = v2 == 0u64;
         if v3 {
-            let v4: US1 = US1::US1_InvalidHitLine;
+            let v4: US2 = US2::US2_InvalidHitLine;
             US4::US4_HitRejected(v4.clone())
         } else {
             let v6: bool = v0.split(char::from(44u8)).nth(1).map(|hits| hits.parse::<u64>().is_ok()).unwrap_or(false);
@@ -79,12 +79,12 @@ fn hit_reading_of_3(mut v0: Rc<str>) -> US4 {
                 let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
                 US4::US4_HitRead(v11.clone())
             } else {
-                let v13: US1 = US1::US1_InvalidHitCount;
+                let v13: US2 = US2::US2_InvalidHitCount;
                 US4::US4_HitRejected(v13.clone())
             }
         }
     } else {
-        let v17: US1 = US1::US1_InvalidHitFields;
+        let v17: US2 = US2::US2_InvalidHitFields;
         US4::US4_HitRejected(v17.clone())
     }
 }
@@ -156,7 +156,7 @@ fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
         }
     }
 }
-fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US2, mut v4: Rc<str>) -> US0 {
+fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US0, mut v4: Rc<str>) -> US1 {
     loop {
         let v5: bool = v1 < v2;
         if v5 {
@@ -246,13 +246,13 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US2, mut v4: R
             match &v54 {
                 US3::US3_EndLine => {
                     match &v3 {
-                        US2::US2_BetweenSources => {
-                            let v100: US1 = US1::US1_EndBeforeSource;
-                            return US0::US0_LcovRejected(v100.clone());
+                        US0::US0_BetweenSources => {
+                            let v100: US2 = US2::US2_EndBeforeSource;
+                            return US1::US1_LcovRejected(v100.clone());
                         }
-                        US2::US2_InSource(v102) => {
+                        US0::US0_InSource(v102) => {
                             let v102: Rc<str> = v102.clone();
-                            let v103: US2 = US2::US2_BetweenSources;
+                            let v103: US0 = US0::US0_BetweenSources;
                             (v0, v1, v2, v3, v4) = (v0.clone(), v6, v2, v103.clone(), v4.clone());
                             continue;
                         }
@@ -261,11 +261,11 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US2, mut v4: R
                 US3::US3_HitLine(v80) => {
                     let v80: Rc<str> = v80.clone();
                     match &v3 {
-                        US2::US2_BetweenSources => {
-                            let v81: US1 = US1::US1_HitBeforeSource;
-                            return US0::US0_LcovRejected(v81.clone());
+                        US0::US0_BetweenSources => {
+                            let v81: US2 = US2::US2_HitBeforeSource;
+                            return US1::US1_LcovRejected(v81.clone());
                         }
-                        US2::US2_InSource(v83) => {
+                        US0::US0_InSource(v83) => {
                             let v83: Rc<str> = v83.clone();
                             let v84: US4 = hit_reading_of_3(v80.clone());
                             match &v84 {
@@ -284,16 +284,16 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US2, mut v4: R
                                     continue;
                                 }
                                 US4::US4_HitRejected(v94) => {
-                                    let v94: US1 = v94.clone();
-                                    return US0::US0_LcovRejected(v94.clone());
+                                    let v94: US2 = v94.clone();
+                                    return US1::US1_LcovRejected(v94.clone());
                                 }
                             }
                         }
                     }
                 }
                 US3::US3_MalformedLine => {
-                    let v107: US1 = US1::US1_MalformedRecord;
-                    return US0::US0_LcovRejected(v107.clone());
+                    let v107: US2 = US2::US2_MalformedRecord;
+                    return US1::US1_LcovRejected(v107.clone());
                 }
                 US3::US3_OtherLine => {
                     (v0, v1, v2, v3, v4) = (v0.clone(), v6, v2, v3.clone(), v4.clone());
@@ -302,7 +302,7 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US2, mut v4: R
                 US3::US3_SourceLine(v55) => {
                     let v55: Rc<str> = v55.clone();
                     match &v3 {
-                        US2::US2_BetweenSources => {
+                        US0::US0_BetweenSources => {
                             let v59: i32 = (v55.clone().len() as i32);
                             let v60: i32 = 0i32;
                             let v61: i32 = method6(v55.clone(), v59, v60);
@@ -313,11 +313,11 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US2, mut v4: R
                             let v66: Rc<str> = string_slice(&v63.clone(), 0i32 as i64, v65 as i64);
                             let v67: bool = &*v66 == "";
                             if v67 {
-                                let v68: US1 = US1::US1_EmptySource;
-                                return US0::US0_LcovRejected(v68.clone());
+                                let v68: US2 = US2::US2_EmptySource;
+                                return US1::US1_LcovRejected(v68.clone());
                             } else {
                                 let v70: Rc<str> = std::rc::Rc::<str>::from(v55.replace(char::from(92u8), "/"));
-                                let v71: US2 = US2::US2_InSource(v70.clone());
+                                let v71: US0 = US0::US0_InSource(v70.clone());
                                 let v72: bool = &*v4 == "";
                                 let v75: Rc<str> = if v72 {
                                     v70.clone()
@@ -329,36 +329,36 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US2, mut v4: R
                                 continue;
                             }
                         }
-                        US2::US2_InSource(v56) => {
+                        US0::US0_InSource(v56) => {
                             let v56: Rc<str> = v56.clone();
-                            let v57: US1 = US1::US1_SourceBeforeEnd;
-                            return US0::US0_LcovRejected(v57.clone());
+                            let v57: US2 = US2::US2_SourceBeforeEnd;
+                            return US1::US1_LcovRejected(v57.clone());
                         }
                     }
                 }
             }
         } else {
             match &v3 {
-                US2::US2_BetweenSources => {
+                US0::US0_BetweenSources => {
                     let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                     let v119: bool = v4.contains(&*v118);
                     if v119 {
-                        return US0::US0_LcovRecords(v4.clone());
+                        return US1::US1_LcovRecords(v4.clone());
                     } else {
-                        let v121: US1 = US1::US1_NoLineRecords;
-                        return US0::US0_LcovRejected(v121.clone());
+                        let v121: US2 = US2::US2_NoLineRecords;
+                        return US1::US1_LcovRejected(v121.clone());
                     }
                 }
-                US2::US2_InSource(v115) => {
+                US0::US0_InSource(v115) => {
                     let v115: Rc<str> = v115.clone();
-                    let v116: US1 = US1::US1_UnterminatedSource;
-                    return US0::US0_LcovRejected(v116.clone());
+                    let v116: US2 = US2::US2_UnterminatedSource;
+                    return US1::US1_LcovRejected(v116.clone());
                 }
             }
         }
     }
 }
-fn lcov_reading_of_1(mut v0: Rc<str>) -> US0 {
+fn lcov_reading_of_1(mut v0: Rc<str>) -> US1 {
     let v1: u64 = 0u64;
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v2).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
@@ -379,58 +379,58 @@ fn lcov_reading_of_1(mut v0: Rc<str>) -> US0 {
         v4
     };
     let v12: u64 = (v11 as u64);
-    let v13: US2 = US2::US2_BetweenSources;
+    let v13: US0 = US0::US0_BetweenSources;
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     lcov_from_2(v0.clone(), v1, v12, v13.clone(), v14.clone())
 }
 fn lcov_error_0(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = lcov_reading_of_1(v0);
+    let v1: US1 = lcov_reading_of_1(v0);
     match &v1 {
-        US0::US0_LcovRecords(v2) => {
+        US1::US1_LcovRecords(v2) => {
             let v2: Rc<str> = v2.clone();
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v3
         }
-        US0::US0_LcovRejected(v4) => {
-            let v4: US1 = v4.clone();
+        US1::US1_LcovRejected(v4) => {
+            let v4: US2 = v4.clone();
             match &v4 {
-                US1::US1_EmptySource => {
+                US2::US2_EmptySource => {
                     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has an empty SF record"); } LIT.with(|lit| lit.clone()) };
                     v6
                 }
-                US1::US1_EndBeforeSource => {
+                US2::US2_EndBeforeSource => {
                     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has end_of_record before SF"); } LIT.with(|lit| lit.clone()) };
                     v11
                 }
-                US1::US1_HitBeforeSource => {
+                US2::US2_HitBeforeSource => {
                     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has DA before SF"); } LIT.with(|lit| lit.clone()) };
                     v7
                 }
-                US1::US1_InvalidHitCount => {
+                US2::US2_InvalidHitCount => {
                     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has invalid DA hits"); } LIT.with(|lit| lit.clone()) };
                     v10
                 }
-                US1::US1_InvalidHitFields => {
+                US2::US2_InvalidHitFields => {
                     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has invalid DA fields"); } LIT.with(|lit| lit.clone()) };
                     v8
                 }
-                US1::US1_InvalidHitLine => {
+                US2::US2_InvalidHitLine => {
                     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has invalid DA line"); } LIT.with(|lit| lit.clone()) };
                     v9
                 }
-                US1::US1_MalformedRecord => {
+                US2::US2_MalformedRecord => {
                     let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has a malformed source or line record"); } LIT.with(|lit| lit.clone()) };
                     v12
                 }
-                US1::US1_NoLineRecords => {
+                US2::US2_NoLineRecords => {
                     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage input has no line records"); } LIT.with(|lit| lit.clone()) };
                     v14
                 }
-                US1::US1_SourceBeforeEnd => {
+                US2::US2_SourceBeforeEnd => {
                     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has SF before end_of_record"); } LIT.with(|lit| lit.clone()) };
                     v5
                 }
-                US1::US1_UnterminatedSource => {
+                US2::US2_UnterminatedSource => {
                     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("coverage has an unterminated source record"); } LIT.with(|lit| lit.clone()) };
                     v13
                 }
@@ -444,14 +444,14 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn lcov_rows_8(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = lcov_reading_of_1(v0);
+    let v1: US1 = lcov_reading_of_1(v0);
     match &v1 {
-        US0::US0_LcovRecords(v2) => {
+        US1::US1_LcovRecords(v2) => {
             let v2: Rc<str> = v2.clone();
             v2
         }
-        US0::US0_LcovRejected(v3) => {
-            let v3: US1 = v3.clone();
+        US1::US1_LcovRejected(v3) => {
+            let v3: US2 = v3.clone();
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v4
         }

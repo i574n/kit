@@ -12,8 +12,8 @@
     := program = argument 2i32
     ? argument 1i32 <> "start-under-shell" || program = "" ?>
         console.write_line (
-            "kit error: process usage: process start-under-shell <program> [args...] (detached, with the user "
-            ^^ "shell as its live parent, no inherited handles, no caller job)"
+            "kit error: process usage: process start-under-shell <program> [args...] (the caller's session as "
+            ^^ "its live parent, inside the caller's kit job, no inherited handles)"
         )
         2i32
     |:

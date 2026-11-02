@@ -148,7 +148,7 @@
     | Edits => !-
 
 := family_priority () : list program_family =
-    (Runs :: (Jobs :: (Labs :: (Git :: (Writes :: (Facts :: (Reads :: Nil)))))))
+    (Runs :: (Jobs :: (Labs :: (Git :: (Writes :: (Facts :: (Reads :: [])))))))
 
 :~ query_family (~records : record_list) (index : i32) : option program_family =
     := verb = field_at records index 1i32
@@ -168,7 +168,7 @@
 
 :~ ^ first_seen (order : list program_family) (seen : families_seen) : program_family =
     ?= order ?|
-    | Nil => Edits
+    | [] => Edits
     | (family :: rest) => ? family_seen seen family ?> family |: first_seen rest seen
 
 :~ records_family (~records : record_list) : program_family =

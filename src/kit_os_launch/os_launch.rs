@@ -19,20 +19,12 @@ pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, 
         fn UpdateProcThreadAttribute(list: *mut std::ffi::c_void, flags: u32, attribute: usize, value: *mut std::ffi::c_void, size: usize, previous: *mut std::ffi::c_void, returned: *mut usize) -> i32;
         fn DeleteProcThreadAttributeList(list: *mut std::ffi::c_void);
     }
-    #[link(name = "user32")]
-    unsafe extern "system" {
-        fn GetShellWindow() -> *mut std::ffi::c_void;
-        fn GetWindowThreadProcessId(window: *mut std::ffi::c_void, pid: *mut u32) -> u32;
-    }
+
     let quote = char::from(34u8);
     let quoted = |arg: &str| if arg.is_empty() || arg.contains(char::from(32u8)) || arg.contains(quote) { format!("{quote}{}{quote}", arg.replace(quote, &format!("{}{quote}", char::from(92u8)))) } else { arg.to_owned() };
     let line = std::iter::once(quoted(executable)).chain(args.iter().map(|arg| quoted(arg))).collect::<Vec<_>>().join(" ").encode_utf16().chain(std::iter::once(0u16)).collect::<Vec<u16>>();
     let cwd = std::env::temp_dir().as_os_str().encode_wide().chain(std::iter::once(0u16)).collect::<Vec<u16>>();
-    let mut shell = owner;
-    if shell == 0 {
-        let window = unsafe { GetShellWindow() };
-        if !window.is_null() { unsafe { GetWindowThreadProcessId(window, &mut shell) }; }
-    }
+    let shell = owner;
     let parent = if shell == 0 { std::ptr::null_mut() } else { unsafe { OpenProcess(0x0080, 0, shell) } };
     let mut size = 0usize;
     unsafe { InitializeProcThreadAttributeList(std::ptr::null_mut(), 1, 0, &mut size) };
@@ -49,7 +41,7 @@ pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, 
         let flags = if with_parent { flags | 0x0008_0000 } else { flags };
         if unsafe { CreateProcessW(std::ptr::null(), line.as_mut_ptr(), std::ptr::null_mut(), std::ptr::null_mut(), 0, flags, std::ptr::null_mut(), cwd.as_ptr(), &mut startup as *mut StartupInfoEx as *mut StartupInfo, &mut info) } == 0 { 0 } else { unsafe { CloseHandle(info.thread); CloseHandle(info.process); } info.pid as u64 }
     };
-    let tries = [(0x0900_0220u32, true), (0x0800_0220u32, true), (0x0900_0220u32, false), (0x0800_0220u32, false)];
+    let tries = [(0x0800_0220u32, true), (0x0800_0220u32, false)];
     let mut parent_pid = 0u64;
     let mut pid = 0u64;
     for (flags, with_parent) in tries.iter() {
@@ -63,7 +55,7 @@ pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, 
 }
 
 #[cfg(windows)]
-pub fn kit_shell_parented_start(executable: &str, args: &[&str]) -> (u64, u64) { kit_parented_start(executable, args, 0) }
+pub fn kit_shell_parented_start(executable: &str, args: &[&str]) -> (u64, u64) { let (_, owner, _) = kit_caller_owner(); kit_parented_start(executable, args, owner as u32) }
 
 #[cfg(windows)]
 pub fn kit_process_started_ms(pid: u64) -> u64 {
@@ -139,6 +131,23 @@ pub fn kit_shell_parented_start(executable: &str, args: &[&str]) -> (u64, u64) {
 
 pub fn kit_shell_parented_start_text(executable: &str, args: &str) -> String { let parts: Vec<&str> = args.split(char::from(9u8)).filter(|arg| !arg.is_empty()).collect(); let (pid, parent) = kit_shell_parented_start(executable, &parts); format!("pid={pid} parent={parent}") }
 
+pub fn kit_shell_started(executable: &str, args: &[std::rc::Rc<str>]) -> u64 { let parts: Vec<&str> = args.iter().map(|arg| &**arg).collect(); kit_shell_parented_start(executable, &parts).0 }
+
+pub fn kit_owner_started(executable: &str, args: &[std::rc::Rc<str>], owner: u64) -> u64 { let parts: Vec<&str> = args.iter().map(|arg| &**arg).collect(); kit_parented_start(executable, &parts, owner as u32).0 }
+
+pub type KitChildren = std::rc::Rc<std::cell::RefCell<Vec<std::process::Child>>>;
+
+pub fn kit_children() -> KitChildren { std::rc::Rc::new(std::cell::RefCell::new(Vec::new())) }
+
+pub fn kit_child_started(children: &KitChildren, executable: &str, args: &[std::rc::Rc<str>]) -> bool {
+    let mut command = std::process::Command::new(executable);
+    command.args(args.iter().map(|arg| &**arg)).stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());
+    #[cfg(windows)] { use std::os::windows::process::CommandExt; command.creation_flags(0x0000_0008); }
+    match command.spawn() { Ok(child) => { children.borrow_mut().push(child); true } Err(_) => false }
+}
+
+pub fn kit_children_live(children: &KitChildren) -> u64 { let mut kids = children.borrow_mut(); kids.retain_mut(|child| matches!(child.try_wait(), Ok(None))); kids.len() as u64 }
+
 fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
     let bytes = value.as_bytes();
     let length = bytes.len() as i64;
@@ -172,6 +181,7 @@ enum US2 {
 enum US3 {
     US3_ShellLauncher,
     US3_KitLauncher,
+    US3_RemoteSession,
     US3_OwnerProcess,
 }
 struct Mut0 { l0: Rc<str> }
@@ -243,7 +253,7 @@ fn process_run_0() -> i32 {
         v6
     };
     if v7 {
-        let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: process usage: process start-under-shell <program> [args...] (detached, with the user shell as its live parent, no inherited handles, no caller job)"); } LIT.with(|lit| lit.clone()) };
+        let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: process usage: process start-under-shell <program> [args...] (the caller's session as its live parent, inside the caller's kit job, no inherited handles)"); } LIT.with(|lit| lit.clone()) };
         println!("{}", v8);
         2i32
     } else {
@@ -479,7 +489,18 @@ fn launcher_kind_of_13(mut v0: Rc<str>) -> US3 {
         if v18 {
             US3::US3_KitLauncher
         } else {
-            US3::US3_OwnerProcess
+            let v20: bool = &*v2 == "sshd";
+            let v22: bool = if v20 {
+                true
+            } else {
+                let v21: bool = &*v2 == "sshd-session";
+                v21
+            };
+            if v22 {
+                US3::US3_RemoteSession
+            } else {
+                US3::US3_OwnerProcess
+            }
         }
     }
 }
@@ -495,6 +516,9 @@ fn owner_of_12(mut v0: Rc<UH0>) -> US2 {
                 match &v6 {
                     US3::US3_OwnerProcess => {
                         return US2::US2_OwnedBy(v2, v3.clone(), v4);
+                    }
+                    US3::US3_RemoteSession => {
+                        return US2::US2_NoOwner;
                     }
                     _ => {
                         v0 = v5.clone();

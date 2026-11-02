@@ -5,9 +5,9 @@
     ? file_system.directory_exists src ?>
         file_system.read_dir_names src
         |> resultm.unwrap'
-        |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) Nil
+        |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) []
         |> listm.rev
-    |: Nil
+    |: []
 
 :~ node_at (~src : string) (~name : string) : option package_node =
     := project = src ++# "/" ++# name ++# "/package.spiproj"
@@ -22,7 +22,7 @@
 
 :~ ^ nodes_of (~src : string) (names : list string) (acc : list package_node) : list package_node =
     ?= names ?|
-    | Nil => listm.rev acc
+    | [] => listm.rev acc
     | (name :: rest) =>
         ?= node_at src name ?|
         | Some found => nodes_of src rest (found :: acc)
@@ -34,7 +34,7 @@
 
 :~ ^ lines_printed (names : list string) (count : i32) : i32 =
     ?= names ?|
-    | Nil => count
+    | [] => count
     | (name :: rest) =>
         console.write_line name
         lines_printed rest (count + 1i32)
@@ -42,17 +42,17 @@
 :~ affected_run () : i32 =
     := count = env.command_line_argument_count ()
     := src = optionm'.default_value "" (env.try_command_line_argument 2i32)
-    := changed = arguments_from 3i32 count Nil
+    := changed = arguments_from 3i32 count []
     ?= changed ?|
-    | Nil =>
+    | [] =>
         console.write_line (
             "kit error: repo usage: repo affected <src> <package>... (crates whose package graph reaches a changed "
             ^^ "package)"
         )
         2i32
     | _ =>
-        := nodes = nodes_of src (directory_names src) Nil
-        := printed = lines_printed (affected_crates nodes nodes changed Nil) 0i32
+        := nodes = nodes_of src (directory_names src) []
+        := printed = lines_printed (affected_crates nodes nodes changed []) 0i32
         console.write_line (
             "kit repo affected ok crates="
             ++# sm'.format printed

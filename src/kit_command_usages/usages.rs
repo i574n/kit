@@ -257,17 +257,17 @@ fn command_more_usages_0() -> Rc<str> {
         };
         (v158.clone(), v159.clone())
     };
-    let v162: bool = "process start-under-shell <program> [args...] (detached, the user shell as its live parent, no inherited handles, no caller job; prints pid and parent)" == &*v161;
+    let v162: bool = "process start-under-shell <program> [args...] (the caller's session as its live parent, inside the caller's kit job so it ends with that session; no inherited handles; prints pid and parent)" == &*v161;
     let (mut v170, mut v171): (Rc<str>, Rc<str>) = if v162 {
         (v160.clone(), v161.clone())
     } else {
         let v163: bool = &*v160 == "";
         let (mut v168, mut v169): (Rc<str>, Rc<str>) = if v163 {
-            let v164: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("process start-under-shell <program> [args...] (detached, the user shell as its live parent, no inherited handles, no caller job; prints pid and parent)"); } LIT.with(|lit| lit.clone()) };
+            let v164: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("process start-under-shell <program> [args...] (the caller's session as its live parent, inside the caller's kit job so it ends with that session; no inherited handles; prints pid and parent)"); } LIT.with(|lit| lit.clone()) };
             (v164.clone(), v164.clone())
         } else {
             let v165: Rc<str> = Rc::<str>::from(format!("{}{}", v160, v1));
-            let v166: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("process start-under-shell <program> [args...] (detached, the user shell as its live parent, no inherited handles, no caller job; prints pid and parent)"); } LIT.with(|lit| lit.clone()) };
+            let v166: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("process start-under-shell <program> [args...] (the caller's session as its live parent, inside the caller's kit job so it ends with that session; no inherited handles; prints pid and parent)"); } LIT.with(|lit| lit.clone()) };
             let v167: Rc<str> = Rc::<str>::from(format!("{}{}", v165, v166));
             (v167.clone(), v166.clone())
         };

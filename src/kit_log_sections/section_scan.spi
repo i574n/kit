@@ -15,7 +15,7 @@
 :~ group_in (~line : string) (pattern : sm'.regex) (~group : string) : string =
     sm'.regex_captures line pattern
     |> am'.vec_fold' \ found captures =>
-            ? found <> "" ?> found |: optionm'.default_value' found (mapm.get group captures)
+            ? found <> "" ?> found |: optionm'.default_value' found (map.get group captures)
         ""
 
 :~ matched_in (~line : string) (pattern : sm'.regex) : bool =

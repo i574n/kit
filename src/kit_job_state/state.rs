@@ -44,6 +44,25 @@ enum US4 {
     US4_WaitingSlot,
 }
 struct Mut0 { l0: Rc<str> }
+#[derive(Clone)]
+enum US6 {
+    US6_Machine(Rc<str>),
+}
+#[derive(Clone)]
+enum US5 {
+    US5_Local,
+    US5_OnMachine(US6),
+}
+#[derive(Clone)]
+enum US7 {
+    US7_Some(US5),
+    US7_None,
+}
+#[derive(Clone)]
+enum US8 {
+    US8_Some(US6),
+    US8_None,
+}
 fn joined_4(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(&*v1).to_string_lossy().as_ref());
     v2
@@ -614,6 +633,84 @@ fn file_bytes_29(mut v0: Rc<str>) -> u64 {
     let v1: u64 = std::fs::metadata(&*v0).map(|metadata| metadata.len()).unwrap_or(0);
     v1
 }
+fn job_placement_30(mut v0: Rc<str>) -> US5 {
+    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("placement"); } LIT.with(|lit| lit.clone()) };
+    let v2: Rc<str> = job_file_3(v0, v1);
+    let mut v3: Rc<str> = text_or_empty_7(v2);
+    let mut v4: i32 = (v3.clone().len() as i32);
+    let mut v5: i32 = 0i32;
+    let mut v6: i32 = method18(v3.clone(), v4, v5);
+    let v7: i32 = v4.wrapping_sub(1i32);
+    let v8: Rc<str> = string_slice(&v3, v6 as i64, v7 as i64);
+    let v9: i32 = (v8.clone().len() as i32);
+    let v10: i32 = method19(v8.clone(), v9);
+    let v11: Rc<str> = string_slice(&v8, 0i32 as i64, v10 as i64);
+    let v12: bool = &*v11 == "";
+    let v14: bool = if v12 {
+        true
+    } else {
+        let v13: bool = &*v11 == "local";
+        v13
+    };
+    let v49: US7 = if v14 {
+        let v15: US5 = US5::US5_Local;
+        US7::US7_Some(v15)
+    } else {
+        let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("on "); } LIT.with(|lit| lit.clone()) };
+        let v18: bool = v11.starts_with(&*v17);
+        if v18 {
+            let v19: i32 = (v11.clone().len() as i32);
+            let v20: i32 = v19.wrapping_sub(3i32);
+            let v21: usize = ((3i32) as usize);
+            let v22: i32 = 3i32.wrapping_add(v20);
+            let v23: usize = ((v22) as usize);
+            let v24: Rc<str> = Rc::<str>::from(&(v11)[v21..v23]);
+            let v25: i32 = (v24.clone().len() as i32);
+            let v26: i32 = 0i32;
+            let v27: i32 = method18(v24.clone(), v25, v26);
+            let v28: i32 = v25.wrapping_sub(1i32);
+            let v29: Rc<str> = string_slice(&v24, v27 as i64, v28 as i64);
+            let v30: i32 = (v29.clone().len() as i32);
+            let v31: i32 = method19(v29.clone(), v30);
+            let v32: Rc<str> = string_slice(&v29, 0i32 as i64, v31 as i64);
+            let v33: bool = &*v32 == "";
+            let v36: bool = if v33 {
+                true
+            } else {
+                let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+                let v35: bool = v32.contains(&*v34);
+                v35
+            };
+            let v40: US8 = if v36 {
+                US8::US8_None
+            } else {
+                let v38: US6 = US6::US6_Machine(v32);
+                US8::US8_Some(v38)
+            };
+            match &v40 {
+                US8::US8_None => {
+                    US7::US7_None
+                }
+                US8::US8_Some(v41) => {
+                    let v41: US6 = v41.clone();
+                    let v42: US5 = US5::US5_OnMachine(v41);
+                    US7::US7_Some(v42)
+                }
+            }
+        } else {
+            US7::US7_None
+        }
+    };
+    match &v49 {
+        US7::US7_None => {
+            US5::US5_Local
+        }
+        US7::US7_Some(v50) => {
+            let v50: US5 = v50.clone();
+            v50
+        }
+    }
+}
 fn job_summary_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: US0 = job_state_now_1(v1.clone());
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit job "); } LIT.with(|lit| lit.clone()) };
@@ -746,7 +843,7 @@ fn job_summary_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v87: Rc<str> = job_file_3(v1.clone(), v86.clone());
         let v88: bool = file_exists_12(v87);
         let v92: Rc<str> = if v88 {
-            let v89: Rc<str> = job_file_3(v1, v86);
+            let v89: Rc<str> = job_file_3(v1.clone(), v86);
             text_or_empty_7(v89)
         } else {
             let v91: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0"); } LIT.with(|lit| lit.clone()) };
@@ -755,16 +852,34 @@ fn job_summary_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v93: Rc<str> = std::rc::Rc::<str>::from([&*v84, &*v82, &*v85, &*v92, &*v64].concat());
         v93
     };
-    let v95: Rc<str> = std::rc::Rc::<str>::from([&*v94, &*v79, &*v64, &*v64, &*v64].concat());
-    let v96: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v53, &*v65, &*v74, &*v95].concat());
-    v96
+    let v95: US5 = job_placement_30(v1);
+    let v102: Rc<str> = match &v95 {
+        US5::US5_Local => {
+            v64.clone()
+        }
+        US5::US5_OnMachine(v96) => {
+            let v96: US6 = v96.clone();
+            let v98: Rc<str> = match &v96 {
+                US6::US6_Machine(v97) => {
+                    let v97: Rc<str> = v97.clone();
+                    v97
+                }
+            };
+            let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" placement="); } LIT.with(|lit| lit.clone()) };
+            let v100: Rc<str> = Rc::<str>::from(format!("{}{}", v99, v98));
+            v100
+        }
+    };
+    let v103: Rc<str> = std::rc::Rc::<str>::from([&*v94, &*v79, &*v102, &*v64, &*v64].concat());
+    let v104: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v53, &*v65, &*v74, &*v103].concat());
+    v104
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
         job_summary_0(v0.clone(), v1.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn state_exit_31(mut v0: US0) -> i32 {
+fn state_exit_32(mut v0: US0) -> i32 {
     match &v0 {
         US0::US0_Live(v1) => {
             let v1: US1 = v1.clone();
@@ -776,7 +891,7 @@ fn state_exit_31(mut v0: US0) -> i32 {
         }
     }
 }
-fn state_detail_32(mut v0: US0) -> Rc<str> {
+fn state_detail_33(mut v0: US0) -> Rc<str> {
     match &v0 {
         US0::US0_Live(v1) => {
             let v1: US1 = v1.clone();
@@ -802,16 +917,16 @@ fn state_detail_32(mut v0: US0) -> Rc<str> {
         }
     }
 }
-fn state_parts_30(mut v0: Rc<str>) -> (Rc<str>, i32, Rc<str>) {
+fn state_parts_31(mut v0: Rc<str>) -> (Rc<str>, i32, Rc<str>) {
     let v1: US0 = job_state_now_1(v0);
     let v2: Rc<str> = state_word_22(v1.clone());
-    let mut v3: i32 = state_exit_31(v1.clone());
-    let mut v4: Rc<str> = state_detail_32(v1);
+    let mut v3: i32 = state_exit_32(v1.clone());
+    let mut v4: Rc<str> = state_detail_33(v1);
     (v2, v3, v4)
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> (Rc<str>, i32, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (Rc<str>, i32, Rc<str>)> = Rc::new(move |mut v0: Rc<str>| -> (Rc<str>, i32, Rc<str>) {
-        state_parts_30(v0.clone())
+        state_parts_31(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_job_summary(v0: &str, v1: &str) -> Rc<str> {

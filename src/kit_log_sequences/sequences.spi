@@ -29,7 +29,7 @@
 
 := parsed_events (~text : string) : list event =
     := lines = sm'.split "\n" text |> array
-    events_of lines (am'.length lines - 1i32) Nil
+    events_of lines (am'.length lines - 1i32) []
 
 := outcome_rows (~file : string) (outcome : measure_outcome) : string =
     rows_text file outcome.rows "" ++# "#unpaired\t" ++# sm'.format outcome.unpaired
@@ -67,7 +67,7 @@
 :~ stamp_in (~line : string) (pattern : sm'.regex) : u64 =
     sm'.regex_captures line pattern
     |> am'.vec_fold' \ found captures =>
-            ? found <> "" ?> found |: optionm'.default_value' found (mapm.get "ms" captures)
+            ? found <> "" ?> found |: optionm'.default_value' found (map.get "ms" captures)
         ""
     |> \ text => optionm'.default_value 0u64 (convert.try_convert text)
 

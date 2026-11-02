@@ -752,53 +752,52 @@ fn grouped_measures_2(mut v0: bool, mut v1: Rc<str>, mut v2: std::rc::Rc<Vec<Vec
         let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
         let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v48));
         let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-        let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v52: Rc<str> = std::rc::Rc::<str>::from([&*v50, &*v49, &*v51, &*v51, &*v51].concat());
-        eprintln!("{}", v52);
+        let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v49));
+        eprintln!("{}", v51);
         2i32
     } else {
-        let v53: Rc<UH1> = stats_empty_4(v19.clone());
-        let v54: i32 = 1i32;
-        let v55: i32 = ((v2).len().max(1) - 1) as i32;
-        let v56: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
-        let v57: i32 = 0i32;
-        let (mut v58, mut v59): (Rc<UH3>, i32) = grouped_from_5(v2.clone(), v18.clone(), v13, v19.clone(), v53.clone(), v54, v55, v56.clone(), v57);
-        let v61: Rc<str> = if v11 {
-            let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("all"); } LIT.with(|lit| lit.clone()) };
-            v60.clone()
+        let v52: Rc<UH1> = stats_empty_4(v19.clone());
+        let v53: i32 = 1i32;
+        let v54: i32 = ((v2).len().max(1) - 1) as i32;
+        let v55: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
+        let v56: i32 = 0i32;
+        let (mut v57, mut v58): (Rc<UH3>, i32) = grouped_from_5(v2.clone(), v18.clone(), v13, v19.clone(), v52.clone(), v53, v54, v55.clone(), v56);
+        let v60: Rc<str> = if v11 {
+            let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("all"); } LIT.with(|lit| lit.clone()) };
+            v59.clone()
         } else {
             v5.clone()
         };
-        let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count\t"); } LIT.with(|lit| lit.clone()) };
-        let v63: Rc<str> = Rc::<str>::from(format!("{}{}", v62, v61));
-        let v64: Rc<str> = measure_headers_9(v19.clone());
-        let v65: Rc<str> = Rc::<str>::from(format!("{}{}", v63, v64));
-        println!("{}", v65);
-        let v66: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
-        let v67: Rc<UH3> = groups_sorted_10(v58.clone(), v66.clone());
-        let v68: i32 = 0i32;
-        let v69: i32 = groups_printed_12(v19.clone(), v67.clone(), v7, v68);
-        let v70: Rc<str> = std::rc::Rc::<str>::from((v59).to_string().as_str());
-        let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched="); } LIT.with(|lit| lit.clone()) };
-        let v72: Rc<str> = Rc::<str>::from(format!("{}{}", v71, v70));
-        let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" groups="); } LIT.with(|lit| lit.clone()) };
-        let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v72, v73));
-        let v75: i32 = 0i32;
-        let v76: i32 = group_count_22(v58.clone(), v75);
-        let v77: Rc<str> = std::rc::Rc::<str>::from((v76).to_string().as_str());
-        let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v74, v77));
-        let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shown="); } LIT.with(|lit| lit.clone()) };
-        let v80: Rc<str> = Rc::<str>::from(format!("{}{}", v78, v79));
+        let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count\t"); } LIT.with(|lit| lit.clone()) };
+        let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v60));
+        let v63: Rc<str> = measure_headers_9(v19.clone());
+        let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v62, v63));
+        println!("{}", v64);
+        let v65: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
+        let v66: Rc<UH3> = groups_sorted_10(v57.clone(), v65.clone());
+        let v67: i32 = 0i32;
+        let v68: i32 = groups_printed_12(v19.clone(), v66.clone(), v7, v67);
+        let v69: Rc<str> = std::rc::Rc::<str>::from((v58).to_string().as_str());
+        let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched="); } LIT.with(|lit| lit.clone()) };
+        let v71: Rc<str> = Rc::<str>::from(format!("{}{}", v70, v69));
+        let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" groups="); } LIT.with(|lit| lit.clone()) };
+        let v73: Rc<str> = Rc::<str>::from(format!("{}{}", v71, v72));
+        let v74: i32 = 0i32;
+        let v75: i32 = group_count_22(v57.clone(), v74);
+        let v76: Rc<str> = std::rc::Rc::<str>::from((v75).to_string().as_str());
+        let v77: Rc<str> = Rc::<str>::from(format!("{}{}", v73, v76));
+        let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shown="); } LIT.with(|lit| lit.clone()) };
+        let v79: Rc<str> = Rc::<str>::from(format!("{}{}", v77, v78));
         if v10 {
             ()
         } else {
-            let v81: i32 = ((v2).len().max(1) - 1) as i32;
-            let v82: Rc<str> = std::rc::Rc::<str>::from((v81).to_string().as_str());
-            let v83: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit table query ok total="); } LIT.with(|lit| lit.clone()) };
-            let v85: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v83, v82)), v80));
-            let v86: Rc<str> = std::rc::Rc::<str>::from((v69).to_string().as_str());
-            let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v85, v86));
-            println!("{}", v87);
+            let v80: i32 = ((v2).len().max(1) - 1) as i32;
+            let v81: Rc<str> = std::rc::Rc::<str>::from((v80).to_string().as_str());
+            let v82: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit table query ok total="); } LIT.with(|lit| lit.clone()) };
+            let v84: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v82, v81)), v79));
+            let v85: Rc<str> = std::rc::Rc::<str>::from((v68).to_string().as_str());
+            let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v84, v85));
+            println!("{}", v86);
             ()
         };
         0i32
@@ -814,16 +813,15 @@ fn measured_query_1(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<s
         US1::US1_TableLoaded(v14.clone())
     };
     match &v16 {
-        US1::US1_TableLoaded(v21) => {
-            let v21: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = v21.clone();
-            grouped_measures_2(v1, v2.clone(), v21.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7, v8.clone(), v9.clone(), v10)
+        US1::US1_TableLoaded(v20) => {
+            let v20: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = v20.clone();
+            grouped_measures_2(v1, v2.clone(), v20.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7, v8.clone(), v9.clone(), v10)
         }
         US1::US1_TableUnreadable(v17) => {
             let v17: Rc<str> = v17.clone();
             let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: table "); } LIT.with(|lit| lit.clone()) };
-            let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v20: Rc<str> = std::rc::Rc::<str>::from([&*v18, &*v17, &*v19, &*v19, &*v19].concat());
-            eprintln!("{}", v20);
+            let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v17));
+            eprintln!("{}", v19);
             2i32
         }
     }

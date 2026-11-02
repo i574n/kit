@@ -193,8 +193,8 @@
         {
             word = "process"
             line =
-                "process start-under-shell <program> [args...] (detached, the user shell as its live parent, no "
-                ^^ "inherited handles, no caller job; prints pid and parent)"
+                "process start-under-shell <program> [args...] (the caller's session as its live parent, inside "
+                ^^ "the caller's kit job so it ends with that session; no inherited handles; prints pid and parent)"
         }
     | VerbCrate =>
         {

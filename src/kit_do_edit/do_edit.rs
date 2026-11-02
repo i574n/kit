@@ -2,46 +2,46 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 #[derive(Clone)]
-enum US1 {
-    US1_Apply,
-    US1_Preview,
+enum US0 {
+    US0_Succeeded,
+    US0_Failed,
 }
 #[derive(Clone)]
 enum US2 {
-    US2_Unchecked,
-    US2_Expected(u64, u64),
+    US2_Apply,
+    US2_Preview,
 }
 #[derive(Clone)]
 enum US3 {
-    US3_Once,
-    US3_Every,
-    US3_Exactly(u64),
+    US3_Unchecked,
+    US3_Expected(u64, u64),
 }
 #[derive(Clone)]
 enum US4 {
-    US4_Literal,
-    US4_Pattern,
+    US4_Once,
+    US4_Every,
+    US4_Exactly(u64),
+}
+#[derive(Clone)]
+enum US5 {
+    US5_Literal,
+    US5_Pattern,
 }
 #[derive(Clone)]
 enum UH1 {
     UH1_NoRules,
-    UH1_Rule(Rc<str>, Rc<str>, US3, US4, Rc<UH1>),
+    UH1_Rule(Rc<str>, Rc<str>, US4, US5, Rc<UH1>),
 }
 #[derive(Clone)]
-enum US0 {
-    US0_EditStep(Rc<str>, US1, US2, Rc<str>, Rc<UH1>),
-    US0_ShowStep(Rc<str>),
-    US0_QueryStep(Rc<str>, Rc<str>),
+enum US1 {
+    US1_EditStep(Rc<str>, US2, US3, Rc<str>, Rc<UH1>),
+    US1_ShowStep(Rc<str>),
+    US1_QueryStep(Rc<str>, Rc<str>),
 }
 #[derive(Clone)]
 enum UH0 {
     UH0_Done,
-    UH0_Step(US0, Rc<UH0>),
-}
-#[derive(Clone)]
-enum US5 {
-    US5_Succeeded,
-    US5_Failed,
+    UH0_Step(US1, Rc<UH0>),
 }
 #[derive(Clone)]
 enum US6 {
@@ -67,13 +67,13 @@ fn clock_text_5() -> Rc<str> {
     let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_3(mut v0: US5, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_3(mut v0: US0, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
-        US5::US5_Failed => {
+        US0::US0_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
             v4
         }
-        US5::US5_Succeeded => {
+        US0::US0_Succeeded => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
             v3
         }
@@ -89,16 +89,16 @@ fn receipt_line_3(mut v0: US5, mut v1: Rc<str>, mut v2: u64) -> () {
 }
 fn refused_2(mut v0: Rc<str>, mut v1: i32, mut v2: u64) -> i32 {
     println!("{}", &*v0);
-    let v3: US5 = US5::US5_Failed;
+    let v3: US0 = US0::US0_Failed;
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files 0  replacements 0"); } LIT.with(|lit| lit.clone()) };
     receipt_line_3(v3, v4, v2);
     v1
 }
 fn finished_7(mut v0: bool, mut v1: Rc<str>, mut v2: u64) -> i32 {
-    let mut v5: US5 = if v0 {
-        US5::US5_Failed
+    let mut v5: US0 = if v0 {
+        US0::US0_Failed
     } else {
-        US5::US5_Succeeded
+        US0::US0_Succeeded
     };
     receipt_line_3(v5, v1, v2);
     if v0 {
@@ -192,11 +192,11 @@ fn mismatch_25(mut v0: Rc<str>, mut v1: u64, mut v2: Rc<str>) -> Rc<str> {
         v17
     }
 }
-fn count_problem_24(mut v0: US3, mut v1: u64, mut v2: bool, mut v3: Rc<str>) -> Rc<str> {
+fn count_problem_24(mut v0: US4, mut v1: u64, mut v2: bool, mut v3: Rc<str>) -> Rc<str> {
     let v4: bool = v1 == 0u64;
     let mut v5: bool = v4 && v2;
     match &v0 {
-        US3::US3_Every => {
+        US4::US4_Every => {
             let v20: bool = if v4 {
                 let v19: bool = v2 == false;
                 v19
@@ -212,7 +212,7 @@ fn count_problem_24(mut v0: US3, mut v1: u64, mut v2: bool, mut v3: Rc<str>) -> 
                 v24.clone()
             }
         }
-        US3::US3_Exactly(v12) => {
+        US4::US4_Exactly(v12) => {
             let v12: u64 = *v12;
             let v13: bool = v1 == v12;
             let v14: bool = v13 || v5;
@@ -224,7 +224,7 @@ fn count_problem_24(mut v0: US3, mut v1: u64, mut v2: bool, mut v3: Rc<str>) -> 
                 mismatch_25(v3.clone(), v1, v16.clone())
             }
         }
-        US3::US3_Once => {
+        US4::US4_Once => {
             let v6: bool = v1 == 1u64;
             let v7: bool = v6 || v5;
             if v7 {
@@ -261,25 +261,25 @@ fn rules_over_19(mut v0: Rc<UH1>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<str>
                 UH1::UH1_Rule(v8, v9, v10, v11, v12) => {
                     let v8: Rc<str> = v8.clone();
                     let v9: Rc<str> = v9.clone();
-                    let v10: US3 = v10.clone();
-                    let v11: US4 = v11.clone();
+                    let v10: US4 = v10.clone();
+                    let v11: US5 = v11.clone();
                     let v12: Rc<UH1> = v12.clone();
                     let v13: bool = &*v6 == "";
                     if v13 {
                         let v17: std::rc::Rc<(std::rc::Rc<str>, u64, std::rc::Rc<str>)> = match &v11 {
-                            US4::US4_Literal => {
+                            US5::US5_Literal => {
                                 replaced_in_20(v3.clone(), v8.clone(), v9.clone())
                             }
-                            US4::US4_Pattern => {
+                            US5::US5_Pattern => {
                                 replaced_by_pattern_21(v3.clone(), v8.clone(), v9)
                             }
                         };
                         let v21: Rc<str> = match &v11 {
-                            US4::US4_Literal => {
+                            US5::US5_Literal => {
                                 let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                                 v18
                             }
-                            US4::US4_Pattern => {
+                            US5::US5_Pattern => {
                                 pattern_problem_22(v8.clone())
                             }
                         };
@@ -301,10 +301,10 @@ fn rules_over_19(mut v0: Rc<UH1>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<str>
                             v34
                         };
                         let v39: Rc<str> = match &v11 {
-                            US4::US4_Literal => {
+                            US5::US5_Literal => {
                                 sites_of_28(v3.clone(), v8.clone(), v2.clone())
                             }
-                            US4::US4_Pattern => {
+                            US5::US5_Pattern => {
                                 pattern_sites_of_29(v3.clone(), v8, v2.clone())
                             }
                         };
@@ -409,7 +409,7 @@ fn preview_of_38(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
 ")) };
     v2.clone()
 }
-fn pass_with_32(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, mut v1: US1, mut v2: Rc<str>, mut v3: US7, mut v4: Rc<str>, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: Rc<str>, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: u64, mut v14: u64, mut v15: bool, mut v16: bool, mut v17: Rc<str>, mut v18: Rc<str>) -> (u64, u64, u64, Rc<str>, u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) {
+fn pass_with_32(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, mut v1: US2, mut v2: Rc<str>, mut v3: US7, mut v4: Rc<str>, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: Rc<str>, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: u64, mut v14: u64, mut v15: bool, mut v16: bool, mut v17: Rc<str>, mut v18: Rc<str>) -> (u64, u64, u64, Rc<str>, u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) {
     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edit "); } LIT.with(|lit| lit.clone()) };
     let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v2));
     let v21: Rc<str> = lines_joined_30(v8.clone(), v4.clone());
@@ -434,7 +434,7 @@ fn pass_with_32(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, st
                             let v28: u64 = *v28;
                             let v29: Rc<str> = v29.clone();
                             let v40: Rc<str> = match &v1 {
-                                US1::US1_Apply => {
+                                US2::US2_Apply => {
                                     let v30: i32 = v0.borrow().iter().position(|entry| *entry.0 == *v2).map_or(-1, |at| at as i32);
                                     let v31: bool = v30 < 0i32;
                                     if v31 {
@@ -452,7 +452,7 @@ fn pass_with_32(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, st
                                     let v37: Rc<str> = std::rc::Rc::<str>::from([&*v32, &*v33, &*v34, &*v35, &*v36].concat());
                                     v37.clone()
                                 }
-                                US1::US1_Preview => {
+                                US2::US2_Preview => {
                                     let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dry run, nothing written"); } LIT.with(|lit| lit.clone()) };
                                     v38.clone()
                                 }
@@ -463,7 +463,7 @@ fn pass_with_32(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, st
                             let v44: Rc<str> = lines_label_36(v29.clone());
                             let v45: Rc<str> = row4_37(v20.clone(), v43.clone(), v44.clone(), v40.clone());
                             let (mut v63, mut v64, mut v65, mut v66, mut v67, mut v68, mut v69, mut v70, mut v71, mut v72): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = match &v1 {
-                                US1::US1_Apply => {
+                                US2::US2_Apply => {
                                     let v46: u64 = v11.wrapping_add(1u64);
                                     let v47: u64 = v13.wrapping_add(v28);
                                     let v48: Rc<str> = lines_joined_30(v17.clone(), v45.clone());
@@ -471,7 +471,7 @@ fn pass_with_32(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, st
                                 }
                                 _ => {
                                     let (mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = match &v1 {
-                                        US1::US1_Preview => {
+                                        US2::US2_Preview => {
                                             let v49: u64 = v14.wrapping_add(v28);
                                             let v50: Rc<str> = lines_joined_30(v17.clone(), v45.clone());
                                             let v51: Rc<str> = preview_of_38(v26.clone(), v27.clone());
@@ -497,7 +497,7 @@ fn pass_with_32(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, st
     };
     (v103, v104, v105, v106.clone(), v107, v108, v109, v110, v111, v112, v113, v114, v115.clone(), v116.clone())
 }
-fn files_run_15(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, mut v2: Rc<str>, mut v3: US1, mut v4: US2, mut v5: Rc<str>, mut v6: Rc<UH1>, mut v7: bool, mut v8: std::rc::Rc<Vec<std::rc::Rc<str>>>, mut v9: i32, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: Rc<str>, mut v14: u64, mut v15: u64, mut v16: u64, mut v17: u64, mut v18: u64, mut v19: u64, mut v20: bool, mut v21: bool, mut v22: Rc<str>, mut v23: Rc<str>) -> (u64, u64, u64, Rc<str>, u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) {
+fn files_run_15(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, mut v2: Rc<str>, mut v3: US2, mut v4: US3, mut v5: Rc<str>, mut v6: Rc<UH1>, mut v7: bool, mut v8: std::rc::Rc<Vec<std::rc::Rc<str>>>, mut v9: i32, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: Rc<str>, mut v14: u64, mut v15: u64, mut v16: u64, mut v17: u64, mut v18: u64, mut v19: u64, mut v20: bool, mut v21: bool, mut v22: Rc<str>, mut v23: Rc<str>) -> (u64, u64, u64, Rc<str>, u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) {
     let v24: i32 = v8.len() as i32;
     let v25: bool = v9 < v24;
     let (mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65, mut v66, mut v67, mut v68, mut v69, mut v70, mut v71): (u64, u64, u64, Rc<str>, u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = if v25 {
@@ -512,7 +512,7 @@ fn files_run_15(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std
     };
     (v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71)
 }
-fn block_run_11(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, mut v2: Rc<str>, mut v3: US1, mut v4: US2, mut v5: Rc<str>, mut v6: Rc<UH1>, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: bool, mut v14: bool, mut v15: Rc<str>, mut v16: Rc<str>) -> (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) {
+fn block_run_11(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, mut v2: Rc<str>, mut v3: US2, mut v4: US3, mut v5: Rc<str>, mut v6: Rc<UH1>, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: bool, mut v14: bool, mut v15: Rc<str>, mut v16: Rc<str>) -> (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) {
     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("*"); } LIT.with(|lit| lit.clone()) };
     let v18: bool = v2.contains(&*v17);
     let v19: bool = &*v5 == "";
@@ -534,7 +534,7 @@ fn block_run_11(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std
     let v59: bool = v45 == 0u64;
     let (mut v126, mut v127, mut v128, mut v129, mut v130, mut v131, mut v132, mut v133, mut v134, mut v135): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = if v59 {
         let (mut v115, mut v116, mut v117, mut v118, mut v119, mut v120, mut v121, mut v122, mut v123, mut v124): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = match &v4 {
-            US2::US2_Expected(v60, v61) => {
+            US3::US3_Expected(v60, v61) => {
                 let v60: u64 = *v60;
                 let v61: u64 = *v61;
                 let v62: bool = v60 == v43;
@@ -567,7 +567,7 @@ fn block_run_11(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std
             }
             _ => {
                 let (mut v105, mut v106, mut v107, mut v108, mut v109, mut v110, mut v111, mut v112, mut v113, mut v114): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = match &v4 {
-                    US2::US2_Unchecked => {
+                    US3::US3_Unchecked => {
                         let v90: bool = v43 == 0u64;
                         if v90 {
                             let v91: u64 = v48.wrapping_add(1u64);
@@ -604,13 +604,13 @@ fn steps_run_10(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std
         _ => {
             let (mut v95, mut v96, mut v97, mut v98, mut v99, mut v100, mut v101, mut v102, mut v103, mut v104): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = match &*v2 {
                 UH0::UH0_Step(v13, v14) => {
-                    let v13: US0 = v13.clone();
+                    let v13: US1 = v13.clone();
                     let v14: Rc<UH0> = v14.clone();
                     match &v13 {
-                        US0::US0_EditStep(v15, v16, v17, v18, v19) => {
+                        US1::US1_EditStep(v15, v16, v17, v18, v19) => {
                             let v15: Rc<str> = v15.clone();
-                            let v16: US1 = v16.clone();
-                            let v17: US2 = v17.clone();
+                            let v16: US2 = v16.clone();
+                            let v17: US3 = v17.clone();
                             let v18: Rc<str> = v18.clone();
                             let v19: Rc<UH1> = v19.clone();
                             let (mut v20, mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = block_run_11(v0.clone(), v1.clone(), v15, v16, v17, v18, v19, v3, v4, v5, v6, v7, v8, v9, v10, v11.clone(), v12.clone());
@@ -618,7 +618,7 @@ fn steps_run_10(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std
                         }
                         _ => {
                             let (mut v75, mut v76, mut v77, mut v78, mut v79, mut v80, mut v81, mut v82, mut v83, mut v84): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = match &v13 {
-                                US0::US0_ShowStep(v40) => {
+                                US1::US1_ShowStep(v40) => {
                                     let v40: Rc<str> = v40.clone();
                                     let v41: Rc<str> = shown_file_39(v1.clone(), v0.clone(), v40);
                                     let v42: Rc<str> = lines_joined_30(v11.clone(), v41);
@@ -626,7 +626,7 @@ fn steps_run_10(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<Vec<(std
                                 }
                                 _ => {
                                     let (mut v65, mut v66, mut v67, mut v68, mut v69, mut v70, mut v71, mut v72, mut v73, mut v74): (u64, u64, u64, u64, u64, u64, bool, bool, Rc<str>, Rc<str>) = match &v13 {
-                                        US0::US0_QueryStep(v53, v54) => {
+                                        US1::US1_QueryStep(v53, v54) => {
                                             let v53: Rc<str> = v53.clone();
                                             let v54: Rc<str> = v54.clone();
                                             steps_run_10(v0, v1, v14, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
@@ -823,17 +823,17 @@ fn field_at_49(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut
     let v3: Rc<str> = v0.get(v1 as usize).and_then(|fields| fields.get(v2 as usize)).cloned().unwrap_or_default();
     v3.clone()
 }
-fn count_of_51(mut v0: Rc<str>, mut v1: Rc<str>) -> US3 {
+fn count_of_51(mut v0: Rc<str>, mut v1: Rc<str>) -> US4 {
     let v2: bool = &*v0 == "once";
     if v2 {
-        US3::US3_Once
+        US4::US4_Once
     } else {
         let v4: bool = &*v0 == "all";
         if v4 {
-            US3::US3_Every
+            US4::US4_Every
         } else {
             let v6: u64 = v1.trim().parse::<u64>().unwrap_or(0);
-            US3::US3_Exactly(v6)
+            US4::US4_Exactly(v6)
         }
     }
 }
@@ -864,14 +864,14 @@ fn rules_decoded_50(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32
         let v17: Rc<str> = field_at_49(v0.clone(), v1, v16);
         let v18: i32 = 2i32;
         let v19: Rc<str> = field_at_49(v0.clone(), v1, v18);
-        let v20: US3 = count_of_51(v17, v19);
+        let v20: US4 = count_of_51(v17, v19);
         let v21: i32 = 0i32;
         let v22: Rc<str> = field_at_49(v0.clone(), v1, v21);
         let v23: bool = &*v22 == "pattern";
-        let v26: US4 = if v23 {
-            US4::US4_Pattern
+        let v26: US5 = if v23 {
+            US5::US5_Pattern
         } else {
-            US4::US4_Literal
+            US5::US5_Literal
         };
         let v27: i32 = v1.wrapping_add(1i32);
         let (mut v28, mut v29): (Rc<UH1>, i32) = rules_decoded_50(v0, v27);
@@ -894,22 +894,22 @@ fn steps_decoded_48(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32
                 let v7: i32 = 3i32;
                 let v8: Rc<str> = field_at_49(v0.clone(), v1, v7);
                 let v9: bool = &*v8 == "-";
-                let v16: US2 = if v9 {
-                    US2::US2_Unchecked
+                let v16: US3 = if v9 {
+                    US3::US3_Unchecked
                 } else {
                     let v11: u64 = v8.trim().parse::<u64>().unwrap_or(0);
                     let v12: i32 = 4i32;
                     let v13: Rc<str> = field_at_49(v0.clone(), v1, v12);
                     let v14: u64 = v13.trim().parse::<u64>().unwrap_or(0);
-                    US2::US2_Expected(v11, v14)
+                    US3::US3_Expected(v11, v14)
                 };
                 let v17: i32 = 2i32;
                 let v18: Rc<str> = field_at_49(v0.clone(), v1, v17);
                 let v19: bool = &*v18 == "preview";
-                let v22: US1 = if v19 {
-                    US1::US1_Preview
+                let v22: US2 = if v19 {
+                    US2::US2_Preview
                 } else {
-                    US1::US1_Apply
+                    US2::US2_Apply
                 };
                 let v23: i32 = v1.wrapping_add(1i32);
                 let v24: i32 = 0i32;
@@ -932,7 +932,7 @@ fn steps_decoded_48(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32
                 let v35: i32 = 1i32;
                 let v36: Rc<str> = field_at_49(v0.clone(), v1, v35);
                 let v37: Rc<UH0> = steps_decoded_48(v0.clone(), v34);
-                let v38: US0 = US0::US0_EditStep(v36.clone(), v22.clone(), v16.clone(), v30.clone(), v33.clone());
+                let v38: US1 = US1::US1_EditStep(v36.clone(), v22.clone(), v16.clone(), v30.clone(), v33.clone());
                 return Rc::new(UH0::UH0_Step(v38.clone(), v37.clone()));
             } else {
                 let v40: bool = &*v5 == "show";
@@ -941,7 +941,7 @@ fn steps_decoded_48(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32
                     let v42: Rc<str> = field_at_49(v0.clone(), v1, v41);
                     let v43: i32 = v1.wrapping_add(1i32);
                     let v44: Rc<UH0> = steps_decoded_48(v0.clone(), v43);
-                    let v45: US0 = US0::US0_ShowStep(v42.clone());
+                    let v45: US1 = US1::US1_ShowStep(v42.clone());
                     return Rc::new(UH0::UH0_Step(v45.clone(), v44.clone()));
                 } else {
                     let v47: i32 = v1.wrapping_add(1i32);

@@ -54,7 +54,7 @@
 
 :~ ^ mirror_state_of (files : list mirrored_file) (~left : string) (~right : string) : mirror_state =
     ?= files ?|
-    | Nil =>
+    | [] =>
         ? left = "" && right = "" ?> InStep
         |? right = "" ?> LeftAhead left
         |? left = "" ?> RightAhead right
@@ -86,20 +86,20 @@
 ///> rust
 :# a_change_on_one_side_alone_is_reported_and_refused =
     := same = file_at "ci.yml" (Present ("x", 5u64)) (Present ("x", 9u64))
-    testing.expect (mirror_state_of (same :: Nil) "" "" = InStep) "identical content in step whatever the times"
+    testing.expect (mirror_state_of (same :: []) "" "" = InStep) "identical content in step whatever the times"
     := left_change = file_at "scripts/build.ps1" (Present ("new", 20u64)) (Present ("old", 10u64))
     testing.expect
-        (mirror_state_of (left_change :: (same :: Nil)) "" "" = LeftAhead "scripts/build.ps1")
+        (mirror_state_of (left_change :: (same :: [])) "" "" = LeftAhead "scripts/build.ps1")
         "changed only on the left"
     testing.expect
         (
-            mirror_state_of (file_at "a" (Present ("old", 10u64)) (Present ("new", 20u64)) :: Nil) "" ""
+            mirror_state_of (file_at "a" (Present ("old", 10u64)) (Present ("new", 20u64)) :: []) "" ""
             = RightAhead "a"
         )
         "changed only on the right"
     testing.expect
         (
-            mirror_state_of (left_change :: (file_at "b" (Missing) (Present ("", 3u64)) :: Nil)) "" ""
+            mirror_state_of (left_change :: (file_at "b" (Missing) (Present ("", 3u64)) :: [])) "" ""
             = Diverged "scripts/build.ps1 | b"
         )
         "both sides moved"

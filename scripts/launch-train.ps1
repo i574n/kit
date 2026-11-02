@@ -1,13 +1,15 @@
 param(
     [Parameter(Mandatory)][string] $Name,
     [switch] $Snapshot,
+    [switch] $LiveTree,
     [switch] $SkipRegen,
     [switch] $Resume,
-    [string] $RunnerHash = 'F1DD2E34F1E816C8',
+    [string] $RunnerHash = '9A99BF53121417BD',
     [int] $CellsPort = 13977,
     [int] $HoldWaitMinutes = 240
 )
 $ErrorActionPreference = 'Stop'
+if (-not $LiveTree) { $Snapshot = [switch]::new($true) }
 . (Join-Path $PSScriptRoot 'user-env.ps1')
 $kitRoot = Split-Path $PSScriptRoot -Parent
 $kit = Join-Path $env:LOCALAPPDATA 'kit\bin\kit.exe'

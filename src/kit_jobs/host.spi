@@ -104,9 +104,9 @@
         "1").env("KIT_JOB_WATCH", (!watch).to_string()).status() { Ok(status) => status.code().unwrap_or(1), \
         Err(error) => { eprintln\!("kit error: job relaunch: {error}"); 2 } }' : i32
 
-:= supervisor_launched (~id : string) : string = $'kit_job_host::kit_job_host_request(&*!id)' : string
+:= supervisor_launched (~id : string) : string = $'kit_job_host_request::kit_job_host_request(&*!id)' : string
 
-:= held_revival () : string = $'kit_job_host::kit_job_host_revive()' : string
+:= held_revival () : string = $'kit_job_host_request::kit_job_host_revive()' : string
 
 :~ parent_pid () : u64 =
     $'{ \#[cfg(windows)] fn parent() -> u64 { \#[repr(C)] struct Entry { size: u32, usage: u32, pid: u32, \

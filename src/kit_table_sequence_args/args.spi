@@ -68,7 +68,7 @@
 
 :~ ^ files_in (paths : list string) (acc : list string) : list string =
     ?= paths ?|
-    | Nil => listm.rev acc
+    | [] => listm.rev acc
     | (path :: rest) =>
         ? file_system.directory_exists path
         ?>
@@ -80,13 +80,13 @@
                 |> array
                 |> am'.sort_by id
             files_in rest (
-                listm.fold (\ kept file => (file :: kept)) acc (named_files path names (am'.length names - 1i32) Nil)
+                listm.fold (\ kept file => (file :: kept)) acc (named_files path names (am'.length names - 1i32) [])
             )
         |: files_in rest (path :: acc)
 
 :~ ^ missing_path (paths : list string) : string =
     ?= paths ?|
-    | Nil => ""
+    | [] => ""
     | (path :: rest) =>
         ? file_system.file_exists path || file_system.directory_exists path ?> missing_path rest |: path
 := usage () : string =

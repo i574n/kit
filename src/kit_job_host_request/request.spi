@@ -1,0 +1,70 @@
+:< sm'_operators
+:< kit_jobs.host
+:< kit_jobs.jobs
+:< kit_job_host.host_model
+:< kit_job_host.host_paths
+:< kit_job_host.queue
+:< kit_os_launch.calls
+
+:~ host_args (owner_pid : u64) (owner_start : u64) : array string =
+    ? owner_pid = 0u64 ?> ;[ "job"; "host" ] |: ;[ "job"; "host"; decimal_text owner_pid; decimal_text owner_start ]
+
+:~ host_started (~executable : string) (owner_pid : u64) (owner_start : u64) : u64 =
+    := args = host_args owner_pid owner_start
+    ? owner_pid = 0u64 ?> shell_started executable args
+    |:
+        := pid = owner_started executable args owner_pid
+        ? pid = 0u64 ?> shell_started executable args |: pid
+
+:~ ^ supervisor_awaited (~id : string) (~deadline : u64) : supervisor_wait =
+    ?= supervisor_wait_of (decimal_u64 (text_or_empty (job_file id "supervisor"))) (now_ms ()) deadline ?|
+    | Some wait => wait
+    | None =>
+        ? file_exists (held_file id) ?> SupervisorHeld "held"
+        |? file_exists (job_file id "exit") ?> SupervisorHeld "settled"
+        |:
+            sleep_ms 50u64
+            supervisor_awaited id deadline
+
+:~ supervisor_requested (~id : string) : string =
+    := executable = supervisor_executable (jobs_root ())
+    := home, owner_pid, owner_start = caller_owner ()
+    := dir = requests_directory home
+    := _ = directory_created dir
+    := _ = text_written (job_file id "host-home") home
+    := request = joined dir (request_name id)
+    := _ = text_written request executable
+    := host = decimal_u64 (text_or_empty (host_pid_file home))
+    := _ =
+        ?= host_state_of host (process_alive host) ?|
+        | HostRunning _ => 0u64
+        | HostMissing => host_started executable owner_pid owner_start
+    ?= supervisor_awaited id (now_ms () + 5000u64) ?|
+    | SupervisorUp pid => decimal_text pid
+    | SupervisorHeld word => word ++# " host_home=" ++# (? home = "" ?> "shared" |: home)
+    | SupervisorLate =>
+        ? request_removed request ?>
+            := pid = shell_started executable ;[ "job"; "supervise"; id ]
+            ? pid = 0u64 ?> "error: neither the job host nor a detached start launched the supervisor"
+            |: decimal_text pid
+        |:
+            ?= supervisor_awaited id (now_ms () + 60000u64) ?|
+            | SupervisorUp pid => decimal_text pid
+            | SupervisorHeld word => word
+            | SupervisorLate => "error: the job host took the request but the supervisor never recorded its pid"
+
+:~ held_revived () : string =
+    ? am'.length (held_names ()) = 0i32 ?> "idle"
+    |:
+        := home, owner_pid, owner_start = caller_owner ()
+        := recorded = decimal_u64 (text_or_empty (host_pid_file home))
+        ?= host_state_of recorded (process_alive recorded) ?|
+        | HostRunning _ => "running"
+        | HostMissing =>
+            := pid = host_started (supervisor_executable (jobs_root ())) owner_pid owner_start
+            ? pid = 0u64 ?> "error: held jobs wait and no job host could be started" |: "revived"
+
+:= main () : i32 =
+    export "kit_job_host_revive" ((\ () => held_revived ()) : () -> string)
+    export "kit_job_host_request" ((\ id => supervisor_requested id) : string -> string)
+    0i32

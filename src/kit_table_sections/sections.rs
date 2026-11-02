@@ -469,7 +469,7 @@ fn method25(mut v0: Vec<std::string::String>) -> Vec<std::string::String> {
     v0
 }
 fn method26(mut v0: i32, mut v1: Rc<RefCell<Mut1>>) -> bool {
-    let v2: i32 = v1.borrow().l0.clone();
+    let v2: i32 = v1.borrow().l0;
     let mut v3: bool = v2 < v0;
     v3
 }
@@ -483,10 +483,10 @@ fn method27() -> Rc<dyn Fn((Rc<str>)) -> Rc<str>> {
     closure2()
 }
 fn method28(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<str>, mut v2: Rc<RefCell<Mut2>>) -> bool {
-    let mut v3: i32 = v2.borrow().l0.clone();
+    let mut v3: i32 = v2.borrow().l0;
     let mut v4: bool = v3 > 0i32;
     if v4 {
-        let mut v5: i32 = v2.borrow().l0.clone();
+        let mut v5: i32 = v2.borrow().l0;
         let mut v6: i32 = v5.wrapping_sub(1i32);
         let v7: Rc<str> = v0.borrow()[v6 as usize].clone();
         let v8: bool = &*v7 < &*v1;
@@ -560,7 +560,7 @@ fn files_in_24(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
                     let v14: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v13 as usize]));
                     let mut v15: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: 0i32 }));
                     while method26(v13, v15.clone()) {
-                        let v17: i32 = v15.borrow().l0.clone();
+                        let v17: i32 = v15.borrow().l0;
                         let v18: std::string::String = v12.clone().borrow()[v17 as usize].clone();
                         let v20: Rc<str> = Rc::<str>::from(String::as_str(&v18));
                         v14.clone().borrow_mut()[v17 as usize] = v20.clone();
@@ -575,12 +575,12 @@ fn files_in_24(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
                     let v26: i32 = (v22.clone().borrow().len() as i32);
                     let mut v27: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: 1i32 }));
                     while method26(v26, v27.clone()) {
-                        let v29: i32 = v27.borrow().l0.clone();
+                        let v29: i32 = v27.borrow().l0;
                         let v30: Rc<str> = v24.clone().borrow()[v29 as usize].clone();
                         let v31: Rc<str> = v25.clone().borrow()[v29 as usize].clone();
                         let mut v32: Rc<RefCell<Mut2>> = Rc::new(RefCell::new(Mut2 { l0: v29 }));
                         while method28(v25.clone(), v31.clone(), v32.clone()) {
-                            let v34: i32 = v32.borrow().l0.clone();
+                            let v34: i32 = v32.borrow().l0;
                             let v35: i32 = v34.wrapping_sub(1i32);
                             let v36: Rc<str> = v24.clone().borrow()[v35 as usize].clone();
                             v24.clone().borrow_mut()[v34 as usize] = v36.clone();
@@ -589,9 +589,9 @@ fn files_in_24(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
                             v32.borrow_mut().l0 = v35;
                             ()
                         };
-                        let v38: i32 = v32.borrow().l0.clone();
+                        let v38: i32 = v32.borrow().l0;
                         v24.clone().borrow_mut()[v38 as usize] = v30.clone();
-                        let v39: i32 = v32.borrow().l0.clone();
+                        let v39: i32 = v32.borrow().l0;
                         v25.clone().borrow_mut()[v39 as usize] = v31.clone();
                         let v40: i32 = v29.wrapping_add(1i32);
                         v27.borrow_mut().l0 = v40;

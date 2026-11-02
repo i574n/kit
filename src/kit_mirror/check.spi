@@ -21,7 +21,7 @@
 
 :~ ^ files_under (~root : string) (pending : list string) (acc : list string) : list string =
     ?= pending ?|
-    | Nil => acc
+    | [] => acc
     | (relative :: rest) =>
         := full = under root relative
         ? file_system.directory_exists full ?>
@@ -32,7 +32,7 @@
 
 :~ ^ merged (extra : list string) (acc : list string) : list string =
     ?= extra ?|
-    | Nil => acc
+    | [] => acc
     | (path :: rest) => merged rest (? listm'.contains path acc ?> acc |: (path :: acc))
 
 := side_of (~path : string) : file_side =
@@ -42,7 +42,7 @@
 
 :~ ^ mirrored (~left : string) (~right : string) (paths : list string) (acc : list mirrored_file) : list mirrored_file =
     ?= paths ?|
-    | Nil => listm.rev acc
+    | [] => listm.rev acc
     | (path :: rest) =>
         mirrored left right rest (
             { path = path; left = side_of (under left path); right = side_of (under right path) } :: acc
@@ -50,7 +50,7 @@
 
 :~ ^ drift_lines (files : list mirrored_file) (~text : string) (count : u64) : string * u64 =
     ?= files ?|
-    | Nil => text, count
+    | [] => text, count
     | (file :: rest) =>
         ?= drift_of file ?|
         | SameOnBoth => drift_lines rest text count
@@ -60,8 +60,8 @@
     ? index >= count ?> acc
     |:
         := path = argument index
-        := on_left = listm.rev (files_under left (path :: Nil) Nil)
-        := on_right = listm.rev (files_under right (path :: Nil) Nil)
+        := on_left = listm.rev (files_under left (path :: []) [])
+        := on_right = listm.rev (files_under right (path :: []) [])
         paths_from (index + 1i32) count left right (merged on_right (merged on_left acc))
 
 := usage () : string =
@@ -83,7 +83,7 @@
         )
         2i32
     |:
-        := files = mirrored left right (listm.rev (paths_from 4i32 count left right Nil)) Nil
+        := files = mirrored left right (listm.rev (paths_from 4i32 count left right [])) []
         := lines, differing = drift_lines files "" 0u64
         := state = mirror_state_of files "" ""
         ? lines <> "" ?> console.write_line (sm'.trim_end_suffix "\n" lines)

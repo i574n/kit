@@ -164,18 +164,18 @@ fn quoted_field_value_3(mut v0: Rc<str>) -> US2 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\"); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = std::rc::Rc::<str>::from(v0.replace(&*v2, &v3));
+    let v4: Rc<str> = Rc::<str>::from(v0.replace(&*v2, &*v3));
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\""); } LIT.with(|lit| lit.clone()) };
-    let v6: Rc<str> = std::rc::Rc::<str>::from(v4.replace(&*v1, &v5));
+    let v6: Rc<str> = Rc::<str>::from(v4.replace(&*v1, &*v5));
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\n"); } LIT.with(|lit| lit.clone()) };
-    let v9: Rc<str> = std::rc::Rc::<str>::from(v6.replace(&*v7, &v8));
+    let v9: Rc<str> = Rc::<str>::from(v6.replace(&*v7, &*v8));
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\r"); } LIT.with(|lit| lit.clone()) };
-    let v12: Rc<str> = std::rc::Rc::<str>::from(v9.replace(&*v10, &v11));
+    let v12: Rc<str> = Rc::<str>::from(v9.replace(&*v10, &*v11));
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
-    let v15: Rc<str> = std::rc::Rc::<str>::from(v12.replace(&*v13, &v14));
+    let v15: Rc<str> = Rc::<str>::from(v12.replace(&*v13, &*v14));
     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v17: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v15, &*v1, &*v16, &*v16].concat());
     US2::US2_Valid(v17)
@@ -240,19 +240,19 @@ fn edit_field_token_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<s
                     let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v32));
                     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
                     let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\"); } LIT.with(|lit| lit.clone()) };
-                    let v36: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v34, &v35));
+                    let v36: Rc<str> = Rc::<str>::from(v2.replace(&*v34, &*v35));
                     let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
                     let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\""); } LIT.with(|lit| lit.clone()) };
-                    let v39: Rc<str> = std::rc::Rc::<str>::from(v36.replace(&*v37, &v38));
+                    let v39: Rc<str> = Rc::<str>::from(v36.replace(&*v37, &*v38));
                     let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                     let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\n"); } LIT.with(|lit| lit.clone()) };
-                    let v42: Rc<str> = std::rc::Rc::<str>::from(v39.replace(&*v40, &v41));
+                    let v42: Rc<str> = Rc::<str>::from(v39.replace(&*v40, &*v41));
                     let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
                     let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\r"); } LIT.with(|lit| lit.clone()) };
-                    let v45: Rc<str> = std::rc::Rc::<str>::from(v42.replace(&*v43, &v44));
+                    let v45: Rc<str> = Rc::<str>::from(v42.replace(&*v43, &*v44));
                     let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                     let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
-                    let v48: Rc<str> = std::rc::Rc::<str>::from(v45.replace(&*v46, &v47));
+                    let v48: Rc<str> = Rc::<str>::from(v45.replace(&*v46, &*v47));
                     let v50: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v33, v48)), v37));
                     US2::US2_Valid(v50.clone())
                 }
@@ -260,111 +260,111 @@ fn edit_field_token_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<s
                     quoted_field_value_3(v2.clone())
                 }
                 US1::US1_EditDifficulty => {
-                    let v116: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D0"); } LIT.with(|lit| lit.clone()) };
-                    let v117: bool = v2 == v116 ;
-                    let v121: US4 = if v117 {
-                        let v118: US5 = US5::US5_AgileD0;
-                        US4::US4_Valid(v118.clone())
+                    let v116: bool = &*v2 == "D0";
+                    let v120: US4 = if v116 {
+                        let v117: US5 = US5::US5_AgileD0;
+                        US4::US4_Valid(v117.clone())
                     } else {
                         US4::US4_Invalid
                     };
-                    let v122: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D1"); } LIT.with(|lit| lit.clone()) };
-                    let v123: bool = v2 == v122 ;
-                    let v126: US4 = if v123 {
-                        let v124: US5 = US5::US5_AgileD1;
-                        US4::US4_Valid(v124.clone())
+                    let v121: bool = &*v2 == "D1";
+                    let v124: US4 = if v121 {
+                        let v122: US5 = US5::US5_AgileD1;
+                        US4::US4_Valid(v122.clone())
                     } else {
-                        v121.clone()
+                        v120.clone()
                     };
-                    let v127: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D2"); } LIT.with(|lit| lit.clone()) };
-                    let v128: bool = v2 == v127 ;
-                    let v131: US4 = if v128 {
-                        let v129: US5 = US5::US5_AgileD2;
-                        US4::US4_Valid(v129.clone())
+                    let v125: bool = &*v2 == "D2";
+                    let v128: US4 = if v125 {
+                        let v126: US5 = US5::US5_AgileD2;
+                        US4::US4_Valid(v126.clone())
                     } else {
-                        v126.clone()
+                        v124.clone()
                     };
-                    let v132: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D3"); } LIT.with(|lit| lit.clone()) };
-                    let v133: bool = v2 == v132 ;
+                    let v129: bool = &*v2 == "D3";
+                    let v132: US4 = if v129 {
+                        let v130: US5 = US5::US5_AgileD3;
+                        US4::US4_Valid(v130.clone())
+                    } else {
+                        v128.clone()
+                    };
+                    let v133: bool = &*v2 == "D4";
                     let v136: US4 = if v133 {
-                        let v134: US5 = US5::US5_AgileD3;
+                        let v134: US5 = US5::US5_AgileD4;
                         US4::US4_Valid(v134.clone())
                     } else {
-                        v131.clone()
+                        v132.clone()
                     };
-                    let v137: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D4"); } LIT.with(|lit| lit.clone()) };
-                    let v138: bool = v2 == v137 ;
-                    let v141: US4 = if v138 {
-                        let v139: US5 = US5::US5_AgileD4;
-                        US4::US4_Valid(v139.clone())
+                    let v137: bool = &*v2 == "D5";
+                    let v140: US4 = if v137 {
+                        let v138: US5 = US5::US5_AgileD5;
+                        US4::US4_Valid(v138.clone())
                     } else {
                         v136.clone()
                     };
-                    let v142: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D5"); } LIT.with(|lit| lit.clone()) };
-                    let v143: bool = v2 == v142 ;
-                    let v146: US4 = if v143 {
-                        let v144: US5 = US5::US5_AgileD5;
-                        US4::US4_Valid(v144.clone())
+                    let v141: bool = &*v2 == "D6";
+                    let v144: US4 = if v141 {
+                        let v142: US5 = US5::US5_AgileD6;
+                        US4::US4_Valid(v142.clone())
                     } else {
-                        v141.clone()
+                        v140.clone()
                     };
-                    let v147: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D6"); } LIT.with(|lit| lit.clone()) };
-                    let v148: bool = v2 == v147 ;
-                    let v151: US4 = if v148 {
-                        let v149: US5 = US5::US5_AgileD6;
-                        US4::US4_Valid(v149.clone())
+                    let v145: bool = &*v2 == "D7";
+                    let v148: US4 = if v145 {
+                        let v146: US5 = US5::US5_AgileD7;
+                        US4::US4_Valid(v146.clone())
                     } else {
-                        v146.clone()
+                        v144.clone()
                     };
-                    let v152: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D7"); } LIT.with(|lit| lit.clone()) };
-                    let v153: bool = v2 == v152 ;
-                    let v156: US4 = if v153 {
-                        let v154: US5 = US5::US5_AgileD7;
-                        US4::US4_Valid(v154.clone())
+                    let v149: bool = &*v2 == "D8";
+                    let v152: US4 = if v149 {
+                        let v150: US5 = US5::US5_AgileD8;
+                        US4::US4_Valid(v150.clone())
                     } else {
-                        v151.clone()
+                        v148.clone()
                     };
-                    let v157: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D8"); } LIT.with(|lit| lit.clone()) };
-                    let v158: bool = v2 == v157 ;
-                    let v161: US4 = if v158 {
-                        let v159: US5 = US5::US5_AgileD8;
-                        US4::US4_Valid(v159.clone())
-                    } else {
-                        v156.clone()
-                    };
-                    match &v161 {
+                    match &v152 {
                         US4::US4_Invalid => {
                             US2::US2_Invalid
                         }
-                        US4::US4_Valid(v162) => {
-                            let v162: US5 = v162.clone();
-                            let v163: Rc<str> = match &v162 {
+                        US4::US4_Valid(v153) => {
+                            let v153: US5 = v153.clone();
+                            let v163: Rc<str> = match &v153 {
                                 US5::US5_AgileD0 => {
-                                    v116.clone()
+                                    let v154: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D0"); } LIT.with(|lit| lit.clone()) };
+                                    v154.clone()
                                 }
                                 US5::US5_AgileD1 => {
-                                    v122.clone()
+                                    let v155: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D1"); } LIT.with(|lit| lit.clone()) };
+                                    v155.clone()
                                 }
                                 US5::US5_AgileD2 => {
-                                    v127.clone()
+                                    let v156: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D2"); } LIT.with(|lit| lit.clone()) };
+                                    v156.clone()
                                 }
                                 US5::US5_AgileD3 => {
-                                    v132.clone()
+                                    let v157: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D3"); } LIT.with(|lit| lit.clone()) };
+                                    v157.clone()
                                 }
                                 US5::US5_AgileD4 => {
-                                    v137.clone()
+                                    let v158: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D4"); } LIT.with(|lit| lit.clone()) };
+                                    v158.clone()
                                 }
                                 US5::US5_AgileD5 => {
-                                    v142.clone()
+                                    let v159: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D5"); } LIT.with(|lit| lit.clone()) };
+                                    v159.clone()
                                 }
                                 US5::US5_AgileD6 => {
-                                    v147.clone()
+                                    let v160: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D6"); } LIT.with(|lit| lit.clone()) };
+                                    v160.clone()
                                 }
                                 US5::US5_AgileD7 => {
-                                    v152.clone()
+                                    let v161: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D7"); } LIT.with(|lit| lit.clone()) };
+                                    v161.clone()
                                 }
                                 US5::US5_AgileD8 => {
-                                    v157.clone()
+                                    let v162: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D8"); } LIT.with(|lit| lit.clone()) };
+                                    v162.clone()
                                 }
                             };
                             US2::US2_Valid(v163.clone())
@@ -372,56 +372,56 @@ fn edit_field_token_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<s
                     }
                 }
                 US1::US1_EditKind => {
-                    let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Epic"); } LIT.with(|lit| lit.clone()) };
-                    let v53: bool = v2 == v52 ;
-                    let v57: US6 = if v53 {
-                        let v54: US7 = US7::US7_AgileEpic;
-                        US6::US6_Valid(v54.clone())
+                    let v52: bool = &*v2 == "Epic";
+                    let v56: US6 = if v52 {
+                        let v53: US7 = US7::US7_AgileEpic;
+                        US6::US6_Valid(v53.clone())
                     } else {
                         US6::US6_Invalid
                     };
-                    let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Feature"); } LIT.with(|lit| lit.clone()) };
-                    let v59: bool = v2 == v58 ;
-                    let v62: US6 = if v59 {
-                        let v60: US7 = US7::US7_AgileFeature;
-                        US6::US6_Valid(v60.clone())
+                    let v57: bool = &*v2 == "Feature";
+                    let v60: US6 = if v57 {
+                        let v58: US7 = US7::US7_AgileFeature;
+                        US6::US6_Valid(v58.clone())
                     } else {
-                        v57.clone()
+                        v56.clone()
                     };
-                    let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Story"); } LIT.with(|lit| lit.clone()) };
-                    let v64: bool = v2 == v63 ;
-                    let v67: US6 = if v64 {
-                        let v65: US7 = US7::US7_AgileStory;
-                        US6::US6_Valid(v65.clone())
+                    let v61: bool = &*v2 == "Story";
+                    let v64: US6 = if v61 {
+                        let v62: US7 = US7::US7_AgileStory;
+                        US6::US6_Valid(v62.clone())
                     } else {
-                        v62.clone()
+                        v60.clone()
                     };
-                    let v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("TaskKind"); } LIT.with(|lit| lit.clone()) };
-                    let v69: bool = v2 == v68 ;
-                    let v72: US6 = if v69 {
-                        let v70: US7 = US7::US7_AgileTaskKind;
-                        US6::US6_Valid(v70.clone())
+                    let v65: bool = &*v2 == "TaskKind";
+                    let v68: US6 = if v65 {
+                        let v66: US7 = US7::US7_AgileTaskKind;
+                        US6::US6_Valid(v66.clone())
                     } else {
-                        v67.clone()
+                        v64.clone()
                     };
-                    match &v72 {
+                    match &v68 {
                         US6::US6_Invalid => {
                             US2::US2_Invalid
                         }
-                        US6::US6_Valid(v73) => {
-                            let v73: US7 = v73.clone();
-                            let v74: Rc<str> = match &v73 {
+                        US6::US6_Valid(v69) => {
+                            let v69: US7 = v69.clone();
+                            let v74: Rc<str> = match &v69 {
                                 US7::US7_AgileEpic => {
-                                    v52.clone()
+                                    let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Epic"); } LIT.with(|lit| lit.clone()) };
+                                    v70.clone()
                                 }
                                 US7::US7_AgileFeature => {
-                                    v58.clone()
+                                    let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Feature"); } LIT.with(|lit| lit.clone()) };
+                                    v71.clone()
                                 }
                                 US7::US7_AgileStory => {
-                                    v63.clone()
+                                    let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Story"); } LIT.with(|lit| lit.clone()) };
+                                    v72.clone()
                                 }
                                 US7::US7_AgileTaskKind => {
-                                    v68.clone()
+                                    let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("TaskKind"); } LIT.with(|lit| lit.clone()) };
+                                    v73.clone()
                                 }
                             };
                             US2::US2_Valid(v74.clone())
@@ -429,78 +429,78 @@ fn edit_field_token_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<s
                     }
                 }
                 US1::US1_EditPriority => {
-                    let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P0"); } LIT.with(|lit| lit.clone()) };
-                    let v80: bool = v2 == v79 ;
-                    let v84: US8 = if v80 {
-                        let v81: US9 = US9::US9_AgileP0;
-                        US8::US8_Valid(v81.clone())
+                    let v79: bool = &*v2 == "P0";
+                    let v83: US8 = if v79 {
+                        let v80: US9 = US9::US9_AgileP0;
+                        US8::US8_Valid(v80.clone())
                     } else {
                         US8::US8_Invalid
                     };
-                    let v85: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P1"); } LIT.with(|lit| lit.clone()) };
-                    let v86: bool = v2 == v85 ;
-                    let v89: US8 = if v86 {
-                        let v87: US9 = US9::US9_AgileP1;
-                        US8::US8_Valid(v87.clone())
+                    let v84: bool = &*v2 == "P1";
+                    let v87: US8 = if v84 {
+                        let v85: US9 = US9::US9_AgileP1;
+                        US8::US8_Valid(v85.clone())
                     } else {
-                        v84.clone()
+                        v83.clone()
                     };
-                    let v90: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P2"); } LIT.with(|lit| lit.clone()) };
-                    let v91: bool = v2 == v90 ;
-                    let v94: US8 = if v91 {
-                        let v92: US9 = US9::US9_AgileP2;
-                        US8::US8_Valid(v92.clone())
+                    let v88: bool = &*v2 == "P2";
+                    let v91: US8 = if v88 {
+                        let v89: US9 = US9::US9_AgileP2;
+                        US8::US8_Valid(v89.clone())
                     } else {
-                        v89.clone()
+                        v87.clone()
                     };
-                    let v95: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P3"); } LIT.with(|lit| lit.clone()) };
-                    let v96: bool = v2 == v95 ;
+                    let v92: bool = &*v2 == "P3";
+                    let v95: US8 = if v92 {
+                        let v93: US9 = US9::US9_AgileP3;
+                        US8::US8_Valid(v93.clone())
+                    } else {
+                        v91.clone()
+                    };
+                    let v96: bool = &*v2 == "P4";
                     let v99: US8 = if v96 {
-                        let v97: US9 = US9::US9_AgileP3;
+                        let v97: US9 = US9::US9_AgileP4;
                         US8::US8_Valid(v97.clone())
                     } else {
-                        v94.clone()
+                        v95.clone()
                     };
-                    let v100: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P4"); } LIT.with(|lit| lit.clone()) };
-                    let v101: bool = v2 == v100 ;
-                    let v104: US8 = if v101 {
-                        let v102: US9 = US9::US9_AgileP4;
-                        US8::US8_Valid(v102.clone())
+                    let v100: bool = &*v2 == "P5";
+                    let v103: US8 = if v100 {
+                        let v101: US9 = US9::US9_AgileP5;
+                        US8::US8_Valid(v101.clone())
                     } else {
                         v99.clone()
                     };
-                    let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P5"); } LIT.with(|lit| lit.clone()) };
-                    let v106: bool = v2 == v105 ;
-                    let v109: US8 = if v106 {
-                        let v107: US9 = US9::US9_AgileP5;
-                        US8::US8_Valid(v107.clone())
-                    } else {
-                        v104.clone()
-                    };
-                    match &v109 {
+                    match &v103 {
                         US8::US8_Invalid => {
                             US2::US2_Invalid
                         }
-                        US8::US8_Valid(v110) => {
-                            let v110: US9 = v110.clone();
-                            let v111: Rc<str> = match &v110 {
+                        US8::US8_Valid(v104) => {
+                            let v104: US9 = v104.clone();
+                            let v111: Rc<str> = match &v104 {
                                 US9::US9_AgileP0 => {
-                                    v79.clone()
+                                    let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P0"); } LIT.with(|lit| lit.clone()) };
+                                    v105.clone()
                                 }
                                 US9::US9_AgileP1 => {
-                                    v85.clone()
+                                    let v106: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P1"); } LIT.with(|lit| lit.clone()) };
+                                    v106.clone()
                                 }
                                 US9::US9_AgileP2 => {
-                                    v90.clone()
+                                    let v107: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P2"); } LIT.with(|lit| lit.clone()) };
+                                    v107.clone()
                                 }
                                 US9::US9_AgileP3 => {
-                                    v95.clone()
+                                    let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P3"); } LIT.with(|lit| lit.clone()) };
+                                    v108.clone()
                                 }
                                 US9::US9_AgileP4 => {
-                                    v100.clone()
+                                    let v109: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P4"); } LIT.with(|lit| lit.clone()) };
+                                    v109.clone()
                                 }
                                 US9::US9_AgileP5 => {
-                                    v105.clone()
+                                    let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("P5"); } LIT.with(|lit| lit.clone()) };
+                                    v110.clone()
                                 }
                             };
                             US2::US2_Valid(v111.clone())

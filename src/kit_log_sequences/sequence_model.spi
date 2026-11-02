@@ -104,7 +104,7 @@
     : list measure_row
     =
     ?= events ?|
-    | Nil => listm.rev rows
+    | [] => listm.rev rows
     | (event :: rest) =>
         ? event.role = terms.marked
         ?>
@@ -121,7 +121,7 @@
 
 :~ ^ count_within (counted : string) (low : u64) (high : u64) (events : list event) (count : u64) : u64 =
     ?= events ?|
-    | Nil => count
+    | [] => count
     | (event :: rest) =>
         := inside = event.role = counted && event.at_ms >= low && event.at_ms <= high
         count_within counted low high rest (? inside ?> count + 1u64 |: count)
@@ -131,7 +131,7 @@
     : list measure_row
     =
     ?= events ?|
-    | Nil => listm.rev rows
+    | [] => listm.rev rows
     | (event :: rest) =>
         ? event.role = terms.marker
         ?>
@@ -142,7 +142,7 @@
 
 :~ ^ first_line (role : string) (events : list event) : option u64 =
     ?= events ?|
-    | Nil => None
+    | [] => None
     | (event :: rest) => ? event.role = role ?> Some event.line |: first_line role rest
 
 := order_of (terms : order_terms) (events : list event) : measure_row =
@@ -153,13 +153,13 @@
 
 :~ ^ paired (ending : event) (pending : list event) (rows : list measure_row) : list measure_row =
     ?= pending ?|
-    | Nil => rows
+    | [] => rows
     | (starting :: rest) =>
         paired ending rest (row_of starting.line (GapMs (elapsed starting.at_ms ending.at_ms)) :: rows)
 
 :~ ^ pending_count (pending : list event) (count : u64) : u64 =
     ?= pending ?|
-    | Nil => count
+    | [] => count
     | (_ :: rest) => pending_count rest (count + 1u64)
 
 :~ ^ latency_rows
@@ -167,20 +167,20 @@
     : measure_outcome
     =
     ?= events ?|
-    | Nil => { rows = listm.rev rows; unpaired = pending_count pending 0u64 }
+    | [] => { rows = listm.rev rows; unpaired = pending_count pending 0u64 }
     | (event :: rest) =>
         ? event.role = terms.starting ?> latency_rows terms rest (event :: pending) rows
-        |? event.role = terms.ending ?> latency_rows terms rest Nil (paired event (listm.rev pending) rows)
+        |? event.role = terms.ending ?> latency_rows terms rest [] (paired event (listm.rev pending) rows)
         |: latency_rows terms rest pending rows
 
 := whole (rows : list measure_row) : measure_outcome = { rows = rows; unpaired = 0u64 }
 
 := measured \* result. (measure : sequence_measure result) (events : list event) : measure_outcome =
     ?= measure ?|
-    | Interval terms => whole (interval_rows terms events None !- Nil)
-    | Window terms => whole (window_rows terms events events Nil)
-    | Order terms => whole (order_of terms events :: Nil)
-    | Latency terms => latency_rows terms events Nil Nil
+    | Interval terms => whole (interval_rows terms events None !- [])
+    | Window terms => whole (window_rows terms events events [])
+    | Order terms => whole (order_of terms events :: [])
+    | Latency terms => latency_rows terms events [] []
 
 := verdict_word (verdict : order_verdict) : string =
     ?= verdict ?|
@@ -196,7 +196,7 @@
 
 :~ ^ rows_text (~file : string) (rows : list measure_row) (~text : string) : string =
     ?= rows ?|
-    | Nil => text
+    | [] => text
     | (row :: rest) =>
         rows_text file rest (text ++# file ++# "\t" ++# sm'.format row.line ++# "\t" ++# value_text row.value ++# "\n")
 
@@ -204,7 +204,7 @@
 := at (role : string) (line : u64) (at_ms : u64) : event = { role = role; line = line; at_ms = at_ms }
 
 := request_log () : list event =
-    (at "request" 1u64 1000u64 :: (at "reply" 2u64 1250u64 :: (at "request" 3u64 2000u64 :: (at "flush" 4u64 2100u64 :: (at "request" 5u64 3500u64 :: (at "reply" 6u64 3900u64 :: (at "request" 7u64 4000u64 :: Nil)))))))
+    (at "request" 1u64 1000u64 :: (at "reply" 2u64 1250u64 :: (at "request" 3u64 2000u64 :: (at "flush" 4u64 2100u64 :: (at "request" 5u64 3500u64 :: (at "reply" 6u64 3900u64 :: (at "request" 7u64 4000u64 :: [])))))))
 
 := outcome_text (outcome : measure_outcome) : string =
     rows_text "a.log" outcome.rows "" ++# "unpaired=" ++# sm'.format outcome.unpaired

@@ -3,17 +3,17 @@ use std::cell::RefCell;
 use std::rc::Rc;
 #[derive(Clone)]
 enum US0 {
-    US0_MigrationDryRun,
-    US0_MigrationApply,
+    US0_Replaced,
+    US0_TemporaryWriteFailed,
+    US0_RenameFailed,
+    US0_RenameFailedTemporaryKept,
+    US0_ReadbackMismatch,
+    US0_ChangedSinceRead,
 }
 #[derive(Clone)]
 enum US1 {
-    US1_Replaced,
-    US1_TemporaryWriteFailed,
-    US1_RenameFailed,
-    US1_RenameFailedTemporaryKept,
-    US1_ReadbackMismatch,
-    US1_ChangedSinceRead,
+    US1_MigrationDryRun,
+    US1_MigrationApply,
 }
 #[derive(Clone)]
 enum US2 {
@@ -38,7 +38,7 @@ enum US5 {
 }
 #[derive(Clone)]
 enum US6 {
-    US6_Valid(US0),
+    US6_Valid(US1),
     US6_Invalid,
 }
 fn migration_receipt_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: Rc<str>, mut v6: u64) -> i32 {
@@ -91,7 +91,7 @@ fn renamed_within_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
         }
     }
 }
-fn replace_records_unchanged_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US1 {
+fn replace_records_unchanged_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
     let v3: bool = kit_agile_records::kit_agile_records_unchanged(&*v0, &*v1);
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
@@ -103,23 +103,23 @@ fn replace_records_unchanged_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>
             if v8 {
                 let v9: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
                 if v9 {
-                    US1::US1_Replaced
+                    US0::US0_Replaced
                 } else {
-                    US1::US1_ReadbackMismatch
+                    US0::US0_ReadbackMismatch
                 }
             } else {
                 let v13: bool = std::fs::remove_file(&*v5).is_ok() || !std::path::Path::new(&*v5).exists();
                 if v13 {
-                    US1::US1_RenameFailed
+                    US0::US0_RenameFailed
                 } else {
-                    US1::US1_RenameFailedTemporaryKept
+                    US0::US0_RenameFailedTemporaryKept
                 }
             }
         } else {
-            US1::US1_TemporaryWriteFailed
+            US0::US0_TemporaryWriteFailed
         }
     } else {
-        US1::US1_ChangedSinceRead
+        US0::US0_ChangedSinceRead
     }
 }
 fn migration_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: Rc<str>, mut v6: u64) -> i32 {
@@ -128,31 +128,31 @@ fn migration_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok unchanged"); } LIT.with(|lit| lit.clone()) };
         migration_receipt_3(v8.clone(), v1.clone(), v2, v3, v4, v5.clone(), v6)
     } else {
-        let v10: US1 = replace_records_unchanged_4(v0.clone(), v5.clone(), v1.clone());
+        let v10: US0 = replace_records_unchanged_4(v0.clone(), v5.clone(), v1.clone());
         match &v10 {
-            US1::US1_Replaced => {
+            US0::US0_Replaced => {
                 let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
                 migration_receipt_3(v11.clone(), v1.clone(), v2, v3, v4, v5.clone(), v6)
             }
             _ => {
                 let v22: Rc<str> = match &v10 {
-                    US1::US1_ChangedSinceRead => {
+                    US0::US0_ChangedSinceRead => {
                         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the file changed since it was read; nothing written, run the call again"); } LIT.with(|lit| lit.clone()) };
                         v17.clone()
                     }
-                    US1::US1_ReadbackMismatch => {
+                    US0::US0_ReadbackMismatch => {
                         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
                         v16.clone()
                     }
-                    US1::US1_RenameFailed => {
+                    US0::US0_RenameFailed => {
                         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
                         v14.clone()
                     }
-                    US1::US1_RenameFailedTemporaryKept => {
+                    US0::US0_RenameFailedTemporaryKept => {
                         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
                         v15.clone()
                     }
-                    US1::US1_TemporaryWriteFailed => {
+                    US0::US0_TemporaryWriteFailed => {
                         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
                         v13.clone()
                     }
@@ -509,18 +509,18 @@ fn tags_replaced_21(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str
     let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\"); } LIT.with(|lit| lit.clone()) };
-    let v18: Rc<str> = std::rc::Rc::<str>::from(v2.replace(&*v16, &v17));
+    let v18: Rc<str> = Rc::<str>::from(v2.replace(&*v16, &*v17));
     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\""); } LIT.with(|lit| lit.clone()) };
-    let v20: Rc<str> = std::rc::Rc::<str>::from(v18.replace(&*v15, &v19));
+    let v20: Rc<str> = Rc::<str>::from(v18.replace(&*v15, &*v19));
     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\n"); } LIT.with(|lit| lit.clone()) };
-    let v23: Rc<str> = std::rc::Rc::<str>::from(v20.replace(&*v21, &v22));
+    let v23: Rc<str> = Rc::<str>::from(v20.replace(&*v21, &*v22));
     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
     let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\r"); } LIT.with(|lit| lit.clone()) };
-    let v26: Rc<str> = std::rc::Rc::<str>::from(v23.replace(&*v24, &v25));
+    let v26: Rc<str> = Rc::<str>::from(v23.replace(&*v24, &*v25));
     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
-    let v29: Rc<str> = std::rc::Rc::<str>::from(v26.replace(&*v27, &v28));
+    let v29: Rc<str> = Rc::<str>::from(v26.replace(&*v27, &*v28));
     let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v31: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v29, &*v15, &*v30, &*v30].concat());
     let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v31));
@@ -638,7 +638,7 @@ fn migrated_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut 
     };
     (v88.clone(), v89, v90, v91)
 }
-fn tags_migration_1(mut v0: Rc<str>, mut v1: US0) -> i32 {
+fn tags_migration_1(mut v0: Rc<str>, mut v1: US1) -> i32 {
     let v2: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -672,10 +672,10 @@ fn tags_migration_1(mut v0: Rc<str>, mut v1: US0) -> i32 {
                 let v26: i32 = 0i32;
                 let (mut v27, mut v28, mut v29, mut v30): (Rc<str>, i32, i32, i32) = migrated_from_11(v22.clone(), v23, v24, v25, v26);
                 match &v1 {
-                    US0::US0_MigrationApply => {
+                    US1::US1_MigrationApply => {
                         migration_written_2(v5.clone(), v27.clone(), v28, v29, v30, v17.clone(), v2)
                     }
-                    US0::US0_MigrationDryRun => {
+                    US1::US1_MigrationDryRun => {
                         let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("preview"); } LIT.with(|lit| lit.clone()) };
                         migration_receipt_3(v31.clone(), v27.clone(), v28, v29, v30, v17.clone(), v2)
                     }
@@ -715,12 +715,12 @@ fn tags_migration_entry_0() -> i32 {
         let v3: Rc<str> = usize::try_from(v2).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
         let v4: bool = &*v3 == "apply";
         let v12: US6 = if v4 {
-            let v5: US0 = US0::US0_MigrationApply;
+            let v5: US1 = US1::US1_MigrationApply;
             US6::US6_Valid(v5.clone())
         } else {
             let v7: bool = &*v3 == "preview";
             if v7 {
-                let v8: US0 = US0::US0_MigrationDryRun;
+                let v8: US1 = US1::US1_MigrationDryRun;
                 US6::US6_Valid(v8.clone())
             } else {
                 US6::US6_Invalid
@@ -736,7 +736,7 @@ fn tags_migration_entry_0() -> i32 {
                 v20
             }
             US6::US6_Valid(v13) => {
-                let v13: US0 = v13.clone();
+                let v13: US1 = v13.clone();
                 let v14: i32 = 2i32;
                 let v15: Rc<str> = usize::try_from(v14).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
                 tags_migration_1(v15.clone(), v13.clone())

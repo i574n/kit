@@ -1,0 +1,20 @@
+:< sm'_operators
+
+:~ shell_started (~executable : string) (args : array string) : u64 =
+    $'kit_os_launch::kit_shell_started(&*!executable, &(!args).borrow())' : u64
+
+:~ owner_started (~executable : string) (args : array string) (owner_pid : u64) : u64 =
+    $'kit_os_launch::kit_owner_started(&*!executable, &(!args).borrow(), !owner_pid)' : u64
+
+:! children = $'kit_os_launch::KitChildren'
+
+:~ no_children () : children = $'kit_os_launch::kit_children()' : children
+
+:~ child_started (~kids : children) (~executable : string) (args : array string) : bool =
+    $'kit_os_launch::kit_child_started(&!kids, &*!executable, &(!args).borrow())' : bool
+
+:~ live_children (~kids : children) : u64 = $'kit_os_launch::kit_children_live(&!kids)' : u64
+
+:~ caller_owner () : string * u64 * u64 = $'kit_os_launch::kit_caller_owner()' : string * u64 * u64
+
+:~ owner_present (pid : u64) (started : u64) : bool = $'kit_os_launch::kit_owner_present(!pid, !started)' : bool

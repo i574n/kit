@@ -81,7 +81,7 @@ fn method7(mut v0: Vec<std::string::String>) -> Vec<std::string::String> {
     v0
 }
 fn method8(mut v0: i32, mut v1: Rc<RefCell<Mut0>>) -> bool {
-    let v2: i32 = v1.borrow().l0.clone();
+    let v2: i32 = v1.borrow().l0;
     let v3: bool = v2 < v0;
     v3
 }
@@ -95,10 +95,10 @@ fn method9() -> Rc<dyn Fn((Rc<str>)) -> Rc<str>> {
     closure1()
 }
 fn method10(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<str>, mut v2: Rc<RefCell<Mut1>>) -> bool {
-    let v3: i32 = v2.borrow().l0.clone();
+    let v3: i32 = v2.borrow().l0;
     let mut v4: bool = v3 > 0i32;
     if v4 {
-        let mut v5: i32 = v2.borrow().l0.clone();
+        let mut v5: i32 = v2.borrow().l0;
         let mut v6: i32 = v5.wrapping_sub(1i32);
         let mut v7: Rc<str> = v0.borrow()[v6 as usize].clone();
         let mut v8: bool = &*v7 < &*v1;
@@ -127,7 +127,7 @@ fn sorted_names_6(mut v0: Rc<str>) -> Rc<RefCell<Vec<Rc<str>>>> {
     let mut v8: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v7 as usize]));
     let mut v9: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: 0i32 }));
     while method8(v7, v9.clone()) {
-        let v11: i32 = v9.borrow().l0.clone();
+        let v11: i32 = v9.borrow().l0;
         let v12: std::string::String = v6.clone().borrow()[v11 as usize].clone();
         let v14: Rc<str> = Rc::<str>::from(String::as_str(&v12));
         v8.clone().borrow_mut()[v11 as usize] = v14.clone();
@@ -142,12 +142,12 @@ fn sorted_names_6(mut v0: Rc<str>) -> Rc<RefCell<Vec<Rc<str>>>> {
     let v20: i32 = (v16.clone().borrow().len() as i32);
     let mut v21: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: 1i32 }));
     while method8(v20, v21.clone()) {
-        let v23: i32 = v21.borrow().l0.clone();
+        let v23: i32 = v21.borrow().l0;
         let v24: Rc<str> = v18.clone().borrow()[v23 as usize].clone();
         let v25: Rc<str> = v19.clone().borrow()[v23 as usize].clone();
         let mut v26: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: v23 }));
         while method10(v19.clone(), v25.clone(), v26.clone()) {
-            let v28: i32 = v26.borrow().l0.clone();
+            let v28: i32 = v26.borrow().l0;
             let v29: i32 = v28.wrapping_sub(1i32);
             let v30: Rc<str> = v18.clone().borrow()[v29 as usize].clone();
             v18.clone().borrow_mut()[v28 as usize] = v30.clone();
@@ -156,9 +156,9 @@ fn sorted_names_6(mut v0: Rc<str>) -> Rc<RefCell<Vec<Rc<str>>>> {
             v26.borrow_mut().l0 = v29;
             ()
         };
-        let v32: i32 = v26.borrow().l0.clone();
+        let v32: i32 = v26.borrow().l0;
         v18.clone().borrow_mut()[v32 as usize] = v24.clone();
-        let v33: i32 = v26.borrow().l0.clone();
+        let v33: i32 = v26.borrow().l0;
         v19.clone().borrow_mut()[v33 as usize] = v25.clone();
         let v34: i32 = v23.wrapping_add(1i32);
         v21.borrow_mut().l0 = v34;
@@ -363,10 +363,28 @@ fn paths_from_4(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut 
         }
     }
 }
-fn method17(mut v0: Vec<u8>) -> Vec<u8> {
+fn method17(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
+    loop {
+        match &*v0 {
+            UH1::UH1_Cons(v2, v3, v4, v5) => {
+                let v2: Rc<str> = v2.clone();
+                let v3: US2 = v3.clone();
+                let mut v4: US2 = v4.clone();
+                let mut v5: Rc<UH1> = v5.clone();
+                let mut v6: Rc<UH1> = Rc::new(UH1::UH1_Cons(v2.clone(), v3.clone(), v4.clone(), v1.clone()));
+                (v0, v1) = (v5.clone(), v6.clone());
+                continue;
+            }
+            UH1::UH1_Nil => {
+                return v1.clone();
+            }
+        }
+    }
+}
+fn method18(mut v0: Vec<u8>) -> Vec<u8> {
     v0
 }
-fn last_write_ms_18(mut v0: Rc<str>) -> u64 {
+fn last_write_ms_19(mut v0: Rc<str>) -> u64 {
     let mut v1: std::io::Result<std::fs::Metadata> = std::fs::metadata(&*v0);
     let v2: bool = v1.is_ok();
     let v3: bool = v2 == false;
@@ -390,24 +408,6 @@ fn last_write_ms_18(mut v0: Rc<str>) -> u64 {
         }
     }
 }
-fn method19(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
-    loop {
-        match &*v0 {
-            UH1::UH1_Cons(v2, v3, v4, v5) => {
-                let v2: Rc<str> = v2.clone();
-                let v3: US2 = v3.clone();
-                let mut v4: US2 = v4.clone();
-                let mut v5: Rc<UH1> = v5.clone();
-                let mut v6: Rc<UH1> = Rc::new(UH1::UH1_Cons(v2.clone(), v3.clone(), v4.clone(), v1.clone()));
-                (v0, v1) = (v5.clone(), v6.clone());
-                continue;
-            }
-            UH1::UH1_Nil => {
-                return v1.clone();
-            }
-        }
-    }
-}
 fn mirrored_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3: Rc<UH1>) -> Rc<UH1> {
     loop {
         match &*v2 {
@@ -426,11 +426,11 @@ fn mirrored_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3: Rc<UH1
                 let v28: US2 = if v13 {
                     let v15: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v12);
                     let mut v17: Vec<u8> = v15.unwrap();
-                    let v18: Vec<u8> = method17(v17.clone());
+                    let v18: Vec<u8> = method18(v17.clone());
                     let v20: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v18);
                     let v22: std::string::String = v20.unwrap();
                     let v24: Rc<str> = Rc::<str>::from(String::as_str(&v22));
-                    let v25: u64 = last_write_ms_18(v12.clone());
+                    let v25: u64 = last_write_ms_19(v12.clone());
                     US2::US2_Present(v24.clone(), v25)
                 } else {
                     US2::US2_Missing
@@ -446,11 +446,11 @@ fn mirrored_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3: Rc<UH1
                 let v48: US2 = if v33 {
                     let v35: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v32);
                     let v37: Vec<u8> = v35.unwrap();
-                    let v38: Vec<u8> = method17(v37.clone());
+                    let v38: Vec<u8> = method18(v37.clone());
                     let v40: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v38);
                     let v42: std::string::String = v40.unwrap();
                     let v44: Rc<str> = Rc::<str>::from(String::as_str(&v42));
-                    let v45: u64 = last_write_ms_18(v32.clone());
+                    let v45: u64 = last_write_ms_19(v32.clone());
                     US2::US2_Present(v44.clone(), v45)
                 } else {
                     US2::US2_Missing
@@ -461,7 +461,7 @@ fn mirrored_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3: Rc<UH1
             }
             UH0::UH0_Nil => {
                 let mut v4: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                return method19(v3.clone(), v4.clone());
+                return method17(v3.clone(), v4.clone());
             }
         }
     }

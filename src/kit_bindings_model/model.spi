@@ -151,10 +151,10 @@
     := add (seen : list string) (w : string) = ? primitive w || listm'.contains w seen ?> seen |: w :: seen
     ds |> listm.fold (\ seen d => words d |> listm.fold (listm.fold add) seen) [] |> listm.rev
 
-:~ import_header (crate : string) (ds : list export_decl) : string =
+:~ link_section (crate : string) (ds : list export_decl) : string =
     ?= imported ds ?|
     | [] => ""
-    | names => "///- --import-types " ++# crate ++# ":" ++# sm'.concat_list "," names
+    | _ => "link:\n    " ++# crate
 
 :~ marker_count (text : string) : i32 =
     := count (line : string) (marker : string) : i32 = (listm.length (sm'.split_list marker line) : i32) - 1i32
@@ -166,9 +166,7 @@
 :~ counted (text : string) : i32 * i32 = marker_count text, (listm.length (decls text) : i32)
 
 :~ binding_module (crate : string) (ds : list export_decl) : string =
-    := header = import_header crate ds
-    := lines = ds |> listm.map (binding_line crate)
-    sm'.concat_list "\n" (? header = "" ?> lines |: header :: lines) ++# "\n"
+    sm'.concat_list "\n" (ds |> listm.map (binding_line crate)) ++# "\n"
 
 
 ///> rust
@@ -193,8 +191,10 @@
     := head = ":= kit_agile_todo_path_verdict (~relative : string) (~spiral_sibling : bool) : path_verdict =\n    "
     testing.expect (listm'.contains (head ++# call) lines) shown
     testing.expect (listm'.contains ":= kit_ping () : i32 =\n    $'agile_todo_paths::kit_ping()' : i32" lines) shown
-    := header = import_header "agile_todo_paths" found
-    testing.expect (header = "///- --import-types agile_todo_paths:path_verdict") header
+    := link = link_section "agile_todo_paths" found
+    testing.expect (link = "link:\n    agile_todo_paths") link
+    := primitive_only = decls "    export \"kit_ping\" ((\\ () => 1i32) : () -> i32)"
+    testing.expect (link_section "kit_lint" primitive_only = "") "primitives need no link"
 
 ///> rust
 :# nested_types_split_only_at_the_top_level =

@@ -329,7 +329,7 @@ fn job_launched_2(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: bool, m
                     let v159: Rc<str> = std::rc::Rc::<str>::from(std::process::id().to_string().as_str());
                     v159.clone()
                 } else {
-                    let v160: Rc<str> = kit_job_host::kit_job_host_request(&*v22);
+                    let v160: Rc<str> = kit_job_host_request::kit_job_host_request(&*v22);
                     v160.clone()
                 };
                 let v162: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("error:"); } LIT.with(|lit| lit.clone()) };

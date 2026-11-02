@@ -25,3 +25,4 @@ kit-job-gate = { path = "../kit_job_gate" }
 kit-job-launch = { path = "../kit_job_launch" }
 kit-job-supervise = { path = "../kit_job_supervise" }
 kit-job-host = { path = "../kit_job_host" }
+kit-job-host-request = { path = "../kit_job_host_request" }

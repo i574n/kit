@@ -2,7 +2,9 @@ packages:
     |core-
     spiral-
     kit_jobs
+    kit_os_launch
 modules:
     host_model
+    host_paths
     queue
     host_run

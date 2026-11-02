@@ -41,7 +41,7 @@
     : sections_table
     =
     ?= files ?|
-    | Nil => acc
+    | [] => acc
     | (path :: rest) =>
         := found = sections_of_file path time section_on carry columns
         sections_of_files rest time section_on carry columns {
@@ -69,7 +69,7 @@
 
 :~ sections_run () : i32 =
     := count = env.command_line_argument_count ()
-    := paths, refusal = paths_from 2i32 count Nil ""
+    := paths, refusal = paths_from 2i32 count [] ""
     := time = value_after "--time" 2i32 count
     := columns = columns_from 2i32 count ""
     ? refusal <> ""
@@ -78,13 +78,13 @@
     ?> refused "needs --time and a measure name"
     |:
         ?= paths ?|
-        | Nil => refused "needs at least one file or directory"
-        | Cons _ =>
+        | [] => refused "needs at least one file or directory"
+        | _ :: _ =>
             := missing = missing_path paths
             ? missing <> ""
             ?> refused ("no such file or directory: " ++# missing)
             |:
-                := files = files_in paths Nil
+                := files = files_in paths []
                 := section_on = value_after "--section-on" 2i32 count
                 := carry = value_after "--carry" 2i32 count
                 := empty = { table = { text = ""; rows = 0u64 }; sections = 0u64 }
