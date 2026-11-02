@@ -157,7 +157,7 @@
     shows spi "inl columns () = Columns [ \"timestamp\"; \"variant\"; \"retries\"; \"latency_ms\" ]"
     shows spi "inl row_2 () = Row [ \"2\"; \"fast\"; \"2\"; \"\" ]"
     shows spi "inl rows () : list table_row = [ row_1 (); row_2 (); row_3 (); row_4 () ]"
-    := opened = Arg ("to-spi", Arg ("runs.tsv", Arg ("shared.spi", Arg ("--open", Arg ("table_rows", NoArgs))))))
+    := opened = Arg ("to-spi", Arg ("runs.tsv", Arg ("shared.spi", Arg ("--open", Arg ("table_rows", NoArgs)))))
     := shared = succeeded (table_run root opened)
     shows shared "out=shared.spi"
     shows (fixture_read root "shared.spi") "open table_rows"

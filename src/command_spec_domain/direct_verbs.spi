@@ -33,7 +33,6 @@
     | VerbEvidence
     | VerbLint
     | VerbSchedule
-    | VerbK3s
 
 :== verb_help =
     {
@@ -259,11 +258,6 @@
             line =
                 "schedule due <name> <minutes> (exit 0 when due, 1 when not) | ran <name> | list (stamps under "
                 ^^ "KIT_SCHEDULES_HOME, else LOCALAPPDATA\\kit\\schedules)"
-        }
-    | VerbK3s =>
-        {
-            word = "k3s"
-            line = "k3s render <spec.json> (typed k3s manifest from a JSON spec, written to stdout)"
         }
 
 := help_line_for (~target : string) : string =

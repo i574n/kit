@@ -50,7 +50,7 @@ $rows = [IO.File]::ReadAllLines($manifest)
 $expected = @('op') + (@('patch-exact', 'value.txt', '{old}', '}new{', 'write') | ForEach-Object {
     [Convert]::ToHexString([Text.Encoding]::UTF8.GetBytes($_)).ToLowerInvariant()
 })
-if ($rows.Count -ne 2 -or $rows[0] -ne "KIT-PLAN-IR`t1" -or $rows[1] -cne ($expected -join "`t")) { throw 'Plan payload changed.' }
+if ($rows.Count -ne 2 -or $rows[0] -notin @("KIT-PLAN-IR`t1", "EOIE-PLAN-IR`t1") -or $rows[1] -cne ($expected -join "`t")) { throw "Plan payload changed.`n$($rows -join "`n")" }
 $conditional = Fixture 'conditional-plan' @'
 inl main () : i32 =
     inl flag = $"true" : bool
@@ -110,7 +110,7 @@ $inRangeExecutable = Join-Path $bin $(if ($IsWindows) { 'fixed-array.exe' } else
 if ($LASTEXITCODE -ne 0) { throw 'Fixed-array Rust failed native compilation.' }
 & $inRangeExecutable
 if ($LASTEXITCODE -ne 0) { throw "Fixed-array in-range result was $LASTEXITCODE; expected 0." }
-$negativeMutation = [regex]::Replace($arrayCode, '(?m)^    let mut v1: i32 = 2i32;\r?$', '    let mut v1: i32 = -1i32;')
+$negativeMutation = [regex]::Replace($arrayCode, '(?m)^    let (mut )?v1: i32 = 2i32;\r?$', '    let ${1}v1: i32 = -1i32;')
 if ($negativeMutation -eq $arrayCode) { throw 'Fixed-array probe could not locate the fixture index.' }
 $negativeSource = Join-Path $work 'fixed-array-negative.rs'
 $negativeExecutable = Join-Path $bin $(if ($IsWindows) { 'fixed-array-negative.exe' } else { 'fixed-array-negative' })

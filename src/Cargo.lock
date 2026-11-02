@@ -805,7 +805,6 @@ dependencies = [
  "kit-guide",
  "kit-handoff",
  "kit-jobs",
- "kit-k3s",
  "kit-legacy-operations",
  "kit-lint-macros",
  "kit-machine-watch",
@@ -1292,10 +1291,6 @@ dependencies = [
  "kit-machine-sample",
  "sysinfo",
 ]
-
-[[package]]
-name = "kit-k3s"
-version = "0.0.0"
 
 [[package]]
 name = "kit-lcov"

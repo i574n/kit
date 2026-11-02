@@ -26,6 +26,8 @@
     | RcWrap :: probe drift
     | LetBlock :: probe drift
     | StdStringUse :: probe drift
+    | BangExport :: probe drift
+    | HostBlock :: probe drift
 
 :! any_probe = \? side. probe side
 
@@ -53,6 +55,8 @@
     | RcWrap => MayNotRise
     | LetBlock => MayNotRise
     | StdStringUse => MayNotRise
+    | BangExport => MayNotRise
+    | HostBlock => MayNotRise
 
 := probe_word \* side. (which : probe side) : string =
     ?= which ?|
@@ -73,6 +77,8 @@
     | RcWrap => "rc-wrap"
     | LetBlock => "let-block"
     | StdStringUse => "std-string-use"
+    | BangExport => "bang-export"
+    | HostBlock => "host-block"
 
 := probe_pattern \* side. (which : probe side) : string =
     ?= which ?|
@@ -93,6 +99,8 @@
     | RcWrap => "Rc::<str>::from"
     | LetBlock => "\\$'\\{"
     | StdStringUse => "rust_std_string\\."
+    | BangExport => "!!!!Export\\("
+    | HostBlock => "\\$'[^']*$"
 
 := each_probe \* state. (step : state -> any_probe -> state) (initial : state) : state =
     := s = step initial (any_probe (\? GadtCase))
@@ -111,7 +119,9 @@
     := s = step s (any_probe (\? TopLevelMacro))
     := s = step s (any_probe (\? RcWrap))
     := s = step s (any_probe (\? LetBlock))
-    step s (any_probe (\? StdStringUse))
+    := s = step s (any_probe (\? StdStringUse))
+    := s = step s (any_probe (\? BangExport))
+    step s (any_probe (\? HostBlock))
 
 := any_word (any_probe p : any_probe) : string =
     := \? side. which = p
@@ -148,7 +158,7 @@
             = (
                 "gadt-case existential forall indexed-union prototype type-decl host-macro wide-host-macro "
                 ^^ "rust-global encoded-row pipe-table number-arm string-concat top-level-macro rc-wrap let-block "
-                ^^ "std-string-use"
+                ^^ "std-string-use bang-export host-block"
             )
         )
         words

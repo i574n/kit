@@ -69,9 +69,9 @@
 
 := activity_schema_text () : string =
     sm'.concat_list "" [
-        "///- --no-respell\n"
-        "union activity_row =\n"
-        "    | StateChange :: string * string * string * string * string * string -> activity_row\n"
+        "///- --no-respell\n";
+        "union activity_row =\n";
+        "    | StateChange :: string * string * string * string * string * string -> activity_row\n";
         "    | ActualMinutes :: string * string * i32 * string -> activity_row\n"
     ]
 

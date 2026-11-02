@@ -46,128 +46,211 @@
         volumes : list volume
     }
 
-:= text_value (s : string) : string = json.quote s
+:~ ^ text_value (s : string) : string = json.quote s
 
-:= field (key : string) (value : string) : string = sm'.concat_list "" [ json.quote key; ":"; value ]
+:~ ^ field (key : string) (value : string) : string = sm'.concat_list "" [ json.quote key; ":"; value ]
 
-:= object (fields : list string) : string = sm'.concat_list "" [ "{"; sm'.concat_list "," fields; "}" ]
+:~ ^ object (fields : list string) : string = sm'.concat_list "" [ "{"; sm'.concat_list "," fields; "}" ]
 
-:= items (values : list string) : string = sm'.concat_list "" [ "["; sm'.concat_list "," values; "]" ]
+:~ ^ items (values : list string) : string = sm'.concat_list "" [ "["; sm'.concat_list "," values; "]" ]
 
-:= labels (d : deployment) : string = object [ field "app" (text_value d.name); field "lane" (text_value d.lane) ]
+:~ ^ labels (d : deployment) : string = object [ field "app" (text_value d.name); field "lane" (text_value d.lane) ]
 
-:= resources_json (r : resources) : string =
+:~ ^ resources_json (r : resources) : string =
     := cpu_request = field "cpu" (text_value (quantity_text r.cpu_request))
     := memory_request = field "memory" (text_value (quantity_text r.memory_request))
     := limits = object [ field "memory" (text_value (quantity_text r.memory_limit)) ]
     object [ field "requests" (object [ cpu_request; memory_request ]); field "limits" limits ]
 
-:= strategy_json (s : strategy) : string =
+:~ ^ strategy_json (s : strategy) : string =
     ?= s ?|
     | Recreate => object [ field "type" (text_value "Recreate") ]
     | Rolling => object [ field "type" (text_value "RollingUpdate") ]
 
-:= volume_json (v : volume) : string =
+:~ ^ volume_json (v : volume) : string =
     ?= v.source ?|
     | HostPath path =>
         := host = object [ field "path" (text_value path); field "type" (text_value "Directory") ]
         object [ field "name" (text_value v.name); field "hostPath" host ]
     | EmptyDir => object [ field "name" (text_value v.name); field "emptyDir" "{}" ]
 
-:= mount_json (v : volume) : string =
+:~ ^ mount_json (v : volume) : string =
     := read_only = ?= v.access ?| | ReadOnly => "true" | ReadWrite => "false"
     object [ field "name" (text_value v.name); field "mountPath" (text_value v.mount); field "readOnly" read_only ]
 
-:= container_json (d : deployment) : string =
+:~ ^ container_json (d : deployment) : string =
     := c = d.container
-    := command = items (c.command |> listm.map text_value)
-    := mounts = items (d.volumes |> listm.map mount_json)
+    := command = items (c.command |> listm.map (\ (s : string) => text_value s))
+    := mounts = items (d.volumes |> listm.map (\ (v : volume) => mount_json v))
     := identity = [ field "name" (text_value c.name); field "image" (text_value c.image) ]
     := run = [ field "workingDir" (text_value c.workdir); field "command" command ]
     := limits = [ field "resources" (resources_json d.resources); field "volumeMounts" mounts ]
     object (listm.append identity (listm.append run limits))
 
-:= header (api : string) (kind : string) : list string =
+:~ ^ header (api : string) (kind : string) : list string =
     [ field "apiVersion" (text_value api); field "kind" (text_value kind) ]
 
-:= deployment_json (d : deployment) : string =
+:~ ^ deployment_json (d : deployment) : string =
     := naming = [ field "name" (text_value d.name); field "namespace" (text_value d.namespace) ]
     := meta = object (listm.append naming [ field "labels" (labels d) ])
     := selector = object [ field "matchLabels" (object [ field "app" (text_value d.name) ]) ]
-    := volumes = items (d.volumes |> listm.map volume_json)
+    := volumes = items (d.volumes |> listm.map (\ (v : volume) => volume_json v))
     := pod = object [ field "containers" (items [ container_json d ]); field "volumes" volumes ]
     := template = object [ field "metadata" (object [ field "labels" (labels d) ]); field "spec" pod ]
     := rollout = [ field "replicas" "1"; field "strategy" (strategy_json d.strategy) ]
     := spec = object (listm.append rollout [ field "selector" selector; field "template" template ])
     object (listm.append (header "apps/v1" "Deployment") [ field "metadata" meta; field "spec" spec ])
 
-:= namespace_json (name : string) : string =
+:~ ^ namespace_json (name : string) : string =
     := meta = object [ field "name" (text_value name) ]
     object (listm.append (header "v1" "Namespace") [ field "metadata" meta ])
 
-:= with_namespace (acc : list string) (d : deployment) : list string =
+:~ ^ with_namespace (acc : list string) (d : deployment) : list string =
     listm.append acc [ namespace_json d.namespace; deployment_json d ]
 
-:= manifest_json (deployments : list deployment) : string =
-    := documents = deployments |> listm.fold with_namespace []
+:~ ^ manifest_json (deployments : list deployment) : string =
+    := documents = deployments |> listm.fold (\ acc (d : deployment) => with_namespace acc d) []
     object (listm.append (header "v1" "List") [ field "items" (items documents) ])
 
-:== spec_volume = { name : string; host_path : string; mount : string; read_only : bool }
+:| spec_error =
+    | UnknownRow : string
+    | MissingCells : string
+    | UnknownUnit : string
+    | BadNumber : string
+    | RowBeforeDeployment : string
 
-:== spec_deployment =
-    {
-        name : string
-        namespace : string
-        lane : string
-        recreate : bool
-        image : string
-        command : array_base string
-        workdir : string
-        cpu_millicores : i32
-        memory_request_mib : i32
-        memory_limit_mib : i32
-        volumes : array_base spec_volume
-    }
+:| spec_outcome =
+    | Rendered : string
+    | Refused : spec_error
 
-:== spec = { deployments : array_base spec_deployment }
+:| building =
+    | Building : list deployment
+    | Failed : spec_error
 
-:= listed \* t. (items : array_base t) : list t =
-    := a = array items
-    listm.init (length a) (\ i => index a i)
+:| scan =
+    | Outside
+    | InCell : string
+    | AfterEscape : string
 
-:= volume_of (v : spec_volume) : volume =
-    := source = ? v.host_path = "" ?> EmptyDir |: HostPath v.host_path
-    { name = v.name; source = source; mount = v.mount; access = ? v.read_only ?> ReadOnly |: ReadWrite }
+:= scanned (state : scan * list string) (ch : string) : scan * list string =
+    := mode, cells = state
+    ?= mode ?|
+    | Outside => ? ch = "\"" ?> InCell "", cells |: Outside, cells
+    | InCell text =>
+        ? ch = "\\" ?> AfterEscape text, cells
+        |? ch = "\"" ?> Outside, text :: cells
+        |: InCell (text ++# ch), cells
+    | AfterEscape text => InCell (text ++# ch), cells
 
-:= resources_of (s : spec_deployment) : resources =
-    := cpu = Millicores (convert.convert s.cpu_millicores)
-    := request = Mebibytes (convert.convert s.memory_request_mib)
-    := limit = Mebibytes (convert.convert s.memory_limit_mib)
-    { cpu_request = cpu; memory_request = request; memory_limit = limit }
+:~ ^ chars_from (line : string) (i : i32) (acc : list string) : list string =
+    ? i < 0i32 ?> acc |: chars_from line (i - 1i32) (sm'.substring i 1i32 line :: acc)
 
-:= deployment_of (s : spec_deployment) : deployment =
-    := c = { name = s.name; image = s.image; command = listed s.command; workdir = s.workdir }
-    := volumes = listed s.volumes |> listm.map volume_of
-    := how = ? s.recreate ?> Recreate |: Rolling
-    {
-        name = s.name
-        namespace = s.namespace
-        lane = s.lane
-        strategy = how
-        container = c
-        resources = resources_of s
-        volumes = volumes
-    }
+:~ ^ cells_of (line : string) : list string =
+    := open_at = sm'.index_of "[" line
+    ? open_at < 0i32 ?> []
+    |:
+        := body = sm'.substring open_at ((sm'.length line : i32) - open_at) line
+        := _, cells = chars_from body ((sm'.length body : i32) - 1i32) [] |> listm.fold scanned (Outside, [])
+        listm.rev cells
 
-:= rendered (spec_text : string) : string =
-    := s : spec = json.decode spec_text
-    manifest_json (listed s.deployments |> listm.map deployment_of)
+:~ ^ ctor_of (line : string) : string =
+    := at = sm'.index_of "() = " line
+    ? at < 0i32 ?> ""
+    |:
+        := rest = sm'.substring (at + 5i32) ((sm'.length line : i32) - at - 5i32) line
+        := bracket = sm'.index_of " [" rest
+        ? bracket < 0i32 ?> sm'.trim rest |: sm'.substring 0i32 bracket rest
+
+:~ ^ count_of (n : string) : option u32 = convert.try_convert (sm'.trim n)
+
+:~ ^ cpu_of (unit : string) (n : string) : option (quantity cpu) =
+    ?= count_of n ?|
+    | Some v => ? unit = "Millicores" ?> Some (Millicores v) |: None
+    | None => None
+
+:~ ^ memory_of (unit : string) (n : string) : option (quantity memory) =
+    ?= count_of n ?|
+    | Some v => ? unit = "Mebibytes" ?> Some (Mebibytes v) |: None
+    | None => None
+
+:~ ^ started (cells : list string) : building =
+    ?= cells ?|
+    | name :: namespace :: lane :: how :: _ =>
+        := c = { name = name; image = ""; command = []; workdir = "/" }
+        := r = { cpu_request = Millicores 0u32; memory_request = Mebibytes 0u32; memory_limit = Mebibytes 0u32 }
+        := s = ? how = "Recreate" ?> Recreate |: Rolling
+        := d =
+            {
+                name = name
+                namespace = namespace
+                lane = lane
+                strategy = s
+                container = c
+                resources = r
+                volumes = []
+            }
+        Building [ d ]
+    | _ => Failed (MissingCells "Deployment")
+
+:~ ^ sized (d : deployment) (cells : list string) : building =
+    ?= cells ?|
+    | cu :: c :: ru :: rq :: lu :: lm :: _ =>
+        ?= (cpu_of cu c, memory_of ru rq, memory_of lu lm) ?|
+        | (Some cpu), (Some request), (Some limit) =>
+            := r = { cpu_request = cpu; memory_request = request; memory_limit = limit }
+            Building [ { d ?| resources = r } ]
+        | _ => Failed (UnknownUnit (sm'.concat_list " " cells))
+    | _ => Failed (MissingCells "Resources")
+
+:~ ^ attached (d : deployment) (ctor : string) (cells : list string) : building =
+    ? ctor = "Container" ?>
+        ?= cells ?|
+        | image :: workdir :: command =>
+            := c = { name = d.name; image = image; command = command; workdir = workdir }
+            Building [ { d ?| container = c } ]
+        | _ => Failed (MissingCells "Container")
+    |? ctor = "Resources" ?> sized d cells
+    |? ctor = "Volume" ?>
+        ?= cells ?|
+        | name :: host :: mount :: how :: _ =>
+            := source = ? host = "" ?> EmptyDir |: HostPath host
+            := access = ? how = "ReadOnly" ?> ReadOnly |: ReadWrite
+            := v = { name = name; source = source; mount = mount; access = access }
+            Building [ { d ?| volumes = listm.append d.volumes [ v ] } ]
+        | _ => Failed (MissingCells "Volume")
+    |: Failed (UnknownRow ctor)
+
+:~ ^ step (b : building) (line : string) : building =
+    ?= b ?|
+    | Failed _ => b
+    | Building done =>
+        ? not (sm'.starts_with "inl row_" line) ?> b
+        |:
+            := ctor = ctor_of line
+            := cells = cells_of line
+            ? ctor = "Deployment" ?>
+                ?= started cells ?|
+                | Building [ d ] => Building (d :: done)
+                | other => other
+            |:
+                ?= done ?|
+                | [] => Failed (RowBeforeDeployment ctor)
+                | d :: rest =>
+                    ?= attached d ctor cells ?|
+                    | Building [ updated ] => Building (updated :: rest)
+                    | other => other
+
+:~ ^ rendered (spec_text : string) : spec_outcome =
+    := lines = sm'.split_list "\n" (sm'.replace "\r" "" spec_text)
+    ?= lines |> listm.fold step (Building []) ?|
+    | Building done => Rendered (manifest_json (listm.rev done))
+    | Failed why => Refused why
 
 := fixture_resources () : resources =
     { cpu_request = Millicores 50u32; memory_request = Mebibytes 64u32; memory_limit = Mebibytes 512u32 }
 
 := fixture_container () : container =
-    := command = [ "/bin/sh"; "-c"; "echo up\nsleep 1" ]
+    := command = [ "/bin/sh"; "-c"; "echo up; sleep 1" ]
     { name = "web"; image = "docker.io/library/busybox:1"; command = command; workdir = "/srv" }
 
 := fixture () : deployment =
@@ -195,7 +278,7 @@
     testing.expect (text |> sm'.contains requests) "requests carry their units"
     := host = "\"hostPath\":{\"path\":\"/srv/data\",\"type\":\"Directory\"}"
     testing.expect (text |> sm'.contains host) "host paths are directories"
-    := command = "\"command\":[\"/bin/sh\",\"-c\",\"echo up\\nsleep 1\"]"
+    := command = "\"command\":[\"/bin/sh\",\"-c\",\"echo up; sleep 1\"]"
     testing.expect (text |> sm'.contains command) "commands are escaped json"
 
 ///> rust
@@ -206,11 +289,23 @@
     testing.expect (text |> sm'.contains "\"readOnly\":false") "access renders as readOnly"
 
 ///> rust
-:# a_json_spec_decodes_into_the_same_manifest =
-    := volume = "{\"name\":\"data\",\"host_path\":\"/srv/data\",\"mount\":\"/srv\",\"read_only\":false}"
-    := naming = "\"name\":\"web\",\"namespace\":\"demo\",\"lane\":\"demo-lane\",\"recreate\":true"
-    := running = "\"image\":\"docker.io/library/busybox:1\",\"command\":[\"/bin/sh\",\"-c\",\"echo up\\nsleep 1\"]"
-    := sizing = "\"workdir\":\"/srv\",\"cpu_millicores\":50,\"memory_request_mib\":64,\"memory_limit_mib\":512"
-    := one = sm'.concat_list "," [ naming; running; sizing; sm'.concat_list "" [ "\"volumes\":["; volume; "]" ] ]
-    := spec_text = sm'.concat_list "" [ "{\"deployments\":[{"; one; "}]}" ]
-    testing.expect (rendered spec_text = manifest_json [ fixture () ]) "the spec and the typed fixture render alike"
+:# a_row_spec_reads_into_the_same_manifest =
+    := spec_text =
+        sm'.concat_list "\n" [
+            "///- --no-respell"
+            "union k3s_row = | Deployment :: list string -> k3s_row | Container :: list string -> k3s_row"
+            "inl row_1 () = Deployment [ \"web\"; \"demo\"; \"demo-lane\"; \"Recreate\" ]"
+            "inl row_2 () = Container [ \"docker.io/library/busybox:1\"; \"/srv\"; " ++# "\"/bin/sh\"; \"-c\"; \"echo up; sleep 1\" ]"
+            "inl row_3 () = Resources [ \"Millicores\"; \"50\"; \"Mebibytes\"; \"64\"; \"Mebibytes\"; \"512\" ]"
+            "inl row_4 () = Volume [ \"data\"; \"/srv/data\"; \"/srv\"; \"ReadWrite\" ]"
+        ]
+    testing.expect (rendered spec_text = Rendered (manifest_json [ fixture () ])) "rows render like the typed fixture"
+
+///> rust
+:# a_row_spec_refuses_unknown_units_and_orphan_rows =
+    := deployment = "inl row_1 () = Deployment [ \"a\"; \"b\"; \"c\"; \"Recreate\" ]"
+    := cores = "inl row_2 () = Resources [ \"Cores\"; \"1\"; \"Mebibytes\"; \"1\"; \"Mebibytes\"; \"1\" ]"
+    := refused = Refused (UnknownUnit "Cores 1 Mebibytes 1 Mebibytes 1")
+    testing.expect (rendered (sm'.concat_list "\n" [ deployment; cores ]) = refused) "only Millicores/Mebibytes"
+    := orphan = "inl row_1 () = Volume [ \"data\"; \"\"; \"/d\"; \"ReadWrite\" ]"
+    testing.expect (rendered orphan = Refused (RowBeforeDeployment "Volume")) "a row needs a Deployment first"
