@@ -14,7 +14,8 @@ param(
     [switch]$CompilerContracts,
     [switch]$Offline,
     [switch]$KeepStaged,
-    [switch]$Incremental
+    [switch]$Incremental,
+    [ValidateRange(1, 8)][int]$Parallel = 1
 )
 $ErrorActionPreference = 'Stop'
 if ($TargetDirectory) { $TargetDirectory = [IO.Path]::GetFullPath($TargetDirectory, $PWD.Path) }
@@ -202,71 +203,93 @@ try {
     $writer = [IO.StreamWriter]::new($results, $false, $encoding)
     try {
         $writer.AutoFlush = $true
-        foreach ($row in $rows) {
-            if ($Incremental) {
-                $stored = Get-StoredKey $row.Member
-                if ($stored[0] -and $stored[0] -eq $ownerKeys[$row.Member] -and (Test-Path -LiteralPath $row.Original) -and (Get-FileHash -LiteralPath $row.Original -Algorithm SHA256).Hash -eq $stored[1]) {
-                    Copy-Item -LiteralPath $row.Original -Destination $row.Output -Force
-                    $writer.WriteLine("$($row.Member)`tok`t0`tbytes=$((Get-Item -LiteralPath $row.Output).Length) entry=main revision=unchanged-inputs")
-                    Write-Host "$($row.Member) unchanged inputs; compile skipped"
-                    continue
-                }
+        $timeoutMs = $TimeoutSec * 1000
+        $env:SPIRAL_BUILD_BUDGET_MS = [string]([Math]::Max(1000, $timeoutMs - 3000))
+        $linksOf = @{}
+        foreach ($row in $rows) { $linksOf[$row.Member] = @(Get-ProjectSection $row.Member @('link')) }
+        $pending = [Collections.Generic.List[object]]::new()
+        foreach ($row in $rows) { $pending.Add($row) }
+        $running = [Collections.Generic.List[object]]::new()
+        function Complete-Owner($job) {
+            $row = $job.Row
+            if ($job.TimedOut) {
+                $writer.WriteLine("$($row.Member)`ttimeout`t$($job.Watch.ElapsedMilliseconds)`tno result within $timeoutMs ms")
+                Write-Host "$($row.Member) timeout $($job.Watch.ElapsedMilliseconds) ms"
+                return
             }
-            $timeoutMs = $TimeoutSec * 1000
-            $stdout = Join-Path $work "logs/$($row.Member).out"
-            $stderr = Join-Path $work "logs/$($row.Member).err"
-            $env:SPIRAL_BUILD_BUDGET_MS = [string]([Math]::Max(1000, $timeoutMs - 3000))
-            $watch = [Diagnostics.Stopwatch]::StartNew()
-            $start = [Diagnostics.ProcessStartInfo]::new()
-            $start.FileName = $dotnet
-            $start.WorkingDirectory = $work
-            $start.UseShellExecute = $false
-            $start.CreateNoWindow = $true
-            $start.RedirectStandardOutput = $true
-            $start.RedirectStandardError = $true
-            foreach ($argument in @($compiler, '--backend', 'Rust', $row.Input, $row.Output)) {
-                $start.ArgumentList.Add($argument)
-            }
-            $proc = [Diagnostics.Process]::new()
-            $proc.StartInfo = $start
-            try {
-                if (-not $proc.Start()) { throw "Cannot start compiler for $($row.Member)" }
-                $outTask = $proc.StandardOutput.ReadToEndAsync()
-                $errTask = $proc.StandardError.ReadToEndAsync()
-                $timedOut = -not $proc.WaitForExit($timeoutMs)
-                if ($timedOut) {
-                    $proc.Kill($true)
-                    if (-not $proc.WaitForExit(10000)) { throw "Compiler did not terminate: $($row.Member)" }
-                }
-                [IO.File]::WriteAllText($stdout, $outTask.GetAwaiter().GetResult())
-                [IO.File]::WriteAllText($stderr, $errTask.GetAwaiter().GetResult())
-                $exitCode = $proc.ExitCode
-            } finally {
-                $proc.Dispose()
-            }
-            if ($timedOut) {
-                $writer.WriteLine("$($row.Member)`ttimeout`t$($watch.ElapsedMilliseconds)`tno result within $timeoutMs ms")
-                Write-Host "$($row.Member) timeout $($watch.ElapsedMilliseconds) ms"
-                continue
-            }
-            $elapsed = $watch.ElapsedMilliseconds
-            if ($exitCode -eq 0 -and (Test-Path -LiteralPath $row.Output)) {
+            $elapsed = $job.Watch.ElapsedMilliseconds
+            if ($job.ExitCode -eq 0 -and (Test-Path -LiteralPath $row.Output)) {
                 $bytes = (Get-Item -LiteralPath $row.Output).Length
                 $writer.WriteLine("$($row.Member)`tok`t$elapsed`tbytes=$bytes entry=main revision=process")
                 Write-Host "$($row.Member) ok $elapsed ms ($bytes bytes)"
             } else {
                 $detail = ''
-                if (Test-Path -LiteralPath $stderr) {
-                    $detail = ([IO.File]::ReadAllText($stderr) -replace '[\t\r\n]', ' ').Trim()
-                }
-                if (-not $detail -and (Test-Path -LiteralPath $stdout)) {
-                    $detail = ([IO.File]::ReadAllText($stdout) -replace '[\t\r\n]', ' ').Trim()
-                }
+                if (Test-Path -LiteralPath $job.Stderr) { $detail = ([IO.File]::ReadAllText($job.Stderr) -replace '[\t\r\n]', ' ').Trim() }
+                if (-not $detail -and (Test-Path -LiteralPath $job.Stdout)) { $detail = ([IO.File]::ReadAllText($job.Stdout) -replace '[\t\r\n]', ' ').Trim() }
                 if ($detail.Length -gt 500) { $detail = $detail.Substring(0, 500) }
-                if (-not $detail) { $detail = "compiler exit $exitCode" }
+                if (-not $detail) { $detail = "compiler exit $($job.ExitCode)" }
                 $writer.WriteLine("$($row.Member)`terror`t$elapsed`t$detail")
                 Write-Host "$($row.Member) error $elapsed ms $detail"
             }
+        }
+        while ($pending.Count -or $running.Count) {
+            $busy = @($running | ForEach-Object { $_.Row.Member })
+            $next = $null
+            if ($running.Count -lt $Parallel) {
+                foreach ($candidate in $pending) {
+                    $waits = @($linksOf[$candidate.Member] | Where-Object { $_ -in $busy -or $_ -in @($pending | ForEach-Object Member) })
+                    if (-not $waits.Count) { $next = $candidate; break }
+                }
+            }
+            if ($next) {
+                [void]$pending.Remove($next)
+                $row = $next
+                if ($Incremental) {
+                    $stored = Get-StoredKey $row.Member
+                    if ($stored[0] -and $stored[0] -eq $ownerKeys[$row.Member] -and (Test-Path -LiteralPath $row.Original) -and (Get-FileHash -LiteralPath $row.Original -Algorithm SHA256).Hash -eq $stored[1]) {
+                        Copy-Item -LiteralPath $row.Original -Destination $row.Output -Force
+                        $writer.WriteLine("$($row.Member)`tok`t0`tbytes=$((Get-Item -LiteralPath $row.Output).Length) entry=main revision=unchanged-inputs")
+                        Write-Host "$($row.Member) unchanged inputs; compile skipped"
+                        continue
+                    }
+                }
+                $start = [Diagnostics.ProcessStartInfo]::new()
+                $start.FileName = $dotnet
+                $start.WorkingDirectory = $work
+                $start.UseShellExecute = $false
+                $start.CreateNoWindow = $true
+                $start.RedirectStandardOutput = $true
+                $start.RedirectStandardError = $true
+                foreach ($argument in @($compiler, '--backend', 'Rust', $row.Input, $row.Output)) { $start.ArgumentList.Add($argument) }
+                $proc = [Diagnostics.Process]::new()
+                $proc.StartInfo = $start
+                if (-not $proc.Start()) { throw "Cannot start compiler for $($row.Member)" }
+                $running.Add([pscustomobject]@{
+                    Row = $row; Proc = $proc; Watch = [Diagnostics.Stopwatch]::StartNew()
+                    OutTask = $proc.StandardOutput.ReadToEndAsync(); ErrTask = $proc.StandardError.ReadToEndAsync()
+                    Stdout = (Join-Path $work "logs/$($row.Member).out"); Stderr = (Join-Path $work "logs/$($row.Member).err")
+                    TimedOut = $false; ExitCode = -1
+                })
+                continue
+            }
+            foreach ($job in @($running)) {
+                $done = $job.Proc.HasExited
+                if (-not $done -and $job.Watch.ElapsedMilliseconds -ge $timeoutMs) {
+                    $job.Proc.Kill($true)
+                    if (-not $job.Proc.WaitForExit(10000)) { throw "Compiler did not terminate: $($job.Row.Member)" }
+                    $job.TimedOut = $true
+                    $done = $true
+                }
+                if (-not $done) { continue }
+                $job.Proc.WaitForExit()
+                [IO.File]::WriteAllText($job.Stdout, $job.OutTask.GetAwaiter().GetResult())
+                [IO.File]::WriteAllText($job.Stderr, $job.ErrTask.GetAwaiter().GetResult())
+                if (-not $job.TimedOut) { $job.ExitCode = $job.Proc.ExitCode }
+                $job.Proc.Dispose()
+                [void]$running.Remove($job)
+                Complete-Owner $job
+            }
+            if ($running.Count -ge $Parallel -or (-not $next -and $running.Count)) { Start-Sleep -Milliseconds 100 }
         }
     } finally {
         $writer.Dispose()

@@ -138,23 +138,21 @@
     | verdict => { state ?| tally = counted_content tally verdict }
 
 :~ scanned_file (state : scan_state) (~display : string) (~absolute : string) (~relative : string) : scan_state =
-    ?= entry_kind_of absolute ?|
-    | RegularFile =>
-        := verdict = crate_path_verdict relative (spiral_sibling_present absolute)
-        := tally = counted_path state.tally verdict
-        ?= verdict ?|
-        | ScanPath syntax =>
-            ?= size_verdict (file_size absolute) ?|
-            | SkipLarge => { state ?| tally = counted_content tally SkipLarge }
-            | _ => read_and_scanned state tally syntax display absolute
-        | _ => { state ?| tally = tally }
-    | LinkedEntry => { state ?| tally = counted_path state.tally (SkipPath SkipLinkedEntry) }
-    | _ =>
-        := verdict = crate_path_verdict relative !-
-        := tally = counted_path state.tally verdict
-        ?= verdict ?|
-        | ScanPath _ => { state ?| tally = counted_content tally SkipUnreadable }
-        | _ => { state ?| tally = tally }
+    ?= crate_path_verdict relative !- ?|
+    | ScanPath _ =>
+        ?= entry_kind_of absolute ?|
+        | RegularFile =>
+            := verdict = crate_path_verdict relative (spiral_sibling_present absolute)
+            := tally = counted_path state.tally verdict
+            ?= verdict ?|
+            | ScanPath syntax =>
+                ?= size_verdict (file_size absolute) ?|
+                | SkipLarge => { state ?| tally = counted_content tally SkipLarge }
+                | _ => read_and_scanned state tally syntax display absolute
+            | _ => { state ?| tally = tally }
+        | LinkedEntry => { state ?| tally = counted_path state.tally (SkipPath SkipLinkedEntry) }
+        | _ => { state ?| tally = counted_content (counted_path state.tally (crate_path_verdict relative !-)) SkipUnreadable }
+    | verdict => { state ?| tally = counted_path state.tally verdict }
 
 :~ ^ listed_files
     (state : scan_state) (~base : string) (~display : string) (~listing : string) (~offset : i32)

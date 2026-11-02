@@ -2,8 +2,10 @@
 :# roots static =
     :< rust_std_string.model
     :< workspace_primitives.bytes
+    :< sm'_operators
 
 :< workspace_primitives.bytes
+:< sm'_operators
 
 :| roots_edit =
     | RootsEdited : string
@@ -58,14 +60,25 @@
     ? sm'.contains (harvest_schema_head ()) text ?> text
     |: spliced text (first_item_offset text) (harvest_schema ())
 
-:= root_listed (~text : string) (~path : string) : bool =
-    sm'.contains (rust_std_string.model.concat5 (harvest_row_marker ()) path "\"\n" "" "") text
+:~ root_key (~path : string) : string = ? sm'.index_of ":/" path = 1i32 ?> sm'.to_lower path |: path
 
+:~ overlapping_root (~text : string) (~path : string) : string =
+    := key = root_key path
+    := clash = \ found (other : string) =>
+        := held = root_key other
+        ? found <> "" || other = "" ?> found
+        |? held = key || sm'.starts_with (held ++# "/") key || sm'.starts_with (key ++# "/") held ?> other
+        |: found
+    sm'.split_list "\n" (harvest_roots text) |> listm.fold clash ""
+
+:~ overlap_reason (~path : string) (~other : string) : string =
+    ? root_key path = root_key other ?> path ++# " is already a harvest root"
+    |: path ++# " overlaps harvest root " ++# other ++# " (one root per tree, so every file is scanned once)"
 :~ root_added (~text : string) (~raw : string) : roots_edit =
     := path = root_normalized raw
     ? path = "" ?> RootsRefused "a harvest root needs a path"
     |? sm'.contains "\"" path ?> RootsRefused "a harvest root cannot contain a double quote"
-    |? root_listed text path ?> RootsRefused (rust_std_string.model.concat5 path " is already a harvest root" "" "" "")
+    |? overlapping_root text path <> "" ?> RootsRefused (overlap_reason path (overlapping_root text path))
     |:
         := ensured = schema_ensured text
         := schema_end = byte_find ensured (harvest_schema_head ())
@@ -124,3 +137,13 @@
     expect (harvest_roots dropped = "C:/b") dropped
     expect (edited_text (root_dropped dropped "C:/a") = "refused: C:/a is not a harvest root") "missing"
     expect (harvest_roots (sample_state ()) = "") "no roots"
+
+///> rust
+:# a_root_in_another_spelling_or_tree_is_refused =
+    := one = edited_text (root_added (sample_state ()) "C:\\work\\repo")
+    expect (edited_text (root_added one "c:/WORK/repo/") = "refused: c:/WORK/repo is already a harvest root") "case and slash spelling"
+    expect (edited_text (root_added one "C:/work/repo/src") = "refused: C:/work/repo/src overlaps harvest root C:/work/repo (one root per tree, so every file is scanned once)") "nested inside"
+    expect (sm'.starts_with "refused: C:/work overlaps harvest root C:/work/repo" (edited_text (root_added one "C:/work"))) "containing"
+    expect (harvest_roots (edited_text (root_added one "C:/work/repository")) = "C:/work/repo\nC:/work/repository") "a sibling with a shared prefix is another tree"
+    expect (sm'.starts_with "refused: " (edited_text (root_added (edited_text (root_added (sample_state ()) "/srv/a")) "/srv/a/b"))) "posix nesting"
+    expect (harvest_roots (edited_text (root_added (edited_text (root_added (sample_state ()) "/srv/A")) "/srv/a")) = "/srv/A\n/srv/a") "posix paths keep their case"
