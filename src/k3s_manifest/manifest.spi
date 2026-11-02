@@ -46,35 +46,35 @@
         volumes : list volume
     }
 
-:~ ^ text_value (s : string) : string = json.quote s
+:~ text_value (s : string) : string = json.quote s
 
-:~ ^ field (key : string) (value : string) : string = sm'.concat_list "" [ json.quote key; ":"; value ]
+:~ field (key : string) (value : string) : string = sm'.concat_list "" [ json.quote key; ":"; value ]
 
-:~ ^ object (fields : list string) : string = sm'.concat_list "" [ "{"; sm'.concat_list "," fields; "}" ]
+:~ object (fields : list string) : string = sm'.concat_list "" [ "{"; sm'.concat_list "," fields; "}" ]
 
-:~ ^ items (values : list string) : string = sm'.concat_list "" [ "["; sm'.concat_list "," values; "]" ]
+:~ items (values : list string) : string = sm'.concat_list "" [ "["; sm'.concat_list "," values; "]" ]
 
-:~ ^ labels (d : deployment) : string = object [ field "app" (text_value d.name); field "lane" (text_value d.lane) ]
+:~ labels (d : deployment) : string = object [ field "app" (text_value d.name); field "lane" (text_value d.lane) ]
 
-:~ ^ resources_json (r : resources) : string =
+:~ resources_json (r : resources) : string =
     := cpu_request = field "cpu" (text_value (quantity_text r.cpu_request))
     := memory_request = field "memory" (text_value (quantity_text r.memory_request))
     := limits = object [ field "memory" (text_value (quantity_text r.memory_limit)) ]
     object [ field "requests" (object [ cpu_request; memory_request ]); field "limits" limits ]
 
-:~ ^ strategy_json (s : strategy) : string =
+:~ strategy_json (s : strategy) : string =
     ?= s ?|
     | Recreate => object [ field "type" (text_value "Recreate") ]
     | Rolling => object [ field "type" (text_value "RollingUpdate") ]
 
-:~ ^ volume_json (v : volume) : string =
+:~ volume_json (v : volume) : string =
     ?= v.source ?|
     | HostPath path =>
         := host = object [ field "path" (text_value path); field "type" (text_value "Directory") ]
         object [ field "name" (text_value v.name); field "hostPath" host ]
     | EmptyDir => object [ field "name" (text_value v.name); field "emptyDir" "{}" ]
 
-:~ ^ mount_json (v : volume) : string =
+:~ mount_json (v : volume) : string =
     := read_only = ?= v.access ?| | ReadOnly => "true" | ReadWrite => "false"
     object [ field "name" (text_value v.name); field "mountPath" (text_value v.mount); field "readOnly" read_only ]
 
@@ -93,7 +93,7 @@
     | [] => []
     | v :: rest => volume_json v :: volumes_json rest
 
-:~ ^ container_json (d : deployment) : string =
+:~ container_json (d : deployment) : string =
     := c = d.container
     := command = items (texts c.command)
     := mounts = items (mounts_json d.volumes)
@@ -102,10 +102,10 @@
     := limits = [ field "resources" (resources_json d.resources); field "volumeMounts" mounts ]
     object (listm.append identity (listm.append run limits))
 
-:~ ^ header (api : string) (kind : string) : list string =
+:~ header (api : string) (kind : string) : list string =
     [ field "apiVersion" (text_value api); field "kind" (text_value kind) ]
 
-:~ ^ deployment_json (d : deployment) : string =
+:~ deployment_json (d : deployment) : string =
     := naming = [ field "name" (text_value d.name); field "namespace" (text_value d.namespace) ]
     := meta = object (listm.append naming [ field "labels" (labels d) ])
     := selector = object [ field "matchLabels" (object [ field "app" (text_value d.name) ]) ]
@@ -116,7 +116,7 @@
     := spec = object (listm.append rollout [ field "selector" selector; field "template" template ])
     object (listm.append (header "apps/v1" "Deployment") [ field "metadata" meta; field "spec" spec ])
 
-:~ ^ namespace_json (name : string) : string =
+:~ namespace_json (name : string) : string =
     := meta = object [ field "name" (text_value name) ]
     object (listm.append (header "v1" "Namespace") [ field "metadata" meta ])
 
@@ -125,7 +125,7 @@
     | [] => []
     | d :: rest => namespace_json d.namespace :: deployment_json d :: documents rest
 
-:~ ^ manifest_json (deployments : list deployment) : string =
+:~ manifest_json (deployments : list deployment) : string =
     object (listm.append (header "v1" "List") [ field "items" (items (documents deployments)) ])
 
 :| spec_error =
@@ -161,7 +161,7 @@
 :~ ^ chars_from (line : string) (i : i32) (acc : list string) : list string =
     ? i < 0i32 ?> acc |: chars_from line (i - 1i32) (sm'.substring i 1i32 line :: acc)
 
-:~ ^ cells_of (line : string) : list string =
+:~ cells_of (line : string) : list string =
     := open_at = sm'.index_of "[" line
     ? open_at < 0i32 ?> []
     |:
@@ -169,7 +169,7 @@
         := _, cells = chars_from body ((sm'.length body : i32) - 1i32) [] |> listm.fold scanned (Outside, [])
         listm.rev cells
 
-:~ ^ ctor_of (line : string) : string =
+:~ ctor_of (line : string) : string =
     := at = sm'.index_of "() = " line
     ? at < 0i32 ?> ""
     |:
@@ -177,14 +177,14 @@
         := bracket = sm'.index_of " [" rest
         ? bracket < 0i32 ?> sm'.trim rest |: sm'.substring 0i32 bracket rest
 
-:~ ^ count_of (n : string) : option u32 = convert.try_convert (sm'.trim n)
+:~ count_of (n : string) : option u32 = convert.try_convert (sm'.trim n)
 
-:~ ^ cpu_of (unit : string) (n : string) : option (quantity cpu) =
+:~ cpu_of (unit : string) (n : string) : option (quantity cpu) =
     ?= count_of n ?|
     | Some v => ? unit = "Millicores" ?> Some (Millicores v) |: None
     | None => None
 
-:~ ^ memory_of (unit : string) (n : string) : option (quantity memory) =
+:~ memory_of (unit : string) (n : string) : option (quantity memory) =
     ?= count_of n ?|
     | Some v => ? unit = "Mebibytes" ?> Some (Mebibytes v) |: None
     | None => None
@@ -193,7 +193,7 @@
     | Built : deployment
     | Broken : spec_error
 
-:~ ^ started (cells : list string) : built =
+:~ started (cells : list string) : built =
     ?= cells ?|
     | name :: namespace :: lane :: how :: _ =>
         := c = { name = name; image = ""; command = []; workdir = "/" }
@@ -211,7 +211,7 @@
             }
     | _ => Broken (MissingCells "Deployment")
 
-:~ ^ sized (d : deployment) (cells : list string) : built =
+:~ sized (d : deployment) (cells : list string) : built =
     ?= cells ?|
     | cu :: c :: ru :: rq :: lu :: lm :: _ =>
         ?= (cpu_of cu c, memory_of ru rq, memory_of lu lm) ?|
@@ -220,7 +220,7 @@
         | _ => Broken (UnknownUnit (sm'.concat_list " " cells))
     | _ => Broken (MissingCells "Resources")
 
-:~ ^ mounted (d : deployment) (cells : list string) : built =
+:~ mounted (d : deployment) (cells : list string) : built =
     ?= cells ?|
     | name :: host :: mount :: how :: _ =>
         := source = ? host = "" ?> EmptyDir |: HostPath host
@@ -229,7 +229,7 @@
         Built { d ?| volumes = listm.append d.volumes [ v ] }
     | _ => Broken (MissingCells "Volume")
 
-:~ ^ attached (d : deployment) (ctor : string) (cells : list string) : built =
+:~ attached (d : deployment) (ctor : string) (cells : list string) : built =
     ? ctor = "Container" ?>
         ?= cells ?|
         | image :: workdir :: command =>
@@ -239,7 +239,7 @@
     |? ctor = "Volume" ?> mounted d cells
     |: Broken (UnknownRow ctor)
 
-:~ ^ step (done : list deployment) (line : string) : building =
+:~ step (done : list deployment) (line : string) : building =
     := ctor = ctor_of line
     := cells = cells_of line
     ? ctor = "Deployment" ?>
@@ -260,7 +260,7 @@
             | Building next => steps next rest
             | Failed why => Failed why
 
-:~ ^ rendered (spec_text : string) : spec_outcome =
+:~ rendered (spec_text : string) : spec_outcome =
     ?= steps [] (sm'.split_list "\n" (sm'.replace "\r" "" spec_text)) ?|
     | Building done => Rendered (manifest_json (listm.rev done))
     | Failed why => Refused why

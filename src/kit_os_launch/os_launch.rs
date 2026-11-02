@@ -3,7 +3,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[cfg(windows)]
-pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, u64) {
+pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, u64) { kit_launch(executable, args, owner, false) }
+
+#[cfg(windows)]
+pub fn kit_launch(executable: &str, args: &[&str], owner: u32, breakaway: bool) -> (u64, u64) {
     use std::os::windows::ffi::OsStrExt;
     #[repr(C)]
     struct StartupInfo { cb: u32, reserved: *mut u16, desktop: *mut u16, title: *mut u16, x: u32, y: u32, x_size: u32, y_size: u32, x_chars: u32, y_chars: u32, fill: u32, flags: u32, show: u16, reserved2_len: u16, reserved2: *mut u8, input: *mut std::ffi::c_void, output: *mut std::ffi::c_void, error: *mut std::ffi::c_void }
@@ -41,7 +44,7 @@ pub fn kit_parented_start(executable: &str, args: &[&str], owner: u32) -> (u64, 
         let flags = if with_parent { flags | 0x0008_0000 } else { flags };
         if unsafe { CreateProcessW(std::ptr::null(), line.as_mut_ptr(), std::ptr::null_mut(), std::ptr::null_mut(), 0, flags, std::ptr::null_mut(), cwd.as_ptr(), &mut startup as *mut StartupInfoEx as *mut StartupInfo, &mut info) } == 0 { 0 } else { unsafe { CloseHandle(info.thread); CloseHandle(info.process); } info.pid as u64 }
     };
-    let tries = [(0x0800_0220u32, true), (0x0800_0220u32, false)];
+    let tries: &[(u32, bool)] = if breakaway { &[(0x0900_0220, true), (0x0800_0220, true), (0x0900_0220, false), (0x0800_0220, false)] } else { &[(0x0800_0220, true), (0x0800_0220, false)] };
     let mut parent_pid = 0u64;
     let mut pid = 0u64;
     for (flags, with_parent) in tries.iter() {
@@ -131,9 +134,15 @@ pub fn kit_shell_parented_start(executable: &str, args: &[&str]) -> (u64, u64) {
 
 pub fn kit_shell_parented_start_text(executable: &str, args: &str) -> String { let parts: Vec<&str> = args.split(char::from(9u8)).filter(|arg| !arg.is_empty()).collect(); let (pid, parent) = kit_shell_parented_start(executable, &parts); format!("pid={pid} parent={parent}") }
 
-pub fn kit_shell_started(executable: &str, args: &[std::rc::Rc<str>]) -> u64 { let parts: Vec<&str> = args.iter().map(|arg| &**arg).collect(); kit_shell_parented_start(executable, &parts).0 }
+#[cfg(windows)]
+pub fn kit_job_launch(executable: &str, args: &[&str], owner: u32) -> u64 { let owner = if owner == 0 { kit_caller_owner().1 as u32 } else { owner }; kit_launch(executable, args, owner, true).0 }
 
-pub fn kit_owner_started(executable: &str, args: &[std::rc::Rc<str>], owner: u64) -> u64 { let parts: Vec<&str> = args.iter().map(|arg| &**arg).collect(); kit_parented_start(executable, &parts, owner as u32).0 }
+#[cfg(unix)]
+pub fn kit_job_launch(executable: &str, args: &[&str], _owner: u32) -> u64 { kit_shell_parented_start(executable, args).0 }
+
+pub fn kit_shell_started(executable: &str, args: &[std::rc::Rc<str>]) -> u64 { let parts: Vec<&str> = args.iter().map(|arg| &**arg).collect(); kit_job_launch(executable, &parts, 0) }
+
+pub fn kit_owner_started(executable: &str, args: &[std::rc::Rc<str>], owner: u64) -> u64 { let parts: Vec<&str> = args.iter().map(|arg| &**arg).collect(); kit_job_launch(executable, &parts, owner as u32) }
 
 pub type KitChildren = std::rc::Rc<std::cell::RefCell<Vec<std::process::Child>>>;
 

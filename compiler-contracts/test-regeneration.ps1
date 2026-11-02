@@ -27,17 +27,43 @@ if (-not $KitRoot) { $KitRoot = Join-Path $PSScriptRoot '..' }
 $KitRoot = (Resolve-Path -LiteralPath $KitRoot).Path
 $selected = @(Get-KitOwners -Root $KitRoot -Package $Package -Filter $Filter -IncludeAuxiliary:$IncludeAuxiliary)
 if (-not $selected.Count) { throw 'No regeneration owners selected.' }
-if ($Package.Count) { $Package = @($selected | ForEach-Object Package | Select-Object -Unique) }
-function Get-PackageInputs([string]$Member) {
-    $folder = Join-Path $KitRoot "src/$Member"
-    $project = Join-Path $folder 'package.spiproj'
+function Get-ProjectSection([string]$Member, [string[]]$Sections) {
+    $project = Join-Path $KitRoot "src/$Member/package.spiproj"
     if (Test-Path -LiteralPath $project) {
         $section = ''
         foreach ($line in Get-Content -LiteralPath $project) {
             if ($line -match '^(\S[^:]*):') { $section = $Matches[1]; continue }
-            if ($section -eq 'packages' -and $line -match '^\s+\|?([A-Za-z0-9_]+)\s*$') { $Matches[1] }
+            if ($section -in $Sections -and $line -match '^\s+\|?([A-Za-z0-9_]+)\s*$') { $Matches[1] }
         }
     }
+}
+$linkedOwners = @{}
+$linkQueue = [Collections.Generic.Queue[string]]::new()
+foreach ($owner in $selected) { $linkQueue.Enqueue($owner.Member) }
+while ($linkQueue.Count) {
+    foreach ($link in Get-ProjectSection $linkQueue.Dequeue() @('link')) {
+        if ($link -in $selected.Member -or $linkedOwners.ContainsKey($link)) { continue }
+        $linkedOwners[$link] = @(Get-KitOwners -Root $KitRoot -Package $link -IncludeAuxiliary)[0]
+        $linkQueue.Enqueue($link)
+    }
+}
+$byMember = @{}
+foreach ($owner in @($selected) + @($linkedOwners.Values)) { $byMember[$owner.Member] = $owner }
+$ordered = [Collections.Generic.List[object]]::new()
+$placed = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+function Add-LinkedFirst([string]$Member, [string[]]$Trail) {
+    if ($placed.Contains($Member)) { return }
+    if ($Member -in $Trail) { throw "link: cycle: $(($Trail + $Member) -join ' -> ')" }
+    foreach ($link in Get-ProjectSection $Member @('link')) { if ($byMember.ContainsKey($link)) { Add-LinkedFirst $link ($Trail + $Member) } }
+    if ($placed.Add($Member)) { $ordered.Add($byMember[$Member]) }
+}
+foreach ($owner in $selected) { Add-LinkedFirst $owner.Member @() }
+if ($linkedOwners.Count) { Write-Host "link: units compiled first: $(($linkedOwners.Keys | Sort-Object) -join ', ')" }
+$selected = @($ordered)
+if ($Package.Count) { $Package = @($selected | ForEach-Object Package | Select-Object -Unique) }
+function Get-PackageInputs([string]$Member) {
+    $folder = Join-Path $KitRoot "src/$Member"
+    Get-ProjectSection $Member @('packages', 'link')
     $manifest = Join-Path $folder 'Cargo.toml'
     if (Test-Path -LiteralPath $manifest) {
         foreach ($match in [regex]::Matches([IO.File]::ReadAllText($manifest), 'path\s*=\s*"\.\./([^"/]+)"')) { $match.Groups[1].Value }
@@ -61,13 +87,10 @@ function Test-Watched([string]$Path) {
 if ($Publish) {
     $leaseDir = Join-Path ($env:LOCALAPPDATA ?? $HOME) 'kit/tree-leases'
     New-Item -ItemType Directory -Force $leaseDir | Out-Null
-    $leaseIndex = 0
-    foreach ($leased in @($watchedDirectories) + @($watchedFiles)) {
-        $lease = Join-Path $leaseDir "regeneration-$PID-$leaseIndex.lease"
-        "root=$leased`npid=$PID`nholder=kit regeneration -Publish of $($selected.Count) owners`nsince=$(Get-Date -Format HH:mm)" | Set-Content $lease
-        $publishLeases += $lease
-        $leaseIndex++
-    }
+    $lease = Join-Path $leaseDir "regeneration-$PID.lease"
+    $rootLines = @(@($watchedDirectories) + @($watchedFiles) | ForEach-Object { "root=$_" })
+    (@($rootLines) + "pid=$PID" + "holder=kit regeneration -Publish of $($selected.Count) owners" + "since=$(Get-Date -Format HH:mm)") | Set-Content $lease
+    $publishLeases += $lease
     Write-Host "Leased $($watchedDirectories.Count) package folders and $($watchedFiles.Count) workspace files; the rest of $KitRoot stays writable."
 }
 $CompilerBundle = Resolve-KitSpiralBundle $CompilerBundle

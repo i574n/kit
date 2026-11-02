@@ -2,9 +2,9 @@
 :< sm'_operators
 :< file_system_operators
 
-:~ ^ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
 
-:~ ^ refusal_text (why : spec_error) : string =
+:~ refusal_text (why : spec_error) : string =
     ?= why ?|
     | UnknownRow name => sm'.concat_list "" [ "unknown row constructor "; name ]
     | MissingCells name => sm'.concat_list "" [ "missing cells in a "; name; " row" ]
@@ -25,7 +25,7 @@
     console.write_line "kit error: k3s usage: k3s render <spec.spi> (typed row spec; prints a v1 List for kubectl apply -f -)"
     2i32
 
-:~ ^ k3s_run () : i32 =
+:~ k3s_run () : i32 =
     ? argument 1i32 = "render" && file_system.file_exists (argument 2i32) ?> render (argument 2i32) |: usage ()
 
 := main () : i32 =

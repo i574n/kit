@@ -1,6 +1,6 @@
 # kit
 
-kit is a generic agent tool written in Spiral. It knows no external project, team, path or user: teams are words from backlog tags or upper-case ID prefixes, and test fixtures use neutral domains.
+kit is a generic agent tool. It knows no external project, team, path or user: teams are words from backlog tags or upper-case ID prefixes, and test fixtures use neutral domains.
 
 ## Style contract
 

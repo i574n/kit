@@ -23,20 +23,7 @@
     | JobUnknown
 
 := job_command_of (~word : string) : job_command =
-    ? word = "start" ?> JobStart
-    |? word = "run" ?> JobRun
-    |? word = "supervise" ?> JobSupervise
-    |? word = "host" ?> JobHost
-    |? word = "status" ?> JobStatus
-    |? word = "wait" ?> JobWait
-    |? word = "list" ?> JobList
-    |? word = "tail" ?> JobTail
-    |? word = "stop" ?> JobStop
-    |? word = "after" ?> JobAfter
-    |? word = "chain" ?> JobChain
-    |? word = "amend" ?> JobAmend
-    |? word = "doctor" ?> JobDoctor
-    |: JobUnknown
+    optionm'.default_value JobUnknown (reflection.union_try_pick ("job" ++# word))
 
 := job_usage () : string =
     "job doctor [--env] (audits kit processes, job files and after-chains; --env also compares a detached job's "
@@ -327,6 +314,19 @@
     expect (job_command_of "stop" = JobStop) "stop verb"
     expect (job_command_of "amend" = JobAmend) "amend verb"
     expect (job_command_of "run" = JobRun) "run verb"
+
+///> rust
+:# every_job_verb_is_its_case_name_without_the_job_prefix =
+    := pairs =
+        [
+            ("start", JobStart); ("run", JobRun); ("supervise", JobSupervise); ("host", JobHost)
+            ("status", JobStatus); ("wait", JobWait); ("list", JobList); ("tail", JobTail); ("stop", JobStop)
+            ("after", JobAfter); ("chain", JobChain); ("amend", JobAmend); ("doctor", JobDoctor)
+        ]
+    expect (listm.fold (\ ok (word, command) => ok && job_command_of word = command) true pairs) "each verb picks its case"
+    expect (job_command_of "Start" = JobUnknown) "verbs are lower case"
+    expect (job_command_of "restart" = JobUnknown) "unknown verbs fall through"
+    expect (job_command_of "" = JobUnknown) "no verb"
 
 ///> rust
 :# a_running_job_shows_no_exit_code_and_a_gated_one_shows_queued =

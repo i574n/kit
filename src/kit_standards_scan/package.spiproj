@@ -5,4 +5,5 @@ packages:
     rust_std_env
     kit_standards
 modules:
+    rec_cycle
     scan

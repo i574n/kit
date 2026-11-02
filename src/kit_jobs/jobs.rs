@@ -498,7 +498,7 @@ fn job_run_0() -> i32 {
             let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
             let v52: bool = v50.starts_with(&*v51);
             if v52 {
-                let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("job host is started by kit itself and takes no flags; see job --help"); } LIT.with(|lit| lit.clone()) };
+                let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("host is started by kit itself and takes no flags; see job --help"); } LIT.with(|lit| lit.clone()) };
                 rejected_1(v53.clone())
             } else {
                 let v55: i32 = kit_job_host::kit_job_host_run();
