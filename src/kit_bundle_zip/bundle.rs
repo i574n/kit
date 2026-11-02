@@ -421,7 +421,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
     match std::str::from_utf8(slice) { Ok(text) => Rc::<str>::from(text), Err(error) => Rc::<str>::from(std::str::from_utf8(&slice[..error.valid_up_to()]).unwrap_or("")) }
 }
 fn bool_pair_binding_2(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 1i32;
+    let mut v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
@@ -462,7 +462,7 @@ fn flat_size_binding_5(mut v0: i32, mut v1: i32) -> i32 {
     size_binding_6(v0, v1)
 }
 fn compression_binding_8(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 1i32;
+    let mut v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
@@ -494,7 +494,7 @@ fn flat_complete_binding_9(mut v0: i32, mut v1: i32) -> i32 {
     complete_binding_10(v0, v1)
 }
 fn bundle_profile_resolve_binding_11(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 == 0i32;
+    let mut v2: bool = v0 == 0i32;
     if v2 {
         let v3: bool = v1 == 1i32;
         if v3 {
@@ -517,7 +517,7 @@ fn bundle_profile_resolve_binding_11(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn bundle_manifest_mapping_binding_13(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 == 1i32;
+    let mut v2: bool = v0 == 1i32;
     let v4: bool = if v2 {
         let v3: bool = v1 == 1i32;
         v3
@@ -534,7 +534,7 @@ fn bundle_manifest_authority_binding_12(mut v0: i32, mut v1: i32) -> i32 {
     bundle_manifest_mapping_binding_13(v0, v1)
 }
 fn bundle_archive_root_shape_binding_14(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 == 3i32;
+    let mut v2: bool = v0 == 3i32;
     let v4: bool = if v2 {
         let v3: bool = v1 == 3i32;
         v3
@@ -566,7 +566,7 @@ fn find_char_loop_19(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i
                 return v1;
             } else {
                 let v7: i32 = v1 + 1i32 ;
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+                v1 = v7;
                 continue;
             }
         }
@@ -584,7 +584,7 @@ fn starts_with_loop_21(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
             if v8 {
                 let v9: i32 = v2 + 1i32 ;
                 let v10: i32 = v3 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v9, v10, v4);
+                (v2, v3) = (v9, v10);
                 continue;
             } else {
                 return false;
@@ -613,7 +613,7 @@ fn find_text_loop_20(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32,
                 return v2;
             } else {
                 let v14: i32 = v2 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v14, v3, v4);
+                v2 = v14;
                 continue;
             }
         }
@@ -665,7 +665,7 @@ fn bundle_workspace_members_loop_18(mut v0: Rc<str>, mut v1: i32, mut v2: i32, m
                             let v31: i32 = v12 + 1i32 ;
                             let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v23.clone()));
                             let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v4.clone(), v23.clone()));
-                            (v0, v1, v2, v3, v4) = (v0.clone(), v31, v2, v32.clone(), v33.clone());
+                            (v1, v3, v4) = (v31, v32.clone(), v33.clone());
                             continue;
                         }
                     }
@@ -675,8 +675,8 @@ fn bundle_workspace_members_loop_18(mut v0: Rc<str>, mut v1: i32, mut v2: i32, m
     }
 }
 fn bundle_workspace_members_parse_15(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("members"); } LIT.with(|lit| lit.clone()) };
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("members"); } LIT.with(|lit| lit.clone()) };
     let v3: i32 = 0i32;
     let v4: i32 = 7i32;
     let v5: i32 = find_text_loop_20(v0.clone(), v2, v3, v1, v4);

@@ -279,12 +279,12 @@ fn validate_title_loop_1(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: bool) ->
                     let v10: i32 = v0.wrapping_add(1i32);
                     let v11: i32 = v2.wrapping_add(1i32);
                     let v12: bool = false;
-                    (v0, v1, v2, v3) = (v10, v1, v11, v12);
+                    (v0, v2, v3) = (v10, v11, v12);
                     continue;
                 } else {
                     let v14: i32 = v0.wrapping_add(1i32);
                     let v15: bool = false;
-                    (v0, v1, v2, v3) = (v14, v1, v2, v15);
+                    (v0, v3) = (v14, v15);
                     continue;
                 }
             } else {
@@ -298,7 +298,7 @@ fn validate_title_loop_1(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: bool) ->
                 if v20 {
                     let v21: i32 = v0.wrapping_add(1i32);
                     let v22: bool = true;
-                    (v0, v1, v2, v3) = (v21, v1, v2, v22);
+                    (v0, v3) = (v21, v22);
                     continue;
                 } else {
                     let v24: i32 = -1;

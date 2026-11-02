@@ -1,0 +1,64 @@
+///- --package .
+:# item static =
+    :< sm'_operators
+    :< agile_task_next.ranking
+
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< agile_note_model.model
+:< workspace_primitives.bytes
+:< workspace_primitives.files
+:< agile_task_next.ranking
+
+:~ ^ task_found (tasks : task_list) (~id : string) : option backlog_task =
+    ?= tasks ?|
+    | NoTasks => None
+    | TaskThen (task, rest) => ? task.id = id ?> Some task |: task_found rest id
+
+:~ team_of (~tags : string) : string =
+    := pick = \ found (tag : string) =>
+        ? found = "" && sm'.starts_with "team:" tag ?> sm'.substring 5i32 ((sm'.length tag : i32) - 5i32) tag |: found
+    := team = sm'.split_list "," tags |> listm.fold pick ""
+    ? team = "" ?> "-" |: team
+
+:~ task_line (task : backlog_task) : string =
+    sm'.concat_list " " [
+        "item"; task.id; "P" ++# sm'.show task.priority; "D" ++# sm'.show task.difficulty; task.status
+        team_of task.tags; task.title
+    ]
+
+:~ note_text_line (note : task_note) : string =
+    := flat = sm'.replace "\n" " " (sm'.replace "\r" "" note.text)
+    "last-note " ++# note.at ++# " " ++# note.author ++# " " ++# sm'.clip 300i32 flat
+
+:~ last_note_line (~notes : string) (~id : string) : string =
+    := found = last_declared notes (item_anchor NoteItem id) 0i32 -1i32
+    ? found < 0i32 ?> "last-note none" |: note_text_line (note_at notes found)
+
+:~ claim_item_lines (~root : string) (~id : string) : string =
+    ?= probe (unchecked (backlog_state_path root)) ?|
+    | FileMissing _ => ""
+    | FileReadable file =>
+        := records = records_text (loaded_string (read_text file))
+        ?= task_found (agile_task_next.task_next.tasks_from records 0i32 (byte_len records) NoTasks) id ?|
+        | None => ""
+        | Some task => task_line task ++# "\n" ++# last_note_line (state_text_with_notes (root ++# "/state")) id
+
+///> rust
+:# an_item_line_names_its_team_and_the_newest_note =
+    := tasks = sample_backlog ()
+    ?= task_found tasks "KIT-SIDE" ?|
+    | Some task => testing.expect (task_line task = "item KIT-SIDE P1 D4 Planned - KIT-SIDE") (task_line task)
+    | None => testing.expect !- "KIT-SIDE missing"
+    testing.expect (team_of "kit,team:x,agile" = "x" && team_of "kit" = "-") "team tag"
+    := first = note_row "A-1" 1i32 { at = "2026-11-02T01:00Z"; author = "kit"; text = "first" }
+    := second = note_row "A-1" 2i32 { at = "2026-11-02T02:00Z"; author = "x"; text = "second\nline" }
+    := notes = sm'.concat_list "\n" [ first; second; "" ]
+    testing.expect (last_note_line notes "A-1" = "last-note 2026-11-02T02:00Z x second line") (last_note_line notes "A-1")
+    testing.expect (last_note_line notes "B-2" = "last-note none") "no notes"
+
+///> _
+:= main () : i32 =
+    export "kit_claim_item_lines" ((\ (root, id) => claim_item_lines root id) : string * string -> string)
+    0i32

@@ -31,23 +31,23 @@ enum US3 {
 }
 fn command_line_argument_count_3() -> i32 {
     let mut v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
+    let mut v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn argument_count_2() -> i32 {
     let mut v0: i32 = command_line_argument_count_3();
-    let v1: i32 = v0.wrapping_add(1i32);
+    let mut v1: i32 = v0.wrapping_add(1i32);
     v1
 }
 fn command_line_argument_6(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_add(1i32);
+    let mut v1: i32 = v0.wrapping_add(1i32);
     let v2: usize = ((v1) as usize);
     let v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
     v3
 }
 fn argument_5(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_sub(1i32);
+    let mut v1: i32 = v0.wrapping_sub(1i32);
     let v2: bool = v1 >= 0i32;
     let v5: bool = if v2 {
         let v3: i32 = command_line_argument_count_3();
@@ -88,7 +88,7 @@ fn pattern_from_4(mut v0: i32, mut v1: i32) -> Rc<str> {
             };
             if v7 {
                 let v8: i32 = v0.wrapping_add(1i32);
-                (v0, v1) = (v8, v1);
+                v0 = v8;
                 continue;
             } else {
                 return argument_5(v0);
@@ -100,11 +100,11 @@ fn pattern_from_4(mut v0: i32, mut v1: i32) -> Rc<str> {
     }
 }
 fn pattern_problem_7(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(regex::RegexBuilder::new(&*v0).case_insensitive(true).build().err().map(|error| error.to_string()).unwrap_or_default().as_str());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(regex::RegexBuilder::new(&*v0).case_insensitive(true).build().err().map(|error| error.to_string()).unwrap_or_default().as_str());
     v1.clone()
 }
 fn process_rows_sampled_8(mut v0: u64) -> std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> {
-    let v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
+    let mut v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
     v1
 }
 fn flag_present_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
@@ -117,7 +117,7 @@ fn flag_present_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
                 return true;
             } else {
                 let v6: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v6, v2);
+                v1 = v6;
                 continue;
             }
         } else {
@@ -151,7 +151,7 @@ fn session_root_10(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc:
             } else {
                 let v11: u64 = v0[v3 as usize].1;
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v11, v12);
+                (v1, v2) = (v11, v12);
                 continue;
             }
         }
@@ -168,7 +168,7 @@ fn method14(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     ()
 }
 fn format_real_13(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method14(v2.clone(), v3);
@@ -198,7 +198,7 @@ fn descends_from_15(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc
                 } else {
                     let v10: u64 = v0[v8 as usize].1;
                     let v11: i32 = v3.wrapping_add(1i32);
-                    (v0, v1, v2, v3) = (v0.clone(), v10, v2, v11);
+                    (v1, v3) = (v10, v11);
                     continue;
                 }
             }
@@ -455,7 +455,7 @@ fn rows_text_20(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: 
                     let v49: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v46, v47)), v6));
                     v49.clone()
                 };
-                (v0, v1, v2, v3, v4, v5, v6) = (v13.clone(), v1, v2, v3, v4, v5, v50.clone());
+                (v0, v6) = (v13.clone(), v50.clone());
                 continue;
             }
         }
@@ -528,16 +528,16 @@ fn listing_text_18(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> Rc<str> {
     }
 }
 fn decimal_text_21(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
 fn elapsed_text_23(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
+    let mut v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
 fn clock_text_24() -> Rc<str> {
     let mut v0: i64 = local_offset_minutes_11();
-    let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
+    let mut v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
 fn receipt_line_22(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
@@ -561,7 +561,7 @@ fn receipt_line_22(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
     ()
 }
 fn list_run_1(mut v0: u64) -> i32 {
-    let v1: i32 = argument_count_2();
+    let mut v1: i32 = argument_count_2();
     let v2: i32 = 2i32;
     let v3: Rc<str> = pattern_from_4(v2, v1);
     let v4: Rc<str> = pattern_problem_7(v3.clone());
@@ -640,7 +640,7 @@ fn now_ms_25() -> u64 {
 }
 fn process_run_0() -> i32 {
     let mut v0: u64 = now_ms_25();
-    let v1: i32 = 1i32;
+    let mut v1: i32 = 1i32;
     let v2: Rc<str> = argument_5(v1);
     let v3: bool = &*v2 == "ps";
     let v9: US3 = if v3 {

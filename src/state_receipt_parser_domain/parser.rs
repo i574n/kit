@@ -11,7 +11,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
     match std::str::from_utf8(slice) { Ok(text) => Rc::<str>::from(text), Err(error) => Rc::<str>::from(std::str::from_utf8(&slice[..error.valid_up_to()]).unwrap_or("")) }
 }
 fn codec_runtime_char_2(mut v0: Rc<str>) -> u8 {
-    let v1: u8 = v0.as_bytes()[0i32 as usize];
+    let mut v1: u8 = v0.as_bytes()[0i32 as usize];
     v1
 }
 fn find_char_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i32 {
@@ -26,7 +26,7 @@ fn find_char_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
                 return v1;
             } else {
                 let v7: i32 = v1 + 1i32 ;
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+                v1 = v7;
                 continue;
             }
         }
@@ -51,7 +51,7 @@ fn starts_with_loop_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
             if v8 {
                 let v9: i32 = v2 + 1i32 ;
                 let v10: i32 = v3 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v9, v10, v4);
+                (v2, v3) = (v9, v10);
                 continue;
             } else {
                 return false;
@@ -80,7 +80,7 @@ fn find_text_loop_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, 
                 return v2;
             } else {
                 let v14: i32 = v2 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v14, v3, v4);
+                v2 = v14;
                 continue;
             }
         }
@@ -135,7 +135,7 @@ fn parse_quoted_loop_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                     let v27: i32 = v1 + 1i32 ;
                     let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v24.clone()));
                     let v29: bool = false;
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v27, v2, v28.clone(), v29);
+                    (v1, v3, v4) = (v27, v28.clone(), v29);
                     continue;
                 }
             } else {
@@ -145,7 +145,7 @@ fn parse_quoted_loop_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                 if v38 {
                     let v39: i32 = v1 + 1i32 ;
                     let v40: bool = true;
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v39, v2, v3.clone(), v40);
+                    (v1, v4) = (v39, v40);
                     continue;
                 } else {
                     let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
@@ -159,7 +159,7 @@ fn parse_quoted_loop_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                         let v49: Rc<str> = string_slice(&v0.clone(), v1 as i64, v1 as i64);
                         let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v49.clone()));
                         let v51: bool = false;
-                        (v0, v1, v2, v3, v4) = (v0.clone(), v48, v2, v50.clone(), v51);
+                        (v1, v3, v4) = (v48, v50.clone(), v51);
                         continue;
                     }
                 }
@@ -177,7 +177,7 @@ fn skip_spaces_loop_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             let v5: bool = v4 == b' ' ;
             if v5 {
                 let v6: i32 = v1 + 1i32 ;
-                (v0, v1, v2) = (v0.clone(), v6, v2);
+                v1 = v6;
                 continue;
             } else {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
@@ -185,7 +185,7 @@ fn skip_spaces_loop_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 let v10: bool = v4 == v9 ;
                 if v10 {
                     let v11: i32 = v1 + 1i32 ;
-                    (v0, v1, v2) = (v0.clone(), v11, v2);
+                    v1 = v11;
                     continue;
                 } else {
                     return v1;
@@ -474,14 +474,14 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                 let v192: i32 = v7 + 1i32 ;
                 v192
             };
-            (v0, v1, v2, v3) = (v0.clone(), v193, v2, v190.clone());
+            (v1, v3) = (v193, v190.clone());
             continue;
         }
     }
 }
 fn receipt_parse_0(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
-    let v2: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = 0i32;
+    let mut v2: i32 = (v0.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     parse_source_loop_1(v0, v1, v2, v3)
 }

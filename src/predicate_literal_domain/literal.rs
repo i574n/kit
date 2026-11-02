@@ -97,13 +97,13 @@ fn literal_loop_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) ->
                             };
                             let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v44.clone()));
                             let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45.clone(), v36.clone()));
-                            (v0, v1, v2, v3) = (v0.clone(), v39, v39, v46.clone());
+                            (v1, v2, v3) = (v39, v39, v46.clone());
                             continue;
                         }
                     }
                 } else {
                     let v56: i32 = v1 + 1i32 ;
-                    (v0, v1, v2, v3) = (v0.clone(), v56, v2, v3.clone());
+                    v1 = v56;
                     continue;
                 }
             }
@@ -192,7 +192,7 @@ fn encode_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> 
             let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v32: bool = v29 == v31 ;
             if v32 {
-                (v0, v1, v2, v3) = (v0.clone(), v30, v2, v3.clone());
+                v1 = v30;
                 continue;
             } else {
                 let v34: bool = v2 == v1 ;
@@ -205,7 +205,7 @@ fn encode_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> 
                 };
                 let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v38.clone()));
                 let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39.clone(), v29.clone()));
-                (v0, v1, v2, v3) = (v0.clone(), v30, v30, v40.clone());
+                (v1, v2, v3) = (v30, v30, v40.clone());
                 continue;
             }
         }
@@ -213,7 +213,7 @@ fn encode_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> 
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        let v1: i32 = 0i32;
+        let mut v1: i32 = 0i32;
         let v2: i32 = 0i32;
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
         encode_loop_3(v0.clone(), v1, v2, v3.clone())

@@ -293,7 +293,7 @@ fn bulleted_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
         let v6: bool = v5 > 0i32;
         let v10: bool = if v6 {
             let v7: i32 = v5.wrapping_sub(1i32);
-            let v8: Rc<str> = v4.clone().borrow()[v7 as usize].clone();
+            let v8: Rc<str> = v4.borrow()[v7 as usize].clone();
             let v9: bool = &*v8 == "";
             v9
         } else {
@@ -317,7 +317,7 @@ fn bulleted_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
                 let v20: bool = v19 > 0i32;
                 let v24: bool = if v20 {
                     let v21: i32 = v19.wrapping_sub(1i32);
-                    let v22: Rc<str> = v17.clone().borrow()[v21 as usize].clone();
+                    let v22: Rc<str> = v17.borrow()[v21 as usize].clone();
                     let v23: bool = &*v22 == "";
                     v23
                 } else {
@@ -335,7 +335,7 @@ fn bulleted_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
                 false
             };
             let v41: Rc<str> = if v28 {
-                let v29: Rc<str> = v17.clone().borrow()[v1 as usize].clone();
+                let v29: Rc<str> = v17.borrow()[v1 as usize].clone();
                 let v30: i32 = (v29.clone().len() as i32);
                 let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
                 let v32: bool = v29.ends_with(&*v31);
@@ -358,7 +358,7 @@ fn bulleted_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
                 v40.clone()
             };
             let v43: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v16, v41)), v3));
-            (v0, v1, v2) = (v0.clone(), v14, v43.clone());
+            (v1, v2) = (v14, v43.clone());
             continue;
         } else {
             return v2.clone();

@@ -62,23 +62,23 @@ fn now_ms_0() -> u64 {
 }
 fn command_line_argument_count_3() -> i32 {
     let mut v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
+    let mut v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn argument_count_2() -> i32 {
     let mut v0: i32 = command_line_argument_count_3();
-    let v1: i32 = v0.wrapping_add(1i32);
+    let mut v1: i32 = v0.wrapping_add(1i32);
     v1
 }
 fn command_line_argument_6(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_add(1i32);
+    let mut v1: i32 = v0.wrapping_add(1i32);
     let v2: usize = ((v1) as usize);
     let mut v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
     v3
 }
 fn argument_5(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_sub(1i32);
+    let mut v1: i32 = v0.wrapping_sub(1i32);
     let v2: bool = v1 >= 0i32;
     let v5: bool = if v2 {
         let mut v3: i32 = command_line_argument_count_3();
@@ -114,7 +114,7 @@ fn flag_present_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
                 return true;
             } else {
                 let v6: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v6, v2);
+                v1 = v6;
                 continue;
             }
         } else {
@@ -123,11 +123,11 @@ fn flag_present_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
     }
 }
 fn process_rows_sampled_7(mut v0: u64) -> std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> {
-    let v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
+    let mut v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
     v1
 }
 fn get_environment_variable_8(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = Rc::<str>::from(std::env::var(&*v0).unwrap_or_default());
+    let mut v1: Rc<str> = Rc::<str>::from(std::env::var(&*v0).unwrap_or_default());
     v1
 }
 fn value_after_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> Rc<str> {
@@ -140,7 +140,7 @@ fn value_after_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> Rc<str> {
             if v6 {
                 return argument_5(v3);
             } else {
-                (v0, v1, v2) = (v0.clone(), v3, v2);
+                v1 = v3;
                 continue;
             }
         } else {
@@ -158,12 +158,12 @@ fn method14(mut v0: Option<u64>) -> Option<u64> {
 }
 fn closure1() -> Rc<dyn Fn((u64)) -> US3> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US3> = Rc::new(move |mut v0: (u64)| -> US3 {
-        let v1: u64 = (v0);
+        let mut v1: u64 = (v0);
         US3::US3_Some(v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn decimal_of_13(mut v0: Rc<str>) -> u64 {
-    let v1: Option<u64> = (v0).trim().parse::<u64>().ok();
+    let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
     let v2: Option<u64> = method14(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
     let mut v4: Option<US3> = v2.map(|x| v3(x));
@@ -258,7 +258,7 @@ fn left_or_orphan_18(mut v0: u64, mut v1: u64) -> US5 {
     }
 }
 fn cells_vm_at_20(mut v0: Rc<str>) -> bool {
-    let v1: bool = kit_machine_sample::kit_machine_cells_vm(&*v0);
+    let mut v1: bool = kit_machine_sample::kit_machine_cells_vm(&*v0);
     v1
 }
 fn owner_walk_17(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: i32, mut v2: i32) -> US5 {
@@ -306,7 +306,7 @@ fn owner_walk_17(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::R
                         }
                     } else {
                         let v28: i32 = v2.wrapping_add(1i32);
-                        (v0, v1, v2) = (v0.clone(), v16, v28);
+                        (v1, v2) = (v16, v28);
                         continue;
                     }
                 }
@@ -323,7 +323,7 @@ fn jobs_root_24() -> Rc<str> {
     v0.clone()
 }
 fn job_directory_23(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = jobs_root_24();
+    let mut v1: Rc<str> = jobs_root_24();
     joined_22(v1, v0)
 }
 fn job_file_21(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
@@ -331,7 +331,7 @@ fn job_file_21(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     joined_22(v2, v1)
 }
 fn text_or_empty_25(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v0).unwrap_or_default());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v0).unwrap_or_default());
     v1
 }
 fn session_root_26(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: i32) -> u64 {
@@ -360,7 +360,7 @@ fn session_root_26(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc:
             } else {
                 let v11: u64 = v0[v3 as usize].1;
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v11, v12);
+                (v1, v2) = (v11, v12);
                 continue;
             }
         }
@@ -389,7 +389,7 @@ fn descends_from_27(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc
                 } else {
                     let v10: u64 = v0[v8 as usize].1;
                     let v11: i32 = v3.wrapping_add(1i32);
-                    (v0, v1, v2, v3) = (v0.clone(), v10, v2, v11);
+                    (v1, v3) = (v10, v11);
                     continue;
                 }
             }
@@ -490,7 +490,7 @@ fn method32(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     ()
 }
 fn format_real_31(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method32(v2.clone(), v3);
@@ -581,13 +581,13 @@ fn stops_from_11(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: US1, mut v4: u6
             };
             if v12 {
                 let v13: i32 = v0.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4, v5, v6, v7) = (v13, v1, v2, v3.clone(), v4, v5.clone(), v6, v7);
+                v0 = v13;
                 continue;
             } else {
                 let v16: bool = &*v9 == "--theirs";
                 if v16 {
                     let v17: i32 = v0.wrapping_add(2i32);
-                    (v0, v1, v2, v3, v4, v5, v6, v7) = (v17, v1, v2, v3.clone(), v4, v5.clone(), v6, v7);
+                    v0 = v17;
                     continue;
                 } else {
                     let v20: US2 = stop_refusal_of_12(v9.clone(), v4, v5.clone());
@@ -601,12 +601,12 @@ fn stops_from_11(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: US1, mut v4: u6
                                     if v33 {
                                         let v34: i32 = v0.wrapping_add(1i32);
                                         let v35: u64 = v6.wrapping_add(1u64);
-                                        (v0, v1, v2, v3, v4, v5, v6, v7) = (v34, v1, v2, v3.clone(), v4, v5.clone(), v35, v7);
+                                        (v0, v6) = (v34, v35);
                                         continue;
                                     } else {
                                         let v38: i32 = v0.wrapping_add(1i32);
                                         let v39: u64 = v7.wrapping_add(1u64);
-                                        (v0, v1, v2, v3, v4, v5, v6, v7) = (v38, v1, v2, v3.clone(), v4, v5.clone(), v6, v39);
+                                        (v0, v7) = (v38, v39);
                                         continue;
                                     }
                                 }
@@ -619,7 +619,7 @@ fn stops_from_11(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: US1, mut v4: u6
                                     println!("{}", v28);
                                     let v29: i32 = v0.wrapping_add(1i32);
                                     let v30: u64 = v7.wrapping_add(1u64);
-                                    (v0, v1, v2, v3, v4, v5, v6, v7) = (v29, v1, v2, v3.clone(), v4, v5.clone(), v6, v30);
+                                    (v0, v7) = (v29, v30);
                                     continue;
                                 }
                             }
@@ -660,7 +660,7 @@ fn stops_from_11(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: US1, mut v4: u6
                             println!("{}", v69);
                             let v70: i32 = v0.wrapping_add(1i32);
                             let v71: u64 = v7.wrapping_add(1u64);
-                            (v0, v1, v2, v3, v4, v5, v6, v7) = (v70, v1, v2, v3.clone(), v4, v5.clone(), v6, v71);
+                            (v0, v7) = (v70, v71);
                             continue;
                         }
                     }
@@ -672,11 +672,11 @@ fn stops_from_11(mut v0: i32, mut v1: i32, mut v2: bool, mut v3: US1, mut v4: u6
     }
 }
 fn decimal_text_33(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
 fn elapsed_text_35(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
+    let mut v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
 fn local_offset_minutes_37() -> i64 {
@@ -685,7 +685,7 @@ fn local_offset_minutes_37() -> i64 {
 }
 fn clock_text_36() -> Rc<str> {
     let mut v0: i64 = local_offset_minutes_37();
-    let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
+    let mut v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
 fn receipt_line_34(mut v0: US8, mut v1: Rc<str>, mut v2: u64) -> () {
@@ -709,7 +709,7 @@ fn receipt_line_34(mut v0: US8, mut v1: Rc<str>, mut v2: u64) -> () {
     ()
 }
 fn stop_run_1(mut v0: u64) -> i32 {
-    let v1: i32 = argument_count_2();
+    let mut v1: i32 = argument_count_2();
     let v2: bool = v1 < 3i32;
     if v2 {
         let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit "); } LIT.with(|lit| lit.clone()) };

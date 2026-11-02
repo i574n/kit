@@ -1,5 +1,6 @@
-:= concat5 (~a : string) (~b : string) (~c : string) (~d : string) (~e : string) : string =
-    $'std::rc::Rc::<str>::from([&*!a, &*!b, &*!c, &*!d, &*!e].concat())' : string
+:< sm'_operators
+:~ concat5 (~a : string) (~b : string) (~c : string) (~d : string) (~e : string) : string =
+    a ++# b ++# c ++# d ++# e
 
 := equals (a : string) (b : string) : bool =
     $'!a == !b '

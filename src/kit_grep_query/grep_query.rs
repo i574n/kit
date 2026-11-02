@@ -1,6 +1,22 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
+
+pub fn spiral_json_quote(s: &str) -> std::rc::Rc<str> {
+    let (q, b) = (char::from(34u8), char::from(92u8));
+    let mut out = String::from(q);
+    for c in s.chars() {
+        match c as u32 {
+            34 | 92 => { out.push(b); out.push(c); }
+            n @ (8 | 9 | 10 | 12 | 13) => { out.push(b); out.push(char::from(b"btn_fr"[(n - 8) as usize])); }
+            n if n < 32 => out.push_str(&format!("{b}u{n:04x}")),
+            _ => out.push(c),
+        }
+    }
+    out.push(q);
+    std::rc::Rc::from(out.as_str())
+}
+
 #[derive(Clone)]
 enum US0 {
     US0_NoNeedleHint,
@@ -39,8 +55,8 @@ fn counts_start_2() -> (i32, i32, Rc<str>) {
     (0i32, 0i32, v0)
 }
 fn json_text_5(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from({ let q = char::from(34u8); let b = char::from(92u8); let mut out = String::from(q); for c in (v0).chars() { let n = c as u32; match n { 34 | 92 => { out.push(b); out.push(c); } 8 | 9 | 10 | 12 | 13 => { out.push(b); out.push(char::from(b"btn_fr"[(n - 8) as usize])); } n if n < 32 => out.push_str(&format!("{b}u{n:04x}")), _ => out.push(c) } } out.push(q); out }.as_str());
-    v1.clone()
+    let v1: Rc<str> = spiral_json_quote(&*v0);
+    v1
 }
 fn method7(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let v2: Rc<str> = v0.borrow().l0.clone();
@@ -85,7 +101,7 @@ fn json_matches_4(mut v0: std::rc::Rc<(u64, Vec<(String, Vec<usize>, Vec<String>
                 let v27: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v25)), v22));
                 v27.clone()
             };
-            (v0, v1, v2, v3, v4) = (v0.clone(), v1, v2, v23, v28.clone());
+            (v3, v4) = (v23, v28.clone());
             continue;
         } else {
             return v4.clone();
@@ -113,7 +129,7 @@ fn last_window_line_8(mut v0: std::rc::Rc<(u64, Vec<(String, Vec<usize>, Vec<Str
             } else {
                 v5
             };
-            (v0, v1, v2, v3, v4, v5) = (v0.clone(), v1, v2, v3, v7, v15);
+            (v4, v5) = (v7, v15);
             continue;
         } else {
             return v5;
@@ -129,7 +145,7 @@ fn window_lines_10(mut v0: std::rc::Rc<(u64, Vec<(String, Vec<usize>, Vec<String
             let v9: Rc<str> = std::rc::Rc::<str>::from({ let line = &(v0).1[v1 as usize].2[v4 as usize]; if line.chars().count() > 200 { format!("{}...", line.chars().take(200).collect::<String>()) } else { line.to_owned() } }.as_str());
             let v10: Rc<str> = std::rc::Rc::<str>::from(format!("{:>width$}{} {}", v7, if v8 { char::from(62u8) } else { char::from(32u8) }, &*v9, width = v3 as usize).as_str());
             println!("{}", v10);
-            (v0, v1, v2, v3, v4, v5) = (v0.clone(), v1, v2, v3, v7, v5);
+            v4 = v7;
             continue;
         }
         return ();
@@ -178,7 +194,7 @@ fn windows_printed_9(mut v0: std::rc::Rc<(u64, Vec<(String, Vec<usize>, Vec<Stri
             } else {
                 v6
             };
-            (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1, v2, v3, v4, v23, v25);
+            (v5, v6) = (v23, v25);
             continue;
         }
         return ();

@@ -22,7 +22,7 @@ fn starts_with_loop_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
             if v8 {
                 let v9: i32 = v2 + 1i32 ;
                 let v10: i32 = v3 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v9, v10, v4);
+                (v2, v3) = (v9, v10);
                 continue;
             } else {
                 return false;
@@ -42,7 +42,7 @@ fn find_char_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
                 return v1;
             } else {
                 let v7: i32 = v1 + 1i32 ;
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+                v1 = v7;
                 continue;
             }
         }
@@ -72,7 +72,7 @@ fn block_end_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 } else {
                     let v13: i32 = v1 + 2i32 ;
                     let v14: i32 = v2 + 1i32 ;
-                    (v0, v1, v2) = (v0.clone(), v13, v14);
+                    (v1, v2) = (v13, v14);
                     continue;
                 }
             } else {
@@ -94,12 +94,12 @@ fn block_end_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                     } else {
                         let v26: i32 = v1 + 2i32 ;
                         let v27: i32 = v2 - 1i32 ;
-                        (v0, v1, v2) = (v0.clone(), v26, v27);
+                        (v1, v2) = (v26, v27);
                         continue;
                     }
                 } else {
                     let v30: i32 = v1 + 1i32 ;
-                    (v0, v1, v2) = (v0.clone(), v30, v2);
+                    v1 = v30;
                     continue;
                 }
             }
@@ -108,7 +108,7 @@ fn block_end_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn skip_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: i32 = (v0.clone().len() as i32);
+        let mut v2: i32 = (v0.clone().len() as i32);
         let v3: bool = v1 >= v2;
         if v3 {
             return v1;
@@ -133,7 +133,7 @@ fn skip_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
             };
             if v11 {
                 let v12: i32 = v1 + 1i32 ;
-                (v0, v1) = (v0.clone(), v12);
+                v1 = v12;
                 continue;
             } else {
                 let v14: i32 = v1 + 2i32 ;
@@ -149,7 +149,7 @@ fn skip_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 if v20 {
                     let v21: u8 = b'\n';
                     let v22: i32 = find_char_loop_3(v0.clone(), v1, v2, v21);
-                    (v0, v1) = (v0.clone(), v22);
+                    v1 = v22;
                     continue;
                 } else {
                     let v24: i32 = v1 + 2i32 ;
@@ -170,7 +170,7 @@ fn skip_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
                         if v34 {
                             return v33;
                         } else {
-                            (v0, v1) = (v0.clone(), v33);
+                            v1 = v33;
                             continue;
                         }
                     } else {
@@ -202,7 +202,7 @@ fn find_text_loop_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, 
                 return v2;
             } else {
                 let v14: i32 = v2 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v14, v3, v4);
+                v2 = v14;
                 continue;
             }
         }
@@ -220,7 +220,7 @@ fn raw_end_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> i32 {
             if v6 {
                 let v7: i32 = v1 + 1i32 ;
                 let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v2.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("#"); } LIT.with(|lit| lit.clone()) }));
-                (v0, v1, v2) = (v0.clone(), v7, v8.clone());
+                (v1, v2) = (v7, v8.clone());
                 continue;
             } else {
                 let v10: bool = v5 == b'"' ;
@@ -254,7 +254,7 @@ fn quoted_end_7(mut v0: Rc<str>, mut v1: i32, mut v2: u8) -> i32 {
             let v6: bool = v5 == b'\\' ;
             if v6 {
                 let v7: i32 = v1 + 2i32 ;
-                (v0, v1, v2) = (v0.clone(), v7, v2);
+                v1 = v7;
                 continue;
             } else {
                 let v9: bool = v5 == v2 ;
@@ -263,7 +263,7 @@ fn quoted_end_7(mut v0: Rc<str>, mut v1: i32, mut v2: u8) -> i32 {
                     return v10;
                 } else {
                     let v11: i32 = v1 + 1i32 ;
-                    (v0, v1, v2) = (v0.clone(), v11, v2);
+                    v1 = v11;
                     continue;
                 }
             }
@@ -272,7 +272,7 @@ fn quoted_end_7(mut v0: Rc<str>, mut v1: i32, mut v2: u8) -> i32 {
 }
 fn word_end_8(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: i32 = (v0.clone().len() as i32);
+        let mut v2: i32 = (v0.clone().len() as i32);
         let v3: bool = v1 < v2;
         let v18: bool = if v3 {
             let v4: u8 = v0.clone().as_bytes()[v1 as usize];
@@ -316,7 +316,7 @@ fn word_end_8(mut v0: Rc<str>, mut v1: i32) -> i32 {
         };
         if v18 {
             let v19: i32 = v1 + 1i32 ;
-            (v0, v1) = (v0.clone(), v19);
+            v1 = v19;
             continue;
         } else {
             return v1;
@@ -331,7 +331,7 @@ fn codec_empty_9() -> Rc<str> {
     method10()
 }
 fn token_0(mut v0: Rc<str>, mut v1: i32) -> (i32, i32, Rc<str>, bool) {
-    let v2: i32 = skip_1(v0.clone(), v1);
+    let mut v2: i32 = skip_1(v0.clone(), v1);
     let v3: i32 = (v0.clone().len() as i32);
     let v4: bool = v2 < 0i32;
     if v4 {
@@ -590,7 +590,7 @@ fn canonical_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> (Rc<str>,
             } else {
                 let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v2.clone(), v5.clone()));
                 let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
-                (v0, v1, v2) = (v0.clone(), v4, v12.clone());
+                (v1, v2) = (v4, v12.clone());
                 continue;
             }
         }
@@ -598,8 +598,8 @@ fn canonical_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> (Rc<str>,
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> (Rc<str>, bool)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (Rc<str>, bool)> = Rc::new(move |mut v0: Rc<str>| -> (Rc<str>, bool) {
-        let v1: i32 = 0i32;
-        let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v1: i32 = 0i32;
+        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         canonical_loop_11(v0.clone(), v1, v2.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }

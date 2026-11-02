@@ -113,7 +113,7 @@ fn arms_needed_10(mut v0: US0) -> i32 {
     }
 }
 fn in_arm_13(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: i32) -> bool {
-    let v7: bool = (v1).as_bytes().get(v6 as usize) == Some(&49u8);
+    let mut v7: bool = (v1).as_bytes().get(v6 as usize) == Some(&49u8);
     if v7 {
         let v8: bool = v2 < 0i32;
         if v8 {
@@ -132,7 +132,7 @@ fn text_before_14(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     v2
 }
 fn in_scope_12(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: i32) -> bool {
-    let v7: bool = in_arm_13(v0.clone(), v1.clone(), v2, v3, v4.clone(), v5.clone(), v6);
+    let mut v7: bool = in_arm_13(v0.clone(), v1.clone(), v2, v3, v4.clone(), v5.clone(), v6);
     if v7 {
         let v8: bool = v3 < 0i32;
         if v8 {
@@ -205,6 +205,10 @@ fn confidence_given_17() -> f64 {
         0.95f64
     }
 }
+fn concat5_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
 fn values_of_18(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: Rc<str>) -> Rc<str> {
     loop {
         let v10: bool = v7 > v8;
@@ -224,40 +228,39 @@ fn values_of_18(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>
                     } else {
                         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v19: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v17, &*v12, &*v18, &*v18].concat());
-                        v19.clone()
+                        concat5_19(v9.clone(), v17.clone(), v12.clone(), v18.clone(), v18.clone())
                     }
                 } else {
                     v9.clone()
                 };
                 let v22: i32 = v7.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9) = (v0.clone(), v1.clone(), v2, v3, v4.clone(), v5.clone(), v6, v22, v8, v21.clone());
+                (v7, v9) = (v22, v21.clone());
                 continue;
             } else {
                 let v24: i32 = v7.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9) = (v0.clone(), v1.clone(), v2, v3, v4.clone(), v5.clone(), v6, v24, v8, v9.clone());
+                v7 = v24;
                 continue;
             }
         }
     }
 }
-fn median_terms_between_20(mut v0: Rc<str>, mut v1: f64, mut v2: f64) -> Rc<str> {
+fn median_terms_between_21(mut v0: Rc<str>, mut v1: f64, mut v2: f64) -> Rc<str> {
     let v3: Rc<str> = kit_experiment_stats::kit_median_terms(&*v0, v1, v2);
     v3
 }
-fn median_terms_19(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn median_terms_20(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = std::rc::Rc::<str>::from((v1).split(&*v2).next().unwrap_or(""));
     let v4: f64 = number_parsed_15(v3.clone());
     let v5: Rc<str> = std::rc::Rc::<str>::from((v1).split_once(&*v2).map(|(_, rest)| rest).unwrap_or(""));
     let v6: f64 = number_parsed_15(v5.clone());
-    median_terms_between_20(v0.clone(), v4, v6)
+    median_terms_between_21(v0.clone(), v4, v6)
 }
-fn i32_text_21(mut v0: i32) -> Rc<str> {
+fn i32_text_22(mut v0: i32) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string().as_str());
     v1
 }
-fn numeric_note_22(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64, mut v5: i32) -> Rc<str> {
+fn numeric_note_23(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64, mut v5: i32) -> Rc<str> {
     let v6: i32 = v2 as i32;
     let v9: bool = match &v0 {
         US0::US0_MedianBand => {
@@ -281,17 +284,16 @@ fn numeric_note_22(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f
     };
     if v11 {
         let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ("); } LIT.with(|lit| lit.clone()) };
-        let v13: Rc<str> = i32_text_21(v6);
+        let v13: Rc<str> = i32_text_22(v6);
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" numeric)"); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v16: Rc<str> = std::rc::Rc::<str>::from([&*v12, &*v13, &*v14, &*v15, &*v15].concat());
-        v16
+        concat5_19(v12, v13, v14, v15.clone(), v15)
     } else {
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v17
     }
 }
-fn stdout_line_23(mut v0: Rc<str>) -> () {
+fn stdout_line_24(mut v0: Rc<str>) -> () {
     println!("{}", v0);
     ()
 }
@@ -439,7 +441,7 @@ fn tested_run_1(mut v0: US0, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>) ->
             let v106: i32 = ((v1).len().max(1) - 1) as i32;
             let v107: Rc<str> = values_of_18(v1.clone(), v16.clone(), v20, v104, v56.clone(), v50.clone(), v23, v105, v106, v56.clone());
             let v108: Rc<str> = option_value_8(v99.clone());
-            median_terms_19(v107.clone(), v108.clone())
+            median_terms_20(v107.clone(), v108.clone())
         } else {
             let v110: Rc<str> = kit_experiment_stats::kit_experiment_terms(&*v98, v64, v65, v66, v67, v68, v82, v83, v84, v85, v86, v101, v102);
             v110.clone()
@@ -447,23 +449,23 @@ fn tested_run_1(mut v0: US0, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>) ->
         let v132: Rc<str> = if v54 {
             let v112: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
             let v113: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v112));
-            let v114: Rc<str> = i32_text_21(v64);
+            let v114: Rc<str> = i32_text_22(v64);
             let v115: Rc<str> = Rc::<str>::from(format!("{}{}", v113, v114));
-            let v116: Rc<str> = numeric_note_22(v0.clone(), v64, v65, v66, v67, v68);
+            let v116: Rc<str> = numeric_note_23(v0.clone(), v64, v65, v66, v67, v68);
             let v117: Rc<str> = Rc::<str>::from(format!("{}{}", v115, v116));
             let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
             let v120: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v118, v52)), v112));
-            let v121: Rc<str> = i32_text_21(v82);
+            let v121: Rc<str> = i32_text_22(v82);
             let v122: Rc<str> = Rc::<str>::from(format!("{}{}", v120, v121));
-            let v123: Rc<str> = numeric_note_22(v0.clone(), v82, v83, v84, v85, v86);
+            let v123: Rc<str> = numeric_note_23(v0.clone(), v82, v83, v84, v85, v86);
             let v125: Rc<str> = Rc::<str>::from(format!("{}{}", v117, Rc::<str>::from(format!("{}{}", v122, v123))));
             v125.clone()
         } else {
             let v126: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
             let v127: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v126));
-            let v128: Rc<str> = i32_text_21(v64);
+            let v128: Rc<str> = i32_text_22(v64);
             let v129: Rc<str> = Rc::<str>::from(format!("{}{}", v127, v128));
-            let v130: Rc<str> = numeric_note_22(v0.clone(), v64, v65, v66, v67, v68);
+            let v130: Rc<str> = numeric_note_23(v0.clone(), v64, v65, v66, v67, v68);
             let v131: Rc<str> = Rc::<str>::from(format!("{}{}", v129, v130));
             v131.clone()
         };
@@ -475,11 +477,11 @@ fn tested_run_1(mut v0: US0, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>) ->
         let v140: Rc<str> = Rc::<str>::from(format!("{}{}", v134, Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v136, v137)), v111))));
         let v141: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" post_hoc=yes"); } LIT.with(|lit| lit.clone()) };
         let v142: Rc<str> = Rc::<str>::from(format!("{}{}", v140, v141));
-        stdout_line_23(v142.clone());
+        stdout_line_24(v142.clone());
         0i32
     }
 }
-fn test_of_24(mut v0: Rc<str>) -> US3 {
+fn test_of_25(mut v0: Rc<str>) -> US3 {
     let v1: bool = &*v0 == "welch";
     if v1 {
         let v2: US0 = US0::US0_WelchTwoSided;
@@ -490,7 +492,7 @@ fn test_of_24(mut v0: Rc<str>) -> US3 {
             let v5: US0 = US0::US0_OneSampleT;
             US3::US3_TestKnown(v5)
         } else {
-            let v7: bool = &*v0 == "binomial";
+            let mut v7: bool = &*v0 == "binomial";
             if v7 {
                 let v8: US0 = US0::US0_BinomialAtMost;
                 US3::US3_TestKnown(v8)
@@ -518,11 +520,11 @@ fn test_of_24(mut v0: Rc<str>) -> US3 {
         }
     }
 }
-fn comma_count_26(mut v0: Rc<str>) -> i32 {
+fn comma_count_27(mut v0: Rc<str>) -> i32 {
     let v1: i32 = (v0).split(char::from(44u8)).filter(|item| !item.trim().is_empty()).count() as i32;
     v1
 }
-fn needs_prediction_27(mut v0: US0) -> bool {
+fn needs_prediction_28(mut v0: US0) -> bool {
     match &v0 {
         US0::US0_WelchTwoSided => {
             false
@@ -532,8 +534,8 @@ fn needs_prediction_27(mut v0: US0) -> bool {
         }
     }
 }
-fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>) -> US4 {
-    let v7: bool = &*v5 == "";
+fn plan_checked_26(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>) -> US4 {
+    let mut v7: bool = &*v5 == "";
     if v7 {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--metric names the primary metric column"); } LIT.with(|lit| lit.clone()) };
         US4::US4_PlanRejected(v8)
@@ -591,10 +593,10 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                     };
                     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" with --group needs --arms naming the group value (without both it measures the whole table)"); } LIT.with(|lit| lit.clone()) };
                     let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v36: Rc<str> = std::rc::Rc::<str>::from([&*v33, &*v34, &*v35, &*v35, &*v35].concat());
+                    let v36: Rc<str> = concat5_19(v33, v34, v35.clone(), v35.clone(), v35);
                     US4::US4_PlanRejected(v36)
                 } else {
-                    let v38: i32 = comma_count_26(v1.clone());
+                    let v38: i32 = comma_count_27(v1.clone());
                     let v39: i32 = arms_needed_10(v0.clone());
                     let v40: bool = v38 != v39;
                     let v45: bool = if v40 {
@@ -647,7 +649,7 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                             v62
                         };
                         let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v65: Rc<str> = std::rc::Rc::<str>::from([&*v57, &*v58, &*v63, &*v64, &*v64].concat());
+                        let v65: Rc<str> = concat5_19(v57, v58, v63, v64.clone(), v64);
                         US4::US4_PlanRejected(v65)
                     } else {
                         let v67: bool = match &v0 {
@@ -659,7 +661,7 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                             }
                         };
                         let v70: bool = if v67 {
-                            let v68: i32 = comma_count_26(v4.clone());
+                            let v68: i32 = comma_count_27(v4.clone());
                             let v69: bool = v68 != 2i32;
                             v69
                         } else {
@@ -669,7 +671,7 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                             let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("median needs --prediction low,high (the band the median must fall in)"); } LIT.with(|lit| lit.clone()) };
                             US4::US4_PlanRejected(v71)
                         } else {
-                            let v73: bool = needs_prediction_27(v0.clone());
+                            let v73: bool = needs_prediction_28(v0.clone());
                             let v75: bool = if v73 {
                                 let v74: bool = &*v4 == "";
                                 v74
@@ -705,7 +707,7 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                                 };
                                 let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs --prediction (the model value or rate it is tested against)"); } LIT.with(|lit| lit.clone()) };
                                 let v89: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                let v90: Rc<str> = std::rc::Rc::<str>::from([&*v87, &*v88, &*v89, &*v89, &*v89].concat());
+                                let v90: Rc<str> = concat5_19(v87, v88, v89.clone(), v89.clone(), v89);
                                 US4::US4_PlanRejected(v90)
                             } else {
                                 US4::US4_PlanAccepted
@@ -720,10 +722,10 @@ fn plan_checked_25(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
 fn table_tested_0() -> i32 {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--test"); } LIT.with(|lit| lit.clone()) };
     let v1: Rc<str> = option_value_8(v0.clone());
-    let v2: US3 = test_of_24(v1.clone());
+    let v2: US3 = test_of_25(v1.clone());
     match &v2 {
         US3::US3_TestKnown(v7) => {
-            let v7: US0 = v7.clone();
+            let mut v7: US0 = v7.clone();
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--arms"); } LIT.with(|lit| lit.clone()) };
             let v9: Rc<str> = option_value_8(v8.clone());
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--group"); } LIT.with(|lit| lit.clone()) };
@@ -734,7 +736,7 @@ fn table_tested_0() -> i32 {
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--metric"); } LIT.with(|lit| lit.clone()) };
             let v16: Rc<str> = option_value_8(v15.clone());
             let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post hoc"); } LIT.with(|lit| lit.clone()) };
-            let v18: US4 = plan_checked_25(v7.clone(), v9.clone(), v11.clone(), v12, v14.clone(), v16.clone(), v17.clone());
+            let v18: US4 = plan_checked_26(v7.clone(), v9.clone(), v11.clone(), v12, v14.clone(), v16.clone(), v17.clone());
             match &v18 {
                 US4::US4_PlanAccepted => {
                     let v25: i32 = 3i32;

@@ -1,28 +1,40 @@
 ///- --package .
 :# query static =
     :< rust_std_string.model
+    :< sm'_operators
 
 :< rust_std_string.model
+:< sm'_operators
 
 :| table_command =
     | TableQuery
     | TableDiff
     | TableToSpi
+    | TableAppend
     | TableUnknown
 
-:= table_command_of (~word : string) : table_command =
-    ? word = "query" ?> TableQuery
-    |? word = "diff" ?> TableDiff
-    |? word = "to-spi" ?> TableToSpi
-    |: TableUnknown
+:~ kebab_word (~name : string) : string =
+    := step = \ (acc : string) (c : char) =>
+        := letter = sm'.of_char c
+        := lower = sm'.to_lower letter
+        ? lower <> letter && acc <> "" ?> acc ++# "-" ++# lower |: acc ++# lower
+    sm'.to_char_list name |> listm.fold step ""
+
+:~ table_command_word (command : table_command) : string = kebab_word (union_reflection.cases.union_case_suffix "Table" command)
+
+:~ table_command_of (~word : string) : table_command =
+    union_reflection.cases.union_case_where (\ (command : table_command) => table_command_word command = word) (\ command => command) TableUnknown
 
 := table_usage () : string =
     "table query <file> [--where col=value|col!=value|col>value|col>=value|col<value|col<=value]... [--cols a,b] "
     ^^ "[--group col] [--mean|--sd|--median|--sum|--min|--max|--count a,b]... [--limit n] [--quiet] | "
     ^^ "table diff <left> "
     ^^ "<right> --key a,b [--cols x,y] [--latest-by col] [--limit n] | "
-    ^^ "table to-spi <file.tsv> <out.spi> [--open <module>] (typed row module; --open uses that module's table_row "
-    ^^ "union instead of declaring one, plus an inl rows () index)"
+    ^^ "table to-spi <file.tsv> <out.spi> [--open <module>] [--whole] (typed row module; --open uses that module's "
+    ^^ "table_row union instead of declaring one, plus an inl rows () index; --whole writes one Table literal of the "
+    ^^ "whole table instead of a Row per line, for tables too big to compile as cell lists) | "
+    ^^ "table append <table.spi|table.tsv> <cell>... | --row-tsv <line> (adds one row, checks its width, rewrites the file "
+    ^^ "in place; a .spi table stays one whole Table literal)"
 
 :== table_request =
     {
@@ -111,3 +123,8 @@
         | StepRejected _ => !+
         | StepTaken _ => !-
     testing.expect rejected "where without equals"
+
+///> rust
+:# table_commands_read_their_kebab_words =
+    testing.expect (table_command_of "to-spi" = TableToSpi && table_command_of "query" = TableQuery) "kebab words"
+    testing.expect (table_command_of "append" = TableAppend && table_command_of "nope" = TableUnknown) "append, unknown"

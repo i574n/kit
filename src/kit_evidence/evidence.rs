@@ -62,19 +62,19 @@ fn method13(mut v0: Option<usize>) -> Option<usize> {
 fn closure1() -> Rc<dyn Fn((usize)) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((usize)) -> i32> = Rc::new(move |mut v0: (usize)| -> i32 {
         let v1: usize = (v0);
-        let v2: i32 = ((v1) as i32);
+        let mut v2: i32 = ((v1) as i32);
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn method15(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
-    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
 fn format_real_14(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method15(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
@@ -136,7 +136,7 @@ fn joined_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: Rc<RefCell<V
                 return US1::US1_None;
             }
         } else {
-            let v13: Rc<str> = v3.clone().borrow()[v6 as usize].clone();
+            let v13: Rc<str> = v3.borrow()[v6 as usize].clone();
             let mut v14: bool = v8 == false;
             let v16: bool = if v14 {
                 let v15: bool = v13.contains(&*v5);
@@ -160,7 +160,7 @@ fn joined_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: Rc<RefCell<V
             let v23: i32 = v6.wrapping_add(1i32);
             let v25: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v7, v22)), v18));
             let v26: bool = v8 || v16;
-            (v0, v1, v2, v3, v4, v5, v6, v7, v8) = (v0.clone(), v1.clone(), v2, v3.clone(), v4, v5.clone(), v23, v25.clone(), v26);
+            (v6, v7, v8) = (v23, v25.clone(), v26);
             continue;
         }
     }
@@ -190,7 +190,7 @@ fn renamed_within_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
@@ -378,7 +378,7 @@ fn refresh_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: bool) ->
 fn evidence_run_0() -> i32 {
     let mut v0: i32 = 2i32;
     let v1: Rc<str> = argument_3(v0);
-    let v2: bool = &*v1 != "refresh";
+    let mut v2: bool = &*v1 != "refresh";
     let v6: bool = if v2 {
         true
     } else {

@@ -28,6 +28,28 @@
 := row_index (names : list string) : string =
     "inl rows () : list table_row = [ " ++# sm'.concat_list "; " (names |> listm.map (\ n => n ++# " ()")) ++# " ]"
 
+:= tab () : string = "\t"
+
+:| row_layout =
+    | PerRow
+    | WholeTable
+
+:= whole_header (u : row_union) : string =
+    ?= u ?|
+    | DeclaredHere =>
+        "///- --no-respell\nunion table_row = | Columns :: list string -> table_row | Row :: list string -> table_row"
+        ++# " | Table :: string -> table_row\n"
+    | OpenedFrom name => "///- --no-respell\nopen " ++# name ++# "\n"
+
+:= tsv_text (t : table) : string =
+    t.columns :: t.rows |> listm.map (sm'.concat_list (tab ())) |> sm'.concat_list "\n"
+
+:= literal_escaped (text : string) : string =
+    escaped text |> sm'.replace "\n" "\\n" |> sm'.replace (tab ()) "\\t" |> sm'.replace "\r" "\\r"
+
+:= whole_spi_of_table (u : row_union) (t : table) : string =
+    whole_header u ++# "inl table () = Table \"" ++# literal_escaped (tsv_text t) ++# "\"\n"
+
 := rows_spi_of_table (u : row_union) (t : table) : string =
     := step (index, acc, names) (cells : list string) =
         := name = "row_" ++# sm'.show index
@@ -36,6 +58,11 @@
     := columns = "inl columns () = Columns " ++# list_literal t.columns
     := body = sm'.concat_list "\n" (columns :: listm.rev rows)
     table_header u ++# body ++# "\n" ++# row_index (listm.rev names) ++# "\n"
+
+:= spi_of_layout (layout : row_layout) (u : row_union) (t : table) : string =
+    ?= layout ?|
+    | PerRow => rows_spi_of_table u t
+    | WholeTable => whole_spi_of_table u t
 
 :| scan =
     | Outside
@@ -63,15 +90,39 @@
         := _, cells = chars_from body ((sm'.length body : i32) - 1i32) [] |> listm.fold scanned (Outside, [])
         listm.rev cells
 
+:= unescaped (body : string) : string =
+    := step (state : bool * list string) (ch : string) =
+        := escaping, pieces = state
+        ? escaping ?> !-, (? ch = "n" ?> "\n" |? ch = "t" ?> tab () |? ch = "r" ?> "\r" |: ch) :: pieces
+        |? ch = "\\" ?> !+, pieces
+        |: !-, ch :: pieces
+    := _, pieces = chars_from body ((sm'.length body : i32) - 1i32) [] |> listm.fold step (!-, [])
+    sm'.concat_list "" (listm.rev pieces)
+
+:= table_of_whole_line (line : string) : table =
+    := start = sm'.index_of "\"" line + 1i32
+    := body = sm'.substring start ((sm'.length line : i32) - start - 1i32) line
+    ?= sm'.split_list "\n" (unescaped body) |> listm.map (sm'.split_list (tab ())) ?|
+    | columns :: rows => { columns = columns; rows = listm.rev rows }
+    | [] => { columns = []; rows = [] }
+
 := table_of_rows_spi (spi : string) : table =
     := lines = sm'.split_list "\n" (sm'.replace "\r" "" spi)
     := pick (acc : table) (line : string) =
         ? sm'.starts_with "inl columns () = Columns [" line ?> { acc ?| columns = cells_of line }
         |? sm'.starts_with "inl row_" line ?> { acc ?| rows = cells_of line :: acc.rows }
+        |? sm'.starts_with "inl table () = Table \"" line ?> table_of_whole_line line
         |: acc
     := found = lines |> listm.fold pick { columns = []; rows = [] }
     { found ?| rows = listm.rev found.rows }
 
+:~ table_of_tsv (~text : string) : table =
+    := lines = sm'.split_list "\n" (sm'.replace "\r" "" text) |> listm'.filter (\ (line : string) => line <> "")
+    ?= lines ?|
+    | header :: rest => { columns = sm'.split_list (tab ()) header; rows = rest |> listm.map (\ (line : string) => sm'.split_list (tab ()) line) }
+    | [] => { columns = []; rows = [] }
+
+:~ spi_of_tsv (~text : string) : string = spi_of_layout WholeTable (OpenedFrom "table_rows") (table_of_tsv text)
 ///> rust
 :# a_table_round_trips_through_a_typed_row_module =
     := t =
@@ -87,3 +138,25 @@
     testing.expect (sm'.contains "inl rows () : list table_row = [ row_1 (); row_2 () ]" spi) spi
     := shared = rows_spi_of_table (OpenedFrom "table_rows") t
     testing.expect (sm'.contains "\nopen table_rows\n" shared && not (sm'.contains "union table_row" shared)) shared
+
+///> rust
+:# a_whole_table_literal_reads_back_to_the_same_table =
+    := t =
+        {
+            columns = [ "timestamp"; "competitor"; "run"; "gold" ]
+            rows = [ [ "t1"; "nexbot"; ""; "0" ]; [ "t2"; "spiral \"retreat\""; "1"; "a\\b" ] ]
+        }
+    := spi = spi_of_layout WholeTable DeclaredHere t
+    testing.expect (sm'.contains "| Table :: string -> table_row" spi) spi
+    testing.expect (sm'.contains "inl table () = Table \"timestamp\\tcompetitor\\trun\\tgold\\nt1" spi) spi
+    testing.expect (table_of_rows_spi spi = t) "one literal holds every cell, and rows keep their order"
+    := opened = spi_of_layout WholeTable (OpenedFrom "table_rows") t
+    testing.expect (sm'.contains "\nopen table_rows\n" opened) "opened form"
+
+///> rust
+:# a_tsv_text_becomes_a_whole_table_literal_and_reads_back =
+    := t = { columns = [ "name"; "n" ]; rows = [ [ "a"; "1" ]; [ "b b"; "2" ] ] }
+    := text = tsv_text t
+    testing.expect (table_of_tsv text = t) text
+    testing.expect (table_of_rows_spi (spi_of_tsv (text ++# "\n")) = t) (spi_of_tsv text)
+    testing.expect (sm'.contains "open table_rows" (spi_of_tsv text)) (spi_of_tsv text)

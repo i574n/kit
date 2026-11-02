@@ -58,7 +58,7 @@ fn method1(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let mut v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -68,7 +68,7 @@ fn method1(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn method2(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -92,7 +92,7 @@ fn method2(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -135,7 +135,7 @@ fn closure1() -> Rc<dyn Fn((Rc<str>)) -> US0> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn get_file_name_12(mut v0: Rc<str>) -> Rc<str> {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let mut v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let mut v8: Option<&std::ffi::OsStr> = v6.file_name();
@@ -153,7 +153,7 @@ fn get_file_name_12(mut v0: Rc<str>) -> Rc<str> {
     let mut v29: Option<US0> = v27.map(|x| v28(x));
     let mut v31: US0 = US0::US0_None;
     let mut v32: US0 = v31.clone();
-    let v33: US0 = v29.unwrap_or(v32);
+    let mut v33: US0 = v29.unwrap_or(v32);
     match &v33 {
         US0::US0_None => {
             let mut v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -166,7 +166,7 @@ fn get_file_name_12(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn directory_get_parent_14(mut v0: Rc<str>) -> Option<Rc<str>> {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let mut v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let mut v8: Option<std::path::PathBuf> = v6.parent().map(std::path::PathBuf::from);
@@ -236,7 +236,7 @@ fn run_11(mut v0: Rc<str>, mut v1: Rc<dyn Fn(u8) -> Rc<dyn Fn(Rc<str>) -> Result
                     let v30: Result<std::path::PathBuf, Rc<str>> = v27.map_err(|x| v28(x));
                     let mut v31: Rc<dyn Fn(std::path::PathBuf) -> US1> = method16();
                     let mut v32: Rc<dyn Fn(Rc<str>) -> US1> = method17();
-                    let v33: US1 = match v30 { Ok(x) => v31(x), Err(e) => v32(e) };
+                    let mut v33: US1 = match v30 { Ok(x) => v31(x), Err(e) => v32(e) };
                     match &v33 {
                         US1::US1_Error(v48) => {
                             let mut v48: Rc<str> = v48.clone();
@@ -256,7 +256,7 @@ fn run_11(mut v0: Rc<str>, mut v1: Rc<dyn Fn(u8) -> Rc<dyn Fn(Rc<str>) -> Result
                             let v41: &str = &*v39;
                             let v43: std::string::String = String::from(v41);
                             let v45: std::path::PathBuf = std::path::PathBuf::from(v43);
-                            let v47: Result<std::path::PathBuf, std::io::Error> = Ok(v45);
+                            let mut v47: Result<std::path::PathBuf, std::io::Error> = Ok(v45);
                             v47
                         }
                     }
@@ -311,7 +311,7 @@ fn method10(mut v0: Rc<str>, mut v1: u8, mut v2: Rc<str>) -> Result<std::path::P
     }
 }
 fn directory_exists_18(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let mut v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let mut v8: bool = v6.exists();
@@ -344,7 +344,7 @@ fn closure7() -> Rc<dyn Fn((std::path::PathBuf)) -> US2> {
 fn normalize_path_8(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: bool = &*v0 == "";
     if v1 {
-        let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v2.clone()
     } else {
         let mut v3: Result<std::path::PathBuf, std::io::Error> = read_link_9(v0.clone());
@@ -391,7 +391,7 @@ fn normalize_path_8(mut v0: Rc<str>) -> Rc<str> {
         if v32 {
             v0.clone()
         } else {
-            let v33: Rc<str> = string_slice(&v30.clone(), 0i32 as i64, 0i32 as i64);
+            let mut v33: Rc<str> = string_slice(&v30.clone(), 0i32 as i64, 0i32 as i64);
             let mut v34: Rc<str> = Rc::<str>::from(v33.to_lowercase());
             let mut v35: i32 = v31.wrapping_sub(1i32);
             let v36: Rc<str> = string_slice(&v30.clone(), 1i32 as i64, v35 as i64);
@@ -405,11 +405,11 @@ fn normalize_path_8(mut v0: Rc<str>) -> Rc<str> {
 }
 fn method20(mut v0: Rc<RefCell<Mut0>>) -> bool {
     let mut v1: i32 = v0.borrow().l0;
-    let v2: bool = v1 > 0i32;
+    let mut v2: bool = v1 > 0i32;
     v2
 }
 fn method21(mut v0: i32, mut v1: Rc<RefCell<Mut1>>) -> bool {
-    let v2: i32 = v1.borrow().l0;
+    let mut v2: i32 = v1.borrow().l0;
     let mut v3: bool = v2 < v0;
     v3
 }
@@ -419,7 +419,7 @@ fn directory_separator_char_22() -> u8 {
 }
 fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = get_current_directory_5();
-    let v2: Rc<str> = method7(v1.clone(), v0.clone());
+    let mut v2: Rc<str> = method7(v1.clone(), v0.clone());
     let mut v3: Rc<str> = normalize_path_8(v2.clone());
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let mut v5: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v3.split(&*v4).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
@@ -430,7 +430,7 @@ fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
         let v10: i32 = v8.borrow().l0;
         let v11: i32 = v10.wrapping_sub(1i32);
         let (mut v12, mut v13): (i32, Rc<RefCell<Vec<Rc<str>>>>) = (v8.borrow().l1, v8.borrow().l2.clone());
-        let mut v14: Rc<str> = v5.clone().borrow()[v11 as usize].clone();
+        let mut v14: Rc<str> = v5.borrow()[v11 as usize].clone();
         let v15: bool = ".." == &*v14;
         let (mut v64, mut v65): (i32, Rc<RefCell<Vec<Rc<str>>>>) = if v15 {
             let v16: i32 = v12.wrapping_add(1i32);
@@ -461,20 +461,20 @@ fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
                         let v30: i32 = (v29.clone().borrow().len() as i32);
                         let mut v31: i32 = (v13.clone().borrow().len() as i32);
                         let mut v32: i32 = v30.wrapping_add(v31);
-                        let v33: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v32 as usize]));
+                        let mut v33: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v32 as usize]));
                         let mut v34: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: 0i32 }));
                         while method21(v32, v34.clone()) {
                             let v36: i32 = v34.borrow().l0;
                             let v37: bool = v36 < v30;
                             let v41: Rc<str> = if v37 {
-                                let v38: Rc<str> = v29.clone().borrow()[v36 as usize].clone();
+                                let v38: Rc<str> = v29.borrow()[v36 as usize].clone();
                                 v38.clone()
                             } else {
                                 let v39: i32 = v36.wrapping_sub(v30);
-                                let v40: Rc<str> = v13.clone().borrow()[v39 as usize].clone();
+                                let v40: Rc<str> = v13.borrow()[v39 as usize].clone();
                                 v40.clone()
                             };
-                            v33.clone().borrow_mut()[v36 as usize] = v41.clone();
+                            v33.borrow_mut()[v36 as usize] = v41.clone();
                             let v42: i32 = v36.wrapping_add(1i32);
                             v34.borrow_mut().l0 = v42;
                             ()
@@ -485,20 +485,20 @@ fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
                         let v44: i32 = (v43.clone().borrow().len() as i32);
                         let v45: i32 = (v13.clone().borrow().len() as i32);
                         let v46: i32 = v44.wrapping_add(v45);
-                        let v47: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v46 as usize]));
+                        let mut v47: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v46 as usize]));
                         let mut v48: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: 0i32 }));
                         while method21(v46, v48.clone()) {
                             let v50: i32 = v48.borrow().l0;
                             let v51: bool = v50 < v44;
                             let v55: Rc<str> = if v51 {
-                                let v52: Rc<str> = v43.clone().borrow()[v50 as usize].clone();
+                                let v52: Rc<str> = v43.borrow()[v50 as usize].clone();
                                 v52.clone()
                             } else {
                                 let v53: i32 = v50.wrapping_sub(v44);
-                                let v54: Rc<str> = v13.clone().borrow()[v53 as usize].clone();
+                                let v54: Rc<str> = v13.borrow()[v53 as usize].clone();
                                 v54.clone()
                             };
-                            v47.clone().borrow_mut()[v50 as usize] = v55.clone();
+                            v47.borrow_mut()[v50 as usize] = v55.clone();
                             let v56: i32 = v50.wrapping_add(1i32);
                             v48.borrow_mut().l0 = v56;
                             ()
@@ -519,13 +519,13 @@ fn get_full_path_4(mut v0: Rc<str>) -> Rc<str> {
     let (mut v66, mut v67): (i32, Rc<RefCell<Vec<Rc<str>>>>) = (v8.borrow().l1, v8.borrow().l2.clone());
     let v68: Rc<Vec<Rc<str>>> = Rc::new(v67.borrow().clone());
     let v69: u8 = directory_separator_char_22();
-    let v70: Rc<str> = Rc::<str>::from((v69 as char).encode_utf8(&mut [0u8; 4]) as &str);
+    let v70: Rc<str> = Rc::<str>::from(((v69) as char).to_string());
     let v71: Rc<str> = Rc::<str>::from(v68.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(&*v70));
     v71.clone()
 }
 fn method23(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -533,7 +533,7 @@ fn method23(mut v0: Rc<str>, mut v1: i32) -> i32 {
             let mut v4: u8 = v0.clone().as_bytes()[v3 as usize];
             let mut v5: bool = v4 == b'/';
             if v5 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -543,7 +543,7 @@ fn method23(mut v0: Rc<str>, mut v1: i32) -> i32 {
 }
 fn delete_comparable_path_3(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = get_full_path_4(v0);
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let mut v4: Rc<str> = Rc::<str>::from(v1.replace(&*v2, &*v3));
     let mut v5: i32 = (v4.clone().len() as i32);
@@ -554,11 +554,11 @@ fn delete_comparable_path_3(mut v0: Rc<str>) -> Rc<str> {
 }
 fn delete_shape_protected_24(mut v0: Rc<str>) -> bool {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v1).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+    let mut v2: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v1).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let mut v3: i32 = (v2.clone().borrow().len() as i32);
     let mut v4: bool = 0i32 < v3;
     let mut v7: Rc<str> = if v4 {
-        let mut v5: Rc<str> = v2.clone().borrow()[0i32 as usize].clone();
+        let mut v5: Rc<str> = v2.borrow()[0i32 as usize].clone();
         v5.clone()
     } else {
         let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -574,7 +574,7 @@ fn delete_shape_protected_24(mut v0: Rc<str>) -> bool {
             if v10 {
                 let v11: bool = 1i32 < v3;
                 let mut v14: Rc<str> = if v11 {
-                    let mut v12: Rc<str> = v2.clone().borrow()[1i32 as usize].clone();
+                    let mut v12: Rc<str> = v2.borrow()[1i32 as usize].clone();
                     v12.clone()
                 } else {
                     let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -591,7 +591,7 @@ fn delete_shape_protected_24(mut v0: Rc<str>) -> bool {
     };
     let v19: bool = 3i32 < v3;
     let v22: Rc<str> = if v19 {
-        let v20: Rc<str> = v2.clone().borrow()[3i32 as usize].clone();
+        let v20: Rc<str> = v2.borrow()[3i32 as usize].clone();
         v20.clone()
     } else {
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -607,7 +607,7 @@ fn delete_shape_protected_24(mut v0: Rc<str>) -> bool {
             let mut v31: bool = if v25 {
                 let mut v26: bool = 4i32 < v3;
                 let mut v29: Rc<str> = if v26 {
-                    let mut v27: Rc<str> = v2.clone().borrow()[4i32 as usize].clone();
+                    let mut v27: Rc<str> = v2.borrow()[4i32 as usize].clone();
                     v27.clone()
                 } else {
                     let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -621,7 +621,7 @@ fn delete_shape_protected_24(mut v0: Rc<str>) -> bool {
             if v31 {
                 let mut v32: bool = 5i32 < v3;
                 let mut v35: Rc<str> = if v32 {
-                    let v33: Rc<str> = v2.clone().borrow()[5i32 as usize].clone();
+                    let mut v33: Rc<str> = v2.borrow()[5i32 as usize].clone();
                     v33.clone()
                 } else {
                     let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -638,14 +638,14 @@ fn delete_shape_protected_24(mut v0: Rc<str>) -> bool {
     };
     let v40: bool = 1i32 < v3;
     let v43: Rc<str> = if v40 {
-        let v41: Rc<str> = v2.clone().borrow()[1i32 as usize].clone();
+        let v41: Rc<str> = v2.borrow()[1i32 as usize].clone();
         v41.clone()
     } else {
         let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v42.clone()
     };
     let v44: bool = &*v43 == "users";
-    let v47: bool = if v44 {
+    let mut v47: bool = if v44 {
         let v45: bool = v3 <= 3i32;
         let v46: bool = v45 || v39;
         v46
@@ -661,7 +661,7 @@ fn delete_shape_protected_24(mut v0: Rc<str>) -> bool {
         let v51: bool = v3 == 2i32;
         if v51 {
             let v54: Rc<str> = if v40 {
-                let v52: Rc<str> = v2.clone().borrow()[1i32 as usize].clone();
+                let v52: Rc<str> = v2.borrow()[1i32 as usize].clone();
                 v52.clone()
             } else {
                 let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -682,7 +682,7 @@ fn delete_variable_protected_25(mut v0: Rc<str>, mut v1: Rc<UH0>) -> bool {
     loop {
         match &*v1 {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
+                let mut v2: Rc<str> = v2.clone();
                 let mut v3: Rc<UH0> = v3.clone();
                 let mut v4: Rc<str> = get_environment_variable_26(v2.clone());
                 let mut v5: bool = &*v4 != "";
@@ -708,7 +708,7 @@ fn delete_variable_protected_25(mut v0: Rc<str>, mut v1: Rc<UH0>) -> bool {
                 if v14 {
                     return true;
                 } else {
-                    (v0, v1) = (v0.clone(), v3.clone());
+                    v1 = v3.clone();
                     continue;
                 }
             }
@@ -720,7 +720,7 @@ fn delete_variable_protected_25(mut v0: Rc<str>, mut v1: Rc<UH0>) -> bool {
 }
 fn delete_target_refusal_0(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: i32 = (v0.clone().len() as i32);
-    let v2: i32 = 0i32;
+    let mut v2: i32 = 0i32;
     let mut v3: i32 = method1(v0.clone(), v1, v2);
     let mut v4: i32 = v1.wrapping_sub(1i32);
     let mut v5: Rc<str> = string_slice(&v0.clone(), v3 as i64, v4 as i64);
@@ -767,7 +767,7 @@ fn delete_target_refusal_0(mut v0: Rc<str>) -> Rc<str> {
             let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("TMPDIR"); } LIT.with(|lit| lit.clone()) };
             let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("LOCALAPPDATA"); } LIT.with(|lit| lit.clone()) };
             let mut v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("APPDATA"); } LIT.with(|lit| lit.clone()) };
-            let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SystemRoot"); } LIT.with(|lit| lit.clone()) };
+            let mut v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SystemRoot"); } LIT.with(|lit| lit.clone()) };
             let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ProgramData"); } LIT.with(|lit| lit.clone()) };
             let mut v35: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
             let v36: Rc<UH0> = Rc::new(UH0::UH0_Cons(v34, v35));
@@ -782,7 +782,7 @@ fn delete_target_refusal_0(mut v0: Rc<str>) -> Rc<str> {
             delete_variable_protected_25(v22, v44)
         };
         if v46 {
-            let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("or an ancestor of one): "); } LIT.with(|lit| lit.clone()) };
+            let mut v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("or an ancestor of one): "); } LIT.with(|lit| lit.clone()) };
             let mut v48: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v0));
             let v49: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit refuses to remove a protected folder (a drive or system root, a user profile, its AppData or temp, "); } LIT.with(|lit| lit.clone()) }, v48));
             v49

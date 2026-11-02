@@ -61,7 +61,7 @@ fn method4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -71,7 +71,7 @@ fn method4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn method5(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -95,7 +95,7 @@ fn method5(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -108,12 +108,12 @@ fn method7(mut v0: Option<u64>) -> Option<u64> {
 }
 fn closure1() -> Rc<dyn Fn((u64)) -> US1> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US1> = Rc::new(move |mut v0: (u64)| -> US1 {
-        let v1: u64 = (v0);
+        let mut v1: u64 = (v0);
         US1::US1_Some(v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn field_value_6(mut v0: Rc<str>, mut v1: Rc<str>) -> u64 {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("="); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
@@ -153,8 +153,8 @@ fn field_value_6(mut v0: Rc<str>, mut v1: Rc<str>) -> u64 {
     }
 }
 fn status_of_2(mut v0: Rc<str>) -> US0 {
-    let v1: Rc<str> = summary_marker_3();
-    let v2: i32 = v0.get(0i32 as usize..).and_then(|rest| rest.find(&*v1)).map(|found| (found + 0i32 as usize) as i32).unwrap_or(-1);
+    let mut v1: Rc<str> = summary_marker_3();
+    let mut v2: i32 = v0.get(0i32 as usize..).and_then(|rest| rest.find(&*v1)).map(|found| (found + 0i32 as usize) as i32).unwrap_or(-1);
     let v3: bool = v2 < 0i32;
     if v3 {
         let mut v4: i32 = (v0.clone().len() as i32);
@@ -187,7 +187,7 @@ fn status_of_2(mut v0: Rc<str>) -> US0 {
     }
 }
 fn ssh_arguments_8(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<UH0> {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" window list"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" window list"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v2));
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-o"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("BatchMode=yes"); } LIT.with(|lit| lit.clone()) };
@@ -204,7 +204,7 @@ fn method9(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
+                let mut v2: Rc<str> = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
                 let mut v4: bool = &*v2 == "";
                 let v6: Rc<UH0> = if v4 {
@@ -225,7 +225,7 @@ fn method10(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
+                let mut v2: Rc<str> = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
                 let mut v4: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v1.clone()));
                 (v0, v1) = (v3.clone(), v4.clone());
@@ -241,10 +241,10 @@ fn method11(mut v0: Rc<RefCell<std::process::Command>>, mut v1: Rc<UH0>) -> () {
     loop {
         match &*v1 {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
+                let mut v2: Rc<str> = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
                 drop(v0.borrow_mut().arg(&*v2));
-                (v0, v1) = (v0.clone(), v3.clone());
+                v1 = v3.clone();
                 continue;
             }
             UH0::UH0_Nil => {
@@ -255,7 +255,7 @@ fn method11(mut v0: Rc<RefCell<std::process::Command>>, mut v1: Rc<UH0>) -> () {
     }
 }
 fn remote_status_of_1(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
-    let v2: Rc<UH0> = ssh_arguments_8(v0, v1);
+    let mut v2: Rc<UH0> = ssh_arguments_8(v0, v1);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ssh"); } LIT.with(|lit| lit.clone()) };
     let mut v4: Rc<RefCell<std::process::Command>> = Rc::new(RefCell::new(std::process::Command::new(&*v3)));
     let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
@@ -298,14 +298,14 @@ fn remote_status_of_1(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
     }
 }
 fn method14(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
-    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
 fn format_real_13(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method14(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
@@ -314,7 +314,7 @@ fn format_real_13(mut v0: u64) -> Rc<str> {
 fn status_line_12(mut v0: Rc<str>, mut v1: US0) -> Rc<str> {
     match &v1 {
         US0::US0_RemoteReported(v2, v3, v4) => {
-            let v2: u64 = *v2;
+            let mut v2: u64 = *v2;
             let v3: u64 = *v3;
             let mut v4: u64 = *v4;
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit remote status ok machine="); } LIT.with(|lit| lit.clone()) };
@@ -344,7 +344,7 @@ fn status_line_12(mut v0: Rc<str>, mut v1: US0) -> Rc<str> {
     }
 }
 fn remote_status_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
-    let v2: US0 = remote_status_of_1(v0.clone(), v1);
+    let mut v2: US0 = remote_status_of_1(v0.clone(), v1);
     let v3: Rc<str> = status_line_12(v0, v2.clone());
     println!("{}", v3);
     match &v2 {

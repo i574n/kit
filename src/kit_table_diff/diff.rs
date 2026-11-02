@@ -25,14 +25,18 @@ enum US0 {
     US0_TableLoaded(std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>),
     US0_TableUnreadable(Rc<str>),
 }
-fn method5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
+fn concat5_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
+fn method6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
-        let v3: bool = v2 >= v1;
+        let mut v3: bool = v2 >= v1;
         if v3 {
             return v1;
         } else {
             let v4: u8 = v0.clone().as_bytes()[v2 as usize];
-            let v5: bool = v4 == b' ';
+            let mut v5: bool = v4 == b' ';
             let v11: bool = if v5 {
                 true
             } else {
@@ -51,7 +55,7 @@ fn method5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -59,15 +63,15 @@ fn method5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
         }
     }
 }
-fn method6(mut v0: Rc<str>, mut v1: i32) -> i32 {
+fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
-            let v3: i32 = v1.wrapping_sub(1i32);
+            let mut v3: i32 = v1.wrapping_sub(1i32);
             let v4: u8 = v0.clone().as_bytes()[v3 as usize];
-            let v5: bool = v4 == b' ';
+            let mut v5: bool = v4 == b' ';
             let v11: bool = if v5 {
                 true
             } else {
@@ -85,7 +89,7 @@ fn method6(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -93,46 +97,46 @@ fn method6(mut v0: Rc<str>, mut v1: i32) -> i32 {
         }
     }
 }
-fn loop_4(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut v3: i32) -> bool {
+fn loop_5(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut v3: i32) -> bool {
     loop {
         let v4: bool = v3 >= v2;
         if v4 {
             return false;
         } else {
-            let v5: Rc<str> = v1.clone().borrow()[v3 as usize].clone();
+            let mut v5: Rc<str> = v1.borrow()[v3 as usize].clone();
             let v6: i32 = (v5.clone().len() as i32);
             let v7: i32 = 0i32;
-            let v8: i32 = method5(v5.clone(), v6, v7);
+            let v8: i32 = method6(v5.clone(), v6, v7);
             let v9: i32 = v6.wrapping_sub(1i32);
             let v10: Rc<str> = string_slice(&v5.clone(), v8 as i64, v9 as i64);
             let v11: i32 = (v10.clone().len() as i32);
-            let v12: i32 = method6(v10.clone(), v11);
+            let v12: i32 = method7(v10.clone(), v11);
             let v13: Rc<str> = string_slice(&v10.clone(), 0i32 as i64, v12 as i64);
             let v14: bool = &*v13 == &*v0;
             if v14 {
                 return true;
             } else {
                 let v15: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v2, v15);
+                v3 = v15;
                 continue;
             }
         }
     }
 }
 fn shared_columns_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
-    let v3: bool = &*v1 == "";
+    let mut v3: bool = &*v1 == "";
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v4.clone()
     } else {
-        let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+        let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
         let v6: Rc<str> = std::rc::Rc::<str>::from((v1).split(&*v5).next().unwrap_or(""));
         let v7: Rc<str> = std::rc::Rc::<str>::from((v1).split_once(&*v5).map(|(_, rest)| rest).unwrap_or(""));
         let v8: Rc<str> = shared_columns_3(v0.clone(), v7.clone(), v2.clone());
         let v9: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v2.split(&*v5).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
         let v10: i32 = (v9.clone().borrow().len() as i32);
         let v11: i32 = 0i32;
-        let v12: bool = loop_4(v6.clone(), v9.clone(), v10, v11);
+        let v12: bool = loop_5(v6.clone(), v9.clone(), v10, v11);
         let v15: bool = if v12 {
             true
         } else {
@@ -152,23 +156,22 @@ fn shared_columns_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<
                     v6.clone()
                 } else {
                     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v19: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v5, &*v8, &*v18, &*v18].concat());
-                    v19.clone()
+                    concat5_4(v6.clone(), v5.clone(), v8.clone(), v18.clone(), v18.clone())
                 }
             }
         }
     }
 }
-fn absent_from_7(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: Rc<str>) -> Rc<str> {
-    let v3: bool = &*v2 == "";
+fn absent_from_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: Rc<str>) -> Rc<str> {
+    let mut v3: bool = &*v2 == "";
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v4.clone()
     } else {
-        let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+        let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
         let v6: Rc<str> = std::rc::Rc::<str>::from((v2).split(&*v5).next().unwrap_or(""));
         let v7: Rc<str> = std::rc::Rc::<str>::from((v2).split_once(&*v5).map(|(_, rest)| rest).unwrap_or(""));
-        let v8: Rc<str> = absent_from_7(v0.clone(), v1.clone(), v7.clone());
+        let v8: Rc<str> = absent_from_8(v0.clone(), v1.clone(), v7.clone());
         let v9: i32 = (v0).first().and_then(|header| header.iter().position(|item| &**item == &*v6)).map(|index| index as i32).unwrap_or(-1);
         let v10: bool = v9 < 0i32;
         let v13: bool = if v10 {
@@ -188,8 +191,7 @@ fn absent_from_7(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
                     v6.clone()
                 } else {
                     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v17: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v5, &*v8, &*v16, &*v16].concat());
-                    v17.clone()
+                    concat5_4(v6.clone(), v5.clone(), v8.clone(), v16.clone(), v16.clone())
                 }
             }
         } else {
@@ -197,18 +199,18 @@ fn absent_from_7(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
         }
     }
 }
-fn indices_from_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: bool = &*v1 == "";
+fn indices_from_9(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>) -> Rc<str> {
+    let mut v2: bool = &*v1 == "";
     if v2 {
-        let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v3.clone()
     } else {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-        let v5: Rc<str> = std::rc::Rc::<str>::from((v1).split(&*v4).next().unwrap_or(""));
+        let mut v5: Rc<str> = std::rc::Rc::<str>::from((v1).split(&*v4).next().unwrap_or(""));
         let v6: i32 = (v0).first().and_then(|header| header.iter().position(|item| &**item == &*v5)).map(|index| index as i32).unwrap_or(-1);
         let v7: Rc<str> = std::rc::Rc::<str>::from((v6).to_string().as_str());
         let v8: Rc<str> = std::rc::Rc::<str>::from((v1).split_once(&*v4).map(|(_, rest)| rest).unwrap_or(""));
-        let v9: Rc<str> = indices_from_8(v0.clone(), v8.clone());
+        let v9: Rc<str> = indices_from_9(v0.clone(), v8.clone());
         let v10: bool = &*v7 == "";
         if v10 {
             v9.clone()
@@ -218,13 +220,12 @@ fn indices_from_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<st
                 v7.clone()
             } else {
                 let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v13: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v4, &*v9, &*v12, &*v12].concat());
-                v13.clone()
+                concat5_4(v7.clone(), v4.clone(), v9.clone(), v12.clone(), v12.clone())
             }
         }
     }
 }
-fn winners_from_9(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>) -> std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> {
+fn winners_from_10(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>) -> std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> {
     loop {
         let v6: bool = v4 < v3;
         if v6 {
@@ -267,30 +268,30 @@ fn winners_from_9(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<st
                 ()
             };
             let v24: i32 = v3.wrapping_add(1i32);
-            (v0, v1, v2, v3, v4, v5) = (v0.clone(), v1.clone(), v2, v24, v4, v5.clone());
+            v3 = v24;
             continue;
         }
     }
 }
-fn pairs_from_10(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: Rc<str>) -> Rc<UH0> {
-    let v3: bool = &*v2 == "";
+fn pairs_from_11(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: Rc<str>) -> Rc<UH0> {
+    let mut v3: bool = &*v2 == "";
     if v3 {
         { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoPairs); } CASE.with(|case| case.clone()) }
     } else {
-        let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+        let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
         let v6: Rc<str> = std::rc::Rc::<str>::from((v2).split(&*v5).next().unwrap_or(""));
         let v7: i32 = (v0).first().and_then(|header| header.iter().position(|item| &**item == &*v6)).map(|index| index as i32).unwrap_or(-1);
         let v8: i32 = (v1).first().and_then(|header| header.iter().position(|item| &**item == &*v6)).map(|index| index as i32).unwrap_or(-1);
         let v9: Rc<str> = std::rc::Rc::<str>::from((v2).split_once(&*v5).map(|(_, rest)| rest).unwrap_or(""));
-        let v10: Rc<UH0> = pairs_from_10(v0.clone(), v1.clone(), v9.clone());
+        let v10: Rc<UH0> = pairs_from_11(v0.clone(), v1.clone(), v9.clone());
         Rc::new(UH0::UH0_PairThen(v6.clone(), v7, v8, v10.clone()))
     }
 }
-fn difference_counted_13(mut v0: Rc<UH1>, mut v1: Rc<str>) -> Rc<UH1> {
+fn difference_counted_14(mut v0: Rc<UH1>, mut v1: Rc<str>) -> Rc<UH1> {
     match &*v0 {
         UH1::UH1_DifferenceThen(v4, v5, v6) => {
             let v4: Rc<str> = v4.clone();
-            let v5: i32 = *v5;
+            let mut v5: i32 = *v5;
             let v6: Rc<UH1> = v6.clone();
             let v7: bool = &*v4 == &*v1;
             if v7 {
@@ -301,18 +302,18 @@ fn difference_counted_13(mut v0: Rc<UH1>, mut v1: Rc<str>) -> Rc<UH1> {
                 if v10 {
                     Rc::new(UH1::UH1_DifferenceThen(v1.clone(), 1i32, v0))
                 } else {
-                    let v12: Rc<UH1> = difference_counted_13(v6, v1.clone());
+                    let v12: Rc<UH1> = difference_counted_14(v6, v1.clone());
                     Rc::new(UH1::UH1_DifferenceThen(v4, v5, v12))
                 }
             }
         }
         UH1::UH1_NoDifferences => {
-            let v2: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_NoDifferences); } CASE.with(|case| case.clone()) };
+            let mut v2: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_NoDifferences); } CASE.with(|case| case.clone()) };
             Rc::new(UH1::UH1_DifferenceThen(v1, 1i32, v2))
         }
     }
 }
-fn pairs_compared_12(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v3: i32, mut v4: i32, mut v5: Rc<str>, mut v6: u64, mut v7: i32, mut v8: i32, mut v9: i32, mut v10: Rc<str>, mut v11: Rc<UH1>) -> (i32, i32, i32, Rc<str>, Rc<UH1>) {
+fn pairs_compared_13(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v3: i32, mut v4: i32, mut v5: Rc<str>, mut v6: u64, mut v7: i32, mut v8: i32, mut v9: i32, mut v10: Rc<str>, mut v11: Rc<UH1>) -> (i32, i32, i32, Rc<str>, Rc<UH1>) {
     let (mut v56, mut v57, mut v58, mut v59, mut v60): (i32, i32, i32, Rc<str>, Rc<UH1>) = match &*v0 {
         UH0::UH0_NoPairs => {
             (v7, v8, v9, v10.clone(), v11.clone())
@@ -328,14 +329,14 @@ fn pairs_compared_12(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<st
                     let v17: Rc<str> = std::rc::Rc::<str>::from((v2).get(v4 as usize).and_then(|cells| cells.get(v14 as usize)).map(|cell| &**cell).unwrap_or(""));
                     let v18: bool = &*v16 == &*v17;
                     if v18 {
-                        let (mut v19, mut v20, mut v21, mut v22, mut v23): (i32, i32, i32, Rc<str>, Rc<UH1>) = pairs_compared_12(v15.clone(), v1.clone(), v2.clone(), v3, v4, v5.clone(), v6, v7, v8, v9, v10.clone(), v11.clone());
+                        let (mut v19, mut v20, mut v21, mut v22, mut v23): (i32, i32, i32, Rc<str>, Rc<UH1>) = pairs_compared_13(v15.clone(), v1.clone(), v2.clone(), v3, v4, v5.clone(), v6, v7, v8, v9, v10.clone(), v11.clone());
                         (v19, v20, v21, v22.clone(), v23.clone())
                     } else {
                         let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                         let v27: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v5, v24)), v12)), v24));
                         let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v27, Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v16, v24)), v17))));
                         let v31: bool = (v9 as u64) < v6;
-                        let v32: Rc<UH1> = difference_counted_13(v11.clone(), v12.clone());
+                        let v32: Rc<UH1> = difference_counted_14(v11.clone(), v12.clone());
                         let v34: i32 = if v31 {
                             let v33: i32 = v9.wrapping_add(1i32);
                             v33
@@ -349,13 +350,12 @@ fn pairs_compared_12(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<st
                             } else {
                                 let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                                 let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                let v38: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v36, &*v30, &*v37, &*v37].concat());
-                                v38.clone()
+                                concat5_4(v10.clone(), v36.clone(), v30.clone(), v37.clone(), v37.clone())
                             }
                         } else {
                             v10.clone()
                         };
-                        let (mut v41, mut v42, mut v43, mut v44, mut v45): (i32, i32, i32, Rc<str>, Rc<UH1>) = pairs_compared_12(v15.clone(), v1.clone(), v2.clone(), v3, v4, v5.clone(), v6, v7, v8, v34, v40.clone(), v32.clone());
+                        let (mut v41, mut v42, mut v43, mut v44, mut v45): (i32, i32, i32, Rc<str>, Rc<UH1>) = pairs_compared_13(v15.clone(), v1.clone(), v2.clone(), v3, v4, v5.clone(), v6, v7, v8, v34, v40.clone(), v32.clone());
                         (v41, v42, v43, v44.clone(), v45.clone())
                     }
                 }
@@ -366,7 +366,7 @@ fn pairs_compared_12(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<st
     };
     (v56, v57, v58, v59.clone(), v60.clone())
 }
-fn left_compared_11(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: Rc<str>, mut v3: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v4: bool, mut v5: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v6: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v7: Rc<UH0>, mut v8: u64, mut v9: i32, mut v10: i32, mut v11: i32, mut v12: i32, mut v13: Rc<str>, mut v14: Rc<UH1>) -> (i32, i32, i32, Rc<str>, Rc<UH1>) {
+fn left_compared_12(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: Rc<str>, mut v3: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v4: bool, mut v5: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v6: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v7: Rc<UH0>, mut v8: u64, mut v9: i32, mut v10: i32, mut v11: i32, mut v12: i32, mut v13: Rc<str>, mut v14: Rc<UH1>) -> (i32, i32, i32, Rc<str>, Rc<UH1>) {
     let v15: i32 = ((v0).len().max(1) - 1) as i32;
     let v16: bool = v15 < v9;
     let (mut v52, mut v53, mut v54, mut v55, mut v56): (i32, i32, i32, Rc<str>, Rc<UH1>) = if v16 {
@@ -382,7 +382,7 @@ fn left_compared_11(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std
         };
         let (mut v47, mut v48, mut v49, mut v50, mut v51): (i32, i32, i32, Rc<str>, Rc<UH1>) = if v20 {
             let v21: i32 = v9.wrapping_add(1i32);
-            let (mut v22, mut v23, mut v24, mut v25, mut v26): (i32, i32, i32, Rc<str>, Rc<UH1>) = left_compared_11(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4, v5.clone(), v6.clone(), v7.clone(), v8, v21, v10, v11, v12, v13.clone(), v14.clone());
+            let (mut v22, mut v23, mut v24, mut v25, mut v26): (i32, i32, i32, Rc<str>, Rc<UH1>) = left_compared_12(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4, v5.clone(), v6.clone(), v7.clone(), v8, v21, v10, v11, v12, v13.clone(), v14.clone());
             (v22, v23, v24, v25.clone(), v26.clone())
         } else {
             { (v6).borrow_mut().insert(v17.clone(), v9); };
@@ -393,18 +393,18 @@ fn left_compared_11(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std
                 let v30: i32 = v11.wrapping_add(1i32);
                 (v28, v30, v12, v13.clone(), v14.clone())
             } else {
-                let (mut v31, mut v32, mut v33, mut v34, mut v35): (i32, i32, i32, Rc<str>, Rc<UH1>) = pairs_compared_12(v7.clone(), v0.clone(), v1.clone(), v9, v27, v17.clone(), v8, v28, v11, v12, v13.clone(), v14.clone());
+                let (mut v31, mut v32, mut v33, mut v34, mut v35): (i32, i32, i32, Rc<str>, Rc<UH1>) = pairs_compared_13(v7.clone(), v0.clone(), v1.clone(), v9, v27, v17.clone(), v8, v28, v11, v12, v13.clone(), v14.clone());
                 (v31, v32, v33, v34.clone(), v35.clone())
             };
             let v41: i32 = v9.wrapping_add(1i32);
-            let (mut v42, mut v43, mut v44, mut v45, mut v46): (i32, i32, i32, Rc<str>, Rc<UH1>) = left_compared_11(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4, v5.clone(), v6.clone(), v7.clone(), v8, v41, v36, v37, v38, v39.clone(), v40.clone());
+            let (mut v42, mut v43, mut v44, mut v45, mut v46): (i32, i32, i32, Rc<str>, Rc<UH1>) = left_compared_12(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4, v5.clone(), v6.clone(), v7.clone(), v8, v41, v36, v37, v38, v39.clone(), v40.clone());
             (v42, v43, v44, v45.clone(), v46.clone())
         };
         (v47, v48, v49, v50.clone(), v51.clone())
     };
     (v52, v53, v54, v55.clone(), v56.clone())
 }
-fn right_unseen_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v3: bool, mut v4: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v5: i32, mut v6: i32, mut v7: i32) -> (i32, i32) {
+fn right_unseen_15(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>, mut v2: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v3: bool, mut v4: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>>, mut v5: i32, mut v6: i32, mut v7: i32) -> (i32, i32) {
     loop {
         let v8: i32 = ((v0).len().max(1) - 1) as i32;
         let v9: bool = v8 < v5;
@@ -421,7 +421,7 @@ fn right_unseen_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<s
             };
             if v13 {
                 let v14: i32 = v5.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4, v5, v6, v7) = (v0.clone(), v1.clone(), v2.clone(), v3, v4.clone(), v14, v6, v7);
+                v5 = v14;
                 continue;
             } else {
                 let v17: i32 = (v4).borrow().get(&*v10).copied().unwrap_or(-1);
@@ -434,20 +434,20 @@ fn right_unseen_14(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<s
                 let v20: i32 = v5.wrapping_add(1i32);
                 let v21: i32 = v6.wrapping_add(1i32);
                 let v22: i32 = v7.wrapping_add(v19);
-                (v0, v1, v2, v3, v4, v5, v6, v7) = (v0.clone(), v1.clone(), v2.clone(), v3, v4.clone(), v20, v21, v22);
+                (v5, v6, v7) = (v20, v21, v22);
                 continue;
             }
         }
     }
 }
-fn differences_printed_15(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
+fn differences_printed_16(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
     loop {
         match &*v0 {
             UH1::UH1_DifferenceThen(v2, v3, v4) => {
-                let v2: Rc<str> = v2.clone();
-                let v3: i32 = *v3;
+                let mut v2: Rc<str> = v2.clone();
+                let mut v3: i32 = *v3;
                 let v4: Rc<UH1> = v4.clone();
-                let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("column "); } LIT.with(|lit| lit.clone()) };
+                let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("column "); } LIT.with(|lit| lit.clone()) };
                 let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v2));
                 let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" differs="); } LIT.with(|lit| lit.clone()) };
                 let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
@@ -473,8 +473,8 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
     } else {
         v3.clone()
     };
-    let v15: Rc<str> = absent_from_7(v0.clone(), v1.clone(), v5.clone());
-    let v16: Rc<str> = absent_from_7(v0.clone(), v1.clone(), v14.clone());
+    let v15: Rc<str> = absent_from_8(v0.clone(), v1.clone(), v5.clone());
+    let v16: Rc<str> = absent_from_8(v0.clone(), v1.clone(), v14.clone());
     let v17: bool = &*v15 == "";
     let v23: Rc<str> = if v17 {
         v16.clone()
@@ -485,8 +485,7 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
         } else {
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v21: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v19, &*v16, &*v20, &*v20].concat());
-            v21.clone()
+            concat5_4(v15.clone(), v19.clone(), v16.clone(), v20.clone(), v20.clone())
         }
     };
     let v24: bool = &*v8 != "";
@@ -527,8 +526,7 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
             } else {
                 let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                 let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v41: Rc<str> = std::rc::Rc::<str>::from([&*v23, &*v39, &*v32, &*v40, &*v40].concat());
-                v41.clone()
+                concat5_4(v23.clone(), v39.clone(), v32.clone(), v40.clone(), v40.clone())
             }
         };
         let v44: bool = &*v43 != "";
@@ -542,8 +540,7 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
                 } else {
                     let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                     let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v48: Rc<str> = std::rc::Rc::<str>::from([&*v23, &*v46, &*v32, &*v47, &*v47].concat());
-                    v48.clone()
+                    concat5_4(v23.clone(), v46.clone(), v32.clone(), v47.clone(), v47.clone())
                 }
             };
             let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("diff unknown columns: "); } LIT.with(|lit| lit.clone()) };
@@ -553,8 +550,8 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
             eprintln!("{}", v54);
             2i32
         } else {
-            let v55: Rc<str> = indices_from_8(v0.clone(), v5.clone());
-            let v56: Rc<str> = indices_from_8(v1.clone(), v5.clone());
+            let v55: Rc<str> = indices_from_9(v0.clone(), v5.clone());
+            let v56: Rc<str> = indices_from_9(v1.clone(), v5.clone());
             let v58: i32 = if v24 {
                 let v57: i32 = (v0).first().and_then(|header| header.iter().position(|item| &**item == &*v8)).map(|index| index as i32).unwrap_or(-1);
                 v57
@@ -564,7 +561,7 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
             let v59: i32 = 1i32;
             let v60: i32 = ((v0).len().max(1) - 1) as i32;
             let v61: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = std::rc::Rc::new(std::cell::RefCell::new(std::collections::HashMap::new()));
-            let v62: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = winners_from_9(v0.clone(), v55.clone(), v58, v59, v60, v61.clone());
+            let v62: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = winners_from_10(v0.clone(), v55.clone(), v58, v59, v60, v61.clone());
             let v64: i32 = if v24 {
                 let v63: i32 = (v1).first().and_then(|header| header.iter().position(|item| &**item == &*v8)).map(|index| index as i32).unwrap_or(-1);
                 v63
@@ -574,22 +571,22 @@ fn diff_tables_2(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: std::r
             let v65: i32 = 1i32;
             let v66: i32 = ((v1).len().max(1) - 1) as i32;
             let v67: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = std::rc::Rc::new(std::cell::RefCell::new(std::collections::HashMap::new()));
-            let v68: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = winners_from_9(v1.clone(), v56.clone(), v64, v65, v66, v67.clone());
+            let v68: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = winners_from_10(v1.clone(), v56.clone(), v64, v65, v66, v67.clone());
             let v69: std::rc::Rc<std::cell::RefCell<std::collections::HashMap<std::rc::Rc<str>, i32>>> = std::rc::Rc::new(std::cell::RefCell::new(std::collections::HashMap::new()));
-            let v70: Rc<UH0> = pairs_from_10(v0.clone(), v1.clone(), v14.clone());
+            let v70: Rc<UH0> = pairs_from_11(v0.clone(), v1.clone(), v14.clone());
             let v71: i32 = 1i32;
             let v72: i32 = 0i32;
             let v73: i32 = 0i32;
             let v74: i32 = 0i32;
             let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v76: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_NoDifferences); } CASE.with(|case| case.clone()) };
-            let (mut v77, mut v78, mut v79, mut v80, mut v81): (i32, i32, i32, Rc<str>, Rc<UH1>) = left_compared_11(v0.clone(), v1.clone(), v55.clone(), v62.clone(), v24, v68.clone(), v69.clone(), v70.clone(), v6, v71, v72, v73, v74, v75.clone(), v76.clone());
+            let (mut v77, mut v78, mut v79, mut v80, mut v81): (i32, i32, i32, Rc<str>, Rc<UH1>) = left_compared_12(v0.clone(), v1.clone(), v55.clone(), v62.clone(), v24, v68.clone(), v69.clone(), v70.clone(), v6, v71, v72, v73, v74, v75.clone(), v76.clone());
             let v82: i32 = 1i32;
             let v83: i32 = 0i32;
             let v84: i32 = 0i32;
-            let (mut v85, mut v86): (i32, i32) = right_unseen_14(v1.clone(), v56.clone(), v68.clone(), v24, v69.clone(), v82, v83, v84);
+            let (mut v85, mut v86): (i32, i32) = right_unseen_15(v1.clone(), v56.clone(), v68.clone(), v24, v69.clone(), v82, v83, v84);
             let v87: i32 = 0i32;
-            let v88: i32 = differences_printed_15(v81.clone(), v87);
+            let v88: i32 = differences_printed_16(v81.clone(), v87);
             let v89: bool = &*v80 != "";
             if v89 {
                 let v90: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("key\tcolumn\tleft\tright\n"); } LIT.with(|lit| lit.clone()) };
@@ -681,12 +678,12 @@ fn diff_files_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
         }
     }
 }
-fn no_request_16() -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) {
+fn no_request_17() -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     (v0.clone(), v0.clone(), v0.clone(), v0.clone(), 20u64, v0.clone(), v0, false)
 }
 fn table_diff_run_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: u64) -> i32 {
-    let (mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_16();
+    let (mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_17();
     diff_files_1(v0, v1, v6, v3, v8, v2, v5, v11, v4, v13)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64) -> i32> {

@@ -64,7 +64,7 @@ fn field_end_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US0) -> i32 {
                         }
                     }
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v10, v2, v25.clone());
+                (v1, v3) = (v10, v25.clone());
                 continue;
             }
         }
@@ -76,7 +76,7 @@ fn skip_spaces_6(mut v0: Rc<str>, mut v1: i32) -> i32 {
         let v3: bool = v2 == 32i32;
         if v3 {
             let v4: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v4);
+            v1 = v4;
             continue;
         } else {
             return v1;
@@ -94,7 +94,7 @@ fn field_start_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 
             let v7: i32 = v6.wrapping_add(1i32);
             let v8: i32 = skip_spaces_6(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v8, v2, v9);
+            (v1, v3) = (v8, v9);
             continue;
         }
     }
@@ -129,7 +129,7 @@ fn count_status_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mu
             } else {
                 v4
             };
-            (v0, v1, v2, v3, v4) = (v0.clone(), v8, v2, v3.clone(), v21);
+            (v1, v4) = (v8, v21);
             continue;
         }
     }
@@ -141,7 +141,7 @@ fn method8(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     ()
 }
 fn format_real_7(mut v0: i32) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method8(v2.clone(), v3);
@@ -185,7 +185,7 @@ fn status_counts_1(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
     v21
 }
 fn census_text_0(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = (v0.clone().len() as i32);
     status_counts_1(v0, v1)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -234,7 +234,7 @@ fn status_counts_json_10(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
     v25
 }
 fn census_json_9(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = (v0.clone().len() as i32);
     status_counts_json_10(v0, v1)
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -264,7 +264,7 @@ fn status_of_id_13(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32) -
                 return v16.clone();
             } else {
                 let v17: i32 = v4.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v17, v3);
+                v2 = v17;
                 continue;
             }
         }
@@ -324,13 +324,13 @@ fn unsettled_from_15(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>)
                 let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
                 v29.clone()
             };
-            (v0, v1, v2, v3) = (v0.clone(), v7, v2, v30.clone());
+            (v1, v3) = (v7, v30.clone());
             continue;
         }
     }
 }
 fn unsettled_ids_14(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
+    let mut v1: i32 = 0i32;
     let mut v2: i32 = (v0.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     unsettled_from_15(v0, v1, v2, v3)
@@ -357,7 +357,7 @@ fn top_level_field_count_17(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                 let v10: i32 = v5.wrapping_add(1i32);
                 let v11: i32 = skip_spaces_6(v0.clone(), v10);
                 let v12: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v11, v2, v12);
+                (v1, v3) = (v11, v12);
                 continue;
             }
         }
@@ -381,13 +381,13 @@ fn first_malformed_task_16(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 let v12: i32 = top_level_field_count_17(v0.clone(), v6, v2, v11);
                 let v13: bool = v12 == 11i32;
                 if v13 {
-                    (v0, v1, v2) = (v0.clone(), v6, v2);
+                    v1 = v6;
                     continue;
                 } else {
                     return v4;
                 }
             } else {
-                (v0, v1, v2) = (v0.clone(), v6, v2);
+                v1 = v6;
                 continue;
             }
         }
@@ -395,7 +395,7 @@ fn first_malformed_task_16(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        let v1: i32 = 0i32;
+        let mut v1: i32 = 0i32;
         let mut v2: i32 = (v0.clone().len() as i32);
         first_malformed_task_16(v0.clone(), v1, v2)
     }); } CLOSURE.with(|closure| closure.clone())
@@ -440,13 +440,13 @@ fn done_from_19(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> R
             } else {
                 v3.clone()
             };
-            (v0, v1, v2, v3) = (v0.clone(), v7, v2, v30.clone());
+            (v1, v3) = (v7, v30.clone());
             continue;
         }
     }
 }
 fn done_ids_18(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
+    let mut v1: i32 = 0i32;
     let mut v2: i32 = (v0.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     done_from_19(v0, v1, v2, v3)
@@ -479,7 +479,7 @@ fn method22(mut v0: Rc<str>, mut v1: Rc<Vec<Rc<str>>>, mut v2: i32, mut v3: Rc<U
             } else {
                 v3.clone()
             };
-            (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v7, v15.clone());
+            (v2, v3) = (v7, v15.clone());
             continue;
         }
     }
@@ -492,7 +492,7 @@ fn method23(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH0>, mut v2: i32) -> 
                 let v4: Rc<UH0> = v4.clone();
                 v0.borrow_mut().push(v3);
                 let v5: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v4.clone(), v5);
+                (v1, v2) = (v4.clone(), v5);
                 continue;
             }
             UH0::UH0_Nil => {

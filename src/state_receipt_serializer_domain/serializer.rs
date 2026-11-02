@@ -11,7 +11,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
     match std::str::from_utf8(slice) { Ok(text) => Rc::<str>::from(text), Err(error) => Rc::<str>::from(std::str::from_utf8(&slice[..error.valid_up_to()]).unwrap_or("")) }
 }
 fn codec_runtime_char_2(mut v0: Rc<str>) -> u8 {
-    let v1: u8 = v0.as_bytes()[0i32 as usize];
+    let mut v1: u8 = v0.as_bytes()[0i32 as usize];
     v1
 }
 fn find_char_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i32 {
@@ -26,7 +26,7 @@ fn find_char_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
                 return v1;
             } else {
                 let v7: i32 = v1 + 1i32 ;
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+                v1 = v7;
                 continue;
             }
         }
@@ -40,8 +40,8 @@ fn codec_empty_4() -> Rc<str> {
     method5()
 }
 fn receipt_row_kind_text_6(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1"); } LIT.with(|lit| lit.clone()) };
-    let v2: bool = v0 == v1 ;
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: bool = v0 == v1 ;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("snapshot"); } LIT.with(|lit| lit.clone()) };
         v3
@@ -69,7 +69,7 @@ fn starts_with_loop_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
             if v8 {
                 let v9: i32 = v2 + 1i32 ;
                 let v10: i32 = v3 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v9, v10, v4);
+                (v2, v3) = (v9, v10);
                 continue;
             } else {
                 return false;
@@ -78,8 +78,8 @@ fn starts_with_loop_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
     }
 }
 fn receipt_attestation_kind_code_8(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
-    let v2: bool = v0 == v1 ;
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: bool = v0 == v1 ;
     if v2 {
         1u64
     } else {
@@ -102,8 +102,8 @@ fn receipt_attestation_kind_code_8(mut v0: Rc<str>) -> u64 {
     }
 }
 fn receipt_attestation_build_payload_9(mut v0: Rc<str>) -> Rc<str> {
-    let v1: u64 = receipt_attestation_kind_code_8(v0.clone());
-    let v2: bool = v1 == 2u64 ;
+    let mut v1: u64 = receipt_attestation_kind_code_8(v0.clone());
+    let mut v2: bool = v1 == 2u64 ;
     if v2 {
         let v3: i32 = (v0.clone().len() as i32);
         let v4: bool = 6i32 == v3 ;
@@ -139,7 +139,7 @@ fn find_text_loop_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32,
                 return v2;
             } else {
                 let v14: i32 = v2 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v14, v3, v4);
+                v2 = v14;
                 continue;
             }
         }
@@ -160,7 +160,7 @@ fn digits_valid_loop_10(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
             let v10: bool = v9 < 10i32;
             if v10 {
                 let v11: i32 = v1 + 1i32 ;
-                (v0, v1, v2) = (v0.clone(), v11, v2);
+                v1 = v11;
                 continue;
             } else {
                 return false;
@@ -219,7 +219,7 @@ fn escape_path_loop_12(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
             };
             let v32: i32 = v1 + 1i32 ;
             let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v31.clone()));
-            (v0, v1, v2, v3) = (v0.clone(), v32, v2, v33.clone());
+            (v1, v3) = (v32, v33.clone());
             continue;
         }
     }
@@ -426,14 +426,14 @@ fn serialize_rows_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32,
                 v143
             };
             let v145: Rc<str> = Rc::<str>::from(format!("{}{}", v4.clone(), v139.clone()));
-            (v0, v1, v2, v3, v4) = (v0.clone(), v144, v2, v141, v145.clone());
+            (v1, v3, v4) = (v144, v141, v145.clone());
             continue;
         }
     }
 }
 fn receipt_serialize_0(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
-    let v2: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = 0i32;
+    let mut v2: i32 = (v0.clone().len() as i32);
     let v3: i32 = 0i32;
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = serialize_rows_loop_1(v0.clone(), v1, v2, v3, v4.clone());

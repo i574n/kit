@@ -19,3 +19,4 @@ kit-table-diff = { path = "../kit_table_diff" }
 kit-table-measures = { path = "../kit_table_measures" }
 kit-table-filter = { path = "../kit_table_filter" }
 kit-table-plain = { path = "../kit_table_plain" }
+kit-table-append = { path = "../kit_table_append" }

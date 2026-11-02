@@ -178,8 +178,8 @@
 :~ new_package_problem (counts : probe_counts) : string =
     ? count_of counts "rust-global" > 0i32
     ?> "a new package carries rust_global"
-    |? count_of counts "wide-host-macro" > 0i32
-    ?> "a new package has host macros over 200 characters"
+    |? count_of counts "wide-host-macro" + count_of counts "host-statement" > 0i32
+    ?> "a new package has host strings over 200 characters, multi-line or with statements; name one-expression primitives in a boundary package"
     |? count_of counts "encoded-row" > 0i32
     ?> "a new package encodes rows with tab or record separators"
     |? count_of counts "type-decl" >= 2i32 && feature_total counts 0i32 = 0i32

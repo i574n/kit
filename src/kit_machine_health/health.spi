@@ -1,6 +1,7 @@
 :< sm'_operators
 :< kit_machine_watch_model.model
 :< kit_machine_watch.host
+:< kit_os_machine.metrics
 
 :== health_tally =
     {
@@ -98,13 +99,40 @@
 :~ ^ health_passes (sample_ms : u64) (all : bool) (left : u64) (failing : bool) : bool =
     ? left = 0u64 ?> failing |: health_passes sample_ms all (left - 1u64) (health_pass sample_ms all)
 
-:~ health_run () : i32 =
+:~ ^ cores_sum (~rows : process_rows) (at : i32) (acc : f64) : f64 =
+    ? at >= row_count rows ?> acc |: cores_sum rows (at + 1i32) (acc + row_cores rows at)
+
+:~ gate_run () : i32 =
+    := words = env.command_line_arguments ()
+    := min_disk = decimal_of (value_in words "--min-disk-gb")
+    := min_ram = decimal_of (value_in words "--min-free-mb")
+    := max_busy = decimal_of (value_in words "--max-busy-pct")
+    := mount_arg = value_in words "--mount"
+    := mount = ? mount_arg <> "" ?> mount_arg |? is_windows () ?> "C:\\" |: "/"
+    := disk = disk_free_gb mount
+    := ram = free_megabytes ()
+    := rows = process_rows_sampled 2000u64
+    := cpusf : f64 = conv (logical_cpus ())
+    := busy : u64 = conv (cores_sum rows 0i32 0.0f64 / cpusf * 100.0f64)
+    := ok = disk >= min_disk && ram >= min_ram && busy < max_busy
+    := reason =
+        ? disk < min_disk ?> "disk-" ++# sm'.decimal_text disk ++# "gb<" ++# sm'.decimal_text min_disk
+        |? ram < min_ram ?> "ram-" ++# sm'.decimal_text ram ++# "mb<" ++# sm'.decimal_text min_ram
+        |? busy >= max_busy ?> "busy-" ++# sm'.decimal_text busy ++# "pct>=" ++# sm'.decimal_text max_busy
+        |: "ok"
+    console.write_line ("kit machine health gate=" ++# (? ok ?> "ok" |: "refused") ++# " reason=" ++# reason ++# " disk=" ++# sm'.decimal_text disk ++# "gb ram=" ++# sm'.decimal_text ram ++# "mb busy=" ++# sm'.decimal_text busy ++# "pct")
+    ? ok ?> 0i32 |: 1i32
+
+:~ health_normal_run () : i32 =
     := words = env.command_line_arguments ()
     := every = decimal_of (value_in words "--every")
     := times = decimal_of (value_in words "--times")
     := sample_ms = ? every = 0u64 ?> 3000u64 |: every * 1000u64
     := passes = ? every = 0u64 ?> 1u64 |? times = 0u64 ?> 1u64 |: times
     ? health_passes sample_ms (flag_given "--all") passes !- ?> 1i32 |: 0i32
+
+:~ health_run () : i32 =
+    ? flag_given "--gate" ?> gate_run () |: health_normal_run ()
 
 := main () : i32 =
     !!!!Export("kit_machine_health_run", ((\ () => health_run ()) : () -> i32))

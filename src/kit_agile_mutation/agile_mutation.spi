@@ -73,6 +73,8 @@
             ++# (argument_owned 2i32)
     agile_mutation_error message
 := todos_recording () : bool = rust_std_env.model.argument_flag_present 4i32 "--record"
+:= next_claims () : bool = rust_std_env.model.argument_flag_present 4i32 "--any"
+:= claim_queue_call (s : agile_subcommand) : bool = ?= s ?| | AgileNext => next_claims () | AgileClaim | AgileRelease => !+ | _ => !-
 :~ state_lock_taken (~root : string) : bool =
     $'{ let state = std::path::Path::new(&*!root).join("state"); let lock = state.join("agile.spi.lock"); \
         let started = std::time::Instant::now(); loop { if std::fs::create_dir(&lock).is_ok() { break true; \
@@ -104,6 +106,8 @@
     | AgileShow => !-
     | AgilePlan => !-
     | AgileNext => !-
+    | AgileClaim => !+
+    | AgileRelease => !+
     | AgileLinks => !-
     | AgileWip => !-
     | AgileBegin => !+
@@ -150,7 +154,10 @@
             ? todos_recording ()
             ?> $"agile_todo_record::kit_agile_todos_record_run()"
             |: $"agile_todo_scan::kit_agile_todos_run()"
-    | AgileNext => agile_with_root \ () => $"agile_task_next::kit_agile_next_run()"
+    | AgileNext =>
+        agile_with_root \ () =>
+            ? next_claims () ?> $"agile_claim_cli::kit_agile_claim_run()" |: $"agile_task_next::kit_agile_next_run()"
+    | AgileClaim | AgileRelease => agile_with_root \ () => $"agile_claim_cli::kit_agile_claim_run()"
     | AgileRoots => agile_with_root \ () => $"agile_todo_roots::kit_agile_roots_run()"
     | AgileLinks => agile_with_root \ () => $"agile_memory_links::kit_agile_links_run()"
     | AgileWip => agile_with_root \ () => $"agile_todo_merge::kit_agile_wip_run()"
@@ -164,11 +171,14 @@
             := name = argument_owned 0i32
             agile_mutation_error ($'kit_command_help::kit_agile_root_flag_refusal(&*!name, &*!flag)' : string)
         | RootNamed root =>
-            := writes = agile_writes subcommand
+            := writes = agile_writes subcommand || claim_queue_call subcommand
             ? state_lock_held writes root ?>
                 := code = agile_route subcommand
                 state_lock_done writes root
                 code
+            |? claim_queue_call subcommand ?>
+                := _ = workspace_primitives.console.stdout_line ("kit agile " ++# argument_owned 0i32 ++# " refused reason=contention")
+                4i32
             |: state_lock_refused ()
     | AgileUnknownName => agile_usage_error ()
 

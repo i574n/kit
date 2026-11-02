@@ -22,7 +22,7 @@ fn find_char_loop_2(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
                 return v1;
             } else {
                 let v7: i32 = v1 + 1i32 ;
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+                v1 = v7;
                 continue;
             }
         }
@@ -60,7 +60,7 @@ fn composite_end_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v15 {
                 let v16: i32 = v2 + 1i32 ;
-                (v0, v1, v2) = (v0.clone(), v4, v16);
+                (v1, v2) = (v4, v16);
                 continue;
             } else {
                 let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
@@ -78,11 +78,11 @@ fn composite_end_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                         return v4;
                     } else {
                         let v24: i32 = v2 - 1i32 ;
-                        (v0, v1, v2) = (v0.clone(), v4, v24);
+                        (v1, v2) = (v4, v24);
                         continue;
                     }
                 } else {
-                    (v0, v1, v2) = (v0.clone(), v4, v2);
+                    v1 = v4;
                     continue;
                 }
             }
@@ -122,7 +122,7 @@ fn scalar_end_7(mut v0: Rc<str>, mut v1: i32) -> i32 {
             if v17 {
                 return v2;
             } else {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             }
         }
@@ -209,7 +209,7 @@ fn fields_8(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> i32 {
                                     let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                                     let v52: bool = v47 == v51 ;
                                     if v52 {
-                                        (v0, v1, v2) = (v0.clone(), v46, v2.clone());
+                                        v1 = v46;
                                         continue;
                                     } else {
                                         return -2i32;
@@ -238,7 +238,7 @@ fn members_9(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> i32 {
                 let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                 let v11: bool = v5 == v10 ;
                 if v11 {
-                    (v0, v1, v2) = (v0.clone(), v4, v2.clone());
+                    v1 = v4;
                     continue;
                 } else {
                     let (mut v13, mut v14, mut v15): (Rc<str>, i32, bool) = predicate_literal_domain::kit_predicate_literal(&*v0,v3);
@@ -250,7 +250,7 @@ fn members_9(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> i32 {
                         if v17 {
                             return 1i32;
                         } else {
-                            (v0, v1, v2) = (v0.clone(), v14, v2.clone());
+                            v1 = v14;
                             continue;
                         }
                     }
@@ -278,7 +278,7 @@ fn packages_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
                 let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                 let v15: bool = v8 == v14 ;
                 if v15 {
-                    (v0, v1, v2, v3, v4, v5) = (v0.clone(), v7, v2, v3.clone(), v4, v5);
+                    v1 = v7;
                     continue;
                 } else {
                     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{"); } LIT.with(|lit| lit.clone()) };
@@ -495,17 +495,17 @@ fn packages_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
                                                 return v133;
                                             } else {
                                                 let v135: bool = true;
-                                                (v0, v1, v2, v3, v4, v5) = (v0.clone(), v36, v2, v3.clone(), v135, v133);
+                                                (v1, v4, v5) = (v36, v135, v133);
                                                 continue;
                                             }
                                         }
                                     } else {
-                                        (v0, v1, v2, v3, v4, v5) = (v0.clone(), v36, v2, v3.clone(), v4, v5);
+                                        v1 = v36;
                                         continue;
                                     }
                                 }
                             } else {
-                                (v0, v1, v2, v3, v4, v5) = (v0.clone(), v36, v2, v3.clone(), v4, v5);
+                                v1 = v36;
                                 continue;
                             }
                         }
@@ -545,7 +545,7 @@ fn selected_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: u8, mut v4:
                 return v19;
             } else {
                 let v21: i32 = v8 + 1i32 ;
-                (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v21, v3, v4, v5, v19);
+                (v2, v6) = (v21, v19);
                 continue;
             }
         }

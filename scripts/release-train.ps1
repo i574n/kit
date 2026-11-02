@@ -8,7 +8,8 @@ param(
     [switch]$NotebooksOnly,
     [switch]$Snapshot,
     [switch]$Resume,
-    [string]$Lib = ''
+    [string]$Lib = '',
+    [string]$Verdicts = ''
 )
 $ErrorActionPreference = 'Stop'
 $KitRoot = (Resolve-Path -LiteralPath $KitRoot).Path
@@ -82,17 +83,36 @@ if (-not (Test-Path $candidate)) { Stop-Train "no candidate binary at $candidate
 $built = (Get-Item $candidate).LastWriteTime
 $candidateHash = (Get-FileHash $candidate).Hash.Substring(0, 8)
 $earlierCandidate = @(Select-String -LiteralPath $log -Pattern 'phase candidate: ok, kit\.exe (\w{8})' | ForEach-Object { $_.Matches[0].Groups[1].Value }) | Select-Object -Last 1
-if ($Resume -and $earlierCandidate -ne $candidateHash) { Stop-Train "-Resume rebuilt a different candidate ($candidateHash, earlier $earlierCandidate), so the earlier verdicts don't apply; start a fresh -Snapshot train" }
+if ($Resume -and $earlierCandidate -and $earlierCandidate -ne $candidateHash) { Stop-Train "-Resume rebuilt a different candidate ($candidateHash, earlier $earlierCandidate), so the earlier verdicts don't apply; start a fresh -Snapshot train" }
 Say "phase candidate: ok, kit.exe $((Get-FileHash $candidate).Hash.Substring(0, 8)) written $($built.ToString('HH:mm:ss'))$(if ($built -lt $started) { ' (cargo found it fresh)' })"
 
 $testBlock = '^(///> |:# (?!.* static =)|test (?!.* static =))'
 $binaryUsers = Get-ChildItem $src -Recurse -File -Filter *.spi | Where-Object { $_.FullName -notmatch '[\\/]target[\\/]' } |
     Where-Object { Select-String -LiteralPath $_.FullName -Pattern 'KIT_BIN_UNDER_TEST|kit_run|job_call' -Quiet } |
     Where-Object { Select-String -LiteralPath $_.FullName -Pattern $testBlock -Quiet }
-Push-Location $liveRoot
-$changedPackages = @(git status --porcelain -- src | ForEach-Object { $_.Substring(3) } | Where-Object { $_ -match '^src/([^/]+)/' } |
-    ForEach-Object { ($_ -split '/')[1] } | Select-Object -Unique)
-Pop-Location
+function Get-SourceFiles([string]$dir) {
+    foreach ($entry in [IO.Directory]::EnumerateFileSystemEntries($dir)) {
+        if ([IO.Directory]::Exists($entry)) { if ([IO.Path]::GetFileName($entry) -notin 'target', '.cache', '.git') { Get-SourceFiles $entry } }
+        elseif ([IO.Path]::GetExtension($entry) -in '.spi', '.spir' -or [IO.Path]::GetFileName($entry) -eq 'package.spiproj') { $entry }
+    }
+}
+function Get-SourceManifest([string]$root) {
+    Get-SourceFiles (Join-Path $root 'src') | ForEach-Object { "$($_.Substring($root.Length + 1).Replace('\', '/')) $((Get-FileHash -LiteralPath $_).Hash)" } | Sort-Object
+}
+$lastInstalled = Join-Path $stateRoot 'last-installed.txt'
+$shippedManifest = if (Test-Path -LiteralPath $lastInstalled) { Join-Path $stateRoot "$((Get-Content -LiteralPath $lastInstalled -TotalCount 1).Trim())/shipped-manifest.txt" } else { '' }
+if ($shippedManifest -and (Test-Path -LiteralPath $shippedManifest)) {
+    $changedPackages = @(Compare-Object @(Get-Content -LiteralPath $shippedManifest) @(Get-SourceManifest $KitRoot) |
+        ForEach-Object { ($_.InputObject -split ' ', 2)[0] } | Where-Object { $_ -match '^src/([^/]+)/' } |
+        ForEach-Object { ($_ -split '/')[1] } | Select-Object -Unique)
+    Say "changed packages: $($changedPackages.Count), against the last installed train's manifest $shippedManifest"
+} else {
+    Push-Location $liveRoot
+    $changedPackages = @(git status --porcelain -- src | ForEach-Object { $_.Substring(3) } | Where-Object { $_ -match '^src/([^/]+)/' } |
+        ForEach-Object { ($_ -split '/')[1] } | Select-Object -Unique)
+    Pop-Location
+    Say "changed packages: $($changedPackages.Count), from git status (no last-installed manifest yet)"
+}
 $moduleNotebooks = foreach ($package in $changedPackages) {
     $folder = Join-Path $src $package
     if (Test-Path $folder) {
@@ -105,6 +125,14 @@ if ($Only) { $notebooks = @($notebooks | Where-Object { $_ -match $Only }) }
 Set-Content (Join-Path $out 'notebooks.txt') $notebooks
 Say "notebook set: $($notebooks.Count) ($(@($binaryUsers).Count) use the binary; module notebooks of $($changedPackages.Count) changed packages)"
 
+if ($Verdicts) {
+    $given = @{}
+    Get-Content -LiteralPath $Verdicts | Where-Object { $_ -match '^pass\s+(\S+)' } | ForEach-Object { $given[$Matches[1]] = $_ }
+    $missing = @($notebooks | Where-Object { -not $given.ContainsKey($_) })
+    if ($missing.Count) { Stop-Train "verdicts in $Verdicts miss or fail $($missing.Count) of $($notebooks.Count) notebooks: $($missing -join ', ')" }
+    Copy-Item -LiteralPath $Verdicts -Destination (Join-Path $out 'notebooks-verdicts.txt') -Force
+    Say "phase notebooks: accepted $($notebooks.Count)/$($notebooks.Count) pass verdicts from $Verdicts (the same tree, run on another machine)"
+} else {
 $spiral = (Resolve-Path -LiteralPath (Join-Path $liveRoot '../spiral')).Path
 $runner = Join-Path $spiral 'apps/cells/spi/run_notebook.ps1'
 $spiralLib = if ($Lib) { (Resolve-Path -LiteralPath $Lib).Path } else { Join-Path $spiral 'lib/spiral' }
@@ -214,6 +242,7 @@ Say "phase notebooks: end, $($rows.Count - $bad.Count)/$($rows.Count) pass (note
 $bad | ForEach-Object { Say "  $_" }
 if ($NotebooksOnly) { Say 'DONE (notebooks only, nothing installed)'; exit $(if ($bad.Count) { 1 } else { 0 }) }
 if ($bad.Count) { Stop-Train "$($bad.Count) candidate notebooks are not green; nothing installed" }
+}
 
 Say 'phase release: build.ps1 (release build, schema and topology checks, publish kit.exe)'
 & pwsh -NoProfile -File (Join-Path $KitRoot 'build.ps1') -TimeoutMs 3600000 *> (Join-Path $out 'release.log')
@@ -248,4 +277,7 @@ if ($env:LOCALAPPDATA) {
     }
     catch { Say "lane copy swap failed ($($_.Exception.Message)); the new one waits as $staged" }
 }
+Get-SourceManifest $KitRoot | Set-Content -LiteralPath (Join-Path $out 'shipped-manifest.txt')
+Set-Content -LiteralPath $lastInstalled $Name
+Say "shipped manifest written; the next train tests every package changed since $Name, committed or not"
 Say 'DONE'

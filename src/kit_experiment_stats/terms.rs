@@ -26,11 +26,11 @@ enum US3 {
     US3_TestUnknown,
 }
 fn median_of_1(mut v0: Rc<str>) -> f64 {
-    let v1: f64 = { let mut numbers = (v0).split(char::from(44u8)).filter_map(|cell| cell.trim().parse::<f64>().ok()).filter(|value| value.is_finite()).collect::<Vec<_>>(); numbers.sort_by(|a, b| a.total_cmp(b)); let count = numbers.len(); if count == 0 { f64::NAN } else if count % 2 == 1 { numbers[count / 2] } else { (numbers[count / 2 - 1] + numbers[count / 2]) / 2.0 } };
+    let mut v1: f64 = { let mut numbers = (v0).split(char::from(44u8)).filter_map(|cell| cell.trim().parse::<f64>().ok()).filter(|value| value.is_finite()).collect::<Vec<_>>(); numbers.sort_by(|a, b| a.total_cmp(b)); let count = numbers.len(); if count == 0 { f64::NAN } else if count % 2 == 1 { numbers[count / 2] } else { (numbers[count / 2 - 1] + numbers[count / 2]) / 2.0 } };
     v1
 }
 fn number_shown_2(mut v0: f64) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(format!("{:.6}", v0).trim_end_matches(char::from(48u8)).trim_end_matches(char::from(46u8)));
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(format!("{:.6}", v0).trim_end_matches(char::from(48u8)).trim_end_matches(char::from(46u8)));
     v1
 }
 fn median_terms_0(mut v0: Rc<str>, mut v1: f64, mut v2: f64) -> Rc<str> {
@@ -70,7 +70,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, f64, f64) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn ln_gamma_7(mut v0: f64) -> f64 {
-    let v1: f64 = v0 + 1.0f64;
+    let mut v1: f64 = v0 + 1.0f64;
     let v2: f64 = 76.18009172947146f64 / v1;
     let v3: f64 = 1.000000000190015f64 + v2;
     let v4: f64 = v0 + 2.0f64;
@@ -127,7 +127,7 @@ fn binomial_terms_6(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
             let v25: f64 = v21 + v24;
             let v26: f64 = (v25).exp();
             let v27: f64 = v4 + v26;
-            (v0, v1, v2, v3, v4) = (v0, v1, v18, v3, v27);
+            (v2, v4) = (v18, v27);
             continue;
         }
     }
@@ -158,7 +158,7 @@ fn binomial_at_most_5(mut v0: i32, mut v1: i32, mut v2: f64) -> f64 {
     }
 }
 fn i32_text_8(mut v0: i32) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string().as_str());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string().as_str());
     v1
 }
 fn edge_count_10(mut v0: US1, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: f64) -> i32 {
@@ -183,7 +183,7 @@ fn edge_count_10(mut v0: US1, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: f64
             return v1;
         } else {
             let v15: i32 = v1.wrapping_add(1i32);
-            (v0, v1, v2, v3, v4) = (v0.clone(), v15, v2, v3, v4);
+            v1 = v15;
             continue;
         }
     }
@@ -295,7 +295,7 @@ fn fraction_step_19(mut v0: f64, mut v1: f64, mut v2: f64, mut v3: i32, mut v4: 
             } else {
                 let v57: i32 = v3.wrapping_add(1i32);
                 let v58: f64 = v30 * v52;
-                (v0, v1, v2, v3, v4, v5, v6) = (v0, v1, v2, v57, v51, v46, v58);
+                (v3, v4, v5, v6) = (v57, v51, v46, v58);
                 continue;
             }
         }
@@ -392,11 +392,11 @@ fn quantile_search_14(mut v0: f64, mut v1: f64, mut v2: f64, mut v3: f64, mut v4
             let v9: bool = v8 < v0;
             if v9 {
                 let v10: i32 = v4.wrapping_sub(1i32);
-                (v0, v1, v2, v3, v4) = (v0, v1, v6, v3, v10);
+                (v2, v4) = (v6, v10);
                 continue;
             } else {
                 let v12: i32 = v4.wrapping_sub(1i32);
-                (v0, v1, v2, v3, v4) = (v0, v1, v2, v6, v12);
+                (v3, v4) = (v6, v12);
                 continue;
             }
         }
@@ -493,7 +493,7 @@ fn welch_21(mut v0: f64, mut v1: f64, mut v2: f64, mut v3: f64, mut v4: f64, mut
     (v11, v12, v21, v27, v28, v29)
 }
 fn erfc_of_25(mut v0: f64) -> f64 {
-    let v1: f64 = (v0).abs();
+    let mut v1: f64 = (v0).abs();
     let v2: f64 = 0.5f64 * v1;
     let v3: f64 = 1.0f64 + v2;
     let v4: f64 = 1.0f64 / v3;
@@ -529,7 +529,7 @@ fn erfc_of_25(mut v0: f64) -> f64 {
     }
 }
 fn normal_cdf_24(mut v0: f64) -> f64 {
-    let v1: f64 = v0 / 1.4142135623730951f64;
+    let mut v1: f64 = v0 / 1.4142135623730951f64;
     let v2: f64 = erfc_of_25(v1);
     let v3: f64 = 0.5f64 * v2;
     let v4: f64 = 1.0f64 - v3;
@@ -547,18 +547,18 @@ fn normal_search_23(mut v0: f64, mut v1: f64, mut v2: f64, mut v3: i32) -> f64 {
             let v8: bool = v7 < v0;
             if v8 {
                 let v9: i32 = v3.wrapping_sub(1i32);
-                (v0, v1, v2, v3) = (v0, v5, v2, v9);
+                (v1, v3) = (v5, v9);
                 continue;
             } else {
                 let v11: i32 = v3.wrapping_sub(1i32);
-                (v0, v1, v2, v3) = (v0, v1, v5, v11);
+                (v2, v3) = (v5, v11);
                 continue;
             }
         }
     }
 }
 fn normal_quantile_22(mut v0: f64) -> f64 {
-    let v1: f64 = -40.0f64;
+    let mut v1: f64 = -40.0f64;
     let v2: f64 = 40.0f64;
     let v3: i32 = 100i32;
     normal_search_23(v0, v1, v2, v3)
@@ -731,7 +731,7 @@ fn test_terms_4(mut v0: US0, mut v1: i32, mut v2: f64, mut v3: f64, mut v4: f64,
     }
 }
 fn test_of_27(mut v0: Rc<str>) -> US3 {
-    let v1: bool = &*v0 == "welch";
+    let mut v1: bool = &*v0 == "welch";
     if v1 {
         let v2: US0 = US0::US0_WelchTwoSided;
         US3::US3_TestKnown(v2)

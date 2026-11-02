@@ -28,7 +28,7 @@ fn announced_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
         let v5: bool = v4 > 0i32;
         let v9: bool = if v5 {
             let v6: i32 = v4.wrapping_sub(1i32);
-            let v7: Rc<str> = v3.clone().borrow()[v6 as usize].clone();
+            let v7: Rc<str> = v3.borrow()[v6 as usize].clone();
             let v8: bool = &*v7 == "";
             v8
         } else {
@@ -49,7 +49,7 @@ fn announced_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 let v16: bool = v15 > 0i32;
                 let v20: bool = if v16 {
                     let v17: i32 = v15.wrapping_sub(1i32);
-                    let v18: Rc<str> = v13.clone().borrow()[v17 as usize].clone();
+                    let v18: Rc<str> = v13.borrow()[v17 as usize].clone();
                     let v19: bool = &*v18 == "";
                     v19
                 } else {
@@ -67,7 +67,7 @@ fn announced_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 false
             };
             let v37: Rc<str> = if v24 {
-                let v25: Rc<str> = v13.clone().borrow()[v1 as usize].clone();
+                let v25: Rc<str> = v13.borrow()[v1 as usize].clone();
                 let v26: i32 = (v25.clone().len() as i32);
                 let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
                 let v28: bool = v25.ends_with(&*v27);
@@ -92,7 +92,7 @@ fn announced_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
             let v38: i32 = { std::io::Write::write_all(&mut std::io::stdout(),format!("spiral test blocks {}
 ",&*v37).as_bytes()).unwrap(); 0i32 };
             let v39: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v39);
+            v1 = v39;
             continue;
         } else {
             return 0i32;
@@ -213,7 +213,7 @@ fn selected_notebooks_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v
                 } else {
                     v4.clone()
                 };
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v2.clone(), v7.clone(), v22.clone());
+                (v3, v4) = (v7.clone(), v22.clone());
                 continue;
             }
             UH1::UH1_Nil => {
@@ -236,7 +236,7 @@ fn failures_of_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) -> 
         let v7: bool = v6 > 0i32;
         let v11: bool = if v7 {
             let v8: i32 = v6.wrapping_sub(1i32);
-            let v9: Rc<str> = v5.clone().borrow()[v8 as usize].clone();
+            let v9: Rc<str> = v5.borrow()[v8 as usize].clone();
             let v10: bool = &*v9 == "";
             v10
         } else {
@@ -258,7 +258,7 @@ fn failures_of_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) -> 
                 let v19: bool = v18 > 0i32;
                 let v23: bool = if v19 {
                     let v20: i32 = v18.wrapping_sub(1i32);
-                    let v21: Rc<str> = v16.clone().borrow()[v20 as usize].clone();
+                    let v21: Rc<str> = v16.borrow()[v20 as usize].clone();
                     let v22: bool = &*v21 == "";
                     v22
                 } else {
@@ -276,7 +276,7 @@ fn failures_of_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) -> 
                 false
             };
             let v40: Rc<str> = if v27 {
-                let v28: Rc<str> = v16.clone().borrow()[v1 as usize].clone();
+                let v28: Rc<str> = v16.borrow()[v1 as usize].clone();
                 let v29: i32 = (v28.clone().len() as i32);
                 let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
                 let v31: bool = v28.ends_with(&*v30);
@@ -299,7 +299,7 @@ fn failures_of_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) -> 
                 v39.clone()
             };
             let v41: Rc<UH0> = Rc::new(UH0::UH0_FailedThen(v40.clone(), v2, v3.clone()));
-            (v0, v1, v2, v3) = (v0.clone(), v15, v2, v41.clone());
+            (v1, v3) = (v15, v41.clone());
             continue;
         } else {
             return v3.clone();

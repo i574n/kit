@@ -133,7 +133,7 @@ fn first_seen_2(mut v0: Rc<UH0>, mut v1: bool, mut v2: bool, mut v3: bool, mut v
                 if v18 {
                     return v9.clone();
                 } else {
-                    (v0, v1, v2, v3, v4, v5, v6, v7) = (v10.clone(), v1, v2, v3, v4, v5, v6, v7);
+                    v0 = v10.clone();
                     continue;
                 }
             }

@@ -92,14 +92,14 @@ fn codec_u64_decimal_valid_loop_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut
                             let v30: i32 = v1 + 1i32 ;
                             let v31: u64 = v3 * 10u64 ;
                             let v32: u64 = v31 + v25 ;
-                            (v0, v1, v2, v3) = (v0.clone(), v30, v2, v32);
+                            (v1, v3) = (v30, v32);
                             continue;
                         }
                     } else {
                         let v35: i32 = v1 + 1i32 ;
                         let v36: u64 = v3 * 10u64 ;
                         let v37: u64 = v36 + v25 ;
-                        (v0, v1, v2, v3) = (v0.clone(), v35, v2, v37);
+                        (v1, v3) = (v35, v37);
                         continue;
                     }
                 }
@@ -108,8 +108,8 @@ fn codec_u64_decimal_valid_loop_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut
     }
 }
 fn codec_u64_decimal_normalize_1(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: bool = v1 == 0i32 ;
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: bool = v1 == 0i32 ;
     if v2 {
         codec_empty_2()
     } else {
@@ -124,8 +124,8 @@ fn codec_u64_decimal_normalize_1(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn state_receipt_u64_decimal_valid_0(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = codec_u64_decimal_normalize_1(v0);
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = codec_u64_decimal_normalize_1(v0);
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v3: bool = v1 == v2 ;
     if v3 {
         0u64
@@ -194,14 +194,14 @@ fn codec_u64_decimal_value_loop_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut
             let v26: i32 = v1 + 1i32 ;
             let v27: u64 = v3 * 10u64 ;
             let v28: u64 = v27 + v25 ;
-            (v0, v1, v2, v3) = (v0.clone(), v26, v2, v28);
+            (v1, v3) = (v26, v28);
             continue;
         }
     }
 }
 fn codec_u64_decimal_value_6(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = codec_u64_decimal_normalize_1(v0);
-    let v2: i32 = (v1.clone().len() as i32);
+    let mut v1: Rc<str> = codec_u64_decimal_normalize_1(v0);
+    let mut v2: i32 = (v1.clone().len() as i32);
     let v3: bool = v2 == 0i32 ;
     if v3 {
         0u64
@@ -215,8 +215,8 @@ fn state_receipt_u64_decimal_value_5(mut v0: Rc<str>) -> u64 {
     codec_u64_decimal_value_6(v0)
 }
 fn state_receipt_u32_decimal_valid_8(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = codec_u64_decimal_normalize_1(v0);
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = codec_u64_decimal_normalize_1(v0);
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v3: bool = v1 == v2 ;
     if v3 {
         0u64
@@ -242,7 +242,7 @@ fn starts_with_loop_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
             if v8 {
                 let v9: i32 = v2 + 1i32 ;
                 let v10: i32 = v3 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v9, v10, v4);
+                (v2, v3) = (v9, v10);
                 continue;
             } else {
                 return false;
@@ -251,8 +251,8 @@ fn starts_with_loop_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
     }
 }
 fn state_receipt_u32_spi_literal_decimal_10(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: bool = v1 >= 3i32;
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: bool = v1 >= 3i32;
     let v11: bool = if v2 {
         let v3: i32 = v1 - 3i32 ;
         let v4: i32 = v3 + 3i32 ;
@@ -283,11 +283,11 @@ fn state_receipt_u32_spi_literal_decimal_10(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn state_receipt_u32_spi_literal_valid_9(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = state_receipt_u32_spi_literal_decimal_10(v0);
+    let mut v1: Rc<str> = state_receipt_u32_spi_literal_decimal_10(v0);
     state_receipt_u32_decimal_valid_8(v1)
 }
 fn state_receipt_u32_spi_literal_value_12(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = state_receipt_u32_spi_literal_decimal_10(v0);
+    let mut v1: Rc<str> = state_receipt_u32_spi_literal_decimal_10(v0);
     codec_u64_decimal_value_6(v1)
 }
 fn state_receipt_dash_count_loop_14(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u64) -> u64 {
@@ -305,14 +305,14 @@ fn state_receipt_dash_count_loop_14(mut v0: Rc<str>, mut v1: i32, mut v2: i32, m
                 v3
             };
             let v9: i32 = v1 + 1i32 ;
-            (v0, v1, v2, v3) = (v0.clone(), v9, v2, v8);
+            (v1, v3) = (v9, v8);
             continue;
         }
     }
 }
 fn state_receipt_dash_shape_13(mut v0: Rc<str>) -> u64 {
-    let v1: i32 = 0i32;
-    let v2: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = 0i32;
+    let mut v2: i32 = (v0.clone().len() as i32);
     let v3: u64 = 0u64;
     let v4: u64 = state_receipt_dash_count_loop_14(v0, v1, v2, v3);
     let v5: u64 = v4 + 1u64 ;
@@ -341,14 +341,14 @@ fn find_text_loop_17(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32,
                 return v2;
             } else {
                 let v14: i32 = v2 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v14, v3, v4);
+                v2 = v14;
                 continue;
             }
         }
     }
 }
 fn codec_runtime_char_18(mut v0: Rc<str>) -> u8 {
-    let v1: u8 = v0.as_bytes()[0i32 as usize];
+    let mut v1: u8 = v0.as_bytes()[0i32 as usize];
     v1
 }
 fn find_char_loop_19(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i32 {
@@ -363,7 +363,7 @@ fn find_char_loop_19(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i
                 return v1;
             } else {
                 let v7: i32 = v1 + 1i32 ;
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+                v1 = v7;
                 continue;
             }
         }
@@ -383,13 +383,13 @@ fn state_receipt_find_last_char_loop_20(mut v0: Rc<str>, mut v1: i32, mut v2: i3
                 v4
             };
             let v9: i32 = v1 + 1i32 ;
-            (v0, v1, v2, v3, v4) = (v0.clone(), v9, v2, v3, v8);
+            (v1, v4) = (v9, v8);
             continue;
         }
     }
 }
 fn state_receipt_constructor_payload_16(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: i32 = (v0.clone().len() as i32);
+    let mut v2: i32 = (v0.clone().len() as i32);
     let v3: i32 = 0i32;
     let v4: i32 = (v1.clone().len() as i32);
     let v5: i32 = find_text_loop_17(v0.clone(), v1, v3, v2, v4);
@@ -420,7 +420,7 @@ fn state_receipt_constructor_payload_16(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<
     }
 }
 fn state_receipt_migration_denominator_payload_15(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("MigrationDenominator ("); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("MigrationDenominator ("); } LIT.with(|lit| lit.clone()) };
     state_receipt_constructor_payload_16(v0, v1)
 }
 fn state_receipt_constructor_payload_from_25(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> (Rc<str>, i32, i32) {
@@ -473,7 +473,7 @@ fn skip_spaces_loop_28(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             let v5: bool = v4 == b' ' ;
             if v5 {
                 let v6: i32 = v1 + 1i32 ;
-                (v0, v1, v2) = (v0.clone(), v6, v2);
+                v1 = v6;
                 continue;
             } else {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
@@ -481,7 +481,7 @@ fn skip_spaces_loop_28(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 let v10: bool = v4 == v9 ;
                 if v10 {
                     let v11: i32 = v1 + 1i32 ;
-                    (v0, v1, v2) = (v0.clone(), v11, v2);
+                    v1 = v11;
                     continue;
                 } else {
                     return v1;
@@ -492,7 +492,7 @@ fn skip_spaces_loop_28(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn state_receipt_trim_right_loop_29(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 == 0i32 ;
+        let mut v2: bool = v1 == 0i32 ;
         if v2 {
             return 0i32;
         } else {
@@ -500,14 +500,14 @@ fn state_receipt_trim_right_loop_29(mut v0: Rc<str>, mut v1: i32) -> i32 {
             let v4: u8 = v0.clone().as_bytes()[v3 as usize];
             let v5: bool = v4 == b' ' ;
             if v5 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                 let v8: u8 = codec_runtime_char_18(v7.clone());
                 let v9: bool = v4 == v8 ;
                 if v9 {
-                    (v0, v1) = (v0.clone(), v3);
+                    v1 = v3;
                     continue;
                 } else {
                     return v1;
@@ -517,8 +517,8 @@ fn state_receipt_trim_right_loop_29(mut v0: Rc<str>, mut v1: i32) -> i32 {
     }
 }
 fn state_receipt_trim_27(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
-    let v2: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = 0i32;
+    let mut v2: i32 = (v0.clone().len() as i32);
     let v3: i32 = skip_spaces_loop_28(v0.clone(), v1, v2);
     let v4: i32 = state_receipt_trim_right_loop_29(v0.clone(), v2);
     let v5: bool = v4 < v3;
@@ -536,8 +536,8 @@ fn state_receipt_trim_27(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn state_receipt_u32_literal_value_checked_26(mut v0: Rc<str>) -> (u64, bool) {
-    let v1: Rc<str> = state_receipt_trim_27(v0);
-    let v2: i32 = (v1.clone().len() as i32);
+    let mut v1: Rc<str> = state_receipt_trim_27(v0);
+    let mut v2: i32 = (v1.clone().len() as i32);
     let v3: bool = v2 < 4i32;
     if v3 {
         (0u64, false)
@@ -624,7 +624,7 @@ fn state_receipt_series_records_loop_24(mut v0: Rc<str>, mut v1: i32, mut v2: u6
                             return (false, v27.clone());
                         } else {
                             let v28: bool = true;
-                            (v0, v1, v2, v3, v4) = (v0.clone(), v7, v23, v28, v6.clone());
+                            (v1, v2, v3, v4) = (v7, v23, v28, v6.clone());
                             continue;
                         }
                     } else {
@@ -637,8 +637,8 @@ fn state_receipt_series_records_loop_24(mut v0: Rc<str>, mut v1: i32, mut v2: u6
     }
 }
 fn state_receipt_last_series_record_payload_23(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
-    let v2: u64 = 0u64;
+    let mut v1: i32 = 0i32;
+    let mut v2: u64 = 0u64;
     let v3: bool = false;
     let v4: Rc<str> = codec_empty_2();
     let (mut v5, mut v6): (bool, Rc<str>) = state_receipt_series_records_loop_24(v0, v1, v2, v3, v4);
@@ -649,8 +649,8 @@ fn state_receipt_last_series_record_payload_23(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn state_receipt_series_records_valid_22(mut v0: Rc<str>) -> bool {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SeriesRecord ("); } LIT.with(|lit| lit.clone()) };
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SeriesRecord ("); } LIT.with(|lit| lit.clone()) };
     let v3: i32 = 0i32;
     let v4: i32 = 14i32;
     let v5: i32 = find_text_loop_17(v0.clone(), v2, v3, v1, v4);
@@ -666,7 +666,7 @@ fn state_receipt_series_records_valid_22(mut v0: Rc<str>) -> bool {
     }
 }
 fn state_receipt_series_records_valid_u64_21(mut v0: Rc<str>) -> u64 {
-    let v1: bool = state_receipt_series_records_valid_22(v0);
+    let mut v1: bool = state_receipt_series_records_valid_22(v0);
     if v1 {
         1u64
     } else {
@@ -677,8 +677,8 @@ fn state_receipt_last_series_record_payload_export_30(mut v0: Rc<str>) -> Rc<str
     state_receipt_last_series_record_payload_23(v0)
 }
 fn state_receipt_coverage_checkpoint_kind_31(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CoverageCheckpointDurable ("); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = state_receipt_constructor_payload_16(v0.clone(), v1);
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CoverageCheckpointDurable ("); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = state_receipt_constructor_payload_16(v0.clone(), v1);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v4: bool = v2 == v3 ;
     if v4 {
@@ -695,8 +695,8 @@ fn state_receipt_coverage_checkpoint_kind_31(mut v0: Rc<str>) -> u64 {
     }
 }
 fn state_receipt_coverage_checkpoint_sha_32(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CoverageCheckpointDurable ("); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = state_receipt_constructor_payload_16(v0, v1);
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CoverageCheckpointDurable ("); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = state_receipt_constructor_payload_16(v0, v1);
     let v3: i32 = (v2.clone().len() as i32);
     let v4: bool = v3 == 0i32 ;
     if v4 {

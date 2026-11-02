@@ -40,7 +40,7 @@ fn starts_with_loop_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
             if v8 {
                 let v9: i32 = v2 + 1i32 ;
                 let v10: i32 = v3 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v9, v10, v4);
+                (v2, v3) = (v9, v10);
                 continue;
             } else {
                 return false;
@@ -49,11 +49,11 @@ fn starts_with_loop_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
     }
 }
 fn codec_runtime_char_6(mut v0: Rc<str>) -> u8 {
-    let v1: u8 = v0.as_bytes()[0i32 as usize];
+    let mut v1: u8 = v0.as_bytes()[0i32 as usize];
     v1
 }
 fn argument_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (i32, i32, i32, Rc<str>, bool) {
-    let v3: i32 = predicate_lex_domain::kit_predicate_skip(&*v0,v1);
+    let mut v3: i32 = predicate_lex_domain::kit_predicate_skip(&*v0,v1);
     let v4: bool = v3 < 0i32;
     let v7: bool = if v4 {
         true
@@ -201,7 +201,7 @@ fn function_end_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: bool) -> i3
             if v13 {
                 let v14: i32 = v2 + 1i32 ;
                 let v15: bool = true;
-                (v0, v1, v2, v3) = (v0.clone(), v5, v14, v15);
+                (v1, v2, v3) = (v5, v14, v15);
                 continue;
             } else {
                 let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
@@ -216,7 +216,7 @@ fn function_end_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: bool) -> i3
                             return -1i32;
                         } else {
                             let v21: i32 = v2 - 1i32 ;
-                            (v0, v1, v2, v3) = (v0.clone(), v5, v21, v3);
+                            (v1, v2) = (v5, v21);
                             continue;
                         }
                     }
@@ -232,7 +232,7 @@ fn function_end_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: bool) -> i3
                     if v28 {
                         return -1i32;
                     } else {
-                        (v0, v1, v2, v3) = (v0.clone(), v5, v2, v3);
+                        v1 = v5;
                         continue;
                     }
                 }
@@ -261,7 +261,7 @@ fn closure_name_9(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
                 let (mut v13, mut v14, mut v15, mut v16): (i32, i32, Rc<str>, bool) = predicate_lex_domain::kit_predicate_token(&*v0,v3);
                 return v15.clone();
             } else {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             }
         }
@@ -422,7 +422,7 @@ fn rust_loop_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                                 };
                                 let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v7.clone(), v82.clone()));
                                 let v84: i32 = v8 + 1i32 ;
-                                (v0, v1, v2, v3, v4, v5, v6, v7, v8) = (v0.clone(), v1.clone(), v2.clone(), v36, v76, v77, v36, v83.clone(), v84);
+                                (v3, v4, v5, v6, v7, v8) = (v36, v76, v77, v36, v83.clone(), v84);
                                 continue;
                             } else {
                                 return (v15.clone(), v8, false);
@@ -430,7 +430,7 @@ fn rust_loop_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                         }
                     } else {
                         let v94: bool = false;
-                        (v0, v1, v2, v3, v4, v5, v6, v7, v8) = (v0.clone(), v1.clone(), v2.clone(), v10, v4, v94, v6, v7.clone(), v8);
+                        (v3, v5) = (v10, v94);
                         continue;
                     }
                 } else {
@@ -495,7 +495,7 @@ fn rust_loop_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
                     if v128 {
                         return (v15.clone(), v8, false);
                     } else {
-                        (v0, v1, v2, v3, v4, v5, v6, v7, v8) = (v0.clone(), v1.clone(), v2.clone(), v10, v120, v127, v6, v7.clone(), v8);
+                        (v3, v4, v5) = (v10, v120, v127);
                         continue;
                     }
                 }
@@ -504,7 +504,7 @@ fn rust_loop_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, m
     }
 }
 fn wrapper_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
-    let v3: bool = &*v0 == "sha256";
+    let mut v3: bool = &*v0 == "sha256";
     let v9: US1 = if v3 {
         US1::US1_Sha256
     } else {
@@ -594,7 +594,7 @@ fn source_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32,
                                 starts_with_loop_4(v0.clone(), v40.clone(), v33, v41, v42)
                             };
                             if v44 {
-                                (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v2.clone(), v8, v4, v5.clone(), v6);
+                                v3 = v8;
                                 continue;
                             } else {
                                 let v46: i32 = 0i32;
@@ -617,7 +617,7 @@ fn source_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32,
                                     } else {
                                         let v66: bool = v61 == 0i32 ;
                                         if v66 {
-                                            (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v2.clone(), v47, v4, v5.clone(), v6);
+                                            v3 = v47;
                                             continue;
                                         } else {
                                             let v68: Rc<str> = predicate_literal_domain::kit_predicate_encode(&*v60);
@@ -633,7 +633,7 @@ fn source_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32,
                                             let v75: Rc<str> = Rc::<str>::from(format!("{}{}", v5.clone(), v74.clone()));
                                             let v76: Rc<str> = Rc::<str>::from(format!("{}{}", v75.clone(), v69.clone()));
                                             let v77: i32 = v6 + v61 ;
-                                            (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v2.clone(), v47, v49, v76.clone(), v77);
+                                            (v3, v4, v5, v6) = (v47, v49, v76.clone(), v77);
                                             continue;
                                         }
                                     }
@@ -641,7 +641,7 @@ fn source_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32,
                             }
                         }
                     } else {
-                        (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v2.clone(), v8, v4, v5.clone(), v6);
+                        v3 = v8;
                         continue;
                     }
                 }
@@ -650,7 +650,7 @@ fn source_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32,
     }
 }
 fn rewrite_result_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (bool, Rc<str>) {
-    let v3: i32 = (v1.clone().len() as i32);
+    let mut v3: i32 = (v1.clone().len() as i32);
     let v4: bool = v3 == 0i32 ;
     let v38: US0 = if v4 {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Empty function name"); } LIT.with(|lit| lit.clone()) };

@@ -37,7 +37,7 @@ fn commit_problem_1(mut v0: US0) -> Rc<str> {
             v21
         }
         US0::US0_WriteFailed(v2, v3) => {
-            let v2: Rc<str> = v2.clone();
+            let mut v2: Rc<str> = v2.clone();
             let v3: Rc<str> = v3.clone();
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write "); } LIT.with(|lit| lit.clone()) };
             let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v2));
@@ -70,7 +70,7 @@ fn renamed_within_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
@@ -85,7 +85,7 @@ fn discarded_7(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std
             let v5: Rc<str> = temporary_at_5(v0.clone(), v1.clone(), v2);
             let v6: bool = std::fs::remove_file(&*v5).is_ok() || !std::path::Path::new(&*v5).exists();
             let v7: i32 = v2.wrapping_add(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v7, v3);
+            v2 = v7;
             continue;
         }
         return ();
@@ -116,7 +116,7 @@ fn restored_8(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std:
             };
             let v16: i32 = v2.wrapping_add(1i32);
             let v17: bool = v4 && v13;
-            (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v16, v3, v17);
+            (v2, v4) = (v16, v17);
             continue;
         }
     }
@@ -134,7 +134,7 @@ fn promoted_3(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std:
             let v9: bool = renamed_within_6(v6.clone(), v7.clone(), v8);
             if v9 {
                 let v10: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v10);
+                v2 = v10;
                 continue;
             } else {
                 let v12: i32 = v0.borrow().len() as i32;
@@ -161,7 +161,7 @@ fn written_9(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::
             let v9: bool = &*v8 == "";
             if v9 {
                 let v10: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v10);
+                v2 = v10;
                 continue;
             } else {
                 let v12: i32 = 0i32;
@@ -184,7 +184,7 @@ fn unread_changes_10(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str
             let v8: bool = std::fs::read_to_string(&*v7).is_ok_and(|value| value == *v6);
             if v8 {
                 let v9: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v9);
+                v2 = v9;
                 continue;
             } else {
                 let v11: Rc<str> = v0.borrow()[v2 as usize].0.clone();
@@ -194,7 +194,7 @@ fn unread_changes_10(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str
     }
 }
 fn committed_2(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, mut v1: Rc<str>) -> US0 {
-    let v2: i32 = 0i32;
+    let mut v2: i32 = 0i32;
     let v3: US0 = written_9(v0.clone(), v1.clone(), v2);
     match &v3 {
         US0::US0_Committed => {
@@ -219,7 +219,7 @@ fn committed_2(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std
     }
 }
 fn committed_problem_0(mut v0: std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: US0 = committed_2(v0, v1);
+    let mut v2: US0 = committed_2(v0, v1);
     commit_problem_1(v2)
 }
 fn closure0() -> Rc<dyn Fn(std::rc::Rc<std::cell::RefCell<Vec<(std::rc::Rc<str>, std::rc::Rc<str>, std::rc::Rc<str>)>>>, Rc<str>) -> Rc<str>> {

@@ -5,9 +5,9 @@
 :~ argument_count () : i32 = env.command_line_argument_count () + 1i32
 :~ stdout_line (~text : string) : () = console.write_line text
 :~ stderr_line (~text : string) : () = console.write_error_line text
-:~ stdout_text (~text : string) : () = $'{ use std::io::Write; let mut out = std::io::stdout().lock(); \
-    let _ = out.write_all((!text).as_bytes()); }' : ()
+:~ stdout_text (~text : string) : () = console.write_line (? sm'.ends_with "\n" text ?> sm'.substring 0i32 ((sm'.length text : i32) - 1i32) text |: text)
 :~ count_text (value : i32) : string = (sm'.show value)
+:~ whole_spi (~table : string) : string = $'kit_table_text::kit_table_spi_of_tsv(&*!table)' : string
 
 :~ files_listed (~paths : string) (~glob : string) : string =
     $'std::rc::Rc::<str>::from({ fn wildcard(pattern: &[u8], name: &[u8]) -> bool { match (pattern.first(), \
@@ -228,7 +228,8 @@
         := _ = ? quiet ?> () |: stderr_line full
         0i32
     |:
-        := problem = text_written out table
+        := spi = sm'.ends_with ".spi" (sm'.to_lower out)
+        := problem = text_written out (? spi ?> whole_spi table |: table)
         ? problem <> "" ?> failed problem
         |:
             := _ = ? quiet ?> () |: stdout_line full
@@ -251,7 +252,7 @@
     "usage: table logs <file|dir>... [--glob *.log] [--since regex] (--count name=regex | --count-by name=regex | "
     ^^ "--sum name=regex | --last name=regex | --field name=regex-on-the-file-path)... | --values name=regex alone "
     ^^ "(one row per match; to pair a per-file id with a value, use --field for the id and --last for the value) "
-    ^^ "[--out file.tsv] [--quiet]"
+    ^^ "[--out file.tsv|file.spi] [--quiet]"
 
 :~ logs_run () : i32 =
     ?=

@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_standards_scan"
 path = "scan.rs"
+
+[dependencies]
+kit-rec-cycle = { path = "../kit_rec_cycle" }

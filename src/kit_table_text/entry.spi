@@ -1,6 +1,7 @@
 :< text
 
 := main () : i32 =
-    !!!!Export("kit_table_problem", ((\ path => table_problem path) : string -> string))
-    !!!!Export("kit_table_tsv", ((\ path => table_tsv path) : string -> string))
+    export "kit_table_problem" ((\ path => table_problem path) : string -> string)
+    export "kit_table_tsv" ((\ path => table_tsv path) : string -> string)
+    export "kit_table_spi_of_tsv" ((\ text => kit_table_rows.rows.spi_of_tsv text) : string -> string)
     0i32

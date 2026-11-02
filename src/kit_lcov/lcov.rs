@@ -48,23 +48,23 @@ enum US4 {
 }
 struct Mut0 { l0: Rc<str> }
 fn method5(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
-    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
 fn format_real_4(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method5(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
 fn hit_reading_of_3(mut v0: Rc<str>) -> US4 {
-    let v1: bool = { let parts = v0.split(char::from(44u8)).collect::<Vec<_>>(); (2..=3).contains(&parts.len()) && parts[..2].iter().all(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit())) };
+    let mut v1: bool = { let parts = v0.split(char::from(44u8)).collect::<Vec<_>>(); (2..=3).contains(&parts.len()) && parts[..2].iter().all(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit())) };
     if v1 {
-        let v2: u64 = v0.split(char::from(44u8)).next().and_then(|line| line.parse::<u32>().ok()).filter(|line| *line > 0).map(|line| line as u64).unwrap_or(0);
+        let mut v2: u64 = v0.split(char::from(44u8)).next().and_then(|line| line.parse::<u32>().ok()).filter(|line| *line > 0).map(|line| line as u64).unwrap_or(0);
         let v3: bool = v2 == 0u64;
         if v3 {
             let v4: US2 = US2::US2_InvalidHitLine;
@@ -114,7 +114,7 @@ fn method6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -124,7 +124,7 @@ fn method6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -148,7 +148,7 @@ fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -170,7 +170,7 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US0, mut v4: R
                 let v12: bool = v11 > 0i32;
                 let v16: bool = if v12 {
                     let v13: i32 = v11.wrapping_sub(1i32);
-                    let v14: Rc<str> = v9.clone().borrow()[v13 as usize].clone();
+                    let v14: Rc<str> = v9.borrow()[v13 as usize].clone();
                     let v15: bool = &*v14 == "";
                     v15
                 } else {
@@ -188,7 +188,7 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US0, mut v4: R
                 false
             };
             let mut v33: Rc<str> = if v20 {
-                let v21: Rc<str> = v9.clone().borrow()[v7 as usize].clone();
+                let v21: Rc<str> = v9.borrow()[v7 as usize].clone();
                 let v22: i32 = (v21.clone().len() as i32);
                 let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
                 let v24: bool = v21.ends_with(&*v23);
@@ -253,7 +253,7 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US0, mut v4: R
                         US0::US0_InSource(v102) => {
                             let v102: Rc<str> = v102.clone();
                             let v103: US0 = US0::US0_BetweenSources;
-                            (v0, v1, v2, v3, v4) = (v0.clone(), v6, v2, v103.clone(), v4.clone());
+                            (v1, v3) = (v6, v103.clone());
                             continue;
                         }
                     }
@@ -280,7 +280,7 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US0, mut v4: R
                                         let v91: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v8)), v88));
                                         v91.clone()
                                     };
-                                    (v0, v1, v2, v3, v4) = (v0.clone(), v6, v2, v3.clone(), v92.clone());
+                                    (v1, v4) = (v6, v92.clone());
                                     continue;
                                 }
                                 US4::US4_HitRejected(v94) => {
@@ -296,7 +296,7 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US0, mut v4: R
                     return US1::US1_LcovRejected(v107.clone());
                 }
                 US3::US3_OtherLine => {
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v6, v2, v3.clone(), v4.clone());
+                    v1 = v6;
                     continue;
                 }
                 US3::US3_SourceLine(v55) => {
@@ -325,7 +325,7 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US0, mut v4: R
                                     let v74: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v8)), v70));
                                     v74.clone()
                                 };
-                                (v0, v1, v2, v3, v4) = (v0.clone(), v6, v2, v71.clone(), v75.clone());
+                                (v1, v3, v4) = (v6, v71.clone(), v75.clone());
                                 continue;
                             }
                         }
@@ -359,14 +359,14 @@ fn lcov_from_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: US0, mut v4: R
     }
 }
 fn lcov_reading_of_1(mut v0: Rc<str>) -> US1 {
-    let v1: u64 = 0u64;
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+    let mut v1: u64 = 0u64;
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v2).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let v4: i32 = (v3.clone().borrow().len() as i32);
     let v5: bool = v4 > 0i32;
     let v9: bool = if v5 {
         let v6: i32 = v4.wrapping_sub(1i32);
-        let v7: Rc<str> = v3.clone().borrow()[v6 as usize].clone();
+        let v7: Rc<str> = v3.borrow()[v6 as usize].clone();
         let v8: bool = &*v7 == "";
         v8
     } else {
@@ -384,10 +384,10 @@ fn lcov_reading_of_1(mut v0: Rc<str>) -> US1 {
     lcov_from_2(v0.clone(), v1, v12, v13.clone(), v14.clone())
 }
 fn lcov_error_0(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US1 = lcov_reading_of_1(v0);
+    let mut v1: US1 = lcov_reading_of_1(v0);
     match &v1 {
         US1::US1_LcovRecords(v2) => {
-            let v2: Rc<str> = v2.clone();
+            let mut v2: Rc<str> = v2.clone();
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v3
         }
@@ -444,10 +444,10 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn lcov_rows_8(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US1 = lcov_reading_of_1(v0);
+    let mut v1: US1 = lcov_reading_of_1(v0);
     match &v1 {
         US1::US1_LcovRecords(v2) => {
-            let v2: Rc<str> = v2.clone();
+            let mut v2: Rc<str> = v2.clone();
             v2
         }
         US1::US1_LcovRejected(v3) => {

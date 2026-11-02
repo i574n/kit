@@ -28,7 +28,7 @@ fn method3(mut v0: Option<char>) -> Option<char> {
 }
 fn closure1() -> Rc<dyn Fn((char)) -> u32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((char)) -> u32> = Rc::new(move |mut v0: (char)| -> u32 {
-        let v1: char = (v0);
+        let mut v1: char = (v0);
         let v2: u32 = u32::from(v1);
         v2
     }); } CLOSURE.with(|closure| closure.clone())
@@ -41,7 +41,7 @@ fn bounded_at_2(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32) -> bool {
         if v4 {
             return false;
         } else {
-            let v5: Rc<str> = v0.clone().borrow()[v1 as usize].clone();
+            let v5: Rc<str> = v0.borrow()[v1 as usize].clone();
             let v6: i32 = (v5.clone().len() as i32);
             let v7: bool = v6 > 0i32;
             let v29: bool = if v7 {
@@ -92,7 +92,7 @@ fn bounded_at_2(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32) -> bool {
             };
             let v30: bool = v29 == false;
             let v56: bool = if v30 {
-                let v31: Rc<str> = v0.clone().borrow()[v3 as usize].clone();
+                let v31: Rc<str> = v0.borrow()[v3 as usize].clone();
                 let v32: i32 = (v31.clone().len() as i32);
                 let v33: bool = v32 > 0i32;
                 let v54: bool = if v33 {
@@ -148,7 +148,7 @@ fn bounded_at_2(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32) -> bool {
             if v56 {
                 return true;
             } else {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             }
         }
@@ -245,7 +245,7 @@ fn habit_in_1(mut v0: Rc<str>, mut v1: US0) -> bool {
     }
 }
 fn habit_any_0(mut v0: Rc<str>) -> bool {
-    let v1: US0 = US0::US0_GetContent;
+    let mut v1: US0 = US0::US0_GetContent;
     let v2: bool = habit_in_1(v0.clone(), v1);
     let v5: bool = if v2 {
         true
@@ -362,7 +362,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn habit_words_4(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = US0::US0_GetContent;
+    let mut v1: US0 = US0::US0_GetContent;
     let v2: bool = habit_in_1(v0.clone(), v1);
     let v9: Rc<str> = if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };

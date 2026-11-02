@@ -166,7 +166,7 @@ fn pins_from_3(mut v0: i32, mut v1: i32, mut v2: Rc<UH0>, mut v3: Rc<str>) -> (R
                 let v57: i32 = v0.wrapping_add(1i32);
                 let v58: Rc<UH0> = Rc::new(UH0::UH0_Cons(v41.clone(), v42.clone(), v2.clone()));
                 let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                (v0, v1, v2, v3) = (v57, v1, v58.clone(), v59.clone());
+                (v0, v2, v3) = (v57, v58.clone(), v59.clone());
                 continue;
             }
         }
@@ -226,7 +226,7 @@ fn found_on_path_8(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<st
         if v4 {
             return v3.clone();
         } else {
-            let v5: Rc<str> = v0.clone().borrow()[v1 as usize].clone();
+            let v5: Rc<str> = v0.borrow()[v1 as usize].clone();
             let mut v6: Rc<str> = loop_9(v5.clone());
             let v7: Rc<str> = loop_10(v6.clone());
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
@@ -243,7 +243,7 @@ fn found_on_path_8(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<st
             } else {
                 v3.clone()
             };
-            (v0, v1, v2, v3) = (v0.clone(), v11, v2.clone(), v16.clone());
+            (v1, v3) = (v11, v16.clone());
             continue;
         }
     }
@@ -264,7 +264,7 @@ fn listed_13(mut v0: Rc<UH1>, mut v1: Rc<str>) -> bool {
                 if v10 {
                     return true;
                 } else {
-                    (v0, v1) = (v3.clone(), v1.clone());
+                    v0 = v3.clone();
                     continue;
                 }
             }
@@ -379,7 +379,7 @@ fn checked_7(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH0>, mut v2: Rc<str>
                     let v53: u64 = v3.wrapping_add(1u64);
                     v53
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v6.clone(), v51.clone(), v54);
+                (v1, v2, v3) = (v6.clone(), v51.clone(), v54);
                 continue;
             }
             UH0::UH0_Nil => {

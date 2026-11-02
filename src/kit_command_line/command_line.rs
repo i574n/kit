@@ -29,7 +29,7 @@ fn word_end_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             return v1;
         } else {
             let v7: i32 = v1.wrapping_add(1i32);
-            (v0, v1, v2) = (v0.clone(), v7, v2);
+            v1 = v7;
             continue;
         }
     }
@@ -48,7 +48,7 @@ fn words_scanned_1(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
             let v5: bool = v3 == 32i32;
             if v5 {
                 let mut v6: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v6, v2.clone());
+                v1 = v6;
                 continue;
             } else {
                 let v8: bool = v3 == 34i32;
@@ -60,7 +60,7 @@ fn words_scanned_1(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
                     let v13: Rc<str> = text_between_4(v0.clone(), v9, v11);
                     let v14: US0 = US0::US0_Quoted(v13.clone());
                     let v15: Rc<UH0> = Rc::new(UH0::UH0_WordThen(v14.clone(), v2.clone()));
-                    (v0, v1, v2) = (v0.clone(), v12, v15.clone());
+                    (v1, v2) = (v12, v15.clone());
                     continue;
                 } else {
                     let v17: i32 = 32i32;
@@ -68,7 +68,7 @@ fn words_scanned_1(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
                     let v19: Rc<str> = text_between_4(v0.clone(), v1, v18);
                     let v20: US0 = US0::US0_Bare(v19.clone());
                     let v21: Rc<UH0> = Rc::new(UH0::UH0_WordThen(v20.clone(), v2.clone()));
-                    (v0, v1, v2) = (v0.clone(), v18, v21.clone());
+                    (v1, v2) = (v18, v21.clone());
                     continue;
                 }
             }
@@ -95,7 +95,7 @@ fn closure1() -> Rc<dyn Fn(US0) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(US0) -> Rc<str>> = Rc::new(move |mut v0: US0| -> Rc<str> {
         match &v0 {
             US0::US0_Bare(v1) => {
-                let v1: Rc<str> = v1.clone();
+                let mut v1: Rc<str> = v1.clone();
                 v1.clone()
             }
             US0::US0_Quoted(v2) => {
@@ -125,7 +125,7 @@ fn words_joined_7(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<dyn Fn(US0) -> Rc
                     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v9));
                     v10.clone()
                 };
-                (v0, v1, v2, v3) = (v5.clone(), v1.clone(), v2.clone(), v11.clone());
+                (v0, v3) = (v5.clone(), v11.clone());
                 continue;
             }
         }
@@ -138,7 +138,7 @@ fn any_letter_of_10(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
 fn word_needs_shell_9(mut v0: US0) -> bool {
     match &v0 {
         US0::US0_Bare(v1) => {
-            let v1: Rc<str> = v1.clone();
+            let mut v1: Rc<str> = v1.clone();
             let mut v2: bool = cfg!(windows);
             let v5: Rc<str> = if v2 {
                 let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|&<>^%()\n"); } LIT.with(|lit| lit.clone()) };
@@ -167,7 +167,7 @@ fn syntax_word_8(mut v0: Rc<UH0>) -> Rc<str> {
     loop {
         match &*v0 {
             UH0::UH0_NoMoreWords => {
-                let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 return v1.clone();
             }
             UH0::UH0_WordThen(v2, v3) => {
@@ -198,19 +198,19 @@ fn named_in_11(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     v2
 }
 fn names_dir_12(mut v0: Rc<str>) -> bool {
-    let v1: bool = (v0).contains(char::from(47u8)) || (v0).contains(char::from(92u8));
+    let mut v1: bool = (v0).contains(char::from(47u8)) || (v0).contains(char::from(92u8));
     v1
 }
 fn path_entries_13(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).map(|dir| dir.to_string_lossy().into_owned()).collect::<Vec<_>>().join(&*v0));
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).map(|dir| dir.to_string_lossy().into_owned()).collect::<Vec<_>>().join(&*v0));
     v1.clone()
 }
 fn has_extension_14(mut v0: Rc<str>) -> bool {
-    let v1: bool = std::path::Path::new(&*v0).extension().is_some();
+    let mut v1: bool = std::path::Path::new(&*v0).extension().is_some();
     v1
 }
 fn get_environment_variable_16(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = Rc::<str>::from(std::env::var(&*v0).unwrap_or_default());
+    let mut v1: Rc<str> = Rc::<str>::from(std::env::var(&*v0).unwrap_or_default());
     v1
 }
 fn pathext_15() -> Rc<str> {
@@ -218,7 +218,7 @@ fn pathext_15() -> Rc<str> {
     get_environment_variable_16(v0)
 }
 fn first_line_18(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).split(char::from(10u8)).next().unwrap_or(""));
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).split(char::from(10u8)).next().unwrap_or(""));
     v1
 }
 fn path_joined_20(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
@@ -233,7 +233,7 @@ fn is_file_21(mut v0: Rc<str>) -> bool {
     v8
 }
 fn rest_lines_22(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).split_once(char::from(10u8)).map(|(_, rest)| rest).unwrap_or(""));
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).split_once(char::from(10u8)).map(|(_, rest)| rest).unwrap_or(""));
     v1.clone()
 }
 fn candidate_in_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
@@ -251,7 +251,7 @@ fn candidate_in_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str>
                 return v8.clone();
             } else {
                 let v9: Rc<str> = rest_lines_22(v2.clone());
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v9.clone());
+                v2 = v9.clone();
                 continue;
             }
         }
@@ -277,21 +277,21 @@ fn program_in_17(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
                 return v9.clone();
             } else {
                 let v11: Rc<str> = rest_lines_22(v0.clone());
-                (v0, v1, v2) = (v11.clone(), v1.clone(), v2.clone());
+                v0 = v11.clone();
                 continue;
             }
         }
     }
 }
 fn lowered_23(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = Rc::<str>::from(v0.to_lowercase());
+    let mut v1: Rc<str> = Rc::<str>::from(v0.to_lowercase());
     v1
 }
 fn closure2() -> Rc<dyn Fn(US0) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(US0) -> Rc<str>> = Rc::new(move |mut v0: US0| -> Rc<str> {
         match &v0 {
             US0::US0_Bare(v1) => {
-                let v1: Rc<str> = v1.clone();
+                let mut v1: Rc<str> = v1.clone();
                 v1.clone()
             }
             US0::US0_Quoted(v2) => {

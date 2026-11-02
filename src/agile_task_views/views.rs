@@ -49,8 +49,8 @@ enum US6 {
     US6_CommandUnknown,
 }
 fn views_loaded_3(mut v0: Rc<str>) -> (bool, Rc<str>) {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/views.spi"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/views.spi"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v2)), v2));
     let v7: bool = std::path::Path::new(&*v6).is_file();
     let v10: US0 = if v7 {
@@ -77,7 +77,11 @@ fn views_loaded_3(mut v0: Rc<str>) -> (bool, Rc<str>) {
     };
     (v16, v17)
 }
-fn declared_from_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
+fn concat5_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
+fn declared_from_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
     loop {
         let v3: i32 = v0.get(v2 as usize..).and_then(|rest| rest.find(&*v1)).map(|found| (found + v2 as usize) as i32).unwrap_or(-1);
         let v4: bool = v3 < 0i32;
@@ -92,13 +96,13 @@ fn declared_from_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                 return v3;
             } else {
                 let v9: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v9);
+                v2 = v9;
                 continue;
             }
         }
     }
 }
-fn renamed_within_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
+fn renamed_within_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
     loop {
         let v3: bool = std::fs::rename(&*v1, &*v0).is_ok();
         if v3 {
@@ -110,13 +114,13 @@ fn renamed_within_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
     }
 }
-fn views_written_5(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<str>) -> US1 {
+fn views_written_6(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<str>) -> US1 {
     let v7: bool = if v1 {
         let v4: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
         v4
@@ -131,7 +135,7 @@ fn views_written_5(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<st
         let v10: bool = std::fs::write(&*v9, &*v3).is_ok();
         let v23: US2 = if v10 {
             let v11: i32 = 40i32;
-            let v12: bool = renamed_within_6(v0.clone(), v9.clone(), v11);
+            let v12: bool = renamed_within_7(v0.clone(), v9.clone(), v11);
             if v12 {
                 let v13: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v3);
                 if v13 {
@@ -185,9 +189,9 @@ fn views_written_5(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<st
         US1::US1_StateChangedSinceRead
     }
 }
-fn views_module_registered_7(mut v0: Rc<str>) -> US1 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/package.spiproj"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+fn views_module_registered_8(mut v0: Rc<str>) -> US1 {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/package.spiproj"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v2)), v2));
     let v7: bool = std::path::Path::new(&*v6).is_file();
     let v10: US0 = if v7 {
@@ -227,7 +231,7 @@ fn views_module_registered_7(mut v0: Rc<str>) -> US1 {
                     let v35: bool = std::fs::write(&*v34, &*v32).is_ok();
                     let v48: US2 = if v35 {
                         let v36: i32 = 40i32;
-                        let v37: bool = renamed_within_6(v6.clone(), v34.clone(), v36);
+                        let v37: bool = renamed_within_7(v6.clone(), v34.clone(), v36);
                         if v37 {
                             let v38: bool = std::fs::read_to_string(&*v6).is_ok_and(|value| value == *v32);
                             if v38 {
@@ -304,11 +308,11 @@ fn view_stored_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
     let v21: Rc<str> = Rc::<str>::from(v18.replace(&*v19, &*v20));
     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v23: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v21, &*v7, &*v22, &*v22].concat());
+    let v23: Rc<str> = concat5_4(v7.clone(), v21.clone(), v7.clone(), v22.clone(), v22.clone());
     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v28: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v23)), v24)), v22)), v22));
     let v29: i32 = 0i32;
-    let v30: i32 = declared_from_4(v5.clone(), v28.clone(), v29);
+    let v30: i32 = declared_from_5(v5.clone(), v28.clone(), v29);
     let v31: bool = v30 < 0i32;
     let v32: bool = v31 == false;
     let v130: Rc<str> = if v32 {
@@ -324,7 +328,7 @@ fn view_stored_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
         let v45: Rc<str> = Rc::<str>::from(v44.replace(&*v13, &*v14));
         let v46: Rc<str> = Rc::<str>::from(v45.replace(&*v16, &*v17));
         let v47: Rc<str> = Rc::<str>::from(v46.replace(&*v19, &*v20));
-        let v48: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v47, &*v7, &*v22, &*v22].concat());
+        let v48: Rc<str> = concat5_4(v7.clone(), v47.clone(), v7.clone(), v22.clone(), v22.clone());
         let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
         let v53: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v33, v41)), v42)), v48)), v49));
         let v54: Rc<str> = Rc::<str>::from(v2.replace(&*v8, &*v9));
@@ -332,13 +336,13 @@ fn view_stored_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
         let v56: Rc<str> = Rc::<str>::from(v55.replace(&*v13, &*v14));
         let v57: Rc<str> = Rc::<str>::from(v56.replace(&*v16, &*v17));
         let v58: Rc<str> = Rc::<str>::from(v57.replace(&*v19, &*v20));
-        let v59: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v58, &*v7, &*v22, &*v22].concat());
+        let v59: Rc<str> = concat5_4(v7.clone(), v58.clone(), v7.clone(), v22.clone(), v22.clone());
         let v60: Rc<str> = Rc::<str>::from(v3.replace(&*v8, &*v9));
         let v61: Rc<str> = Rc::<str>::from(v60.replace(&*v7, &*v11));
         let v62: Rc<str> = Rc::<str>::from(v61.replace(&*v13, &*v14));
         let v63: Rc<str> = Rc::<str>::from(v62.replace(&*v16, &*v17));
         let v64: Rc<str> = Rc::<str>::from(v63.replace(&*v19, &*v20));
-        let v65: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v64, &*v7, &*v22, &*v22].concat());
+        let v65: Rc<str> = concat5_4(v7.clone(), v64.clone(), v7.clone(), v22.clone(), v22.clone());
         let v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
         let v70: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v53, v59)), v49)), v65)), v66));
         let v71: i32 = v5.get(..v30 as usize).and_then(|head| head.rfind(char::from(10u8))).map(|newline| newline as i32 + 1).unwrap_or(0);
@@ -368,7 +372,7 @@ fn view_stored_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
         let v95: Rc<str> = Rc::<str>::from(v94.replace(&*v13, &*v14));
         let v96: Rc<str> = Rc::<str>::from(v95.replace(&*v16, &*v17));
         let v97: Rc<str> = Rc::<str>::from(v96.replace(&*v19, &*v20));
-        let v98: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v97, &*v7, &*v22, &*v22].concat());
+        let v98: Rc<str> = concat5_4(v7.clone(), v97.clone(), v7.clone(), v22.clone(), v22.clone());
         let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
         let v103: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v83, v91)), v92)), v98)), v99));
         let v104: Rc<str> = Rc::<str>::from(v2.replace(&*v8, &*v9));
@@ -376,13 +380,13 @@ fn view_stored_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
         let v106: Rc<str> = Rc::<str>::from(v105.replace(&*v13, &*v14));
         let v107: Rc<str> = Rc::<str>::from(v106.replace(&*v16, &*v17));
         let v108: Rc<str> = Rc::<str>::from(v107.replace(&*v19, &*v20));
-        let v109: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v108, &*v7, &*v22, &*v22].concat());
+        let v109: Rc<str> = concat5_4(v7.clone(), v108.clone(), v7.clone(), v22.clone(), v22.clone());
         let v110: Rc<str> = Rc::<str>::from(v3.replace(&*v8, &*v9));
         let v111: Rc<str> = Rc::<str>::from(v110.replace(&*v7, &*v11));
         let v112: Rc<str> = Rc::<str>::from(v111.replace(&*v13, &*v14));
         let v113: Rc<str> = Rc::<str>::from(v112.replace(&*v16, &*v17));
         let v114: Rc<str> = Rc::<str>::from(v113.replace(&*v19, &*v20));
-        let v115: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v114, &*v7, &*v22, &*v22].concat());
+        let v115: Rc<str> = concat5_4(v7.clone(), v114.clone(), v7.clone(), v22.clone(), v22.clone());
         let v116: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
         let v120: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v103, v109)), v99)), v115)), v116));
         let v121: bool = &*v5 == "";
@@ -403,10 +407,10 @@ fn view_stored_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
     };
     let v131: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/views.spi"); } LIT.with(|lit| lit.clone()) };
     let v135: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v131)), v22)), v22)), v22));
-    let v136: US1 = views_written_5(v135.clone(), v4, v5.clone(), v130.clone());
+    let v136: US1 = views_written_6(v135.clone(), v4, v5.clone(), v130.clone());
     let v138: US1 = match &v136 {
         US1::US1_StateWritten => {
-            views_module_registered_7(v0.clone())
+            views_module_registered_8(v0.clone())
         }
         _ => {
             v136.clone()
@@ -454,8 +458,8 @@ fn view_stored_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
 }
 fn view_add_run_1() -> i32 {
     let v0: i32 = 1i32;
-    let v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-    let v2: i32 = 2i32;
+    let mut v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+    let mut v2: i32 = 2i32;
     let v3: Rc<str> = usize::try_from(v2).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
     let v4: bool = !(v3).is_empty() && (v3).bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == 45u8);
     if v4 {
@@ -515,7 +519,7 @@ fn view_add_run_1() -> i32 {
         v38
     }
 }
-fn field_end_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US5) -> i32 {
+fn field_end_12(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US5) -> i32 {
     loop {
         let v4: bool = v2 <= v1;
         if v4 {
@@ -566,49 +570,48 @@ fn field_end_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US5) -> i32 {
                         }
                     }
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v10, v2, v25.clone());
+                (v1, v3) = (v10, v25.clone());
                 continue;
             }
         }
     }
 }
-fn skip_spaces_12(mut v0: Rc<str>, mut v1: i32) -> i32 {
+fn skip_spaces_13(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
+        let mut v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
         let v3: bool = v2 == 32i32;
         if v3 {
             let v4: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v4);
+            v1 = v4;
             continue;
         } else {
             return v1;
         }
     }
 }
-fn field_start_10(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
+fn field_start_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
     loop {
         let v4: bool = v3 == 0i32;
         if v4 {
             return v1;
         } else {
             let v5: US5 = US5::US5_ScanPlain;
-            let v6: i32 = field_end_11(v0.clone(), v1, v2, v5.clone());
+            let v6: i32 = field_end_12(v0.clone(), v1, v2, v5.clone());
             let v7: i32 = v6.wrapping_add(1i32);
-            let v8: i32 = skip_spaces_12(v0.clone(), v7);
+            let v8: i32 = skip_spaces_13(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v8, v2, v9);
+            (v1, v3) = (v8, v9);
             continue;
         }
     }
 }
-fn unescaped_from_14(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: Rc<str>) -> Rc<str> {
+fn unescaped_from_15(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: Rc<str>) -> Rc<str> {
     loop {
         let v5: bool = v3 <= v1;
         if v5 {
             let v6: Rc<str> = std::rc::Rc::<str>::from(v0.get(v2 as usize..v3 as usize).unwrap_or(""));
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v8: Rc<str> = std::rc::Rc::<str>::from([&*v4, &*v6, &*v7, &*v7, &*v7].concat());
-            return v8.clone();
+            return concat5_4(v4.clone(), v6.clone(), v7.clone(), v7.clone(), v7.clone());
         } else {
             let v9: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
             let v10: bool = v9 == 92i32;
@@ -638,54 +641,54 @@ fn unescaped_from_14(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut
                     }
                 };
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v26: Rc<str> = std::rc::Rc::<str>::from([&*v4, &*v13, &*v24, &*v25, &*v25].concat());
-                (v0, v1, v2, v3, v4) = (v0.clone(), v12, v12, v3, v26.clone());
+                let v26: Rc<str> = concat5_4(v4.clone(), v13.clone(), v24.clone(), v25.clone(), v25.clone());
+                (v1, v2, v4) = (v12, v12, v26.clone());
                 continue;
             } else {
                 let v28: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4) = (v0.clone(), v28, v2, v3, v4.clone());
+                v1 = v28;
                 continue;
             }
         }
     }
 }
-fn unquoted_13(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: i32 = v1.wrapping_sub(1i32);
+fn unquoted_14(mut v0: Rc<str>) -> Rc<str> {
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
     let v3: Rc<str> = std::rc::Rc::<str>::from(v0.get(1i32 as usize..v2 as usize).unwrap_or(""));
     let v4: i32 = 0i32;
     let v5: i32 = 0i32;
     let v6: i32 = (v3.clone().len() as i32);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    unescaped_from_14(v3, v4, v5, v6, v7)
+    unescaped_from_15(v3, v4, v5, v6, v7)
 }
-fn view_at_9(mut v0: Rc<str>, mut v1: i32) -> (Rc<str>, Rc<str>, Rc<str>) {
-    let v2: i32 = v1.wrapping_add(6i32);
+fn view_at_10(mut v0: Rc<str>, mut v1: i32) -> (Rc<str>, Rc<str>, Rc<str>) {
+    let mut v2: i32 = v1.wrapping_add(6i32);
     let v3: i32 = (v0.clone().len() as i32);
     let v4: i32 = 0i32;
-    let v5: i32 = field_start_10(v0.clone(), v2, v3, v4);
+    let v5: i32 = field_start_11(v0.clone(), v2, v3, v4);
     let v6: US5 = US5::US5_ScanPlain;
-    let v7: i32 = field_end_11(v0.clone(), v5, v3, v6);
+    let v7: i32 = field_end_12(v0.clone(), v5, v3, v6);
     let v8: Rc<str> = std::rc::Rc::<str>::from(v0.get(v5 as usize..v7 as usize).unwrap_or(""));
-    let v9: Rc<str> = unquoted_13(v8);
+    let v9: Rc<str> = unquoted_14(v8);
     let v10: i32 = 1i32;
-    let v11: i32 = field_start_10(v0.clone(), v2, v3, v10);
+    let v11: i32 = field_start_11(v0.clone(), v2, v3, v10);
     let v12: US5 = US5::US5_ScanPlain;
-    let v13: i32 = field_end_11(v0.clone(), v11, v3, v12);
+    let v13: i32 = field_end_12(v0.clone(), v11, v3, v12);
     let v14: Rc<str> = std::rc::Rc::<str>::from(v0.get(v11 as usize..v13 as usize).unwrap_or(""));
-    let v15: Rc<str> = unquoted_13(v14);
+    let v15: Rc<str> = unquoted_14(v14);
     let v16: i32 = 2i32;
-    let v17: i32 = field_start_10(v0.clone(), v2, v3, v16);
+    let v17: i32 = field_start_11(v0.clone(), v2, v3, v16);
     let v18: US5 = US5::US5_ScanPlain;
-    let v19: i32 = field_end_11(v0.clone(), v17, v3, v18);
+    let v19: i32 = field_end_12(v0.clone(), v17, v3, v18);
     let v20: Rc<str> = std::rc::Rc::<str>::from(v0.get(v17 as usize..v19 as usize).unwrap_or(""));
-    let v21: Rc<str> = unquoted_13(v20);
+    let v21: Rc<str> = unquoted_14(v20);
     (v9, v15, v21)
 }
-fn view_run_8() -> i32 {
+fn view_run_9() -> i32 {
     let v0: i32 = 1i32;
-    let v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-    let v2: i32 = 2i32;
+    let mut v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+    let mut v2: i32 = 2i32;
     let v3: Rc<str> = usize::try_from(v2).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
     let v4: bool = &*v3 == "";
     if v4 {
@@ -712,11 +715,11 @@ fn view_run_8() -> i32 {
         let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
         let v24: Rc<str> = Rc::<str>::from(v21.replace(&*v22, &*v23));
         let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v26: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v24, &*v10, &*v25, &*v25].concat());
+        let v26: Rc<str> = concat5_4(v10.clone(), v24.clone(), v10.clone(), v25.clone(), v25.clone());
         let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
         let v31: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v9, v26)), v27)), v25)), v25));
         let v32: i32 = 0i32;
-        let v33: i32 = declared_from_4(v8.clone(), v31.clone(), v32);
+        let v33: i32 = declared_from_5(v8.clone(), v31.clone(), v32);
         let v34: bool = v33 < 0i32;
         if v34 {
             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile view: no view named "); } LIT.with(|lit| lit.clone()) };
@@ -729,42 +732,42 @@ fn view_run_8() -> i32 {
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
             v47
         } else {
-            let (mut v48, mut v49, mut v50): (Rc<str>, Rc<str>, Rc<str>) = view_at_9(v8.clone(), v33);
+            let (mut v48, mut v49, mut v50): (Rc<str>, Rc<str>, Rc<str>) = view_at_10(v8.clone(), v33);
             let v51: i32 = { let extra = std::env::args().skip(5i32 as usize).collect::<Vec<_>>(); match std::env::current_exe().and_then(|exe| std::process::Command::new(exe).arg("agile").arg(&*v49).arg(&*v1).args((v50).split_whitespace()).args(&extra).status()) { Ok(status) => status.code().unwrap_or(1), Err(error) => { eprintln!("kit error: agile view could not start: {}", error); 2 } } };
             v51
         }
     }
 }
-fn views_listed_16(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
+fn views_listed_17(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("View ("); } LIT.with(|lit| lit.clone()) };
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v9: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v3, v4)), v5)), v5)), v5));
-        let v10: i32 = declared_from_4(v0.clone(), v9.clone(), v1);
+        let v10: i32 = declared_from_5(v0.clone(), v9.clone(), v1);
         let v11: bool = v10 < 0i32;
         if v11 {
             return v2;
         } else {
-            let (mut v12, mut v13, mut v14): (Rc<str>, Rc<str>, Rc<str>) = view_at_9(v0.clone(), v10);
+            let (mut v12, mut v13, mut v14): (Rc<str>, Rc<str>, Rc<str>) = view_at_10(v0.clone(), v10);
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
             let v19: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v15)), v13)), v15)), v14));
             let v20: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v19.to_string() + "
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
             let v21: i32 = v10.wrapping_add(1i32);
             let v22: i32 = v2.wrapping_add(1i32);
-            (v0, v1, v2) = (v0.clone(), v21, v22);
+            (v1, v2) = (v21, v22);
             continue;
         }
     }
 }
-fn views_run_15() -> i32 {
+fn views_run_16() -> i32 {
     let v0: i32 = 1i32;
-    let v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+    let mut v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
     let (mut v2, mut v3): (bool, Rc<str>) = views_loaded_3(v1.clone());
     let v4: i32 = 0i32;
     let v5: i32 = 0i32;
-    let v6: i32 = views_listed_16(v3.clone(), v4, v5);
+    let v6: i32 = views_listed_17(v3.clone(), v4, v5);
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile views ok views="); } LIT.with(|lit| lit.clone()) };
     let v8: Rc<str> = std::rc::Rc::<str>::from((v6).to_string().as_str());
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" path="); } LIT.with(|lit| lit.clone()) };
@@ -778,8 +781,8 @@ fn views_run_15() -> i32 {
 }
 fn views_entry_0() -> i32 {
     let v0: i32 = 0i32;
-    let v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-    let v2: bool = "views" == &*v1;
+    let mut v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+    let mut v2: bool = "views" == &*v1;
     let v14: US6 = if v2 {
         let v3: US7 = US7::US7_ViewsCommand;
         US6::US6_CommandRead(v3.clone())
@@ -806,10 +809,10 @@ fn views_entry_0() -> i32 {
                     view_add_run_1()
                 }
                 US7::US7_ViewCommand => {
-                    view_run_8()
+                    view_run_9()
                 }
                 US7::US7_ViewsCommand => {
-                    views_run_15()
+                    views_run_16()
                 }
             }
         }

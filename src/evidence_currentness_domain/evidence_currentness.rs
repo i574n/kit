@@ -428,7 +428,7 @@ fn loop_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
             };
             if v15 {
                 let v16: u64 = v2.wrapping_add(1u64);
-                (v0, v1, v2) = (v0.clone(), v1, v16);
+                v2 = v16;
                 continue;
             } else {
                 return false;
@@ -438,7 +438,7 @@ fn loop_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
 }
 fn check_0(mut v0: Rc<str>) -> bool {
     let v1: u64 = (v0.clone().len() as u64);
-    let v2: bool = v1 < 64u64;
+    let mut v2: bool = v1 < 64u64;
     let v4: bool = if v2 {
         false
     } else {
@@ -458,7 +458,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn evidence_row_stage_2(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 == 1i32;
+    let mut v2: bool = v0 == 1i32;
     let v3: bool = v1 == 1i32;
     let (mut v4, mut v5): (bool, i32) = if v2 {
         (true, 1i32)
@@ -484,7 +484,7 @@ fn closure1() -> Rc<dyn Fn(i32, i32) -> i32> {
 fn rust_tool_environment_binding_3(mut v0: Rc<str>) -> Rc<str> {
     let v1: bool = &*v0 == "rustfmt";
     let v4: Rc<str> = if v1 {
-        let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTFMT"); } LIT.with(|lit| lit.clone()) };
+        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTFMT"); } LIT.with(|lit| lit.clone()) };
         v2
     } else {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -518,7 +518,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn evidence_public_binary_binding_4(mut v0: i32, mut v1: i32) -> Rc<str> {
-    let v2: bool = v0 == 1i32;
+    let mut v2: bool = v0 == 1i32;
     let v4: bool = if v2 {
         let v3: bool = v1 == 0i32;
         v3

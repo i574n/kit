@@ -24,16 +24,17 @@
     | StringConcat :: probe drift
     | TopLevelMacro :: probe drift
     | RcWrap :: probe drift
-    | LetBlock :: probe drift
     | StdStringUse :: probe drift
     | BangExport :: probe drift
     | HostBlock :: probe drift
+    | HostStatement :: probe drift
 
 :! any_probe = \? side. probe side
 
 :| direction =
     | MayNotFall
     | MayNotRise
+    | NeverRises
     | Unranked
 
 := direction_of \* side. (which : probe side) : direction =
@@ -53,10 +54,10 @@
     | StringConcat => MayNotRise
     | TopLevelMacro => MayNotRise
     | RcWrap => MayNotRise
-    | LetBlock => MayNotRise
     | StdStringUse => MayNotRise
     | BangExport => MayNotRise
-    | HostBlock => MayNotRise
+    | HostBlock => NeverRises
+    | HostStatement => NeverRises
 
 := probe_word \* side. (which : probe side) : string =
     ?= which ?|
@@ -75,10 +76,10 @@
     | StringConcat => "string-concat"
     | TopLevelMacro => "top-level-macro"
     | RcWrap => "rc-wrap"
-    | LetBlock => "let-block"
     | StdStringUse => "std-string-use"
     | BangExport => "bang-export"
     | HostBlock => "host-block"
+    | HostStatement => "host-statement"
 
 := probe_pattern \* side. (which : probe side) : string =
     ?= which ?|
@@ -97,10 +98,10 @@
     | StringConcat => "\\bconcat5\\b"
     | TopLevelMacro => "^\\S.*(\\$'|\\$\\x22)"
     | RcWrap => "Rc::<str>::from"
-    | LetBlock => "\\$'\\{"
     | StdStringUse => "rust_std_string\\."
     | BangExport => "!!!!Export\\("
     | HostBlock => "\\$'[^']*$"
+    | HostStatement => "\\x24'[^']*(;|$)"
 
 := each_probe \* state. (step : state -> any_probe -> state) (initial : state) : state =
     := s = step initial (any_probe (\? GadtCase))
@@ -118,10 +119,10 @@
     := s = step s (any_probe (\? StringConcat))
     := s = step s (any_probe (\? TopLevelMacro))
     := s = step s (any_probe (\? RcWrap))
-    := s = step s (any_probe (\? LetBlock))
     := s = step s (any_probe (\? StdStringUse))
     := s = step s (any_probe (\? BangExport))
-    step s (any_probe (\? HostBlock))
+    := s = step s (any_probe (\? HostBlock))
+    step s (any_probe (\? HostStatement))
 
 := any_word (any_probe p : any_probe) : string =
     := \? side. which = p
@@ -141,6 +142,7 @@
     ?= way ?|
     | MayNotRise => rate > base * 1.05f64 + 0.5f64 && now > before
     | MayNotFall => rate < base * 0.95f64 - 0.5f64 && before - now > before_lines - now_lines
+    | NeverRises => now > before
     | Unranked => !-
 
 := guards_falls (way : direction) : bool =
@@ -157,8 +159,8 @@
             words
             = (
                 "gadt-case existential forall indexed-union prototype type-decl host-macro wide-host-macro "
-                ^^ "rust-global encoded-row pipe-table number-arm string-concat top-level-macro rc-wrap let-block "
-                ^^ "std-string-use bang-export host-block"
+                ^^ "rust-global encoded-row pipe-table number-arm string-concat top-level-macro rc-wrap "
+                ^^ "std-string-use bang-export host-block host-statement"
             )
         )
         words
@@ -175,6 +177,9 @@
         (regressed MayNotFall 11i32 179i32 0i32 175i32)
         "rewriting features into plain code at the same size is a regression"
     testing.expect (regressed Unranked 1i32 1000i32 99i32 1000i32 = !-) "type declarations are only counted"
+    testing.expect (regressed NeverRises 550i32 90000i32 551i32 99000i32) "one more multi-line host string fails even in a grown package"
+    testing.expect (regressed NeverRises 550i32 90000i32 549i32 80000i32 = !-) "healing one is never a regression"
+    testing.expect (direction_of HostStatement = NeverRises && direction_of HostBlock = NeverRises) "host blocks and statements never rise"
     testing.expect (regressed MayNotRise 7i32 269i32 7i32 247i32 = !-) "fewer lines with the same count is not a regression"
     testing.expect
         (starts_with (any_pattern (any_probe (\? TopLevelMacro))) "^\\S")

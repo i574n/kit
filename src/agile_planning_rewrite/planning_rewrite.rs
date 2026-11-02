@@ -24,8 +24,8 @@ enum US3 {
     US3_Invalid,
 }
 fn planning_schema_ensured_2(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("union task_planning ="); } LIT.with(|lit| lit.clone()) };
-    let v2: i32 = v0.find(&*v1).map(|offset| offset as i32).unwrap_or(-1);
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("union task_planning ="); } LIT.with(|lit| lit.clone()) };
+    let mut v2: i32 = v0.find(&*v1).map(|offset| offset as i32).unwrap_or(-1);
     let v3: bool = v2 < 0i32;
     if v3 {
         let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-> agile_item"); } LIT.with(|lit| lit.clone()) };
@@ -97,7 +97,7 @@ fn declared_from_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                 return v3;
             } else {
                 let v9: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v9);
+                v2 = v9;
                 continue;
             }
         }
@@ -154,7 +154,7 @@ fn field_end_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
                         }
                     }
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v10, v2, v25.clone());
+                (v1, v3) = (v10, v25.clone());
                 continue;
             }
         }
@@ -162,11 +162,11 @@ fn field_end_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
 }
 fn skip_spaces_7(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
+        let mut v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
         let v3: bool = v2 == 32i32;
         if v3 {
             let mut v4: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v4);
+            v1 = v4;
             continue;
         } else {
             return v1;
@@ -184,13 +184,13 @@ fn field_start_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 
             let v7: i32 = v6.wrapping_add(1i32);
             let v8: i32 = skip_spaces_7(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v8, v2, v9);
+            (v1, v3) = (v8, v9);
             continue;
         }
     }
 }
 fn planning_tokens_of_3(mut v0: Rc<str>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>) {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
@@ -224,6 +224,10 @@ fn planning_tokens_of_3(mut v0: Rc<str>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>, 
     };
     (v29, v30, v31)
 }
+fn concat5_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
 fn planning_row_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> Rc<str> {
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
@@ -251,7 +255,7 @@ fn planning_row_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<
     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
     let v28: Rc<str> = Rc::<str>::from(v25.replace(&*v26, &*v27));
     let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v30: Rc<str> = std::rc::Rc::<str>::from([&*v14, &*v28, &*v14, &*v29, &*v29].concat());
+    let v30: Rc<str> = concat5_10(v14.clone(), v28, v14, v29.clone(), v29);
     let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v30));
     let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
     let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));

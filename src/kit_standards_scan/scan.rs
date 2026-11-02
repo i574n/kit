@@ -147,7 +147,7 @@ fn declared_from_2(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
                 }
                 _ => {
                     let v9: Rc<str> = std::rc::Rc::<str>::from((v0).split_once(char::from(10u8)).map(|(_, rest)| rest).unwrap_or(""));
-                    (v0, v1) = (v9.clone(), v1.clone());
+                    v0 = v9.clone();
                     continue;
                 }
             }
@@ -188,9 +188,9 @@ fn outside_quotes_9(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<s
             let v5: i32 = v1.wrapping_add(2i32);
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
             let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v6));
-            let v8: Rc<str> = v0.clone().borrow()[v1 as usize].clone();
+            let v8: Rc<str> = v0.borrow()[v1 as usize].clone();
             let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-            (v0, v1, v2) = (v0.clone(), v5, v9.clone());
+            (v1, v2) = (v5, v9.clone());
             continue;
         }
     }
@@ -491,7 +491,7 @@ fn rules_applied_6(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i3
                 let v16: Rc<UH0> = v16.clone();
                 let v17: Rc<str> = line_findings_7(v15.clone(), v1.clone(), v2.clone(), v3, v4.clone(), v5.clone(), v6.clone(), v7, v8, v9.clone(), v10, v11, v12, v13);
                 let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v17));
-                (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v16.clone(), v1.clone(), v2.clone(), v3, v4.clone(), v5.clone(), v6.clone(), v7, v8, v9.clone(), v10, v11, v12, v13, v18.clone());
+                (v0, v14) = (v16.clone(), v18.clone());
                 continue;
             }
         }
@@ -638,8 +638,10 @@ fn file_findings_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc
     let v4: Rc<UH0> = declared_or_default_1(v0);
     let v5: i32 = 1i32;
     let (mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13): (Rc<str>, i32, bool, Rc<str>, bool, bool, bool, bool) = file_scan_start_4();
-    let (mut v14, mut v15, mut v16, mut v17, mut v18, mut v19, mut v20, mut v21): (Rc<str>, i32, bool, Rc<str>, bool, bool, bool, bool) = lines_scanned_5(v4, v1, v2, v3, v5, v6, v7, v8, v9, v10, v11, v12, v13);
-    v14
+    let (mut v14, mut v15, mut v16, mut v17, mut v18, mut v19, mut v20, mut v21): (Rc<str>, i32, bool, Rc<str>, bool, bool, bool, bool) = lines_scanned_5(v4, v1.clone(), v2, v3.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13);
+    let v22: Rc<str> = kit_rec_cycle::kit_rec_cycle_findings(&*v1, &*v3);
+    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v22));
+    v23
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>| -> Rc<str> {

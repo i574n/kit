@@ -12,13 +12,13 @@
 :~ typed_table (cells : table_cells) : kit_table_rows.rows.table =
     { columns = cells_in_row cells 0i32; rows = data_rows cells (row_total cells) [] }
 
-:~ to_spi_run (~file : string) (~out : string) (~opened : string) : i32 =
+:~ to_spi_run (~file : string) (~out : string) (~opened : string) (layout : kit_table_rows.rows.row_layout) : i32 =
     := problem = table_problem file
     ? problem <> "" ?> rejected problem
     |:
         := t = typed_table (cells_of_tsv file)
         := chosen = ? opened = "" ?> kit_table_rows.rows.DeclaredHere |: kit_table_rows.rows.OpenedFrom opened
-        file_system.write_all_text out (kit_table_rows.rows.rows_spi_of_table chosen t)
+        file_system.write_all_text out (kit_table_rows.rows.spi_of_layout layout chosen t)
         stdout_line (
             "kit table to-spi ok rows=" ++# i32_text (listm.length t.rows : i32)
             ++# " columns=" ++# i32_text (listm.length t.columns : i32) ++# " out=" ++# out

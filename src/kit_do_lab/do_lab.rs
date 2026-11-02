@@ -37,7 +37,7 @@ fn now_ms_1() -> u64 {
     v0
 }
 fn records_of_2(mut v0: Rc<str>) -> std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> {
-    let v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = std::rc::Rc::new((&*v0).split(char::from(30u8)).map(|record| record.split(char::from(31u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>());
+    let mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = std::rc::Rc::new((&*v0).split(char::from(30u8)).map(|record| record.split(char::from(31u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>());
     v1.clone()
 }
 fn field_at_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> Rc<str> {
@@ -131,7 +131,7 @@ fn first_rejection_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i3
                 US0::US0_LabParsed(v6) => {
                     let v6: US1 = v6.clone();
                     let v7: i32 = v1.wrapping_add(1i32);
-                    (v0, v1) = (v0.clone(), v7);
+                    v1 = v7;
                     continue;
                 }
                 US0::US0_LabRejected(v5) => {
@@ -185,7 +185,7 @@ fn go_18(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: i32, mut v3: i3
         if v4 {
             return v3;
         } else {
-            let v5: Rc<str> = v0.clone().borrow()[v2 as usize].clone();
+            let v5: Rc<str> = v0.borrow()[v2 as usize].clone();
             let v6: i32 = (v5.clone().len() as i32);
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
             let v8: bool = v5.ends_with(&*v7);
@@ -211,19 +211,19 @@ fn go_18(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: i32, mut v3: i3
                 let v18: i32 = v3.wrapping_add(1i32);
                 v18
             };
-            (v0, v1, v2, v3) = (v0.clone(), v1, v16, v19);
+            (v2, v3) = (v16, v19);
             continue;
         }
     }
 }
 fn line_count_17(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v1).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let v3: i32 = (v2.clone().borrow().len() as i32);
     let v4: bool = v3 > 0i32;
     let v8: bool = if v4 {
         let v5: i32 = v3.wrapping_sub(1i32);
-        let v6: Rc<str> = v2.clone().borrow()[v5 as usize].clone();
+        let v6: Rc<str> = v2.borrow()[v5 as usize].clone();
         let v7: bool = &*v6 == "";
         v7
     } else {
@@ -247,7 +247,7 @@ fn go_20(mut v0: i32, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut v3: i3
         if v6 {
             return (v4, v5.clone());
         } else {
-            let v7: Rc<str> = v1.clone().borrow()[v3 as usize].clone();
+            let v7: Rc<str> = v1.borrow()[v3 as usize].clone();
             let v8: i32 = (v7.clone().len() as i32);
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
             let v10: bool = v7.ends_with(&*v9);
@@ -279,7 +279,7 @@ fn go_20(mut v0: i32, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut v3: i3
                 };
                 (v20, v22.clone())
             };
-            (v0, v1, v2, v3, v4, v5) = (v0, v1.clone(), v2, v18, v23, v24.clone());
+            (v3, v4, v5) = (v18, v23, v24.clone());
             continue;
         }
     }
@@ -292,7 +292,7 @@ fn line_at_19(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
     let v6: bool = v5 > 0i32;
     let v10: bool = if v6 {
         let v7: i32 = v5.wrapping_sub(1i32);
-        let v8: Rc<str> = v4.clone().borrow()[v7 as usize].clone();
+        let v8: Rc<str> = v4.borrow()[v7 as usize].clone();
         let v9: bool = &*v8 == "";
         v9
     } else {
@@ -311,7 +311,7 @@ fn line_at_19(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
     v17.clone()
 }
 fn item_id_of_21(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_uppercase().replace(char::from(95u8), "-"));
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_uppercase().replace(char::from(95u8), "-"));
     v1
 }
 fn item_of_22(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
@@ -323,7 +323,7 @@ fn tab_part_23(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
     v2
 }
 fn note_age_days_24(mut v0: Rc<str>) -> u64 {
-    let v1: u64 = { let stamp = (&*v0).trim(); let digits = |from: usize, to: usize| stamp.get(from..to).and_then(|part| part.parse::<i64>().ok()); match (digits(0, 4), digits(5, 7), digits(8, 10)) { (Some(year), Some(month), Some(day)) => { let shifted = if month <= 2 { year - 1 } else { year }; let era = shifted.div_euclid(400); let of_era = shifted - era * 400; let of_year = (153 * (if month > 2 { month - 3 } else { month + 9 }) + 2) / 5 + day - 1; let days = era * 146097 + of_era * 365 + of_era / 4 - of_era / 100 + of_year - 719468; let today = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs() as i64 / 86400).unwrap_or(0); (today - days).max(0) as u64 } _ => 0 } };
+    let mut v1: u64 = { let stamp = (&*v0).trim(); let digits = |from: usize, to: usize| stamp.get(from..to).and_then(|part| part.parse::<i64>().ok()); match (digits(0, 4), digits(5, 7), digits(8, 10)) { (Some(year), Some(month), Some(day)) => { let shifted = if month <= 2 { year - 1 } else { year }; let era = shifted.div_euclid(400); let of_era = shifted - era * 400; let of_year = (153 * (if month > 2 { month - 3 } else { month + 9 }) + 2) / 5 + day - 1; let days = era * 146097 + of_era * 365 + of_era / 4 - of_era / 100 + of_year - 719468; let today = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs() as i64 / 86400).unwrap_or(0); (today - days).max(0) as u64 } _ => 0 } };
     v1
 }
 fn verdict_of_25(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64) -> US2 {
@@ -347,7 +347,7 @@ fn verdict_of_25(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64) -> US2 {
     }
 }
 fn decimal_text_27(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
 fn verdict_text_26(mut v0: US2) -> Rc<str> {
@@ -357,7 +357,7 @@ fn verdict_text_26(mut v0: US2) -> Rc<str> {
             v5
         }
         US2::US2_Keep => {
-            let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("keep"); } LIT.with(|lit| lit.clone()) };
+            let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("keep"); } LIT.with(|lit| lit.clone()) };
             v1
         }
         US2::US2_Orphan(v2) => {
@@ -421,7 +421,7 @@ fn counted_28(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u
     (v47, v48, v49, v50, v51, v52, v53, v54, v55)
 }
 fn aligned_29(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = { let separator = char::from(31u8); let rows = (&*v0).lines().collect::<Vec<_>>(); let mut widths: Vec<usize> = Vec::new(); for row in &rows { if row.contains(separator) { let cells = row.split(separator).collect::<Vec<_>>(); for (index, cell) in cells[..cells.len() - 1].iter().enumerate() { let length = cell.chars().count(); if widths.len() <= index { widths.push(length); } else if widths[index] < length { widths[index] = length; } } } } let shown = rows.iter().map(|row| if row.contains(separator) { let cells = row.split(separator).collect::<Vec<_>>(); let last = cells.len() - 1; cells.iter().enumerate().map(|(index, cell)| if index == last { cell.to_string() } else { format!("{:<width$}  ", cell, width = widths[index]) }).collect::<String>() } else { row.to_string() }).collect::<Vec<_>>(); std::rc::Rc::<str>::from(shown.join("
+    let mut v1: Rc<str> = { let separator = char::from(31u8); let rows = (&*v0).lines().collect::<Vec<_>>(); let mut widths: Vec<usize> = Vec::new(); for row in &rows { if row.contains(separator) { let cells = row.split(separator).collect::<Vec<_>>(); for (index, cell) in cells[..cells.len() - 1].iter().enumerate() { let length = cell.chars().count(); if widths.len() <= index { widths.push(length); } else if widths[index] < length { widths[index] = length; } } } } let shown = rows.iter().map(|row| if row.contains(separator) { let cells = row.split(separator).collect::<Vec<_>>(); let last = cells.len() - 1; cells.iter().enumerate().map(|(index, cell)| if index == last { cell.to_string() } else { format!("{:<width$}  ", cell, width = widths[index]) }).collect::<String>() } else { row.to_string() }).collect::<Vec<_>>(); std::rc::Rc::<str>::from(shown.join("
 ")) };
     v1.clone()
 }
@@ -597,7 +597,7 @@ fn receipt_counts_32(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
     }
 }
 fn elapsed_text_34(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
+    let mut v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
 fn local_offset_minutes_36() -> i64 {
@@ -606,7 +606,7 @@ fn local_offset_minutes_36() -> i64 {
 }
 fn clock_text_35() -> Rc<str> {
     let v0: i64 = local_offset_minutes_36();
-    let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
+    let mut v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
 fn receipt_line_33(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {

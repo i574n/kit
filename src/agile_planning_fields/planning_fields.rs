@@ -61,8 +61,8 @@ enum US10 {
 }
 fn planning_header_0() -> Rc<str> {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("EST"); } LIT.with(|lit| lit.clone()) };
-    let v1: Rc<str> = { let text = v0; let filler = (7i32 as usize).saturating_sub(text.chars().count()); std::rc::Rc::<str>::from(text.to_string() + &" ".repeat(filler)) };
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("LOAD"); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { let text = v0; let filler = (7i32 as usize).saturating_sub(text.chars().count()); std::rc::Rc::<str>::from(text.to_string() + &" ".repeat(filler)) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("LOAD"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = { let text = v2; let filler = (7i32 as usize).saturating_sub(text.chars().count()); std::rc::Rc::<str>::from(text.to_string() + &" ".repeat(filler)) };
     let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v3));
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("WHO"); } LIT.with(|lit| lit.clone()) };
@@ -161,7 +161,7 @@ fn declared_from_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                 return v3;
             } else {
                 let v9: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v9);
+                v2 = v9;
                 continue;
             }
         }
@@ -218,7 +218,7 @@ fn field_end_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US5) -> i32 {
                         }
                     }
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v10, v2, v25.clone());
+                (v1, v3) = (v10, v25.clone());
                 continue;
             }
         }
@@ -226,11 +226,11 @@ fn field_end_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US5) -> i32 {
 }
 fn skip_spaces_8(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
+        let mut v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
         let v3: bool = v2 == 32i32;
         if v3 {
             let v4: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v4);
+            v1 = v4;
             continue;
         } else {
             return v1;
@@ -248,7 +248,7 @@ fn field_start_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 
             let mut v7: i32 = v6.wrapping_add(1i32);
             let v8: i32 = skip_spaces_8(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v8, v2, v9);
+            (v1, v3) = (v8, v9);
             continue;
         }
     }
@@ -271,7 +271,7 @@ fn decimal_digits_value_10(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i3
                 let v9: i32 = v1.wrapping_add(1i32);
                 let v10: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
                 let v11: i32 = v3 * 10 + v10 - 48;
-                (v0, v1, v2, v3) = (v0.clone(), v9, v2, v11);
+                (v1, v3) = (v9, v11);
                 continue;
             } else {
                 return -1i32;
@@ -280,8 +280,8 @@ fn decimal_digits_value_10(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i3
     }
 }
 fn decimal_value_9(mut v0: Rc<str>) -> US6 {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: bool = v1 <= 0i32;
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: bool = v1 <= 0i32;
     if v2 {
         US6::US6_Invalid
     } else {
@@ -302,8 +302,8 @@ fn decimal_value_9(mut v0: Rc<str>) -> US6 {
     }
 }
 fn parse_planned_load_11(mut v0: Rc<str>) -> US7 {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
-    let v2: bool = &*v1 == "none";
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
+    let mut v2: bool = &*v1 == "none";
     let v4: bool = if v2 {
         true
     } else {
@@ -354,8 +354,8 @@ fn parse_planned_load_11(mut v0: Rc<str>) -> US7 {
     }
 }
 fn parse_planned_assignee_12(mut v0: Rc<str>) -> US9 {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
-    let v2: bool = &*v1 == "none";
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
+    let mut v2: bool = &*v1 == "none";
     let v4: bool = if v2 {
         true
     } else {
@@ -406,7 +406,7 @@ fn parse_planned_assignee_12(mut v0: Rc<str>) -> US9 {
     }
 }
 fn planning_at_5(mut v0: Rc<str>, mut v1: i32) -> (US0, US1, US3) {
-    let v2: i32 = v1.wrapping_add(10i32);
+    let mut v2: i32 = v1.wrapping_add(10i32);
     let v3: i32 = (v0.clone().len() as i32);
     let v4: i32 = 1i32;
     let v5: i32 = field_start_6(v0.clone(), v2, v3, v4);
@@ -483,7 +483,7 @@ fn planning_at_5(mut v0: Rc<str>, mut v1: i32) -> (US0, US1, US3) {
     (v23, v39, v55)
 }
 fn planning_of_3(mut v0: Rc<str>, mut v1: Rc<str>) -> (US0, US1, US3) {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));

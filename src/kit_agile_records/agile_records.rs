@@ -12,7 +12,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
 }
 fn literals_merged_2(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\" ^^ \""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
     v3
 }
@@ -22,14 +22,14 @@ fn method5(mut v0: Option<char>) -> Option<char> {
 fn closure1() -> Rc<dyn Fn((char)) -> u32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((char)) -> u32> = Rc::new(move |mut v0: (char)| -> u32 {
         let mut v1: char = (v0);
-        let v2: u32 = u32::from(v1);
+        let mut v2: u32 = u32::from(v1);
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure2() -> Rc<dyn Fn((char)) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((char)) -> i32> = Rc::new(move |mut v0: (char)| -> i32 {
         let mut v1: char = (v0);
-        let v2: usize = v1.len_utf8();
+        let mut v2: usize = v1.len_utf8();
         let v3: i32 = ((v2) as i32);
         v3
     }); } CLOSURE.with(|closure| closure.clone())
@@ -58,17 +58,17 @@ fn depth_after_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4:
                 if v21 {
                     let v22: i32 = v20.wrapping_add(1i32);
                     let v23: bool = true;
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v22, v2, v3, v23);
+                    (v1, v4) = (v22, v23);
                     continue;
                 } else {
                     let v25: bool = v12 == 34u32;
                     if v25 {
                         let v26: bool = false;
-                        (v0, v1, v2, v3, v4) = (v0.clone(), v20, v2, v3, v26);
+                        (v1, v4) = (v20, v26);
                         continue;
                     } else {
                         let v28: bool = true;
-                        (v0, v1, v2, v3, v4) = (v0.clone(), v20, v2, v3, v28);
+                        (v1, v4) = (v20, v28);
                         continue;
                     }
                 }
@@ -76,25 +76,25 @@ fn depth_after_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4:
                 let v32: bool = v12 == 34u32;
                 if v32 {
                     let v33: bool = true;
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v20, v2, v3, v33);
+                    (v1, v4) = (v20, v33);
                     continue;
                 } else {
                     let v35: bool = v12 == 40u32;
                     if v35 {
                         let v36: i32 = v3.wrapping_add(1i32);
                         let v37: bool = false;
-                        (v0, v1, v2, v3, v4) = (v0.clone(), v20, v2, v36, v37);
+                        (v1, v3, v4) = (v20, v36, v37);
                         continue;
                     } else {
                         let v39: bool = v12 == 41u32;
                         if v39 {
                             let v40: i32 = v3.wrapping_sub(1i32);
                             let v41: bool = false;
-                            (v0, v1, v2, v3, v4) = (v0.clone(), v20, v2, v40, v41);
+                            (v1, v3, v4) = (v20, v40, v41);
                             continue;
                         } else {
                             let v43: bool = false;
-                            (v0, v1, v2, v3, v4) = (v0.clone(), v20, v2, v3, v43);
+                            (v1, v4) = (v20, v43);
                             continue;
                         }
                     }
@@ -105,7 +105,7 @@ fn depth_after_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4:
 }
 fn paren_depth_3(mut v0: Rc<str>) -> i32 {
     let mut v1: i32 = 0i32;
-    let v2: i32 = (v0.clone().len() as i32);
+    let mut v2: i32 = (v0.clone().len() as i32);
     let v3: i32 = 0i32;
     let v4: bool = false;
     depth_after_4(v0, v1, v2, v3, v4)
@@ -136,7 +136,7 @@ fn method6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -146,7 +146,7 @@ fn method6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -170,7 +170,7 @@ fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -179,7 +179,7 @@ fn method7(mut v0: Rc<str>, mut v1: i32) -> i32 {
     }
 }
 fn joined_8(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: i32 = (v1.clone().len() as i32);
+    let mut v2: i32 = (v1.clone().len() as i32);
     let v3: i32 = 0i32;
     let v4: i32 = method6(v1.clone(), v2, v3);
     let v5: i32 = v2.wrapping_sub(1i32);
@@ -217,7 +217,7 @@ fn records_into_1(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str
                 return ();
             }
         } else {
-            let mut v9: Rc<str> = v0.clone().borrow()[v1 as usize].clone();
+            let mut v9: Rc<str> = v0.borrow()[v1 as usize].clone();
             let mut v10: bool = &*v2 == "";
             if v10 {
                 let v11: i32 = paren_depth_3(v9.clone());
@@ -248,14 +248,14 @@ fn records_into_1(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str
                 let v32: bool = v31 || v30;
                 if v32 {
                     let v33: i32 = v1.wrapping_add(1i32);
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v33, v9.clone(), v11, v4.clone());
+                    (v1, v2, v3) = (v33, v9.clone(), v11);
                     continue;
                 } else {
                     (v4).borrow_mut().push(v9);
                     let v34: i32 = v1.wrapping_add(1i32);
                     let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     let v36: i32 = 0i32;
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v34, v35.clone(), v36, v4.clone());
+                    (v1, v2, v3) = (v34, v35.clone(), v36);
                     continue;
                 }
             } else {
@@ -265,7 +265,7 @@ fn records_into_1(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str
                 let v40: bool = v39 > 0i32;
                 if v40 {
                     let v41: i32 = v1.wrapping_add(1i32);
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v41, v37.clone(), v39, v4.clone());
+                    (v1, v2, v3) = (v41, v37.clone(), v39);
                     continue;
                 } else {
                     let v42: Rc<str> = literals_merged_2(v37.clone());
@@ -273,7 +273,7 @@ fn records_into_1(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str
                     let v43: i32 = v1.wrapping_add(1i32);
                     let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     let v45: i32 = 0i32;
-                    (v0, v1, v2, v3, v4) = (v0.clone(), v43, v44.clone(), v45, v4.clone());
+                    (v1, v2, v3) = (v43, v44.clone(), v45);
                     continue;
                 }
             }
@@ -283,7 +283,7 @@ fn records_into_1(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str
 }
 fn records_as_lines_0(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v2).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let v4: i32 = 0i32;
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -298,7 +298,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn file_exists_10(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.exists();
@@ -313,7 +313,7 @@ fn method11(mut v0: Vec<u8>) -> Vec<u8> {
     v0
 }
 fn records_unchanged_9(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
-    let v2: bool = file_exists_10(v0.clone());
+    let mut v2: bool = file_exists_10(v0.clone());
     if v2 {
         let v4: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v0);
         let mut v6: Vec<u8> = v4.unwrap();

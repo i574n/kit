@@ -7,19 +7,19 @@ enum US0 {
     US0_None,
 }
 fn counts_run_1() -> i32 {
-    let v0: i32 = kit_table_counts::kit_table_counts_run();
+    let mut v0: i32 = kit_table_counts::kit_table_counts_run();
     v0
 }
 fn sections_run_2() -> i32 {
-    let v0: i32 = kit_table_sections::kit_table_sections_run();
+    let mut v0: i32 = kit_table_sections::kit_table_sections_run();
     v0
 }
 fn measures_run_3() -> i32 {
-    let v0: i32 = kit_table_sequence_measures::kit_table_sequence_measures_run();
+    let mut v0: i32 = kit_table_sequence_measures::kit_table_sequence_measures_run();
     v0
 }
 fn command_line_argument_count_4() -> i32 {
-    let v0: usize = std::env::args().count();
+    let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
@@ -68,7 +68,7 @@ fn has_counts_5(mut v0: i32, mut v1: i32) -> bool {
                 return true;
             } else {
                 let v5: i32 = v0.wrapping_add(1i32);
-                (v0, v1) = (v5, v1);
+                v0 = v5;
                 continue;
             }
         }
@@ -93,14 +93,14 @@ fn has_columns_8(mut v0: i32, mut v1: i32) -> bool {
                 return true;
             } else {
                 let v8: i32 = v0.wrapping_add(1i32);
-                (v0, v1) = (v8, v1);
+                v0 = v8;
                 continue;
             }
         }
     }
 }
 fn sequences_run_0() -> i32 {
-    let v0: i32 = command_line_argument_count_4();
+    let mut v0: i32 = command_line_argument_count_4();
     let v1: i32 = 2i32;
     let v2: bool = has_counts_5(v1, v0);
     if v2 {

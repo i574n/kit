@@ -27,6 +27,8 @@
     | AgileSeal
     | AgileTodos
     | AgileNext
+    | AgileClaim
+    | AgileRelease
     | AgileRoots
     | AgileLinks
     | AgileWip
@@ -83,8 +85,11 @@
             name = "next"
             shape =
                 "<root> [--as main|subagent] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words "
-                ^^ "<w1,w2>] [--open] [--ready] [--blocked] [--load <loads>] [--fits] [count]"
+                ^^ "<w1,w2>] [--open] [--ready] [--blocked] [--load <loads>] [--fits] [count] | <root> --any --as <lane> [--ttl "
+                ^^ "<minutes>] (claims the top free item)"
         }
+    | AgileClaim => { name = "claim"; shape = "<root> <ID> --as <lane> [--paths <glob,glob>] [--ttl <minutes>]" }
+    | AgileRelease => { name = "release"; shape = "<root> <ID> --as <lane>" }
     | AgileRoots => { name = "roots"; shape = "<root> [add|drop <path>...]" }
     | AgileLinks => { name = "links"; shape = "<root> --memory <dir> [--json]" }
     | AgileWip => { name = "wip"; shape = "<root>" }

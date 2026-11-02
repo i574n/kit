@@ -1,0 +1,91 @@
+///- --package .
+:# append static =
+    :< sm'_operators
+    :< kit_table_rows.rows
+
+:< sm'_operators
+:< kit_table_rows.rows
+
+:| append_target =
+    | WholeSpi
+    | PlainTsv
+    | NotAppendable
+
+:~ target_of (~path : string) : append_target =
+    := lowered = sm'.to_lower path
+    ? sm'.ends_with ".spi" lowered ?> WholeSpi |? sm'.ends_with ".tsv" lowered ?> PlainTsv |: NotAppendable
+
+:~ union_of (~text : string) : row_union =
+    := opened = \ found (line : string) =>
+        ? sm'.starts_with "open " line ?> OpenedFrom (sm'.substring 5i32 ((sm'.length line : i32) - 5i32) line) |: found
+    sm'.split_list "\n" (sm'.replace "\r" "" text) |> listm.fold opened DeclaredHere
+
+:| append_result =
+    | Appended : table * string
+    | AppendRefused : string
+
+:~ cell_plain (~cell : string) : bool = sm'.contains (tab ()) cell = !- && sm'.contains "\n" cell = !-
+
+:~ appended_to (target : append_target) (u : row_union) (t : table) (cells : list string) : append_result =
+    := width : i32 = listm.length t.columns
+    := given : i32 = listm.length cells
+    ? width = 0i32 ?> AppendRefused "the table has no header row"
+    |? given <> width ?> AppendRefused ("the row has " ++# sm'.show given ++# " cells but the table has " ++# sm'.show width ++# " columns")
+    |? listm.fold (\ ok (cell : string) => ok && cell_plain cell) !+ cells = !- ?> AppendRefused "a cell holds a tab or a newline"
+    |:
+        := grown = { t ?| rows = listm.append t.rows [ cells ] }
+        ?= target ?|
+        | WholeSpi => Appended (grown, spi_of_layout WholeTable u grown)
+        | PlainTsv => Appended (grown, tsv_text grown ++# "\n")
+        | NotAppendable => AppendRefused "append writes .spi or .tsv tables"
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+
+:~ ^ cells_from (index : i32) (count : i32) : list string =
+    ? count <= index ?> [] |: argument index :: cells_from (index + 1i32) count
+
+:~ refused (~reason : string) : i32 =
+    console.write_error_line ("kit error: table append: " ++# reason)
+    2i32
+
+:~ append_run () : i32 =
+    := path = argument 3i32
+    := count = env.command_line_argument_count () + 1i32
+    := cells = ? argument 4i32 = "--row-tsv" && count = 6i32 ?> sm'.split_list (tab ()) (argument 5i32) |: cells_from 4i32 count
+    ? path = "" || cells = [] ?> refused "usage: table append <table.spi|table.tsv> <cell>... | --row-tsv <line>"
+    |? file_system.file_exists path = !- ?> refused (path ++# ": file not found")
+    |:
+        := text = file_system.read_all_text path
+        := target = target_of path
+        := t = ? target = WholeSpi ?> table_of_rows_spi text |: table_of_tsv text
+        ?= appended_to target (union_of text) t cells ?|
+        | AppendRefused reason => refused reason
+        | Appended (grown, written) =>
+            := pending = path ++# ".pending"
+            file_system.write_all_text pending written
+            := _ = file_system.rename path pending
+            ? file_system.file_exists pending ?> refused ("could not move " ++# pending ++# " over " ++# path)
+            |:
+                console.write_line ("kit table append ok rows=" ++# sm'.show (listm.length grown.rows : i32) ++# " columns=" ++# sm'.show (listm.length grown.columns : i32) ++# " out=" ++# path)
+                0i32
+
+:= sample () : table = { columns = [ "run"; "score" ]; rows = [ [ "a"; "1" ] ] }
+
+///> rust
+:# a_row_grows_the_table_in_its_own_format =
+    ?= appended_to WholeSpi (OpenedFrom "table_rows") (sample ()) [ "b"; "2" ] ?|
+    | Appended (grown, written) =>
+        testing.expect (listm.length grown.rows = 2i32) "two rows"
+        testing.expect (table_of_rows_spi written = grown && sm'.contains "open table_rows" written) written
+    | AppendRefused reason => testing.expect !- reason
+    ?= appended_to PlainTsv DeclaredHere (sample ()) [ "b"; "2" ] ?|
+    | Appended (grown, written) => testing.expect (table_of_tsv written = grown) written
+    | AppendRefused reason => testing.expect !- reason
+    testing.expect (appended_to PlainTsv DeclaredHere (sample ()) [ "b" ] = AppendRefused "the row has 1 cells but the table has 2 columns") "width"
+    testing.expect (appended_to NotAppendable DeclaredHere (sample ()) [ "b"; "2" ] = AppendRefused "append writes .spi or .tsv tables") "format"
+    testing.expect (union_of "///- --no-respell\nopen table_rows\ninl table () = ..." = OpenedFrom "table_rows" && target_of "R.SPI" = WholeSpi) "union and target"
+
+///> _
+:= main () : i32 =
+    export "kit_table_append_run" ((\ () => append_run ()) : () -> i32)
+    0i32

@@ -86,7 +86,7 @@ fn line_count_11(mut v0: Rc<str>) -> u64 {
     let v4: bool = v3 > 0i32;
     let v8: bool = if v4 {
         let v5: i32 = v3.wrapping_sub(1i32);
-        let mut v6: Rc<str> = v2.clone().borrow()[v5 as usize].clone();
+        let mut v6: Rc<str> = v2.borrow()[v5 as usize].clone();
         let mut v7: bool = &*v6 == "";
         v7
     } else {
@@ -341,7 +341,7 @@ fn previews_from_17(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str
             let v15: Rc<str> = body_at_19(v1.clone(), v2, v14);
             let mut v16: bool = &*v11 == "";
             if v16 {
-                (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v9, v3.clone(), v4, v5, v6);
+                v2 = v9;
                 continue;
             } else {
                 let v21: bool = &*v13 == "append";
@@ -368,7 +368,7 @@ fn previews_from_17(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str
                     let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("append: expected a file, then the quoted line"); } LIT.with(|lit| lit.clone()) };
                     let v32: Rc<str> = joined_21(v3.clone(), v31.clone());
                     let v33: bool = true;
-                    (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v9, v32.clone(), v4, v5, v33);
+                    (v2, v3, v6) = (v9, v32.clone(), v33);
                     continue;
                 } else {
                     if v21 {
@@ -378,7 +378,7 @@ fn previews_from_17(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str
                         let v42: Rc<str> = joined_21(v3.clone(), v40.clone());
                         let v43: u64 = v4.wrapping_add(1u64);
                         let v44: u64 = v5.wrapping_add(v41);
-                        (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v9, v42.clone(), v43, v44, v6);
+                        (v2, v3, v4, v5) = (v9, v42.clone(), v43, v44);
                         continue;
                     } else {
                         let v49: bool = &*v13 == "copy";
@@ -401,10 +401,10 @@ fn previews_from_17(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str
                             let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v56));
                             let v58: Rc<str> = joined_21(v3.clone(), v57.clone());
                             let v59: bool = true;
-                            (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v9, v58.clone(), v4, v5, v59);
+                            (v2, v3, v6) = (v9, v58.clone(), v59);
                             continue;
                         } else {
-                            (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v9, v3.clone(), v4, v5, v6);
+                            v2 = v9;
                             continue;
                         }
                     }
@@ -557,7 +557,7 @@ fn line_at_34(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
         let mut v7: bool = v6 > 0i32;
         let v11: bool = if v7 {
             let v8: i32 = v6.wrapping_sub(1i32);
-            let v9: Rc<str> = v4.clone().borrow()[v8 as usize].clone();
+            let v9: Rc<str> = v4.borrow()[v8 as usize].clone();
             let v10: bool = &*v9 == "";
             v10
         } else {
@@ -575,7 +575,7 @@ fn line_at_34(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
         false
     };
     if v15 {
-        let mut v16: Rc<str> = v4.clone().borrow()[v2 as usize].clone();
+        let mut v16: Rc<str> = v4.borrow()[v2 as usize].clone();
         let v17: i32 = (v16.clone().len() as i32);
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
         let v19: bool = v16.ends_with(&*v18);

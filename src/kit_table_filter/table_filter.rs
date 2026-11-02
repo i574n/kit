@@ -66,11 +66,15 @@ fn operator_from_2(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 return v1;
             } else {
                 let v12: i32 = v1.wrapping_add(1i32);
-                (v0, v1) = (v0.clone(), v12);
+                v1 = v12;
                 continue;
             }
         }
     }
+}
+fn concat5_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
 }
 fn filters_from_1(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>) -> (Rc<UH0>, Rc<str>) {
     let v2: bool = &*v1 == "";
@@ -173,8 +177,7 @@ fn filters_from_1(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<st
                         } else {
                             let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                             let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                            let v64: Rc<str> = std::rc::Rc::<str>::from([&*v55, &*v62, &*v8, &*v63, &*v63].concat());
-                            v64.clone()
+                            concat5_3(v55.clone(), v62.clone(), v8.clone(), v63.clone(), v63.clone())
                         }
                     };
                     (v7.clone(), v66.clone())
@@ -186,7 +189,7 @@ fn filters_from_1(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<st
         }
     }
 }
-fn row_passes_4(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32) -> bool {
+fn row_passes_5(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32) -> bool {
     loop {
         match &*v0 {
             UH0::UH0_FilterThen(v3, v4, v5, v6) => {
@@ -257,7 +260,7 @@ fn row_passes_4(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>
                     }
                 };
                 if v33 {
-                    (v0, v1, v2) = (v6.clone(), v1.clone(), v2);
+                    v0 = v6.clone();
                     continue;
                 } else {
                     return false;
@@ -269,14 +272,14 @@ fn row_passes_4(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>
         }
     }
 }
-fn kept_marks_3(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32, mut v3: i32, mut v4: Rc<UH1>) -> Rc<UH1> {
+fn kept_marks_4(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32, mut v3: i32, mut v4: Rc<UH1>) -> Rc<UH1> {
     loop {
         let v5: bool = v2 > v3;
         if v5 {
             return v4.clone();
         } else {
             let v6: i32 = v2.wrapping_add(1i32);
-            let v7: bool = row_passes_4(v0.clone(), v1.clone(), v2);
+            let v7: bool = row_passes_5(v0.clone(), v1.clone(), v2);
             let v10: Rc<str> = if v7 {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1"); } LIT.with(|lit| lit.clone()) };
                 v8.clone()
@@ -285,12 +288,12 @@ fn kept_marks_3(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>
                 v9.clone()
             };
             let v11: Rc<UH1> = Rc::new(UH1::UH1_Cons(v10.clone(), v4.clone()));
-            (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v6, v3, v11.clone());
+            (v2, v4) = (v6, v11.clone());
             continue;
         }
     }
 }
-fn method5(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
+fn method6(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
     loop {
         match &*v0 {
             UH1::UH1_Cons(v2, v3) => {
@@ -306,7 +309,7 @@ fn method5(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
         }
     }
 }
-fn method6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH1>, mut v2: i32) -> i32 {
+fn method7(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH1>, mut v2: i32) -> i32 {
     loop {
         match &*v1 {
             UH1::UH1_Cons(v3, v4) => {
@@ -314,7 +317,7 @@ fn method6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH1>, mut v2: i32) -> i
                 let v4: Rc<UH1> = v4.clone();
                 v0.borrow_mut().push(v3);
                 let v5: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v4.clone(), v5);
+                (v1, v2) = (v4.clone(), v5);
                 continue;
             }
             UH1::UH1_Nil => {
@@ -343,14 +346,14 @@ fn rows_kept_0(mut v0: Rc<str>, mut v1: Rc<str>) -> (bool, Rc<str>) {
                 let v13: i32 = 1i32;
                 let v14: i32 = ((v9).len().max(1) - 1) as i32;
                 let v15: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                let v16: Rc<UH1> = kept_marks_3(v10.clone(), v9.clone(), v13, v14, v15.clone());
+                let v16: Rc<UH1> = kept_marks_4(v10.clone(), v9.clone(), v13, v14, v15.clone());
                 let v17: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                let v18: Rc<UH1> = method5(v16.clone(), v17.clone());
+                let v18: Rc<UH1> = method6(v16.clone(), v17.clone());
                 let mut v19: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
                 let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
                 v19.borrow_mut().push(v20);
                 let v21: i32 = 1i32;
-                let v22: i32 = method6(v19.clone(), v18.clone(), v21);
+                let v22: i32 = method7(v19.clone(), v18.clone(), v21);
                 let v23: Rc<Vec<Rc<str>>> = Rc::new(v19.borrow().clone());
                 let v24: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v23).as_ref().clone()));
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };

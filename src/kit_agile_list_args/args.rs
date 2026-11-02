@@ -52,7 +52,7 @@ fn list_args_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, 
             if v15 {
                 let v16: i32 = v0.wrapping_add(1i32);
                 let v17: bool = true;
-                (v0, v1, v2, v3, v4, v5, v6, v7) = (v16, v1, v2.clone(), v3.clone(), v4.clone(), v17, v6.clone(), v7.clone());
+                (v0, v5) = (v16, v17);
                 continue;
             } else {
                 let v19: bool = &*v14 == "--load";
@@ -60,7 +60,7 @@ fn list_args_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, 
                     let v20: i32 = v0.wrapping_add(2i32);
                     let v21: i32 = v0.wrapping_add(1i32);
                     let v22: Rc<str> = usize::try_from(v21).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-                    (v0, v1, v2, v3, v4, v5, v6, v7) = (v20, v1, v2.clone(), v22.clone(), v4.clone(), v5, v6.clone(), v7.clone());
+                    (v0, v3) = (v20, v22.clone());
                     continue;
                 } else {
                     let v24: bool = &*v14 == "--assignee";
@@ -68,7 +68,7 @@ fn list_args_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, 
                         let v25: i32 = v0.wrapping_add(2i32);
                         let v26: i32 = v0.wrapping_add(1i32);
                         let v27: Rc<str> = usize::try_from(v26).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-                        (v0, v1, v2, v3, v4, v5, v6, v7) = (v25, v1, v2.clone(), v3.clone(), v27.clone(), v5, v6.clone(), v7.clone());
+                        (v0, v4) = (v25, v27.clone());
                         continue;
                     } else {
                         let v29: bool = &*v14 == "--sort";
@@ -90,7 +90,7 @@ fn list_args_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, 
                             };
                             if v36 {
                                 let v37: i32 = v0.wrapping_add(2i32);
-                                (v0, v1, v2, v3, v4, v5, v6, v7) = (v37, v1, v2.clone(), v3.clone(), v4.clone(), v5, v6.clone(), v31.clone());
+                                (v0, v7) = (v37, v31.clone());
                                 continue;
                             } else {
                                 let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--sort expects priority|difficulty|progress, got "); } LIT.with(|lit| lit.clone()) };
@@ -129,7 +129,7 @@ fn list_args_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, 
                                     v59.clone()
                                 };
                                 let v62: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v56, v60)), v50));
-                                (v0, v1, v2, v3, v4, v5, v6, v7) = (v47, v1, v2.clone(), v3.clone(), v4.clone(), v5, v62.clone(), v7.clone());
+                                (v0, v6) = (v47, v62.clone());
                                 continue;
                             } else {
                                 let v64: bool = v45 < 0i32;
@@ -139,7 +139,7 @@ fn list_args_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, 
                                 } else {
                                     let v67: bool = status_word_known_2(v14.clone());
                                     if v67 {
-                                        (v0, v1, v2, v3, v4, v5, v6, v7) = (v43, v1, v14.clone(), v3.clone(), v4.clone(), v5, v6.clone(), v7.clone());
+                                        (v0, v2) = (v43, v14.clone());
                                         continue;
                                     } else {
                                         let v69: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("invalid agile status filter: "); } LIT.with(|lit| lit.clone()) };

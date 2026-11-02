@@ -85,7 +85,7 @@ fn renamed_within_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
@@ -167,7 +167,11 @@ fn migration_written_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i3
         }
     }
 }
-fn field_end_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US3) -> i32 {
+fn concat5_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
+fn field_end_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US3) -> i32 {
     loop {
         let v4: bool = v2 <= v1;
         if v4 {
@@ -218,29 +222,29 @@ fn field_end_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US3) -> i32 {
                         }
                     }
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v10, v2, v25.clone());
+                (v1, v3) = (v10, v25.clone());
                 continue;
             }
         }
     }
 }
-fn skip_spaces_9(mut v0: Rc<str>, mut v1: i32) -> i32 {
+fn skip_spaces_10(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
+        let mut v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
         let v3: bool = v2 == 32i32;
         if v3 {
             let v4: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v4);
+            v1 = v4;
             continue;
         } else {
             return v1;
         }
     }
 }
-fn top_level_field_count_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
+fn top_level_field_count_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
     loop {
         let v4: US3 = US3::US3_ScanPlain;
-        let v5: i32 = field_end_8(v0.clone(), v1, v2, v4.clone());
+        let v5: i32 = field_end_9(v0.clone(), v1, v2, v4.clone());
         let v6: bool = v2 <= v5;
         if v6 {
             return -1i32;
@@ -252,15 +256,15 @@ fn top_level_field_count_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i3
                 return v9;
             } else {
                 let v10: i32 = v5.wrapping_add(1i32);
-                let v11: i32 = skip_spaces_9(v0.clone(), v10);
+                let v11: i32 = skip_spaces_10(v0.clone(), v10);
                 let v12: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v11, v2, v12);
+                (v1, v3) = (v11, v12);
                 continue;
             }
         }
     }
 }
-fn first_malformed_task_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
+fn first_malformed_task_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task (\""); } LIT.with(|lit| lit.clone()) };
         let v4: i32 = v0.get(v1 as usize..).and_then(|rest| rest.find(&*v3)).map(|found| (found + v1 as usize) as i32).unwrap_or(-1);
@@ -275,47 +279,47 @@ fn first_malformed_task_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             let v10: bool = v8.starts_with(&*v9);
             if v10 {
                 let v11: i32 = 0i32;
-                let v12: i32 = top_level_field_count_7(v0.clone(), v6, v2, v11);
+                let v12: i32 = top_level_field_count_8(v0.clone(), v6, v2, v11);
                 let v13: bool = v12 == 11i32;
                 if v13 {
-                    (v0, v1, v2) = (v0.clone(), v6, v2);
+                    v1 = v6;
                     continue;
                 } else {
                     return v4;
                 }
             } else {
-                (v0, v1, v2) = (v0.clone(), v6, v2);
+                v1 = v6;
                 continue;
             }
         }
     }
 }
-fn fresh_migration_10(mut v0: Rc<str>) -> (Rc<str>, i32, i32, i32) {
+fn fresh_migration_11(mut v0: Rc<str>) -> (Rc<str>, i32, i32, i32) {
     (v0, 0i32, 0i32, 0i32)
 }
-fn field_start_12(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
+fn field_start_13(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
     loop {
         let v4: bool = v3 == 0i32;
         if v4 {
             return v1;
         } else {
             let v5: US3 = US3::US3_ScanPlain;
-            let v6: i32 = field_end_8(v0.clone(), v1, v2, v5.clone());
+            let v6: i32 = field_end_9(v0.clone(), v1, v2, v5.clone());
             let v7: i32 = v6.wrapping_add(1i32);
-            let v8: i32 = skip_spaces_9(v0.clone(), v7);
+            let v8: i32 = skip_spaces_10(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v8, v2, v9);
+            (v1, v3) = (v8, v9);
             continue;
         }
     }
 }
-fn fresh_tag_pass_13(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, i32, Rc<str>, i32) {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+fn fresh_tag_pass_14(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, i32, Rc<str>, i32) {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     (v0, v1.clone(), 0i32, v1, 0i32)
 }
-fn tag_kind_of_16(mut v0: Rc<str>) -> US4 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("est:"); } LIT.with(|lit| lit.clone()) };
-    let v2: bool = v0.starts_with(&*v1);
+fn tag_kind_of_17(mut v0: Rc<str>) -> US4 {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("est:"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: bool = v0.starts_with(&*v1);
     if v2 {
         let v3: i32 = (v1.len() as i32);
         let v4: i32 = (v0.clone().len() as i32);
@@ -347,7 +351,7 @@ fn tag_kind_of_16(mut v0: Rc<str>) -> US4 {
         }
     }
 }
-fn value_token_17(mut v0: Rc<str>, mut v1: Rc<str>) -> US5 {
+fn value_token_18(mut v0: Rc<str>, mut v1: Rc<str>) -> US5 {
     let (mut v2, mut v3): (i32, Rc<str>) = agile_planning_values::kit_agile_planning_value_token(&*v0, &*v1);
     let v4: bool = v2 == 0i32;
     if v4 {
@@ -356,7 +360,7 @@ fn value_token_17(mut v0: Rc<str>, mut v1: Rc<str>) -> US5 {
         US5::US5_StepRejected(v3)
     }
 }
-fn rewritten_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> US5 {
+fn rewritten_20(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> US5 {
     let (mut v4, mut v5): (i32, Rc<str>) = agile_planning_rewrite::kit_agile_planning_rewrite(&*v0, &*v1, &*v2, &*v3);
     let v6: bool = v4 == 0i32;
     if v6 {
@@ -365,8 +369,8 @@ fn rewritten_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
         US5::US5_StepRejected(v5)
     }
 }
-fn tag_moved_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: Rc<str>) -> (Rc<str>, Rc<str>, i32, Rc<str>, i32) {
-    let v9: US5 = rewritten_19(v0.clone(), v5, v7, v8);
+fn tag_moved_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: Rc<str>) -> (Rc<str>, Rc<str>, i32, Rc<str>, i32) {
+    let v9: US5 = rewritten_20(v0.clone(), v5, v7, v8);
     let (mut v29, mut v30, mut v31, mut v32, mut v33): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = match &v9 {
         US5::US5_StepText(v10) => {
             let v10: Rc<str> = v10.clone();
@@ -403,8 +407,8 @@ fn tag_moved_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, 
     };
     (v29, v30, v31, v32, v33)
 }
-fn tag_applied_15(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>, mut v6: Rc<str>) -> (Rc<str>, Rc<str>, i32, Rc<str>, i32) {
-    let v7: US4 = tag_kind_of_16(v6.clone());
+fn tag_applied_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>, mut v6: Rc<str>) -> (Rc<str>, Rc<str>, i32, Rc<str>, i32) {
+    let v7: US4 = tag_kind_of_17(v6.clone());
     let (mut v49, mut v50, mut v51, mut v52, mut v53): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = match &v7 {
         US4::US4_PlainTag => {
             let v8: bool = &*v1 == "";
@@ -422,11 +426,11 @@ fn tag_applied_15(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>
                 US4::US4_PlanningTag(v13, v14) => {
                     let v13: Rc<str> = v13.clone();
                     let v14: Rc<str> = v14.clone();
-                    let v15: US5 = value_token_17(v13.clone(), v14);
+                    let v15: US5 = value_token_18(v13.clone(), v14);
                     match &v15 {
                         US5::US5_StepText(v16) => {
                             let v16: Rc<str> = v16.clone();
-                            tag_moved_18(v0.clone(), v1.clone(), v2, v3.clone(), v4, v5, v6.clone(), v13, v16)
+                            tag_moved_19(v0.clone(), v1.clone(), v2, v3.clone(), v4, v5, v6.clone(), v13, v16)
                         }
                         _ => {
                             let (mut v34, mut v35, mut v36, mut v37, mut v38): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = match &v15 {
@@ -464,7 +468,7 @@ fn tag_applied_15(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>
     };
     (v49, v50, v51, v52, v53)
 }
-fn tags_applied_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: i32) -> (Rc<str>, Rc<str>, i32, Rc<str>, i32) {
+fn tags_applied_15(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: i32) -> (Rc<str>, Rc<str>, i32, Rc<str>, i32) {
     let v8: i32 = (v6.clone().len() as i32);
     let v9: bool = v8 <= v7;
     let (mut v33, mut v34, mut v35, mut v36, mut v37): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = if v9 {
@@ -484,16 +488,16 @@ fn tags_applied_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str
         let (mut v22, mut v23, mut v24, mut v25, mut v26): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = if v16 {
             (v0.clone(), v1.clone(), v2, v3.clone(), v4)
         } else {
-            let (mut v17, mut v18, mut v19, mut v20, mut v21): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = tag_applied_15(v0.clone(), v1.clone(), v2, v3.clone(), v4, v5.clone(), v14.clone());
+            let (mut v17, mut v18, mut v19, mut v20, mut v21): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = tag_applied_16(v0.clone(), v1.clone(), v2, v3.clone(), v4, v5.clone(), v14.clone());
             (v17.clone(), v18.clone(), v19, v20.clone(), v21)
         };
         let v27: i32 = v13.wrapping_add(1i32);
-        let (mut v28, mut v29, mut v30, mut v31, mut v32): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = tags_applied_14(v22.clone(), v23.clone(), v24, v25.clone(), v26, v5.clone(), v6.clone(), v27);
+        let (mut v28, mut v29, mut v30, mut v31, mut v32): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = tags_applied_15(v22.clone(), v23.clone(), v24, v25.clone(), v26, v5.clone(), v6.clone(), v27);
         (v28.clone(), v29.clone(), v30, v31.clone(), v32)
     };
     (v33.clone(), v34.clone(), v35, v36.clone(), v37)
 }
-fn tags_replaced_21(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
+fn tags_replaced_22(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
     let v3: i32 = (v0.clone().len() as i32);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task (\""); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v1));
@@ -502,9 +506,9 @@ fn tags_replaced_21(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str
     let v8: i32 = v0.find(&*v7).map(|offset| offset as i32).unwrap_or(-1);
     let v9: i32 = v8.wrapping_add(6i32);
     let v10: i32 = 8i32;
-    let v11: i32 = field_start_12(v0.clone(), v9, v3, v10);
+    let v11: i32 = field_start_13(v0.clone(), v9, v3, v10);
     let v12: US3 = US3::US3_ScanPlain;
-    let v13: i32 = field_end_8(v0.clone(), v11, v3, v12.clone());
+    let v13: i32 = field_end_9(v0.clone(), v11, v3, v12.clone());
     let v14: Rc<str> = std::rc::Rc::<str>::from(v0.get(0i32 as usize..v11 as usize).unwrap_or(""));
     let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
@@ -522,13 +526,13 @@ fn tags_replaced_21(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str
     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
     let v29: Rc<str> = Rc::<str>::from(v26.replace(&*v27, &*v28));
     let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v31: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v29, &*v15, &*v30, &*v30].concat());
+    let v31: Rc<str> = concat5_6(v15.clone(), v29.clone(), v15.clone(), v30.clone(), v30.clone());
     let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v31));
     let v33: Rc<str> = std::rc::Rc::<str>::from(v0.get(v13 as usize..v3 as usize).unwrap_or(""));
     let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v33));
     v34.clone()
 }
-fn task_report_22(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>, mut v5: i32) -> i32 {
+fn task_report_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<str>, mut v5: i32) -> i32 {
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" moved="); } LIT.with(|lit| lit.clone()) };
     let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v6));
     let v8: Rc<str> = std::rc::Rc::<str>::from((v3).to_string());
@@ -553,20 +557,20 @@ fn task_report_22(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
     v23
 }
-fn task_migrated_20(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: i32, mut v8: Rc<str>, mut v9: i32) -> (Rc<str>, i32, i32, i32) {
-    let v10: Rc<str> = tags_replaced_21(v5, v4.clone(), v6.clone());
-    let v11: i32 = task_report_22(v4, v10.clone(), v6, v7, v8, v9);
+fn task_migrated_21(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: i32, mut v8: Rc<str>, mut v9: i32) -> (Rc<str>, i32, i32, i32) {
+    let v10: Rc<str> = tags_replaced_22(v5, v4.clone(), v6.clone());
+    let v11: i32 = task_report_23(v4, v10.clone(), v6, v7, v8, v9);
     let v12: i32 = v1.wrapping_add(1i32);
     let v13: i32 = v2.wrapping_add(v7);
     let v14: i32 = v3.wrapping_add(v9);
     (v10, v12, v13, v14)
 }
-fn task_with_rejections_23(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: i32, mut v8: Rc<str>, mut v9: i32) -> (Rc<str>, i32, i32, i32) {
-    let v10: i32 = task_report_22(v4, v5, v6, v7, v8, v9);
+fn task_with_rejections_24(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: i32, mut v8: Rc<str>, mut v9: i32) -> (Rc<str>, i32, i32, i32) {
+    let v10: i32 = task_report_23(v4, v5, v6, v7, v8, v9);
     let v11: i32 = v3.wrapping_add(v9);
     (v0, v1, v2, v11)
 }
-fn migrated_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32) -> (Rc<str>, i32, i32, i32) {
+fn migrated_from_12(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32) -> (Rc<str>, i32, i32, i32) {
     let v5: i32 = (v0.clone().len() as i32);
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task (\""); } LIT.with(|lit| lit.clone()) };
     let v7: i32 = v0.get(v4 as usize..).and_then(|rest| rest.find(&*v6)).map(|found| (found + v4 as usize) as i32).unwrap_or(-1);
@@ -581,27 +585,27 @@ fn migrated_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut 
         let v13: bool = v11.starts_with(&*v12);
         let (mut v84, mut v85, mut v86, mut v87): (Rc<str>, i32, i32, i32) = if v13 {
             let v14: i32 = 0i32;
-            let v15: i32 = field_start_12(v0.clone(), v9, v5, v14);
+            let v15: i32 = field_start_13(v0.clone(), v9, v5, v14);
             let v16: US3 = US3::US3_ScanPlain;
-            let v17: i32 = field_end_8(v0.clone(), v15, v5, v16.clone());
+            let v17: i32 = field_end_9(v0.clone(), v15, v5, v16.clone());
             let v18: Rc<str> = std::rc::Rc::<str>::from(v0.get(v15 as usize..v17 as usize).unwrap_or(""));
             let v19: i32 = (v18.clone().len() as i32);
             let v20: i32 = v19.wrapping_sub(1i32);
             let v21: Rc<str> = std::rc::Rc::<str>::from(v18.get(1i32 as usize..v20 as usize).unwrap_or(""));
-            let (mut v22, mut v23, mut v24, mut v25, mut v26): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = fresh_tag_pass_13(v0.clone());
+            let (mut v22, mut v23, mut v24, mut v25, mut v26): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = fresh_tag_pass_14(v0.clone());
             let v27: i32 = 8i32;
-            let v28: i32 = field_start_12(v0.clone(), v9, v5, v27);
+            let v28: i32 = field_start_13(v0.clone(), v9, v5, v27);
             let v29: US3 = US3::US3_ScanPlain;
-            let v30: i32 = field_end_8(v0.clone(), v28, v5, v29.clone());
+            let v30: i32 = field_end_9(v0.clone(), v28, v5, v29.clone());
             let v31: Rc<str> = std::rc::Rc::<str>::from(v0.get(v28 as usize..v30 as usize).unwrap_or(""));
             let v32: i32 = (v31.clone().len() as i32);
             let v33: i32 = v32.wrapping_sub(1i32);
             let v34: Rc<str> = std::rc::Rc::<str>::from(v31.get(1i32 as usize..v33 as usize).unwrap_or(""));
             let v35: i32 = 0i32;
-            let (mut v36, mut v37, mut v38, mut v39, mut v40): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = tags_applied_14(v22.clone(), v23.clone(), v24, v25.clone(), v26, v21.clone(), v34.clone(), v35);
+            let (mut v36, mut v37, mut v38, mut v39, mut v40): (Rc<str>, Rc<str>, i32, Rc<str>, i32) = tags_applied_15(v22.clone(), v23.clone(), v24, v25.clone(), v26, v21.clone(), v34.clone(), v35);
             let v41: bool = 1i32 <= v38;
             let (mut v76, mut v77, mut v78, mut v79): (Rc<str>, i32, i32, i32) = if v41 {
-                let (mut v42, mut v43, mut v44, mut v45): (Rc<str>, i32, i32, i32) = task_migrated_20(v0.clone(), v1, v2, v3, v21.clone(), v36.clone(), v37.clone(), v38, v39.clone(), v40);
+                let (mut v42, mut v43, mut v44, mut v45): (Rc<str>, i32, i32, i32) = task_migrated_21(v0.clone(), v1, v2, v3, v21.clone(), v36.clone(), v37.clone(), v38, v39.clone(), v40);
                 let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v21));
                 let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
                 let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v47));
@@ -615,23 +619,23 @@ fn migrated_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut 
                 } else {
                     v51
                 };
-                let (mut v55, mut v56, mut v57, mut v58): (Rc<str>, i32, i32, i32) = migrated_from_11(v42.clone(), v43, v44, v45, v54);
+                let (mut v55, mut v56, mut v57, mut v58): (Rc<str>, i32, i32, i32) = migrated_from_12(v42.clone(), v43, v44, v45, v54);
                 (v55.clone(), v56, v57, v58)
             } else {
                 let v59: bool = 1i32 <= v40;
                 let (mut v72, mut v73, mut v74, mut v75): (Rc<str>, i32, i32, i32) = if v59 {
-                    let (mut v60, mut v61, mut v62, mut v63): (Rc<str>, i32, i32, i32) = task_with_rejections_23(v0.clone(), v1, v2, v3, v21.clone(), v36.clone(), v37.clone(), v38, v39.clone(), v40);
-                    let (mut v64, mut v65, mut v66, mut v67): (Rc<str>, i32, i32, i32) = migrated_from_11(v60.clone(), v61, v62, v63, v9);
+                    let (mut v60, mut v61, mut v62, mut v63): (Rc<str>, i32, i32, i32) = task_with_rejections_24(v0.clone(), v1, v2, v3, v21.clone(), v36.clone(), v37.clone(), v38, v39.clone(), v40);
+                    let (mut v64, mut v65, mut v66, mut v67): (Rc<str>, i32, i32, i32) = migrated_from_12(v60.clone(), v61, v62, v63, v9);
                     (v64.clone(), v65, v66, v67)
                 } else {
-                    let (mut v68, mut v69, mut v70, mut v71): (Rc<str>, i32, i32, i32) = migrated_from_11(v0.clone(), v1, v2, v3, v9);
+                    let (mut v68, mut v69, mut v70, mut v71): (Rc<str>, i32, i32, i32) = migrated_from_12(v0.clone(), v1, v2, v3, v9);
                     (v68.clone(), v69, v70, v71)
                 };
                 (v72.clone(), v73, v74, v75)
             };
             (v76.clone(), v77, v78, v79)
         } else {
-            let (mut v80, mut v81, mut v82, mut v83): (Rc<str>, i32, i32, i32) = migrated_from_11(v0.clone(), v1, v2, v3, v9);
+            let (mut v80, mut v81, mut v82, mut v83): (Rc<str>, i32, i32, i32) = migrated_from_12(v0.clone(), v1, v2, v3, v9);
             (v80.clone(), v81, v82, v83)
         };
         (v84.clone(), v85, v86, v87)
@@ -639,10 +643,10 @@ fn migrated_from_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32, mut 
     (v88.clone(), v89, v90, v91)
 }
 fn tags_migration_1(mut v0: Rc<str>, mut v1: US1) -> i32 {
-    let v2: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
+    let mut v2: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v5: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v3, &*v4, &*v4, &*v4].concat());
+    let v5: Rc<str> = concat5_6(v0.clone(), v3.clone(), v4.clone(), v4.clone(), v4.clone());
     let v6: bool = std::path::Path::new(&*v5).is_file();
     let v9: US2 = if v6 {
         US2::US2_FileReadable(v5.clone())
@@ -665,12 +669,12 @@ fn tags_migration_1(mut v0: Rc<str>, mut v1: US1) -> i32 {
             let v17: Rc<str> = kit_agile_records::kit_agile_records_as_lines(&*v16);
             let v18: i32 = 0i32;
             let v19: i32 = (v17.clone().len() as i32);
-            let v20: i32 = first_malformed_task_6(v17.clone(), v18, v19);
+            let v20: i32 = first_malformed_task_7(v17.clone(), v18, v19);
             let v21: bool = v20 < 0i32;
             if v21 {
-                let (mut v22, mut v23, mut v24, mut v25): (Rc<str>, i32, i32, i32) = fresh_migration_10(v17.clone());
+                let (mut v22, mut v23, mut v24, mut v25): (Rc<str>, i32, i32, i32) = fresh_migration_11(v17.clone());
                 let v26: i32 = 0i32;
-                let (mut v27, mut v28, mut v29, mut v30): (Rc<str>, i32, i32, i32) = migrated_from_11(v22.clone(), v23, v24, v25, v26);
+                let (mut v27, mut v28, mut v29, mut v30): (Rc<str>, i32, i32, i32) = migrated_from_12(v22.clone(), v23, v24, v25, v26);
                 match &v1 {
                     US1::US1_MigrationApply => {
                         migration_written_2(v5.clone(), v27.clone(), v28, v29, v30, v17.clone(), v2)
@@ -691,27 +695,27 @@ fn tags_migration_1(mut v0: Rc<str>, mut v1: US1) -> i32 {
         }
     }
 }
-fn command_line_argument_count_25() -> i32 {
+fn command_line_argument_count_26() -> i32 {
     let v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
-    let v2: i32 = v1.wrapping_sub(1i32);
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
-fn argument_count_24() -> i32 {
-    let v0: i32 = command_line_argument_count_25();
-    let v1: bool = v0 > 0i32;
+fn argument_count_25() -> i32 {
+    let v0: i32 = command_line_argument_count_26();
+    let mut v1: bool = v0 > 0i32;
     if v1 {
-        let v2: i32 = v0.wrapping_sub(1i32);
+        let mut v2: i32 = v0.wrapping_sub(1i32);
         v2
     } else {
         0i32
     }
 }
 fn tags_migration_entry_0() -> i32 {
-    let v0: i32 = argument_count_24();
-    let v1: bool = v0 == 3i32;
+    let v0: i32 = argument_count_25();
+    let mut v1: bool = v0 == 3i32;
     if v1 {
-        let v2: i32 = 1i32;
+        let mut v2: i32 = 1i32;
         let v3: Rc<str> = usize::try_from(v2).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
         let v4: bool = &*v3 == "apply";
         let v12: US6 = if v4 {

@@ -90,8 +90,8 @@ enum US2 {
     US2_InvalidOctal(Rc<str>),
 }
 fn classify_archive_name_1(mut v0: Rc<str>) -> US0 {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".zip"); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".zip"); } LIT.with(|lit| lit.clone()) };
     let v3: bool = v1.ends_with(&*v2);
     if v3 {
         let v4: US1 = US1::US1_ZipArchive;
@@ -157,10 +157,10 @@ fn classify_archive_name_1(mut v0: Rc<str>) -> US0 {
     }
 }
 fn archive_classification_code_0(mut v0: Rc<str>) -> i32 {
-    let v1: US0 = classify_archive_name_1(v0);
+    let mut v1: US0 = classify_archive_name_1(v0);
     match &v1 {
         US0::US0_Recognized(v2) => {
-            let v2: US1 = v2.clone();
+            let mut v2: US1 = v2.clone();
             match &v2 {
                 US1::US1_Bzip2TarArchive => {
                     4i32
@@ -190,10 +190,10 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn archive_classification_label_2(mut v0: Rc<str>) -> Rc<str> {
-    let v1: US0 = classify_archive_name_1(v0);
+    let mut v1: US0 = classify_archive_name_1(v0);
     match &v1 {
         US0::US0_Recognized(v2) => {
-            let v2: US1 = v2.clone();
+            let mut v2: US1 = v2.clone();
             match &v2 {
                 US1::US1_Bzip2TarArchive => {
                     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tar.bz2"); } LIT.with(|lit| lit.clone()) };
@@ -254,7 +254,7 @@ fn method5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -264,7 +264,7 @@ fn method5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn method6(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -288,7 +288,7 @@ fn method6(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -297,8 +297,8 @@ fn method6(mut v0: Rc<str>, mut v1: i32) -> i32 {
     }
 }
 fn read_octal_field_4(mut v0: Rc<str>) -> US2 {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: i32 = 0i32;
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: i32 = 0i32;
     let v3: i32 = method5(v0.clone(), v1, v2);
     let v4: i32 = v1.wrapping_sub(1i32);
     let v5: Rc<str> = string_slice(&v0, v3 as i64, v4 as i64);
@@ -319,7 +319,7 @@ fn read_octal_field_4(mut v0: Rc<str>) -> US2 {
     }
 }
 fn octal_field_value_3(mut v0: Rc<str>) -> u64 {
-    let v1: US2 = read_octal_field_4(v0);
+    let mut v1: US2 = read_octal_field_4(v0);
     match &v1 {
         US2::US2_EmptyField => {
             0u64
@@ -329,7 +329,7 @@ fn octal_field_value_3(mut v0: Rc<str>) -> u64 {
             0u64
         }
         US2::US2_OctalValue(v2) => {
-            let v2: u64 = *v2;
+            let mut v2: u64 = *v2;
             v2
         }
     }
@@ -340,7 +340,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> u64> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn octal_field_error_7(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: US2 = read_octal_field_4(v0);
+    let mut v2: US2 = read_octal_field_4(v0);
     match &v2 {
         US2::US2_InvalidOctal(v3) => {
             let v3: Rc<str> = v3.clone();

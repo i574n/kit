@@ -1,6 +1,6 @@
 :< sm'_operators
 :< kit_standards.rules
-:< rec_cycle
+:< kit_rec_cycle_api.api
 
 :~ declared_or_default (~declaration : string) : standards =
     ?= declared_from declaration NoStandards ?|
@@ -9,7 +9,7 @@
 
 :~ file_findings (~declaration : string) (~path : string) (~module : string) (~text : string) : string =
     (lines_scanned (declared_or_default declaration) path module text 1i32 (file_scan_start ())).findings
-    ++# rec_findings path text
+    ++# kit_rec_cycle_findings path text
 
 := main () : i32 =
     export

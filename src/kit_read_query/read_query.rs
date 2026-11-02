@@ -31,11 +31,11 @@ enum US4 {
 }
 struct Mut0 { l0: Rc<str> }
 fn decimal_text_2(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
 fn elapsed_text_4(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
+    let mut v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
 fn local_offset_minutes_6() -> i64 {
@@ -44,7 +44,7 @@ fn local_offset_minutes_6() -> i64 {
 }
 fn clock_text_5() -> Rc<str> {
     let mut v0: i64 = local_offset_minutes_6();
-    let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
+    let mut v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
 fn receipt_line_3(mut v0: US0, mut v1: Rc<str>, mut v2: u64) -> () {
@@ -151,18 +151,18 @@ fn now_ms_8() -> u64 {
 }
 fn command_line_argument_count_10() -> i32 {
     let mut v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
+    let mut v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn command_line_argument_11(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_add(1i32);
+    let mut v1: i32 = v0.wrapping_add(1i32);
     let v2: usize = ((v1) as usize);
     let mut v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
     v3
 }
 fn argument_9(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_sub(1i32);
+    let mut v1: i32 = v0.wrapping_sub(1i32);
     let v2: bool = v1 >= 0i32;
     let v5: bool = if v2 {
         let mut v3: i32 = command_line_argument_count_10();
@@ -190,7 +190,7 @@ fn argument_9(mut v0: i32) -> Rc<str> {
 }
 fn argument_count_12() -> i32 {
     let mut v0: i32 = command_line_argument_count_10();
-    let v1: i32 = v0.wrapping_add(1i32);
+    let mut v1: i32 = v0.wrapping_add(1i32);
     v1
 }
 fn patterns_from_13(mut v0: i32, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
@@ -208,7 +208,7 @@ fn patterns_from_13(mut v0: i32, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
                 let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v9));
                 v10.clone()
             };
-            (v0, v1, v2) = (v4, v1, v11.clone());
+            (v0, v2) = (v4, v11.clone());
             continue;
         } else {
             return v2.clone();
@@ -226,7 +226,7 @@ fn expanded_from_14(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
             let v6: bool = &*v3 == "";
             if v6 {
                 let v7: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v7, v2.clone());
+                v1 = v7;
                 continue;
             } else {
                 let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("**"); } LIT.with(|lit| lit.clone()) };
@@ -252,14 +252,14 @@ fn expanded_from_14(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
                         v19.clone()
                     }
                 };
-                (v0, v1, v2) = (v0.clone(), v14, v21.clone());
+                (v1, v2) = (v14, v21.clone());
                 continue;
             }
         }
     }
 }
 fn lines_counted_15(mut v0: Rc<str>) -> [u64; 4] {
-    let v1: [u64; 4] = (|| -> [u64; 4] { let mut rows = Vec::new(); for shown in (&*v0).lines().filter(|line| !line.is_empty()) { rows.push((shown.to_owned(), std::fs::read(shown).map(|bytes| (bytes.len() as u64, String::from_utf8_lossy(&bytes).lines().count() as u64)).map_err(|error| error.to_string()))); } let path_width = rows.iter().map(|row| row.0.len()).max().unwrap_or(0).max(4); let bytes_width = rows.iter().map(|row| row.1.as_ref().map(|counts| counts.0.to_string().len()).unwrap_or(1)).max().unwrap_or(0).max(5); println!("{:<path_width$}  {:<bytes_width$}  {}", "path", "bytes", "lines"); let mut tally = [0u64; 4]; for (shown, counts) in &rows { tally[0] += 1; match counts { Ok((bytes, lines)) => { tally[1] += bytes; tally[2] += lines; println!("{:<path_width$}  {:<bytes_width$}  {}", shown, bytes, lines); } Err(error) => { tally[3] += 1; println!("{:<path_width$}  {:<bytes_width$}  -  (unreadable: {error})", shown, "-"); } } } tally })();
+    let mut v1: [u64; 4] = (|| -> [u64; 4] { let mut rows = Vec::new(); for shown in (&*v0).lines().filter(|line| !line.is_empty()) { rows.push((shown.to_owned(), std::fs::read(shown).map(|bytes| (bytes.len() as u64, String::from_utf8_lossy(&bytes).lines().count() as u64)).map_err(|error| error.to_string()))); } let path_width = rows.iter().map(|row| row.0.len()).max().unwrap_or(0).max(4); let bytes_width = rows.iter().map(|row| row.1.as_ref().map(|counts| counts.0.to_string().len()).unwrap_or(1)).max().unwrap_or(0).max(5); println!("{:<path_width$}  {:<bytes_width$}  {}", "path", "bytes", "lines"); let mut tally = [0u64; 4]; for (shown, counts) in &rows { tally[0] += 1; match counts { Ok((bytes, lines)) => { tally[1] += bytes; tally[2] += lines; println!("{:<path_width$}  {:<bytes_width$}  {}", shown, bytes, lines); } Err(error) => { tally[3] += 1; println!("{:<path_width$}  {:<bytes_width$}  -  (unreadable: {error})", shown, "-"); } } } tally })();
     v1.clone()
 }
 fn method18(mut v0: Option<u64>) -> Option<u64> {
@@ -267,12 +267,12 @@ fn method18(mut v0: Option<u64>) -> Option<u64> {
 }
 fn closure1() -> Rc<dyn Fn((u64)) -> US3> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US3> = Rc::new(move |mut v0: (u64)| -> US3 {
-        let v1: u64 = (v0);
+        let mut v1: u64 = (v0);
         US3::US3_Some(v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn decimal_u64_17(mut v0: Rc<str>) -> u64 {
-    let v1: Option<u64> = (v0).trim().parse::<u64>().ok();
+    let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
     let v2: Option<u64> = method18(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
     let mut v4: Option<US3> = v2.map(|x| v3(x));
@@ -300,7 +300,7 @@ fn max_lines_from_16(mut v0: i32, mut v1: i32) -> u64 {
                 let v6: Rc<str> = argument_9(v2);
                 return decimal_u64_17(v6.clone());
             } else {
-                (v0, v1) = (v2, v1);
+                v0 = v2;
                 continue;
             }
         } else {
@@ -313,7 +313,7 @@ fn read_start_19() -> (u64, u64, u64, Rc<str>) {
     (0u64, 0u64, 0u64, v0)
 }
 fn decimal_or_zero_22(mut v0: Rc<str>) -> u64 {
-    let v1: Option<u64> = (v0).trim().parse::<u64>().ok();
+    let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
     let v2: Option<u64> = method18(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
     let mut v4: Option<US3> = v2.map(|x| v3(x));
@@ -331,7 +331,7 @@ fn decimal_or_zero_22(mut v0: Rc<str>) -> u64 {
     }
 }
 fn read_spec_of_21(mut v0: Rc<str>) -> (Rc<str>, US4) {
-    let v1: i64 = { let bytes = v0.as_bytes(); bytes.iter().rposition(|byte| *byte == 58u8).filter(|index| *index > 1 || !(bytes.len() > 1 && bytes[1] == 58u8)).map(|index| index as i64).unwrap_or(-1) };
+    let mut v1: i64 = { let bytes = v0.as_bytes(); bytes.iter().rposition(|byte| *byte == 58u8).filter(|index| *index > 1 || !(bytes.len() > 1 && bytes[1] == 58u8)).map(|index| index as i64).unwrap_or(-1) };
     let v2: bool = v1 < 0i64;
     let (mut v45, mut v46): (Rc<str>, US4) = if v2 {
         let mut v3: US4 = US4::US4_WholeFile;
@@ -441,7 +441,7 @@ fn method28(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     ()
 }
 fn format_real_27(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method28(v2.clone(), v3);
@@ -463,7 +463,7 @@ fn slice_json_29(mut v0: std::rc::Rc<Result<Vec<String>, String>>, mut v1: u64, 
                 let v11: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v3, v9)), v6));
                 v11.clone()
             };
-            (v0, v1, v2, v3) = (v0.clone(), v7, v2, v12.clone());
+            (v1, v3) = (v7, v12.clone());
             continue;
         } else {
             return v3.clone();
@@ -478,7 +478,7 @@ fn slice_printed_30(mut v0: std::rc::Rc<Result<Vec<String>, String>>, mut v1: u6
             let v6: Rc<str> = std::rc::Rc::<str>::from(format!("{:>width$}  {}", v1, &*v5, width = v3 as usize).as_str());
             println!("{}", v6);
             let v7: u64 = v1.wrapping_add(1u64);
-            (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+            v1 = v7;
             continue;
         }
         return ();
@@ -681,7 +681,7 @@ fn read_from_20(mut v0: i32, mut v1: i32, mut v2: u64, mut v3: bool, mut v4: u64
 }
 fn read_run_0() -> i32 {
     let mut v0: u64 = now_ms_8();
-    let v1: i32 = 1i32;
+    let mut v1: i32 = 1i32;
     let v2: Rc<str> = argument_9(v1);
     let mut v3: bool = &*v2 == "read";
     let v9: US2 = if v3 {

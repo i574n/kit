@@ -7,7 +7,7 @@ enum US0 {
     US0_ArgsRejected(Rc<str>),
 }
 fn load_words_2(mut v0: Rc<str>) -> Rc<RefCell<Vec<Rc<str>>>> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v1).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     v2.clone()
 }
@@ -18,11 +18,11 @@ fn loads_valid_3(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32) -> bool {
         if v3 {
             return true;
         } else {
-            let v4: Rc<str> = v0.clone().borrow()[v1 as usize].clone();
+            let v4: Rc<str> = v0.borrow()[v1 as usize].clone();
             let v5: bool = agile_planning_filters::kit_agile_planning_filters_valid(&*v4, "all");
             if v5 {
                 let v6: i32 = v1.wrapping_add(1i32);
-                (v0, v1) = (v0.clone(), v6);
+                v1 = v6;
                 continue;
             } else {
                 return false;
@@ -50,7 +50,7 @@ fn next_request_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: i32, m
                 };
                 if v15 {
                     let v16: i32 = v0.wrapping_add(2i32);
-                    (v0, v1, v2, v3, v4, v5, v6) = (v16, v1, v11.clone(), v3, v4.clone(), v5.clone(), v6);
+                    (v0, v2) = (v16, v11.clone());
                     continue;
                 } else {
                     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--as expects main or subagent, got "); } LIT.with(|lit| lit.clone()) };
@@ -61,13 +61,13 @@ fn next_request_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: i32, m
                 let v22: bool = &*v9 == "--json";
                 if v22 {
                     let v23: bool = true;
-                    (v0, v1, v2, v3, v4, v5, v6) = (v10, v1, v2.clone(), v3, v4.clone(), v5.clone(), v23);
+                    (v0, v6) = (v10, v23);
                     continue;
                 } else {
                     let v25: bool = &*v9 == "--fits";
                     if v25 {
                         let v26: Rc<str> = kit_window_query::kit_fitting_loads();
-                        (v0, v1, v2, v3, v4, v5, v6) = (v10, v1, v2.clone(), v3, v4.clone(), v26.clone(), v6);
+                        (v0, v5) = (v10, v26.clone());
                         continue;
                     } else {
                         let v28: bool = &*v9 == "--load";
@@ -82,7 +82,7 @@ fn next_request_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: i32, m
                             };
                             if v33 {
                                 let v34: i32 = v0.wrapping_add(2i32);
-                                (v0, v1, v2, v3, v4, v5, v6) = (v34, v1, v2.clone(), v3, v4.clone(), v11.clone(), v6);
+                                (v0, v5) = (v34, v11.clone());
                                 continue;
                             } else {
                                 let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--load expects light, medium, heavy or none, or a comma list of them, got "); } LIT.with(|lit| lit.clone()) };
@@ -119,7 +119,7 @@ fn next_request_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: i32, m
                                     v54.clone()
                                 };
                                 let v57: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v51, v55)), v45));
-                                (v0, v1, v2, v3, v4, v5, v6) = (v42, v1, v2.clone(), v3, v57.clone(), v5.clone(), v6);
+                                (v0, v4) = (v42, v57.clone());
                                 continue;
                             } else {
                                 let v59: bool = v40 < 0i32;
@@ -130,7 +130,7 @@ fn next_request_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: i32, m
                                     let v62: i32 = (v9).parse::<i32>().ok().filter(|value| *value > 0).unwrap_or(0);
                                     let v63: bool = 0i32 < v62;
                                     if v63 {
-                                        (v0, v1, v2, v3, v4, v5, v6) = (v10, v1, v2.clone(), v62, v4.clone(), v5.clone(), v6);
+                                        (v0, v3) = (v10, v62);
                                         continue;
                                     } else {
                                         let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected argument "); } LIT.with(|lit| lit.clone()) };
@@ -157,7 +157,7 @@ fn next_request_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: i32, m
 }
 fn next_request_0() -> (bool, Rc<str>, Rc<str>, i32, Rc<str>, Rc<str>, bool) {
     let v0: i32 = 2i32;
-    let v1: usize = std::env::args().count();
+    let mut v1: usize = std::env::args().count();
     let v2: i32 = ((v1) as i32);
     let v3: bool = v2 > 2i32;
     let v5: i32 = if v3 {

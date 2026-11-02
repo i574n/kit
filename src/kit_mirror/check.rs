@@ -128,38 +128,38 @@ fn sorted_names_6(mut v0: Rc<str>) -> Rc<RefCell<Vec<Rc<str>>>> {
     let mut v9: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: 0i32 }));
     while method8(v7, v9.clone()) {
         let v11: i32 = v9.borrow().l0;
-        let v12: std::string::String = v6.clone().borrow()[v11 as usize].clone();
+        let v12: std::string::String = v6.borrow()[v11 as usize].clone();
         let v14: Rc<str> = Rc::<str>::from(String::as_str(&v12));
-        v8.clone().borrow_mut()[v11 as usize] = v14.clone();
+        v8.borrow_mut()[v11 as usize] = v14.clone();
         let v15: i32 = v11.wrapping_add(1i32);
         v9.borrow_mut().l0 = v15;
         ()
     };
     let v16: Rc<RefCell<Vec<Rc<str>>>> = v8 ;
     let mut v17: Rc<dyn Fn((Rc<str>)) -> Rc<str>> = method9();
-    let v18: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v16.borrow().clone()));
-    let v19: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v16.borrow().iter().map(|x| v17(x.clone())).collect::<Vec<_>>()));
+    let mut v18: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v16.borrow().clone()));
+    let mut v19: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v16.borrow().iter().map(|x| v17(x.clone())).collect::<Vec<_>>()));
     let v20: i32 = (v16.clone().borrow().len() as i32);
     let mut v21: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: 1i32 }));
     while method8(v20, v21.clone()) {
         let v23: i32 = v21.borrow().l0;
-        let v24: Rc<str> = v18.clone().borrow()[v23 as usize].clone();
-        let v25: Rc<str> = v19.clone().borrow()[v23 as usize].clone();
+        let v24: Rc<str> = v18.borrow()[v23 as usize].clone();
+        let v25: Rc<str> = v19.borrow()[v23 as usize].clone();
         let mut v26: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: v23 }));
         while method10(v19.clone(), v25.clone(), v26.clone()) {
             let v28: i32 = v26.borrow().l0;
             let v29: i32 = v28.wrapping_sub(1i32);
-            let v30: Rc<str> = v18.clone().borrow()[v29 as usize].clone();
-            v18.clone().borrow_mut()[v28 as usize] = v30.clone();
-            let v31: Rc<str> = v19.clone().borrow()[v29 as usize].clone();
-            v19.clone().borrow_mut()[v28 as usize] = v31.clone();
+            let v30: Rc<str> = v18.borrow()[v29 as usize].clone();
+            v18.borrow_mut()[v28 as usize] = v30.clone();
+            let v31: Rc<str> = v19.borrow()[v29 as usize].clone();
+            v19.borrow_mut()[v28 as usize] = v31.clone();
             v26.borrow_mut().l0 = v29;
             ()
         };
         let v32: i32 = v26.borrow().l0;
-        v18.clone().borrow_mut()[v32 as usize] = v24.clone();
+        v18.borrow_mut()[v32 as usize] = v24.clone();
         let v33: i32 = v26.borrow().l0;
-        v19.clone().borrow_mut()[v33 as usize] = v25.clone();
+        v19.borrow_mut()[v33 as usize] = v25.clone();
         let v34: i32 = v23.wrapping_add(1i32);
         v21.borrow_mut().l0 = v34;
         ()
@@ -174,7 +174,7 @@ fn children_pushed_11(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2
             return v3.clone();
         } else {
             let mut v5: i32 = v2.wrapping_sub(1i32);
-            let mut v6: Rc<str> = v1.clone().borrow()[v2 as usize].clone();
+            let mut v6: Rc<str> = v1.borrow()[v2 as usize].clone();
             let mut v7: bool = &*v0 == "";
             let v11: Rc<str> = if v7 {
                 v6.clone()
@@ -184,7 +184,7 @@ fn children_pushed_11(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2
                 v10.clone()
             };
             let v12: Rc<UH0> = Rc::new(UH0::UH0_Cons(v11.clone(), v3.clone()));
-            (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v5, v12.clone());
+            (v2, v3) = (v5, v12.clone());
             continue;
         }
     }
@@ -221,16 +221,16 @@ fn files_under_5(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> Rc<UH0> {
                     let v12: i32 = (v11.clone().borrow().len() as i32);
                     let v13: i32 = v12.wrapping_sub(1i32);
                     let v14: Rc<UH0> = children_pushed_11(v3.clone(), v11.clone(), v13, v4.clone());
-                    (v0, v1, v2) = (v0.clone(), v14.clone(), v2.clone());
+                    v1 = v14.clone();
                     continue;
                 } else {
                     let v16: bool = file_exists_12(v9.clone());
                     if v16 {
                         let mut v17: Rc<UH0> = Rc::new(UH0::UH0_Cons(v3.clone(), v2.clone()));
-                        (v0, v1, v2) = (v0.clone(), v4.clone(), v17.clone());
+                        (v1, v2) = (v4.clone(), v17.clone());
                         continue;
                     } else {
-                        (v0, v1, v2) = (v0.clone(), v4.clone(), v2.clone());
+                        v1 = v4.clone();
                         continue;
                     }
                 }
@@ -343,8 +343,8 @@ fn paths_from_4(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut 
                     v14.clone()
                 }
             };
-            let v18: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            let v19: Rc<UH0> = Rc::new(UH0::UH0_Cons(v17.clone(), v18.clone()));
+            let mut v18: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+            let mut v19: Rc<UH0> = Rc::new(UH0::UH0_Cons(v17.clone(), v18.clone()));
             let v20: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
             let mut v21: Rc<UH0> = files_under_5(v2.clone(), v19.clone(), v20.clone());
             let v22: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
@@ -358,7 +358,7 @@ fn paths_from_4(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut 
             let v30: i32 = v0.wrapping_add(1i32);
             let v31: Rc<UH0> = merged_14(v23.clone(), v4.clone());
             let v32: Rc<UH0> = merged_14(v29.clone(), v31.clone());
-            (v0, v1, v2, v3, v4) = (v30, v1, v2.clone(), v3.clone(), v32.clone());
+            (v0, v4) = (v30, v32.clone());
             continue;
         }
     }
@@ -426,7 +426,7 @@ fn mirrored_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3: Rc<UH1
                 let v28: US2 = if v13 {
                     let v15: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v12);
                     let mut v17: Vec<u8> = v15.unwrap();
-                    let v18: Vec<u8> = method18(v17.clone());
+                    let mut v18: Vec<u8> = method18(v17.clone());
                     let v20: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v18);
                     let v22: std::string::String = v20.unwrap();
                     let v24: Rc<str> = Rc::<str>::from(String::as_str(&v22));
@@ -456,7 +456,7 @@ fn mirrored_16(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH0>, mut v3: Rc<UH1
                     US2::US2_Missing
                 };
                 let v49: Rc<UH1> = Rc::new(UH1::UH1_Cons(v6.clone(), v28.clone(), v48.clone(), v3.clone()));
-                (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v7.clone(), v49.clone());
+                (v2, v3) = (v7.clone(), v49.clone());
                 continue;
             }
             UH0::UH0_Nil => {
@@ -517,7 +517,7 @@ fn drift_lines_20(mut v0: Rc<UH1>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u6
                 let mut v7: US3 = drift_of_21(v3.clone(), v4.clone(), v5.clone());
                 match &v7 {
                     US3::US3_SameOnBoth => {
-                        (v0, v1, v2) = (v6.clone(), v1.clone(), v2);
+                        v0 = v6.clone();
                         continue;
                     }
                     _ => {
@@ -540,8 +540,8 @@ fn drift_lines_20(mut v0: Rc<UH1>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u6
                             }
                             _ => unreachable!(),
                         };
-                        let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v17));
-                        let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+                        let mut v18: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v17));
+                        let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                         let mut v21: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v18, v19)), v3));
                         let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                         let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
@@ -562,13 +562,13 @@ fn mirror_state_of_22(mut v0: Rc<UH1>, mut v1: Rc<str>, mut v2: Rc<str>) -> US4 
         match &*v0 {
             UH1::UH1_Cons(v17, v18, v19, v20) => {
                 let mut v17: Rc<str> = v17.clone();
-                let v18: US2 = v18.clone();
-                let v19: US2 = v19.clone();
+                let mut v18: US2 = v18.clone();
+                let mut v19: US2 = v19.clone();
                 let v20: Rc<UH1> = v20.clone();
                 let mut v21: US3 = drift_of_21(v17.clone(), v18.clone(), v19.clone());
                 match &v21 {
                     US3::US3_SameOnBoth => {
-                        (v0, v1, v2) = (v20.clone(), v1.clone(), v2.clone());
+                        v0 = v20.clone();
                         continue;
                     }
                     _ => {
@@ -592,7 +592,7 @@ fn mirror_state_of_22(mut v0: Rc<UH1>, mut v1: Rc<str>, mut v2: Rc<str>) -> US4 
                                 let v28: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v1, v26)), v17));
                                 v28.clone()
                             };
-                            (v0, v1, v2) = (v20.clone(), v29.clone(), v2.clone());
+                            (v0, v1) = (v20.clone(), v29.clone());
                             continue;
                         } else {
                             let v31: bool = &*v2 == "";
@@ -603,7 +603,7 @@ fn mirror_state_of_22(mut v0: Rc<UH1>, mut v1: Rc<str>, mut v2: Rc<str>) -> US4 
                                 let v34: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v2, v32)), v17));
                                 v34.clone()
                             };
-                            (v0, v1, v2) = (v20.clone(), v1.clone(), v35.clone());
+                            (v0, v2) = (v20.clone(), v35.clone());
                             continue;
                         }
                     }
@@ -716,7 +716,7 @@ fn mirror_run_0() -> i32 {
     };
     let v12: i32 = command_line_argument_count_1();
     let v13: bool = 3i32 < v12;
-    let v18: US0 = if v13 {
+    let mut v18: US0 = if v13 {
         let v14: i32 = 3i32;
         let v15: Rc<str> = command_line_argument_2(v14);
         US0::US0_Some(v15)
@@ -729,7 +729,7 @@ fn mirror_run_0() -> i32 {
             v20
         }
         US0::US0_Some(v19) => {
-            let v19: Rc<str> = v19.clone();
+            let mut v19: Rc<str> = v19.clone();
             v19
         }
     };

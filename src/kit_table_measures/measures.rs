@@ -41,6 +41,10 @@ enum US1 {
     US1_TableLoaded(std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>),
     US1_TableUnreadable(Rc<str>),
 }
+fn concat5_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
 fn measures_from_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<str>) -> (Rc<UH0>, Rc<str>) {
     let v2: bool = &*v1 == "";
     if v2 {
@@ -48,7 +52,7 @@ fn measures_from_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<s
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         (v3.clone(), v4.clone())
     } else {
-        let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+        let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
         let v6: Rc<str> = std::rc::Rc::<str>::from((v1).split(&*v5).next().unwrap_or(""));
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
         let v8: Rc<str> = std::rc::Rc::<str>::from((v6).split(&*v7).next().unwrap_or(""));
@@ -67,8 +71,7 @@ fn measures_from_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<s
                     v9.clone()
                 } else {
                     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v18: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v5, &*v13, &*v17, &*v17].concat());
-                    v18.clone()
+                    concat5_4(v9.clone(), v5.clone(), v13.clone(), v17.clone(), v17.clone())
                 }
             };
             (v12.clone(), v20.clone())
@@ -126,14 +129,14 @@ fn measures_from_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<s
         }
     }
 }
-fn stats_empty_4(mut v0: Rc<UH0>) -> Rc<UH1> {
+fn stats_empty_5(mut v0: Rc<UH0>) -> Rc<UH1> {
     match &*v0 {
         UH0::UH0_MeasureThen(v2, v3, v4, v5) => {
             let v2: US0 = v2.clone();
             let v3: Rc<str> = v3.clone();
             let v4: i32 = *v4;
-            let v5: Rc<UH0> = v5.clone();
-            let v6: Rc<UH1> = stats_empty_4(v5);
+            let mut v5: Rc<UH0> = v5.clone();
+            let v6: Rc<UH1> = stats_empty_5(v5);
             let v7: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
             Rc::new(UH1::UH1_MeasureStatsThen(0i32, 0i32, 0.0f64, 0.0f64, 0.0f64, 0.0f64, v7, v6))
         }
@@ -142,15 +145,15 @@ fn stats_empty_4(mut v0: Rc<UH0>) -> Rc<UH1> {
         }
     }
 }
-fn row_cells_6(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32) -> Rc<UH4> {
+fn row_cells_7(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32) -> Rc<UH4> {
     match &*v0 {
         UH0::UH0_MeasureThen(v4, v5, v6, v7) => {
             let v4: US0 = v4.clone();
-            let v5: Rc<str> = v5.clone();
+            let mut v5: Rc<str> = v5.clone();
             let v6: i32 = *v6;
             let v7: Rc<UH0> = v7.clone();
             let v8: Rc<str> = std::rc::Rc::<str>::from((v1).get(v2 as usize).and_then(|cells| cells.get(v6 as usize)).map(|cell| &**cell).unwrap_or(""));
-            let v9: Rc<UH4> = row_cells_6(v7.clone(), v1.clone(), v2);
+            let v9: Rc<UH4> = row_cells_7(v7.clone(), v1.clone(), v2);
             Rc::new(UH4::UH4_CellThen(v8.clone(), v9.clone()))
         }
         UH0::UH0_NoMeasures => {
@@ -158,13 +161,13 @@ fn row_cells_6(mut v0: Rc<UH0>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>,
         }
     }
 }
-fn stats_added_8(mut v0: Rc<UH1>, mut v1: Rc<UH4>) -> Rc<UH1> {
+fn stats_added_9(mut v0: Rc<UH1>, mut v1: Rc<UH4>) -> Rc<UH1> {
     match &*v0 {
         UH1::UH1_MeasureStatsThen(v2, v3, v4, v5, v6, v7, v8, v9) => {
             let v2: i32 = *v2;
             let v3: i32 = *v3;
             let v4: f64 = *v4;
-            let v5: f64 = *v5;
+            let mut v5: f64 = *v5;
             let v6: f64 = *v6;
             let v7: f64 = *v7;
             let v8: Rc<UH2> = v8.clone();
@@ -210,11 +213,11 @@ fn stats_added_8(mut v0: Rc<UH1>, mut v1: Rc<UH4>) -> Rc<UH1> {
                         let v25: f64 = v4 + v16;
                         let v26: f64 = v16 * v16;
                         let v27: f64 = v5 + v26;
-                        let v28: Rc<UH1> = stats_added_8(v9.clone(), v11.clone());
+                        let v28: Rc<UH1> = stats_added_9(v9.clone(), v11.clone());
                         let v29: Rc<UH2> = Rc::new(UH2::UH2_Cons(v16, v8.clone()));
                         Rc::new(UH1::UH1_MeasureStatsThen(v24, v14, v25, v27, v20, v23, v29.clone(), v28.clone()))
                     } else {
-                        let v31: Rc<UH1> = stats_added_8(v9.clone(), v11.clone());
+                        let v31: Rc<UH1> = stats_added_9(v9.clone(), v11.clone());
                         Rc::new(UH1::UH1_MeasureStatsThen(v2, v14, v4, v5, v6, v7, v8.clone(), v31.clone()))
                     }
                 }
@@ -228,7 +231,7 @@ fn stats_added_8(mut v0: Rc<UH1>, mut v1: Rc<UH4>) -> Rc<UH1> {
         }
     }
 }
-fn group_added_7(mut v0: Rc<UH3>, mut v1: Rc<str>, mut v2: Rc<UH1>, mut v3: Rc<UH4>) -> Rc<UH3> {
+fn group_added_8(mut v0: Rc<UH3>, mut v1: Rc<str>, mut v2: Rc<UH1>, mut v3: Rc<UH4>) -> Rc<UH3> {
     match &*v0 {
         UH3::UH3_GroupThen(v7, v8, v9, v10) => {
             let v7: Rc<str> = v7.clone();
@@ -238,21 +241,21 @@ fn group_added_7(mut v0: Rc<UH3>, mut v1: Rc<str>, mut v2: Rc<UH1>, mut v3: Rc<U
             let v11: bool = &*v7 == &*v1;
             if v11 {
                 let v12: i32 = v8.wrapping_add(1i32);
-                let v13: Rc<UH1> = stats_added_8(v9.clone(), v3.clone());
+                let v13: Rc<UH1> = stats_added_9(v9.clone(), v3.clone());
                 Rc::new(UH3::UH3_GroupThen(v7.clone(), v12, v13, v10.clone()))
             } else {
-                let v15: Rc<UH3> = group_added_7(v10, v1.clone(), v2.clone(), v3.clone());
+                let v15: Rc<UH3> = group_added_8(v10, v1.clone(), v2.clone(), v3.clone());
                 Rc::new(UH3::UH3_GroupThen(v7, v8, v9, v15))
             }
         }
         UH3::UH3_NoGroups => {
-            let v4: Rc<UH1> = stats_added_8(v2, v3);
-            let v5: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
+            let v4: Rc<UH1> = stats_added_9(v2, v3);
+            let mut v5: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
             Rc::new(UH3::UH3_GroupThen(v1, 1i32, v4, v5))
         }
     }
 }
-fn grouped_from_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<RefCell<Vec<u8>>>, mut v2: i32, mut v3: Rc<UH0>, mut v4: Rc<UH1>, mut v5: i32, mut v6: i32, mut v7: Rc<UH3>, mut v8: i32) -> (Rc<UH3>, i32) {
+fn grouped_from_6(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<RefCell<Vec<u8>>>, mut v2: i32, mut v3: Rc<UH0>, mut v4: Rc<UH1>, mut v5: i32, mut v6: i32, mut v7: Rc<UH3>, mut v8: i32) -> (Rc<UH3>, i32) {
     loop {
         let v9: bool = v6 < v5;
         if v9 {
@@ -263,7 +266,7 @@ fn grouped_from_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<Re
             let v14: bool = if v11 {
                 false
             } else {
-                let v12: u8 = v1.clone().borrow()[v5 as usize].clone();
+                let v12: u8 = v1.borrow()[v5 as usize];
                 let v13: bool = v12 == 49u8;
                 v13
             };
@@ -277,26 +280,26 @@ fn grouped_from_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc<Re
                     let v18: Rc<str> = std::rc::Rc::<str>::from((v0).get(v5 as usize).and_then(|cells| cells.get(v2 as usize)).map(|cell| &**cell).unwrap_or(""));
                     v18.clone()
                 };
-                let v20: Rc<UH4> = row_cells_6(v3.clone(), v0.clone(), v5);
-                let v21: Rc<UH3> = group_added_7(v7.clone(), v19.clone(), v4.clone(), v20.clone());
+                let v20: Rc<UH4> = row_cells_7(v3.clone(), v0.clone(), v5);
+                let v21: Rc<UH3> = group_added_8(v7.clone(), v19.clone(), v4.clone(), v20.clone());
                 let v22: i32 = v8.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4, v5, v6, v7, v8) = (v0.clone(), v1.clone(), v2, v3.clone(), v4.clone(), v15, v6, v21.clone(), v22);
+                (v5, v7, v8) = (v15, v21.clone(), v22);
                 continue;
             } else {
                 let v25: i32 = v5.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4, v5, v6, v7, v8) = (v0.clone(), v1.clone(), v2, v3.clone(), v4.clone(), v25, v6, v7.clone(), v8);
+                v5 = v25;
                 continue;
             }
         }
     }
 }
-fn measure_headers_9(mut v0: Rc<UH0>) -> Rc<str> {
+fn measure_headers_10(mut v0: Rc<UH0>) -> Rc<str> {
     match &*v0 {
         UH0::UH0_MeasureThen(v2, v3, v4, v5) => {
             let v2: US0 = v2.clone();
             let v3: Rc<str> = v3.clone();
             let v4: i32 = *v4;
-            let v5: Rc<UH0> = v5.clone();
+            let mut v5: Rc<UH0> = v5.clone();
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
             let v20: Rc<str> = match &v2 {
                 US0::US0_CountOf => {
@@ -329,9 +332,8 @@ fn measure_headers_9(mut v0: Rc<UH0>) -> Rc<str> {
                 }
             };
             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
-            let v22: Rc<str> = measure_headers_9(v5);
-            let v23: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v20, &*v21, &*v3, &*v22].concat());
-            v23
+            let v22: Rc<str> = measure_headers_10(v5);
+            concat5_4(v6, v20, v21, v3, v22)
         }
         UH0::UH0_NoMeasures => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -339,7 +341,7 @@ fn measure_headers_9(mut v0: Rc<UH0>) -> Rc<str> {
         }
     }
 }
-fn group_inserted_11(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH1>, mut v3: Rc<UH3>) -> Rc<UH3> {
+fn group_inserted_12(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH1>, mut v3: Rc<UH3>) -> Rc<UH3> {
     match &*v3 {
         UH3::UH3_GroupThen(v6, v7, v8, v9) => {
             let v6: Rc<str> = v6.clone();
@@ -357,7 +359,7 @@ fn group_inserted_11(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH1>, mut v3: Rc<U
             if v13 {
                 Rc::new(UH3::UH3_GroupThen(v0.clone(), v1, v2.clone(), v3))
             } else {
-                let v15: Rc<UH3> = group_inserted_11(v0.clone(), v1, v2.clone(), v9);
+                let v15: Rc<UH3> = group_inserted_12(v0.clone(), v1, v2.clone(), v9);
                 Rc::new(UH3::UH3_GroupThen(v6, v7, v8, v15))
             }
         }
@@ -367,15 +369,15 @@ fn group_inserted_11(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH1>, mut v3: Rc<U
         }
     }
 }
-fn groups_sorted_10(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
+fn groups_sorted_11(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
     loop {
         match &*v0 {
             UH3::UH3_GroupThen(v2, v3, v4, v5) => {
                 let v2: Rc<str> = v2.clone();
                 let v3: i32 = *v3;
                 let v4: Rc<UH1> = v4.clone();
-                let v5: Rc<UH3> = v5.clone();
-                let v6: Rc<UH3> = group_inserted_11(v2.clone(), v3, v4.clone(), v1.clone());
+                let mut v5: Rc<UH3> = v5.clone();
+                let v6: Rc<UH3> = group_inserted_12(v2.clone(), v3, v4.clone(), v1.clone());
                 (v0, v1) = (v5.clone(), v6.clone());
                 continue;
             }
@@ -385,11 +387,11 @@ fn groups_sorted_10(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
         }
     }
 }
-fn decimal_text_15(mut v0: f64) -> Rc<str> {
+fn decimal_text_16(mut v0: f64) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from({ let text = format!("{:.3}", v0); let trimmed = text.trim_end_matches(char::from(48u8)).trim_end_matches(char::from(46u8)); if trimmed == "-0" { "0".to_owned() } else { trimmed.to_owned() } }.as_str());
     v1
 }
-fn reversed_onto_19(mut v0: Rc<UH2>, mut v1: Rc<UH2>) -> Rc<UH2> {
+fn reversed_onto_20(mut v0: Rc<UH2>, mut v1: Rc<UH2>) -> Rc<UH2> {
     loop {
         match &*v0 {
             UH2::UH2_Cons(v2, v3) => {
@@ -405,21 +407,21 @@ fn reversed_onto_19(mut v0: Rc<UH2>, mut v1: Rc<UH2>) -> Rc<UH2> {
         }
     }
 }
-fn values_merged_18(mut v0: Rc<UH2>, mut v1: Rc<UH2>, mut v2: Rc<UH2>) -> Rc<UH2> {
+fn values_merged_19(mut v0: Rc<UH2>, mut v1: Rc<UH2>, mut v2: Rc<UH2>) -> Rc<UH2> {
     loop {
         match &*v0 {
             UH2::UH2_Nil => {
-                return reversed_onto_19(v2.clone(), v1.clone());
+                return reversed_onto_20(v2.clone(), v1.clone());
             }
             _ => {
                 match &*v1 {
                     UH2::UH2_Nil => {
-                        return reversed_onto_19(v2.clone(), v0.clone());
+                        return reversed_onto_20(v2.clone(), v0.clone());
                     }
                     _ => {
                         match &*v0 {
                             UH2::UH2_Cons(v5, v6) => {
-                                let v5: f64 = *v5;
+                                let mut v5: f64 = *v5;
                                 let v6: Rc<UH2> = v6.clone();
                                 match &*v1 {
                                     UH2::UH2_Cons(v7, v8) => {
@@ -428,11 +430,11 @@ fn values_merged_18(mut v0: Rc<UH2>, mut v1: Rc<UH2>, mut v2: Rc<UH2>) -> Rc<UH2
                                         let v9: bool = v5 <= v7;
                                         if v9 {
                                             let v10: Rc<UH2> = Rc::new(UH2::UH2_Cons(v5, v2.clone()));
-                                            (v0, v1, v2) = (v6.clone(), v1.clone(), v10.clone());
+                                            (v0, v2) = (v6.clone(), v10.clone());
                                             continue;
                                         } else {
                                             let v12: Rc<UH2> = Rc::new(UH2::UH2_Cons(v7, v2.clone()));
-                                            (v0, v1, v2) = (v0.clone(), v8.clone(), v12.clone());
+                                            (v1, v2) = (v8.clone(), v12.clone());
                                             continue;
                                         }
                                     }
@@ -447,13 +449,13 @@ fn values_merged_18(mut v0: Rc<UH2>, mut v1: Rc<UH2>, mut v2: Rc<UH2>) -> Rc<UH2
         }
     }
 }
-fn values_split_20(mut v0: Rc<UH2>, mut v1: Rc<UH2>, mut v2: Rc<UH2>) -> (Rc<UH2>, Rc<UH2>) {
+fn values_split_21(mut v0: Rc<UH2>, mut v1: Rc<UH2>, mut v2: Rc<UH2>) -> (Rc<UH2>, Rc<UH2>) {
     loop {
         match &*v0 {
             UH2::UH2_Cons(v3, v4) => {
                 let v3: f64 = *v3;
                 let v4: Rc<UH2> = v4.clone();
-                let v5: Rc<UH2> = Rc::new(UH2::UH2_Cons(v3, v1.clone()));
+                let mut v5: Rc<UH2> = Rc::new(UH2::UH2_Cons(v3, v1.clone()));
                 (v0, v1, v2) = (v4.clone(), v2.clone(), v5.clone());
                 continue;
             }
@@ -463,7 +465,7 @@ fn values_split_20(mut v0: Rc<UH2>, mut v1: Rc<UH2>, mut v2: Rc<UH2>) -> (Rc<UH2
         }
     }
 }
-fn values_sorted_17(mut v0: Rc<UH2>) -> Rc<UH2> {
+fn values_sorted_18(mut v0: Rc<UH2>) -> Rc<UH2> {
     match &*v0 {
         UH2::UH2_Cons(v2, v3) => {
             let v2: f64 = *v2;
@@ -476,11 +478,11 @@ fn values_sorted_17(mut v0: Rc<UH2>) -> Rc<UH2> {
                 _ => {
                     let v6: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
                     let v7: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                    let (mut v8, mut v9): (Rc<UH2>, Rc<UH2>) = values_split_20(v0, v6, v7);
-                    let v10: Rc<UH2> = values_sorted_17(v8);
-                    let v11: Rc<UH2> = values_sorted_17(v9);
+                    let (mut v8, mut v9): (Rc<UH2>, Rc<UH2>) = values_split_21(v0, v6, v7);
+                    let v10: Rc<UH2> = values_sorted_18(v8);
+                    let v11: Rc<UH2> = values_sorted_18(v9);
                     let v12: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                    values_merged_18(v10, v11, v12)
+                    values_merged_19(v10, v11, v12)
                 }
             }
         }
@@ -489,7 +491,7 @@ fn values_sorted_17(mut v0: Rc<UH2>) -> Rc<UH2> {
         }
     }
 }
-fn value_at_21(mut v0: Rc<UH2>, mut v1: i32) -> f64 {
+fn value_at_22(mut v0: Rc<UH2>, mut v1: i32) -> f64 {
     loop {
         match &*v0 {
             UH2::UH2_Cons(v2, v3) => {
@@ -499,7 +501,7 @@ fn value_at_21(mut v0: Rc<UH2>, mut v1: i32) -> f64 {
                 if v4 {
                     return v2;
                 } else {
-                    let v5: i32 = v1.wrapping_sub(1i32);
+                    let mut v5: i32 = v1.wrapping_sub(1i32);
                     (v0, v1) = (v3.clone(), v5);
                     continue;
                 }
@@ -510,27 +512,27 @@ fn value_at_21(mut v0: Rc<UH2>, mut v1: i32) -> f64 {
         }
     }
 }
-fn median_of_16(mut v0: Rc<UH2>, mut v1: i32) -> f64 {
-    let v2: Rc<UH2> = values_sorted_17(v0);
+fn median_of_17(mut v0: Rc<UH2>, mut v1: i32) -> f64 {
+    let v2: Rc<UH2> = values_sorted_18(v0);
     let v3: i32 = v1.wrapping_div(2i32);
-    let v4: f64 = value_at_21(v2.clone(), v3);
-    let v5: i32 = v1.wrapping_rem(2i32);
+    let v4: f64 = value_at_22(v2.clone(), v3);
+    let mut v5: i32 = v1.wrapping_rem(2i32);
     let v6: bool = v5 == 1i32;
     if v6 {
         v4
     } else {
         let v7: i32 = v3.wrapping_sub(1i32);
-        let v8: f64 = value_at_21(v2, v7);
+        let v8: f64 = value_at_22(v2, v7);
         let v9: f64 = v8 + v4;
         let v10: f64 = v9 / 2.0f64;
         v10
     }
 }
-fn measure_value_14(mut v0: US0, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: f64, mut v5: f64, mut v6: f64, mut v7: Rc<UH2>) -> Rc<str> {
+fn measure_value_15(mut v0: US0, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: f64, mut v5: f64, mut v6: f64, mut v7: Rc<UH2>) -> Rc<str> {
     match &v0 {
         US0::US0_CountOf => {
             let v13: f64 = (v2 as f64);
-            decimal_text_15(v13)
+            decimal_text_16(v13)
         }
         US0::US0_MaxOf => {
             let v19: bool = v1 == 0i32;
@@ -538,7 +540,7 @@ fn measure_value_14(mut v0: US0, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
                 let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 v20
             } else {
-                decimal_text_15(v6)
+                decimal_text_16(v6)
             }
         }
         US0::US0_MeanOf => {
@@ -549,7 +551,7 @@ fn measure_value_14(mut v0: US0, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
             } else {
                 let v26: f64 = (v1 as f64);
                 let v27: f64 = v3 / v26;
-                decimal_text_15(v27)
+                decimal_text_16(v27)
             }
         }
         US0::US0_MedianOf => {
@@ -558,8 +560,8 @@ fn measure_value_14(mut v0: US0, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
                 let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 v9
             } else {
-                let v10: f64 = median_of_16(v7, v1);
-                decimal_text_15(v10)
+                let v10: f64 = median_of_17(v7, v1);
+                decimal_text_16(v10)
             }
         }
         US0::US0_MinOf => {
@@ -568,7 +570,7 @@ fn measure_value_14(mut v0: US0, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
                 let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 v16
             } else {
-                decimal_text_15(v5)
+                decimal_text_16(v5)
             }
         }
         US0::US0_SdOf => {
@@ -591,21 +593,21 @@ fn measure_value_14(mut v0: US0, mut v1: i32, mut v2: i32, mut v3: f64, mut v4: 
                 let v40: f64 = (v39 as f64);
                 let v41: f64 = v38 / v40;
                 let v42: f64 = (v41).max(0.0).sqrt();
-                decimal_text_15(v42)
+                decimal_text_16(v42)
             }
         }
         US0::US0_SumOf => {
-            decimal_text_15(v3)
+            decimal_text_16(v3)
         }
     }
 }
-fn measure_cells_13(mut v0: Rc<UH0>, mut v1: Rc<UH1>) -> Rc<str> {
+fn measure_cells_14(mut v0: Rc<UH0>, mut v1: Rc<UH1>) -> Rc<str> {
     match &*v0 {
         UH0::UH0_MeasureThen(v2, v3, v4, v5) => {
             let v2: US0 = v2.clone();
             let v3: Rc<str> = v3.clone();
             let v4: i32 = *v4;
-            let v5: Rc<UH0> = v5.clone();
+            let mut v5: Rc<UH0> = v5.clone();
             match &*v1 {
                 UH1::UH1_MeasureStatsThen(v6, v7, v8, v9, v10, v11, v12, v13) => {
                     let v6: i32 = *v6;
@@ -617,11 +619,10 @@ fn measure_cells_13(mut v0: Rc<UH0>, mut v1: Rc<UH1>) -> Rc<str> {
                     let v12: Rc<UH2> = v12.clone();
                     let v13: Rc<UH1> = v13.clone();
                     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                    let v15: Rc<str> = measure_value_14(v2, v6, v7, v8, v9, v10, v11, v12);
-                    let v16: Rc<str> = measure_cells_13(v5, v13);
+                    let v15: Rc<str> = measure_value_15(v2, v6, v7, v8, v9, v10, v11, v12);
+                    let v16: Rc<str> = measure_cells_14(v5, v13);
                     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v18: Rc<str> = std::rc::Rc::<str>::from([&*v14, &*v15, &*v16, &*v17, &*v17].concat());
-                    v18
+                    concat5_4(v14, v15, v16, v17.clone(), v17)
                 }
                 _ => {
                     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -635,12 +636,12 @@ fn measure_cells_13(mut v0: Rc<UH0>, mut v1: Rc<UH1>) -> Rc<str> {
         }
     }
 }
-fn groups_printed_12(mut v0: Rc<UH0>, mut v1: Rc<UH3>, mut v2: u64, mut v3: i32) -> i32 {
+fn groups_printed_13(mut v0: Rc<UH0>, mut v1: Rc<UH3>, mut v2: u64, mut v3: i32) -> i32 {
     loop {
         match &*v1 {
             UH3::UH3_GroupThen(v4, v5, v6, v7) => {
                 let v4: Rc<str> = v4.clone();
-                let v5: i32 = *v5;
+                let mut v5: i32 = *v5;
                 let v6: Rc<UH1> = v6.clone();
                 let v7: Rc<UH3> = v7.clone();
                 let v8: bool = (v3 as u64) < v2;
@@ -648,11 +649,11 @@ fn groups_printed_12(mut v0: Rc<UH0>, mut v1: Rc<UH3>, mut v2: u64, mut v3: i32)
                     let v9: Rc<str> = std::rc::Rc::<str>::from((v5).to_string().as_str());
                     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v9, v10)), v4));
-                    let v13: Rc<str> = measure_cells_13(v0.clone(), v6.clone());
+                    let v13: Rc<str> = measure_cells_14(v0.clone(), v6.clone());
                     let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
                     println!("{}", v14);
                     let v15: i32 = v3.wrapping_add(1i32);
-                    (v0, v1, v2, v3) = (v0.clone(), v7.clone(), v2, v15);
+                    (v1, v3) = (v7.clone(), v15);
                     continue;
                 } else {
                     return v3;
@@ -664,14 +665,14 @@ fn groups_printed_12(mut v0: Rc<UH0>, mut v1: Rc<UH3>, mut v2: u64, mut v3: i32)
         }
     }
 }
-fn group_count_22(mut v0: Rc<UH3>, mut v1: i32) -> i32 {
+fn group_count_23(mut v0: Rc<UH3>, mut v1: i32) -> i32 {
     loop {
         match &*v0 {
             UH3::UH3_GroupThen(v2, v3, v4, v5) => {
                 let v2: Rc<str> = v2.clone();
                 let v3: i32 = *v3;
                 let v4: Rc<UH1> = v4.clone();
-                let v5: Rc<UH3> = v5.clone();
+                let mut v5: Rc<UH3> = v5.clone();
                 let v6: i32 = v1.wrapping_add(1i32);
                 (v0, v1) = (v5.clone(), v6);
                 continue;
@@ -722,8 +723,7 @@ fn grouped_measures_2(mut v0: bool, mut v1: Rc<str>, mut v2: std::rc::Rc<Vec<Vec
         } else {
             let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
             let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v30: Rc<str> = std::rc::Rc::<str>::from([&*v17, &*v28, &*v25, &*v29, &*v29].concat());
-            v30.clone()
+            concat5_4(v17.clone(), v28.clone(), v25.clone(), v29.clone(), v29.clone())
         }
     };
     let v33: bool = &*v32 == "";
@@ -736,8 +736,7 @@ fn grouped_measures_2(mut v0: bool, mut v1: Rc<str>, mut v2: std::rc::Rc<Vec<Vec
         } else {
             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
             let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v37: Rc<str> = std::rc::Rc::<str>::from([&*v32, &*v35, &*v20, &*v36, &*v36].concat());
-            v37.clone()
+            concat5_4(v32.clone(), v35.clone(), v20.clone(), v36.clone(), v36.clone())
         }
     };
     let v40: bool = &*v39 != "";
@@ -756,12 +755,12 @@ fn grouped_measures_2(mut v0: bool, mut v1: Rc<str>, mut v2: std::rc::Rc<Vec<Vec
         eprintln!("{}", v51);
         2i32
     } else {
-        let v52: Rc<UH1> = stats_empty_4(v19.clone());
+        let v52: Rc<UH1> = stats_empty_5(v19.clone());
         let v53: i32 = 1i32;
         let v54: i32 = ((v2).len().max(1) - 1) as i32;
         let v55: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
         let v56: i32 = 0i32;
-        let (mut v57, mut v58): (Rc<UH3>, i32) = grouped_from_5(v2.clone(), v18.clone(), v13, v19.clone(), v52.clone(), v53, v54, v55.clone(), v56);
+        let (mut v57, mut v58): (Rc<UH3>, i32) = grouped_from_6(v2.clone(), v18.clone(), v13, v19.clone(), v52.clone(), v53, v54, v55.clone(), v56);
         let v60: Rc<str> = if v11 {
             let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("all"); } LIT.with(|lit| lit.clone()) };
             v59.clone()
@@ -770,20 +769,20 @@ fn grouped_measures_2(mut v0: bool, mut v1: Rc<str>, mut v2: std::rc::Rc<Vec<Vec
         };
         let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count\t"); } LIT.with(|lit| lit.clone()) };
         let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v60));
-        let v63: Rc<str> = measure_headers_9(v19.clone());
+        let v63: Rc<str> = measure_headers_10(v19.clone());
         let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v62, v63));
         println!("{}", v64);
         let v65: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_NoGroups); } CASE.with(|case| case.clone()) };
-        let v66: Rc<UH3> = groups_sorted_10(v57.clone(), v65.clone());
+        let v66: Rc<UH3> = groups_sorted_11(v57.clone(), v65.clone());
         let v67: i32 = 0i32;
-        let v68: i32 = groups_printed_12(v19.clone(), v66.clone(), v7, v67);
+        let v68: i32 = groups_printed_13(v19.clone(), v66.clone(), v7, v67);
         let v69: Rc<str> = std::rc::Rc::<str>::from((v58).to_string().as_str());
         let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" matched="); } LIT.with(|lit| lit.clone()) };
         let v71: Rc<str> = Rc::<str>::from(format!("{}{}", v70, v69));
         let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" groups="); } LIT.with(|lit| lit.clone()) };
         let v73: Rc<str> = Rc::<str>::from(format!("{}{}", v71, v72));
         let v74: i32 = 0i32;
-        let v75: i32 = group_count_22(v57.clone(), v74);
+        let v75: i32 = group_count_23(v57.clone(), v74);
         let v76: Rc<str> = std::rc::Rc::<str>::from((v75).to_string().as_str());
         let v77: Rc<str> = Rc::<str>::from(format!("{}{}", v73, v76));
         let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" shown="); } LIT.with(|lit| lit.clone()) };
@@ -826,12 +825,12 @@ fn measured_query_1(mut v0: Rc<str>, mut v1: bool, mut v2: Rc<str>, mut v3: Rc<s
         }
     }
 }
-fn no_request_23() -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) {
+fn no_request_24() -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     (v0.clone(), v0.clone(), v0.clone(), v0.clone(), 20u64, v0.clone(), v0, false)
 }
 fn measured_entry_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64, mut v4: bool, mut v5: bool, mut v6: Rc<str>) -> i32 {
-    let (mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13, mut v14): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_23();
+    let (mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13, mut v14): (Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64, Rc<str>, Rc<str>, bool) = no_request_24();
     measured_query_1(v0, v5, v6, v7, v8, v1, v10, v3, v2, v13, v4)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, u64, bool, bool, Rc<str>) -> i32> {

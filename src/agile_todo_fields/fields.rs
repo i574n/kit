@@ -353,7 +353,7 @@ fn walk_9(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: i32, mut v3: R
         if v4 {
             return v3.clone();
         } else {
-            let mut v5: Rc<str> = v0.clone().borrow()[v2 as usize].clone();
+            let mut v5: Rc<str> = v0.borrow()[v2 as usize].clone();
             let mut v6: US2 = field_of_10(v5.clone());
             match &v6 {
                 US2::US2_None => {
@@ -363,7 +363,7 @@ fn walk_9(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: i32, mut v3: R
                     let mut v7: US0 = v7.clone();
                     let v8: i32 = v2.wrapping_add(1i32);
                     let v9: Rc<UH0> = Rc::new(UH0::UH0_Cons(v7.clone(), v3.clone()));
-                    (v0, v1, v2, v3) = (v0.clone(), v1, v8, v9.clone());
+                    (v2, v3) = (v8, v9.clone());
                     continue;
                 }
             }

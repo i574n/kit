@@ -12,26 +12,26 @@ enum US0 {
     US0_None,
 }
 fn code_at_6(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32) -> i32 {
-    let v2: bool = v1 < 0i32;
+    let mut v2: bool = v1 < 0i32;
     let mut v5: bool = if v2 {
         true
     } else {
-        let v3: i32 = (v0.clone().borrow().len() as i32);
+        let mut v3: i32 = (v0.clone().borrow().len() as i32);
         let mut v4: bool = v1 >= v3;
         v4
     };
     if v5 {
         -1i32
     } else {
-        let mut v6: u8 = v0.borrow()[v1 as usize].clone();
+        let mut v6: u8 = v0.borrow()[v1 as usize];
         let v7: i32 = (v6 as i32);
         v7
     }
 }
 fn word_code_7(mut v0: i32) -> bool {
     let mut v1: bool = v0 >= 97i32;
-    let v3: bool = if v1 {
-        let v2: bool = v0 <= 122i32;
+    let mut v3: bool = if v1 {
+        let mut v2: bool = v0 <= 122i32;
         v2
     } else {
         false
@@ -66,8 +66,8 @@ fn word_code_7(mut v0: i32) -> bool {
     }
 }
 fn edge_at_5(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32) -> bool {
-    let v2: i32 = v1.wrapping_sub(1i32);
-    let v3: i32 = code_at_6(v0.clone(), v2);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
+    let mut v3: i32 = code_at_6(v0.clone(), v2);
     let mut v4: bool = word_code_7(v3);
     let mut v5: i32 = code_at_6(v0, v1);
     let mut v6: bool = word_code_7(v5);
@@ -87,7 +87,7 @@ fn bytes_from_9(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<RefCell<Vec<u8>>>, mut 
             let v9: bool = v7 == v8;
             if v9 {
                 let v10: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v2, v10);
+                v3 = v10;
                 continue;
             } else {
                 return false;
@@ -96,13 +96,13 @@ fn bytes_from_9(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<RefCell<Vec<u8>>>, mut 
     }
 }
 fn text_at_8(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<str>) -> bool {
-    let v3: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(v2.as_bytes().to_vec()));
+    let mut v3: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(v2.as_bytes().to_vec()));
     let mut v4: i32 = 0i32;
     bytes_from_9(v0, v3, v1, v4)
 }
 fn word_from_4(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<str>, mut v2: i32) -> bool {
     loop {
-        let v3: i32 = (v0.clone().borrow().len() as i32);
+        let mut v3: i32 = (v0.clone().borrow().len() as i32);
         let mut v4: bool = v2 > v3;
         if v4 {
             return false;
@@ -124,7 +124,7 @@ fn word_from_4(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<str>, mut v2: i32) -> bo
                 return true;
             } else {
                 let mut v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v12);
+                v2 = v12;
                 continue;
             }
         }
@@ -134,14 +134,14 @@ fn method3(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH0>) -> US0 {
     loop {
         match &*v1 {
             UH0::UH0_Cons(v3, v4) => {
-                let v3: Rc<str> = v3.clone();
+                let mut v3: Rc<str> = v3.clone();
                 let mut v4: Rc<UH0> = v4.clone();
                 let mut v5: i32 = 0i32;
                 let mut v6: bool = word_from_4(v0.clone(), v3.clone(), v5);
                 if v6 {
                     return US0::US0_Some(v3.clone());
                 } else {
-                    (v0, v1) = (v0.clone(), v4.clone());
+                    v1 = v4.clone();
                     continue;
                 }
             }
@@ -152,8 +152,8 @@ fn method3(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH0>) -> US0 {
     }
 }
 fn has_word_2(mut v0: Rc<str>, mut v1: Rc<UH0>) -> bool {
-    let v2: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(v0.as_bytes().to_vec()));
-    let v3: US0 = method3(v2, v1);
+    let mut v2: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(v0.as_bytes().to_vec()));
+    let mut v3: US0 = method3(v2, v1);
     let mut v4: bool = match &v3 {
         US0::US0_None => {
             true
@@ -171,14 +171,14 @@ fn method10(mut v0: Option<usize>) -> Option<usize> {
 fn closure1() -> Rc<dyn Fn((usize)) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((usize)) -> i32> = Rc::new(move |mut v0: (usize)| -> i32 {
         let mut v1: usize = (v0);
-        let v2: i32 = ((v1) as i32);
+        let mut v2: i32 = ((v1) as i32);
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn flow_region_1(mut v0: Rc<str>) -> bool {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("? "); } LIT.with(|lit| lit.clone()) };
-    let v2: Option<usize> = v0.find(&*v1);
-    let v3: Option<usize> = method10(v2.clone());
+    let mut v2: Option<usize> = v0.find(&*v1);
+    let mut v3: Option<usize> = method10(v2.clone());
     let mut v4: Rc<dyn Fn((usize)) -> i32> = closure1();
     let mut v5: Option<i32> = v3.map(|x| v4(x));
     let v7: i32 = v5.unwrap_or(-1i32);
@@ -235,14 +235,14 @@ fn flow_region_1(mut v0: Rc<str>) -> bool {
 fn closure2() -> Rc<dyn Fn((usize)) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((usize)) -> i32> = Rc::new(move |mut v0: (usize)| -> i32 {
         let mut v1: usize = (v0);
-        let v2: i32 = ((v1) as i32);
+        let mut v2: i32 = ((v1) as i32);
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn flow_line_0(mut v0: Rc<str>) -> bool {
     let mut v1: Rc<str> = Rc::<str>::from(v0.to_lowercase());
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$'"); } LIT.with(|lit| lit.clone()) };
-    let v3: Option<usize> = v1.find(&*v2);
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$'"); } LIT.with(|lit| lit.clone()) };
+    let mut v3: Option<usize> = v1.find(&*v2);
     let mut v4: Option<usize> = method10(v3.clone());
     let mut v5: Rc<dyn Fn((usize)) -> i32> = closure1();
     let mut v6: Option<i32> = v4.map(|x| v5(x));

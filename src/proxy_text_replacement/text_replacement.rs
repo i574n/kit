@@ -39,21 +39,21 @@ enum US5 {
 fn command_line_argument_count_3() -> i32 {
     let v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
-    let v2: i32 = v1.wrapping_sub(1i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn proxy_argument_count_2() -> i32 {
     let v0: i32 = command_line_argument_count_3();
     let v1: bool = v0 > 0i32;
     if v1 {
-        let v2: i32 = v0.wrapping_sub(1i32);
+        let mut v2: i32 = v0.wrapping_sub(1i32);
         v2
     } else {
         0i32
     }
 }
 fn regular_file_4(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.is_file();
@@ -71,7 +71,7 @@ fn renamed_within_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
@@ -80,7 +80,7 @@ fn renamed_within_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
 fn text_replace_outcome_1() -> US0 {
     let v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
     let v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(2 + 1i32 as usize).unwrap_or_default());
-    let v2: bool = &*v1 == "check";
+    let mut v2: bool = &*v1 == "check";
     let v10: US1 = if v2 {
         let v3: US2 = US2::US2_CheckReplacement;
         US1::US1_Valid(v3.clone())
@@ -404,7 +404,7 @@ fn text_replace_report_0() -> (i32, Rc<str>) {
             (0i32, v1)
         }
         US0::US0_ReplacementRejected(v2) => {
-            let v2: Rc<str> = v2.clone();
+            let mut v2: Rc<str> = v2.clone();
             (2i32, v2)
         }
     }

@@ -52,7 +52,11 @@ fn file_present_2(mut v0: Rc<str>) -> bool {
     let v8: bool = v6.is_file();
     v8
 }
-fn memories_flipped_4(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
+fn concat5_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
+fn memories_flipped_5(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
         match &*v0 {
             UH0::UH0_MemoryThen(v2, v3, v4, v5, v6, v7, v8, v9, v10) => {
@@ -75,8 +79,8 @@ fn memories_flipped_4(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
         }
     }
 }
-fn kind_of_case_6(mut v0: Rc<str>) -> US2 {
-    let v1: bool = &*v0 == "User";
+fn kind_of_case_7(mut v0: Rc<str>) -> US2 {
+    let mut v1: bool = &*v0 == "User";
     if v1 {
         let v2: US0 = US0::US0_KindUser;
         US2::US2_KindKnown(v2)
@@ -102,7 +106,7 @@ fn kind_of_case_6(mut v0: Rc<str>) -> US2 {
         }
     }
 }
-fn unescaped_from_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> (Rc<str>, i32) {
+fn unescaped_from_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> (Rc<str>, i32) {
     loop {
         let v4: i32 = (v0).as_bytes().get(v1 as usize).map(|byte| *byte as i32).unwrap_or(-1);
         let v5: bool = v4 < 0i32;
@@ -115,7 +119,7 @@ fn unescaped_from_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) 
         if v7 {
             let v8: Rc<str> = std::rc::Rc::<str>::from((v0).get(v2 as usize..v1 as usize).unwrap_or(""));
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v10: Rc<str> = std::rc::Rc::<str>::from([&*v3, &*v8, &*v9, &*v9, &*v9].concat());
+            let v10: Rc<str> = concat5_3(v3.clone(), v8.clone(), v9.clone(), v9.clone(), v9.clone());
             let v11: i32 = v1.wrapping_add(1i32);
             return (v10.clone(), v11);
         } else {
@@ -125,46 +129,46 @@ fn unescaped_from_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) 
                 let v14: i32 = (v0).as_bytes().get(v13 as usize).map(|byte| *byte as i32).unwrap_or(-1);
                 let v15: Rc<str> = std::rc::Rc::<str>::from((v0).get(v2 as usize..v1 as usize).unwrap_or(""));
                 let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v17: Rc<str> = std::rc::Rc::<str>::from([&*v3, &*v15, &*v16, &*v16, &*v16].concat());
+                let v17: Rc<str> = concat5_3(v3.clone(), v15.clone(), v16.clone(), v16.clone(), v16.clone());
                 let v18: bool = v14 == 110i32;
                 if v18 {
                     let v19: i32 = v1.wrapping_add(2i32);
                     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                    let v21: Rc<str> = std::rc::Rc::<str>::from([&*v17, &*v20, &*v16, &*v16, &*v16].concat());
-                    (v0, v1, v2, v3) = (v0.clone(), v19, v19, v21.clone());
+                    let v21: Rc<str> = concat5_3(v17.clone(), v20.clone(), v16.clone(), v16.clone(), v16.clone());
+                    (v1, v2, v3) = (v19, v19, v21.clone());
                     continue;
                 } else {
                     let v24: bool = v14 == 114i32;
                     if v24 {
                         let v25: i32 = v1.wrapping_add(2i32);
                         let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
-                        let v27: Rc<str> = std::rc::Rc::<str>::from([&*v17, &*v26, &*v16, &*v16, &*v16].concat());
-                        (v0, v1, v2, v3) = (v0.clone(), v25, v25, v27.clone());
+                        let v27: Rc<str> = concat5_3(v17.clone(), v26.clone(), v16.clone(), v16.clone(), v16.clone());
+                        (v1, v2, v3) = (v25, v25, v27.clone());
                         continue;
                     } else {
                         let v30: bool = v14 == 116i32;
                         if v30 {
                             let v31: i32 = v1.wrapping_add(2i32);
                             let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                            let v33: Rc<str> = std::rc::Rc::<str>::from([&*v17, &*v32, &*v16, &*v16, &*v16].concat());
-                            (v0, v1, v2, v3) = (v0.clone(), v31, v31, v33.clone());
+                            let v33: Rc<str> = concat5_3(v17.clone(), v32.clone(), v16.clone(), v16.clone(), v16.clone());
+                            (v1, v2, v3) = (v31, v31, v33.clone());
                             continue;
                         } else {
                             let v36: i32 = v1.wrapping_add(2i32);
-                            (v0, v1, v2, v3) = (v0.clone(), v36, v13, v17.clone());
+                            (v1, v2, v3) = (v36, v13, v17.clone());
                             continue;
                         }
                     }
                 }
             } else {
                 let v45: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v45, v2, v3.clone());
+                v1 = v45;
                 continue;
             }
         }
     }
 }
-fn quoted_at_7(mut v0: Rc<str>, mut v1: i32) -> (Rc<str>, i32) {
+fn quoted_at_8(mut v0: Rc<str>, mut v1: i32) -> (Rc<str>, i32) {
     let v2: bool = v1 < 0i32;
     let v5: i32 = if v2 {
         -1i32
@@ -180,33 +184,33 @@ fn quoted_at_7(mut v0: Rc<str>, mut v1: i32) -> (Rc<str>, i32) {
     } else {
         let v8: i32 = v5.wrapping_add(1i32);
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        unescaped_from_8(v0.clone(), v8, v8, v9.clone())
+        unescaped_from_9(v0.clone(), v8, v8, v9.clone())
     }
 }
-fn entry_of_line_5(mut v0: Rc<str>) -> US1 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("= Memory ("); } LIT.with(|lit| lit.clone()) };
+fn entry_of_line_6(mut v0: Rc<str>) -> US1 {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("= Memory ("); } LIT.with(|lit| lit.clone()) };
     let v2: i32 = (v0).get(0i32 as usize..).and_then(|rest| rest.find(&*v1)).map(|at| at as i32 + 0i32).unwrap_or(-1);
     let v3: i32 = v2.wrapping_add(10i32);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v5: i32 = (v0).get(v3 as usize..).and_then(|rest| rest.find(&*v4)).map(|at| at as i32 + v3).unwrap_or(-1);
     let mut v6: Rc<str> = std::rc::Rc::<str>::from((v0).get(v3 as usize..v5 as usize).unwrap_or(""));
-    let v7: US2 = kind_of_case_6(v6.clone());
+    let v7: US2 = kind_of_case_7(v6.clone());
     match &v7 {
         US2::US2_KindKnown(v13) => {
             let v13: US0 = v13.clone();
-            let (mut v14, mut v15): (Rc<str>, i32) = quoted_at_7(v0.clone(), v5);
-            let (mut v16, mut v17): (Rc<str>, i32) = quoted_at_7(v0.clone(), v15);
-            let (mut v18, mut v19): (Rc<str>, i32) = quoted_at_7(v0.clone(), v17);
-            let (mut v20, mut v21): (Rc<str>, i32) = quoted_at_7(v0.clone(), v19);
-            let (mut v22, mut v23): (Rc<str>, i32) = quoted_at_7(v0.clone(), v21);
-            let (mut v24, mut v25): (Rc<str>, i32) = quoted_at_7(v0.clone(), v23);
-            let (mut v26, mut v27): (Rc<str>, i32) = quoted_at_7(v0.clone(), v25);
+            let (mut v14, mut v15): (Rc<str>, i32) = quoted_at_8(v0.clone(), v5);
+            let (mut v16, mut v17): (Rc<str>, i32) = quoted_at_8(v0.clone(), v15);
+            let (mut v18, mut v19): (Rc<str>, i32) = quoted_at_8(v0.clone(), v17);
+            let (mut v20, mut v21): (Rc<str>, i32) = quoted_at_8(v0.clone(), v19);
+            let (mut v22, mut v23): (Rc<str>, i32) = quoted_at_8(v0.clone(), v21);
+            let (mut v24, mut v25): (Rc<str>, i32) = quoted_at_8(v0.clone(), v23);
+            let (mut v26, mut v27): (Rc<str>, i32) = quoted_at_8(v0.clone(), v25);
             let v28: bool = v27 < 0i32;
             if v28 {
                 let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("malformed memory line: "); } LIT.with(|lit| lit.clone()) };
                 let v30: Rc<str> = { let text = &*v0; if text.chars().count() <= 80i32 as usize { std::rc::Rc::<str>::from(text) } else { std::rc::Rc::<str>::from(text.chars().take((80i32 as usize).saturating_sub(3)).collect::<String>() + "...") } };
                 let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v32: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v30, &*v31, &*v31, &*v31].concat());
+                let v32: Rc<str> = concat5_3(v29.clone(), v30.clone(), v31.clone(), v31.clone(), v31.clone());
                 US1::US1_EntryRefused(v32.clone())
             } else {
                 US1::US1_EntryRead(v14.clone(), v16.clone(), v18.clone(), v13.clone(), v20.clone(), v22.clone(), v24.clone(), v26.clone())
@@ -216,17 +220,17 @@ fn entry_of_line_5(mut v0: Rc<str>) -> US1 {
             let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown memory kind in: "); } LIT.with(|lit| lit.clone()) };
             let v9: Rc<str> = { let text = &*v0; if text.chars().count() <= 80i32 as usize { std::rc::Rc::<str>::from(text) } else { std::rc::Rc::<str>::from(text.chars().take((80i32 as usize).saturating_sub(3)).collect::<String>() + "...") } };
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v11: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v9, &*v10, &*v10, &*v10].concat());
+            let v11: Rc<str> = concat5_3(v8.clone(), v9.clone(), v10.clone(), v10.clone(), v10.clone());
             US1::US1_EntryRefused(v11.clone())
         }
     }
 }
-fn store_from_3(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>) -> (Rc<UH0>, i32, Rc<str>, Rc<str>) {
+fn store_from_4(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>, mut v3: i32, mut v4: Rc<str>, mut v5: Rc<str>) -> (Rc<UH0>, i32, Rc<str>, Rc<str>) {
     let mut v6: i32 = (v0.clone().len() as i32);
     let v7: bool = v1 >= v6;
     let (mut v60, mut v61, mut v62, mut v63): (Rc<UH0>, i32, Rc<str>, Rc<str>) = if v7 {
         let v8: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMemories); } CASE.with(|case| case.clone()) };
-        let v9: Rc<UH0> = memories_flipped_4(v2.clone(), v8.clone());
+        let v9: Rc<UH0> = memories_flipped_5(v2.clone(), v8.clone());
         (v9.clone(), v3, v4.clone(), v5.clone())
     } else {
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
@@ -248,7 +252,7 @@ fn store_from_3(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>, mut v3: i32, mut 
             false
         };
         let (mut v51, mut v52, mut v53, mut v54): (Rc<UH0>, i32, Rc<str>, Rc<str>) = if v19 {
-            let v20: US1 = entry_of_line_5(v14.clone());
+            let v20: US1 = entry_of_line_6(v14.clone());
             let (mut v38, mut v39, mut v40, mut v41): (Rc<UH0>, i32, Rc<str>, Rc<str>) = match &v20 {
                 US1::US1_EntryRead(v21, v22, v23, v24, v25, v26, v27, v28) => {
                     let v21: Rc<str> = v21.clone();
@@ -268,7 +272,7 @@ fn store_from_3(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>, mut v3: i32, mut 
                         US1::US1_EntryRefused(v31) => {
                             let v31: Rc<str> = v31.clone();
                             let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                            let v33: Rc<str> = std::rc::Rc::<str>::from([&*v5, &*v31, &*v10, &*v32, &*v32].concat());
+                            let v33: Rc<str> = concat5_3(v5.clone(), v31.clone(), v10.clone(), v32.clone(), v32.clone());
                             (v2.clone(), v3, v4.clone(), v33.clone())
                         }
                         _ => unreachable!(),
@@ -282,7 +286,7 @@ fn store_from_3(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>, mut v3: i32, mut 
             let v43: bool = v14.starts_with(&*v42);
             let (mut v47, mut v48, mut v49, mut v50): (Rc<UH0>, i32, Rc<str>, Rc<str>) = if v43 {
                 let v44: i32 = 0i32;
-                let (mut v45, mut v46): (Rc<str>, i32) = quoted_at_7(v14.clone(), v44);
+                let (mut v45, mut v46): (Rc<str>, i32) = quoted_at_8(v14.clone(), v44);
                 (v2.clone(), v3, v45.clone(), v5.clone())
             } else {
                 (v2.clone(), v3, v4.clone(), v5.clone())
@@ -290,16 +294,16 @@ fn store_from_3(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>, mut v3: i32, mut 
             (v47.clone(), v48, v49.clone(), v50.clone())
         };
         let v55: i32 = v13.wrapping_add(1i32);
-        let (mut v56, mut v57, mut v58, mut v59): (Rc<UH0>, i32, Rc<str>, Rc<str>) = store_from_3(v0.clone(), v55, v51.clone(), v52, v53.clone(), v54.clone());
+        let (mut v56, mut v57, mut v58, mut v59): (Rc<UH0>, i32, Rc<str>, Rc<str>) = store_from_4(v0.clone(), v55, v51.clone(), v52, v53.clone(), v54.clone());
         (v56.clone(), v57, v58.clone(), v59.clone())
     };
     (v60.clone(), v61, v62.clone(), v63.clone())
 }
-fn rendered_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>) -> Rc<str> {
+fn rendered_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>) -> Rc<str> {
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("---\nname: "); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\ndescription: "); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\nmetadata:\n"); } LIT.with(|lit| lit.clone()) };
-    let v11: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v1, &*v9, &*v2, &*v10].concat());
+    let v11: Rc<str> = concat5_3(v8, v1, v9, v2, v10);
     let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("node_type"); } LIT.with(|lit| lit.clone()) };
     let v13: bool = &*v4 == "";
     let v19: Rc<str> = if v13 {
@@ -309,8 +313,7 @@ fn rendered_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, m
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v18: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v12, &*v16, &*v4, &*v17].concat());
-        v18
+        concat5_3(v15, v12, v16, v4, v17)
     };
     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("type"); } LIT.with(|lit| lit.clone()) };
     let v25: Rc<str> = match &v3 {
@@ -340,8 +343,7 @@ fn rendered_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, m
         let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v32: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v20, &*v30, &*v26, &*v31].concat());
-        v32
+        concat5_3(v29, v20, v30, v26, v31)
     };
     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("originSessionId"); } LIT.with(|lit| lit.clone()) };
     let v35: bool = &*v5 == "";
@@ -352,8 +354,7 @@ fn rendered_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, m
         let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v40: Rc<str> = std::rc::Rc::<str>::from([&*v37, &*v34, &*v38, &*v5, &*v39].concat());
-        v40
+        concat5_3(v37, v34, v38, v5, v39)
     };
     let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("modified"); } LIT.with(|lit| lit.clone()) };
     let v43: bool = &*v6 == "";
@@ -364,16 +365,14 @@ fn rendered_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, m
         let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
         let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v48: Rc<str> = std::rc::Rc::<str>::from([&*v45, &*v42, &*v46, &*v6, &*v47].concat());
-        v48
+        concat5_3(v45, v42, v46, v6, v47)
     };
     let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v51: Rc<str> = std::rc::Rc::<str>::from([&*v19, &*v33, &*v41, &*v49, &*v50].concat());
+    let v51: Rc<str> = concat5_3(v19, v33, v41, v49, v50.clone());
     let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("---\n"); } LIT.with(|lit| lit.clone()) };
-    let v53: Rc<str> = std::rc::Rc::<str>::from([&*v11, &*v51, &*v52, &*v7, &*v50].concat());
-    v53
+    concat5_3(v11, v51, v52, v7, v50)
 }
-fn rendered_into_9(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
+fn rendered_into_10(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
     loop {
         match &*v0 {
             UH0::UH0_MemoryThen(v3, v4, v5, v6, v7, v8, v9, v10, v11) => {
@@ -387,7 +386,7 @@ fn rendered_into_9(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                 let v10: Rc<str> = v10.clone();
                 let v11: Rc<UH0> = v11.clone();
                 let v12: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v1).join(&*v3).to_string_lossy().as_ref());
-                let v13: Rc<str> = rendered_10(v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8.clone(), v9.clone(), v10.clone());
+                let v13: Rc<str> = rendered_11(v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8.clone(), v9.clone(), v10.clone());
                 let v14: bool = { let path = std::path::Path::new(&*v12); let _ = path.parent().map(std::fs::create_dir_all); std::fs::write(path, (v13).as_bytes()).is_ok() };
                 let v16: i32 = if v14 {
                     let v15: i32 = v2.wrapping_add(1i32);
@@ -395,7 +394,7 @@ fn rendered_into_9(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                 } else {
                     v2
                 };
-                (v0, v1, v2) = (v11.clone(), v1.clone(), v16);
+                (v0, v2) = (v11.clone(), v16);
                 continue;
             }
             UH0::UH0_NoMemories => {
@@ -404,17 +403,17 @@ fn rendered_into_9(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: i32) -> i32 {
         }
     }
 }
-fn method12(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+fn method13(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
-fn format_real_11(mut v0: i32) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+fn format_real_12(mut v0: i32) -> Rc<str> {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method12(v2.clone(), v3);
+    method13(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
@@ -424,9 +423,9 @@ fn memory_render_1(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("render needs a readable data file: "); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let mut v6: Rc<str> = std::rc::Rc::<str>::from([&*v4, &*v0, &*v5, &*v5, &*v5].concat());
+        let mut v6: Rc<str> = concat5_3(v4, v0.clone(), v5.clone(), v5.clone(), v5.clone());
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
-        let v8: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v6, &*v5, &*v5, &*v5].concat());
+        let v8: Rc<str> = concat5_3(v7, v6, v5.clone(), v5.clone(), v5);
         eprintln!("{}", v8);
         2i32
     } else {
@@ -435,9 +434,9 @@ fn memory_render_1(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         let v11: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoMemories); } CASE.with(|case| case.clone()) };
         let v12: i32 = 0i32;
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let (mut v14, mut v15, mut v16, mut v17): (Rc<UH0>, i32, Rc<str>, Rc<str>) = store_from_3(v9, v10, v11, v12, v13.clone(), v13.clone());
+        let (mut v14, mut v15, mut v16, mut v17): (Rc<UH0>, i32, Rc<str>, Rc<str>) = store_from_4(v9, v10, v11, v12, v13.clone(), v13.clone());
         let v18: i32 = 0i32;
-        let v19: i32 = rendered_into_9(v14, v1.clone(), v18);
+        let v19: i32 = rendered_into_10(v14, v1.clone(), v18);
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("MEMORY.md"); } LIT.with(|lit| lit.clone()) };
         let v21: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v1).join(&*v20).to_string_lossy().as_ref());
         let v22: bool = { let path = std::path::Path::new(&*v21); let _ = path.parent().map(std::fs::create_dir_all); std::fs::write(path, (v16).as_bytes()).is_ok() };
@@ -445,49 +444,49 @@ fn memory_render_1(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         let v24: bool = v23 && v22;
         if v24 {
             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit memory render ok memories="); } LIT.with(|lit| lit.clone()) };
-            let v26: Rc<str> = format_real_11(v19);
+            let v26: Rc<str> = format_real_12(v19);
             let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" out="); } LIT.with(|lit| lit.clone()) };
-            let v28: Rc<str> = std::rc::Rc::<str>::from([&*v25, &*v26, &*v27, &*v1, &*v13].concat());
+            let v28: Rc<str> = concat5_3(v25, v26, v27, v1, v13.clone());
             println!("{}", v28);
             0i32
         } else {
             let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("render wrote "); } LIT.with(|lit| lit.clone()) };
-            let v30: Rc<str> = format_real_11(v19);
+            let v30: Rc<str> = format_real_12(v19);
             let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of "); } LIT.with(|lit| lit.clone()) };
-            let v32: Rc<str> = format_real_11(v15);
+            let v32: Rc<str> = format_real_12(v15);
             let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" memories"); } LIT.with(|lit| lit.clone()) };
-            let v34: Rc<str> = std::rc::Rc::<str>::from([&*v29, &*v30, &*v31, &*v32, &*v33].concat());
+            let v34: Rc<str> = concat5_3(v29, v30, v31, v32, v33);
             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
-            let v36: Rc<str> = std::rc::Rc::<str>::from([&*v35, &*v34, &*v13, &*v13, &*v13].concat());
+            let v36: Rc<str> = concat5_3(v35, v34, v13.clone(), v13.clone(), v13);
             eprintln!("{}", v36);
             2i32
         }
     }
 }
-fn command_line_argument_count_14() -> i32 {
+fn command_line_argument_count_15() -> i32 {
     let mut v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
+    let mut v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
-fn command_line_argument_15(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_add(1i32);
+fn command_line_argument_16(mut v0: i32) -> Rc<str> {
+    let mut v1: i32 = v0.wrapping_add(1i32);
     let v2: usize = ((v1) as usize);
     let v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
     v3
 }
-fn argument_13(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_sub(1i32);
+fn argument_14(mut v0: i32) -> Rc<str> {
+    let mut v1: i32 = v0.wrapping_sub(1i32);
     let v2: bool = v1 >= 0i32;
     let v5: bool = if v2 {
-        let v3: i32 = command_line_argument_count_14();
+        let v3: i32 = command_line_argument_count_15();
         let v4: bool = v1 < v3;
         v4
     } else {
         false
     };
     let v9: US3 = if v5 {
-        let mut v6: Rc<str> = command_line_argument_15(v1);
+        let mut v6: Rc<str> = command_line_argument_16(v1);
         US3::US3_Some(v6)
     } else {
         US3::US3_None
@@ -503,13 +502,13 @@ fn argument_13(mut v0: i32) -> Rc<str> {
         }
     }
 }
-fn memory_usage_16() -> Rc<str> {
+fn memory_usage_17() -> Rc<str> {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: kit memory import <memory-dir> <data.spi> | render <data.spi> <out-dir> | check <data.spi> | list <data.spi> [--kind user|feedback|project|reference] | recall <data.spi> \"<words>\" [--limit n] | save <memory-dir> <user|feedback|project|reference> <slug> \"<description>\" \"<body>\"|- [--title <text>] | forget <memory-dir> <slug> (moves it to archive/ and drops its index line) | edit <memory-dir> <slug> description|body \"<text>\"|-"); } LIT.with(|lit| lit.clone()) };
     v0.clone()
 }
 fn memory_run_0() -> i32 {
     let mut v0: i32 = 2i32;
-    let v1: Rc<str> = argument_13(v0);
+    let mut v1: Rc<str> = argument_14(v0);
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Import"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = std::rc::Rc::<str>::from((v2).to_ascii_lowercase().as_str());
     let v4: bool = &*v1 == &*v3;
@@ -581,13 +580,13 @@ fn memory_run_0() -> i32 {
             match &v55 {
                 US5::US5_VerbCheck => {
                     let v80: i32 = 3i32;
-                    let v81: Rc<str> = argument_13(v80);
+                    let v81: Rc<str> = argument_14(v80);
                     let v82: bool = &*v81 == "";
                     if v82 {
-                        let v83: Rc<str> = memory_usage_16();
+                        let v83: Rc<str> = memory_usage_17();
                         let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                         let v85: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v86: Rc<str> = std::rc::Rc::<str>::from([&*v84, &*v83, &*v85, &*v85, &*v85].concat());
+                        let v86: Rc<str> = concat5_3(v84.clone(), v83.clone(), v85.clone(), v85.clone(), v85.clone());
                         eprintln!("{}", v86);
                         2i32
                     } else {
@@ -597,19 +596,19 @@ fn memory_run_0() -> i32 {
                 }
                 US5::US5_VerbEdit => {
                     let v144: i32 = 3i32;
-                    let v145: Rc<str> = argument_13(v144);
+                    let v145: Rc<str> = argument_14(v144);
                     let v146: i32 = 4i32;
-                    let v147: Rc<str> = argument_13(v146);
+                    let v147: Rc<str> = argument_14(v146);
                     let v148: i32 = 5i32;
-                    let v149: Rc<str> = argument_13(v148);
+                    let v149: Rc<str> = argument_14(v148);
                     let v150: i32 = 6i32;
-                    let v151: Rc<str> = argument_13(v150);
+                    let v151: Rc<str> = argument_14(v150);
                     let v152: bool = &*v151 == "";
                     if v152 {
-                        let v153: Rc<str> = memory_usage_16();
+                        let v153: Rc<str> = memory_usage_17();
                         let v154: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                         let v155: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v156: Rc<str> = std::rc::Rc::<str>::from([&*v154, &*v153, &*v155, &*v155, &*v155].concat());
+                        let v156: Rc<str> = concat5_3(v154.clone(), v153.clone(), v155.clone(), v155.clone(), v155.clone());
                         eprintln!("{}", v156);
                         2i32
                     } else {
@@ -619,15 +618,15 @@ fn memory_run_0() -> i32 {
                 }
                 US5::US5_VerbForget => {
                     let v133: i32 = 3i32;
-                    let v134: Rc<str> = argument_13(v133);
+                    let v134: Rc<str> = argument_14(v133);
                     let v135: i32 = 4i32;
-                    let v136: Rc<str> = argument_13(v135);
+                    let v136: Rc<str> = argument_14(v135);
                     let v137: bool = &*v136 == "";
                     if v137 {
-                        let v138: Rc<str> = memory_usage_16();
+                        let v138: Rc<str> = memory_usage_17();
                         let v139: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                         let v140: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v141: Rc<str> = std::rc::Rc::<str>::from([&*v139, &*v138, &*v140, &*v140, &*v140].concat());
+                        let v141: Rc<str> = concat5_3(v139.clone(), v138.clone(), v140.clone(), v140.clone(), v140.clone());
                         eprintln!("{}", v141);
                         2i32
                     } else {
@@ -637,15 +636,15 @@ fn memory_run_0() -> i32 {
                 }
                 US5::US5_VerbImport => {
                     let v56: i32 = 3i32;
-                    let v57: Rc<str> = argument_13(v56);
+                    let v57: Rc<str> = argument_14(v56);
                     let v58: i32 = 4i32;
-                    let v59: Rc<str> = argument_13(v58);
+                    let v59: Rc<str> = argument_14(v58);
                     let v60: bool = &*v59 == "";
                     if v60 {
-                        let v61: Rc<str> = memory_usage_16();
+                        let v61: Rc<str> = memory_usage_17();
                         let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                         let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v64: Rc<str> = std::rc::Rc::<str>::from([&*v62, &*v61, &*v63, &*v63, &*v63].concat());
+                        let v64: Rc<str> = concat5_3(v62.clone(), v61.clone(), v63.clone(), v63.clone(), v63.clone());
                         eprintln!("{}", v64);
                         2i32
                     } else {
@@ -655,15 +654,15 @@ fn memory_run_0() -> i32 {
                 }
                 US5::US5_VerbList => {
                     let v89: i32 = 3i32;
-                    let v90: Rc<str> = argument_13(v89);
+                    let v90: Rc<str> = argument_14(v89);
                     let v91: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--kind"); } LIT.with(|lit| lit.clone()) };
                     let v92: Rc<str> = std::rc::Rc::<str>::from({ let args = std::env::args().collect::<Vec<_>>(); args.iter().position(|argument| argument == &*v91).and_then(|at| args.get(at + 1)).cloned().unwrap_or_default() }.as_str());
                     let v93: bool = &*v90 == "";
                     if v93 {
-                        let v94: Rc<str> = memory_usage_16();
+                        let v94: Rc<str> = memory_usage_17();
                         let v95: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                         let v96: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v97: Rc<str> = std::rc::Rc::<str>::from([&*v95, &*v94, &*v96, &*v96, &*v96].concat());
+                        let v97: Rc<str> = concat5_3(v95.clone(), v94.clone(), v96.clone(), v96.clone(), v96.clone());
                         eprintln!("{}", v97);
                         2i32
                     } else {
@@ -673,18 +672,18 @@ fn memory_run_0() -> i32 {
                 }
                 US5::US5_VerbRecall => {
                     let v100: i32 = 3i32;
-                    let v101: Rc<str> = argument_13(v100);
+                    let v101: Rc<str> = argument_14(v100);
                     let v102: i32 = 4i32;
-                    let v103: Rc<str> = argument_13(v102);
+                    let v103: Rc<str> = argument_14(v102);
                     let v104: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--limit"); } LIT.with(|lit| lit.clone()) };
                     let v105: Rc<str> = std::rc::Rc::<str>::from({ let args = std::env::args().collect::<Vec<_>>(); args.iter().position(|argument| argument == &*v104).and_then(|at| args.get(at + 1)).cloned().unwrap_or_default() }.as_str());
                     let v106: i32 = (v105).trim().parse::<i32>().ok().filter(|value| *value > 0).unwrap_or(10i32);
                     let v107: bool = &*v103 == "";
                     if v107 {
-                        let v108: Rc<str> = memory_usage_16();
+                        let v108: Rc<str> = memory_usage_17();
                         let v109: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                         let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v111: Rc<str> = std::rc::Rc::<str>::from([&*v109, &*v108, &*v110, &*v110, &*v110].concat());
+                        let v111: Rc<str> = concat5_3(v109.clone(), v108.clone(), v110.clone(), v110.clone(), v110.clone());
                         eprintln!("{}", v111);
                         2i32
                     } else {
@@ -694,45 +693,45 @@ fn memory_run_0() -> i32 {
                 }
                 US5::US5_VerbRender => {
                     let v67: i32 = 4i32;
-                    let v68: Rc<str> = argument_13(v67);
+                    let v68: Rc<str> = argument_14(v67);
                     let v69: bool = &*v68 == "";
                     if v69 {
-                        let v70: Rc<str> = memory_usage_16();
+                        let v70: Rc<str> = memory_usage_17();
                         let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                         let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v73: Rc<str> = std::rc::Rc::<str>::from([&*v71, &*v70, &*v72, &*v72, &*v72].concat());
+                        let v73: Rc<str> = concat5_3(v71.clone(), v70.clone(), v72.clone(), v72.clone(), v72.clone());
                         eprintln!("{}", v73);
                         2i32
                     } else {
                         let v74: i32 = 3i32;
-                        let v75: Rc<str> = argument_13(v74);
+                        let v75: Rc<str> = argument_14(v74);
                         let v76: i32 = 4i32;
-                        let v77: Rc<str> = argument_13(v76);
+                        let v77: Rc<str> = argument_14(v76);
                         memory_render_1(v75.clone(), v77.clone())
                     }
                 }
                 US5::US5_VerbSave => {
                     let v114: i32 = 7i32;
-                    let v115: Rc<str> = argument_13(v114);
+                    let v115: Rc<str> = argument_14(v114);
                     let v116: bool = &*v115 == "";
                     if v116 {
-                        let v117: Rc<str> = memory_usage_16();
+                        let v117: Rc<str> = memory_usage_17();
                         let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
                         let v119: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v120: Rc<str> = std::rc::Rc::<str>::from([&*v118, &*v117, &*v119, &*v119, &*v119].concat());
+                        let v120: Rc<str> = concat5_3(v118.clone(), v117.clone(), v119.clone(), v119.clone(), v119.clone());
                         eprintln!("{}", v120);
                         2i32
                     } else {
                         let v121: i32 = 3i32;
-                        let v122: Rc<str> = argument_13(v121);
+                        let v122: Rc<str> = argument_14(v121);
                         let v123: i32 = 4i32;
-                        let v124: Rc<str> = argument_13(v123);
+                        let v124: Rc<str> = argument_14(v123);
                         let v125: i32 = 5i32;
-                        let v126: Rc<str> = argument_13(v125);
+                        let v126: Rc<str> = argument_14(v125);
                         let v127: i32 = 6i32;
-                        let v128: Rc<str> = argument_13(v127);
+                        let v128: Rc<str> = argument_14(v127);
                         let v129: i32 = 7i32;
-                        let v130: Rc<str> = argument_13(v129);
+                        let v130: Rc<str> = argument_14(v129);
                         let v131: i32 = kit_memory_save::kit_memory_save(&*v122, &*v124, &*v126, &*v128, &*v130);
                         v131
                     }
@@ -740,10 +739,10 @@ fn memory_run_0() -> i32 {
             }
         }
         US4::US4_VerbUnknown => {
-            let v51: Rc<str> = memory_usage_16();
+            let v51: Rc<str> = memory_usage_17();
             let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: memory "); } LIT.with(|lit| lit.clone()) };
             let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v54: Rc<str> = std::rc::Rc::<str>::from([&*v52, &*v51, &*v53, &*v53, &*v53].concat());
+            let v54: Rc<str> = concat5_3(v52.clone(), v51.clone(), v53.clone(), v53.clone(), v53.clone());
             eprintln!("{}", v54);
             2i32
         }

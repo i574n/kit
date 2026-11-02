@@ -102,7 +102,7 @@ fn loop_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
             };
             if v23 {
                 let v24: u64 = v2.wrapping_add(1u64);
-                (v0, v1, v2) = (v0.clone(), v1, v24);
+                v2 = v24;
                 continue;
             } else {
                 return false;
@@ -112,7 +112,7 @@ fn loop_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
 }
 fn check_0(mut v0: Rc<str>) -> bool {
     let v1: u64 = (v0.clone().len() as u64);
-    let v2: bool = 1u64 <= v1;
+    let mut v2: bool = 1u64 <= v1;
     if v2 {
         let v3: u64 = 0u64;
         loop_1(v0, v1, v3)
@@ -163,7 +163,7 @@ fn loop_3(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
             };
             if v15 {
                 let v16: u64 = v2.wrapping_add(1u64);
-                (v0, v1, v2) = (v0.clone(), v1, v16);
+                v2 = v16;
                 continue;
             } else {
                 return false;
@@ -173,7 +173,7 @@ fn loop_3(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
 }
 fn check_2(mut v0: Rc<str>) -> bool {
     let v1: u64 = (v0.clone().len() as u64);
-    let v2: bool = v1 < 64u64;
+    let mut v2: bool = v1 < 64u64;
     let v4: bool = if v2 {
         false
     } else {
@@ -193,7 +193,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>) -> bool> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn binary_install_shape_binding_4(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 1i32;
+    let mut v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
@@ -206,7 +206,7 @@ fn binary_install_shape_binding_4(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn binary_install_source_binding_5(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 1i32;
+    let mut v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
@@ -224,7 +224,7 @@ fn binary_install_source_binding_5(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn binary_install_freshness_binding_6(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 0i32;
+    let mut v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
@@ -257,7 +257,7 @@ fn binary_install_freshness_binding_6(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn binary_install_running_destination_binding_7(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v1 < 1i32;
+    let mut v2: bool = v1 < 1i32;
     if v2 {
         0i32
     } else {
@@ -275,7 +275,7 @@ fn binary_install_running_destination_binding_7(mut v0: i32, mut v1: i32) -> i32
     }
 }
 fn binary_install_permission_binding_8(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 1i32;
+    let mut v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
@@ -288,7 +288,7 @@ fn binary_install_permission_binding_8(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn binary_install_mode_binding_9(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 0i32;
+    let mut v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
@@ -326,7 +326,7 @@ fn binary_install_mode_binding_9(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn binary_install_commit_binding_10(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 1i32;
+    let mut v2: bool = v0 < 1i32;
     if v2 {
         0i32
     } else {
@@ -344,7 +344,7 @@ fn binary_install_commit_binding_10(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn release_closeout_shape_binding_11(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 63i32;
+    let mut v2: bool = v0 < 63i32;
     if v2 {
         0i32
     } else {
@@ -367,7 +367,7 @@ fn release_closeout_shape_binding_11(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn release_closeout_migration_binding_12(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 0i32;
+    let mut v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
@@ -390,7 +390,7 @@ fn release_closeout_migration_binding_12(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn release_closeout_evidence_binding_13(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 7i32;
+    let mut v2: bool = v0 < 7i32;
     if v2 {
         0i32
     } else {
@@ -413,7 +413,7 @@ fn release_closeout_evidence_binding_13(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn release_closeout_mode_binding_14(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 0i32;
+    let mut v2: bool = v0 < 0i32;
     if v2 {
         0i32
     } else {
@@ -451,7 +451,7 @@ fn release_closeout_mode_binding_14(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn release_closeout_commit_binding_15(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 7i32;
+    let mut v2: bool = v0 < 7i32;
     if v2 {
         0i32
     } else {
@@ -474,7 +474,7 @@ fn release_closeout_commit_binding_15(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn release_closeout_refresh_binding_16(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 127i32;
+    let mut v2: bool = v0 < 127i32;
     if v2 {
         0i32
     } else {

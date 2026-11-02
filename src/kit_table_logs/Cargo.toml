@@ -14,4 +14,5 @@ name = "kit_table_logs"
 path = "logs.rs"
 
 [dependencies]
+kit-table-text = { path = "../kit_table_text" }
 regex = "1.13.1"

@@ -1,0 +1,6 @@
+:= free_megabytes () : u64 =
+    $'sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_memory(sysinfo::MemoryRefreshKind::nothing().with_ram())).available_memory() >> 20' : u64
+:= disk_free_gb (~mount : string) : u64 =
+    $'sysinfo::Disks::new_with_refreshed_list().list().iter().find(|d| d.mount_point() == std::path::Path::new(&*!mount)).map_or(0, |d| d.available_space() >> 30)' : u64
+:= logical_cpus () : i32 = $'std::thread::available_parallelism().map_or(1, |count| count.get() as i32)' : i32
+:= is_windows () : bool = $'cfg\!(windows)' : bool

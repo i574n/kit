@@ -13,6 +13,46 @@ name = "agile-backlog-scaffold"
 version = "0.0.0"
 
 [[package]]
+name = "agile-claim-cli"
+version = "0.0.0"
+dependencies = [
+ "agile-claim-item",
+ "agile-claim-lease",
+ "agile-claim-queue",
+ "agile-claim-rank",
+ "agile-claim-store",
+]
+
+[[package]]
+name = "agile-claim-item"
+version = "0.0.0"
+dependencies = [
+ "agile-planning-fields",
+ "kit-agile-records",
+]
+
+[[package]]
+name = "agile-claim-lease"
+version = "0.0.0"
+
+[[package]]
+name = "agile-claim-queue"
+version = "0.0.0"
+
+[[package]]
+name = "agile-claim-rank"
+version = "0.0.0"
+dependencies = [
+ "agile-planning-fields",
+ "agile-planning-filters",
+ "kit-agile-records",
+]
+
+[[package]]
+name = "agile-claim-store"
+version = "0.0.0"
+
+[[package]]
 name = "agile-field-rendering"
 version = "0.0.0"
 
@@ -590,6 +630,7 @@ name = "kit-agile-mutation"
 version = "0.0.0"
 dependencies = [
  "agile-backlog-scaffold",
+ "agile-claim-cli",
  "agile-memory-links",
  "agile-note-edit",
  "agile-note-seal",
@@ -1423,6 +1464,7 @@ name = "kit-machine-health"
 version = "0.0.0"
 dependencies = [
  "kit-machine-sample",
+ "sysinfo",
 ]
 
 [[package]]
@@ -1679,6 +1721,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-rec-cycle"
+version = "0.0.0"
+
+[[package]]
 name = "kit-release-contracts"
 version = "0.0.0"
 dependencies = [
@@ -1763,6 +1809,9 @@ dependencies = [
 [[package]]
 name = "kit-standards-scan"
 version = "0.0.0"
+dependencies = [
+ "kit-rec-cycle",
+]
 
 [[package]]
 name = "kit-style-census"
@@ -1770,6 +1819,10 @@ version = "0.0.0"
 dependencies = [
  "regex",
 ]
+
+[[package]]
+name = "kit-table-append"
+version = "0.0.0"
 
 [[package]]
 name = "kit-table-counts"
@@ -1796,6 +1849,7 @@ dependencies = [
 name = "kit-table-logs"
 version = "0.0.0"
 dependencies = [
+ "kit-table-text",
  "regex",
 ]
 
@@ -1817,6 +1871,7 @@ dependencies = [
 name = "kit-table-query"
 version = "0.0.0"
 dependencies = [
+ "kit-table-append",
  "kit-table-diff",
  "kit-table-filter",
  "kit-table-measures",

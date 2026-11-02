@@ -66,8 +66,8 @@ enum US11 {
     US11_Invalid,
 }
 fn parse_planned_load_2(mut v0: Rc<str>) -> US1 {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
-    let v2: bool = &*v1 == "none";
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
+    let mut v2: bool = &*v1 == "none";
     let v4: bool = if v2 {
         true
     } else {
@@ -118,7 +118,7 @@ fn parse_planned_load_2(mut v0: Rc<str>) -> US1 {
     }
 }
 fn load_filter_of_1(mut v0: Rc<str>) -> US0 {
-    let v1: bool = &*v0 == "all";
+    let mut v1: bool = &*v0 == "all";
     if v1 {
         US0::US0_AnyPlanning
     } else {
@@ -154,8 +154,8 @@ fn load_filter_of_1(mut v0: Rc<str>) -> US0 {
     }
 }
 fn parse_planned_assignee_4(mut v0: Rc<str>) -> US5 {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
-    let v2: bool = &*v1 == "none";
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(v0.to_ascii_lowercase());
+    let mut v2: bool = &*v1 == "none";
     let v4: bool = if v2 {
         true
     } else {
@@ -206,7 +206,7 @@ fn parse_planned_assignee_4(mut v0: Rc<str>) -> US5 {
     }
 }
 fn assignee_filter_of_3(mut v0: Rc<str>) -> US0 {
-    let v1: bool = &*v0 == "all";
+    let mut v1: bool = &*v0 == "all";
     if v1 {
         US0::US0_AnyPlanning
     } else {
@@ -242,7 +242,7 @@ fn assignee_filter_of_3(mut v0: Rc<str>) -> US0 {
     }
 }
 fn planning_filters_valid_0(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
-    let v2: US0 = load_filter_of_1(v0);
+    let mut v2: US0 = load_filter_of_1(v0);
     let v3: bool = match &v2 {
         US0::US0_RejectedPlanningFilter => {
             false
@@ -357,7 +357,7 @@ fn declared_from_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                 return v3;
             } else {
                 let v9: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v9);
+                v2 = v9;
                 continue;
             }
         }
@@ -414,7 +414,7 @@ fn field_end_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US10) -> i32 
                         }
                     }
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v10, v2, v25.clone());
+                (v1, v3) = (v10, v25.clone());
                 continue;
             }
         }
@@ -422,11 +422,11 @@ fn field_end_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US10) -> i32 
 }
 fn skip_spaces_12(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
+        let mut v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
         let v3: bool = v2 == 32i32;
         if v3 {
             let v4: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v4);
+            v1 = v4;
             continue;
         } else {
             return v1;
@@ -444,7 +444,7 @@ fn field_start_10(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32
             let mut v7: i32 = v6.wrapping_add(1i32);
             let v8: i32 = skip_spaces_12(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v8, v2, v9);
+            (v1, v3) = (v8, v9);
             continue;
         }
     }
@@ -467,7 +467,7 @@ fn decimal_digits_value_14(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i3
                 let v9: i32 = v1.wrapping_add(1i32);
                 let v10: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
                 let v11: i32 = v3 * 10 + v10 - 48;
-                (v0, v1, v2, v3) = (v0.clone(), v9, v2, v11);
+                (v1, v3) = (v9, v11);
                 continue;
             } else {
                 return -1i32;
@@ -476,8 +476,8 @@ fn decimal_digits_value_14(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i3
     }
 }
 fn decimal_value_13(mut v0: Rc<str>) -> US11 {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: bool = v1 <= 0i32;
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: bool = v1 <= 0i32;
     if v2 {
         US11::US11_Invalid
     } else {
@@ -498,7 +498,7 @@ fn decimal_value_13(mut v0: Rc<str>) -> US11 {
     }
 }
 fn planning_at_9(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
-    let v2: i32 = v1.wrapping_add(10i32);
+    let mut v2: i32 = v1.wrapping_add(10i32);
     let v3: i32 = (v0.clone().len() as i32);
     let v4: i32 = 1i32;
     let v5: i32 = field_start_10(v0.clone(), v2, v3, v4);
@@ -575,7 +575,7 @@ fn planning_at_9(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
     (v23, v39, v55)
 }
 fn planning_of_7(mut v0: Rc<str>, mut v1: Rc<str>) -> (US9, US2, US6) {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));

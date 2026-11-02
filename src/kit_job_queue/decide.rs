@@ -55,7 +55,7 @@ enum US6 {
 }
 struct Mut0 { l0: Rc<str> }
 fn joined_3(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(&*v1).to_string_lossy().as_ref());
+    let mut v2: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(&*v1).to_string_lossy().as_ref());
     v2
 }
 fn jobs_root_5() -> Rc<str> {
@@ -63,19 +63,19 @@ fn jobs_root_5() -> Rc<str> {
     v0.clone()
 }
 fn job_directory_4(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = jobs_root_5();
+    let mut v1: Rc<str> = jobs_root_5();
     joined_3(v1, v0)
 }
 fn job_file_2(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: Rc<str> = job_directory_4(v0);
+    let mut v2: Rc<str> = job_directory_4(v0);
     joined_3(v2, v1)
 }
 fn text_or_empty_6(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v0).unwrap_or_default());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v0).unwrap_or_default());
     v1
 }
 fn file_exists_7(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.is_file();
@@ -107,7 +107,7 @@ fn method8(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -117,7 +117,7 @@ fn method8(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn method9(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -141,7 +141,7 @@ fn method9(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -214,11 +214,11 @@ fn shared_state_10(mut v0: Rc<str>) -> US3 {
 fn state_settled_12(mut v0: US3) -> bool {
     match &v0 {
         US3::US3_Live(v1) => {
-            let v1: US4 = v1.clone();
+            let mut v1: US4 = v1.clone();
             false
         }
         US3::US3_Settled(v2) => {
-            let v2: US5 = v2.clone();
+            let mut v2: US5 = v2.clone();
             true
         }
     }
@@ -226,11 +226,11 @@ fn state_settled_12(mut v0: US3) -> bool {
 fn live_word_14(mut v0: US4) -> Rc<str> {
     match &v0 {
         US4::US4_JobPending => {
-            let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pending"); } LIT.with(|lit| lit.clone()) };
+            let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pending"); } LIT.with(|lit| lit.clone()) };
             v1
         }
         US4::US4_JobRunning => {
-            let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("running"); } LIT.with(|lit| lit.clone()) };
+            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("running"); } LIT.with(|lit| lit.clone()) };
             v2
         }
     }
@@ -242,8 +242,8 @@ fn settled_word_15(mut v0: US5) -> Rc<str> {
             v11
         }
         US5::US5_JobFinished(v1) => {
-            let v1: i32 = *v1;
-            let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
+            let mut v1: i32 = *v1;
+            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
             v2
         }
         US5::US5_JobLost => {
@@ -277,7 +277,7 @@ fn settled_word_15(mut v0: US5) -> Rc<str> {
 fn state_word_13(mut v0: US3) -> Rc<str> {
     match &v0 {
         US3::US3_Live(v1) => {
-            let v1: US4 = v1.clone();
+            let mut v1: US4 = v1.clone();
             live_word_14(v1)
         }
         US3::US3_Settled(v3) => {
@@ -292,7 +292,7 @@ fn settled_exit_17(mut v0: US5) -> i32 {
             75i32
         }
         US5::US5_JobFinished(v1) => {
-            let v1: i32 = *v1;
+            let mut v1: i32 = *v1;
             v1
         }
         US5::US5_JobLost => {
@@ -306,7 +306,7 @@ fn settled_exit_17(mut v0: US5) -> i32 {
             125i32
         }
         US5::US5_JobSpawnFailed(v2) => {
-            let v2: Rc<str> = v2.clone();
+            let mut v2: Rc<str> = v2.clone();
             125i32
         }
         US5::US5_JobStopped => {
@@ -320,18 +320,18 @@ fn settled_exit_17(mut v0: US5) -> i32 {
 fn state_exit_16(mut v0: US3) -> i32 {
     match &v0 {
         US3::US3_Live(v1) => {
-            let v1: US4 = v1.clone();
+            let mut v1: US4 = v1.clone();
             3i32
         }
         US3::US3_Settled(v2) => {
-            let v2: US5 = v2.clone();
+            let mut v2: US5 = v2.clone();
             settled_exit_17(v2)
         }
     }
 }
 fn queued_of_1(mut v0: Rc<str>) -> (Rc<str>, bool, US0) {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = job_file_2(v0.clone(), v1.clone());
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = job_file_2(v0.clone(), v1.clone());
     let v3: Rc<str> = text_or_empty_6(v2.clone());
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stop"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = job_file_2(v0.clone(), v4.clone());
@@ -346,7 +346,7 @@ fn queued_of_1(mut v0: Rc<str>) -> (Rc<str>, bool, US0) {
         let v11: i32 = (v10.clone().borrow().len() as i32);
         let v12: bool = 0i32 < v11;
         let v23: Rc<str> = if v12 {
-            let v13: Rc<str> = v10.clone().borrow()[0i32 as usize].clone();
+            let v13: Rc<str> = v10.borrow()[0i32 as usize].clone();
             let v14: i32 = (v13.clone().len() as i32);
             let v15: i32 = 0i32;
             let v16: i32 = method8(v13.clone(), v14, v15);
@@ -364,7 +364,7 @@ fn queued_of_1(mut v0: Rc<str>) -> (Rc<str>, bool, US0) {
         let v25: i32 = (v24.clone().borrow().len() as i32);
         let v26: bool = 1i32 < v25;
         let v37: Rc<str> = if v26 {
-            let v27: Rc<str> = v24.clone().borrow()[1i32 as usize].clone();
+            let v27: Rc<str> = v24.borrow()[1i32 as usize].clone();
             let v28: i32 = (v27.clone().len() as i32);
             let v29: i32 = 0i32;
             let v30: i32 = method8(v27.clone(), v28, v29);
@@ -399,14 +399,14 @@ fn queued_of_1(mut v0: Rc<str>) -> (Rc<str>, bool, US0) {
     (v50.clone(), v51, v52.clone())
 }
 fn method19(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
-    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
 fn format_real_18(mut v0: i32) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method19(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
@@ -416,8 +416,12 @@ fn now_ms_21() -> u64 {
     let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
     v0
 }
-fn text_written_22(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: Rc<str> = { let temporary = format!("{}.tmp", &*v0); std::rc::Rc::<str>::from(std::fs::write(&temporary, v1.as_bytes()).and_then(|_| std::fs::rename(&temporary, &*v0)).err().map(|error| format!("write {}: {error}", &*v0)).unwrap_or_default()) };
+fn concat5_22(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
+fn text_written_23(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+    let mut v2: Rc<str> = { let temporary = format!("{}.tmp", &*v0); std::rc::Rc::<str>::from(std::fs::write(&temporary, v1.as_bytes()).and_then(|_| std::fs::rename(&temporary, &*v0)).err().map(|error| format!("write {}: {error}", &*v0)).unwrap_or_default()) };
     v2.clone()
 }
 fn settled_in_queue_20(mut v0: Rc<str>, mut v1: US6) -> () {
@@ -434,13 +438,13 @@ fn settled_in_queue_20(mut v0: Rc<str>, mut v1: US6) -> () {
             let v24: Rc<str> = std::rc::Rc::<str>::from((v19).to_string());
             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
             let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let v27: Rc<str> = std::rc::Rc::<str>::from([&*v22, &*v25, &*v16, &*v26, &*v20].concat());
-            let v28: Rc<str> = std::rc::Rc::<str>::from([&*v23, &*v25, &*v24, &*v25, &*v27].concat());
-            let v29: Rc<str> = text_written_22(v18, v28);
+            let v27: Rc<str> = concat5_22(v22, v25.clone(), v16, v26, v20);
+            let v28: Rc<str> = concat5_22(v23, v25.clone(), v24, v25, v27);
+            let v29: Rc<str> = text_written_23(v18, v28);
             ()
         }
         US6::US6_SettleStopped(v2) => {
-            let v2: Rc<str> = v2.clone();
+            let mut v2: Rc<str> = v2.clone();
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
             let v4: Rc<str> = job_file_2(v0, v3);
             let v5: u64 = now_ms_21();
@@ -451,9 +455,9 @@ fn settled_in_queue_20(mut v0: Rc<str>, mut v1: US6) -> () {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v13: Rc<str> = std::rc::Rc::<str>::from([&*v7, &*v10, &*v2, &*v11, &*v12].concat());
-            let v14: Rc<str> = std::rc::Rc::<str>::from([&*v8, &*v10, &*v9, &*v10, &*v13].concat());
-            let v15: Rc<str> = text_written_22(v4, v14);
+            let v13: Rc<str> = concat5_22(v7, v10.clone(), v2, v11, v12);
+            let v14: Rc<str> = concat5_22(v8, v10.clone(), v9, v10, v13);
+            let v15: Rc<str> = text_written_23(v4, v14);
             ()
         }
         _ => {

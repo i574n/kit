@@ -160,6 +160,10 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
         edit_field_position_0(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
+fn concat5_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
 fn quoted_field_value_3(mut v0: Rc<str>) -> US2 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
@@ -177,7 +181,7 @@ fn quoted_field_value_3(mut v0: Rc<str>) -> US2 {
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
     let v15: Rc<str> = Rc::<str>::from(v12.replace(&*v13, &*v14));
     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v17: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v15, &*v1, &*v16, &*v16].concat());
+    let v17: Rc<str> = concat5_4(v1.clone(), v15, v1, v16.clone(), v16);
     US2::US2_Valid(v17)
 }
 fn edit_field_token_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<str> {
@@ -532,7 +536,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> Rc<str>> {
         edit_field_token_2(v0.clone(), v1.clone(), v2.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn edit_field_rule_4(mut v0: Rc<str>) -> Rc<str> {
+fn edit_field_rule_5(mut v0: Rc<str>) -> Rc<str> {
     let v1: US0 = parse_edit_field_1(v0);
     match &v1 {
         US0::US0_Invalid => {
@@ -568,7 +572,7 @@ fn edit_field_rule_4(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        edit_field_rule_4(v0.clone())
+        edit_field_rule_5(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_agile_edit_field_position(v0: &str) -> i32 {

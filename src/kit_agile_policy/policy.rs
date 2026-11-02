@@ -18,7 +18,7 @@ fn codec_empty_2() -> Rc<str> {
     method3()
 }
 fn codec_runtime_char_5(mut v0: Rc<str>) -> u8 {
-    let v1: u8 = v0.as_bytes()[0i32 as usize];
+    let mut v1: u8 = v0.as_bytes()[0i32 as usize];
     v1
 }
 fn skip_spaces_loop_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
@@ -31,7 +31,7 @@ fn skip_spaces_loop_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             let v5: bool = v4 == b' ' ;
             if v5 {
                 let v6: i32 = v1 + 1i32 ;
-                (v0, v1, v2) = (v0.clone(), v6, v2);
+                v1 = v6;
                 continue;
             } else {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
@@ -39,7 +39,7 @@ fn skip_spaces_loop_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 let v10: bool = v4 == v9 ;
                 if v10 {
                     let v11: i32 = v1 + 1i32 ;
-                    (v0, v1, v2) = (v0.clone(), v11, v2);
+                    v1 = v11;
                     continue;
                 } else {
                     return v1;
@@ -66,7 +66,7 @@ fn agile_tuple_trim_right_6(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 v8
             };
             if v9 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v1;
@@ -121,7 +121,7 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                     let v32: i32 = v1 + 1i32 ;
                     let v33: bool = true;
                     let v34: bool = false;
-                    (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v32, v2, v3, v33, v34, v6.clone());
+                    (v1, v4, v5) = (v32, v33, v34);
                     continue;
                 } else {
                     let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
@@ -131,7 +131,7 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                         let v39: i32 = v1 + 1i32 ;
                         let v40: bool = true;
                         let v41: bool = true;
-                        (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v39, v2, v3, v40, v41, v6.clone());
+                        (v1, v4, v5) = (v39, v40, v41);
                         continue;
                     } else {
                         let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
@@ -141,13 +141,13 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                             let v46: i32 = v1 + 1i32 ;
                             let v47: bool = false;
                             let v48: bool = false;
-                            (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v46, v2, v3, v47, v48, v6.clone());
+                            (v1, v4, v5) = (v46, v47, v48);
                             continue;
                         } else {
                             let v50: i32 = v1 + 1i32 ;
                             let v51: bool = true;
                             let v52: bool = false;
-                            (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v50, v2, v3, v51, v52, v6.clone());
+                            (v1, v4, v5) = (v50, v51, v52);
                             continue;
                         }
                     }
@@ -160,7 +160,7 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                     let v60: i32 = v1 + 1i32 ;
                     let v61: bool = true;
                     let v62: bool = false;
-                    (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v60, v2, v3, v61, v62, v6.clone());
+                    (v1, v4, v5) = (v60, v61, v62);
                     continue;
                 } else {
                     let v64: bool = v31 == b',' ;
@@ -196,13 +196,13 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                         let v85: bool = false;
                         let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v81.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
                         let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v6.clone(), v86.clone()));
-                        (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v82, v2, v83, v84, v85, v87.clone());
+                        (v1, v3, v4, v5, v6) = (v82, v83, v84, v85, v87.clone());
                         continue;
                     } else {
                         let v89: i32 = v1 + 1i32 ;
                         let v90: bool = false;
                         let v91: bool = false;
-                        (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v89, v2, v3, v90, v91, v6.clone());
+                        (v1, v4, v5) = (v89, v90, v91);
                         continue;
                     }
                 }
@@ -211,7 +211,7 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
     }
 }
 fn agile_tuple_parse_0(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
+    let mut v1: i32 = 0i32;
     let v2: i32 = (v0.clone().len() as i32);
     let v3: i32 = 0i32;
     let v4: bool = false;
@@ -231,7 +231,7 @@ fn starts_with_loop_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
             if v8 {
                 let v9: i32 = v2 + 1i32 ;
                 let v10: i32 = v3 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v9, v10, v4);
+                (v2, v3) = (v9, v10);
                 continue;
             } else {
                 return false;
@@ -314,14 +314,14 @@ fn codec_u64_decimal_valid_loop_10(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mu
                             let v30: i32 = v1 + 1i32 ;
                             let v31: u64 = v3 * 10u64 ;
                             let v32: u64 = v31 + v25 ;
-                            (v0, v1, v2, v3) = (v0.clone(), v30, v2, v32);
+                            (v1, v3) = (v30, v32);
                             continue;
                         }
                     } else {
                         let v35: i32 = v1 + 1i32 ;
                         let v36: u64 = v3 * 10u64 ;
                         let v37: u64 = v36 + v25 ;
-                        (v0, v1, v2, v3) = (v0.clone(), v35, v2, v37);
+                        (v1, v3) = (v35, v37);
                         continue;
                     }
                 }
@@ -330,7 +330,7 @@ fn codec_u64_decimal_valid_loop_10(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mu
     }
 }
 fn codec_u64_decimal_normalize_9(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = (v0.clone().len() as i32);
     let v2: bool = v1 == 0i32 ;
     if v2 {
         codec_empty_2()
@@ -346,7 +346,7 @@ fn codec_u64_decimal_normalize_9(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn agile_attestation_normalize_7(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = (v0.clone().len() as i32);
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
     let v3: bool = v0 == v2 ;
     if v3 {
@@ -446,13 +446,13 @@ fn codec_u64_decimal_value_loop_13(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mu
             let v26: i32 = v1 + 1i32 ;
             let v27: u64 = v3 * 10u64 ;
             let v28: u64 = v27 + v25 ;
-            (v0, v1, v2, v3) = (v0.clone(), v26, v2, v28);
+            (v1, v3) = (v26, v28);
             continue;
         }
     }
 }
 fn codec_u64_decimal_value_12(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = codec_u64_decimal_normalize_9(v0);
+    let mut v1: Rc<str> = codec_u64_decimal_normalize_9(v0);
     let v2: i32 = (v1.clone().len() as i32);
     let v3: bool = v2 == 0i32 ;
     if v3 {
@@ -464,7 +464,7 @@ fn codec_u64_decimal_value_12(mut v0: Rc<str>) -> u64 {
     }
 }
 fn agile_attestation_value_11(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = agile_attestation_normalize_7(v0);
+    let mut v1: Rc<str> = agile_attestation_normalize_7(v0);
     let v2: i32 = (v1.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
     let v4: bool = v1 == v3 ;
@@ -497,7 +497,7 @@ fn agile_attestation_value_11(mut v0: Rc<str>) -> u64 {
     }
 }
 fn agile_u64_decimal_normalize_15(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
+    let mut v1: i32 = 0i32;
     let v2: i32 = (v0.clone().len() as i32);
     let v3: i32 = skip_spaces_loop_4(v0.clone(), v1, v2);
     let v4: i32 = agile_tuple_trim_right_6(v0.clone(), v2);
@@ -517,11 +517,11 @@ fn agile_u64_decimal_normalize_15(mut v0: Rc<str>) -> Rc<str> {
     codec_u64_decimal_normalize_9(v12)
 }
 fn agile_u64_decimal_value_14(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = agile_u64_decimal_normalize_15(v0);
+    let mut v1: Rc<str> = agile_u64_decimal_normalize_15(v0);
     codec_u64_decimal_value_12(v1)
 }
 fn agile_u64_literal_normalize_17(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
+    let mut v1: i32 = 0i32;
     let v2: i32 = (v0.clone().len() as i32);
     let v3: i32 = skip_spaces_loop_4(v0.clone(), v1, v2);
     let v4: i32 = agile_tuple_trim_right_6(v0.clone(), v2);
@@ -576,7 +576,7 @@ fn agile_u64_literal_normalize_17(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn agile_u64_literal_value_16(mut v0: Rc<str>) -> u64 {
-    let v1: Rc<str> = agile_u64_literal_normalize_17(v0);
+    let mut v1: Rc<str> = agile_u64_literal_normalize_17(v0);
     codec_u64_decimal_value_12(v1)
 }
 fn agile_set_decision_19(mut v0: i32, mut v1: i32) -> i32 {
@@ -628,7 +628,7 @@ fn closure0() -> Rc<dyn Fn(i32, i32) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn agile_task_shape_decision_22(mut v0: i32) -> i32 {
-    let v1: bool = v0 == 11i32;
+    let mut v1: bool = v0 == 11i32;
     if v1 {
         1i32
     } else {

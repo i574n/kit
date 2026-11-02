@@ -39,14 +39,14 @@ enum US3 {
 }
 struct Mut0 { l0: Rc<str> }
 fn refused_1(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: schedule "); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v0));
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: schedule "); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v0));
     println!("{}", v2);
     2i32
 }
 fn command_line_argument_4(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_add(1i32);
-    let v2: usize = ((v1) as usize);
+    let mut v1: i32 = v0.wrapping_add(1i32);
+    let mut v2: usize = ((v1) as usize);
     let v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
     v3
 }
@@ -59,20 +59,20 @@ fn command_line_arguments_back_3(mut v0: i32, mut v1: i32, mut v2: Rc<UH0>) -> R
             let v4: i32 = v1.wrapping_sub(1i32);
             let v5: Rc<str> = command_line_argument_4(v1);
             let mut v6: Rc<UH0> = Rc::new(UH0::UH0_Cons(v5.clone(), v2.clone()));
-            (v0, v1, v2) = (v0, v4, v6.clone());
+            (v1, v2) = (v4, v6.clone());
             continue;
         }
     }
 }
 fn command_line_argument_count_5() -> i32 {
     let mut v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
-    let v2: i32 = v1.wrapping_sub(1i32);
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn command_line_arguments_from_2(mut v0: i32) -> Rc<UH0> {
-    let v1: bool = v0 < 0i32;
-    let v2: i32 = if v1 {
+    let mut v1: bool = v0 < 0i32;
+    let mut v2: i32 = if v1 {
         0i32
     } else {
         v0
@@ -87,12 +87,12 @@ fn method6(mut v0: Option<u64>) -> Option<u64> {
 }
 fn closure1() -> Rc<dyn Fn((u64)) -> US1> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US1> = Rc::new(move |mut v0: (u64)| -> US1 {
-        let v1: u64 = (v0);
+        let mut v1: u64 = (v0);
         US1::US1_Some(v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn get_environment_variable_8(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = Rc::<str>::from(std::env::var(&*v0).unwrap_or_default());
+    let mut v1: Rc<str> = Rc::<str>::from(std::env::var(&*v0).unwrap_or_default());
     v1
 }
 fn method10(mut v0: std::path::PathBuf) -> std::path::PathBuf {
@@ -113,8 +113,8 @@ fn method9(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
 }
 fn schedules_root_7() -> US2 {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("KIT_SCHEDULES_HOME"); } LIT.with(|lit| lit.clone()) };
-    let v1: Rc<str> = get_environment_variable_8(v0);
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("LOCALAPPDATA"); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = get_environment_variable_8(v0);
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("LOCALAPPDATA"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = get_environment_variable_8(v2);
     let v4: bool = &*v1 != "";
     if v4 {
@@ -133,7 +133,7 @@ fn schedules_root_7() -> US2 {
     }
 }
 fn file_exists_12(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.exists();
@@ -173,7 +173,7 @@ fn method14(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let mut v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -183,7 +183,7 @@ fn method14(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn method15(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -207,7 +207,7 @@ fn method15(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -216,7 +216,7 @@ fn method15(mut v0: Rc<str>, mut v1: i32) -> i32 {
     }
 }
 fn stamp_of_11(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
-    let v2: Rc<str> = method9(v0.clone(), v1.clone());
+    let mut v2: Rc<str> = method9(v0.clone(), v1.clone());
     let v3: bool = file_exists_12(v2.clone());
     if v3 {
         let v5: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v2);
@@ -246,14 +246,14 @@ fn stamp_of_11(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
     }
 }
 fn method17(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
-    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
 fn format_real_16(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method17(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
@@ -268,10 +268,10 @@ fn stamp_written_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64) -> () {
 }
 fn schedule_run_0() -> i32 {
     let mut v0: i32 = 1i32;
-    let v1: Rc<UH0> = command_line_arguments_from_2(v0);
+    let mut v1: Rc<UH0> = command_line_arguments_from_2(v0);
     let v232: US0 = match &*v1 {
         UH0::UH0_Cons(v2, v3) => {
-            let v2: Rc<str> = v2.clone();
+            let mut v2: Rc<str> = v2.clone();
             let v3: Rc<UH0> = v3.clone();
             let v4: bool = "due" == &*v2;
             if v4 {

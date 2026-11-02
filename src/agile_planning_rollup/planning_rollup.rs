@@ -118,7 +118,7 @@ fn print_group_rows_3(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: Rc<
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
             let v21: i32 = v12.wrapping_add(1i32);
             let v22: bool = false;
-            (v0, v1, v2, v3, v4, v5, v6) = (v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v21, v22);
+            (v5, v6) = (v21, v22);
             continue;
         }
     }
@@ -174,7 +174,7 @@ fn field_end_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
                         }
                     }
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v10, v2, v25.clone());
+                (v1, v3) = (v10, v25.clone());
                 continue;
             }
         }
@@ -186,7 +186,7 @@ fn skip_spaces_12(mut v0: Rc<str>, mut v1: i32) -> i32 {
         let v3: bool = v2 == 32i32;
         if v3 {
             let v4: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v4);
+            v1 = v4;
             continue;
         } else {
             return v1;
@@ -204,7 +204,7 @@ fn field_start_10(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32
             let v7: i32 = v6.wrapping_add(1i32);
             let v8: i32 = skip_spaces_12(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v8, v2, v9);
+            (v1, v3) = (v8, v9);
             continue;
         }
     }
@@ -246,21 +246,21 @@ fn epic_ids_from_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -
                         let v29: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v3, v27)), v25));
                         v29.clone()
                     };
-                    (v0, v1, v2, v3) = (v0.clone(), v7, v2, v30.clone());
+                    (v1, v3) = (v7, v30.clone());
                     continue;
                 } else {
-                    (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3.clone());
+                    v1 = v7;
                     continue;
                 }
             } else {
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3.clone());
+                v1 = v7;
                 continue;
             }
         }
     }
 }
 fn planning_epic_ids_8(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
+    let mut v1: i32 = 0i32;
     let v2: i32 = (v0.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     epic_ids_from_9(v0, v1, v2, v3)
@@ -353,11 +353,15 @@ fn print_rollup_2(mut v0: Rc<str>, mut v1: US0, mut v2: u64) -> i32 {
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
     v78
 }
+fn concat5_13(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
 fn planning_rollup_1(mut v0: Rc<str>, mut v1: US0) -> i32 {
     let v2: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v5: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v3, &*v4, &*v4, &*v4].concat());
+    let v5: Rc<str> = concat5_13(v0.clone(), v3.clone(), v4.clone(), v4.clone(), v4.clone());
     let v6: bool = std::path::Path::new(&*v5).is_file();
     let v9: US2 = if v6 {
         US2::US2_FileReadable(v5.clone())
@@ -382,15 +386,15 @@ fn planning_rollup_1(mut v0: Rc<str>, mut v1: US0) -> i32 {
         }
     }
 }
-fn command_line_argument_count_14() -> i32 {
+fn command_line_argument_count_15() -> i32 {
     let v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
+    let mut v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
-fn argument_count_13() -> i32 {
-    let v0: i32 = command_line_argument_count_14();
-    let v1: bool = v0 > 0i32;
+fn argument_count_14() -> i32 {
+    let v0: i32 = command_line_argument_count_15();
+    let mut v1: bool = v0 > 0i32;
     if v1 {
         let v2: i32 = v0.wrapping_sub(1i32);
         v2
@@ -399,8 +403,8 @@ fn argument_count_13() -> i32 {
     }
 }
 fn planning_rollup_entry_0() -> i32 {
-    let v0: i32 = argument_count_13();
-    let v1: bool = v0 == 2i32;
+    let v0: i32 = argument_count_14();
+    let mut v1: bool = v0 == 2i32;
     if v1 {
         let v2: i32 = 1i32;
         let v3: Rc<str> = usize::try_from(v2).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);

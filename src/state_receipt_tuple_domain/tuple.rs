@@ -18,7 +18,7 @@ fn codec_empty_1() -> Rc<str> {
     method2()
 }
 fn codec_runtime_char_3(mut v0: Rc<str>) -> u8 {
-    let v1: u8 = v0.as_bytes()[0i32 as usize];
+    let mut v1: u8 = v0.as_bytes()[0i32 as usize];
     v1
 }
 fn find_char_loop_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i32 {
@@ -33,14 +33,14 @@ fn find_char_loop_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
                 return v1;
             } else {
                 let v7: i32 = v1 + 1i32 ;
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+                v1 = v7;
                 continue;
             }
         }
     }
 }
 fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
-    let v1: Rc<str> = codec_empty_1();
+    let mut v1: Rc<str> = codec_empty_1();
     let v2: i32 = (v0.clone().len() as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v4: u8 = codec_runtime_char_3(v3.clone());

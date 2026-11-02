@@ -35,18 +35,18 @@ enum US4 {
 struct Mut0 { l0: Rc<str> }
 fn command_line_argument_count_3() -> i32 {
     let mut v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
+    let mut v1: i32 = ((v0) as i32);
     let v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn command_line_argument_4(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_add(1i32);
+    let mut v1: i32 = v0.wrapping_add(1i32);
     let v2: usize = ((v1) as usize);
     let mut v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
     v3
 }
 fn argument_2(mut v0: i32) -> Rc<str> {
-    let v1: i32 = v0.wrapping_sub(1i32);
+    let mut v1: i32 = v0.wrapping_sub(1i32);
     let v2: bool = v1 >= 0i32;
     let v5: bool = if v2 {
         let mut v3: i32 = command_line_argument_count_3();
@@ -74,7 +74,7 @@ fn argument_2(mut v0: i32) -> Rc<str> {
 }
 fn argument_count_5() -> i32 {
     let mut v0: i32 = command_line_argument_count_3();
-    let v1: i32 = v0.wrapping_add(1i32);
+    let mut v1: i32 = v0.wrapping_add(1i32);
     v1
 }
 fn option_value_1(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
@@ -91,7 +91,7 @@ fn option_value_1(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
             if v7 {
                 return argument_2(v2);
             } else {
-                (v0, v1) = (v0.clone(), v2);
+                v1 = v2;
                 continue;
             }
         }
@@ -102,12 +102,12 @@ fn method7(mut v0: Option<u64>) -> Option<u64> {
 }
 fn closure1() -> Rc<dyn Fn((u64)) -> US1> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US1> = Rc::new(move |mut v0: (u64)| -> US1 {
-        let v1: u64 = (v0);
+        let mut v1: u64 = (v0);
         US1::US1_Some(v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn decimal_u64_6(mut v0: Rc<str>) -> u64 {
-    let v1: Option<u64> = (v0).trim().parse::<u64>().ok();
+    let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
     let v2: Option<u64> = method7(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US1> = closure1();
     let mut v4: Option<US1> = v2.map(|x| v3(x));
@@ -137,7 +137,7 @@ fn flag_present_8(mut v0: Rc<str>, mut v1: i32) -> bool {
                 return true;
             } else {
                 let v6: i32 = v1.wrapping_add(1i32);
-                (v0, v1) = (v0.clone(), v6);
+                v1 = v6;
                 continue;
             }
         }
@@ -149,7 +149,7 @@ fn session_files_9(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
     v2.clone()
 }
 fn cutoff_day_10(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0).saturating_sub(v0 * 86400) as i64; let z = secs.div_euclid(86400) + 719468; let era = z.div_euclid(146097); let doe = z - era * 146097; let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365; let doy = doe - (365 * yoe + yoe / 4 - yoe / 100); let mp = (5 * doy + 2) / 153; let day = doy - (153 * mp + 2) / 5 + 1; let month = if mp < 10 { mp + 3 } else { mp - 9 }; let year = yoe + era * 400 + if month <= 2 { 1 } else { 0 }; std::rc::Rc::<str>::from(format!("{year:04}-{month:02}-{day:02}").as_str()) };
+    let mut v1: Rc<str> = { let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0).saturating_sub(v0 * 86400) as i64; let z = secs.div_euclid(86400) + 719468; let era = z.div_euclid(146097); let doe = z - era * 146097; let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365; let doy = doe - (365 * yoe + yoe / 4 - yoe / 100); let mp = (5 * doy + 2) / 153; let day = doy - (153 * mp + 2) / 5 + 1; let month = if mp < 10 { mp + 3 } else { mp - 9 }; let year = yoe + era * 400 + if month <= 2 { 1 } else { 0 }; std::rc::Rc::<str>::from(format!("{year:04}-{month:02}-{day:02}").as_str()) };
     v1.clone()
 }
 fn file_calls_12(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>) -> Rc<str> {
@@ -266,13 +266,13 @@ fn words_added_16(mut v0: Rc<str>, mut v1: u64, mut v2: Rc<UH0>) -> Rc<UH0> {
                 let v9: US4 = US4::US4_HabitCall;
                 tally_added_15(v6.clone(), v9.clone(), v2.clone())
             };
-            (v0, v1, v2) = (v0.clone(), v7, v11.clone());
+            (v1, v2) = (v7, v11.clone());
             continue;
         }
     }
 }
 fn habit_any_17(mut v0: Rc<str>) -> bool {
-    let v1: bool = kit_adoption_habits::kit_adoption_habit_any(&*v0);
+    let mut v1: bool = kit_adoption_habits::kit_adoption_habit_any(&*v0);
     v1
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> bool> {
@@ -281,7 +281,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> bool> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn kit_named_19(mut v0: Rc<str>) -> bool {
-    let v1: bool = { let text = &*v0; let bytes = text.as_bytes(); let separators = [32u8, 9, 13, 10, 38, 39, 34, 92, 47, 40, 59, 124]; text.match_indices("kit").any(|(at, found)| { let before = at == 0 || separators.contains(&bytes[at - 1]); let mut rest = &text[at + found.len()..]; if let Some(stripped) = rest.strip_prefix(".exe") { rest = stripped; } if let Some(stripped) = rest.strip_prefix(|c: char| c == char::from(39u8) || c == char::from(34u8)) { rest = stripped; } let trimmed = rest.trim_start(); before && trimmed.len() < rest.len() && trimmed.chars().next().is_some_and(|c| c.is_ascii_lowercase()) }) };
+    let mut v1: bool = { let text = &*v0; let bytes = text.as_bytes(); let separators = [32u8, 9, 13, 10, 38, 39, 34, 92, 47, 40, 59, 124]; text.match_indices("kit").any(|(at, found)| { let before = at == 0 || separators.contains(&bytes[at - 1]); let mut rest = &text[at + found.len()..]; if let Some(stripped) = rest.strip_prefix(".exe") { rest = stripped; } if let Some(stripped) = rest.strip_prefix(|c: char| c == char::from(39u8) || c == char::from(34u8)) { rest = stripped; } let trimmed = rest.trim_start(); before && trimmed.len() < rest.len() && trimmed.chars().next().is_some_and(|c| c.is_ascii_lowercase()) }) };
     v1
 }
 fn call_of_command_18(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<str>) -> US4 {
@@ -298,7 +298,7 @@ fn call_of_command_18(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<str>) -> U
     }
 }
 fn habit_words_20(mut v0: Rc<str>) -> Rc<str> {
-    let v1: Rc<str> = kit_adoption_habits::kit_adoption_habit_words(&*v0);
+    let mut v1: Rc<str> = kit_adoption_habits::kit_adoption_habit_words(&*v0);
     v1
 }
 fn row_tallied_14(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<UH0>) -> Rc<UH0> {
@@ -346,7 +346,7 @@ fn calls_tallied_13(mut v0: US2, mut v1: US3, mut v2: Rc<str>, mut v3: u64, mut 
                 let v19: Rc<str> = std::rc::Rc::<str>::from((&*v8).split(char::from(9u8)).nth(1i32 as usize).unwrap_or(""));
                 row_tallied_14(v0.clone(), v16.clone(), v19.clone(), v4.clone())
             };
-            (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v2.clone(), v17, v21.clone());
+            (v3, v4) = (v17, v21.clone());
             continue;
         }
     }
@@ -369,7 +369,7 @@ fn files_tallied_11(mut v0: US2, mut v1: US3, mut v2: Rc<str>, mut v3: Rc<str>, 
                 let v13: u64 = 0u64;
                 calls_tallied_13(v0.clone(), v1.clone(), v12.clone(), v13, v5.clone())
             };
-            (v0, v1, v2, v3, v4, v5) = (v0.clone(), v1.clone(), v2.clone(), v3.clone(), v10, v15.clone());
+            (v4, v5) = (v10, v15.clone());
             continue;
         }
     }
@@ -381,7 +381,7 @@ fn method23(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     ()
 }
 fn format_real_22(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method23(v2.clone(), v3);
@@ -462,7 +462,7 @@ fn max_habit_26(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u64)
                     (v0, v1, v2) = (v7.clone(), v3.clone(), v6);
                     continue;
                 } else {
-                    (v0, v1, v2) = (v7.clone(), v1.clone(), v2);
+                    v0 = v7.clone();
                     continue;
                 }
             }
@@ -518,7 +518,7 @@ fn habit_lines_25(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> (Rc<str>, u6
 }
 fn adoption_run_0() -> i32 {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--days-back"); } LIT.with(|lit| lit.clone()) };
-    let v1: i32 = 2i32;
+    let mut v1: i32 = 2i32;
     let v2: Rc<str> = option_value_1(v0.clone(), v1);
     let mut v3: bool = &*v2 != "";
     let v7: Rc<str> = if v3 {

@@ -74,7 +74,7 @@ fn starts_with_loop_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: i32
             if v8 {
                 let v9: i32 = v2 + 1i32 ;
                 let v10: i32 = v3 + 1i32 ;
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v9, v10, v4);
+                (v2, v3) = (v9, v10);
                 continue;
             } else {
                 return false;
@@ -164,14 +164,14 @@ fn codec_u64_decimal_valid_loop_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut
                             let v30: i32 = v1 + 1i32 ;
                             let v31: u64 = v3 * 10u64 ;
                             let v32: u64 = v31 + v25 ;
-                            (v0, v1, v2, v3) = (v0.clone(), v30, v2, v32);
+                            (v1, v3) = (v30, v32);
                             continue;
                         }
                     } else {
                         let v35: i32 = v1 + 1i32 ;
                         let v36: u64 = v3 * 10u64 ;
                         let v37: u64 = v36 + v25 ;
-                        (v0, v1, v2, v3) = (v0.clone(), v35, v2, v37);
+                        (v1, v3) = (v35, v37);
                         continue;
                     }
                 }
@@ -294,7 +294,7 @@ fn codec_u64_decimal_value_loop_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut
             let v26: i32 = v1 + 1i32 ;
             let v27: u64 = v3 * 10u64 ;
             let v28: u64 = v27 + v25 ;
-            (v0, v1, v2, v3) = (v0.clone(), v26, v2, v28);
+            (v1, v3) = (v26, v28);
             continue;
         }
     }

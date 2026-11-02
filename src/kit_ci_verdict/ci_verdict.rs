@@ -58,7 +58,7 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> bool> {
 fn tool_of_name_3(mut v0: Rc<str>) -> US0 {
     let v1: bool = &*v0 == "rust";
     if v1 {
-        let v2: US1 = US1::US1_ToolRust;
+        let mut v2: US1 = US1::US1_ToolRust;
         US0::US0_Some(v2)
     } else {
         let v4: bool = &*v0 == "zig";
@@ -171,7 +171,7 @@ fn method10(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v20
 }
 fn directory_exists_13(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.exists();
@@ -184,7 +184,7 @@ fn directory_exists_13(mut v0: Rc<str>) -> bool {
 }
 fn names_in_12(mut v0: Rc<str>) -> Rc<UH0> {
     let v1: bool = directory_exists_13(v0.clone());
-    let v2: bool = v1 == false;
+    let mut v2: bool = v1 == false;
     if v2 {
         { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) }
     } else {
@@ -211,7 +211,7 @@ fn method15(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<UH0>) -> US2 {
                 if v6 {
                     return US2::US2_Some(v4.clone());
                 } else {
-                    (v0, v1, v2) = (v0.clone(), v1.clone(), v5.clone());
+                    v2 = v5.clone();
                     continue;
                 }
             }
@@ -225,7 +225,7 @@ fn matching_version_14(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<UH0>) -> US2 {
     method15(v0, v1, v2)
 }
 fn file_exists_16(mut v0: Rc<str>) -> bool {
-    let v2: &str = &*v0;
+    let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.exists();
@@ -273,7 +273,7 @@ fn method9(mut v0: US1, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v
                         v5.clone()
                     }
                 };
-                (v0, v1, v2, v3, v4, v5) = (v0.clone(), v1.clone(), v2.clone(), v3.clone(), v7.clone(), v27.clone());
+                (v4, v5) = (v7.clone(), v27.clone());
                 continue;
             }
             UH0::UH0_Nil => {
@@ -289,7 +289,7 @@ fn get_environment_variable_18(mut v0: Rc<str>) -> Rc<str> {
 fn scoop_apps_17() -> Rc<str> {
     let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("USERPROFILE"); } LIT.with(|lit| lit.clone()) };
     let v1: Rc<str> = get_environment_variable_18(v0);
-    let v2: bool = &*v1 == "";
+    let mut v2: bool = &*v1 == "";
     let v5: US2 = if v2 {
         US2::US2_None
     } else {
@@ -337,7 +337,7 @@ fn tool_name_19(mut v0: US1) -> Rc<str> {
             v1
         }
         US1::US1_ToolZig => {
-            let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("zig"); } LIT.with(|lit| lit.clone()) };
+            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("zig"); } LIT.with(|lit| lit.clone()) };
             v2
         }
     }
@@ -361,7 +361,7 @@ fn method20(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> Rc<UH0> {
     }
 }
 fn scoop_match_8(mut v0: US1, mut v1: Rc<str>) -> US2 {
-    let v2: Rc<str> = scoop_apps_17();
+    let mut v2: Rc<str> = scoop_apps_17();
     let v3: Rc<str> = tool_name_19(v0.clone());
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".exe"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));

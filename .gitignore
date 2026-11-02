@@ -16,4 +16,3 @@
 /state/candidate_binary_install.receipt
 /.release-eoie-candidate*
 /dist/
-/src/**/*.unit.json

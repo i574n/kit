@@ -7,5 +7,6 @@ packages:
     kit_machine_watch_model
     rust_std_env
     kit_machine_watch
+    kit_os_machine
 modules:
     health

@@ -28,18 +28,18 @@ struct Mut0 { l0: Rc<str> }
 fn command_line_argument_count_3() -> i32 {
     let mut v0: usize = std::env::args().count();
     let v1: i32 = ((v0) as i32);
-    let v2: i32 = v1.wrapping_sub(1i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
 fn command_line_argument_4(mut v0: i32) -> Rc<str> {
     let v1: i32 = v0.wrapping_add(1i32);
-    let v2: usize = ((v1) as usize);
+    let mut v2: usize = ((v1) as usize);
     let v3: Rc<str> = Rc::<str>::from(std::env::args().nth(v2).unwrap_or_default());
     v3
 }
 fn argument_2(mut v0: i32) -> Rc<str> {
     let v1: i32 = v0.wrapping_sub(1i32);
-    let v2: bool = v1 >= 0i32;
+    let mut v2: bool = v1 >= 0i32;
     let v5: bool = if v2 {
         let v3: i32 = command_line_argument_count_3();
         let v4: bool = v1 < v3;
@@ -65,12 +65,12 @@ fn argument_2(mut v0: i32) -> Rc<str> {
     }
 }
 fn git_output_6(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: Rc<str> = std::rc::Rc::<str>::from(std::process::Command::new("git").arg("-C").arg(&*v0).args(v1.split(char::from(10u8))).output().ok().filter(|output| output.status.success()).map(|output| String::from_utf8_lossy(&output.stdout).into_owned()).unwrap_or_default());
+    let mut v2: Rc<str> = std::rc::Rc::<str>::from(std::process::Command::new("git").arg("-C").arg(&*v0).args(v1.split(char::from(10u8))).output().ok().filter(|output| output.status.success()).map(|output| String::from_utf8_lossy(&output.stdout).into_owned()).unwrap_or_default());
     v2.clone()
 }
 fn path_of_8(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1 "); } LIT.with(|lit| lit.clone()) };
-    let v2: bool = v0.starts_with(&*v1);
+    let mut v2: bool = v0.starts_with(&*v1);
     let v21: US1 = if v2 {
         US1::US1_TrackedChange
     } else {
@@ -133,7 +133,7 @@ fn path_of_8(mut v0: Rc<str>) -> Rc<str> {
 }
 fn counts_of_9(mut v0: Rc<str>) -> (u64, u64, u64, u64) {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1 "); } LIT.with(|lit| lit.clone()) };
-    let v2: bool = v0.starts_with(&*v1);
+    let mut v2: bool = v0.starts_with(&*v1);
     let v21: US1 = if v2 {
         US1::US1_TrackedChange
     } else {
@@ -252,7 +252,7 @@ fn tally_status_7(mut v0: std::rc::Rc<std::cell::RefCell<std::collections::BTree
                 let v11: bool = v10 > 0i32;
                 let v15: bool = if v11 {
                     let v12: i32 = v10.wrapping_sub(1i32);
-                    let v13: Rc<str> = v8.clone().borrow()[v12 as usize].clone();
+                    let v13: Rc<str> = v8.borrow()[v12 as usize].clone();
                     let v14: bool = &*v13 == "";
                     v14
                 } else {
@@ -270,7 +270,7 @@ fn tally_status_7(mut v0: std::rc::Rc<std::cell::RefCell<std::collections::BTree
                 false
             };
             let v32: Rc<str> = if v19 {
-                let v20: Rc<str> = v8.clone().borrow()[v6 as usize].clone();
+                let v20: Rc<str> = v8.borrow()[v6 as usize].clone();
                 let v21: i32 = (v20.clone().len() as i32);
                 let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
                 let v23: bool = v20.ends_with(&*v22);
@@ -301,28 +301,28 @@ fn tally_status_7(mut v0: std::rc::Rc<std::cell::RefCell<std::collections::BTree
                 ()
             };
             let v40: u64 = v2.wrapping_add(1u64);
-            (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v40, v3, v4);
+            v2 = v40;
             continue;
         }
         return ();
     }
 }
 fn method11(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
-    let v2: Rc<str> = v0.borrow().l0.clone();
+    let mut v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
 fn format_real_10(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
+    let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method11(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
 fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
-    let v2: bool = std::path::Path::new(&*v0).join(".git").exists();
+    let mut v2: bool = std::path::Path::new(&*v0).join(".git").exists();
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status\n--porcelain=v2\n--branch\n--untracked-files=all"); } LIT.with(|lit| lit.clone()) };
         let v4: Rc<str> = git_output_6(v0.clone(), v3.clone());
@@ -336,7 +336,7 @@ fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
         let v12: bool = v11 > 0i32;
         let v16: bool = if v12 {
             let v13: i32 = v11.wrapping_sub(1i32);
-            let v14: Rc<str> = v10.clone().borrow()[v13 as usize].clone();
+            let v14: Rc<str> = v10.borrow()[v13 as usize].clone();
             let v15: bool = &*v14 == "";
             v15
         } else {
@@ -404,7 +404,7 @@ fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
             let v71: bool = v70 > 0i32;
             let v75: bool = if v71 {
                 let v72: i32 = v70.wrapping_sub(1i32);
-                let v73: Rc<str> = v68.clone().borrow()[v72 as usize].clone();
+                let v73: Rc<str> = v68.borrow()[v72 as usize].clone();
                 let v74: bool = &*v73 == "";
                 v74
             } else {
@@ -422,7 +422,7 @@ fn repo_state_of_5(mut v0: Rc<str>, mut v1: u64) -> i32 {
             false
         };
         let v92: Rc<str> = if v79 {
-            let v80: Rc<str> = v68.clone().borrow()[v67 as usize].clone();
+            let v80: Rc<str> = v68.borrow()[v67 as usize].clone();
             let v81: i32 = (v80.clone().len() as i32);
             let v82: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
             let v83: bool = v80.ends_with(&*v82);
@@ -479,7 +479,7 @@ fn states_from_1(mut v0: i32, mut v1: i32, mut v2: u64, mut v3: i32) -> i32 {
             } else {
                 v3
             };
-            (v0, v1, v2, v3) = (v7, v1, v2, v9);
+            (v0, v3) = (v7, v9);
             continue;
         } else {
             return v3;
@@ -494,7 +494,7 @@ fn argument_count_12() -> i32 {
 fn repo_run_0() -> i32 {
     let mut v0: i32 = 2i32;
     let v1: Rc<str> = argument_2(v0);
-    let v2: bool = &*v1 == "state";
+    let mut v2: bool = &*v1 == "state";
     let v5: bool = if v2 {
         let v3: i32 = argument_count_12();
         let v4: bool = v3 > 3i32;

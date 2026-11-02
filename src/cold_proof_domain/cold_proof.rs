@@ -66,7 +66,7 @@ mod rebuild_receipt_tests;
 
 fn family_renewal_0(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/legacy_catalog.spi"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
     let v5: Rc<str> = std::rc::Rc::<str>::from((0..36u64).map(|i|{let q=char::from(34u8).to_string();let n=char::from(10u8).to_string();let f=i.to_string();["CapabilityFamily (",&q,"f",&f,&q,", Absorbed, x)",&n,"LegacyDecision (",&q,"f",&f,&q,", PortNow, x)",&n].concat()}).collect::<String>());
@@ -137,7 +137,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
 }
 fn differential_renewal_1(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an executable differential route"); } LIT.with(|lit| lit.clone()) };
@@ -170,7 +170,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>) -> i32> {
 }
 fn selection_2(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = std::rc::Rc::<str>::from(cold_public_binary(std::path::Path::new(&*v0)).unwrap_or(""));
-    let v2: bool = &*v1 == "";
+    let mut v2: bool = &*v1 == "";
     if v2 { () } else { std::panic::panic_any("Spiral test assertion failed") };
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v3));
@@ -203,7 +203,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> i32> {
 }
 fn binary_gate_3(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
@@ -330,7 +330,7 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn loop_5(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
-    let v2: bool = v1 == 10u64;
+    let mut v2: bool = v1 == 10u64;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v3
@@ -355,7 +355,7 @@ fn loop_5(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
     }
 }
 fn loop_6(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
-    let v2: bool = v1 == 10u64;
+    let mut v2: bool = v1 == 10u64;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v3
@@ -379,7 +379,7 @@ fn loop_6(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
 }
 fn census_bounds_4(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
@@ -472,7 +472,7 @@ fn closure4() -> Rc<dyn Fn(Rc<str>) -> i32> {
 }
 fn renewal_7(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
@@ -569,7 +569,7 @@ fn closure5() -> Rc<dyn Fn(Rc<str>) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn cold_proof_equal_binding_8(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 == v1;
+    let mut v2: bool = v0 == v1;
     if v2 {
         1i32
     } else {
@@ -577,7 +577,7 @@ fn cold_proof_equal_binding_8(mut v0: i32, mut v1: i32) -> i32 {
     }
 }
 fn cold_rebuild_expected_shards_binding_9(mut v0: i32, mut v1: i32) -> i32 {
-    let v2: bool = v0 < 1i32;
+    let mut v2: bool = v0 < 1i32;
     if v2 {
         -1i32
     } else {
@@ -643,7 +643,7 @@ fn loop_11(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
             };
             if v15 {
                 let v16: u64 = v2.wrapping_add(1u64);
-                (v0, v1, v2) = (v0.clone(), v1, v16);
+                v2 = v16;
                 continue;
             } else {
                 return false;
@@ -653,7 +653,7 @@ fn loop_11(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
 }
 fn check_10(mut v0: Rc<str>) -> bool {
     let v1: u64 = (v0.clone().len() as u64);
-    let v2: bool = v1 < 64u64;
+    let mut v2: bool = v1 < 64u64;
     let v4: bool = if v2 {
         false
     } else {
@@ -682,7 +682,7 @@ fn cold_proof_binary_binding_12(mut v0: i32) -> i32 {
     if v1 {
         1i32
     } else {
-        let v2: bool = v0 == 2i32;
+        let mut v2: bool = v0 == 2i32;
         if v2 {
             2i32
         } else {

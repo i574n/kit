@@ -347,7 +347,7 @@
     := query_json =
         ? query = ""
         ?> ""
-        |: ",\"query\":" ++# (json_string (sm'.trim query))
+        |: ",\"query\":" ++# (json_string (sm'.substring 1i32 ((sm'.length query : i32) - 1i32) query))
     := head =
             "],\"shown\":"
             ++# (i32_text shown)

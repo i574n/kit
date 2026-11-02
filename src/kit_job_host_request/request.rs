@@ -44,7 +44,7 @@ fn directory_exists_5(mut v0: Rc<str>) -> bool {
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.exists();
     if v8 {
-        let v10: bool = v6.is_dir();
+        let mut v10: bool = v6.is_dir();
         v10
     } else {
         false
@@ -101,42 +101,42 @@ fn held_names_1() -> Rc<RefCell<Vec<Rc<str>>>> {
         let v7: Vec<std::string::String> = method6(v6.clone());
         let v8: Rc<RefCell<Vec<std::string::String>>> = Rc::new(RefCell::new(v7));
         let v9: i32 = (v8.clone().borrow().len() as i32);
-        let v10: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v9 as usize]));
+        let mut v10: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![<Rc<str>>::default(); v9 as usize]));
         let mut v11: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: 0i32 }));
         while method7(v9, v11.clone()) {
             let v13: i32 = v11.borrow().l0;
-            let v14: std::string::String = v8.clone().borrow()[v13 as usize].clone();
+            let v14: std::string::String = v8.borrow()[v13 as usize].clone();
             let v16: Rc<str> = Rc::<str>::from(String::as_str(&v14));
-            v10.clone().borrow_mut()[v13 as usize] = v16.clone();
+            v10.borrow_mut()[v13 as usize] = v16.clone();
             let v17: i32 = v13.wrapping_add(1i32);
             v11.borrow_mut().l0 = v17;
             ()
         };
         let v18: Rc<RefCell<Vec<Rc<str>>>> = v10 ;
         let mut v19: Rc<dyn Fn((Rc<str>)) -> Rc<str>> = method8();
-        let v20: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v18.borrow().clone()));
-        let v21: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v18.borrow().iter().map(|x| v19(x.clone())).collect::<Vec<_>>()));
+        let mut v20: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v18.borrow().clone()));
+        let mut v21: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v18.borrow().iter().map(|x| v19(x.clone())).collect::<Vec<_>>()));
         let v22: i32 = (v18.clone().borrow().len() as i32);
         let mut v23: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: 1i32 }));
         while method7(v22, v23.clone()) {
             let v25: i32 = v23.borrow().l0;
-            let v26: Rc<str> = v20.clone().borrow()[v25 as usize].clone();
-            let v27: Rc<str> = v21.clone().borrow()[v25 as usize].clone();
+            let v26: Rc<str> = v20.borrow()[v25 as usize].clone();
+            let v27: Rc<str> = v21.borrow()[v25 as usize].clone();
             let mut v28: Rc<RefCell<Mut1>> = Rc::new(RefCell::new(Mut1 { l0: v25 }));
             while method9(v21.clone(), v27.clone(), v28.clone()) {
                 let v30: i32 = v28.borrow().l0;
                 let v31: i32 = v30.wrapping_sub(1i32);
-                let v32: Rc<str> = v20.clone().borrow()[v31 as usize].clone();
-                v20.clone().borrow_mut()[v30 as usize] = v32.clone();
-                let v33: Rc<str> = v21.clone().borrow()[v31 as usize].clone();
-                v21.clone().borrow_mut()[v30 as usize] = v33.clone();
+                let v32: Rc<str> = v20.borrow()[v31 as usize].clone();
+                v20.borrow_mut()[v30 as usize] = v32.clone();
+                let v33: Rc<str> = v21.borrow()[v31 as usize].clone();
+                v21.borrow_mut()[v30 as usize] = v33.clone();
                 v28.borrow_mut().l0 = v31;
                 ()
             };
             let v34: i32 = v28.borrow().l0;
-            v20.clone().borrow_mut()[v34 as usize] = v26.clone();
+            v20.borrow_mut()[v34 as usize] = v26.clone();
             let v35: i32 = v28.borrow().l0;
-            v21.clone().borrow_mut()[v35 as usize] = v27.clone();
+            v21.borrow_mut()[v35 as usize] = v27.clone();
             let v36: i32 = v25.wrapping_add(1i32);
             v23.borrow_mut().l0 = v36;
             ()
@@ -251,7 +251,7 @@ fn host_args_21(mut v0: u64, mut v1: u64) -> Rc<RefCell<Vec<Rc<str>>>> {
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("host"); } LIT.with(|lit| lit.clone()) };
         let v8: Rc<str> = decimal_text_22(v0);
         let v9: Rc<str> = decimal_text_22(v1);
-        let v10: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![v6, v7, v8, v9]));
+        let mut v10: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(vec![v6, v7, v8, v9]));
         v10
     }
 }
@@ -286,7 +286,7 @@ fn held_revived_0() -> Rc<str> {
         let v7: Rc<str> = host_pid_file_11(v4);
         let v8: Rc<str> = text_or_empty_13(v7);
         let v9: u64 = decimal_u64_14(v8);
-        let v10: bool = process_alive_16(v9);
+        let mut v10: bool = process_alive_16(v9);
         let mut v11: US1 = host_state_of_17(v9, v10);
         match &v11 {
             US1::US1_HostMissing => {
@@ -378,7 +378,7 @@ fn supervisor_awaited_33(mut v0: Rc<str>, mut v1: u64) -> US2 {
         match &v7 {
             US3::US3_None => {
                 let v9: Rc<str> = held_file_35(v0.clone());
-                let v10: bool = file_exists_36(v9.clone());
+                let mut v10: bool = file_exists_36(v9.clone());
                 if v10 {
                     let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("held"); } LIT.with(|lit| lit.clone()) };
                     return US2::US2_SupervisorHeld(v11.clone());
@@ -392,7 +392,6 @@ fn supervisor_awaited_33(mut v0: Rc<str>, mut v1: u64) -> US2 {
                     } else {
                         let v18: u64 = 50u64;
                         std::thread::sleep(std::time::Duration::from_millis(v18));
-                        (v0, v1) = (v0.clone(), v1);
                         continue;
                     }
                 }
@@ -416,7 +415,7 @@ fn supervisor_requested_26(mut v0: Rc<str>) -> Rc<str> {
     let v7: Rc<str> = std::rc::Rc::<str>::from(std::fs::create_dir_all(&*v6).err().map(|error| format!("create {}: {error}", &*v6)).unwrap_or_default());
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("host-home"); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = job_file_28(v0.clone(), v8.clone());
-    let v10: Rc<str> = text_written_30(v9.clone(), v3.clone());
+    let mut v10: Rc<str> = text_written_30(v9.clone(), v3.clone());
     let mut v11: Rc<str> = request_name_31(v0.clone());
     let v12: Rc<str> = joined_3(v6.clone(), v11.clone());
     let v13: Rc<str> = text_written_30(v12.clone(), v2.clone());

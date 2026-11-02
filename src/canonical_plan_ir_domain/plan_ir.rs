@@ -20,7 +20,7 @@ fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
     match std::str::from_utf8(slice) { Ok(text) => Rc::<str>::from(text), Err(error) => Rc::<str>::from(std::str::from_utf8(&slice[..error.valid_up_to()]).unwrap_or("")) }
 }
 fn plan_schema_tag_0(mut v0: Rc<str>) -> Rc<str> {
-    let v1: bool = &*v0 == "schema";
+    let mut v1: bool = &*v0 == "schema";
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("canonical-plan-ir"); } LIT.with(|lit| lit.clone()) };
         v2
@@ -30,7 +30,7 @@ fn plan_schema_tag_0(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
-    let v1: i32 = (v0).parse::<u8>().ok().filter(|index| index.to_string() == &*v0).map(|index| index as i32).unwrap_or(-1);
+    let mut v1: i32 = (v0).parse::<u8>().ok().filter(|index| index.to_string() == &*v0).map(|index| index as i32).unwrap_or(-1);
     let v2: bool = 0i32 == v1;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("create"); } LIT.with(|lit| lit.clone()) };
@@ -120,7 +120,7 @@ fn codec_empty_3() -> Rc<str> {
     method4()
 }
 fn plan_manifest_header_projection_2(mut v0: Rc<str>) -> Rc<str> {
-    let v1: bool = &*v0 == "KIT-PLAN-IR\t1";
+    let mut v1: bool = &*v0 == "KIT-PLAN-IR\t1";
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("1"); } LIT.with(|lit| lit.clone()) };
         v2
@@ -129,7 +129,7 @@ fn plan_manifest_header_projection_2(mut v0: Rc<str>) -> Rc<str> {
     }
 }
 fn codec_runtime_char_6(mut v0: Rc<str>) -> u8 {
-    let v1: u8 = v0.as_bytes()[0i32 as usize];
+    let mut v1: u8 = v0.as_bytes()[0i32 as usize];
     v1
 }
 fn find_char_loop_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i32 {
@@ -144,14 +144,14 @@ fn find_char_loop_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: u8) -> i3
                 return v1;
             } else {
                 let v7: i32 = v1 + 1i32 ;
-                (v0, v1, v2, v3) = (v0.clone(), v7, v2, v3);
+                v1 = v7;
                 continue;
             }
         }
     }
 }
 fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
-    let v1: i32 = (v0.clone().len() as i32);
+    let mut v1: i32 = (v0.clone().len() as i32);
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v3: u8 = codec_runtime_char_6(v2);
     let v4: i32 = 0i32;
@@ -293,7 +293,7 @@ fn plan_manifest_row_hex_tuple_5(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>,
 }
 fn plan_manifest_projection_witness_8() -> i32 {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("KIT-PLAN-IR\t1"); } LIT.with(|lit| lit.clone()) };
-    let v1: Rc<str> = plan_manifest_header_projection_2(v0);
+    let mut v1: Rc<str> = plan_manifest_header_projection_2(v0);
     let v2: bool = &*v1 == "1";
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("KIT-PLAN-IR\t2"); } LIT.with(|lit| lit.clone()) };
@@ -369,7 +369,7 @@ fn plan_stage_witness_10() -> i32 {
     1i32
 }
 fn plan_index_valid_11(mut v0: Rc<str>) -> u64 {
-    let v1: i32 = (v0).parse::<u8>().ok().filter(|index| index.to_string() == &*v0).map(|index| index as i32).unwrap_or(-1);
+    let mut v1: i32 = (v0).parse::<u8>().ok().filter(|index| index.to_string() == &*v0).map(|index| index as i32).unwrap_or(-1);
     let v2: bool = 0i32 <= v1;
     let v4: bool = if v2 {
         let v3: bool = v1 < 8i32;

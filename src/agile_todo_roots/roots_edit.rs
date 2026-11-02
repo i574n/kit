@@ -20,6 +20,10 @@ enum US2 {
     US2_FileReadable(Rc<str>),
     US2_FileMissing(Rc<str>),
 }
+fn concat5_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
 fn harvest_roots_from_2(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
     loop {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" () = HarvestRoot \""); } LIT.with(|lit| lit.clone()) };
@@ -38,16 +42,15 @@ fn harvest_roots_from_2(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str
             } else {
                 let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                 let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v13: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v11, &*v9, &*v12, &*v12].concat());
-                v13.clone()
+                concat5_3(v2.clone(), v11.clone(), v9.clone(), v12.clone(), v12.clone())
             };
             let v15: i32 = v8.wrapping_add(1i32);
-            (v0, v1, v2) = (v0.clone(), v15, v14.clone());
+            (v1, v2) = (v15, v14.clone());
             continue;
         }
     }
 }
-fn roots_printed_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
+fn roots_printed_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
         let v3: i32 = (v0.clone().len() as i32);
         let v4: bool = v3 <= v1;
@@ -69,7 +72,7 @@ fn roots_printed_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
             let v13: i32 = v8.wrapping_add(1i32);
             let v14: i32 = v2.wrapping_add(1i32);
-            (v0, v1, v2) = (v0.clone(), v13, v14);
+            (v1, v2) = (v13, v14);
             continue;
         }
     }
@@ -80,7 +83,7 @@ fn roots_receipt_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
     let v5: Rc<str> = harvest_roots_from_2(v1.clone(), v3, v4.clone());
     let v6: i32 = 0i32;
     let v7: i32 = 0i32;
-    let v8: i32 = roots_printed_3(v5.clone(), v6, v7);
+    let v8: i32 = roots_printed_4(v5.clone(), v6, v7);
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile roots ok action="); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v0));
     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" roots="); } LIT.with(|lit| lit.clone()) };
@@ -91,7 +94,7 @@ fn roots_receipt_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
     v16
 }
-fn renamed_within_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
+fn renamed_within_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
     loop {
         let v3: bool = std::fs::rename(&*v1, &*v0).is_ok();
         if v3 {
@@ -103,13 +106,13 @@ fn renamed_within_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
     }
 }
-fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
+fn replace_records_unchanged_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
     let v3: bool = kit_agile_records::kit_agile_records_unchanged(&*v0, &*v1);
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
@@ -117,7 +120,7 @@ fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>
         let v6: bool = std::fs::write(&*v5, &*v2).is_ok();
         if v6 {
             let v7: i32 = 40i32;
-            let v8: bool = renamed_within_7(v0.clone(), v5.clone(), v7);
+            let v8: bool = renamed_within_8(v0.clone(), v5.clone(), v7);
             if v8 {
                 let v9: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
                 if v9 {
@@ -140,8 +143,8 @@ fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>
         US0::US0_ChangedSinceRead
     }
 }
-fn roots_written_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: u64) -> i32 {
-    let v5: US0 = replace_records_unchanged_6(v0.clone(), v2.clone(), v3.clone());
+fn roots_written_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: u64) -> i32 {
+    let v5: US0 = replace_records_unchanged_7(v0.clone(), v2.clone(), v3.clone());
     match &v5 {
         US0::US0_Replaced => {
             let v6: u64 = v2.len() as u64;
@@ -192,25 +195,25 @@ fn roots_written_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc
         }
     }
 }
-fn command_line_argument_count_9() -> i32 {
+fn command_line_argument_count_10() -> i32 {
     let v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
-    let v2: i32 = v1.wrapping_sub(1i32);
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
-fn argument_count_8() -> i32 {
-    let v0: i32 = command_line_argument_count_9();
-    let v1: bool = v0 > 0i32;
+fn argument_count_9() -> i32 {
+    let v0: i32 = command_line_argument_count_10();
+    let mut v1: bool = v0 > 0i32;
     if v1 {
-        let v2: i32 = v0.wrapping_sub(1i32);
+        let mut v2: i32 = v0.wrapping_sub(1i32);
         v2
     } else {
         0i32
     }
 }
-fn rows_end_from_12(mut v0: Rc<str>, mut v1: i32) -> i32 {
+fn rows_end_from_13(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
         let v3: i32 = v0.get(v1 as usize..).and_then(|rest| rest.find(&*v2)).map(|found| (found + v1 as usize) as i32).unwrap_or(-1);
         let v4: bool = v3 < 0i32;
         let v7: i32 = if v4 {
@@ -224,15 +227,15 @@ fn rows_end_from_12(mut v0: Rc<str>, mut v1: i32) -> i32 {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" () = HarvestRoot \""); } LIT.with(|lit| lit.clone()) };
         let v10: bool = v8.contains(&*v9);
         if v10 {
-            (v0, v1) = (v0.clone(), v7);
+            v1 = v7;
             continue;
         } else {
             return v1;
         }
     }
 }
-fn root_added_11(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
-    let v2: Rc<str> = std::rc::Rc::<str>::from({ let forward = (v1).trim().replace(char::from(92u8), "/"); let trimmed = forward.trim_end_matches(char::from(47u8)); if trimmed.is_empty() { forward } else { trimmed.to_owned() } });
+fn root_added_12(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
+    let mut v2: Rc<str> = std::rc::Rc::<str>::from({ let forward = (v1).trim().replace(char::from(92u8), "/"); let trimmed = forward.trim_end_matches(char::from(47u8)); if trimmed.is_empty() { forward } else { trimmed.to_owned() } });
     let v3: bool = &*v2 == "";
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a harvest root needs a path"); } LIT.with(|lit| lit.clone()) };
@@ -247,11 +250,11 @@ fn root_added_11(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
             let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" () = HarvestRoot \""); } LIT.with(|lit| lit.clone()) };
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"\n"); } LIT.with(|lit| lit.clone()) };
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v13: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v2, &*v11, &*v12, &*v12].concat());
+            let v13: Rc<str> = concat5_3(v10.clone(), v2.clone(), v11.clone(), v12.clone(), v12.clone());
             let v14: bool = v0.contains(&*v13);
             if v14 {
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" is already a harvest root"); } LIT.with(|lit| lit.clone()) };
-                let v16: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v15, &*v12, &*v12, &*v12].concat());
+                let v16: Rc<str> = concat5_3(v2.clone(), v15.clone(), v12.clone(), v12.clone(), v12.clone());
                 US1::US1_RootsRefused(v16.clone())
             } else {
                 let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("union harvest_root ="); } LIT.with(|lit| lit.clone()) };
@@ -279,39 +282,38 @@ fn root_added_11(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
                     let v30: Rc<str> = std::rc::Rc::<str>::from(v0.get(0i32 as usize..v28 as usize).unwrap_or(""));
                     let v31: i32 = (v0.clone().len() as i32);
                     let v32: Rc<str> = std::rc::Rc::<str>::from(v0.get(v28 as usize..v31 as usize).unwrap_or(""));
-                    let v33: Rc<str> = std::rc::Rc::<str>::from([&*v30, &*v29, &*v32, &*v12, &*v12].concat());
-                    v33.clone()
+                    concat5_3(v30.clone(), v29.clone(), v32.clone(), v12.clone(), v12.clone())
                 };
                 let v35: i32 = v34.find(&*v18).map(|offset| offset as i32).unwrap_or(-1);
                 let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n\n"); } LIT.with(|lit| lit.clone()) };
                 let v37: i32 = v34.get(v35 as usize..).and_then(|rest| rest.find(&*v36)).map(|found| (found + v35 as usize) as i32).unwrap_or(-1);
                 let v38: i32 = v37.wrapping_add(2i32);
-                let v39: i32 = rows_end_from_12(v34.clone(), v38);
+                let v39: i32 = rows_end_from_13(v34.clone(), v38);
                 let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
                 let v41: Rc<str> = std::rc::Rc::<str>::from(format!("harvest_root_{}", (v2).to_ascii_lowercase().chars().map(|c| if c.is_ascii_alphanumeric() { c } else { char::from(95u8) }).collect::<String>().trim_matches(char::from(95u8))));
-                let v42: Rc<str> = std::rc::Rc::<str>::from([&*v40, &*v41, &*v10, &*v2, &*v11].concat());
+                let v42: Rc<str> = concat5_3(v40.clone(), v41.clone(), v10.clone(), v2.clone(), v11.clone());
                 let v43: Rc<str> = std::rc::Rc::<str>::from(v34.get(0i32 as usize..v39 as usize).unwrap_or(""));
                 let v44: i32 = (v34.clone().len() as i32);
                 let v45: Rc<str> = std::rc::Rc::<str>::from(v34.get(v39 as usize..v44 as usize).unwrap_or(""));
-                let v46: Rc<str> = std::rc::Rc::<str>::from([&*v43, &*v42, &*v45, &*v12, &*v12].concat());
+                let v46: Rc<str> = concat5_3(v43.clone(), v42.clone(), v45.clone(), v12.clone(), v12.clone());
                 US1::US1_RootsEdited(v46.clone())
             }
         }
     }
 }
-fn root_dropped_13(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
-    let v2: Rc<str> = std::rc::Rc::<str>::from({ let forward = (v1).trim().replace(char::from(92u8), "/"); let trimmed = forward.trim_end_matches(char::from(47u8)); if trimmed.is_empty() { forward } else { trimmed.to_owned() } });
+fn root_dropped_14(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
+    let mut v2: Rc<str> = std::rc::Rc::<str>::from({ let forward = (v1).trim().replace(char::from(92u8), "/"); let trimmed = forward.trim_end_matches(char::from(47u8)); if trimmed.is_empty() { forward } else { trimmed.to_owned() } });
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = std::rc::Rc::<str>::from(format!("harvest_root_{}", (v2).to_ascii_lowercase().chars().map(|c| if c.is_ascii_alphanumeric() { c } else { char::from(95u8) }).collect::<String>().trim_matches(char::from(95u8))));
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" () = HarvestRoot \""); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"\n"); } LIT.with(|lit| lit.clone()) };
-    let v7: Rc<str> = std::rc::Rc::<str>::from([&*v3, &*v4, &*v5, &*v2, &*v6].concat());
+    let v7: Rc<str> = concat5_3(v3.clone(), v4.clone(), v5.clone(), v2.clone(), v6.clone());
     let v8: i32 = v0.find(&*v7).map(|offset| offset as i32).unwrap_or(-1);
     let v9: bool = v8 < 0i32;
     if v9 {
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" is not a harvest root"); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v12: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v10, &*v11, &*v11, &*v11].concat());
+        let v12: Rc<str> = concat5_3(v2.clone(), v10.clone(), v11.clone(), v11.clone(), v11.clone());
         US1::US1_RootsRefused(v12.clone())
     } else {
         let v14: Rc<str> = std::rc::Rc::<str>::from(v0.get(0i32 as usize..v8 as usize).unwrap_or(""));
@@ -320,11 +322,11 @@ fn root_dropped_13(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
         let v17: i32 = (v0.clone().len() as i32);
         let v18: Rc<str> = std::rc::Rc::<str>::from(v0.get(v16 as usize..v17 as usize).unwrap_or(""));
         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v20: Rc<str> = std::rc::Rc::<str>::from([&*v14, &*v18, &*v19, &*v19, &*v19].concat());
+        let v20: Rc<str> = concat5_3(v14.clone(), v18.clone(), v19.clone(), v19.clone(), v19.clone());
         US1::US1_RootsEdited(v20.clone())
     }
 }
-fn edits_applied_10(mut v0: Rc<str>, mut v1: bool, mut v2: i32, mut v3: i32) -> US1 {
+fn edits_applied_11(mut v0: Rc<str>, mut v1: bool, mut v2: i32, mut v3: i32) -> US1 {
     loop {
         let v4: bool = v3 <= v2;
         if v4 {
@@ -332,15 +334,15 @@ fn edits_applied_10(mut v0: Rc<str>, mut v1: bool, mut v2: i32, mut v3: i32) -> 
         } else {
             let v6: Rc<str> = usize::try_from(v2).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
             let v9: US1 = if v1 {
-                root_added_11(v0.clone(), v6.clone())
+                root_added_12(v0.clone(), v6.clone())
             } else {
-                root_dropped_13(v0.clone(), v6.clone())
+                root_dropped_14(v0.clone(), v6.clone())
             };
             match &v9 {
                 US1::US1_RootsEdited(v10) => {
                     let v10: Rc<str> = v10.clone();
                     let v11: i32 = v2.wrapping_add(1i32);
-                    (v0, v1, v2, v3) = (v10.clone(), v1, v11, v3);
+                    (v0, v2) = (v10.clone(), v11);
                     continue;
                 }
                 US1::US1_RootsRefused(v13) => {
@@ -351,8 +353,8 @@ fn edits_applied_10(mut v0: Rc<str>, mut v1: bool, mut v2: i32, mut v3: i32) -> 
         }
     }
 }
-fn roots_edited_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> i32 {
-    let v4: i32 = argument_count_8();
+fn roots_edited_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> i32 {
+    let v4: i32 = argument_count_9();
     let v5: bool = v4 <= 3i32;
     if v5 {
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("add and drop need at least one path"); } LIT.with(|lit| lit.clone()) };
@@ -364,12 +366,12 @@ fn roots_edited_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64
     } else {
         let v10: bool = &*v1 == "add";
         let v11: i32 = 3i32;
-        let v12: i32 = argument_count_8();
-        let v13: US1 = edits_applied_10(v2.clone(), v10, v11, v12);
+        let v12: i32 = argument_count_9();
+        let v13: US1 = edits_applied_11(v2.clone(), v10, v11, v12);
         match &v13 {
             US1::US1_RootsEdited(v18) => {
                 let v18: Rc<str> = v18.clone();
-                roots_written_5(v0.clone(), v1.clone(), v2.clone(), v18.clone(), v3)
+                roots_written_6(v0.clone(), v1.clone(), v2.clone(), v18.clone(), v3)
             }
             US1::US1_RootsRefused(v14) => {
                 let v14: Rc<str> = v14.clone();
@@ -384,11 +386,11 @@ fn roots_edited_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64
 }
 fn roots_entry_0() -> i32 {
     let v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
-    let v1: i32 = 1i32;
-    let v2: Rc<str> = usize::try_from(v1).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+    let mut v1: i32 = 1i32;
+    let mut v2: Rc<str> = usize::try_from(v1).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v5: Rc<str> = std::rc::Rc::<str>::from([&*v2, &*v3, &*v4, &*v4, &*v4].concat());
+    let v5: Rc<str> = concat5_3(v2.clone(), v3.clone(), v4.clone(), v4.clone(), v4.clone());
     let v6: bool = std::path::Path::new(&*v5).is_file();
     let v9: US2 = if v6 {
         US2::US2_FileReadable(v5.clone())
@@ -428,7 +430,7 @@ fn roots_entry_0() -> i32 {
                     v28
                 };
                 if v29 {
-                    roots_edited_4(v5.clone(), v19.clone(), v17.clone(), v0)
+                    roots_edited_5(v5.clone(), v19.clone(), v17.clone(), v0)
                 } else {
                     let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown action "); } LIT.with(|lit| lit.clone()) };
                     let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v19));

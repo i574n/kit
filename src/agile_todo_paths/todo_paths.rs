@@ -36,7 +36,7 @@ enum US3 {
 }
 fn vendor_segment_from_2(mut v0: Rc<str>, mut v1: i32) -> bool {
     loop {
-        let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
+        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
         let v3: i32 = v0.get(v1 as usize..).and_then(|rest| rest.find(&*v2)).map(|found| (found + v1 as usize) as i32).unwrap_or(-1);
         let v4: bool = v3 < 0i32;
         if v4 {
@@ -49,7 +49,7 @@ fn vendor_segment_from_2(mut v0: Rc<str>, mut v1: i32) -> bool {
                 return true;
             } else {
                 let v8: i32 = v3.wrapping_add(1i32);
-                (v0, v1) = (v0.clone(), v8);
+                v1 = v8;
                 continue;
             }
         }
@@ -66,19 +66,19 @@ fn last_offset_of_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i
             let mut v7: bool = v6 == v1;
             if v7 {
                 let v8: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v1, v8, v2);
+                (v2, v3) = (v8, v2);
                 continue;
             } else {
                 let v10: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v1, v10, v3);
+                v2 = v10;
                 continue;
             }
         }
     }
 }
 fn syntax_of_path_3(mut v0: Rc<str>) -> US3 {
-    let v1: i32 = 47i32;
-    let v2: i32 = 0i32;
+    let mut v1: i32 = 47i32;
+    let mut v2: i32 = 0i32;
     let v3: i32 = -1i32;
     let v4: i32 = last_offset_of_4(v0.clone(), v1, v2, v3);
     let v5: i32 = v4.wrapping_add(1i32);
@@ -205,7 +205,7 @@ fn syntax_of_path_3(mut v0: Rc<str>) -> US3 {
     }
 }
 fn path_verdict_1(mut v0: Rc<str>, mut v1: bool) -> US0 {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let v3: bool = v0.ends_with(&*v2);
     if v3 {
         let v4: US2 = US2::US2_SkipNestedRepository;
@@ -263,7 +263,7 @@ fn path_verdict_1(mut v0: Rc<str>, mut v1: bool) -> US0 {
     }
 }
 fn todo_path_verdict_0(mut v0: Rc<str>, mut v1: bool) -> i32 {
-    let v2: US0 = path_verdict_1(v0, v1);
+    let mut v2: US0 = path_verdict_1(v0, v1);
     match &v2 {
         US0::US0_ScanPath(v3) => {
             let v3: US1 = v3.clone();

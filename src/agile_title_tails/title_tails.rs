@@ -26,7 +26,7 @@ fn digits_in_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
             };
             if v7 {
                 let v8: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v8, v2);
+                v1 = v8;
                 continue;
             } else {
                 return false;
@@ -35,8 +35,8 @@ fn digits_in_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
     }
 }
 fn dated_clock_2(mut v0: Rc<str>) -> bool {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: bool = 16i32 <= v1;
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: bool = 16i32 <= v1;
     if v2 {
         let v3: i32 = 0i32;
         let v4: i32 = 4i32;
@@ -110,8 +110,8 @@ fn dated_clock_2(mut v0: Rc<str>) -> bool {
     }
 }
 fn dated_day_4(mut v0: Rc<str>) -> bool {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: bool = 10i32 <= v1;
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: bool = 10i32 <= v1;
     if v2 {
         let v3: i32 = 0i32;
         let v4: i32 = 4i32;
@@ -159,8 +159,8 @@ fn dated_day_4(mut v0: Rc<str>) -> bool {
     }
 }
 fn bare_clock_5(mut v0: Rc<str>) -> bool {
-    let v1: i32 = (v0.clone().len() as i32);
-    let v2: bool = 5i32 <= v1;
+    let mut v1: i32 = (v0.clone().len() as i32);
+    let mut v2: bool = 5i32 <= v1;
     if v2 {
         let v3: i32 = 0i32;
         let v4: i32 = 2i32;
@@ -196,7 +196,7 @@ fn bare_clock_5(mut v0: Rc<str>) -> bool {
 }
 fn stamped_separator_from_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; "); } LIT.with(|lit| lit.clone()) };
+        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; "); } LIT.with(|lit| lit.clone()) };
         let v3: i32 = v0.get(v1 as usize..).and_then(|rest| rest.find(&*v2)).map(|found| (found + v1 as usize) as i32).unwrap_or(-1);
         let v4: bool = v3 < 0i32;
         if v4 {
@@ -226,7 +226,7 @@ fn stamped_separator_from_1(mut v0: Rc<str>, mut v1: i32) -> i32 {
             if v15 {
                 return v3;
             } else {
-                (v0, v1) = (v0.clone(), v5);
+                v1 = v5;
                 continue;
             }
         }
@@ -258,7 +258,7 @@ fn method7(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             };
             if v11 {
                 let v12: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1, v12);
+                v2 = v12;
                 continue;
             } else {
                 return v2;
@@ -268,7 +268,7 @@ fn method7(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
 }
 fn method8(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: bool = v1 <= 0i32;
+        let mut v2: bool = v1 <= 0i32;
         if v2 {
             return -1i32;
         } else {
@@ -292,7 +292,7 @@ fn method8(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 }
             };
             if v11 {
-                (v0, v1) = (v0.clone(), v3);
+                v1 = v3;
                 continue;
             } else {
                 return v3;
@@ -370,6 +370,10 @@ fn stamped_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>)
     };
     (v55, v56, v57)
 }
+fn concat5_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
 fn note_row_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("note_of_"); } LIT.with(|lit| lit.clone()) };
@@ -379,7 +383,7 @@ fn note_row_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, m
     let v10: Rc<str> = std::rc::Rc::<str>::from(v9.to_ascii_lowercase());
     let v11: Rc<str> = std::rc::Rc::<str>::from((v1).to_string());
     let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v13: Rc<str> = std::rc::Rc::<str>::from([&*v6, &*v10, &*v8, &*v11, &*v12].concat());
+    let v13: Rc<str> = concat5_11(v6, v10, v8, v11, v12.clone());
     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" () = Note ("); } LIT.with(|lit| lit.clone()) };
     let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
     let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
@@ -396,9 +400,9 @@ fn note_row_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, m
     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
     let v29: Rc<str> = Rc::<str>::from(v26.replace(&*v27, &*v28));
-    let v30: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v29, &*v15, &*v12, &*v12].concat());
+    let v30: Rc<str> = concat5_11(v15.clone(), v29, v15.clone(), v12.clone(), v12.clone());
     let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
-    let v32: Rc<str> = std::rc::Rc::<str>::from([&*v5, &*v13, &*v14, &*v30, &*v31].concat());
+    let v32: Rc<str> = concat5_11(v5, v13, v14, v30, v31.clone());
     let v33: Rc<str> = std::rc::Rc::<str>::from((v1).to_string());
     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32, "); } LIT.with(|lit| lit.clone()) };
     let v35: Rc<str> = Rc::<str>::from(v2.replace(&*v16, &*v17));
@@ -406,23 +410,22 @@ fn note_row_10(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, m
     let v37: Rc<str> = Rc::<str>::from(v36.replace(&*v21, &*v22));
     let v38: Rc<str> = Rc::<str>::from(v37.replace(&*v24, &*v25));
     let v39: Rc<str> = Rc::<str>::from(v38.replace(&*v27, &*v28));
-    let v40: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v39, &*v15, &*v12, &*v12].concat());
+    let v40: Rc<str> = concat5_11(v15.clone(), v39, v15.clone(), v12.clone(), v12.clone());
     let v41: Rc<str> = Rc::<str>::from(v3.replace(&*v16, &*v17));
     let v42: Rc<str> = Rc::<str>::from(v41.replace(&*v15, &*v19));
     let v43: Rc<str> = Rc::<str>::from(v42.replace(&*v21, &*v22));
     let v44: Rc<str> = Rc::<str>::from(v43.replace(&*v24, &*v25));
     let v45: Rc<str> = Rc::<str>::from(v44.replace(&*v27, &*v28));
-    let v46: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v45, &*v15, &*v12, &*v12].concat());
-    let v47: Rc<str> = std::rc::Rc::<str>::from([&*v33, &*v34, &*v40, &*v31, &*v46].concat());
+    let v46: Rc<str> = concat5_11(v15.clone(), v45, v15.clone(), v12.clone(), v12.clone());
+    let v47: Rc<str> = concat5_11(v33, v34, v40, v31.clone(), v46);
     let v48: Rc<str> = Rc::<str>::from(v4.replace(&*v16, &*v17));
     let v49: Rc<str> = Rc::<str>::from(v48.replace(&*v15, &*v19));
     let v50: Rc<str> = Rc::<str>::from(v49.replace(&*v21, &*v22));
     let v51: Rc<str> = Rc::<str>::from(v50.replace(&*v24, &*v25));
     let v52: Rc<str> = Rc::<str>::from(v51.replace(&*v27, &*v28));
-    let v53: Rc<str> = std::rc::Rc::<str>::from([&*v15, &*v52, &*v15, &*v12, &*v12].concat());
+    let v53: Rc<str> = concat5_11(v15.clone(), v52, v15, v12.clone(), v12);
     let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
-    let v55: Rc<str> = std::rc::Rc::<str>::from([&*v32, &*v47, &*v31, &*v53, &*v54].concat());
-    v55
+    concat5_11(v32, v47, v31, v53, v54)
 }
 fn moved_from_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: Rc<str>, mut v9: i32) -> (Rc<str>, i32) {
     let v10: bool = v2 <= v1;
@@ -506,7 +509,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, i32, Rc<str>) -> (i32, Rc<str>)> {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        let v1: i32 = 0i32;
+        let mut v1: i32 = 0i32;
         stamped_separator_from_1(v0.clone(), v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }

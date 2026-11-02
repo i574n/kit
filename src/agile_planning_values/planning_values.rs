@@ -149,7 +149,7 @@ fn decimal_digits_value_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32
                 let mut v9: i32 = v1.wrapping_add(1i32);
                 let v10: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
                 let v11: i32 = v3 * 10 + v10 - 48;
-                (v0, v1, v2, v3) = (v0.clone(), v9, v2, v11);
+                (v1, v3) = (v9, v11);
                 continue;
             } else {
                 return -1i32;

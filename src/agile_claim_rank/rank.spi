@@ -1,0 +1,48 @@
+///- --package .
+:# rank static =
+    :< sm'_operators
+    :< agile_task_next.ranking
+
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< workspace_primitives.bytes
+:< workspace_primitives.files
+:< agile_task_next.ranking
+
+:~ ^ ranked_words (list : ranked_list) : list string =
+    ?= list ?|
+    | NoRanked => []
+    | RankedThen (head, rest) => head.id :: ranked_words rest
+
+:~ ^ open_words (tasks : task_list) : list string =
+    ?= tasks ?|
+    | NoTasks => []
+    | TaskThen (task, rest) => ? task.status = "Done" ?> open_words rest |: task.id :: open_words rest
+
+:~ agents_take (~records : string) (task : backlog_task) : bool =
+    task.kind <> "Epic" && agile_claim_api.api.planning_selected records task.id "all" "user" = !-
+
+:~ ranking_of (~records : string) (tasks : task_list) : string * string * string =
+    := wsjf = ranked_words (ranking_where MainAgent (agents_take records) tasks)
+    := active = wsjf |> listm'.filter (\ (id : string) => status_of tasks id = "Active")
+    sm'.concat_list " " wsjf, sm'.concat_list " " active, sm'.concat_list " " (open_words tasks)
+
+:~ claim_ranking (~root : string) : bool * string * string * string =
+    ?= probe (unchecked (backlog_state_path root)) ?|
+    | FileMissing _ => !-, "", "", ""
+    | FileReadable file =>
+        := records = records_text (loaded_string (read_text file))
+        := wsjf, active, known = ranking_of records (agile_task_next.task_next.tasks_from records 0i32 (byte_len records) NoTasks)
+        !+, wsjf, active, known
+
+///> rust
+:# active_items_are_listed_in_wsjf_order_beside_the_open_set =
+    := tasks = sample_backlog ()
+    testing.expect (ranked_words (ranking MainAgent tasks) = [ "GATE"; "SMALL-P2"; "KIT-SIDE"; "BIG-P0" ]) "wsjf"
+    testing.expect (open_words tasks = [ "BIG-P0"; "SMALL-P2"; "WAITS"; "GATE"; "KIT-SIDE"; "PARKED" ]) "Done is not open"
+
+///> _
+:= main () : i32 =
+    export "kit_claim_ranking" ((\ root => claim_ranking root) : string -> bool * string * string * string)
+    0i32

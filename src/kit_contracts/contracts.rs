@@ -448,6 +448,8 @@ fn patch_and_agile_failures_preserve_authority() {
     write(&root.join("state/package.spiproj"), "modules:\n    plan\n    agile\n    prompt\n");
     write(&root.join("state/plan.spi"), "inl main () : i32 =\n    $\"RustPlanOp(\\\"patch-exact\\\",\\\"value.txt\\\",\\\"absent\\\",\\\"new\\\",\\\"write\\\")\" : ()\n    0i32\n");
     write(&root.join("state/agile.spi"), "union task_kind = | Epic :: task_kind\nunion priority = | P0 :: priority\nunion difficulty = | D1 :: difficulty\nunion task_status = | Planned :: task_status | Active :: task_status\nunion agile_item = | Task :: string * string * task_kind * priority * difficulty * u32 * task_status * string * string * string * string -> agile_item\ninl task () : agile_item = Task (\"ID\", \"title\", Epic, P0, D1, 0u32, Planned, \"\", \"tag\", \"bootstrap\", \"bootstrap\")\ninl main () : i32 = 0i32\n");
+    write(&root.join("state/prompt.spi"), "union lease_status = | LeaseActive :: lease_status | LeaseClosed :: lease_status\nunion prompt_lease = | PromptLease :: string * string * u64 * u64 * u64 * u64 * lease_status -> prompt_lease\ninl current () : prompt_lease = PromptLease (\"fixture\", \"typed fixture prompt\", 3000000u64, 600000u64, 1000u64, 3601000u64, LeaseActive)\ninl main () : i32 = 0i32\n");
+    run_ok(&["agile", "begin", root.to_str().expect("root"), "fresh mutation fixture lease"]);
     let root_text = root.to_str().expect("root text");
     let plan = root.join("state/plan.spi");
     assert!(!run(&["patch", "apply", root_text, plan.to_str().expect("plan")]).status.success());

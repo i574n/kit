@@ -162,5 +162,28 @@
     shows shared "out=shared.spi"
     shows (fixture_read root "shared.spi") "open table_rows"
     hides (fixture_read root "shared.spi") "union table_row"
+    := whole_flags = Arg ("--open", Arg ("table_rows", Arg ("--whole", NoArgs)))
+    := whole = Arg ("to-spi", Arg ("runs.tsv", Arg ("whole.spi", whole_flags)))
+    shows (succeeded (table_run root whole)) "out=whole.spi"
+    shows (fixture_read root "whole.spi") "inl table () = Table \"timestamp\\tvariant\\tretries\\tlatency_ms\\n"
+    hides (fixture_read root "whole.spi") "inl row_1"
     rejected_with (table_run root (Arg ("to-spi", Arg ("runs.tsv", NoArgs)))) 2i32 "table to-spi <file.tsv> <out.spi>"
+    fixture_root_remove root
+
+///> rust
+:# a_whole_spi_table_is_queried_and_appended_in_place =
+    := root = runs_root ()
+    := whole_flags = Arg ("--open", Arg ("table_rows", Arg ("--whole", NoArgs)))
+    shows (succeeded (table_run root (Arg ("to-spi", Arg ("runs.tsv", Arg ("runs.spi", whole_flags)))))) "out=runs.spi"
+    := counted = succeeded (table_run root (Arg ("query", Arg ("runs.spi", Arg ("--group", Arg ("variant", NoArgs))))))
+    shows counted "kit table query ok total=4 matched=4 groups=2"
+    := grown = succeeded (table_run root (Arg ("append", Arg ("runs.spi", Arg ("5", Arg ("slow", Arg ("1", Arg ("70000", NoArgs))))))))
+    shows grown "kit table append ok rows=5 columns=4 out=runs.spi"
+    shows (fixture_read root "runs.spi") "open table_rows"
+    shows (fixture_read root "runs.spi") "\\n5\\tslow\\t1\\t70000"
+    shows (succeeded (table_run root (Arg ("query", Arg ("runs.spi", Arg ("--group", Arg ("variant", NoArgs))))))) "groups=3"
+    shows (succeeded (table_run root (Arg ("append", Arg ("runs.tsv", Arg ("--row-tsv", Arg ("5\tslow\t1\t70000", NoArgs))))))) "rows=5"
+    shows (fixture_read root "runs.tsv") "4\tbase\t4\t60000\n5\tslow\t1\t70000\n"
+    rejected_with (table_run root (Arg ("append", Arg ("runs.spi", Arg ("6", Arg ("x", NoArgs)))))) 2i32 "the row has 2 cells but the table has 4 columns"
+    rejected_with (table_run root (Arg ("append", Arg ("missing.spi", Arg ("a", NoArgs))))) 2i32 "missing.spi: file not found"
     fixture_root_remove root

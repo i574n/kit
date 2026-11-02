@@ -87,7 +87,11 @@ enum US12 {
     US12_ReadbackMismatch,
     US12_ChangedSinceRead,
 }
-fn task_id_bytes_allowed_1(mut v0: i32, mut v1: i32) -> bool {
+fn concat5_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
+fn task_id_bytes_allowed_2(mut v0: i32, mut v1: i32) -> bool {
     loop {
         let mut v2: bool = v0 == v1;
         if v2 {
@@ -121,7 +125,7 @@ fn task_id_bytes_allowed_1(mut v0: i32, mut v1: i32) -> bool {
             };
             if v13 {
                 let v14: i32 = v0.wrapping_add(1i32);
-                (v0, v1) = (v14, v1);
+                v0 = v14;
                 continue;
             } else {
                 return false;
@@ -129,12 +133,12 @@ fn task_id_bytes_allowed_1(mut v0: i32, mut v1: i32) -> bool {
         }
     }
 }
-fn flag_of_word_3(mut v0: Rc<str>) -> US8 {
+fn flag_of_word_4(mut v0: Rc<str>) -> US8 {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--"); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Estimate"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = std::rc::Rc::<str>::from(v2.to_ascii_lowercase());
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v5: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v3, &*v4, &*v4, &*v4].concat());
+    let v5: Rc<str> = concat5_1(v1.clone(), v3, v4.clone(), v4.clone(), v4.clone());
     let v6: bool = &*v0 == &*v5;
     if v6 {
         let v7: US9 = US9::US9_FlagEstimate;
@@ -142,7 +146,7 @@ fn flag_of_word_3(mut v0: Rc<str>) -> US8 {
     } else {
         let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Load"); } LIT.with(|lit| lit.clone()) };
         let v10: Rc<str> = std::rc::Rc::<str>::from(v9.to_ascii_lowercase());
-        let v11: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v10, &*v4, &*v4, &*v4].concat());
+        let v11: Rc<str> = concat5_1(v1.clone(), v10, v4.clone(), v4.clone(), v4.clone());
         let v12: bool = &*v0 == &*v11;
         if v12 {
             let v13: US9 = US9::US9_FlagLoad;
@@ -150,7 +154,7 @@ fn flag_of_word_3(mut v0: Rc<str>) -> US8 {
         } else {
             let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Assignee"); } LIT.with(|lit| lit.clone()) };
             let v16: Rc<str> = std::rc::Rc::<str>::from(v15.to_ascii_lowercase());
-            let v17: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v16, &*v4, &*v4, &*v4].concat());
+            let v17: Rc<str> = concat5_1(v1.clone(), v16, v4.clone(), v4.clone(), v4.clone());
             let v18: bool = &*v0 == &*v17;
             if v18 {
                 let v19: US9 = US9::US9_FlagAssignee;
@@ -158,7 +162,7 @@ fn flag_of_word_3(mut v0: Rc<str>) -> US8 {
             } else {
                 let mut v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Deps"); } LIT.with(|lit| lit.clone()) };
                 let v22: Rc<str> = std::rc::Rc::<str>::from(v21.to_ascii_lowercase());
-                let v23: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v22, &*v4, &*v4, &*v4].concat());
+                let v23: Rc<str> = concat5_1(v1.clone(), v22, v4.clone(), v4.clone(), v4.clone());
                 let v24: bool = &*v0 == &*v23;
                 if v24 {
                     let v25: US9 = US9::US9_FlagDeps;
@@ -166,7 +170,7 @@ fn flag_of_word_3(mut v0: Rc<str>) -> US8 {
                 } else {
                     let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Note"); } LIT.with(|lit| lit.clone()) };
                     let v28: Rc<str> = std::rc::Rc::<str>::from(v27.to_ascii_lowercase());
-                    let v29: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v28, &*v4, &*v4, &*v4].concat());
+                    let v29: Rc<str> = concat5_1(v1.clone(), v28, v4.clone(), v4.clone(), v4.clone());
                     let v30: bool = &*v0 == &*v29;
                     if v30 {
                         let v31: US9 = US9::US9_FlagNote;
@@ -174,7 +178,7 @@ fn flag_of_word_3(mut v0: Rc<str>) -> US8 {
                     } else {
                         let mut v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("As"); } LIT.with(|lit| lit.clone()) };
                         let v34: Rc<str> = std::rc::Rc::<str>::from(v33.to_ascii_lowercase());
-                        let v35: Rc<str> = std::rc::Rc::<str>::from([&*v1, &*v34, &*v4, &*v4, &*v4].concat());
+                        let v35: Rc<str> = concat5_1(v1, v34, v4.clone(), v4.clone(), v4);
                         let v36: bool = &*v0 == &*v35;
                         if v36 {
                             let v37: US9 = US9::US9_FlagAs;
@@ -188,14 +192,14 @@ fn flag_of_word_3(mut v0: Rc<str>) -> US8 {
         }
     }
 }
-fn extras_from_2(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>) -> US7 {
+fn extras_from_3(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>) -> US7 {
     loop {
         let v8: bool = v1 <= v0;
         if v8 {
             return US7::US7_ExtrasRead(v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone());
         } else {
             let v10: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-            let v11: US8 = flag_of_word_3(v10.clone());
+            let v11: US8 = flag_of_word_4(v10.clone());
             match &v11 {
                 US8::US8_FlagKnown(v12) => {
                     let v12: US9 = v12.clone();
@@ -204,7 +208,7 @@ fn extras_from_2(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut
                     if v14 {
                         let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs a value"); } LIT.with(|lit| lit.clone()) };
                         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v17: Rc<str> = std::rc::Rc::<str>::from([&*v10, &*v15, &*v16, &*v16, &*v16].concat());
+                        let v17: Rc<str> = concat5_1(v10.clone(), v15.clone(), v16.clone(), v16.clone(), v16.clone());
                         return US7::US7_ExtrasRefused(v17.clone());
                     } else {
                         let v19: i32 = v0.wrapping_add(2i32);
@@ -257,7 +261,7 @@ fn extras_from_2(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut
                                 (v47.clone(), v48.clone(), v49.clone(), v50.clone(), v51.clone(), v52.clone())
                             }
                         };
-                        (v0, v1, v2, v3, v4, v5, v6, v7) = (v19, v1, v53.clone(), v54.clone(), v55.clone(), v56.clone(), v57.clone(), v58.clone());
+                        (v0, v2, v3, v4, v5, v6, v7) = (v19, v53.clone(), v54.clone(), v55.clone(), v56.clone(), v57.clone(), v58.clone());
                         continue;
                     }
                 }
@@ -268,43 +272,43 @@ fn extras_from_2(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut
                     let mut v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Estimate"); } LIT.with(|lit| lit.clone()) };
                     let v65: Rc<str> = std::rc::Rc::<str>::from(v64.to_ascii_lowercase());
                     let v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v67: Rc<str> = std::rc::Rc::<str>::from([&*v63, &*v65, &*v66, &*v66, &*v66].concat());
+                    let v67: Rc<str> = concat5_1(v63.clone(), v65.clone(), v66.clone(), v66.clone(), v66.clone());
                     let v68: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v67.clone()));
                     let v69: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v68.clone()));
                     let mut v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Load"); } LIT.with(|lit| lit.clone()) };
                     let v71: Rc<str> = std::rc::Rc::<str>::from(v70.to_ascii_lowercase());
-                    let v72: Rc<str> = std::rc::Rc::<str>::from([&*v63, &*v71, &*v66, &*v66, &*v66].concat());
+                    let v72: Rc<str> = concat5_1(v63.clone(), v71.clone(), v66.clone(), v66.clone(), v66.clone());
                     let v73: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) }, v72.clone()));
                     let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v69.clone(), v73.clone()));
                     let mut v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Assignee"); } LIT.with(|lit| lit.clone()) };
                     let v76: Rc<str> = std::rc::Rc::<str>::from(v75.to_ascii_lowercase());
-                    let v77: Rc<str> = std::rc::Rc::<str>::from([&*v63, &*v76, &*v66, &*v66, &*v66].concat());
+                    let v77: Rc<str> = concat5_1(v63.clone(), v76.clone(), v66.clone(), v66.clone(), v66.clone());
                     let v78: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) }, v77.clone()));
                     let v79: Rc<str> = Rc::<str>::from(format!("{}{}", v74.clone(), v78.clone()));
                     let mut v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Deps"); } LIT.with(|lit| lit.clone()) };
                     let v81: Rc<str> = std::rc::Rc::<str>::from(v80.to_ascii_lowercase());
-                    let v82: Rc<str> = std::rc::Rc::<str>::from([&*v63, &*v81, &*v66, &*v66, &*v66].concat());
+                    let v82: Rc<str> = concat5_1(v63.clone(), v81.clone(), v66.clone(), v66.clone(), v66.clone());
                     let v83: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) }, v82.clone()));
                     let v84: Rc<str> = Rc::<str>::from(format!("{}{}", v79.clone(), v83.clone()));
                     let mut v85: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Note"); } LIT.with(|lit| lit.clone()) };
                     let v86: Rc<str> = std::rc::Rc::<str>::from(v85.to_ascii_lowercase());
-                    let v87: Rc<str> = std::rc::Rc::<str>::from([&*v63, &*v86, &*v66, &*v66, &*v66].concat());
+                    let v87: Rc<str> = concat5_1(v63.clone(), v86.clone(), v66.clone(), v66.clone(), v66.clone());
                     let v88: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) }, v87.clone()));
                     let v89: Rc<str> = Rc::<str>::from(format!("{}{}", v84.clone(), v88.clone()));
                     let mut v90: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("As"); } LIT.with(|lit| lit.clone()) };
                     let v91: Rc<str> = std::rc::Rc::<str>::from(v90.to_ascii_lowercase());
-                    let v92: Rc<str> = std::rc::Rc::<str>::from([&*v63, &*v91, &*v66, &*v66, &*v66].concat());
+                    let v92: Rc<str> = concat5_1(v63.clone(), v91.clone(), v66.clone(), v66.clone(), v66.clone());
                     let v93: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) }, v92.clone()));
                     let v94: Rc<str> = Rc::<str>::from(format!("{}{}", v89.clone(), v93.clone()));
                     let v95: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
-                    let v96: Rc<str> = std::rc::Rc::<str>::from([&*v61, &*v10, &*v62, &*v94, &*v95].concat());
+                    let v96: Rc<str> = concat5_1(v61.clone(), v10.clone(), v62.clone(), v94.clone(), v95.clone());
                     return US7::US7_ExtrasRefused(v96.clone());
                 }
             }
         }
     }
 }
-fn extras_checked_4(mut v0: US7) -> US7 {
+fn extras_checked_5(mut v0: US7) -> US7 {
     match &v0 {
         US7::US7_ExtrasRead(v2, v3, v4, v5, v6, v7) => {
             let mut v2: Rc<str> = v2.clone();
@@ -346,7 +350,7 @@ fn extras_checked_4(mut v0: US7) -> US7 {
         }
     }
 }
-fn extras_applied_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>) -> US11 {
+fn extras_applied_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>) -> US11 {
     let (mut v8, mut v9): (i32, Rc<str>) = agile_task_notes::kit_agile_groomed(&*v0, &*v1, &*v2, &*v3, &*v4, &*v6, &*v7);
     let v10: bool = v8 == 0i32;
     if v10 {
@@ -355,7 +359,7 @@ fn extras_applied_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: R
         US11::US11_AddedRefused(v9)
     }
 }
-fn renamed_within_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
+fn renamed_within_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
     loop {
         let v3: bool = std::fs::rename(&*v1, &*v0).is_ok();
         if v3 {
@@ -367,13 +371,13 @@ fn renamed_within_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
     }
 }
-fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US12 {
+fn replace_records_unchanged_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US12 {
     let v3: bool = kit_agile_records::kit_agile_records_unchanged(&*v0, &*v1);
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
@@ -381,7 +385,7 @@ fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>
         let v6: bool = std::fs::write(&*v5, &*v2).is_ok();
         if v6 {
             let v7: i32 = 40i32;
-            let v8: bool = renamed_within_7(v0.clone(), v5.clone(), v7);
+            let v8: bool = renamed_within_8(v0.clone(), v5.clone(), v7);
             if v8 {
                 let mut v9: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
                 if v9 {
@@ -405,7 +409,7 @@ fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>
     }
 }
 fn agile_add_entry_0() -> i32 {
-    let v0: i32 = 2i32;
+    let mut v0: i32 = 2i32;
     let v1: i32 = 0i32;
     let mut v2: i32 = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).and_then(|value| usize::try_from(v1).ok().and_then(|offset| value.as_bytes().get(offset).copied())).map_or(-1, i32::from);
     let v3: bool = 48i32 <= v2;
@@ -422,7 +426,7 @@ fn agile_add_entry_0() -> i32 {
         let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
         let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v12: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v8, &*v10, &*v6, &*v11].concat());
+        let v12: Rc<str> = concat5_1(v9.clone(), v8.clone(), v10.clone(), v6.clone(), v11.clone());
         let v13: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v12 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
         v13
@@ -432,7 +436,7 @@ fn agile_add_entry_0() -> i32 {
         let v16: bool = 0 < v15;
         let v25: US0 = if v16 {
             let v17: i32 = 0i32;
-            let v18: bool = task_id_bytes_allowed_1(v17, v15);
+            let v18: bool = task_id_bytes_allowed_2(v17, v15);
             if v18 {
                 let v19: i32 = 2i32;
                 let v20: Rc<str> = usize::try_from(v19).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
@@ -590,7 +594,7 @@ fn agile_add_entry_0() -> i32 {
                 let v346: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                 let v347: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
                 let v348: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v349: Rc<str> = std::rc::Rc::<str>::from([&*v346, &*v345, &*v347, &*v343, &*v348].concat());
+                let v349: Rc<str> = concat5_1(v346.clone(), v345.clone(), v347.clone(), v343.clone(), v348.clone());
                 let v350: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v349 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                 v350
@@ -605,7 +609,7 @@ fn agile_add_entry_0() -> i32 {
                         let v336: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                         let v337: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
                         let v338: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        let v339: Rc<str> = std::rc::Rc::<str>::from([&*v336, &*v335, &*v337, &*v333, &*v338].concat());
+                        let v339: Rc<str> = concat5_1(v336.clone(), v335.clone(), v337.clone(), v333.clone(), v338.clone());
                         let v340: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v339 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                         v340
@@ -620,7 +624,7 @@ fn agile_add_entry_0() -> i32 {
                                 let v326: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                                 let v327: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
                                 let v328: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                let v329: Rc<str> = std::rc::Rc::<str>::from([&*v326, &*v325, &*v327, &*v323, &*v328].concat());
+                                let v329: Rc<str> = concat5_1(v326.clone(), v325.clone(), v327.clone(), v323.clone(), v328.clone());
                                 let v330: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v329 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                                 v330
@@ -635,7 +639,7 @@ fn agile_add_entry_0() -> i32 {
                                         let v316: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                                         let v317: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
                                         let v318: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                        let v319: Rc<str> = std::rc::Rc::<str>::from([&*v316, &*v315, &*v317, &*v313, &*v318].concat());
+                                        let v319: Rc<str> = concat5_1(v316.clone(), v315.clone(), v317.clone(), v313.clone(), v318.clone());
                                         let v320: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v319 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                                         v320
@@ -645,8 +649,8 @@ fn agile_add_entry_0() -> i32 {
                                         let v115: i32 = 8i32;
                                         let v116: i32 = std::env::args().skip(2i32 as usize).count() as i32;
                                         let v117: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                        let v118: US7 = extras_from_2(v115, v116, v117.clone(), v117.clone(), v117.clone(), v117.clone(), v117.clone(), v117.clone());
-                                        let v119: US7 = extras_checked_4(v118.clone());
+                                        let v118: US7 = extras_from_3(v115, v116, v117.clone(), v117.clone(), v117.clone(), v117.clone(), v117.clone(), v117.clone());
+                                        let v119: US7 = extras_checked_5(v118.clone());
                                         match &v119 {
                                             US7::US7_ExtrasRead(v120, v121, v122, v123, v124, v125) => {
                                                 let v120: Rc<str> = v120.clone();
@@ -663,7 +667,7 @@ fn agile_add_entry_0() -> i32 {
                                                 let v131: Rc<str> = usize::try_from(v130).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
                                                 let v132: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
                                                 let v133: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) };
-                                                let v134: Rc<str> = std::rc::Rc::<str>::from([&*v127, &*v133, &*v117, &*v117, &*v117].concat());
+                                                let v134: Rc<str> = concat5_1(v127.clone(), v133.clone(), v117.clone(), v117.clone(), v117.clone());
                                                 let v135: bool = std::path::Path::new(&*v134).is_file();
                                                 let v138: US10 = if v135 {
                                                     US10::US10_FileReadable(v134.clone())
@@ -676,7 +680,7 @@ fn agile_add_entry_0() -> i32 {
                                                         let v140: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/agile.spi is missing"); } LIT.with(|lit| lit.clone()) };
                                                         let v141: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                                                         let v142: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
-                                                        let v143: Rc<str> = std::rc::Rc::<str>::from([&*v141, &*v111, &*v142, &*v140, &*v117].concat());
+                                                        let v143: Rc<str> = concat5_1(v141.clone(), v111.clone(), v142.clone(), v140.clone(), v117.clone());
                                                         let v144: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v143 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                                                         v144
@@ -687,13 +691,13 @@ fn agile_add_entry_0() -> i32 {
                                                         let mut v147: Rc<str> = kit_agile_records::kit_agile_records_as_lines(&*v146);
                                                         let v148: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task (\""); } LIT.with(|lit| lit.clone()) };
                                                         let v149: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
-                                                        let v150: Rc<str> = std::rc::Rc::<str>::from([&*v148, &*v111, &*v149, &*v117, &*v117].concat());
+                                                        let v150: Rc<str> = concat5_1(v148.clone(), v111.clone(), v149.clone(), v117.clone(), v117.clone());
                                                         let v151: bool = v147.contains(&*v150);
                                                         if v151 {
                                                             let v152: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a task with this id already exists"); } LIT.with(|lit| lit.clone()) };
                                                             let v153: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                                                             let v154: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
-                                                            let v155: Rc<str> = std::rc::Rc::<str>::from([&*v153, &*v111, &*v154, &*v152, &*v117].concat());
+                                                            let v155: Rc<str> = concat5_1(v153.clone(), v111.clone(), v154.clone(), v152.clone(), v117.clone());
                                                             let v156: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v155 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                                                             v156
@@ -720,15 +724,15 @@ fn agile_add_entry_0() -> i32 {
                                                             let v176: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
                                                             let v177: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
                                                             let v178: Rc<str> = Rc::<str>::from(v175.replace(&*v176, &*v177));
-                                                            let v179: Rc<str> = std::rc::Rc::<str>::from([&*v165, &*v178, &*v165, &*v117, &*v117].concat());
+                                                            let v179: Rc<str> = concat5_1(v165.clone(), v178.clone(), v165.clone(), v117.clone(), v117.clone());
                                                             let v180: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
-                                                            let v181: Rc<str> = std::rc::Rc::<str>::from([&*v159, &*v163, &*v164, &*v179, &*v180].concat());
+                                                            let v181: Rc<str> = concat5_1(v159.clone(), v163.clone(), v164.clone(), v179.clone(), v180.clone());
                                                             let v182: Rc<str> = Rc::<str>::from(v129.replace(&*v166, &*v167));
                                                             let v183: Rc<str> = Rc::<str>::from(v182.replace(&*v165, &*v169));
                                                             let v184: Rc<str> = Rc::<str>::from(v183.replace(&*v157, &*v171));
                                                             let v185: Rc<str> = Rc::<str>::from(v184.replace(&*v173, &*v174));
                                                             let v186: Rc<str> = Rc::<str>::from(v185.replace(&*v176, &*v177));
-                                                            let v187: Rc<str> = std::rc::Rc::<str>::from([&*v165, &*v186, &*v165, &*v117, &*v117].concat());
+                                                            let v187: Rc<str> = concat5_1(v165.clone(), v186.clone(), v165.clone(), v117.clone(), v117.clone());
                                                             let v192: Rc<str> = match &v112 {
                                                                 US2::US2_AgileEpic => {
                                                                     let v188: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Epic"); } LIT.with(|lit| lit.clone()) };
@@ -773,7 +777,7 @@ fn agile_add_entry_0() -> i32 {
                                                                     v198.clone()
                                                                 }
                                                             };
-                                                            let v200: Rc<str> = std::rc::Rc::<str>::from([&*v187, &*v180, &*v192, &*v180, &*v199].concat());
+                                                            let v200: Rc<str> = concat5_1(v187.clone(), v180.clone(), v192.clone(), v180.clone(), v199.clone());
                                                             let v210: Rc<str> = match &v114 {
                                                                 US6::US6_AgileD0 => {
                                                                     let v201: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("D0"); } LIT.with(|lit| lit.clone()) };
@@ -818,32 +822,32 @@ fn agile_add_entry_0() -> i32 {
                                                             let v214: Rc<str> = Rc::<str>::from(v213.replace(&*v157, &*v171));
                                                             let v215: Rc<str> = Rc::<str>::from(v214.replace(&*v173, &*v174));
                                                             let v216: Rc<str> = Rc::<str>::from(v215.replace(&*v176, &*v177));
-                                                            let v217: Rc<str> = std::rc::Rc::<str>::from([&*v165, &*v216, &*v165, &*v117, &*v117].concat());
+                                                            let v217: Rc<str> = concat5_1(v165.clone(), v216.clone(), v165.clone(), v117.clone(), v117.clone());
                                                             let v218: Rc<str> = Rc::<str>::from(v131.replace(&*v166, &*v167));
                                                             let v219: Rc<str> = Rc::<str>::from(v218.replace(&*v165, &*v169));
                                                             let v220: Rc<str> = Rc::<str>::from(v219.replace(&*v157, &*v171));
                                                             let v221: Rc<str> = Rc::<str>::from(v220.replace(&*v173, &*v174));
                                                             let v222: Rc<str> = Rc::<str>::from(v221.replace(&*v176, &*v177));
-                                                            let v223: Rc<str> = std::rc::Rc::<str>::from([&*v165, &*v222, &*v165, &*v117, &*v117].concat());
+                                                            let v223: Rc<str> = concat5_1(v165.clone(), v222.clone(), v165.clone(), v117.clone(), v117.clone());
                                                             let v224: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", \"current\", \"current\")"); } LIT.with(|lit| lit.clone()) };
-                                                            let v225: Rc<str> = std::rc::Rc::<str>::from([&*v180, &*v223, &*v224, &*v117, &*v117].concat());
-                                                            let v226: Rc<str> = std::rc::Rc::<str>::from([&*v180, &*v210, &*v211, &*v217, &*v225].concat());
-                                                            let v227: Rc<str> = std::rc::Rc::<str>::from([&*v181, &*v200, &*v226, &*v117, &*v117].concat());
-                                                            let v228: Rc<str> = std::rc::Rc::<str>::from([&*v158, &*v157, &*v227, &*v157, &*v117].concat());
-                                                            let v229: US11 = extras_applied_5(v228.clone(), v111.clone(), v120.clone(), v121.clone(), v122.clone(), v123.clone(), v124.clone(), v125.clone());
+                                                            let v225: Rc<str> = concat5_1(v180.clone(), v223.clone(), v224.clone(), v117.clone(), v117.clone());
+                                                            let v226: Rc<str> = concat5_1(v180.clone(), v210.clone(), v211.clone(), v217.clone(), v225.clone());
+                                                            let v227: Rc<str> = concat5_1(v181.clone(), v200.clone(), v226.clone(), v117.clone(), v117.clone());
+                                                            let v228: Rc<str> = concat5_1(v158.clone(), v157.clone(), v227.clone(), v157.clone(), v117.clone());
+                                                            let v229: US11 = extras_applied_6(v228.clone(), v111.clone(), v120.clone(), v121.clone(), v122.clone(), v123.clone(), v124.clone(), v125.clone());
                                                             match &v229 {
                                                                 US11::US11_AddedRefused(v230) => {
                                                                     let v230: Rc<str> = v230.clone();
                                                                     let v231: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                                                                     let v232: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
-                                                                    let v233: Rc<str> = std::rc::Rc::<str>::from([&*v231, &*v111, &*v232, &*v230, &*v117].concat());
+                                                                    let v233: Rc<str> = concat5_1(v231.clone(), v111.clone(), v232.clone(), v230.clone(), v117.clone());
                                                                     let v234: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v233 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                                                                     v234
                                                                 }
                                                                 US11::US11_AddedText(v235) => {
                                                                     let v235: Rc<str> = v235.clone();
-                                                                    let v236: US12 = replace_records_unchanged_6(v134.clone(), v147.clone(), v235.clone());
+                                                                    let v236: US12 = replace_records_unchanged_7(v134.clone(), v147.clone(), v235.clone());
                                                                     match &v236 {
                                                                         US12::US12_Replaced => {
                                                                             let mut v237: Rc<str> = Rc::<str>::from(v111.replace(&*v160, &*v161));
@@ -859,8 +863,7 @@ fn agile_add_entry_0() -> i32 {
                                                                                 v117.clone()
                                                                             } else {
                                                                                 let v246: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" deps="); } LIT.with(|lit| lit.clone()) };
-                                                                                let v247: Rc<str> = std::rc::Rc::<str>::from([&*v246, &*v123, &*v117, &*v117, &*v117].concat());
-                                                                                v247.clone()
+                                                                                concat5_1(v246.clone(), v123.clone(), v117.clone(), v117.clone(), v117.clone())
                                                                             };
                                                                             let v249: bool = &*v120 == "";
                                                                             let v251: Rc<str> = if v249 {
@@ -883,7 +886,7 @@ fn agile_add_entry_0() -> i32 {
                                                                                 let v256: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" assignee"); } LIT.with(|lit| lit.clone()) };
                                                                                 v256.clone()
                                                                             };
-                                                                            let v258: Rc<str> = std::rc::Rc::<str>::from([&*v251, &*v254, &*v257, &*v117, &*v117].concat());
+                                                                            let v258: Rc<str> = concat5_1(v251.clone(), v254.clone(), v257.clone(), v117.clone(), v117.clone());
                                                                             let v259: bool = &*v258 == "";
                                                                             let v266: Rc<str> = if v259 {
                                                                                 v117.clone()
@@ -893,8 +896,7 @@ fn agile_add_entry_0() -> i32 {
                                                                                 let v262: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
                                                                                 let v263: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                                                                                 let v264: Rc<str> = Rc::<str>::from(v261.replace(&*v262, &*v263));
-                                                                                let v265: Rc<str> = std::rc::Rc::<str>::from([&*v260, &*v264, &*v117, &*v117, &*v117].concat());
-                                                                                v265.clone()
+                                                                                concat5_1(v260.clone(), v264.clone(), v117.clone(), v117.clone(), v117.clone())
                                                                             };
                                                                             let v267: bool = &*v124 == "";
                                                                             let v269: Rc<str> = if v267 {
@@ -903,9 +905,9 @@ fn agile_add_entry_0() -> i32 {
                                                                                 let v268: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" notes=1"); } LIT.with(|lit| lit.clone()) };
                                                                                 v268.clone()
                                                                             };
-                                                                            let v270: Rc<str> = std::rc::Rc::<str>::from([&*v248, &*v266, &*v269, &*v117, &*v117].concat());
-                                                                            let v271: Rc<str> = std::rc::Rc::<str>::from([&*v244, &*v270, &*v117, &*v117, &*v117].concat());
-                                                                            let v272: Rc<str> = std::rc::Rc::<str>::from([&*v242, &*v111, &*v243, &*v238, &*v271].concat());
+                                                                            let v270: Rc<str> = concat5_1(v248.clone(), v266.clone(), v269.clone(), v117.clone(), v117.clone());
+                                                                            let v271: Rc<str> = concat5_1(v244.clone(), v270.clone(), v117.clone(), v117.clone(), v117.clone());
+                                                                            let v272: Rc<str> = concat5_1(v242.clone(), v111.clone(), v243.clone(), v238.clone(), v271.clone());
                                                                             let v273: Rc<str> = std::rc::Rc::<str>::from((v239).to_string());
                                                                             let v274: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_before="); } LIT.with(|lit| lit.clone()) };
                                                                             let v275: Rc<str> = Rc::<str>::from(format!("{}{}", v274, v273));
@@ -917,7 +919,7 @@ fn agile_add_entry_0() -> i32 {
                                                                             let v281: Rc<str> = Rc::<str>::from(format!("{}{}", v279, v280));
                                                                             let v282: Rc<str> = std::rc::Rc::<str>::from((v241).to_string());
                                                                             let v283: Rc<str> = Rc::<str>::from(format!("{}{}", v281, v282));
-                                                                            let v284: Rc<str> = std::rc::Rc::<str>::from([&*v272, &*v283, &*v117, &*v117, &*v117].concat());
+                                                                            let v284: Rc<str> = concat5_1(v272.clone(), v283.clone(), v117.clone(), v117.clone(), v117.clone());
                                                                             let v285: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v284.to_string() + "
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
                                                                             v285
@@ -948,7 +950,7 @@ fn agile_add_entry_0() -> i32 {
                                                                             };
                                                                             let v296: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                                                                             let v297: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
-                                                                            let v298: Rc<str> = std::rc::Rc::<str>::from([&*v296, &*v111, &*v297, &*v295, &*v117].concat());
+                                                                            let v298: Rc<str> = concat5_1(v296.clone(), v111.clone(), v297.clone(), v295.clone(), v117.clone());
                                                                             let v299: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v298 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                                                                             v299
@@ -964,7 +966,7 @@ fn agile_add_entry_0() -> i32 {
                                                 let v306: Rc<str> = v306.clone();
                                                 let v307: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile add "); } LIT.with(|lit| lit.clone()) };
                                                 let v308: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
-                                                let v309: Rc<str> = std::rc::Rc::<str>::from([&*v307, &*v111, &*v308, &*v306, &*v117].concat());
+                                                let v309: Rc<str> = concat5_1(v307.clone(), v111.clone(), v308.clone(), v306.clone(), v117.clone());
                                                 let v310: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v309 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                                                 v310

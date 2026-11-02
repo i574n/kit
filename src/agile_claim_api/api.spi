@@ -1,0 +1,25 @@
+:= claim_ranking (~root : string) : bool * string * string * string =
+    $'agile_claim_rank::kit_claim_ranking(&*!root)' : bool * string * string * string
+:= claim_item_lines (~root : string) (~id : string) : string = $'agile_claim_item::kit_claim_item_lines(&*!root, &*!id)' : string
+:= claim_next (~lane : string) (ttl : i32) (~wsjf : string) (~active : string) (~rows : string) (now : u64)
+    : string * string * string * u64 * i32 * i32 * string * string
+    =
+    $'agile_claim_queue::kit_claim_next(&*!lane, !ttl, &*!wsjf, &*!active, &*!rows, !now)'
+    : string * string * string * u64 * i32 * i32 * string * string
+:= claim_lease
+    (~verb : string) (~item : string) (~lane : string) (ttl : i32) (~paths : string) (~wsjf : string) (~known : string)
+    (~rows : string) (now : u64)
+    : string * string * string * u64 * i32 * i32 * string * string
+    =
+    $'agile_claim_lease::kit_claim_lease(&*!verb, &*!item, &*!lane, !ttl, &*!paths, &*!wsjf, &*!known, &*!rows, !now)'
+    : string * string * string * u64 * i32 * i32 * string * string
+:= claims_loaded (~root : string) : bool * string = $'agile_claim_store::kit_claims_loaded(&*!root)' : bool * string
+:= claims_applied
+    (~root : string) (existed : bool) (~original : string) (~change : string) (~item : string) (~owner : string)
+    (expires : u64) (~paths : string) (~known : string)
+    : string
+    =
+    $'agile_claim_store::kit_claims_applied(&*!root, !existed, &*!original, &*!change, &*!item, &*!owner, !expires, &*!paths, &*!known)'
+    : string
+:= planning_selected (~records : string) (~id : string) (~load : string) (~assignee : string) : bool =
+    $'agile_planning_filters::kit_agile_planning_selected(&!records, &!id, &!load, &!assignee)' : bool

@@ -21,7 +21,11 @@ enum US2 {
     US2_ReadbackMismatch,
     US2_ChangedSinceRead,
 }
-fn declared_from_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
+fn concat5_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
+fn declared_from_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
     loop {
         let v3: i32 = v0.get(v2 as usize..).and_then(|rest| rest.find(&*v1)).map(|found| (found + v2 as usize) as i32).unwrap_or(-1);
         let v4: bool = v3 < 0i32;
@@ -36,14 +40,14 @@ fn declared_from_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> i32 {
                 return v3;
             } else {
                 let v9: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v9);
+                v2 = v9;
                 continue;
             }
         }
     }
 }
-fn binding_declared_3(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\ninl "); } LIT.with(|lit| lit.clone()) };
+fn binding_declared_4(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\ninl "); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ("); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
@@ -59,7 +63,7 @@ fn binding_declared_3(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
         v12
     }
 }
-fn renamed_within_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
+fn renamed_within_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
     loop {
         let v3: bool = std::fs::rename(&*v1, &*v0).is_ok();
         if v3 {
@@ -71,16 +75,16 @@ fn renamed_within_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
     }
 }
-fn state_written_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US1 {
+fn state_written_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US1 {
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".paused"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v5: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v3, &*v4, &*v4, &*v4].concat());
+    let v5: Rc<str> = concat5_2(v0.clone(), v3.clone(), v4.clone(), v4.clone(), v4.clone());
     std::env::var("KIT_AGILE_TEST_PAUSE_MS").ok().and_then(|value| value.parse::<u64>().ok()).map(|ms| { let _ = std::fs::write(&*v5, b""); std::thread::sleep(std::time::Duration::from_millis(ms)); let _ = std::fs::remove_file(&*v5); }).unwrap_or(());
     let v6: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v1);
     if v6 {
@@ -89,7 +93,7 @@ fn state_written_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US1 {
         let v9: bool = std::fs::write(&*v8, &*v2).is_ok();
         let v22: US2 = if v9 {
             let v10: i32 = 40i32;
-            let v11: bool = renamed_within_5(v0.clone(), v8.clone(), v10);
+            let v11: bool = renamed_within_6(v0.clone(), v8.clone(), v10);
             if v11 {
                 let v12: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
                 if v12 {
@@ -147,7 +151,7 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
     let v3: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v6: Rc<str> = std::rc::Rc::<str>::from([&*v0, &*v4, &*v5, &*v5, &*v5].concat());
+    let v6: Rc<str> = concat5_2(v0.clone(), v4.clone(), v5.clone(), v5.clone(), v5.clone());
     let v7: bool = std::path::Path::new(&*v6).is_file();
     let v10: US0 = if v7 {
         US0::US0_FileReadable(v6.clone())
@@ -173,9 +177,9 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
             let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task ("); } LIT.with(|lit| lit.clone()) };
             let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
             let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
-            let v25: Rc<str> = std::rc::Rc::<str>::from([&*v22, &*v23, &*v1, &*v24, &*v5].concat());
+            let v25: Rc<str> = concat5_2(v22.clone(), v23.clone(), v1.clone(), v24.clone(), v5.clone());
             let v26: i32 = 0i32;
-            let v27: i32 = declared_from_2(v21.clone(), v25.clone(), v26);
+            let v27: i32 = declared_from_3(v21.clone(), v25.clone(), v26);
             let v28: bool = v27 < 0i32;
             let v29: bool = v28 == false;
             let v30: bool = v29 == false;
@@ -189,9 +193,9 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
                 v37
             } else {
-                let v38: Rc<str> = std::rc::Rc::<str>::from([&*v22, &*v23, &*v2, &*v24, &*v5].concat());
+                let v38: Rc<str> = concat5_2(v22.clone(), v23.clone(), v2.clone(), v24.clone(), v5.clone());
                 let v39: i32 = 0i32;
-                let v40: i32 = declared_from_2(v21.clone(), v38.clone(), v39);
+                let v40: i32 = declared_from_3(v21.clone(), v38.clone(), v39);
                 let v41: bool = v40 < 0i32;
                 let v42: bool = v41 == false;
                 if v42 {
@@ -211,7 +215,7 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
                     let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
                     let mut v55: Rc<str> = Rc::<str>::from(v2.replace(&*v53, &*v54));
                     let v56: Rc<str> = std::rc::Rc::<str>::from(v55.to_ascii_lowercase());
-                    let v57: bool = binding_declared_3(v21.clone(), v56.clone());
+                    let v57: bool = binding_declared_4(v21.clone(), v56.clone());
                     if v57 {
                         let mut v58: Rc<str> = Rc::<str>::from(v2.replace(&*v53, &*v54));
                         let v59: Rc<str> = std::rc::Rc::<str>::from(v58.to_ascii_lowercase());
@@ -230,12 +234,12 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
                         let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("planning_of_"); } LIT.with(|lit| lit.clone()) };
                         let mut v71: Rc<str> = Rc::<str>::from(v2.replace(&*v53, &*v54));
                         let v72: Rc<str> = std::rc::Rc::<str>::from(v71.to_ascii_lowercase());
-                        let v73: Rc<str> = std::rc::Rc::<str>::from([&*v70, &*v72, &*v5, &*v5, &*v5].concat());
-                        let v74: bool = binding_declared_3(v21.clone(), v73.clone());
+                        let v73: Rc<str> = concat5_2(v70.clone(), v72.clone(), v5.clone(), v5.clone(), v5.clone());
+                        let v74: bool = binding_declared_4(v21.clone(), v73.clone());
                         if v74 {
                             let mut v75: Rc<str> = Rc::<str>::from(v2.replace(&*v53, &*v54));
                             let v76: Rc<str> = std::rc::Rc::<str>::from(v75.to_ascii_lowercase());
-                            let v77: Rc<str> = std::rc::Rc::<str>::from([&*v70, &*v76, &*v5, &*v5, &*v5].concat());
+                            let v77: Rc<str> = concat5_2(v70.clone(), v76.clone(), v5.clone(), v5.clone(), v5.clone());
                             let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the name inl "); } LIT.with(|lit| lit.clone()) };
                             let v79: Rc<str> = Rc::<str>::from(format!("{}{}", v78, v77));
                             let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" is already declared"); } LIT.with(|lit| lit.clone()) };
@@ -249,7 +253,7 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
                             v87
                         } else {
                             let (mut v88, mut v89, mut v90, mut v91, mut v92, mut v93): (Rc<str>, i32, i32, Rc<str>, i32, Rc<str>) = agile_rename_rewrite::kit_agile_renamed_text(&*v21, &*v1, &*v2);
-                            let v94: US1 = state_written_4(v6.clone(), v20.clone(), v88.clone());
+                            let v94: US1 = state_written_5(v6.clone(), v20.clone(), v88.clone());
                             match &v94 {
                                 US1::US1_StateWritten => {
                                     let v95: u64 = v21.len() as u64;
@@ -331,23 +335,23 @@ fn renamed_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
         }
     }
 }
-fn command_line_argument_count_7() -> i32 {
+fn command_line_argument_count_8() -> i32 {
     let v0: usize = std::env::args().count();
-    let v1: i32 = ((v0) as i32);
-    let v2: i32 = v1.wrapping_sub(1i32);
+    let mut v1: i32 = ((v0) as i32);
+    let mut v2: i32 = v1.wrapping_sub(1i32);
     v2
 }
-fn argument_count_6() -> i32 {
-    let v0: i32 = command_line_argument_count_7();
-    let v1: bool = v0 > 0i32;
+fn argument_count_7() -> i32 {
+    let v0: i32 = command_line_argument_count_8();
+    let mut v1: bool = v0 > 0i32;
     if v1 {
-        let v2: i32 = v0.wrapping_sub(1i32);
+        let mut v2: i32 = v0.wrapping_sub(1i32);
         v2
     } else {
         0i32
     }
 }
-fn id_bytes_valid_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
+fn id_bytes_valid_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
     loop {
         let v3: bool = v2 <= v1;
         if v3 {
@@ -370,7 +374,7 @@ fn id_bytes_valid_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
             };
             if v11 {
                 let v12: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v12, v2);
+                v1 = v12;
                 continue;
             } else {
                 return false;
@@ -380,10 +384,10 @@ fn id_bytes_valid_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
 }
 fn rename_entry_0() -> i32 {
     let v0: i32 = 2i32;
-    let v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-    let v2: i32 = 3i32;
+    let mut v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+    let mut v2: i32 = 3i32;
     let v3: Rc<str> = usize::try_from(v2).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-    let v4: i32 = argument_count_6();
+    let v4: i32 = argument_count_7();
     let v5: bool = v4 == 4i32;
     let v6: bool = v5 == false;
     if v6 {
@@ -402,7 +406,7 @@ fn rename_entry_0() -> i32 {
             false
         } else {
             let v16: i32 = 0i32;
-            id_bytes_valid_8(v3.clone(), v16, v14)
+            id_bytes_valid_9(v3.clone(), v16, v14)
         };
         let v19: bool = v18 == false;
         if v19 {

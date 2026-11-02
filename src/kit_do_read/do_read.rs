@@ -55,7 +55,7 @@ fn now_ms_1() -> u64 {
     v0
 }
 fn records_of_2(mut v0: Rc<str>) -> std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> {
-    let v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = std::rc::Rc::new((&*v0).split(char::from(30u8)).map(|record| record.split(char::from(31u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>());
+    let mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = std::rc::Rc::new((&*v0).split(char::from(30u8)).map(|record| record.split(char::from(31u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>());
     v1.clone()
 }
 fn field_at_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> Rc<str> {
@@ -63,9 +63,9 @@ fn field_at_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut 
     v3.clone()
 }
 fn verb_of_6(mut v0: Rc<str>) -> US1 {
-    let v1: bool = &*v0 == "search";
+    let mut v1: bool = &*v0 == "search";
     let v25: US2 = if v1 {
-        let v2: US1 = US1::US1_Search;
+        let mut v2: US1 = US1::US1_Search;
         US2::US2_Some(v2)
     } else {
         let mut v4: bool = &*v0 == "read";
@@ -111,7 +111,7 @@ fn verb_of_6(mut v0: Rc<str>) -> US1 {
     }
 }
 fn opened_query_7(mut v0: US1) -> (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     (v0, v1.clone(), false, v1.clone(), 0u64, 0u64, 0u64, v1.clone(), v1, false, 0u64, 0u64)
 }
 fn item_at_9(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> US3 {
@@ -152,13 +152,13 @@ fn method12(mut v0: Option<u64>) -> Option<u64> {
 }
 fn closure1() -> Rc<dyn Fn((u64)) -> US6> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US6> = Rc::new(move |mut v0: (u64)| -> US6 {
-        let v1: u64 = (v0);
+        let mut v1: u64 = (v0);
         US6::US6_Some(v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn decimal_of_11(mut v0: Rc<str>) -> u64 {
-    let v1: Option<u64> = (v0).trim().parse::<u64>().ok();
-    let v2: Option<u64> = method12(v1.clone());
+    let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
+    let mut v2: Option<u64> = method12(v1.clone());
     let mut v3: Rc<dyn Fn((u64)) -> US6> = closure1();
     let mut v4: Option<US6> = v2.map(|x| v3(x));
     let v6: US6 = US6::US6_None;
@@ -185,13 +185,13 @@ fn query_options_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
                 let v23: bool = &*v20 == "literal";
                 if v23 {
                     let v24: bool = true;
-                    (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v0.clone(), v1, v21, v3.clone(), v4.clone(), v24, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v13, v14);
+                    (v2, v5) = (v21, v24);
                     continue;
                 } else {
                     let v26: bool = &*v20 == "paths";
                     if v26 {
                         let v27: bool = true;
-                        (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v0.clone(), v1, v21, v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), v27, v13, v14);
+                        (v2, v12) = (v21, v27);
                         continue;
                     } else {
                         let v29: bool = &*v20 == "around";
@@ -227,7 +227,7 @@ fn query_options_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
                             }
                         };
                         if v41 {
-                            (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v0.clone(), v1, v21, v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v13, v14);
+                            v2 = v21;
                             continue;
                         } else {
                             let v43: bool = &*v20 == "in";
@@ -272,12 +272,12 @@ fn query_options_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
                                     let v152: bool = !v20.is_empty() && v20.bytes().all(|byte| byte.is_ascii_digit());
                                     if v152 {
                                         let v153: u64 = decimal_of_11(v20.clone());
-                                        (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v0.clone(), v1, v21, v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v153, v14);
+                                        (v2, v13) = (v21, v153);
                                         continue;
                                     } else {
                                         let v155: bool = &*v6 == "";
                                         if v155 {
-                                            (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v0.clone(), v1, v21, v3.clone(), v4.clone(), v5, v20.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v13, v14);
+                                            (v2, v6) = (v21, v20.clone());
                                             continue;
                                         } else {
                                             let v157: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected word: "); } LIT.with(|lit| lit.clone()) };
@@ -345,7 +345,7 @@ fn query_options_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
                                                 (v126.clone(), v127.clone(), v128, v129.clone(), v130, v131, v132, v133.clone(), v134.clone(), v135, v136, v137)
                                             }
                                         };
-                                        (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v0.clone(), v1, v73, v138.clone(), v139.clone(), v140, v141.clone(), v142, v143, v144, v145.clone(), v146.clone(), v147, v148, v149);
+                                        (v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v73, v138.clone(), v139.clone(), v140, v141.clone(), v142, v143, v144, v145.clone(), v146.clone(), v147, v148, v149);
                                         continue;
                                     }
                                 }
@@ -360,7 +360,7 @@ fn query_options_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
             US3::US3_Text(v17) => {
                 let v17: Rc<str> = v17.clone();
                 let v18: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v0.clone(), v1, v18, v3.clone(), v17.clone(), v5, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v13, v14);
+                (v2, v4) = (v18, v17.clone());
                 continue;
             }
         }
@@ -449,7 +449,7 @@ fn query_problem_13(mut v0: US1, mut v1: Rc<str>, mut v2: bool, mut v3: Rc<str>,
     }
 }
 fn query_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> US0 {
-    let v2: i32 = 2i32;
+    let mut v2: i32 = 2i32;
     let mut v3: i32 = 1i32;
     let mut v4: Rc<str> = field_at_5(v0.clone(), v1, v3);
     let v5: US1 = verb_of_6(v4);
@@ -497,7 +497,7 @@ fn query_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
 }
 fn first_rejection_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> Rc<str> {
     loop {
-        let v2: i32 = v0.len() as i32;
+        let mut v2: i32 = v0.len() as i32;
         let mut v3: bool = v1 < v2;
         if v3 {
             let mut v4: US0 = query_parsed_4(v0.clone(), v1);
@@ -516,7 +516,7 @@ fn first_rejection_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i3
                     let v16: u64 = *v16;
                     let v17: u64 = *v17;
                     let v18: i32 = v1.wrapping_add(1i32);
-                    (v0, v1) = (v0.clone(), v18);
+                    v1 = v18;
                     continue;
                 }
                 US0::US0_QueryRejected(v5) => {
@@ -535,7 +535,7 @@ fn empty_query_tally_14() -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, 
     (v0, false, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64)
 }
 fn git_marked_16(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> bool {
-    let v2: bool = v0.get(v1 as usize).map(|fields| fields.iter().any(|field| &**field == "wgit") && fields.iter().any(|field| &**field == "wstatus")).unwrap_or(false);
+    let mut v2: bool = v0.get(v1 as usize).map(|fields| fields.iter().any(|field| &**field == "wgit") && fields.iter().any(|field| &**field == "wstatus")).unwrap_or(false);
     v2
 }
 fn edge_lines_18(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<std::rc::Rc<str>>>, mut v2: u64, mut v3: bool) -> std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> {
@@ -544,7 +544,7 @@ fn edge_lines_18(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<std::rc::Rc<str>>>, mu
     v4.clone()
 }
 fn listing_19(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<std::rc::Rc<str>>>) -> std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> {
-    let v2: std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> = { let root = std::path::Path::new(&*v0); let rows = v1.iter().map(|path| (path.to_string(), std::fs::read(root.join(&**path)).ok().map(|bytes| (bytes.len() as u64, String::from_utf8_lossy(&bytes).lines().count() as u64)))).collect::<Vec<_>>(); let path_width = rows.iter().map(|row| row.0.len()).max().unwrap_or(0).max(4); let bytes_width = rows.iter().map(|row| row.1.map(|counts| counts.0.to_string().len()).unwrap_or(1)).max().unwrap_or(0).max(5); let mut shown = vec![format!("{:<path_width$}  {:<bytes_width$}  {}", "path", "bytes", "lines")]; let mut tally = [rows.len() as u64, 0, 0, 0]; let mut failed = false; for (path, counts) in &rows { match counts { Some((bytes, lines)) => { tally[1] += bytes; tally[2] += lines; shown.push(format!("{:<path_width$}  {:<bytes_width$}  {}", path, bytes, lines)); } None => { failed = true; shown.push(format!("{:<path_width$}  {:<bytes_width$}  unreadable", path, "-")); } } } std::rc::Rc::new((std::rc::Rc::<str>::from(shown.join("
+    let mut v2: std::rc::Rc<(std::rc::Rc<str>, [u64; 4], bool)> = { let root = std::path::Path::new(&*v0); let rows = v1.iter().map(|path| (path.to_string(), std::fs::read(root.join(&**path)).ok().map(|bytes| (bytes.len() as u64, String::from_utf8_lossy(&bytes).lines().count() as u64)))).collect::<Vec<_>>(); let path_width = rows.iter().map(|row| row.0.len()).max().unwrap_or(0).max(4); let bytes_width = rows.iter().map(|row| row.1.map(|counts| counts.0.to_string().len()).unwrap_or(1)).max().unwrap_or(0).max(5); let mut shown = vec![format!("{:<path_width$}  {:<bytes_width$}  {}", "path", "bytes", "lines")]; let mut tally = [rows.len() as u64, 0, 0, 0]; let mut failed = false; for (path, counts) in &rows { match counts { Some((bytes, lines)) => { tally[1] += bytes; tally[2] += lines; shown.push(format!("{:<path_width$}  {:<bytes_width$}  {}", path, bytes, lines)); } None => { failed = true; shown.push(format!("{:<path_width$}  {:<bytes_width$}  unreadable", path, "-")); } } } std::rc::Rc::new((std::rc::Rc::<str>::from(shown.join("
 ")), tally, failed)) };
     v2.clone()
 }
@@ -606,7 +606,7 @@ fn query_step_17(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<std::co
     }
 }
 fn lines_joined_27(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: bool = &*v1 == "";
+    let mut v2: bool = &*v1 == "";
     if v2 {
         v0.clone()
     } else {
@@ -724,7 +724,7 @@ fn queries_run_15(mut v0: Rc<str>, mut v1: std::rc::Rc<std::cell::RefCell<std::c
     (v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107)
 }
 fn decimal_text_29(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
+    let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
 fn receipt_counts_28(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64) -> Rc<str> {
@@ -805,7 +805,7 @@ fn receipt_counts_28(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
     }
 }
 fn elapsed_text_31(mut v0: u64) -> Rc<str> {
-    let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
+    let mut v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
 fn local_offset_minutes_33() -> i64 {
@@ -814,7 +814,7 @@ fn local_offset_minutes_33() -> i64 {
 }
 fn clock_text_32() -> Rc<str> {
     let mut v0: i64 = local_offset_minutes_33();
-    let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
+    let mut v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
 fn receipt_line_30(mut v0: US7, mut v1: Rc<str>, mut v2: u64) -> () {
@@ -838,7 +838,7 @@ fn receipt_line_30(mut v0: US7, mut v1: Rc<str>, mut v2: u64) -> () {
     ()
 }
 fn read_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
-    let v2: u64 = now_ms_1();
+    let mut v2: u64 = now_ms_1();
     let mut v3: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1.clone());
     let mut v4: bool = v3.iter().skip(1).any(|fields| fields.first().map(|kind| !kind.is_empty() && &**kind != "query").unwrap_or(false));
     let v8: Rc<str> = if v4 {
@@ -893,7 +893,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> i32> {
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn matching_text_34(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v3: std::rc::Rc<Vec<std::rc::Rc<str>>> = files_matching_24(v0.clone(), v1.clone(), v2.clone(), v2.clone());
     let mut v4: Rc<str> = std::rc::Rc::<str>::from(v3.iter().map(|path| path.to_string()).collect::<Vec<_>>().join("
 "));
@@ -906,13 +906,13 @@ fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        let v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v0.clone());
-        let v2: i32 = 1i32;
+        let mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v0.clone());
+        let mut v2: i32 = 1i32;
         first_rejection_3(v1.clone(), v2)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn report_text_35(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v2: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1);
+    let mut v2: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = records_of_2(v1);
     let mut v3: std::rc::Rc<std::cell::RefCell<std::collections::BTreeSet<std::rc::Rc<str>>>> = std::rc::Rc::new(std::cell::RefCell::new(std::collections::BTreeSet::new()));
     let mut v4: i32 = 1i32;
     let (mut v5, mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13, mut v14, mut v15, mut v16): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = empty_query_tally_14();

@@ -25,13 +25,13 @@ fn skip_spaces_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
             let v5: bool = v4 == 32i32;
             if v5 {
                 let v6: i32 = v1.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v6, v2);
+                v1 = v6;
                 continue;
             } else {
                 let v8: bool = v4 == 9i32;
                 if v8 {
                     let v9: i32 = v1.wrapping_add(1i32);
-                    (v0, v1, v2) = (v0.clone(), v9, v2);
+                    v1 = v9;
                     continue;
                 } else {
                     return v1;
@@ -82,7 +82,7 @@ fn scan_quoted_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> US0 {
                         };
                         if v20 {
                             let v21: i32 = v1.wrapping_add(2i32);
-                            (v0, v1, v2) = (v0.clone(), v21, v2);
+                            v1 = v21;
                             continue;
                         } else {
                             return US0::US0_QuotedError;
@@ -92,7 +92,7 @@ fn scan_quoted_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> US0 {
                     }
                 } else {
                     let v27: i32 = v1.wrapping_add(1i32);
-                    (v0, v1, v2) = (v0.clone(), v27, v2);
+                    v1 = v27;
                     continue;
                 }
             }
@@ -144,14 +144,14 @@ fn safe_path_loop_2(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> b
                     };
                     if v24 {
                         let v25: i32 = v1.wrapping_add(1i32);
-                        (v0, v1, v2, v3) = (v0.clone(), v25, v2, v25);
+                        (v1, v3) = (v25, v25);
                         continue;
                     } else {
                         return false;
                     }
                 } else {
                     let v28: i32 = v1.wrapping_add(1i32);
-                    (v0, v1, v2, v3) = (v0.clone(), v28, v2, v3);
+                    v1 = v28;
                     continue;
                 }
             }
@@ -191,7 +191,7 @@ fn safe_path_loop_2(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> b
 }
 fn spiral_main() -> i32 {
     let v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl p () = PatchExact (\"a.txt\", \"old\", \"new\")\n"); } LIT.with(|lit| lit.clone()) };
-    let v1: i32 = i32::try_from(v0.len()).unwrap_or(i32::MAX);
+    let mut v1: i32 = i32::try_from(v0.len()).unwrap_or(i32::MAX);
     let v2: i32 = 23i32;
     let v3: i32 = skip_spaces_0(v0.clone(), v2, v1);
     let v4: bool = v3 < v1;

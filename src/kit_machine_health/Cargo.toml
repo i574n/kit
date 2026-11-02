@@ -15,3 +15,4 @@ path = "health.rs"
 
 [dependencies]
 kit-machine-sample = { path = "../kit_machine_sample" }
+sysinfo = "0.38.4"

@@ -396,7 +396,7 @@ fn program_from_23(mut v0: i32, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
             let v4: i32 = v0.wrapping_add(1i32);
             let v5: Rc<str> = argument_20(v0);
             let mut v6: Rc<str> = lines_joined_24(v2.clone(), v5.clone());
-            (v0, v1, v2) = (v4, v1, v6.clone());
+            (v0, v2) = (v4, v6.clone());
             continue;
         } else {
             return v2.clone();

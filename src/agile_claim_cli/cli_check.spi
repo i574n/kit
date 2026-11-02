@@ -1,0 +1,58 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= agile_call (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("agile", args))
+
+:= exited (run : cli_run) (~code : i32) (~part : string) : () =
+    expect (run.code = code) (cat "unexpected exit, " (run_text run))
+    shows run.stdout part
+
+:= backlog () : string =
+    "inl task_kit_a () = Task (\"KIT-A\", \"claim item\", Story, P1, D2, 0u32, Planned, \"\", \"team:kit\", \"current\", "
+    ^^ "\"current\")\ninl task_kit_b () = Task (\"KIT-B\", \"done item\", Story, P1, D2, 100u32, Done, \"\", \"kit\", "
+    ^^ "\"current\", \"current\")\ninl task_main_c () = Task (\"MAIN-C\", \"other team\", Story, P0, D1, 0u32, "
+    ^^ "Planned, \"\", \"team:main\", \"current\", \"current\")\ninl task_kit_d () = Task (\"KIT-D\", \"overlap item\", "
+    ^^ "Story, P4, D2, 0u32, Planned, \"\", \"kit\", \"current\", \"current\")\ninl main () : i32 = 0i32\n"
+
+:= next_any (root : fixture_root) (~lane : string) : cli_run =
+    agile_call root (Arg ("next", Arg (fixture_text_of root, Arg ("--any", Arg ("--as", Arg (lane, NoArgs))))))
+
+///> rust
+:# two_lanes_never_get_the_same_item_and_a_full_queue_says_why =
+    := root = fixture_root_create "agile claim queue"
+    fixture_write root "state/agile.spi" (backlog ())
+    fixture_write root "state/package.spiproj" "modules:\n    agile\n"
+    := first = succeeded (next_any root "lane-a")
+    shows first "kit agile next ok claimed=MAIN-C owner=lane-a expires="
+    shows first " ttl_min=90 wip=1 rank=1"
+    shows first "\nitem MAIN-C P0 D1 Planned main other team\nlast-note none\npaths none"
+    shows (succeeded (next_any root "lane-b")) "claimed=KIT-A owner=lane-b"
+    shows (succeeded (next_any root "lane-c")) "claimed=KIT-D owner=lane-c"
+    exited (next_any root "lane-e") 3i32 "kit agile next ok claimed=none reason=all-leased wip=3"
+    shows (fixture_read root "state/claims.spi") "inl claim_kit_a () = Claim (\"KIT-A\", \"lane-b\", "
+    shows (fixture_read root "state/package.spiproj") "modules:\n    claims\n    agile\n"
+    shows (succeeded (next_any root "lane-b")) "claimed=KIT-A owner=lane-b"
+    fixture_root_remove root
+
+///> rust
+:# claims_refuse_held_and_overlapping_work_and_only_owners_release =
+    := root = fixture_root_create "agile claim refusals"
+    fixture_write root "state/agile.spi" (backlog ())
+    := here = fixture_text_of root
+    := claim = \ (~item : string) (~lane : string) (rest : cli_args) =>
+        agile_call root (Arg ("claim", Arg (here, Arg (item, Arg ("--as", Arg (lane, rest))))))
+    := release = \ (~item : string) (~lane : string) =>
+        agile_call root (Arg ("release", Arg (here, Arg (item, Arg ("--as", Arg (lane, NoArgs))))))
+    shows (succeeded (claim "KIT-A" "lane-b" (Arg ("--paths", Arg ("src/x/**", NoArgs))))) "kit agile claim ok claimed=KIT-A"
+    exited (claim "KIT-A" "lane-c" NoArgs) 5i32 "kit agile claim refused id=KIT-A reason=leased-by:lane-b:"
+    exited (claim "KIT-D" "lane-c" (Arg ("--paths", Arg ("src/x/y.spi", NoArgs))))
+        5i32 "reason=path-overlap:KIT-A:"
+    exited (release "KIT-A" "lane-c") 5i32 "kit agile release refused id=KIT-A reason=leased-by:lane-b:"
+    shows (succeeded (release "KIT-A" "lane-b")) "kit agile release ok id=KIT-A owner=lane-b released=yes wip=0"
+    shows (succeeded (release "KIT-A" "lane-b")) "released=none"
+    shows (succeeded (claim "KIT-D" "lane-c" (Arg ("--paths", Arg ("src/x/y.spi", NoArgs))))) "/src/x/y.spi"
+    rejected_with (claim "NOPE" "lane-c" NoArgs) 2i32 "no open task with id NOPE"
+    rejected_with (agile_call root (Arg ("next", Arg (here, Arg ("--any", NoArgs))))) 2i32 "--as <lane> is required"
+    rejected_with (claim "KIT-A" "lane-c" (Arg ("--paths", Arg ("a b", NoArgs)))) 2i32 "--paths expects"
+    fixture_root_remove root

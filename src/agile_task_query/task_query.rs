@@ -32,7 +32,7 @@ fn method2(mut v0: Option<usize>) -> Option<usize> {
 }
 fn closure1() -> Rc<dyn Fn((usize)) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn((usize)) -> i32> = Rc::new(move |mut v0: (usize)| -> i32 {
-        let v1: usize = (v0);
+        let mut v1: usize = (v0);
         let v2: i32 = ((v1) as i32);
         v2
     }); } CLOSURE.with(|closure| closure.clone())
@@ -40,9 +40,9 @@ fn closure1() -> Rc<dyn Fn((usize)) -> i32> {
 fn flag_read_of_1(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
     let v2: bool = &*v0 == "--team";
     let v38: US0 = if v2 {
-        let v3: bool = &*v1 != "";
+        let mut v3: bool = &*v1 != "";
         let v6: bool = if v3 {
-            let v4: Rc<str> = Rc::<str>::from(v1.to_lowercase());
+            let mut v4: Rc<str> = Rc::<str>::from(v1.to_lowercase());
             let v5: bool = &*v4 == &*v1;
             v5
         } else {
@@ -230,8 +230,8 @@ fn flag_width_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v2: US0 = flag_read_of_1(v0, v1);
     match &v2 {
         US0::US0_FilterRead(v3, v4) => {
-            let v3: US1 = v3.clone();
-            let v4: i32 = *v4;
+            let mut v3: US1 = v3.clone();
+            let mut v4: i32 = *v4;
             v4
         }
         US0::US0_FlagRefused(v5) => {
@@ -252,11 +252,11 @@ fn flag_refusal_3(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: US0 = flag_read_of_1(v0, v1);
     match &v2 {
         US0::US0_FlagRefused(v3) => {
-            let v3: Rc<str> = v3.clone();
+            let mut v3: Rc<str> = v3.clone();
             v3
         }
         _ => {
-            let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v4
         }
     }
@@ -268,7 +268,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
 }
 fn tag_listed_8(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v2, v1)), v2));
+    let mut v4: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v2, v1)), v2));
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v7: Rc<str> = Rc::<str>::from(v0.replace(&*v5, &*v6));
@@ -282,11 +282,11 @@ fn tag_listed_8(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     v16
 }
 fn on_team_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> bool {
-    let v3: bool = tag_listed_8(v2.clone(), v0.clone());
+    let mut v3: bool = tag_listed_8(v2.clone(), v0.clone());
     let v7: bool = if v3 {
         true
     } else {
-        let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("team:"); } LIT.with(|lit| lit.clone()) };
+        let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("team:"); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v0));
         tag_listed_8(v2.clone(), v5)
     };
@@ -309,17 +309,17 @@ fn on_team_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> bool {
 }
 fn loop_12(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut v3: i32) -> bool {
     loop {
-        let v4: bool = v3 >= v2;
+        let mut v4: bool = v3 >= v2;
         if v4 {
             return false;
         } else {
-            let v5: Rc<str> = v1.clone().borrow()[v3 as usize].clone();
+            let v5: Rc<str> = v1.borrow()[v3 as usize].clone();
             let v6: bool = &*v5 == &*v0;
             if v6 {
                 return true;
             } else {
                 let v7: i32 = v3.wrapping_add(1i32);
-                (v0, v1, v2, v3) = (v0.clone(), v1.clone(), v2, v7);
+                v3 = v7;
                 continue;
             }
         }
@@ -327,8 +327,8 @@ fn loop_12(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut 
 }
 fn has_word_11(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let v2: Rc<str> = Rc::<str>::from(v0.to_lowercase());
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+    let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+    let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = Rc::<str>::from(v2.replace(&*v3, &*v4));
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
     let v7: Rc<str> = Rc::<str>::from(v5.replace(&*v6, &*v4));
@@ -353,7 +353,7 @@ fn loop_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<RefCell<Vec<Rc<str>>>>, 
         if v5 {
             return false;
         } else {
-            let v6: Rc<str> = v2.clone().borrow()[v4 as usize].clone();
+            let v6: Rc<str> = v2.borrow()[v4 as usize].clone();
             let v7: bool = &*v6 != "";
             let mut v10: bool = if v7 {
                 let v8: bool = has_word_11(v0.clone(), v6.clone());
@@ -373,15 +373,15 @@ fn loop_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<RefCell<Vec<Rc<str>>>>, 
                 return true;
             } else {
                 let v14: i32 = v4.wrapping_add(1i32);
-                (v0, v1, v2, v3, v4) = (v0.clone(), v1.clone(), v2.clone(), v3, v14);
+                v4 = v14;
                 continue;
             }
         }
     }
 }
 fn words_hit_9(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> bool {
-    let v3: Rc<str> = Rc::<str>::from(v0.to_lowercase());
-    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+    let mut v3: Rc<str> = Rc::<str>::from(v0.to_lowercase());
+    let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v3.split(&*v4).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let v6: i32 = (v5.clone().borrow().len() as i32);
     let v7: i32 = 0i32;
@@ -458,7 +458,7 @@ fn filters_pass_5(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<
                 let v7: Rc<UH0> = v7.clone();
                 let v8: bool = filter_passes_6(v6.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5);
                 if v8 {
-                    (v0, v1, v2, v3, v4, v5) = (v7.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5);
+                    v0 = v7.clone();
                     continue;
                 } else {
                     return false;
@@ -476,8 +476,8 @@ fn query_token_14(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
 }
 fn filters_of_query_13(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
     loop {
-        let v3: Rc<str> = query_token_14(v0.clone(), v1);
-        let v4: bool = &*v3 == "";
+        let mut v3: Rc<str> = query_token_14(v0.clone(), v1);
+        let mut v4: bool = &*v3 == "";
         if v4 {
             return v2.clone();
         } else {
@@ -490,11 +490,11 @@ fn filters_of_query_13(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0>
                     let v9: i32 = *v9;
                     let mut v10: i32 = v1.wrapping_add(v9);
                     let mut v11: Rc<UH0> = Rc::new(UH0::UH0_FilterThen(v8.clone(), v2.clone()));
-                    (v0, v1, v2) = (v0.clone(), v10, v11.clone());
+                    (v1, v2) = (v10, v11.clone());
                     continue;
                 }
                 _ => {
-                    (v0, v1, v2) = (v0.clone(), v5, v2.clone());
+                    v1 = v5;
                     continue;
                 }
             }
@@ -516,9 +516,9 @@ fn filters_read_deps_16(mut v0: Rc<UH0>) -> bool {
     loop {
         match &*v0 {
             UH0::UH0_FilterThen(v1, v2) => {
-                let v1: US1 = v1.clone();
+                let mut v1: US1 = v1.clone();
                 let v2: Rc<UH0> = v2.clone();
-                let v4: bool = match &v1 {
+                let mut v4: bool = match &v1 {
                     US1::US1_OnlyBlocked => {
                         true
                     }
@@ -543,9 +543,9 @@ fn filters_read_deps_16(mut v0: Rc<UH0>) -> bool {
     }
 }
 fn query_reads_deps_15(mut v0: Rc<str>) -> bool {
-    let v1: i32 = 0i32;
+    let mut v1: i32 = 0i32;
     let v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoFilters); } CASE.with(|case| case.clone()) };
-    let v3: Rc<UH0> = filters_of_query_13(v0, v1, v2);
+    let mut v3: Rc<UH0> = filters_of_query_13(v0, v1, v2);
     filters_read_deps_16(v3)
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>) -> bool> {
@@ -558,10 +558,10 @@ fn filters_text_18(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
         match &*v0 {
             UH0::UH0_FilterThen(v2, v3) => {
                 let v2: US1 = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
+                let mut v3: Rc<UH0> = v3.clone();
                 let v25: Rc<str> = match &v2 {
                     US1::US1_OnTeam(v4) => {
-                        let v4: Rc<str> = v4.clone();
+                        let mut v4: Rc<str> = v4.clone();
                         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("team="); } LIT.with(|lit| lit.clone()) };
                         let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v4));
                         v6.clone()
@@ -609,10 +609,10 @@ fn filters_text_18(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
     }
 }
 fn query_shown_of_17(mut v0: Rc<str>) -> Rc<str> {
-    let v1: i32 = 0i32;
+    let mut v1: i32 = 0i32;
     let v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoFilters); } CASE.with(|case| case.clone()) };
-    let v3: Rc<UH0> = filters_of_query_13(v0, v1, v2);
-    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v3: Rc<UH0> = filters_of_query_13(v0, v1, v2);
+    let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     filters_text_18(v3, v4)
 }
 fn closure5() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -623,10 +623,10 @@ fn closure5() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
 fn closure6() -> Rc<dyn Fn() -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> Rc<str>> = Rc::new(move || -> Rc<str> {
         let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--team <team>"); } LIT.with(|lit| lit.clone()) };
-        let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
+        let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--team <team>, "); } LIT.with(|lit| lit.clone()) };
-        let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--tag <tag>"); } LIT.with(|lit| lit.clone()) };
-        let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--team <team>, --tag <tag>"); } LIT.with(|lit| lit.clone()) };
+        let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--tag <tag>"); } LIT.with(|lit| lit.clone()) };
+        let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--team <team>, --tag <tag>"); } LIT.with(|lit| lit.clone()) };
         let v5: bool = &*v4 == "";
         let mut v10: Rc<str> = if v5 {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--prefix <ID prefix>"); } LIT.with(|lit| lit.clone()) };

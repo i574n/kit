@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "item.spi"
+output = "item.rs"
+
+[package]
+name = "agile-claim-item"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "agile_claim_item"
+path = "item.rs"
+
+[dependencies]
+kit-agile-records = { path = "../kit_agile_records" }
+agile-planning-fields = { path = "../agile_planning_fields" }

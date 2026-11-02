@@ -44,8 +44,11 @@
                 |: plain_query (argument 3i32) request
             | StepRejected reason => rejected reason
     | TableToSpi =>
-        := opened = ? argument 5i32 = "--open" ?> argument 6i32 |: ""
-        ? argument_count () < 5i32 ?> rejected (table_usage ()) |: to_spi_run (argument 3i32) (argument 4i32) opened
+        := opened = ? argument 5i32 = "--open" ?> argument 6i32 |? argument 6i32 = "--open" ?> argument 7i32 |: ""
+        := whole = argument 5i32 = "--whole" || argument 7i32 = "--whole"
+        := layout = ? whole ?> kit_table_rows.rows.WholeTable |: kit_table_rows.rows.PerRow
+        ? argument_count () < 5i32 ?> rejected (table_usage ())
+        |: to_spi_run (argument 3i32) (argument 4i32) opened layout
     | TableDiff =>
         ? argument_count () < 5i32 ?> rejected (table_usage ())
         |:
@@ -59,6 +62,7 @@
                 := limit = request.limit
                 $'kit_table_diff::kit_table_diff_run(&*!left, &*!right, &*!key, &*!cols, &*!latest, !limit)' : i32
             | StepRejected reason => rejected reason
+    | TableAppend => $'kit_table_append::kit_table_append_run()' : i32
     | TableUnknown => rejected (table_usage ())
 
 := main () : i32 =

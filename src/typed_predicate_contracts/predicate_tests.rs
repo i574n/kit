@@ -4,7 +4,7 @@ use std::rc::Rc;
 #[cfg(test)] mod typed_predicate_tests { #[test] fn ascii_and_unicode_match_original_rust_predicates() { assert_eq!(super::kit_test_typed_predicates(),0); } }
 
 fn ascii_text_2(mut v0: u64, mut v1: u64) -> Rc<str> {
-    let v2: Rc<str> = std::rc::Rc::<str>::from(std::string::String::from_utf8(std::iter::repeat_n(v0 as u8,v1 as usize).collect::<Vec<_>>()).unwrap());
+    let mut v2: Rc<str> = std::rc::Rc::<str>::from(std::string::String::from_utf8(std::iter::repeat_n(v0 as u8,v1 as usize).collect::<Vec<_>>()).unwrap());
     v2
 }
 fn require_4(mut v0: bool) -> () {
@@ -49,7 +49,7 @@ fn loop_5(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
             };
             if v15 {
                 let v16: u64 = v2.wrapping_add(1u64);
-                (v0, v1, v2) = (v0.clone(), v1, v16);
+                v2 = v16;
                 continue;
             } else {
                 return false;
@@ -117,7 +117,7 @@ fn loop_6(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
             };
             if v23 {
                 let v24: u64 = v2.wrapping_add(1u64);
-                (v0, v1, v2) = (v0.clone(), v1, v24);
+                v2 = v24;
                 continue;
             } else {
                 return false;
@@ -127,7 +127,7 @@ fn loop_6(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
 }
 fn check_3(mut v0: Rc<str>) -> () {
     let v1: bool = v0.len() == 64 && v0.bytes().all(|byte| byte.is_ascii_hexdigit());
-    let v2: bool = (v0.len() > 0) && v0.bytes().all(|byte| byte.is_ascii_alphanumeric() || [45u8,46,47,95].contains(&byte));
+    let mut v2: bool = (v0.len() > 0) && v0.bytes().all(|byte| byte.is_ascii_alphanumeric() || [45u8,46,47,95].contains(&byte));
     let v3: u64 = (v0.clone().len() as u64);
     let v4: bool = v3 < 64u64;
     let v6: bool = if v4 {
@@ -162,7 +162,7 @@ fn loop_1(mut v0: u64) -> u64 {
     loop {
         let v1: bool = v0 < 128u64;
         if v1 {
-            let v2: u64 = 1u64;
+            let mut v2: u64 = 1u64;
             let v3: Rc<str> = ascii_text_2(v0, v2);
             check_3(v3.clone());
             let v4: u64 = 63u64;
@@ -185,7 +185,7 @@ fn loop_1(mut v0: u64) -> u64 {
 fn differential_0() -> i32 {
     let mut v0: u64 = 0u64;
     let v1: u64 = loop_1(v0);
-    let v2: bool = v1 == 128u64;
+    let mut v2: bool = v1 == 128u64;
     require_4(v2);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     check_3(v3);

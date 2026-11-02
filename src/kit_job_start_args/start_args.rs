@@ -150,7 +150,7 @@ fn flags_read_1(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, mut 
                 let v38: i32 = v0.wrapping_add(2i32);
                 let v39: i32 = v0.wrapping_add(1i32);
                 let v40: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v39 as usize).unwrap_or_default());
-                (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20) = (v38, v28.clone(), v40.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20);
+                (v0, v1, v2) = (v38, v28.clone(), v40.clone());
                 continue;
             }
         } else {
@@ -188,7 +188,7 @@ fn flags_read_1(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, mut 
                         }
                     };
                     let v90: i32 = v0.wrapping_add(v89);
-                    (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20) = (v90, v1.clone(), v2.clone(), v35.clone(), v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20);
+                    (v0, v3) = (v90, v35.clone());
                     continue;
                 }
             } else {
@@ -286,7 +286,7 @@ fn flags_read_1(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US0, mut 
                                 (v255, v256, v257, v258, v259, v260, v261, v262, v263, v264, v265, v266, v267, v268, v269, v270)
                             }
                         };
-                        (v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20) = (v142, v1.clone(), v2.clone(), v3.clone(), v4.clone(), v271, v272, v273, v274, v275, v276, v277, v278, v279, v280, v281, v282, v283, v284, v285, v286);
+                        (v0, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20) = (v142, v271, v272, v273, v274, v275, v276, v277, v278, v279, v280, v281, v282, v283, v284, v285, v286);
                         continue;
                     }
                     US1::US1_StartFlagUnknown => {

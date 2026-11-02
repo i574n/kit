@@ -27,7 +27,7 @@ enum US3 {
     US3_ChangedSinceRead,
 }
 fn agile_edit_failure_1(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile edit "); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile edit "); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v3, v4)), v0));
@@ -36,10 +36,14 @@ fn agile_edit_failure_1(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     v7
 }
 fn argument_owned_2(mut v0: i32) -> Rc<str> {
-    let v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+    let mut v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
     v1.clone()
 }
-fn field_end_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
+fn concat5_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    v8
+}
+fn field_end_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
     loop {
         let v4: bool = v2 <= v1;
         if v4 {
@@ -90,42 +94,42 @@ fn field_end_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
                         }
                     }
                 };
-                (v0, v1, v2, v3) = (v0.clone(), v10, v2, v25.clone());
+                (v1, v3) = (v10, v25.clone());
                 continue;
             }
         }
     }
 }
-fn skip_spaces_5(mut v0: Rc<str>, mut v1: i32) -> i32 {
+fn skip_spaces_6(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
-        let v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
+        let mut v2: i32 = v0.as_bytes().get(v1 as usize).map(|byte| i32::from(*byte)).unwrap_or(-1);
         let v3: bool = v2 == 32i32;
         if v3 {
             let v4: i32 = v1.wrapping_add(1i32);
-            (v0, v1) = (v0.clone(), v4);
+            v1 = v4;
             continue;
         } else {
             return v1;
         }
     }
 }
-fn field_start_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
+fn field_start_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 {
     loop {
         let v4: bool = v3 == 0i32;
         if v4 {
             return v1;
         } else {
             let v5: US1 = US1::US1_ScanPlain;
-            let v6: i32 = field_end_4(v0.clone(), v1, v2, v5.clone());
+            let v6: i32 = field_end_5(v0.clone(), v1, v2, v5.clone());
             let v7: i32 = v6.wrapping_add(1i32);
-            let v8: i32 = skip_spaces_5(v0.clone(), v7);
+            let v8: i32 = skip_spaces_6(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
-            (v0, v1, v2, v3) = (v0.clone(), v8, v2, v9);
+            (v1, v3) = (v8, v9);
             continue;
         }
     }
 }
-fn renamed_within_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
+fn renamed_within_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
     loop {
         let v3: bool = std::fs::rename(&*v1, &*v0).is_ok();
         if v3 {
@@ -137,13 +141,13 @@ fn renamed_within_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
             } else {
                 std::thread::sleep(std::time::Duration::from_millis(50u64));
                 let v5: i32 = v2.wrapping_sub(1i32);
-                (v0, v1, v2) = (v0.clone(), v1.clone(), v5);
+                v2 = v5;
                 continue;
             }
         }
     }
 }
-fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US3 {
+fn replace_records_unchanged_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US3 {
     let v3: bool = kit_agile_records::kit_agile_records_unchanged(&*v0, &*v1);
     if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
@@ -151,7 +155,7 @@ fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>
         let v6: bool = std::fs::write(&*v5, &*v2).is_ok();
         if v6 {
             let v7: i32 = 40i32;
-            let v8: bool = renamed_within_7(v0.clone(), v5.clone(), v7);
+            let v8: bool = renamed_within_8(v0.clone(), v5.clone(), v7);
             if v8 {
                 let v9: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
                 if v9 {
@@ -176,8 +180,8 @@ fn replace_records_unchanged_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>
 }
 fn agile_edit_entry_0() -> i32 {
     let v0: i32 = 3i32;
-    let v1: Rc<str> = argument_owned_2(v0);
-    let v2: i32 = agile_field_rendering::kit_agile_edit_field_position(&*v1);
+    let mut v1: Rc<str> = argument_owned_2(v0);
+    let mut v2: i32 = agile_field_rendering::kit_agile_edit_field_position(&*v1);
     let v3: bool = v2 < 0i32;
     if v3 {
         let v4: Rc<str> = agile_field_rendering::kit_agile_edit_field_rule(&*v1);
@@ -194,7 +198,7 @@ fn agile_edit_entry_0() -> i32 {
         let v14: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) };
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v17: Rc<str> = std::rc::Rc::<str>::from([&*v9, &*v15, &*v16, &*v16, &*v16].concat());
+        let v17: Rc<str> = concat5_3(v9.clone(), v15.clone(), v16.clone(), v16.clone(), v16.clone());
         let v18: bool = std::path::Path::new(&*v17).is_file();
         let v21: US0 = if v18 {
             US0::US0_FileReadable(v17.clone())
@@ -223,9 +227,9 @@ fn agile_edit_entry_0() -> i32 {
                 } else {
                     let v36: i32 = (v27.clone().len() as i32);
                     let v37: i32 = v32.wrapping_add(6i32);
-                    let v38: i32 = field_start_3(v27.clone(), v37, v36, v2);
+                    let v38: i32 = field_start_4(v27.clone(), v37, v36, v2);
                     let v39: US1 = US1::US1_ScanPlain;
-                    let v40: i32 = field_end_4(v27.clone(), v38, v36, v39.clone());
+                    let v40: i32 = field_end_5(v27.clone(), v38, v36, v39.clone());
                     let v41: Rc<str> = std::rc::Rc::<str>::from(v27.get(v38 as usize..v40 as usize).unwrap_or(""));
                     let v42: Rc<str> = agile_field_rendering::kit_agile_edit_field_token(&*v1, &*v41, &*v13);
                     let v43: bool = &*v42 == "";
@@ -245,7 +249,7 @@ fn agile_edit_entry_0() -> i32 {
                             let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v49));
                             let v52: Rc<str> = std::rc::Rc::<str>::from(v27.get(v40 as usize..v36 as usize).unwrap_or(""));
                             let v53: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v52));
-                            let v54: US3 = replace_records_unchanged_6(v17.clone(), v27.clone(), v53.clone());
+                            let v54: US3 = replace_records_unchanged_7(v17.clone(), v27.clone(), v53.clone());
                             match &v54 {
                                 US3::US3_Replaced => {
                                     let v55: u64 = v27.len() as u64;
