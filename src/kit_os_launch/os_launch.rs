@@ -79,6 +79,25 @@ pub fn kit_process_started_ms(pid: u64) -> u64 {
 }
 
 #[cfg(windows)]
+pub fn kit_process_private_bytes(pid: u64) -> u64 {
+    #[repr(C)]
+    struct Pmc { cb: u32, fault: u32, peak_ws: usize, ws: usize, qp_peak: usize, qp: usize, qnp_peak: usize, qnp: usize, pagefile: usize, peak_pagefile: usize, private_usage: usize }
+    unsafe extern "system" {
+        fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void;
+        fn CloseHandle(handle: *mut std::ffi::c_void) -> i32;
+        fn K32GetProcessMemoryInfo(process: *mut std::ffi::c_void, counters: *mut Pmc, cb: u32) -> i32;
+    }
+    if pid == 0 { return 0; }
+    let handle = unsafe { OpenProcess(0x1000, 0, pid as u32) };
+    if handle.is_null() { return 0; }
+    let mut pmc: Pmc = unsafe { std::mem::zeroed() };
+    pmc.cb = std::mem::size_of::<Pmc>() as u32;
+    let ok = unsafe { K32GetProcessMemoryInfo(handle, &mut pmc, pmc.cb) } != 0;
+    unsafe { CloseHandle(handle) };
+    if ok { pmc.private_usage as u64 } else { 0 }
+}
+
+#[cfg(windows)]
 pub fn kit_ancestry_text() -> String {
     #[repr(C)]
     struct Entry { size: u32, usage: u32, pid: u32, heap: usize, module: u32, threads: u32, parent: u32, base_priority: i32, flags: u32, exe: [u16; 260] }
@@ -120,6 +139,9 @@ pub fn kit_parented_start(executable: &str, args: &[&str], _owner: u32) -> (u64,
 
 #[cfg(unix)]
 pub fn kit_process_started_ms(_pid: u64) -> u64 { 0 }
+
+#[cfg(unix)]
+pub fn kit_process_private_bytes(_pid: u64) -> u64 { 0 }
 
 #[cfg(unix)]
 pub fn kit_ancestry_text() -> String { String::new() }

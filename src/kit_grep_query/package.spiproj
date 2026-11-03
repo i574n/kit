@@ -3,6 +3,7 @@ packages:
     spiral-
     kit_receipt
     kit_read_query
+    kit_os_search
 modules:
     search
     grep

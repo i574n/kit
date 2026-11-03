@@ -207,15 +207,32 @@ fn window_released_1() -> i32 {
         }
     }
 }
-fn remote_status_19(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
+fn listed_with_announced_19() -> i32 {
+    let mut v0: Rc<str> = windows_root_5();
+    let mut v1: Rc<str> = kit_window_announce_check::kit_window_announced_lines(&*v0);
+    let v2: bool = &*v1 == "";
+    if v2 {
+        ()
+    } else {
+        stdout_line_18(v1)
+    };
+    let v3: i32 = kit_window_query::kit_window_list_run();
+    v3
+}
+fn announce_verb_20() -> i32 {
+    let mut v0: Rc<str> = windows_root_5();
+    let mut v1: i32 = kit_window_announce_verb::kit_window_announce_run(&*v0);
+    v1
+}
+fn remote_status_21(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v2: i32 = kit_remote_status::kit_remote_status_run(&*v0, &*v1);
     v2
 }
-fn option_value_20(mut v0: Rc<str>) -> Rc<str> {
+fn option_value_22(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().skip_while(|arg| arg != &*v0).nth(1).unwrap_or_default());
     v1.clone()
 }
-fn class_word_21(mut v0: US1) -> Rc<str> {
+fn class_word_23(mut v0: US1) -> Rc<str> {
     match &v0 {
         US1::US1_Bench => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bench"); } LIT.with(|lit| lit.clone()) };
@@ -269,8 +286,7 @@ fn window_run_0() -> i32 {
         } else {
             let v6: bool = &*v1 == "list";
             if v6 {
-                let v7: i32 = kit_window_query::kit_window_list_run();
-                v7
+                listed_with_announced_19()
             } else {
                 let v8: bool = &*v1 == "check";
                 if v8 {
@@ -292,64 +308,69 @@ fn window_run_0() -> i32 {
                                 let v15: i32 = kit_window_wait::kit_window_wait_run();
                                 v15
                             } else {
-                                let v16: bool = &*v1 == "remote";
+                                let v16: bool = &*v1 == "announce";
                                 if v16 {
-                                    let v17: i32 = 3i32;
-                                    let v18: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v17 as usize).unwrap_or_default());
-                                    let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--bin"); } LIT.with(|lit| lit.clone()) };
-                                    let v20: Rc<str> = option_value_20(v19.clone());
-                                    let v21: bool = &*v20 == "";
-                                    let v24: Rc<str> = if v21 {
-                                        let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) };
-                                        v22.clone()
-                                    } else {
-                                        option_value_20(v19.clone())
-                                    };
-                                    remote_status_19(v18.clone(), v24.clone())
+                                    announce_verb_20()
                                 } else {
-                                    let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown verb '"); } LIT.with(|lit| lit.clone()) };
-                                    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'; "); } LIT.with(|lit| lit.clone()) };
-                                    let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: window request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] [--min-free-mb <n>] | window release <id> | window list | window check <class> | window claim <path> | window wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | window run <class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...] | window remote <ssh-alias> [--bin <remote kit path>]; classes "); } LIT.with(|lit| lit.clone()) };
-                                    let mut v29: US1 = US1::US1_LiveGui;
-                                    let mut v30: Rc<str> = class_word_21(v29.clone());
-                                    let v31: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v30.clone()));
-                                    let v32: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v31.clone()));
-                                    let v33: US1 = US1::US1_TestSuite;
-                                    let v34: Rc<str> = class_word_21(v33.clone());
-                                    let v35: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v34.clone()));
-                                    let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v32.clone(), v35.clone()));
-                                    let v37: US1 = US1::US1_HeavyBuild;
-                                    let v38: Rc<str> = class_word_21(v37.clone());
-                                    let v39: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v38.clone()));
-                                    let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v36.clone(), v39.clone()));
-                                    let v41: US1 = US1::US1_Compile;
-                                    let v42: Rc<str> = class_word_21(v41.clone());
-                                    let v43: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v42.clone()));
-                                    let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v40.clone(), v43.clone()));
-                                    let v45: US1 = US1::US1_CompilerInstall;
-                                    let v46: Rc<str> = class_word_21(v45.clone());
-                                    let v47: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v46.clone()));
-                                    let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v44.clone(), v47.clone()));
-                                    let v49: US1 = US1::US1_TreeRead;
-                                    let v50: Rc<str> = class_word_21(v49.clone());
-                                    let v51: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v50.clone()));
-                                    let v52: Rc<str> = Rc::<str>::from(format!("{}{}", v48.clone(), v51.clone()));
-                                    let v53: US1 = US1::US1_Bench;
-                                    let v54: Rc<str> = class_word_21(v53.clone());
-                                    let v55: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v54.clone()));
-                                    let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v52.clone(), v55.clone()));
-                                    let v57: US1 = US1::US1_CompileHold;
-                                    let v58: Rc<str> = class_word_21(v57.clone());
-                                    let v59: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v58.clone()));
-                                    let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v56.clone(), v59.clone()));
-                                    let v61: US1 = US1::US1_TreeWrite;
-                                    let v62: Rc<str> = class_word_21(v61.clone());
-                                    let v63: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v62.clone()));
-                                    let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v60.clone(), v63.clone()));
-                                    let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                    let v66: Rc<str> = concat5_3(v28.clone(), v64.clone(), v65.clone(), v65.clone(), v65.clone());
-                                    let v67: Rc<str> = concat5_3(v26.clone(), v1.clone(), v27.clone(), v66.clone(), v65.clone());
-                                    refused_2(v67.clone())
+                                    let v18: bool = &*v1 == "remote";
+                                    if v18 {
+                                        let v19: i32 = 3i32;
+                                        let v20: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v19 as usize).unwrap_or_default());
+                                        let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--bin"); } LIT.with(|lit| lit.clone()) };
+                                        let v22: Rc<str> = option_value_22(v21.clone());
+                                        let v23: bool = &*v22 == "";
+                                        let mut v26: Rc<str> = if v23 {
+                                            let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) };
+                                            v24.clone()
+                                        } else {
+                                            option_value_22(v21.clone())
+                                        };
+                                        remote_status_21(v20.clone(), v26.clone())
+                                    } else {
+                                        let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown verb '"); } LIT.with(|lit| lit.clone()) };
+                                        let mut v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'; "); } LIT.with(|lit| lit.clone()) };
+                                        let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: window request <class> <minutes> [--label <text>] [--wait <minutes>|until-granted] [--min-free-mb <n>] | window release <id> | window list | window check <class> | window claim <path> | window wait-clear <class,...> [--settle <n>] [--every <seconds>] [--max <minutes>] | window run <class> <minutes> [--label <text>] [--wait <minutes>] [--min-free-mb <n>] -- <command> [args...] | window remote <ssh-alias> [--bin <remote kit path>]; classes "); } LIT.with(|lit| lit.clone()) };
+                                        let v31: US1 = US1::US1_LiveGui;
+                                        let v32: Rc<str> = class_word_23(v31.clone());
+                                        let v33: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v32.clone()));
+                                        let v34: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, v33.clone()));
+                                        let v35: US1 = US1::US1_TestSuite;
+                                        let v36: Rc<str> = class_word_23(v35.clone());
+                                        let v37: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v36.clone()));
+                                        let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v34.clone(), v37.clone()));
+                                        let v39: US1 = US1::US1_HeavyBuild;
+                                        let v40: Rc<str> = class_word_23(v39.clone());
+                                        let v41: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v40.clone()));
+                                        let v42: Rc<str> = Rc::<str>::from(format!("{}{}", v38.clone(), v41.clone()));
+                                        let v43: US1 = US1::US1_Compile;
+                                        let v44: Rc<str> = class_word_23(v43.clone());
+                                        let v45: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v44.clone()));
+                                        let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v42.clone(), v45.clone()));
+                                        let v47: US1 = US1::US1_CompilerInstall;
+                                        let v48: Rc<str> = class_word_23(v47.clone());
+                                        let v49: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v48.clone()));
+                                        let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v46.clone(), v49.clone()));
+                                        let v51: US1 = US1::US1_TreeRead;
+                                        let v52: Rc<str> = class_word_23(v51.clone());
+                                        let v53: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v52.clone()));
+                                        let v54: Rc<str> = Rc::<str>::from(format!("{}{}", v50.clone(), v53.clone()));
+                                        let v55: US1 = US1::US1_Bench;
+                                        let v56: Rc<str> = class_word_23(v55.clone());
+                                        let v57: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v56.clone()));
+                                        let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v54.clone(), v57.clone()));
+                                        let v59: US1 = US1::US1_CompileHold;
+                                        let v60: Rc<str> = class_word_23(v59.clone());
+                                        let v61: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v60.clone()));
+                                        let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v58.clone(), v61.clone()));
+                                        let v63: US1 = US1::US1_TreeWrite;
+                                        let v64: Rc<str> = class_word_23(v63.clone());
+                                        let v65: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) }, v64.clone()));
+                                        let v66: Rc<str> = Rc::<str>::from(format!("{}{}", v62.clone(), v65.clone()));
+                                        let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                        let v68: Rc<str> = concat5_3(v30.clone(), v66.clone(), v67.clone(), v67.clone(), v67.clone());
+                                        let v69: Rc<str> = concat5_3(v28.clone(), v1.clone(), v29.clone(), v68.clone(), v67.clone());
+                                        refused_2(v69.clone())
+                                    }
                                 }
                             }
                         }
@@ -364,22 +385,22 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
         window_run_0()
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn first_row_24(mut v0: Rc<str>) -> Rc<str> {
+fn first_row_26(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(v0.lines().next().unwrap_or(""));
     v1
 }
-fn other_rows_25(mut v0: Rc<str>) -> Rc<str> {
+fn other_rows_27(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(v0.lines().skip(1).collect::<Vec<_>>().join("
 "));
     v1
 }
-fn dropped_tagged_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> u64 {
+fn dropped_tagged_25(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64) -> u64 {
     loop {
         let v4: bool = &*v1 == "";
         if v4 {
             return v3;
         } else {
-            let v5: Rc<str> = first_row_24(v1.clone());
+            let v5: Rc<str> = first_row_26(v1.clone());
             let v6: i32 = 3i32;
             let v7: Rc<str> = tab_field_10(v5.clone(), v6);
             let v8: bool = v7.contains(&*v2);
@@ -390,39 +411,39 @@ fn dropped_tagged_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: 
                 let v12: bool = file_removed_9(v11.clone());
                 let v13: US0 = US0::US0_WindowDropped;
                 event_logged_11(v0.clone(), v13.clone(), v5.clone());
-                let v14: Rc<str> = other_rows_25(v1.clone());
+                let v14: Rc<str> = other_rows_27(v1.clone());
                 let v15: u64 = v3.wrapping_add(1u64);
                 (v1, v3) = (v14.clone(), v15);
                 continue;
             } else {
-                let v17: Rc<str> = other_rows_25(v1.clone());
+                let v17: Rc<str> = other_rows_27(v1.clone());
                 v1 = v17.clone();
                 continue;
             }
         }
     }
 }
-fn stored_rows_26(mut v0: Rc<str>) -> Rc<str> {
+fn stored_rows_28(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { let mut rows = std::fs::read_dir(&*v0).into_iter().flatten().flatten().map(|entry| entry.path()).filter(|path| path.extension().map(|ext| ext == "window").unwrap_or(false)).filter_map(|path| std::fs::read_to_string(&path).ok()).map(|text| text.trim().to_owned()).filter(|text| !text.is_empty()).collect::<Vec<_>>(); rows.sort_by_key(|row| row.split(char::from(9u8)).nth(4).and_then(|start| start.parse::<u64>().ok()).unwrap_or(0)); std::rc::Rc::<str>::from(rows.join("
 ")) };
     v1.clone()
 }
-fn job_windows_dropped_22(mut v0: Rc<str>) -> u64 {
+fn job_windows_dropped_24(mut v0: Rc<str>) -> u64 {
     let mut v1: Rc<str> = windows_root_5();
-    let v2: Rc<str> = stored_rows_26(v1.clone());
+    let v2: Rc<str> = stored_rows_28(v1.clone());
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("(kit job "); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = concat5_3(v3, v0, v4, v5.clone(), v5);
     let v7: u64 = 0u64;
-    dropped_tagged_23(v1, v2, v6, v7)
+    dropped_tagged_25(v1, v2, v6, v7)
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        job_windows_dropped_22(v0.clone())
+        job_windows_dropped_24(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn heavy_wrapper_27(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: u64) -> Rc<str> {
+fn heavy_wrapper_29(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: u64) -> Rc<str> {
     let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (kit job "); } LIT.with(|lit| lit.clone()) };
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -444,7 +465,7 @@ fn heavy_wrapper_27(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: R
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, u64) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: u64| -> Rc<str> {
-        heavy_wrapper_27(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4)
+        heavy_wrapper_29(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_window_run() -> i32 {

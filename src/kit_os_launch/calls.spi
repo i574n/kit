@@ -18,3 +18,5 @@
 :~ caller_owner () : string * u64 * u64 = $'kit_os_launch::kit_caller_owner()' : string * u64 * u64
 
 :~ owner_present (pid : u64) (started : u64) : bool = $'kit_os_launch::kit_owner_present(!pid, !started)' : bool
+
+:~ process_private_bytes (pid : u64) : u64 = $'kit_os_launch::kit_process_private_bytes(!pid)' : u64

@@ -9,7 +9,7 @@ enum US0 {
 #[derive(Clone)]
 enum US1 {
     US1_AnyProcess,
-    US1_MineOnly(std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, u64, Rc<str>, Rc<str>),
+    US1_MineOnly(std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, u64, Rc<str>, Rc<str>),
 }
 #[derive(Clone)]
 enum US2 {
@@ -122,8 +122,8 @@ fn flag_present_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
         }
     }
 }
-fn process_rows_sampled_7(mut v0: u64) -> std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> {
-    let mut v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
+fn process_rows_sampled_7(mut v0: u64) -> std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> {
+    let mut v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
     v1
 }
 fn get_environment_variable_8(mut v0: Rc<str>) -> Rc<str> {
@@ -261,7 +261,7 @@ fn cells_vm_at_20(mut v0: Rc<str>) -> bool {
     let mut v1: bool = kit_machine_sample::kit_machine_cells_vm(&*v0);
     v1
 }
-fn owner_walk_17(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: i32, mut v2: i32) -> US5 {
+fn owner_walk_17(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: i32, mut v2: i32) -> US5 {
     loop {
         let mut v3: bool = v1 < 0i32;
         let v5: bool = if v3 {
@@ -334,7 +334,7 @@ fn text_or_empty_25(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v0).unwrap_or_default());
     v1
 }
-fn session_root_26(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: i32) -> u64 {
+fn session_root_26(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: u64, mut v2: i32) -> u64 {
     loop {
         let mut v3: i32 = v0.iter().position(|row| row.0 == v1).map(|at| at as i32).unwrap_or(-1);
         let mut v4: bool = v3 < 0i32;
@@ -366,7 +366,7 @@ fn session_root_26(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc:
         }
     }
 }
-fn descends_from_27(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: u64, mut v3: i32) -> bool {
+fn descends_from_27(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: u64, mut v2: u64, mut v3: i32) -> bool {
     loop {
         let mut v4: bool = v1 == v2;
         if v4 {
@@ -421,7 +421,7 @@ fn guard_refusal_15(mut v0: US1, mut v1: u64) -> US0 {
             US0::US0_None
         }
         US1::US1_MineOnly(v3, v4, v5, v6) => {
-            let mut v3: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = v3.clone();
+            let mut v3: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> = v3.clone();
             let mut v4: u64 = *v4;
             let v5: Rc<str> = v5.clone();
             let v6: Rc<str> = v6.clone();
@@ -724,7 +724,7 @@ fn stop_run_1(mut v0: u64) -> i32 {
         let v9: bool = flag_present_4(v7, v8, v1);
         let v19: US1 = if v9 {
             let v10: u64 = 100u64;
-            let v11: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = process_rows_sampled_7(v10);
+            let v11: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> = process_rows_sampled_7(v10);
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("KIT_AUTHOR"); } LIT.with(|lit| lit.clone()) };
             let v13: Rc<str> = get_environment_variable_8(v12);
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--theirs"); } LIT.with(|lit| lit.clone()) };

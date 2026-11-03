@@ -15,7 +15,8 @@ param(
     [switch]$Offline,
     [switch]$KeepStaged,
     [switch]$Incremental,
-    [ValidateRange(1, 8)][int]$Parallel = 1
+    [ValidateRange(1, 8)][int]$Parallel = 1,
+    [string]$FrozenLib = ''
 )
 $ErrorActionPreference = 'Stop'
 if ($TargetDirectory) { $TargetDirectory = [IO.Path]::GetFullPath($TargetDirectory, $PWD.Path) }
@@ -141,6 +142,12 @@ $libPresent = Test-Path -LiteralPath (Join-Path $spiralLib 'package.spiproj')
 if ($libReaders.Count -and -not $libPresent) { throw "Spiral lib not found at $spiralLib; $($libReaders[0].Name) and $($libReaders.Count - 1) other packages reference it as spiral-." }
 $stagedLib = Join-Path $staged 'src/spiral'
 $libRoot = if ($libPresent) { (Resolve-Path -LiteralPath $spiralLib).Path } else { '' }
+if ($FrozenLib) {
+    if (-not (Test-Path -LiteralPath (Join-Path $FrozenLib 'spiral'))) { throw "-FrozenLib needs a folder holding spiral/ (got $FrozenLib)" }
+    $env:SPIRAL_LIB_ROOT = (Resolve-Path -LiteralPath $FrozenLib).Path
+    $libRoot = (Resolve-Path -LiteralPath (Join-Path $FrozenLib 'spiral')).Path
+    Write-Host "Compiling against the frozen lib $libRoot (SPIRAL_LIB_ROOT)"
+}
 foreach ($file in $(if ($libRoot) { Get-ChildItem -LiteralPath $libRoot -Recurse -File -Include *.spi, *.spir, package.spiproj })) {
     $relative = $file.FullName.Substring($libRoot.Length).TrimStart('\', '/')
     if ($relative -match '(^|[\\/])(target|node_modules|bench)[\\/]') { continue }

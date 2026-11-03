@@ -434,3 +434,14 @@
     shows log (cat "\tgranted\t" id)
     shows log (cat "\treleased\t" id)
     fixture_root_remove root
+
+///> rust
+:# an_announced_block_is_listed_and_refuses_an_overlapping_request =
+    := root = fixture_root_create "window announce"
+    := announced = succeeded (window_call root "8000" (Arg ("announce", Arg ("compiler-install", Arg ("+5", Arg ("30", Arg ("--label", Arg ("tester", NoArgs))))))))
+    shows announced "kit window announce ok class=compiler-install holder=tester starts_in_min=5 minutes=30"
+    := listed = succeeded (window_call root "8000" (Arg ("list", NoArgs)))
+    shows listed "announced  compiler-install  tester  starts_in=5m  minutes=30  work=30m\n"
+    shows listed "kit window list ok windows=0"
+    rejected_with (requested root "heavy-build" "late" NoArgs) 2i32 "would overlap a block announced by tester that starts in 5 min"
+    fixture_root_remove root

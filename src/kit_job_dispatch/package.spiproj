@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    rust_std_env
+    workspace_primitives
+modules:
+    dispatch

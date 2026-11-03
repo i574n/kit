@@ -330,200 +330,202 @@ fn widened_14(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, m
     (v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71.clone(), v72.clone(), v73.clone(), v74, v75, v76)
 }
 fn scanned_file_9(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: i32, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: bool, mut v12: bool, mut v13: bool, mut v14: Rc<str>, mut v15: Rc<str>, mut v16: Rc<str>, mut v17: i32, mut v18: i32, mut v19: i32, mut v20: Rc<str>, mut v21: Rc<str>, mut v22: Rc<str>) -> (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) {
-    let v23: bool = std::fs::symlink_metadata(&*v21).map(|metadata| metadata.file_type().is_symlink()).unwrap_or(false);
-    let v32: US0 = if v23 {
-        US0::US0_LinkedEntry
-    } else {
-        let v25: bool = directory_exists_4(v21.clone());
-        if v25 {
-            US0::US0_Directory
-        } else {
-            let v27: bool = file_exists_5(v21.clone());
-            if v27 {
-                US0::US0_RegularFile
+    let v23: i32 = agile_todo_paths::kit_agile_todo_path_verdict(&*v22, false);
+    let v24: US1 = path_verdict_of_code_10(v23);
+    let (mut v380, mut v381, mut v382, mut v383, mut v384, mut v385, mut v386, mut v387, mut v388, mut v389, mut v390, mut v391, mut v392, mut v393, mut v394, mut v395, mut v396, mut v397, mut v398, mut v399): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = match &v24 {
+        US1::US1_ScanPath(v25) => {
+            let v25: US2 = v25.clone();
+            let v26: bool = std::fs::symlink_metadata(&*v21).map(|metadata| metadata.file_type().is_symlink()).unwrap_or(false);
+            let v35: US0 = if v26 {
+                US0::US0_LinkedEntry
             } else {
-                US0::US0_AbsentEntry
-            }
-        }
-    };
-    let (mut v367, mut v368, mut v369, mut v370, mut v371, mut v372, mut v373, mut v374, mut v375, mut v376, mut v377, mut v378, mut v379, mut v380, mut v381, mut v382, mut v383, mut v384, mut v385, mut v386): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = match &v32 {
-        US0::US0_RegularFile => {
-            let v33: bool = std::path::Path::new(&*v21).with_extension("spi").is_file();
-            let v34: i32 = agile_todo_paths::kit_agile_todo_path_verdict(&*v22, v33);
-            let v35: US1 = path_verdict_of_code_10(v34);
-            let (mut v36, mut v37, mut v38, mut v39, mut v40, mut v41, mut v42, mut v43, mut v44, mut v45, mut v46): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_path_11(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v35.clone());
-            match &v35 {
-                US1::US1_ScanPath(v47) => {
-                    let v47: US2 = v47.clone();
-                    let v48: u64 = std::fs::metadata(&*v21).map(|metadata| metadata.len()).unwrap_or(0);
-                    let v49: bool = v48 > 33554432u64;
-                    let v52: US4 = if v49 {
-                        US4::US4_SkipLarge
+                let v28: bool = directory_exists_4(v21.clone());
+                if v28 {
+                    US0::US0_Directory
+                } else {
+                    let v30: bool = file_exists_5(v21.clone());
+                    if v30 {
+                        US0::US0_RegularFile
                     } else {
-                        US4::US4_ScanContent
-                    };
-                    match &v52 {
-                        US4::US4_SkipLarge => {
-                            let v53: US4 = US4::US4_SkipLarge;
-                            let (mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v53.clone());
-                            (v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
-                        }
-                        _ => {
-                            let (mut v65, mut v66): (bool, Rc<str>) = match std::fs::read(&*v21) { Ok(bytes) => (bytes.contains(&0u8), std::rc::Rc::<str>::from(String::from_utf8_lossy(&bytes).as_ref())), Err(_) => (true, { thread_local!{ static LIT: std::rc::Rc<str> = std::rc::Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }) };
-                            let v69: US4 = if v65 {
-                                US4::US4_SkipBinary
+                        US0::US0_AbsentEntry
+                    }
+                }
+            };
+            match &v35 {
+                US0::US0_RegularFile => {
+                    let v36: bool = std::path::Path::new(&*v21).with_extension("spi").is_file();
+                    let v37: i32 = agile_todo_paths::kit_agile_todo_path_verdict(&*v22, v36);
+                    let v38: US1 = path_verdict_of_code_10(v37);
+                    let (mut v39, mut v40, mut v41, mut v42, mut v43, mut v44, mut v45, mut v46, mut v47, mut v48, mut v49): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_path_11(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v38.clone());
+                    match &v38 {
+                        US1::US1_ScanPath(v50) => {
+                            let v50: US2 = v50.clone();
+                            let v51: u64 = std::fs::metadata(&*v21).map(|metadata| metadata.len()).unwrap_or(0);
+                            let v52: bool = v51 > 33554432u64;
+                            let v55: US4 = if v52 {
+                                US4::US4_SkipLarge
                             } else {
                                 US4::US4_ScanContent
                             };
-                            let (mut v228, mut v229, mut v230, mut v231, mut v232, mut v233, mut v234, mut v235, mut v236, mut v237, mut v238, mut v239, mut v240, mut v241, mut v242, mut v243, mut v244, mut v245, mut v246, mut v247): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = match &v69 {
-                                US4::US4_ScanContent => {
-                                    let v70: bool = &*v16 == "";
-                                    let v76: US5 = if v70 {
-                                        US5::US5_AllTodos
-                                    } else {
-                                        let v72: bool = &*v16 == "*";
-                                        if v72 {
-                                            US5::US5_TaggedTodos
-                                        } else {
-                                            US5::US5_TodosOf(v16.clone())
-                                        }
-                                    };
-                                    let v80: bool = match &v76 {
-                                        US5::US5_TodosOf(v77) => {
-                                            let v77: Rc<str> = v77.clone();
-                                            let v78: i32 = v66.get(0i32 as usize..).and_then(|rest| rest.find(&*v77)).map(|found| (found + 0i32 as usize) as i32).unwrap_or(-1);
-                                            let v79: bool = v78 >= 0i32;
-                                            v79
-                                        }
-                                        _ => {
-                                            true
-                                        }
-                                    };
-                                    let v81: bool = v80 == false;
-                                    if v81 {
-                                        let v82: US4 = US4::US4_ScanContent;
-                                        let (mut v83, mut v84, mut v85, mut v86, mut v87, mut v88, mut v89, mut v90, mut v91, mut v92, mut v93): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v82.clone());
-                                        (v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
-                                    } else {
-                                        let v94: i32 = match &v47 {
-                                            US2::US2_BatchFamily => {
-                                                11i32
-                                            }
-                                            US2::US2_CFamily => {
-                                                1i32
-                                            }
-                                            US2::US2_DashFamily => {
-                                                3i32
-                                            }
-                                            US2::US2_ErlangFamily => {
-                                                7i32
-                                            }
-                                            US2::US2_FsharpFamily => {
-                                                12i32
-                                            }
-                                            US2::US2_HashFamily => {
-                                                2i32
-                                            }
-                                            US2::US2_HaskellFamily => {
-                                                4i32
-                                            }
-                                            US2::US2_LeanFamily => {
-                                                5i32
-                                            }
-                                            US2::US2_LispFamily => {
-                                                6i32
-                                            }
-                                            US2::US2_MarkupFamily => {
-                                                8i32
-                                            }
-                                            US2::US2_MlFamily => {
-                                                9i32
-                                            }
-                                            US2::US2_PascalFamily => {
-                                                10i32
-                                            }
-                                        };
-                                        let (mut v95, mut v96, mut v97): (Rc<str>, i32, Rc<str>) = agile_todo_lines::kit_agile_todo_findings(v94, &*v16, &*v15, &*v66, &*v20, v11);
-                                        let v98: US4 = US4::US4_ScanContent;
-                                        let (mut v99, mut v100, mut v101, mut v102, mut v103, mut v104, mut v105, mut v106, mut v107, mut v108, mut v109): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v98.clone());
-                                        let (mut v110, mut v111, mut v112, mut v113, mut v114, mut v115, mut v116, mut v117, mut v118, mut v119, mut v120): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_todos_13(v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v96);
-                                        let v121: i32 = 0i32;
-                                        let (mut v122, mut v123, mut v124, mut v125, mut v126, mut v127, mut v128, mut v129, mut v130, mut v131, mut v132, mut v133, mut v134, mut v135, mut v136, mut v137, mut v138, mut v139, mut v140, mut v141): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = widened_14(v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19, v97.clone(), v121);
-                                        let v142: bool = v96 <= 0i32;
-                                        let (mut v177, mut v178, mut v179, mut v180, mut v181, mut v182, mut v183, mut v184, mut v185, mut v186, mut v187, mut v188, mut v189, mut v190, mut v191, mut v192, mut v193, mut v194, mut v195, mut v196): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = if v142 {
-                                            (v122, v123, v124, v125, v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136.clone(), v137.clone(), v138.clone(), v139, v140, v141)
-                                        } else {
-                                            let (mut v152, mut v153, mut v154, mut v155, mut v156, mut v157, mut v158, mut v159, mut v160, mut v161, mut v162, mut v163, mut v164, mut v165, mut v166, mut v167, mut v168, mut v169, mut v170, mut v171): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = if v134 {
-                                                let v143: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                                                let v144: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                                let v145: Rc<str> = concat5_3(v136.clone(), v95.clone(), v143.clone(), v144.clone(), v144.clone());
-                                                (v122, v123, v124, v125, v126, v127, v128, v129, v130, v131, v132, v133, v134, true, v145.clone(), v137.clone(), v138.clone(), v139, v140, v141)
-                                            } else {
-                                                let v146: bool = v133 && v135;
-                                                let v150: Rc<str> = if v146 {
-                                                    let v147: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                                                    let v148: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                                    concat5_3(v147.clone(), v95.clone(), v148.clone(), v148.clone(), v148.clone())
-                                                } else {
-                                                    v95.clone()
-                                                };
-                                                let v151: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v150.to_string() + "
-").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
-                                                (v122, v123, v124, v125, v126, v127, v128, v129, v130, v131, v132, v133, v134, true, v136.clone(), v137.clone(), v138.clone(), v139, v140, v141)
-                                            };
-                                            let v172: bool = v163 || v164;
-                                            let (mut v173, mut v174): (i32, i32) = agile_todo_standing::kit_agile_todo_standings(&*v167, &*v95, v172);
-                                            let v175: i32 = v169.wrapping_add(v173);
-                                            let v176: i32 = v170.wrapping_add(v174);
-                                            (v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163, v164, v165, v166.clone(), v167.clone(), v168.clone(), v175, v176, v171)
-                                        };
-                                        (v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191.clone(), v192.clone(), v193.clone(), v194, v195, v196)
-                                    }
+                            match &v55 {
+                                US4::US4_SkipLarge => {
+                                    let v56: US4 = US4::US4_SkipLarge;
+                                    let (mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65, mut v66, mut v67): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v56.clone());
+                                    (v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
                                 }
                                 _ => {
-                                    let (mut v217, mut v218, mut v219, mut v220, mut v221, mut v222, mut v223, mut v224, mut v225, mut v226, mut v227): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v69.clone());
-                                    (v217, v218, v219, v220, v221, v222, v223, v224, v225, v226, v227, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
+                                    let (mut v68, mut v69): (bool, Rc<str>) = match std::fs::read(&*v21) { Ok(bytes) => (bytes.contains(&0u8), std::rc::Rc::<str>::from(String::from_utf8_lossy(&bytes).as_ref())), Err(_) => (true, { thread_local!{ static LIT: std::rc::Rc<str> = std::rc::Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }) };
+                                    let v72: US4 = if v68 {
+                                        US4::US4_SkipBinary
+                                    } else {
+                                        US4::US4_ScanContent
+                                    };
+                                    let (mut v231, mut v232, mut v233, mut v234, mut v235, mut v236, mut v237, mut v238, mut v239, mut v240, mut v241, mut v242, mut v243, mut v244, mut v245, mut v246, mut v247, mut v248, mut v249, mut v250): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = match &v72 {
+                                        US4::US4_ScanContent => {
+                                            let v73: bool = &*v16 == "";
+                                            let v79: US5 = if v73 {
+                                                US5::US5_AllTodos
+                                            } else {
+                                                let v75: bool = &*v16 == "*";
+                                                if v75 {
+                                                    US5::US5_TaggedTodos
+                                                } else {
+                                                    US5::US5_TodosOf(v16.clone())
+                                                }
+                                            };
+                                            let v83: bool = match &v79 {
+                                                US5::US5_TodosOf(v80) => {
+                                                    let v80: Rc<str> = v80.clone();
+                                                    let v81: i32 = v69.get(0i32 as usize..).and_then(|rest| rest.find(&*v80)).map(|found| (found + 0i32 as usize) as i32).unwrap_or(-1);
+                                                    let v82: bool = v81 >= 0i32;
+                                                    v82
+                                                }
+                                                _ => {
+                                                    true
+                                                }
+                                            };
+                                            let v84: bool = v83 == false;
+                                            if v84 {
+                                                let v85: US4 = US4::US4_ScanContent;
+                                                let (mut v86, mut v87, mut v88, mut v89, mut v90, mut v91, mut v92, mut v93, mut v94, mut v95, mut v96): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v85.clone());
+                                                (v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
+                                            } else {
+                                                let v97: i32 = match &v50 {
+                                                    US2::US2_BatchFamily => {
+                                                        11i32
+                                                    }
+                                                    US2::US2_CFamily => {
+                                                        1i32
+                                                    }
+                                                    US2::US2_DashFamily => {
+                                                        3i32
+                                                    }
+                                                    US2::US2_ErlangFamily => {
+                                                        7i32
+                                                    }
+                                                    US2::US2_FsharpFamily => {
+                                                        12i32
+                                                    }
+                                                    US2::US2_HashFamily => {
+                                                        2i32
+                                                    }
+                                                    US2::US2_HaskellFamily => {
+                                                        4i32
+                                                    }
+                                                    US2::US2_LeanFamily => {
+                                                        5i32
+                                                    }
+                                                    US2::US2_LispFamily => {
+                                                        6i32
+                                                    }
+                                                    US2::US2_MarkupFamily => {
+                                                        8i32
+                                                    }
+                                                    US2::US2_MlFamily => {
+                                                        9i32
+                                                    }
+                                                    US2::US2_PascalFamily => {
+                                                        10i32
+                                                    }
+                                                };
+                                                let (mut v98, mut v99, mut v100): (Rc<str>, i32, Rc<str>) = agile_todo_lines::kit_agile_todo_findings(v97, &*v16, &*v15, &*v69, &*v20, v11);
+                                                let v101: US4 = US4::US4_ScanContent;
+                                                let (mut v102, mut v103, mut v104, mut v105, mut v106, mut v107, mut v108, mut v109, mut v110, mut v111, mut v112): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v101.clone());
+                                                let (mut v113, mut v114, mut v115, mut v116, mut v117, mut v118, mut v119, mut v120, mut v121, mut v122, mut v123): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_todos_13(v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v99);
+                                                let v124: i32 = 0i32;
+                                                let (mut v125, mut v126, mut v127, mut v128, mut v129, mut v130, mut v131, mut v132, mut v133, mut v134, mut v135, mut v136, mut v137, mut v138, mut v139, mut v140, mut v141, mut v142, mut v143, mut v144): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = widened_14(v113, v114, v115, v116, v117, v118, v119, v120, v121, v122, v123, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19, v100.clone(), v124);
+                                                let v145: bool = v99 <= 0i32;
+                                                let (mut v180, mut v181, mut v182, mut v183, mut v184, mut v185, mut v186, mut v187, mut v188, mut v189, mut v190, mut v191, mut v192, mut v193, mut v194, mut v195, mut v196, mut v197, mut v198, mut v199): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = if v145 {
+                                                    (v125, v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139.clone(), v140.clone(), v141.clone(), v142, v143, v144)
+                                                } else {
+                                                    let (mut v155, mut v156, mut v157, mut v158, mut v159, mut v160, mut v161, mut v162, mut v163, mut v164, mut v165, mut v166, mut v167, mut v168, mut v169, mut v170, mut v171, mut v172, mut v173, mut v174): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = if v137 {
+                                                        let v146: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                                                        let v147: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                                        let v148: Rc<str> = concat5_3(v139.clone(), v98.clone(), v146.clone(), v147.clone(), v147.clone());
+                                                        (v125, v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, true, v148.clone(), v140.clone(), v141.clone(), v142, v143, v144)
+                                                    } else {
+                                                        let v149: bool = v136 && v138;
+                                                        let v153: Rc<str> = if v149 {
+                                                            let v150: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+                                                            let v151: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                                            concat5_3(v150.clone(), v98.clone(), v151.clone(), v151.clone(), v151.clone())
+                                                        } else {
+                                                            v98.clone()
+                                                        };
+                                                        let v154: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v153.to_string() + "
+").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
+                                                        (v125, v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, true, v139.clone(), v140.clone(), v141.clone(), v142, v143, v144)
+                                                    };
+                                                    let v175: bool = v166 || v167;
+                                                    let (mut v176, mut v177): (i32, i32) = agile_todo_standing::kit_agile_todo_standings(&*v170, &*v98, v175);
+                                                    let v178: i32 = v172.wrapping_add(v176);
+                                                    let v179: i32 = v173.wrapping_add(v177);
+                                                    (v155, v156, v157, v158, v159, v160, v161, v162, v163, v164, v165, v166, v167, v168, v169.clone(), v170.clone(), v171.clone(), v178, v179, v174)
+                                                };
+                                                (v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191, v192, v193, v194.clone(), v195.clone(), v196.clone(), v197, v198, v199)
+                                            }
+                                        }
+                                        _ => {
+                                            let (mut v220, mut v221, mut v222, mut v223, mut v224, mut v225, mut v226, mut v227, mut v228, mut v229, mut v230): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v72.clone());
+                                            (v220, v221, v222, v223, v224, v225, v226, v227, v228, v229, v230, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
+                                        }
+                                    };
+                                    (v231, v232, v233, v234, v235, v236, v237, v238, v239, v240, v241, v242, v243, v244, v245.clone(), v246.clone(), v247.clone(), v248, v249, v250)
                                 }
-                            };
-                            (v228, v229, v230, v231, v232, v233, v234, v235, v236, v237, v238, v239, v240, v241, v242.clone(), v243.clone(), v244.clone(), v245, v246, v247)
+                            }
+                        }
+                        _ => {
+                            (v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
                         }
                     }
                 }
                 _ => {
-                    (v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
+                    let (mut v329, mut v330, mut v331, mut v332, mut v333, mut v334, mut v335, mut v336, mut v337, mut v338, mut v339, mut v340, mut v341, mut v342, mut v343, mut v344, mut v345, mut v346, mut v347, mut v348): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = match &v35 {
+                        US0::US0_LinkedEntry => {
+                            let v291: US3 = US3::US3_SkipLinkedEntry;
+                            let v292: US1 = US1::US1_SkipPath(v291.clone());
+                            let (mut v293, mut v294, mut v295, mut v296, mut v297, mut v298, mut v299, mut v300, mut v301, mut v302, mut v303): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_path_11(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v292.clone());
+                            (v293, v294, v295, v296, v297, v298, v299, v300, v301, v302, v303, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
+                        }
+                        _ => {
+                            let v304: i32 = agile_todo_paths::kit_agile_todo_path_verdict(&*v22, false);
+                            let v305: US1 = path_verdict_of_code_10(v304);
+                            let (mut v306, mut v307, mut v308, mut v309, mut v310, mut v311, mut v312, mut v313, mut v314, mut v315, mut v316): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_path_11(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v305.clone());
+                            let v317: US4 = US4::US4_SkipUnreadable;
+                            let (mut v318, mut v319, mut v320, mut v321, mut v322, mut v323, mut v324, mut v325, mut v326, mut v327, mut v328): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v306, v307, v308, v309, v310, v311, v312, v313, v314, v315, v316, v317.clone());
+                            (v318, v319, v320, v321, v322, v323, v324, v325, v326, v327, v328, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
+                        }
+                    };
+                    (v329, v330, v331, v332, v333, v334, v335, v336, v337, v338, v339, v340, v341, v342, v343.clone(), v344.clone(), v345.clone(), v346, v347, v348)
                 }
             }
         }
         _ => {
-            let (mut v347, mut v348, mut v349, mut v350, mut v351, mut v352, mut v353, mut v354, mut v355, mut v356, mut v357, mut v358, mut v359, mut v360, mut v361, mut v362, mut v363, mut v364, mut v365, mut v366): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = match &v32 {
-                US0::US0_LinkedEntry => {
-                    let v288: US3 = US3::US3_SkipLinkedEntry;
-                    let v289: US1 = US1::US1_SkipPath(v288.clone());
-                    let (mut v290, mut v291, mut v292, mut v293, mut v294, mut v295, mut v296, mut v297, mut v298, mut v299, mut v300): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_path_11(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v289.clone());
-                    (v290, v291, v292, v293, v294, v295, v296, v297, v298, v299, v300, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
-                }
-                _ => {
-                    let v301: i32 = agile_todo_paths::kit_agile_todo_path_verdict(&*v22, false);
-                    let v302: US1 = path_verdict_of_code_10(v301);
-                    let (mut v303, mut v304, mut v305, mut v306, mut v307, mut v308, mut v309, mut v310, mut v311, mut v312, mut v313): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_path_11(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v302.clone());
-                    let (mut v327, mut v328, mut v329, mut v330, mut v331, mut v332, mut v333, mut v334, mut v335, mut v336, mut v337, mut v338, mut v339, mut v340, mut v341, mut v342, mut v343, mut v344, mut v345, mut v346): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) = match &v302 {
-                        US1::US1_ScanPath(v314) => {
-                            let v314: US2 = v314.clone();
-                            let v315: US4 = US4::US4_SkipUnreadable;
-                            let (mut v316, mut v317, mut v318, mut v319, mut v320, mut v321, mut v322, mut v323, mut v324, mut v325, mut v326): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_content_12(v303, v304, v305, v306, v307, v308, v309, v310, v311, v312, v313, v315.clone());
-                            (v316, v317, v318, v319, v320, v321, v322, v323, v324, v325, v326, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
-                        }
-                        _ => {
-                            (v303, v304, v305, v306, v307, v308, v309, v310, v311, v312, v313, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
-                        }
-                    };
-                    (v327, v328, v329, v330, v331, v332, v333, v334, v335, v336, v337, v338, v339, v340, v341.clone(), v342.clone(), v343.clone(), v344, v345, v346)
-                }
-            };
-            (v347, v348, v349, v350, v351, v352, v353, v354, v355, v356, v357, v358, v359, v360, v361.clone(), v362.clone(), v363.clone(), v364, v365, v366)
+            let (mut v369, mut v370, mut v371, mut v372, mut v373, mut v374, mut v375, mut v376, mut v377, mut v378, mut v379): (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32) = counted_path_11(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v24.clone());
+            (v369, v370, v371, v372, v373, v374, v375, v376, v377, v378, v379, v11, v12, v13, v14.clone(), v15.clone(), v16.clone(), v17, v18, v19)
         }
     };
-    (v367, v368, v369, v370, v371, v372, v373, v374, v375, v376, v377, v378, v379, v380, v381.clone(), v382.clone(), v383.clone(), v384, v385, v386)
+    (v380, v381, v382, v383, v384, v385, v386, v387, v388, v389, v390, v391, v392, v393, v394.clone(), v395.clone(), v396.clone(), v397, v398, v399)
 }
 fn listed_files_15(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: i32, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: bool, mut v12: bool, mut v13: bool, mut v14: Rc<str>, mut v15: Rc<str>, mut v16: Rc<str>, mut v17: i32, mut v18: i32, mut v19: i32, mut v20: Rc<str>, mut v21: Rc<str>, mut v22: Rc<str>, mut v23: i32) -> (i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, i32, bool, bool, bool, Rc<str>, Rc<str>, Rc<str>, i32, i32, i32) {
     let v24: i32 = (v22.clone().len() as i32);

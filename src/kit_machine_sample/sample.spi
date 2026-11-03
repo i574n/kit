@@ -8,8 +8,8 @@
 :! pid_list = $'std::rc::Rc<Vec<u32>>'
 :! refresh_count = $'usize'
 :! row_buffer =
-    $'std::rc::Rc<std::cell::RefCell<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>>'
-:! sampled_rows = $'std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>'
+    $'std::rc::Rc<std::cell::RefCell<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>>'
+:! sampled_rows = $'std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>'
 
 :! refresh_kind = $'sysinfo::ProcessRefreshKind'
 
@@ -90,10 +90,10 @@
 
 := row_added
     (~buffer : row_buffer) (pid : u64) (parent : u64) (~name : string) (~command : string) (cores : f64) (age : u64)
-    (cpu : u64) (megabytes : u64)
+    (cpu : u64) (megabytes : u64) (commit : u64)
     : ()
     =
-    $'!buffer.borrow_mut().push((!pid, !parent, !name, !command, !cores, !age, !cpu, !megabytes))' : ()
+    $'!buffer.borrow_mut().push((!pid, !parent, !name, !command, !cores, !age, !cpu, !megabytes, !commit))' : ()
 
 := rows_of (~buffer : row_buffer) : sampled_rows = $'std::rc::Rc::new(!buffer.borrow().clone())' : sampled_rows
 
@@ -113,6 +113,7 @@
         row_added buffer (conv pid) (conv (live_parent system pid now)) (process_name system pid)
             (process_command system pid) (cores_between (cpu_before snapshot pid) used seconds)
             (process_run_seconds system pid / 60u64) (used / 60000u64) (process_memory_bytes system pid / 1048576u64)
+            (kit_os_launch.calls.process_private_bytes (conv pid) / 1048576u64)
         rows_from system pids buffer snapshot (at + 1i32) count seconds
     |: ()
 

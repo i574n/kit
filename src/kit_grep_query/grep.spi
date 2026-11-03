@@ -1,5 +1,6 @@
 :< sm'_operators
 :< kit_receipt.receipt
+:< kit_os_search.search
 :< search
 
 :| needle_hint =

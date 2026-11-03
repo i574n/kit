@@ -1,6 +1,33 @@
-:= free_megabytes () : u64 =
-    $'sysinfo::System::new_with_specifics(sysinfo::RefreshKind::nothing().with_memory(sysinfo::MemoryRefreshKind::nothing().with_ram())).available_memory() >> 20' : u64
-:= disk_free_gb (~mount : string) : u64 =
-    $'sysinfo::Disks::new_with_refreshed_list().list().iter().find(|d| d.mount_point() == std::path::Path::new(&*!mount)).map_or(0, |d| d.available_space() >> 30)' : u64
-:= logical_cpus () : i32 = $'std::thread::available_parallelism().map_or(1, |count| count.get() as i32)' : i32
+:! memory_kind = $'sysinfo::MemoryRefreshKind'
+
+:! refresh_kind = $'sysinfo::RefreshKind'
+
+:! machine_system = $'std::rc::Rc<sysinfo::System>'
+
+:! disk_list = $'std::rc::Rc<sysinfo::Disks>'
+
+:= ram_refresh () : memory_kind = $'sysinfo::MemoryRefreshKind::nothing().with_ram()' : memory_kind
+:= memory_refresh (ram : memory_kind) : refresh_kind = $'sysinfo::RefreshKind::nothing().with_memory(!ram)' : refresh_kind
+:= system_with (kind : refresh_kind) : machine_system = $'std::rc::Rc::new(sysinfo::System::new_with_specifics(!kind))' : machine_system
+:= available_bytes (system : machine_system) : u64 = $'!system.available_memory()' : u64
+
+:= free_megabytes () : u64 = available_bytes (system_with (memory_refresh (ram_refresh ()))) / 1048576u64
+
+:= refreshed_disks () : disk_list = $'std::rc::Rc::new(sysinfo::Disks::new_with_refreshed_list())' : disk_list
+:= disk_count (disks : disk_list) : i32 = ($'!disks.list().len()' : convert.unativeint) |> convert.convert
+:= disk_mounted_at (disks : disk_list) (index : convert.unativeint) (~mount : string) : bool =
+    $'!disks.list()[!index].mount_point().eq(std::path::Path::new(&*!mount))' : bool
+:= disk_available (disks : disk_list) (index : convert.unativeint) : u64 = $'!disks.list()[!index].available_space()' : u64
+
+:~ ^ free_bytes_on (disks : disk_list) (~mount : string) (at : i32) : u64 =
+    := index : convert.unativeint = convert.convert at
+    ? at >= disk_count disks ?> 0u64
+    |? disk_mounted_at disks index mount ?> disk_available disks index
+    |: free_bytes_on disks mount (at + 1i32)
+
+:= disk_free_gb (~mount : string) : u64 = free_bytes_on (refreshed_disks ()) mount 0i32 / 1073741824u64
+
+:= logical_cpus () : i32 =
+    ($'std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get)' : convert.unativeint) |> convert.convert
+
 := is_windows () : bool = $'cfg\!(windows)' : bool

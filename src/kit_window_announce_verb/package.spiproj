@@ -1,0 +1,13 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    rust_std_env
+    workspace_primitives
+    kit_receipt
+    kit_jobs
+    kit_machine_windows
+    kit_window_announce
+    kit_window_announce_rows
+modules:
+    verb

@@ -1,7 +1,7 @@
 :< rust_std_string.model
 :< kit_machine_watch_model.model
 
-:! process_rows = $'std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>'
+:! process_rows = $'std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>'
 
 :~ process_rows_sampled (milliseconds : u64) : process_rows =
     $'kit_machine_sample::kit_machine_sampled(!milliseconds)' : process_rows
@@ -17,6 +17,9 @@ inl row_of_pid (~rows : process_rows) (pid : u64) : i32 = $'!rows.iter().positio
 := row_age (~rows : process_rows) (at : i32) : u64 = $'!rows[!at as usize].5' : u64
 := row_cpu (~rows : process_rows) (at : i32) : u64 = $'!rows[!at as usize].6' : u64
 := row_megabytes (~rows : process_rows) (at : i32) : u64 = $'!rows[!at as usize].7' : u64
+:= row_commit_megabytes (~rows : process_rows) (at : i32) : u64 =
+    := index : convert.unativeint = convert.convert at
+    $'!rows[!index].8' : u64
 
 := tool_names () : string =
     "dotnet|rustc|cargo|erl|beam.smp|pwsh|powershell|node|bun|gcc|cc1|cc1plus|ld|zig|lean|java|swiftc|swift-fronten"

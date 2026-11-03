@@ -614,11 +614,16 @@ fn class_of_40(mut v0: Rc<str>) -> US6 {
         }
     }
 }
-fn process_number_41() -> u64 {
+fn announce_refusal_41(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
+    let v2: Rc<str> = windows_root_5();
+    let mut v3: Rc<str> = kit_window_announce_check::kit_window_announced_refusal(&*v2, &*v0, v1);
+    v3
+}
+fn process_number_42() -> u64 {
     let mut v0: u64 = std::process::id() as u64;
     v0
 }
-fn option_value_42(mut v0: Rc<str>) -> Rc<str> {
+fn option_value_43(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().skip_while(|arg| arg != &*v0).nth(1).unwrap_or_default());
     v1.clone()
 }
@@ -680,35 +685,49 @@ fn window_requested_0() -> i32 {
                 let v96: Rc<str> = concat5_2(v53.clone(), v55.clone(), v56.clone(), v95.clone(), v94.clone());
                 refused_1(v96.clone())
             } else {
-                let v98: u64 = now_ms_7();
-                let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("win-"); } LIT.with(|lit| lit.clone()) };
-                let v100: Rc<str> = number_text_23(v98);
-                let v101: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
-                let v102: u64 = process_number_41();
-                let v103: Rc<str> = number_text_23(v102);
-                let v104: Rc<str> = class_word_29(v48.clone());
-                let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v106: Rc<str> = concat5_2(v101.clone(), v104.clone(), v105.clone(), v105.clone(), v105.clone());
-                let v107: Rc<str> = concat5_2(v99.clone(), v100.clone(), v101.clone(), v103.clone(), v106.clone());
-                let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--label"); } LIT.with(|lit| lit.clone()) };
-                let v109: Rc<str> = option_value_42(v108.clone());
-                let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--wait"); } LIT.with(|lit| lit.clone()) };
-                let v111: Rc<str> = option_value_42(v110.clone());
-                let v112: bool = &*v111 == "until-granted";
-                let v117: u64 = if v112 {
-                    9223372036854775807u64
+                let v98: i32 = 3i32;
+                let v99: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v98 as usize).unwrap_or_default());
+                let v100: Rc<str> = announce_refusal_41(v99.clone(), v51);
+                let v101: bool = &*v100 != "";
+                if v101 {
+                    let v102: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("request: "); } LIT.with(|lit| lit.clone()) };
+                    let v103: i32 = 3i32;
+                    let v104: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v103 as usize).unwrap_or_default());
+                    let v105: Rc<str> = announce_refusal_41(v104.clone(), v51);
+                    let v106: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    let v107: Rc<str> = concat5_2(v102.clone(), v105.clone(), v106.clone(), v106.clone(), v106.clone());
+                    refused_1(v107.clone())
                 } else {
-                    let v113: Rc<str> = option_value_42(v110.clone());
-                    let v114: u64 = decimal_of_13(v113.clone());
-                    let v115: u64 = v114.wrapping_mul(60000u64);
-                    let v116: u64 = v98.wrapping_add(v115);
-                    v116
-                };
-                let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--min-free-mb"); } LIT.with(|lit| lit.clone()) };
-                let v119: Rc<str> = option_value_42(v118.clone());
-                let v120: u64 = decimal_of_13(v119.clone());
-                let v121: bool = false;
-                requested_4(v48.clone(), v51, v109.clone(), v107.clone(), v98, v117, v120, v121)
+                    let v109: u64 = now_ms_7();
+                    let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("win-"); } LIT.with(|lit| lit.clone()) };
+                    let v111: Rc<str> = number_text_23(v109);
+                    let v112: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
+                    let v113: u64 = process_number_42();
+                    let v114: Rc<str> = number_text_23(v113);
+                    let v115: Rc<str> = class_word_29(v48.clone());
+                    let v116: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    let v117: Rc<str> = concat5_2(v112.clone(), v115.clone(), v116.clone(), v116.clone(), v116.clone());
+                    let v118: Rc<str> = concat5_2(v110.clone(), v111.clone(), v112.clone(), v114.clone(), v117.clone());
+                    let v119: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--label"); } LIT.with(|lit| lit.clone()) };
+                    let v120: Rc<str> = option_value_43(v119.clone());
+                    let v121: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--wait"); } LIT.with(|lit| lit.clone()) };
+                    let v122: Rc<str> = option_value_43(v121.clone());
+                    let v123: bool = &*v122 == "until-granted";
+                    let v128: u64 = if v123 {
+                        9223372036854775807u64
+                    } else {
+                        let v124: Rc<str> = option_value_43(v121.clone());
+                        let v125: u64 = decimal_of_13(v124.clone());
+                        let v126: u64 = v125.wrapping_mul(60000u64);
+                        let v127: u64 = v109.wrapping_add(v126);
+                        v127
+                    };
+                    let v129: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--min-free-mb"); } LIT.with(|lit| lit.clone()) };
+                    let v130: Rc<str> = option_value_43(v129.clone());
+                    let v131: u64 = decimal_of_13(v130.clone());
+                    let v132: bool = false;
+                    requested_4(v48.clone(), v51, v120.clone(), v118.clone(), v109, v128, v131, v132)
+                }
             }
         }
         US6::US6_ClassUnknown => {

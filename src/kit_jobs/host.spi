@@ -81,12 +81,12 @@
     $'{ let copy = || -> std::io::Result<std::path::PathBuf> { let source = std::env::current_exe()?; \
         let metadata = std::fs::metadata(&source)?; let stamp = metadata.modified().ok().and_then(|time| \
         time.duration_since(std::time::UNIX_EPOCH).ok()).map(|elapsed| elapsed.as_secs()).unwrap_or(0); \
-        let folder = std::env::var_os("LOCALAPPDATA").map(std::path::PathBuf::from).unwrap_or_else(std::env::temp_dir)\
+        let folder = std::env::var_os("LOCALAPPDATA").or_else(|| std::env::var_os("XDG_CACHE_HOME")).map(std::path::PathBuf::from).or_else(|| std::env::var_os("HOME").map(|home| std::path::PathBuf::from(home).join(".cache"))).unwrap_or_else(std::env::temp_dir)\
         .join("kit").join("supervisor"); std::fs::create_dir_all(&folder)?; \
         let stem = source.file_stem().map(|stem| stem.to_string_lossy().into_owned()).unwrap_or_default(); \
         let target = folder.join(format\!("{}-{}-{}{}", stem, metadata.len(), stamp, std::env::consts::EXE_SUFFIX)); \
         if \!target.is_file() { let temporary = target.with_extension("tmp"); std::fs::copy(&source, &temporary)?; \
-        std::fs::rename(&temporary, &target)?; let day = std::time::Duration::from_secs(86400); \
+        std::fs::rename(&temporary, &target)?; let day = std::time::Duration::from_secs(600); \
         for entry in std::fs::read_dir(&folder).into_iter().flatten().flatten() { let path = entry.path(); \
         let same_stem = path.file_name().map(|name| name.to_string_lossy().starts_with(&format\!("{stem}-"))).unwrap_o\
         r(false); let stale = entry.metadata().and_then(|metadata| metadata.modified()).ok().and_then(|time| \
@@ -130,7 +130,7 @@
         } if pid == 0 { return true; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid as u32); \
         if handle.is_null() { return GetLastError() == 5; } let running = WaitForSingleObject(handle, 0) == 258; \
         CloseHandle(handle); running } } \#[cfg(not(windows))] fn alive(pid: u64) -> bool { pid == 0 || \
-        std::os::unix::process::parent_id() as u64 == pid } alive(!pid) }' : bool
+        std::path::Path::new(&format\!("/proc/{pid}")).exists() } alive(!pid) }' : bool
 
 :~ child_container () : u64 =
     $'{ \#[cfg(windows)] fn container() -> u64 { static CONTAINER: std::sync::OnceLock<u64> = \

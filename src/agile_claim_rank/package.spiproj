@@ -10,5 +10,7 @@ packages:
     union_reflection
     agile_task_next
     agile_claim_api
+    kit_jobs
+    kit_os_files
 modules:
     rank

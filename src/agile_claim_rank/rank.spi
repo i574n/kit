@@ -28,13 +28,31 @@
     := active = wsjf |> listm'.filter (\ (id : string) => status_of tasks id = "Active")
     sm'.concat_list " " wsjf, sm'.concat_list " " active, sm'.concat_list " " (open_words tasks)
 
-:~ claim_ranking (~root : string) : bool * string * string * string =
+:~ started_ms_of (~name : string) : u64 =
+    ?= sm'.split_list "-" name ?|
+    | _ :: stamp :: _ => optionm'.default_value 0u64 (convert.try_convert stamp)
+    | _ => 0u64
+
+:~ live_of_names (names : list string) (ids : list string) (now_ms : u64) (finished : string -> bool) : list string =
+    := recent = names |> listm'.filter (\ (name : string) => sm'.starts_with "job-" name && now_ms < started_ms_of name + 43200000u64)
+    := running_for = \ (id : string) =>
+        := token = "-" ++# sm'.to_lower id ++# "-"
+        := dashed = \ (name : string) => sm'.replace "." "-" (sm'.replace "_" "-" (sm'.to_lower name)) ++# "-"
+        recent |> listm.fold (\ hit (name : string) => hit || (sm'.contains token (dashed name) && finished name = !-)) !-
+    ids |> listm'.filter running_for
+
+:~ live_items (ids : list string) : string =
+    := root = sm'.replace "\\" "/" (kit_jobs.host.jobs_root ())
+    := names = kit_os_files.files.entry_names root
+    := finished = \ (name : string) => file_system.file_exists (root ++# "/" ++# name ++# "/exit")
+    sm'.concat_list " " (live_of_names names ids (workspace_primitives.clock.unix_ms ()) finished)
+:~ claim_ranking (~root : string) : bool * string * string * string * string =
     ?= probe (unchecked (backlog_state_path root)) ?|
-    | FileMissing _ => !-, "", "", ""
+    | FileMissing _ => !-, "", "", "", ""
     | FileReadable file =>
         := records = records_text (loaded_string (read_text file))
         := wsjf, active, known = ranking_of records (agile_task_next.task_next.tasks_from records 0i32 (byte_len records) NoTasks)
-        !+, wsjf, active, known
+        !+, wsjf, active, known, live_items (sm'.split_list " " wsjf)
 
 ///> rust
 :# active_items_are_listed_in_wsjf_order_beside_the_open_set =
@@ -42,7 +60,15 @@
     testing.expect (ranked_words (ranking MainAgent tasks) = [ "GATE"; "SMALL-P2"; "KIT-SIDE"; "BIG-P0" ]) "wsjf"
     testing.expect (open_words tasks = [ "BIG-P0"; "SMALL-P2"; "WAITS"; "GATE"; "KIT-SIDE"; "PARKED" ]) "Done is not open"
 
+///> rust
+:# a_running_job_labelled_with_an_item_keeps_it_live =
+    := names = [ "job-1000-kit-agile-claim-queue-proof"; "job-1000-tibia-arena"; "job-1-kit-old-claim"; "held"; "job-1000-done-x-9"; "job-1000-kit-decline" ]
+    := finished = \ (name : string) => name = "job-1000-done-x-9"
+    testing.expect (live_of_names names [ "KIT-AGILE-CLAIM-QUEUE"; "TIBIA-ARENA"; "X-9"; "KIT-OLD-CLAIM" ] 2000u64 finished = [ "KIT-AGILE-CLAIM-QUEUE"; "TIBIA-ARENA"; "KIT-OLD-CLAIM" ]) "running labels only, finished jobs excluded"
+    testing.expect (live_of_names names [ "KIT-D"; "TIBIA" ] 2000u64 finished = [ "TIBIA" ]) "an id matches whole label words, not a prefix of one"
+    testing.expect (live_of_names names [ "KIT-OLD-CLAIM" ] 50000000u64 finished = []) "jobs older than 12 h are not live"
+    testing.expect (started_ms_of "job-1793658669715-kit-TRAIN13c" = 1793658669715u64 && started_ms_of "held" = 0u64) "start stamp from the name"
 ///> _
 := main () : i32 =
-    export "kit_claim_ranking" ((\ root => claim_ranking root) : string -> bool * string * string * string)
+    export "kit_claim_ranking" ((\ root => claim_ranking root) : string -> bool * string * string * string * string)
     0i32

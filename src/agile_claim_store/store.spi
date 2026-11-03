@@ -47,7 +47,7 @@
     =
     := claims = claims_of_text original
     := listed_ids = sm'.split_list " " known
-    := lease = { item = item; owner = owner; expires_ms = expires_ms; paths = sm'.split_list ";" paths |> listm'.filter (\ (g : string) => g <> "") }
+    := lease = { item = item; owner = owner; expires_ms = expires_ms; paths = ? sm'.starts_with "~" owner ?> [] |: sm'.split_list ";" paths |> listm'.filter (\ (g : string) => g <> "") }
     := changed =
         ?= change_of change ?|
         | ChangeUpsert => upserted claims lease

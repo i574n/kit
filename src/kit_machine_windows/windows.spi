@@ -187,6 +187,20 @@
             sleep_ms 500u64
             requested ask !+
 
+:~ announce_verb () : i32 =
+    := root = windows_root ()
+    $'kit_window_announce_verb::kit_window_announce_run(&*!root)' : i32
+
+:~ listed_with_announced () : i32 =
+    := root = windows_root ()
+    := lines = $'kit_window_announce_check::kit_window_announced_lines(&*!root)' : string
+    := _ = ? lines = "" ?> () |: stdout_line lines
+    $'kit_window_query::kit_window_list_run()' : i32
+
+:~ announce_refusal (~class_text : string) (minutes : u64) : string =
+    := root = windows_root ()
+    $'kit_window_announce_check::kit_window_announced_refusal(&*!root, &*!class_text, !minutes)' : string
+
 :~ window_requested () : i32 =
     ?= class_of (argument 3i32) ?|
     | ClassUnknown => refused (concat5 "request: unknown class '" (argument 3i32) "'; " (window_usage ()) "")
@@ -202,6 +216,7 @@
                     (window_usage ())
                     ""
             )
+        |? announce_refusal (argument 3i32) minutes <> "" ?> refused (concat5 "request: " (announce_refusal (argument 3i32) minutes) "" "" "")
         |:
             := since = now_ms ()
             := id =
@@ -246,11 +261,12 @@
     := verb = argument 2i32
     ? verb = "request" ?> $'kit_window_request::kit_window_request_run()' : i32
     |? verb = "release" ?> window_released ()
-    |? verb = "list" ?> $'kit_window_query::kit_window_list_run()' : i32
+    |? verb = "list" ?> listed_with_announced ()
     |? verb = "check" ?> $'kit_window_query::kit_window_check_run()' : i32
     |? verb = "run" ?> $'kit_window_run::kit_window_run_run()' : i32
     |? verb = "claim" ?> $'kit_window_claim::kit_window_claim_run()' : i32
     |? verb = "wait-clear" ?> $'kit_window_wait::kit_window_wait_run()' : i32
+    |? verb = "announce" ?> announce_verb ()
     |? verb = "remote" ?> remote_status (argument 3i32) (? option_value "--bin" = "" ?> "kit" |: option_value "--bin")
     |: refused (concat5 "unknown verb '" verb "'; " (window_usage ()) "")
 

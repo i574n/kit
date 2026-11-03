@@ -1224,6 +1224,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-job-dispatch"
+version = "0.0.0"
+
+[[package]]
 name = "kit-job-env"
 version = "0.0.0"
 
@@ -1309,6 +1313,7 @@ version = "0.0.0"
 dependencies = [
  "kit-job-chain",
  "kit-job-control",
+ "kit-job-dispatch",
  "kit-job-gate",
  "kit-job-host",
  "kit-job-host-request",
@@ -1471,6 +1476,7 @@ dependencies = [
 name = "kit-machine-sample"
 version = "0.0.0"
 dependencies = [
+ "kit-os-launch",
  "sysinfo",
 ]
 
@@ -1500,6 +1506,8 @@ version = "0.0.0"
 dependencies = [
  "kit-remote-status",
  "kit-window-admission",
+ "kit-window-announce-check",
+ "kit-window-announce-verb",
  "kit-window-claim",
  "kit-window-query",
  "kit-window-request",
@@ -1961,6 +1969,14 @@ name = "kit-window-admission"
 version = "0.0.0"
 
 [[package]]
+name = "kit-window-announce-check"
+version = "0.0.0"
+
+[[package]]
+name = "kit-window-announce-verb"
+version = "0.0.0"
+
+[[package]]
 name = "kit-window-claim"
 version = "0.0.0"
 
@@ -1977,6 +1993,7 @@ name = "kit-window-request"
 version = "0.0.0"
 dependencies = [
  "kit-window-admission",
+ "kit-window-announce-check",
 ]
 
 [[package]]

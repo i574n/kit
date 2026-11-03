@@ -1,0 +1,102 @@
+///- --package .
+:# gauge static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! mechanical = ()
+:! adjudicated = ()
+:! proven = ()
+
+:| evidence strength =
+    | Measured :: string -> evidence mechanical
+    | Judged :: string -> evidence adjudicated
+    | ProvenBy :: string -> evidence proven
+
+:| strength_kind =
+    | Mechanical
+    | Adjudicated
+    | Proven
+
+:| obligation_family =
+    | BuildsClean
+    | TestsPass
+    | StyleHeld
+    | Reviewed
+
+:| weight =
+    | Weight : u64
+
+:| unit_id =
+    | UnitId : string
+
+:== obligation =
+    {
+        family : obligation_family
+        strength : strength_kind
+        source : string
+        weight : weight
+    }
+
+:== unit_score =
+    {
+        unit : unit_id
+        distance : u64
+        diamond : bool
+    }
+
+:= strength_of \* s. (found : evidence s) : strength_kind =
+    ?= found ?|
+    | Measured _ => Mechanical
+    | Judged _ => Adjudicated
+    | ProvenBy _ => Proven
+
+:= source_of \* s. (found : evidence s) : string =
+    ?= found ?|
+    | Measured check => check
+    | Judged reviewer => reviewer
+    | ProvenBy proof => proof
+
+:= obligation_of \* s. (family : obligation_family) (found : evidence s) (points : u64) : obligation =
+    { family = family; strength = strength_of found; source = source_of found; weight = Weight points }
+
+:= points_of (w : weight) : u64 =
+    ?= w ?|
+    | Weight points => points
+
+:= distance_of (obligations : list obligation) : u64 =
+    obligations
+    |> listm.fold (\ total (o : obligation) => ? o.strength = Proven ?> total |: total + points_of o.weight) 0u64
+
+:= diamond_of (obligations : list obligation) : bool =
+    obligations <> [] && obligations |> listm.fold (\ all (o : obligation) => all && o.strength = Proven) !+
+
+:= scored (unit : unit_id) (obligations : list obligation) : unit_score =
+    { unit = unit; distance = distance_of obligations; diamond = diamond_of obligations }
+
+:= scorecard (units : list (unit_id * list obligation)) : list unit_score =
+    units |> listm.map (\ (unit, obligations) => scored unit obligations)
+
+:= proven_unit () : list obligation =
+    [ obligation_of BuildsClean (ProvenBy "cargo-check") 3u64; obligation_of TestsPass (ProvenBy "notebook") 5u64 ]
+
+:= mixed_unit () : list obligation =
+    [ obligation_of StyleHeld (Measured "ratchet") 2u64; obligation_of TestsPass (ProvenBy "notebook") 5u64 ]
+
+///> rust
+:# a_scorecard_scores_the_same_twice_and_diamond_needs_every_proof =
+    := units = [ UnitId "a", proven_unit (); UnitId "b", mixed_unit (); UnitId "c", [] ]
+    testing.expect (scorecard units = scorecard units) "the same scorecard twice"
+    := a = scored (UnitId "a") (proven_unit ())
+    testing.expect (a.diamond && a.distance = 0u64) "every obligation proven is a diamond"
+    := b = scored (UnitId "b") (mixed_unit ())
+    testing.expect (b.diamond |> not && b.distance = 2u64) "a mechanical check is distance, not proof"
+    testing.expect ((scored (UnitId "c") []).diamond |> not) "no obligations is no diamond"
+    := judged = obligation_of Reviewed (Judged "reviewer") 4u64 :: proven_unit ()
+    := dropped = scored (UnitId "a") judged
+    testing.expect (dropped.diamond |> not && dropped.distance = 4u64) "an adjudicated obligation drops the diamond"
+
+///> gleam
+:# the_gauge_holds_on_the_gleam_target_too =
+    testing.expect ((scored (UnitId "a") (proven_unit ())).diamond) "gleam: proven is a diamond"
+    testing.expect ((scored (UnitId "b") (mixed_unit ())).distance = 2u64) "gleam: mechanical is distance"

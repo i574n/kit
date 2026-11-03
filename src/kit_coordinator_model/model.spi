@@ -92,6 +92,10 @@
     testing.expect (walked = Some Settled) "lease, start, settle reaches Settled"
     testing.expect (status_after Settled "lease" a = None) "a settled job never moves again"
 
+///> rust
+:# a_plan_that_skips_start_does_not_typecheck fails "Unification failure" =
+    (JobThen (\? (JobStep Lease, JobStep Settle)) : job_plan job_queued job_settled)
+
 ///> gleam
 :# the_slot_rules_hold_on_the_gleam_target_too =
     := a = JobId "job-a"

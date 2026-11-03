@@ -73,12 +73,12 @@
     := wrote = stdout_line (sm'.concat_list "\n" (lines |> listm'.filter (\ (line : string) => line <> "")))
     ? wrote <> 0i32 ?> wrote |: code
 
-:~ claim_answered (r : claim_request) (~root : string) (stored : bool * string) (~wsjf : string) (~active : string) (~known : string) : i32 =
+:~ claim_answered (r : claim_request) (~root : string) (stored : bool * string) (~wsjf : string) (~active : string) (~known : string) (~live : string) : i32 =
     := existed, rows = stored
     := now_ms = unix_ms ()
     := kind, item, owner, expires, rank, wip, detail, change =
-        ? r.verb = "next" ?> claim_next r.lane r.ttl_min wsjf active rows now_ms
-        |: claim_lease r.verb r.item r.lane r.ttl_min (sm'.concat_list "," r.paths) wsjf known rows now_ms
+        ? r.verb = "next" ?> claim_next r.lane r.ttl_min wsjf active live rows now_ms
+        |: claim_lease r.verb r.item r.lane r.ttl_min (sm'.concat_list "," r.paths) wsjf known live rows now_ms
     := failed = \ (~problem : string) => stderr_failure ("agile " ++# r.verb ++# " rejected: " ++# problem)
     := problem = claims_applied root existed rows change item owner expires detail known
     ? problem <> "" ?> failed problem
@@ -101,9 +101,9 @@
     | RequestRead asked =>
         := here = file_system.get_current_directory ()
         := r = { asked ?| paths = asked.paths |> listm.map (anchored here) }
-        := found, wsjf, active, known = claim_ranking root
+        := found, wsjf, active, known, live = claim_ranking root
         ? found = !- ?> stderr_failure ("agile " ++# verb ++# ": state/agile.spi is missing")
-        |: claim_answered r root (claims_loaded root) wsjf active known
+        |: claim_answered r root (claims_loaded root) wsjf active known live
 
 ///> rust
 :# flags_parse_into_a_typed_request =

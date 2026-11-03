@@ -103,8 +103,8 @@ fn pattern_problem_7(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(regex::RegexBuilder::new(&*v0).case_insensitive(true).build().err().map(|error| error.to_string()).unwrap_or_default().as_str());
     v1.clone()
 }
-fn process_rows_sampled_8(mut v0: u64) -> std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> {
-    let mut v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
+fn process_rows_sampled_8(mut v0: u64) -> std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> {
+    let mut v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
     v1
 }
 fn flag_present_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
@@ -125,7 +125,7 @@ fn flag_present_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
         }
     }
 }
-fn session_root_10(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: i32) -> u64 {
+fn session_root_10(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: u64, mut v2: i32) -> u64 {
     loop {
         let v3: i32 = v0.iter().position(|row| row.0 == v1).map(|at| at as i32).unwrap_or(-1);
         let v4: bool = v3 < 0i32;
@@ -175,7 +175,7 @@ fn format_real_13(mut v0: u64) -> Rc<str> {
     let v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
-fn descends_from_15(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: u64, mut v3: i32) -> bool {
+fn descends_from_15(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: u64, mut v2: u64, mut v3: i32) -> bool {
     loop {
         let v4: bool = v1 == v2;
         if v4 {
@@ -209,7 +209,7 @@ fn pattern_matches_16(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let v2: bool = { static PATTERN: std::sync::OnceLock<Option<regex::Regex>> = std::sync::OnceLock::new(); PATTERN.get_or_init(|| regex::RegexBuilder::new(&*v0).case_insensitive(true).build().ok()).as_ref().map(|found| found.is_match(&*v1)).unwrap_or(false) };
     v2
 }
-fn children_listed_17(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: u64, mut v2: i32, mut v3: i64, mut v4: i32, mut v5: Rc<UH0>, mut v6: Rc<str>, mut v7: u64) -> (Rc<UH0>, Rc<str>, u64) {
+fn children_listed_17(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: u64, mut v2: i32, mut v3: i64, mut v4: i32, mut v5: Rc<UH0>, mut v6: Rc<str>, mut v7: u64) -> (Rc<UH0>, Rc<str>, u64) {
     let v8: i32 = v0.len() as i32;
     let v9: bool = v4 >= v8;
     let (mut v53, mut v54, mut v55): (Rc<UH0>, Rc<str>, u64) = if v9 {
@@ -267,7 +267,7 @@ fn children_listed_17(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::
     };
     (v53.clone(), v54.clone(), v55)
 }
-fn listed_12(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: Rc<str>, mut v2: US1, mut v3: bool, mut v4: u64, mut v5: i64, mut v6: i32, mut v7: Rc<UH0>, mut v8: Rc<str>, mut v9: u64) -> (Rc<UH0>, Rc<str>, u64) {
+fn listed_12(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: Rc<str>, mut v2: US1, mut v3: bool, mut v4: u64, mut v5: i64, mut v6: i32, mut v7: Rc<UH0>, mut v8: Rc<str>, mut v9: u64) -> (Rc<UH0>, Rc<str>, u64) {
     let v10: i32 = v0.len() as i32;
     let v11: bool = v6 >= v10;
     let (mut v71, mut v72, mut v73): (Rc<UH0>, Rc<str>, u64) = if v11 {
@@ -573,8 +573,8 @@ fn list_run_1(mut v0: u64) -> i32 {
         2i32
     } else {
         let v8: u64 = 500u64;
-        let v9: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = process_rows_sampled_8(v8);
-        let v10: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = { let mut sorted = (*v9).clone(); sorted.sort_by(|left, right| right.5.cmp(&left.5).then(left.0.cmp(&right.0))); std::rc::Rc::new(sorted) };
+        let v9: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> = process_rows_sampled_8(v8);
+        let v10: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> = { let mut sorted = (*v9).clone(); sorted.sort_by(|left, right| right.5.cmp(&left.5).then(left.0.cmp(&right.0))); std::rc::Rc::new(sorted) };
         let v11: u64 = std::process::id() as u64;
         let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--mine"); } LIT.with(|lit| lit.clone()) };
         let v13: i32 = 2i32;

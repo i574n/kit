@@ -1,17 +1,17 @@
-:= claim_ranking (~root : string) : bool * string * string * string =
-    $'agile_claim_rank::kit_claim_ranking(&*!root)' : bool * string * string * string
+:= claim_ranking (~root : string) : bool * string * string * string * string =
+    $'agile_claim_rank::kit_claim_ranking(&*!root)' : bool * string * string * string * string
 := claim_item_lines (~root : string) (~id : string) : string = $'agile_claim_item::kit_claim_item_lines(&*!root, &*!id)' : string
-:= claim_next (~lane : string) (ttl : i32) (~wsjf : string) (~active : string) (~rows : string) (now : u64)
+:= claim_next (~lane : string) (ttl : i32) (~wsjf : string) (~active : string) (~live : string) (~rows : string) (now : u64)
     : string * string * string * u64 * i32 * i32 * string * string
     =
-    $'agile_claim_queue::kit_claim_next(&*!lane, !ttl, &*!wsjf, &*!active, &*!rows, !now)'
+    $'agile_claim_queue::kit_claim_next(&*!lane, !ttl, &*!wsjf, &*!active, &*!live, &*!rows, !now)'
     : string * string * string * u64 * i32 * i32 * string * string
 := claim_lease
     (~verb : string) (~item : string) (~lane : string) (ttl : i32) (~paths : string) (~wsjf : string) (~known : string)
-    (~rows : string) (now : u64)
+    (~live : string) (~rows : string) (now : u64)
     : string * string * string * u64 * i32 * i32 * string * string
     =
-    $'agile_claim_lease::kit_claim_lease(&*!verb, &*!item, &*!lane, !ttl, &*!paths, &*!wsjf, &*!known, &*!rows, !now)'
+    $'agile_claim_lease::kit_claim_lease(&*!verb, &*!item, &*!lane, !ttl, &*!paths, &*!wsjf, &*!known, &*!live, &*!rows, !now)'
     : string * string * string * u64 * i32 * i32 * string * string
 := claims_loaded (~root : string) : bool * string = $'agile_claim_store::kit_claims_loaded(&*!root)' : bool * string
 := claims_applied

@@ -49,7 +49,7 @@ Say "train $Name on $KitRoot; installed kit.exe $((Get-FileHash $installed).Hash
 
 if (-not $SkipRegen) {
     Say 'phase regen: every owner (3 compilers in parallel), cargo check, publish'
-    & pwsh -NoProfile -File (Join-Path $KitRoot 'compiler-contracts/test-regeneration.ps1') -KitRoot $KitRoot -IncludeAuxiliary -Incremental -Parallel 3 `
+    & pwsh -NoProfile -File (Join-Path $KitRoot 'compiler-contracts/test-regeneration.ps1') -KitRoot $KitRoot -IncludeAuxiliary -Incremental -Parallel 3 -FrozenLib $(if ($env:KIT_REGEN_FROZEN_LIB -eq '1' -and $Lib) { Split-Path (Resolve-Path -LiteralPath $Lib).Path } else { '' }) `
         -CargoCheck -Publish -TimeoutSec 1800 *> (Join-Path $out 'regen.log')
     if ($LASTEXITCODE -ne 0) { Get-Content (Join-Path $out 'regen.log') -Tail 15 | ForEach-Object { Say "  regen: $_" }; Stop-Train 'regen failed' }
     Say "phase regen: ok ($((Select-String -Path (Join-Path $out 'regen.log') -Pattern '^Published .*').Line))"

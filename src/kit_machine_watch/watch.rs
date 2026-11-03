@@ -72,8 +72,8 @@ fn decimal_u64_3(mut v0: Rc<str>) -> u64 {
         }
     }
 }
-fn process_rows_sampled_5(mut v0: u64) -> std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> {
-    let mut v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
+fn process_rows_sampled_5(mut v0: u64) -> std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> {
+    let mut v1: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> = kit_machine_sample::kit_machine_sampled(v0);
     v1
 }
 fn job_left_by_11(mut v0: u64, mut v1: u64) -> Rc<str> {
@@ -93,7 +93,7 @@ fn cells_vm_at_12(mut v0: Rc<str>) -> bool {
     let mut v1: bool = kit_machine_sample::kit_machine_cells_vm(&*v0);
     v1
 }
-fn owner_walk_9(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: i32, mut v2: i32) -> US1 {
+fn owner_walk_9(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: i32, mut v2: i32) -> US1 {
     loop {
         let mut v3: bool = v1 < 0i32;
         let mut v5: bool = if v3 {
@@ -146,7 +146,7 @@ fn owner_walk_9(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc
         }
     }
 }
-fn owner_of_8(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: i32) -> US1 {
+fn owner_of_8(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: i32) -> US1 {
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dotnet|rustc|cargo|erl|beam.smp|pwsh|powershell|node|bun|gcc|cc1|cc1plus|ld|zig|lean|java|swiftc|swift-frontend|python|kotlinc|gleam|wasmtime|link|clang|mix|escript|make|git"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = v0[v1 as usize].2.clone();
     let mut v4: bool = v2.split("|").any(|item| item == &*v3);
@@ -157,7 +157,7 @@ fn owner_of_8(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<s
         US1::US1_NotATool
     }
 }
-fn busy_at_7(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: i32) -> (u64, Rc<str>, f64, u64, u64, US1) {
+fn busy_at_7(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: i32) -> (u64, Rc<str>, f64, u64, u64, US1) {
     let mut v2: u64 = v0[v1 as usize].0;
     let mut v3: Rc<str> = v0[v1 as usize].2.clone();
     let mut v4: f64 = v0[v1 as usize].4;
@@ -208,7 +208,7 @@ fn concat5_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>
     let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
     v8
 }
-fn busy_lines_6(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: i32, mut v2: Rc<str>, mut v3: f64) -> (Rc<str>, f64) {
+fn busy_lines_6(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: i32, mut v2: Rc<str>, mut v3: f64) -> (Rc<str>, f64) {
     loop {
         let mut v4: i32 = v0.len() as i32;
         let mut v5: bool = v1 >= v4;
@@ -307,7 +307,7 @@ fn rogue_16(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: u64, mut
         false
     }
 }
-fn rogue_lines_15(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v5: i32, mut v6: Rc<str>) -> Rc<str> {
+fn rogue_lines_15(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v5: i32, mut v6: Rc<str>) -> Rc<str> {
     loop {
         let v7: i32 = v4.len() as i32;
         let v8: bool = v5 >= v7;
@@ -355,7 +355,7 @@ fn rogue_lines_15(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: st
         }
     }
 }
-fn hog_lines_17(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v5: i32, mut v6: Rc<str>) -> Rc<str> {
+fn hog_lines_17(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v5: i32, mut v6: Rc<str>) -> Rc<str> {
     loop {
         let v7: i32 = v4.len() as i32;
         let v8: bool = v5 >= v7;
@@ -400,7 +400,7 @@ fn stdout_line_18(mut v0: Rc<str>) -> () {
     println!("{}", v0);
     ()
 }
-fn notebook_lines_19(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
+fn notebook_lines_19(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
     loop {
         let mut v3: i32 = v0.len() as i32;
         let mut v4: bool = v1 >= v3;
@@ -453,7 +453,7 @@ fn jobs_root_23() -> Rc<str> {
     let v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_JOBS_HOME").map(std::path::PathBuf::from).or_else(|| std::env::var_os("LOCALAPPDATA").map(|base| std::path::PathBuf::from(base).join("kit").join("jobs"))).or_else(|| std::env::var_os("HOME").map(|base| std::path::PathBuf::from(base).join(".cache").join("kit").join("jobs"))).unwrap_or_else(|| std::path::PathBuf::from(".kit-jobs")).to_string_lossy().as_ref());
     v0.clone()
 }
-fn cells_cores_24(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: i32, mut v2: f64) -> f64 {
+fn cells_cores_24(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: i32, mut v2: f64) -> f64 {
     loop {
         let mut v3: i32 = v0.len() as i32;
         let mut v4: bool = v1 >= v3;
@@ -501,7 +501,7 @@ fn file_bytes_29(mut v0: Rc<str>) -> u64 {
     let mut v1: u64 = std::fs::metadata(&*v0).map(|metadata| metadata.len()).unwrap_or(0);
     v1
 }
-fn owner_cores_30(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v1: Rc<str>, mut v2: i32, mut v3: f64) -> f64 {
+fn owner_cores_30(mut v0: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v1: Rc<str>, mut v2: i32, mut v3: f64) -> f64 {
     loop {
         let mut v4: i32 = v0.len() as i32;
         let mut v5: bool = v2 >= v4;
@@ -613,7 +613,7 @@ fn verdict_text_34(mut v0: US2) -> Rc<str> {
         }
     }
 }
-fn jobs_watched_25(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>, mut v5: Rc<str>, mut v6: i32, mut v7: Rc<str>, mut v8: bool, mut v9: f64, mut v10: u64, mut v11: Rc<str>, mut v12: Rc<str>) -> (Rc<str>, Rc<str>) {
+fn jobs_watched_25(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>, mut v5: Rc<str>, mut v6: i32, mut v7: Rc<str>, mut v8: bool, mut v9: f64, mut v10: u64, mut v11: Rc<str>, mut v12: Rc<str>) -> (Rc<str>, Rc<str>) {
     let v13: i32 = (&*v5).lines().filter(|line| !line.is_empty()).count() as i32;
     let v14: bool = v6 >= v13;
     let (mut v73, mut v74): (Rc<str>, Rc<str>) = if v14 {
@@ -696,7 +696,7 @@ fn windows_lines_36(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = kit_machine_window_watch::kit_machine_windows_lines(&*v0);
     v1
 }
-fn jobs_and_windows_20(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>>) -> Rc<str> {
+fn jobs_and_windows_20(mut v0: u64, mut v1: u64, mut v2: f64, mut v3: u64, mut v4: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>) -> Rc<str> {
     let mut v5: Rc<str> = windows_root_21();
     let v6: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_dir(&*v5).map(|entries| entries.filter_map(|entry| entry.ok()).filter(|entry| entry.path().extension().map(|extension| extension == "window").unwrap_or(false)).filter_map(|entry| std::fs::read_to_string(entry.path()).ok()).map(|text| text.lines().next().unwrap_or("").to_owned()).collect::<Vec<_>>().join("
 ")).unwrap_or_default().as_str());
@@ -768,7 +768,7 @@ fn watch_run_1() -> i32 {
         v3
     };
     let v6: u64 = v5.wrapping_mul(1000u64);
-    let v7: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64)>> = process_rows_sampled_5(v6);
+    let v7: std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>> = process_rows_sampled_5(v6);
     let v8: i32 = 0i32;
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v10: f64 = 0.0f64;

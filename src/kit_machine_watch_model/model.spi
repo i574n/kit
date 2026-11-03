@@ -23,6 +23,48 @@
     | Orphan => "orphan"
     | NotATool => "-"
 
+:! working_set = ()
+:! commit = ()
+
+:| ^ mem k =
+    | WorkingSetBytes :: u64 -> mem working_set
+    | CommitBytes :: u64 -> mem commit
+
+:= mem_bytes \* k. (m : mem k) : u64 =
+    ?= m ?|
+    | WorkingSetBytes b => b
+    | CommitBytes b => b
+
+///> rust
+:# mem_carries_its_bytes_by_kind =
+    ? mem_bytes (CommitBytes 51u64) = 51u64 ?> () |: failwith "commit bytes round-trip"
+    ? mem_bytes (WorkingSetBytes 3u64) = 3u64 ?> () |: failwith "working-set bytes round-trip"
+
+:== over_commit_hit =
+    {
+        pid : u64
+        commit : mem commit
+        limit : mem commit
+    }
+
+:| guard_verdict =
+    | Under
+    | Over : over_commit_hit
+
+:= over_by (pid : u64) (commit : mem commit) (limit : mem commit) : guard_verdict =
+    ? mem_bytes commit > mem_bytes limit
+    ?> Over { pid = pid; commit = commit; limit = limit }
+    |: Under
+
+///> rust
+:# over_commit_flags_only_above_the_limit =
+    ?= over_by 100u64 (CommitBytes 9000u64) (CommitBytes 8000u64) ?|
+    | Over hit => ? hit.pid = 100u64 ?> () |: failwith "an Over verdict keeps the pid"
+    | Under => failwith "9000 commit over an 8000 limit must be Over"
+    ?= over_by 101u64 (CommitBytes 3000u64) (CommitBytes 8000u64) ?|
+    | Over _ => failwith "3000 commit under an 8000 limit must be Under"
+    | Under => ()
+
 :== watch_limits =
     {
         silent_minutes : u64

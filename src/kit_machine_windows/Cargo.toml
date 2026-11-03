@@ -21,3 +21,5 @@ kit-window-request = { path = "../kit_window_request" }
 kit-window-wait = { path = "../kit_window_wait" }
 kit-window-admission = { path = "../kit_window_admission" }
 kit-remote-status = { path = "../kit_remote_status" }
+kit-window-announce-verb = { path = "../kit_window_announce_verb" }
+kit-window-announce-check = { path = "../kit_window_announce_check" }

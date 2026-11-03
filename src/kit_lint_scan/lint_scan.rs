@@ -82,7 +82,7 @@ fn definition_name_4(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v7: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v6).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
         let v8: i32 = (v7.clone().borrow().len() as i32);
         let v9: bool = v8 < 2i32;
-        let v25: bool = if v9 {
+        let v27: bool = if v9 {
             true
         } else {
             let v10: Rc<str> = v7.borrow()[0i32 as usize].clone();
@@ -108,41 +108,47 @@ fn definition_name_4(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
             let mut v19: bool = if v17 {
                 true
             } else {
-                let v18: bool = &*v10 == "nominal";
+                let v18: bool = &*v10 == ":!";
                 v18
             };
             let v21: bool = if v19 {
                 true
             } else {
-                let v20: bool = &*v10 == "type";
+                let v20: bool = &*v10 == "nominal";
                 v20
             };
             let v23: bool = if v21 {
                 true
             } else {
-                let v22: bool = &*v10 == "union";
+                let v22: bool = &*v10 == "type";
                 v22
             };
-            let mut v24: bool = v23 == false;
-            v24
+            let v25: bool = if v23 {
+                true
+            } else {
+                let mut v24: bool = &*v10 == "union";
+                v24
+            };
+            let v26: bool = v25 == false;
+            v26
         };
-        if v25 {
+        if v27 {
             v1.clone()
         } else {
-            let v26: Rc<str> = v7.borrow()[1i32 as usize].clone();
-            let v27: bool = &*v26 == "rec";
-            let v29: bool = if v27 {
-                let v28: bool = v8 >= 3i32;
-                v28
+            let v28: Rc<str> = v7.borrow()[1i32 as usize].clone();
+            let v29: bool = &*v28 == "rec";
+            let v31: bool = if v29 {
+                let v30: bool = v8 >= 3i32;
+                v30
             } else {
                 false
             };
-            if v29 {
-                let v30: Rc<str> = v7.borrow()[2i32 as usize].clone();
-                v30.clone()
+            if v31 {
+                let v32: Rc<str> = v7.borrow()[2i32 as usize].clone();
+                v32.clone()
             } else {
-                let v31: Rc<str> = v7.borrow()[1i32 as usize].clone();
-                v31.clone()
+                let v33: Rc<str> = v7.borrow()[1i32 as usize].clone();
+                v33.clone()
             }
         }
     }
@@ -324,19 +330,26 @@ fn place_of_10(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
         let mut v13: bool = v0.starts_with(&*v12);
         v13
     };
-    if v14 {
+    let mut v17: bool = if v14 {
+        true
+    } else {
+        let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":! "); } LIT.with(|lit| lit.clone()) };
+        let mut v16: bool = v0.starts_with(&*v15);
+        v16
+    };
+    if v17 {
         US0::US0_TypeMacro
     } else {
-        let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
-        let mut v17: bool = v9.ends_with(&*v16);
-        let v20: bool = if v17 {
+        let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
+        let v20: bool = v9.ends_with(&*v19);
+        let v23: bool = if v20 {
             true
         } else {
-            let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("->"); } LIT.with(|lit| lit.clone()) };
-            let mut v19: bool = v9.ends_with(&*v18);
-            v19
+            let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("->"); } LIT.with(|lit| lit.clone()) };
+            let v22: bool = v9.ends_with(&*v21);
+            v22
         };
-        if v20 {
+        if v23 {
             US0::US0_TypeMacro
         } else {
             US0::US0_TermMacro

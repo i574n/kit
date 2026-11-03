@@ -27,6 +27,7 @@
     | JobRunning : string
     | RecentEditOn : string
     | PathOverlap : string * string
+    | DeclinedByYou : claim
 
 :| claim_change =
     | ChangeUpsert
@@ -95,14 +96,23 @@
         | Some glob => Some (c.item, glob)
         | None => overlapping_claim paths rest item now_ms
 
+:~ lease_refusal_idle (live : liveness) : option refusal =
+    ?= live ?|
+    | LiveJob job => Some (JobRunning job)
+    | RecentEdit path => Some (RecentEditOn path)
+    | Idle => None
+
+:~ decliner (c : claim) : string = ? sm'.starts_with "~" c.owner ?> sm'.substring 1i32 ((sm'.length c.owner : i32) - 1i32) c.owner |: ""
+
 :~ lease_refusal (claims : list claim) (live : liveness) (~item : string) (~caller : string) (now_ms : u64) : option refusal =
     ?= state_of claims item now_ms ?|
-    | LeasedTo c => ? c.owner = caller ?> None |: Some (LeasedBy c)
+    | LeasedTo c =>
+        ? c.owner = caller ?> None
+        |? decliner c = caller ?> Some (DeclinedByYou c)
+        |? decliner c <> "" ?> lease_refusal_idle live
+        |: Some (LeasedBy c)
     | _ =>
-        ?= live ?|
-        | LiveJob job => Some (JobRunning job)
-        | RecentEdit path => Some (RecentEditOn path)
-        | Idle => None
+        lease_refusal_idle live
 
 :~ refusal_of
     (claims : list claim) (live : liveness) (~item : string) (~caller : string) (paths : list string) (now_ms : u64)
@@ -117,7 +127,7 @@
 :~ finishing (claims : list claim) (~caller : string) (now_ms : u64) (~item : string) : bool =
     ?= state_of claims item now_ms ?|
     | LeasedTo c => c.owner = caller
-    | Expired _ => !+
+    | Expired c => decliner c = ""
     | Unclaimed => !-
 
 :== tally = { leased : i32; lived : i32 }
@@ -154,7 +164,7 @@
             |: NothingReady
 
 :~ live_count (claims : list claim) (now_ms : u64) : i32 =
-    claims |> listm.fold (\ n (c : claim) => ? now_ms < c.expires_ms ?> n + 1i32 |: n) 0i32
+    claims |> listm.fold (\ n (c : claim) => ? now_ms < c.expires_ms && decliner c = "" ?> n + 1i32 |: n) 0i32
 
 :~ quoted (~text : string) : string = "\"" ++# sm'.replace "\"" "\\\"" (sm'.replace "\\" "\\\\" text) ++# "\""
 
@@ -180,21 +190,19 @@
 :~ claims_text (claims : list claim) : string =
     claims |> listm.fold (\ text (c : claim) => text ++# claim_row c ++# "\n") (claims_schema () ++# "\n")
 
-:~ ^ every_other (pieces : list string) : list string =
-    ?= pieces ?|
-    | glob :: _ :: rest => glob :: every_other rest
-    | last => last
+:~ ^ globs_from (parts : array string) (at : i32) : list string =
+    ? am'.length parts <= at ?> [] |: am'.index at parts :: globs_from parts (at + 2i32)
 
 :~ claim_of_row (~line : string) : option claim =
-    ?= sm'.split_list "\"" line ?|
-    | head :: item :: _ :: owner :: middle :: rest =>
+    := parts = sm'.split "\"" line |> array
+    ? am'.length parts < 5i32 || sm'.starts_with "inl claim_" line = !- ?> None
+    |:
+        := middle = am'.index 4i32 parts
         := stop = sm'.index_of "u64" middle
         := number = ? stop > 2i32 ?> sm'.substring 2i32 (stop - 2i32) middle |: ""
         ?= (convert.try_convert number : option u64) ?|
-        | Some expires_ms =>
-            ? sm'.starts_with "inl claim_" head ?> Some { item = item; owner = owner; expires_ms = expires_ms; paths = every_other rest } |: None
+        | Some expires_ms => Some { item = am'.index 1i32 parts; owner = am'.index 3i32 parts; expires_ms = expires_ms; paths = globs_from parts 5i32 }
         | None => None
-    | _ => None
 :~ claims_of_text (~text : string) : list claim =
     sm'.split_list "\n" (sm'.replace "\r" "" text)
     |> listm.fold (\ found (line : string) => ?= claim_of_row line ?| | Some c => c :: found | None => found) []
@@ -217,6 +225,7 @@
     | JobRunning job => "job-running:" ++# job
     | RecentEditOn path => "recent-edit:" ++# path
     | PathOverlap (other, glob) => "path-overlap:" ++# other ++# ":" ++# glob
+    | DeclinedByYou c => "declined-by-you-until:" ++# sm'.show c.expires_ms
 
 :~ none_reason (p : pick) : string =
     ?= p ?|

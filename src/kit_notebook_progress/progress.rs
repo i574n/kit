@@ -31,14 +31,14 @@ enum US1 {
 }
 fn method4(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let mut v2: Rc<str> = v0.borrow().l0.clone();
-    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
 fn format_real_3(mut v0: i32) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
-    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method4(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
     v4
@@ -84,7 +84,7 @@ fn closure1() -> Rc<dyn Fn((usize)) -> i32> {
 }
 fn method7(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
-        let v3: bool = v2 >= v1;
+        let mut v3: bool = v2 >= v1;
         if v3 {
             return v1;
         } else {
@@ -122,7 +122,7 @@ fn method8(mut v0: Rc<str>, mut v1: i32) -> i32 {
         if v2 {
             return -1i32;
         } else {
-            let v3: i32 = v1.wrapping_sub(1i32);
+            let mut v3: i32 = v1.wrapping_sub(1i32);
             let mut v4: u8 = v0.clone().as_bytes()[v3 as usize];
             let mut v5: bool = v4 == b' ';
             let mut v11: bool = if v5 {
@@ -153,7 +153,7 @@ fn method8(mut v0: Rc<str>, mut v1: i32) -> i32 {
 fn train_name_of_5(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" -Name "); } LIT.with(|lit| lit.clone()) };
     let mut v2: Option<usize> = v0.find(&*v1);
-    let v3: Option<usize> = method6(v2.clone());
+    let mut v3: Option<usize> = method6(v2.clone());
     let mut v4: Rc<dyn Fn((usize)) -> i32> = closure1();
     let mut v5: Option<i32> = v3.map(|x| v4(x));
     let mut v7: i32 = v5.unwrap_or(-1i32);
@@ -216,7 +216,7 @@ fn closure2() -> Rc<dyn Fn((usize)) -> i32> {
 fn train_root_of_9(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
+    let mut v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
     let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let mut v6: Rc<str> = Rc::<str>::from(v3.replace(&*v4, &*v5));
@@ -254,7 +254,7 @@ fn method11(mut v0: std::path::PathBuf) -> std::path::PathBuf {
     v0
 }
 fn method10(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let v3: &str = &*v0;
+    let mut v3: &str = &*v0;
     let mut v5: std::string::String = String::from(v3);
     let mut v7: std::path::PathBuf = std::path::PathBuf::from(v5);
     let mut v9: &str = &*v1;
@@ -284,7 +284,7 @@ fn method13(mut v0: Vec<u8>) -> Vec<u8> {
 fn log_name_of_15(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_"); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
+    let mut v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let mut v5: Rc<str> = Rc::<str>::from(v3.replace(&*v4, &*v2));
     let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".log"); } LIT.with(|lit| lit.clone()) };
@@ -426,7 +426,7 @@ fn method17(mut v0: Rc<UH0>, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32)
 fn train_progress_of_16(mut v0: Rc<UH0>) -> (i32, i32, i32, i32) {
     let mut v1: i32 = 0i32;
     let mut v2: i32 = 0i32;
-    let v3: i32 = 0i32;
+    let mut v3: i32 = 0i32;
     let mut v4: i32 = 0i32;
     let (mut v5, mut v6, mut v7, mut v8): (i32, i32, i32, i32) = method17(v0, v1, v2, v3, v4);
     (v5, v6, v7, v8)
@@ -434,7 +434,7 @@ fn train_progress_of_16(mut v0: Rc<UH0>) -> (i32, i32, i32, i32) {
 fn train_line_1(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = train_name_of_5(v0.clone());
     let mut v2: Rc<str> = train_root_of_9(v0.clone());
-    let v3: bool = &*v1 == "";
+    let mut v3: bool = &*v1 == "";
     let mut v5: bool = if v3 {
         true
     } else {
@@ -493,7 +493,7 @@ fn shared_text_21(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
 fn format_real_23(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
-    let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
     method4(v2.clone(), v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
     v4
@@ -553,7 +553,7 @@ fn batch_progress_text_20(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: Rc<str>
 fn flag_value_until_next_flag_26(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" --"); } LIT.with(|lit| lit.clone()) };
     let mut v2: Option<usize> = v0.find(&*v1);
-    let v3: Option<usize> = method6(v2.clone());
+    let mut v3: Option<usize> = method6(v2.clone());
     let mut v4: Rc<dyn Fn((usize)) -> i32> = closure1();
     let mut v5: Option<i32> = v3.map(|x| v4(x));
     let mut v7: i32 = v5.unwrap_or(-1i32);
@@ -582,7 +582,7 @@ fn flag_value_until_next_flag_26(mut v0: Rc<str>) -> Rc<str> {
 fn batch_output_dir_25(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" --output-dir "); } LIT.with(|lit| lit.clone()) };
     let mut v2: Option<usize> = v0.find(&*v1);
-    let v3: Option<usize> = method6(v2.clone());
+    let mut v3: Option<usize> = method6(v2.clone());
     let mut v4: Rc<dyn Fn((usize)) -> i32> = closure1();
     let mut v5: Option<i32> = v3.map(|x| v4(x));
     let mut v7: i32 = v5.unwrap_or(-1i32);
@@ -604,7 +604,7 @@ fn batch_output_dir_25(mut v0: Rc<str>) -> Rc<str> {
 fn last_write_ms_27(mut v0: Rc<str>) -> u64 {
     let mut v1: std::io::Result<std::fs::Metadata> = std::fs::metadata(&*v0);
     let mut v2: bool = v1.is_ok();
-    let v3: bool = v2 == false;
+    let mut v3: bool = v2 == false;
     if v3 {
         0u64
     } else {
@@ -639,7 +639,7 @@ fn batch_paths_29(mut v0: Rc<str>) -> Rc<RefCell<Vec<Rc<str>>>> {
 fn file_name_of_33(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
+    let mut v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
     let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
     let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let mut v6: Rc<str> = Rc::<str>::from(v3.replace(&*v4, &*v5));
@@ -666,7 +666,7 @@ fn file_name_of_33(mut v0: Rc<str>) -> Rc<str> {
 fn report_name_of_32(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = file_name_of_33(v0);
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".ipynb"); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v2));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v2));
     v3
 }
 fn chunk_name_31(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<dyn Fn(Rc<str>) -> u64>, mut v2: u64, mut v3: i32) -> Rc<str> {
@@ -768,7 +768,7 @@ fn progress_from_30(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<dyn Fn(Rc<str>
     (v24, v25, v26, v27, v28)
 }
 fn batch_progress_of_28(mut v0: Rc<str>, mut v1: Rc<dyn Fn(Rc<str>) -> u64>, mut v2: u64) -> (i32, i32, i32, Rc<str>, u64) {
-    let v3: Rc<RefCell<Vec<Rc<str>>>> = batch_paths_29(v0);
+    let mut v3: Rc<RefCell<Vec<Rc<str>>>> = batch_paths_29(v0);
     let mut v4: i32 = 1i32;
     let mut v5: i32 = 0i32;
     let mut v6: i32 = 0i32;
@@ -779,7 +779,7 @@ fn batch_progress_of_28(mut v0: Rc<str>, mut v1: Rc<dyn Fn(Rc<str>) -> u64>, mut
     (v10, v11, v12, v13, v14)
 }
 fn notebook_batch_line_0(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> Rc<str> {
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run_notebook.ps1"); } LIT.with(|lit| lit.clone()) };
+    let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("run_notebook.ps1"); } LIT.with(|lit| lit.clone()) };
     let mut v4: bool = v0.contains(&*v3);
     let mut v7: bool = if v4 {
         let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" --output-dir "); } LIT.with(|lit| lit.clone()) };
@@ -803,10 +803,18 @@ fn notebook_batch_line_0(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> Rc<str> {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, u64) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, u64) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: u64| -> Rc<str> {
-        let mut v2: i64 = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_micros() as i64);
-        let v3: i64 = v2.wrapping_div(1000i64);
-        let mut v4: u64 = (v3 as u64);
-        notebook_batch_line_0(v0.clone(), v1, v4)
+        let mut v2: std::time::SystemTime = std::time::SystemTime::now();
+        let mut v3: std::time::Duration = v2.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+        let mut v4: u64 = v3.as_secs();
+        let mut v5: u64 = v4.wrapping_mul(1000000000u64);
+        let mut v6: u32 = v3.subsec_nanos();
+        let mut v7: u64 = (v6 as u64);
+        let mut v8: u64 = v5.wrapping_add(v7);
+        let mut v9: u64 = v8.wrapping_div(1000u64);
+        let mut v10: i64 = (v9 as i64);
+        let mut v11: i64 = v10.wrapping_div(1000i64);
+        let v12: u64 = (v11 as u64);
+        notebook_batch_line_0(v0.clone(), v1, v12)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_notebook_batch_line(v0: &str, v1: u64) -> Rc<str> {
