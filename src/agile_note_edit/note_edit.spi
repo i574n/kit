@@ -9,8 +9,6 @@
 :< workspace_primitives.console
 :< workspace_primitives.files
 
-:= argument_owned index : string = rust_std_env.model.argument_owned index
-
 :~ note_text_of (~raw : string) : string = sm'.trim (? sm'.trim raw = "-" ?> console.read_to_end () |: raw)
 
 := decimal_i32 (~text : string) : i32 = optionm'.default_value (-1i32) (convert.try_convert (sm'.trim text))
@@ -32,17 +30,12 @@
         valid : bool
     }
 
-:~ ^ options_from (index : i32) (options : edit_options) : edit_options =
-    := word = argument_owned index
-    ? word = "" ?> options
-    |? word = "--append" ?> options_from (index + 1i32) { options ?| change = AppendText }
-    |? word = "--as" && sm'.trim (argument_owned (index + 1i32)) <> "" ?>
-        options_from (index + 2i32) { options ?| editor = sm'.trim (argument_owned (index + 1i32)) }
-    |? word = "--expect-at" && sm'.trim (argument_owned (index + 1i32)) <> "" ?>
-        options_from (index + 2i32) { options ?| guard = ExpectedAt (sm'.trim (argument_owned (index + 1i32))) }
-    |? word = "--expect-prefix" && argument_owned (index + 1i32) <> "" ?>
-        options_from (index + 2i32) { options ?| guard = ExpectedPrefix (argument_owned (index + 1i32)) }
-    |: { options ?| valid = !- }
+:~ options_of (row : agile_note_edit_args.args.note_args_row) : edit_options =
+    := guard =
+        ? row.expect_at <> "" ?> ExpectedAt row.expect_at
+        |? row.expect_prefix <> "" ?> ExpectedPrefix row.expect_prefix
+        |: NoGuard
+    { editor = row.editor; change = (? row.append ?> AppendText |: ReplaceText); guard = guard; valid = row.valid }
 
 := changed_text (change : note_change) (~previous : string) (~body : string) : string =
     ?= change ?|
@@ -128,17 +121,18 @@
                     id
 
 :~ note_edit_entry () : i32 =
-    := id = argument_owned 2i32
-    := seq = decimal_i32 (argument_owned 3i32)
-    := body = note_text_of (argument_owned 4i32)
+    := row = am'.index_base 0i32 (agile_note_edit_args.args.note_args_read 2i32)
+    := id = row.id
+    := seq = decimal_i32 row.seq
+    := body = note_text_of row.text
     ? seq < 1i32
     ?> note_edit_failure "the note number must be a positive integer" id
     |? (body = "")
     ?> note_edit_failure "the note text is empty" id
     |:
-        := options = options_from 5i32 { editor = ""; change = ReplaceText; guard = NoGuard; valid = !+ }
+        := options = options_of row
         ? options.valid
-        ?> note_edited (argument_owned 1i32) id seq body options.editor options.change options.guard
+        ?> note_edited row.root id seq body options.editor options.change options.guard
         |:
             note_edit_failure
                 (
@@ -148,5 +142,5 @@
                 id
 
 := main () : i32 =
-    !!!!Export("kit_agile_note_edit_run", ((\ () => note_edit_entry ()) : () -> i32))
+    export "kit_agile_note_edit_run" ((\ () => note_edit_entry ()) : () -> i32)
     0i32

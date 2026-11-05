@@ -9,121 +9,134 @@
 :< workspace_primitives.console
 :< agile_claim_model.claim
 :< agile_claim_api.api
+:< agile_claim_request.request
 
-:== claim_request = { verb : string; item : string; lane : string; ttl_min : i32; paths : list string }
+:== claim_order =
+    {
+        next : bool
+        grab : bool
+        release : bool
+        verb : string
+        item : string
+        lane : string
+        ttl_min : i32
+        paths : list string
+    }
 
-:| request_read =
-    | RequestRead : claim_request
-    | RequestRefused : string
+:~ ^ listed_paths (paths : array_base string) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found |: listed_paths paths (at - 1i32) (am'.index_base at paths :: found)
 
-:~ globs_of_flag (~value : string) : list string = sm'.split_list "," value |> listm'.filter (\ (g : string) => g <> "")
-
-:~ ttl_read (~value : string) : option i32 =
-    ?= (convert.try_convert value : option i32) ?|
-    | Some minutes => ? minutes > 0i32 ?> Some minutes |: None
-    | None => None
-
-:~ ^ flags_read (words : list string) (request : claim_request) : request_read =
-    ?= words ?|
-    | [] => ? request.lane = "" ?> RequestRefused "--as <lane> is required" |: RequestRead request
-    | word :: rest =>
-        := value, after =
-            ?= rest ?|
-            | next :: more => next, more
-            | [] => "", []
-        := globs = globs_of_flag value
-        ? word = "--any" ?> flags_read rest request
-        |? word = "--as" && plain_text value ?> flags_read after { request ?| lane = value }
-        |? word = "--ttl" ?>
-            ?= ttl_read value ?|
-            | Some minutes => flags_read after { request ?| ttl_min = minutes }
-            | None => RequestRefused ("--ttl expects positive minutes, got '" ++# value ++# "'")
-        |? word = "--paths" && request.verb = "claim" && globs <> [] && listm.fold (\ ok (g : string) => ok && plain_text g) !+ globs ?>
-            flags_read after { request ?| paths = globs }
-        |? word = "--paths" ?> RequestRefused ("--paths expects comma-separated globs without spaces, quotes or parentheses, got '" ++# value ++# "'")
-        |? word = "--as" ?> RequestRefused ("--as expects a lane name, got '" ++# value ++# "'")
-        |: RequestRefused ("unexpected argument " ++# word)
-
-:~ request_of (~verb : string) (words : list string) : request_read =
-    := empty = { verb = verb; item = ""; lane = ""; ttl_min = 90i32; paths = [] }
-    ? verb = "next" ?>
-        ? listm'.contains "--any" words ?> flags_read words empty |: RequestRefused "next claims only with --any"
-    |:
-        ?= words ?|
-        | item :: rest =>
-            ? plain_text item && sm'.starts_with "--" item = !-
-            ?> flags_read rest { empty ?| item = item }
-            |: RequestRefused ("expected an item ID, got '" ++# item ++# "'")
-        | [] => RequestRefused "expected an item ID"
-
-:= argument_owned index : string = rust_std_env.model.argument_owned index
-
-:~ ^ words_from (index : i32) (count : i32) : list string =
-    ? count <= index ?> [] |: argument_owned index :: words_from (index + 1i32) count
-
+:~ order_of (parsed : parsed_request) : claim_order =
+    := paths = listed_paths parsed.paths (am'.length_base parsed.paths - 1i32) []
+    := item, lane = parsed.item, parsed.lane
+    {
+        next = parsed.next
+        grab = parsed.grab
+        release = parsed.release
+        verb = parsed.verb
+        item = item
+        lane = lane
+        ttl_min = parsed.ttl_min
+        paths = paths
+    }
 :~ anchored (~cwd : string) (~glob : string) : string =
     := slashed = sm'.replace "\\" "/" glob
     := rooted = sm'.starts_with "/" slashed || sm'.index_of ":/" slashed = 1i32
-    ? rooted ?> slashed |: sm'.replace "\\" "/" cwd ++# "/" ++# (? sm'.starts_with "./" slashed ?> sm'.substring 2i32 ((sm'.length slashed : i32) - 2i32) slashed |: slashed)
-:~ receipt (~verb : string) (~item : string) (~owner : string) (expires_ms : u64) (ttl_min : i32) (wip : i32) (rank : i32) : string =
-    := head = "kit agile " ++# verb ++# " ok claimed=" ++# item ++# " owner=" ++# owner ++# " expires=" ++# utc_stamp expires_ms
-    head ++# " ttl_min=" ++# sm'.show ttl_min ++# " wip=" ++# sm'.show wip ++# (? rank > 0i32 ?> " rank=" ++# sm'.show rank |: "")
+    := size : i32 = sm'.length slashed
+    := local = ? sm'.starts_with "./" slashed ?> sm'.substring 2i32 (size - 2i32) slashed |: slashed
+    ? rooted ?> slashed |: sm'.replace "\\" "/" cwd ++# "/" ++# local
+:~ receipt
+    (~verb : string) (~item : string) (~owner : string) (expires_ms : u64) (ttl_min : i32) (wip : i32) (rank : i32)
+    : string
+    =
+    := head = "kit agile " ++# verb ++# " ok claimed=" ++# item ++# " owner=" ++# owner
+    := expiry = " expires=" ++# utc_stamp expires_ms
+    := ranked = ? rank > 0i32 ?> " rank=" ++# sm'.show rank |: ""
+    head ++# expiry ++# " ttl_min=" ++# sm'.show ttl_min ++# " wip=" ++# sm'.show wip ++# ranked
 
 :~ printed (lines : list string) (code : i32) : i32 =
     := wrote = stdout_line (sm'.concat_list "\n" (lines |> listm'.filter (\ (line : string) => line <> "")))
     ? wrote <> 0i32 ?> wrote |: code
 
-:~ claim_answered (r : claim_request) (~root : string) (stored : bool * string) (~wsjf : string) (~active : string) (~known : string) (~live : string) : i32 =
+:~ claim_answered
+    (r : claim_order) (~root : string) (stored : bool * string) (~wsjf : string) (~active : string) (~known : string)
+    (~live : string)
+    : i32
+    =
     := existed, rows = stored
     := now_ms = unix_ms ()
     := kind, item, owner, expires, rank, wip, detail, change =
-        ? r.verb = "next" ?> claim_next r.lane r.ttl_min wsjf active live rows now_ms
-        |: claim_lease r.verb r.item r.lane r.ttl_min (sm'.concat_list "," r.paths) wsjf known live rows now_ms
+        ? r.next ?> claim_next r.lane r.ttl_min wsjf active live rows now_ms
+        |? r.release ?> claim_release r.item r.lane r.ttl_min rows now_ms
+        |:
+            := paths = sm'.concat_list "," r.paths
+            claim_lease r.item r.lane r.ttl_min paths wsjf known live rows now_ms
     := failed = \ (~problem : string) => stderr_failure ("agile " ++# r.verb ++# " rejected: " ++# problem)
-    := problem = claims_applied root existed rows change item owner expires detail known
+    := application =
+        {
+            root = root
+            existed = existed
+            original = rows
+            change = change
+            item = item
+            owner = owner
+            expires_ms = expires
+            paths = detail
+            known = known
+        }
+    := problem = agile_claim_store.store.applied_claims ((;[ application ] : array agile_claim_store.store.claim_application) |> am'.base)
     ? problem <> "" ?> failed problem
     |:
         ?= outcome_of kind ?|
         | OutcomeGranted =>
             := where = ? detail = "" ?> "paths none" |: "paths " ++# detail
-            printed [ receipt r.verb item owner expires r.ttl_min wip rank; claim_item_lines root item; where ] 0i32
+            := line = receipt r.verb item owner expires r.ttl_min wip rank
+            printed [ line; claim_item_lines root item; where ] 0i32
         | OutcomeRefused => printed [ "kit agile claim refused id=" ++# r.item ++# " reason=" ++# detail ] 5i32
-        | OutcomeNone => printed [ "kit agile next ok claimed=none reason=" ++# detail ++# " wip=" ++# sm'.show wip ] 3i32
+        | OutcomeNone =>
+            := text = "kit agile next ok claimed=none reason=" ++# detail ++# " wip=" ++# sm'.show wip
+            printed [ text ] 3i32
         | OutcomeDropped =>
-            printed [ "kit agile release ok id=" ++# r.item ++# " owner=" ++# r.lane ++# " released=" ++# detail ++# " wip=" ++# sm'.show wip ] 0i32
+            := head = "kit agile release ok id=" ++# r.item ++# " owner=" ++# r.lane
+            printed [ head ++# " released=" ++# detail ++# " wip=" ++# sm'.show wip ] 0i32
         | OutcomeReleaseRefused => printed [ "kit agile release refused id=" ++# r.item ++# " reason=" ++# detail ] 5i32
         | OutcomeUnknown => failed ("no open task with id " ++# r.item)
-:~ claim_run () : i32 =
-    := root = argument_owned 1i32
-    := verb = argument_owned 0i32
-    ?= request_of verb (words_from 2i32 (env.host_argument_count () - 2i32)) ?|
-    | RequestRefused reason => stderr_failure ("agile " ++# verb ++# ": " ++# reason)
-    | RequestRead asked =>
-        := here = file_system.get_current_directory ()
-        := r = { asked ?| paths = asked.paths |> listm.map (anchored here) }
-        := found, wsjf, active, known, live = claim_ranking root
-        ? found = !- ?> stderr_failure ("agile " ++# verb ++# ": state/agile.spi is missing")
-        |: claim_answered r root (claims_loaded root) wsjf active known live
+:~ listed_next (~root : string) (~lane : string) (~wsjf : string) (~active : string) : i32 =
+    := _, rows = claims_loaded root
+    := picked = agile_claim_listing.listing.listed_ids (rows, lane, wsjf, active, unix_ms ())
+    := picks = am'.to_list_base' picked |> listm'.unbox
+    := count : i32 = listm.length picks
+    := head = "kit agile next ok listed=" ++# sm'.show count ++# " lane=" ++# lane ++# " claimed=none"
+    := hint = "take one: kit agile claim " ++# root ++# " <ID> --as " ++# lane ++# " (or next --claim takes the first)"
+    printed (head :: listm.append (picks |> listm.map (claim_item_lines root)) [ ? count > 0i32 ?> hint |: "" ]) 0i32
 
-///> rust
-:# flags_parse_into_a_typed_request =
-    ?= request_of "claim" [ "KIT-A"; "--as"; "kit"; "--paths"; "src/a/**,lib/b.spi"; "--ttl"; "30" ] ?|
-    | RequestRead r =>
-        testing.expect (r.item = "KIT-A" && r.lane = "kit" && r.ttl_min = 30i32 && r.paths = [ "src/a/**"; "lib/b.spi" ]) r.item
-    | RequestRefused reason => testing.expect !- reason
-    ?= request_of "next" [ "--any"; "--as"; "kit" ] ?|
-    | RequestRead r => testing.expect (r.lane = "kit" && r.ttl_min = 90i32) r.lane
-    | RequestRefused reason => testing.expect !- reason
-    testing.expect (request_of "next" [ "--as"; "kit" ] = RequestRefused "next claims only with --any") "--any is required"
-    testing.expect (request_of "next" [ "--any" ] = RequestRefused "--as <lane> is required") "a lane is required"
-    testing.expect (request_of "release" [ "--as"; "kit" ] = RequestRefused "expected an item ID, got '--as'") "id first"
-    testing.expect (request_of "next" [ "--any"; "--as"; "kit"; "--paths"; "a" ] = RequestRefused "--paths expects comma-separated globs without spaces, quotes or parentheses, got 'a'") "next takes no paths"
+:~ claim_requested (~root : string) (asked : claim_order) : i32 =
+    := here = file_system.get_current_directory ()
+    := r = { asked ?| paths = asked.paths |> listm.map (anchored here) }
+    := found, ranked, started, known, live = claim_ranking root
+    := mine = ? asked.next ?> agile_team_lane.lane.lane_items (root, asked.lane) |: ""
+    := wsjf, active = ? asked.next ?> agile_claim_listing.listing.lane_order (ranked, started, mine) |: ranked, started
+    ? found = !- ?> stderr_failure ("agile " ++# asked.verb ++# ": state/agile.spi is missing")
+    |? asked.next && asked.grab |> not ?> listed_next root asked.lane wsjf active
+    |: claim_answered r root (claims_loaded root) wsjf active known live
+
+:~ claim_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: root :: words =>
+        := gather = \ (kept : array string) (item : string) => kept ++ ;[ item ]
+        := parsed = am'.index_base 0i32 (request_parsed (word, words |> listm.fold gather ;[] |> am'.base))
+        ? parsed.refusal <> "" ?> stderr_failure ("agile " ++# word ++# ": " ++# parsed.refusal)
+        |: claim_requested root (order_of parsed)
+    | _ => stderr_failure "agile: usage: next|claim|release <root> ..."
+
 
 ///> rust
 :# relative_globs_are_anchored_at_the_callers_directory =
-    testing.expect (anchored "C:\\home\\git\\kit" "src/agile/**" = "C:/home/git/kit/src/agile/**") (anchored "C:\\home\\git\\kit" "src/agile/**")
+    := windows = anchored "C:\\home\\git\\kit" "src/agile/**"
+    testing.expect (windows = "C:/home/git/kit/src/agile/**") windows
     testing.expect (anchored "/home/x" "./lib/a.spi" = "/home/x/lib/a.spi") (anchored "/home/x" "./lib/a.spi")
-    testing.expect (anchored "/home/x" "/etc/y" = "/etc/y" && anchored "/home/x" "D:/z/**" = "D:/z/**") "absolute globs pass through"
+    testing.expect (anchored "/home/x" "/etc/y" = "/etc/y" && anchored "/home/x" "D:/z/**" = "D:/z/**") "absolute"
+
 ///> _
 := main () : i32 =
     export "kit_agile_claim_run" ((\ () => claim_run ()) : () -> i32)

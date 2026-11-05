@@ -65,8 +65,8 @@
     | NoRepair => ""
 
 := main () : i32 =
-    !!!!Export("kit_proxy_child_exit_code", ((\ message => proxy_child_exit_code message) : string -> i32))
-    !!!!Export("kit_proxy_corrected_command", ((\ message => proxy_corrected_command message) : string -> string))
+    export "kit_proxy_child_exit_code" ((\ message => proxy_child_exit_code message) : string -> i32)
+    export "kit_proxy_corrected_command" ((\ message => proxy_corrected_command message) : string -> string)
     := _ = proxy_child_exit_code "proxy-run failed: exit code: 3"
     := _ = proxy_corrected_command "text-replace expected 1 match(es), observed matches=3"
     0i32

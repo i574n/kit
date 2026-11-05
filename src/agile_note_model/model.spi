@@ -162,9 +162,8 @@
         (rust_std_string.model.concat5 "  " note.text "" "" "")
 
 :~ note_json_at (text : string) (found : i32) : string =
-    := field = item_field text NoteItem found
-    := head = rust_std_string.model.concat5 "{\"at\":" (field 2i32) ",\"author\":" (field 3i32) ","
-    rust_std_string.model.concat5 head "\"text\":" (field 4i32) "}" ""
+    := field = \ (position : i32) => json.quote (unquoted (item_field text NoteItem found position))
+    sm'.concat_list "" [ "{\"at\":"; field 2i32; ",\"author\":"; field 3i32; ",\"text\":"; field 4i32; "}" ]
 
 :~ ^ note_lines_from (text : string) (~needle : string) (offset : i32) (~lines : string) : string =
     := found = declared_from text needle offset

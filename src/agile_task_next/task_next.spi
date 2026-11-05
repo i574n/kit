@@ -199,6 +199,6 @@
         agile_next (argument_owned 1i32) request
     |: next_failure reason
 := main () : i32 =
-    !!!!Export("kit_agile_next_run", ((\ () => agile_next_entry ()) : () -> i32))
+    export "kit_agile_next_run" ((\ () => agile_next_entry ()) : () -> i32)
     := _ = agile_next_entry ()
     0i32

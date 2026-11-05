@@ -46,5 +46,5 @@
         2i32
 
 := main () : i32 =
-    !!!!Export("kit_process_run", ((\ () => process_run ()) : () -> i32))
+    export "kit_process_run" ((\ () => process_run ()) : () -> i32)
     0i32

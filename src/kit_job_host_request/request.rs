@@ -202,7 +202,7 @@ fn decimal_u64_14(mut v0: Rc<str>) -> u64 {
     }
 }
 fn process_alive_16(mut v0: u64) -> bool {
-    let v1: bool = { #[cfg(windows)] fn alive(pid: u64) -> bool { unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; fn GetLastError() -> u32; } if pid == 0 { return true; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid as u32); if handle.is_null() { return GetLastError() == 5; } let running = WaitForSingleObject(handle, 0) == 258; CloseHandle(handle); running } } #[cfg(not(windows))] fn alive(pid: u64) -> bool { pid == 0 || std::os::unix::process::parent_id() as u64 == pid } alive(v0) };
+    let v1: bool = kit_process_alive::kit_process_alive(v0);
     v1
 }
 fn host_state_of_17(mut v0: u64, mut v1: bool) -> US1 {

@@ -14,30 +14,24 @@
     := _ = fs_action_apply_binding 1i32 1i32
     := _ = fs_action_verify_binding 1i32 1i32
     := _ = fs_action_rollback_binding 1i32 1i32
-    !!!!Export(
-        "kit_fs_actions_shape_binding",
+    export
+        "kit_fs_actions_shape_binding"
         ((\ (first, second) => fs_action_shape_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_fs_actions_freshness_binding",
+    export
+        "kit_fs_actions_freshness_binding"
         ((\ (first, second) => fs_action_freshness_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_fs_actions_apply_binding",
+    export
+        "kit_fs_actions_apply_binding"
         ((\ (first, second) => fs_action_apply_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_fs_actions_verify_binding",
+    export
+        "kit_fs_actions_verify_binding"
         ((\ (first, second) => fs_action_verify_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_fs_actions_rollback_binding",
+    export
+        "kit_fs_actions_rollback_binding"
         ((\ (first, second) => fs_action_rollback_binding first second) : i32 * i32 -> i32)
-    )
     := _ = fs_action_mode_valid_binding 493i32 0i32
-    !!!!Export(
-        "kit_fs_actions_mode_valid_binding",
+    export
+        "kit_fs_actions_mode_valid_binding"
         ((\ (first, second) => fs_action_mode_valid_binding first second) : i32 * i32 -> i32)
-    )
     global "#[cfg(test)] #[path = \"regression_tests.rs\"] mod regression_tests;"
     0i32

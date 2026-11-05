@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "orphans.spi"
+output = "orphans.rs"
+
+[package]
+name = "kit-job-orphans"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_orphans"
+path = "orphans.rs"
+
+[dependencies]
+kit-process-alive = { path = "../kit_process_alive" }

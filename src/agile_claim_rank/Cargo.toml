@@ -17,3 +17,4 @@ path = "rank.rs"
 kit-agile-records = { path = "../kit_agile_records" }
 agile-planning-fields = { path = "../agile_planning_fields" }
 agile-planning-filters = { path = "../agile_planning_filters" }
+kit-process-alive = { path = "../kit_process_alive" }

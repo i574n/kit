@@ -1,0 +1,50 @@
+///- --package .
+:# cli static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_lint_macros.lint
+:< kit_lint_growth.growth
+
+:| lint_command =
+    | LintMacros
+    | LintShadows
+    | LintGrowth
+    | LintPrecheck
+    | LintTrackedText
+
+:= lint_word (command : lint_command) : string = union_reflection.cases.union_case_kebab "Lint" command
+
+:~ lint_command_of (~word : string) : lint_command =
+    := named = \ (command : lint_command) => lint_word command = word
+    union_reflection.cases.union_case_where named (\ command => command) LintMacros
+
+:~ growth_routed (rest : list string) : i32 =
+    ?= rest ?|
+    | baseline_repo :: baseline :: scan_repo :: scan :: [] => growth_run (baseline_repo, baseline, scan_repo, scan)
+    | _ =>
+        console.write_error_line "kit error: usage: lint growth <baseline-repo> <baseline.spi> <scan-repo> <scan-dir>"
+        2i32
+
+:~ lint_cli_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: rest =>
+        ?= lint_command_of word ?|
+        | LintGrowth => growth_routed rest
+        | LintPrecheck => kit_lint_precheck.precheck.precheck_run (rest |> listm'.box |> listm'.to_array')
+        | LintTrackedText => kit_tracked_text.text.tracked_text_run (rest |> listm'.box |> listm'.to_array')
+        | LintShadows => shadows_run ()
+        | LintMacros => lint_run ()
+    | _ => lint_run ()
+
+///> rust
+:# lint_words_parse_into_commands_by_their_case_names =
+    testing.expect (lint_command_of "growth" = LintGrowth && lint_command_of "shadows" = LintShadows) "named verbs"
+    testing.expect (lint_command_of "macros" = LintMacros && lint_command_of "src" = LintMacros) "macros is the default"
+    testing.expect (lint_word LintGrowth = "growth") "the word is the case name"
+    testing.expect (lint_command_of "precheck" = LintPrecheck) "precheck routes to the precheck crate"
+    testing.expect (lint_command_of "tracked-text" = LintTrackedText) "tracked-text routes to the .txt rule"
+///> _
+:= main () : i32 =
+    export "kit_lint_cli_run" lint_cli_run
+    0i32

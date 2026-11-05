@@ -7,21 +7,14 @@
 
 :| agile_edit_field =
     | EditTitle
-    | AppendTitle
+    | EditTitleAppend
     | EditKind
     | EditPriority
     | EditDifficulty
     | EditDeps
     | EditTags
 
-:= edit_field_name = \|
-    | EditTitle => "title"
-    | AppendTitle => "title-append"
-    | EditKind => "kind"
-    | EditPriority => "priority"
-    | EditDifficulty => "difficulty"
-    | EditDeps => "deps"
-    | EditTags => "tags"
+:= edit_field_name (field : agile_edit_field) : string = union_reflection.cases.union_case_kebab "Edit" field
 
 :~ parse_edit_field (~text : string) : validation_result agile_edit_field =
     union_reflection.cases.union_cases_fold
@@ -31,7 +24,7 @@
 
 := task_tuple_position = \|
     | EditTitle => 1i32
-    | AppendTitle => 1i32
+    | EditTitleAppend => 1i32
     | EditKind => 2i32
     | EditPriority => 3i32
     | EditDifficulty => 4i32
@@ -80,7 +73,7 @@
     | EditTitle => quoted_field_value value
     | EditDeps => quoted_field_value value
     | EditTags => quoted_field_value value
-    | AppendTitle =>
+    | EditTitleAppend =>
         := open_title = byte_slice current 0i32 (byte_len current - 1i32)
         Valid (open_title ++# title_joint (title_continuation_of open_title value) ++# spi_escaped value ++# "\"")
     | EditKind => validated_text (parse_task_kind value) agile_case_text
@@ -118,15 +111,14 @@
     | Invalid => unknown_field_rule ()
 
 := main () : i32 =
-    !!!!Export("kit_agile_edit_field_position", ((\ field_name => edit_field_position field_name) : string -> i32))
-    !!!!Export(
-        "kit_agile_edit_field_token",
+    export "kit_agile_edit_field_position" ((\ field_name => edit_field_position field_name) : string -> i32)
+    export
+        "kit_agile_edit_field_token"
         (
             \ (field_name, current, value) => edit_field_token field_name current value
             : string * string * string -> string
         )
-    )
-    !!!!Export("kit_agile_edit_field_rule", ((\ field_name => edit_field_rule field_name) : string -> string))
+    export "kit_agile_edit_field_rule" ((\ field_name => edit_field_rule field_name) : string -> string)
     := _ = edit_field_position "title-append"
     := _ = edit_field_token "title-append" "\"first\"" "second"
     := _ = edit_field_rule "kind"

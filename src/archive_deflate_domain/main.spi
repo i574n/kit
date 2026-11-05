@@ -17,52 +17,40 @@
     := _ = archive_fault_code NoArchiveFault
     := _ = archive_fault_binding 1i32 1i32
     archive_terminal.emit_runtime ()
-    !!!!Export(
-        "kit_archive_preflight_binding",
+    export
+        "kit_archive_preflight_binding"
         ((\ (first, second) => archive_preflight_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_entry_binding",
+    export
+        "kit_archive_entry_binding"
         ((\ (first, second) => archive_entry_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_tar_symlink_binding",
+    export
+        "kit_archive_tar_symlink_binding"
         ((\ (first, second) => archive_tar_symlink_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_tar_hardlink_binding",
+    export
+        "kit_archive_tar_hardlink_binding"
         ((\ (first, second) => archive_tar_hardlink_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_tar_long_link_binding",
+    export
+        "kit_archive_tar_long_link_binding"
         ((\ (first, second) => archive_tar_long_link_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_tar_pax_path_binding",
+    export
+        "kit_archive_tar_pax_path_binding"
         ((\ (first, second) => archive_tar_pax_path_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_compression_binding",
+    export
+        "kit_archive_compression_binding"
         ((\ (first, second) => archive_compression_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_budget_binding",
+    export
+        "kit_archive_budget_binding"
         ((\ (first, second) => archive_budget_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_complete_binding",
+    export
+        "kit_archive_complete_binding"
         ((\ (first, second) => archive_complete_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_tree_binding",
+    export
+        "kit_archive_tree_binding"
         ((\ (first, second) => archive_tree_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_format_binding",
+    export
+        "kit_archive_format_binding"
         ((\ (first, second) => archive_format_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_archive_fault_binding",
+    export
+        "kit_archive_fault_binding"
         ((\ (first, second) => archive_fault_binding first second) : i32 * i32 -> i32)
-    )
     0i32

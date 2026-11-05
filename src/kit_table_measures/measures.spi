@@ -95,12 +95,11 @@
     measured_query file filtered detail { base ?| group = group; measured = measures; limit = limit; quiet = quiet }
 
 := main () : i32 =
-    !!!!Export(
-        "kit_table_measured",
+    export
+        "kit_table_measured"
         (
             \ (file, group, measures, limit, quiet, filtered, detail) =>
                 measured_entry file group measures limit quiet filtered detail
             : string * string * string * u64 * bool * bool * string -> i32
         )
-    )
     0i32

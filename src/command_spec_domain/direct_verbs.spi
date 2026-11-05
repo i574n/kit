@@ -33,6 +33,10 @@
     | VerbEvidence
     | VerbLint
     | VerbSchedule
+    | VerbHeal
+    | VerbHook
+    | VerbRun
+    | VerbMetrics
 
 :== verb_help =
     {
@@ -258,6 +262,38 @@
             line =
                 "schedule due <name> <minutes> (exit 0 when due, 1 when not) | ran <name> | list (stamps under "
                 ^^ "KIT_SCHEDULES_HOME, else LOCALAPPDATA\\kit\\schedules)"
+        }
+
+    | VerbHeal =>
+        {
+            word = "heal"
+            line =
+                "heal nameof <dir>... (matches that map 3 or more cases to their own names as strings, or back: one "
+                ^^ "line per match, then files, findings and arms per root)"
+        }
+
+    | VerbHook =>
+        {
+            word = "hook"
+            line =
+                "hook pre [--repos-root d] [--closed-root d,..] [--refuse .x,..] [--advise .x,..] (reads a "
+                ^^ "PreToolUse payload on stdin; prints one deny or advise JSON line, nothing to allow)"
+        }
+
+    | VerbRun =>
+        {
+            word = "run"
+            line =
+                "run <file.spi> [-- args] (compiles the script through SPIRAL_COMPILER_DLL with SPIRAL_LIB and "
+                ^^ "SPIRAL_CORE, caches the exe by content, runs it and returns its exit code)"
+        }
+
+    | VerbMetrics =>
+        {
+            word = "metrics"
+            line =
+                "metrics export --notebooks <dir> [--machine box|node] (Prometheus text: one "
+                ^^ "kit_exec_duration_ms{machine,backend,phase} line per phase of every Cells notebook cell)"
         }
 
 := help_line_for (~target : string) : string =

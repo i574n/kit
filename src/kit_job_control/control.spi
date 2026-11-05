@@ -135,23 +135,21 @@
         t())' : string
 
 := main () : i32 =
-    !!!!Export("kit_job_tail_run", ((\ () => job_tailed ()) : () -> i32))
-    !!!!Export("kit_job_stop_run", ((\ () => job_stopped ()) : () -> i32))
-    !!!!Export("kit_job_amend_run", ((\ () => job_amended ()) : () -> i32))
-    !!!!Export("kit_job_list_run", ((\ () => job_listed ()) : () -> i32))
-    !!!!Export("kit_job_stop_text", ((\ id => stop_text id) : string -> string))
-    !!!!Export(
-        "kit_job_launched",
+    export "kit_job_tail_run" job_tailed
+    export "kit_job_stop_run" job_stopped
+    export "kit_job_amend_run" job_amended
+    export "kit_job_list_run" job_listed
+    export "kit_job_stop_text" ((\ id => stop_text id) : string -> string)
+    export
+        "kit_job_launched"
         (
             \ (label, timeout, inner, cwd) => launched_text label timeout inner cwd
             : string * u64 * string * string -> string
         )
-    )
-    !!!!Export("kit_job_settled", ((\ (id, wait_ms) => settled_text id wait_ms) : string * u64 -> string))
-    !!!!Export(
-        "kit_job_output",
+    export "kit_job_settled" ((\ (id, wait_ms) => settled_text id wait_ms) : string * u64 -> string)
+    export
+        "kit_job_output"
         ((\ (id, count) => last_lines (job_file id "stdout.log") count) : string * u64 -> string)
-    )
-    !!!!Export("kit_job_labeled", ((\ label => newest_labeled label) : string -> string))
-    !!!!Export("kit_job_state_word", ((\ id => state_word (shared_state id)) : string -> string))
+    export "kit_job_labeled" ((\ label => newest_labeled label) : string -> string)
+    export "kit_job_state_word" ((\ id => state_word (shared_state id)) : string -> string)
     0i32

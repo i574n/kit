@@ -166,6 +166,6 @@
     |: planning_rollup_failure "plan expects <root> [--json]"
 
 := main () : i32 =
-    !!!!Export("kit_agile_planning_rollup_run", ((\ () => planning_rollup_entry ()) : () -> i32))
+    export "kit_agile_planning_rollup_run" ((\ () => planning_rollup_entry ()) : () -> i32)
     := _ = planning_rollup_entry ()
     0i32

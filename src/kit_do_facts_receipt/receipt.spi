@@ -1,0 +1,94 @@
+///- --package .
+:< sm'_operators
+
+:== fact_counts =
+    {
+        files : u64
+        bytes : u64
+        distinct : u64
+        hashes : u64
+        lookups : u64
+        nearests : u64
+        fields : u64
+        jsons : u64
+        lines : u64
+        groups : u64
+        groupings : u64
+        sized : u64
+        names : u64
+        names_set : u64
+        envs : u64
+        paths : u64
+        present : u64
+        existings : u64
+        rows : u64
+        matched : u64
+        table_groups : u64
+        tables : u64
+        dirs_matched : u64
+        dirs_total : u64
+        dir_steps : u64
+    }
+
+:~ segments_joined (~left : string) (~right : string) : string = ? left = "" ?> right |: left ++# "  " ++# right
+
+:~ counted_segment (shown : bool) (~text : string) (~label : string) (value : u64) : string =
+    ? shown ?> segments_joined text (label ++# " " ++# sm'.decimal_text value) |: text
+
+:~ pair_text (~head : string) (first : u64) (~middle : string) (second : u64) (~tail : string) : string =
+    head ++# sm'.decimal_text first ++# middle ++# sm'.decimal_text second ++# tail
+
+:~ receipt_text (c : fact_counts) : string =
+    := dirs = ? c.dir_steps > 0u64 ?> pair_text "dirs " c.dirs_matched " of " c.dirs_total " matched" |: ""
+    := file_steps = c.hashes + c.nearests + c.jsons + c.groupings + c.sized
+    := files = counted_segment (file_steps > 0u64) dirs "files" c.files
+    := bytes = counted_segment (c.hashes + c.sized > 0u64) files "bytes" c.bytes
+    := distinct = counted_segment (c.hashes > 0u64) bytes "distinct" c.distinct
+    := lookups = counted_segment (c.nearests > 0u64) distinct "lookups" c.lookups
+    := fields = counted_segment (c.jsons > 0u64) lookups "fields" c.fields
+    := lines = counted_segment (c.groupings > 0u64) fields "lines" c.lines
+    := groups = counted_segment (c.groupings > 0u64) lines "groups" c.groups
+    := env = ? c.envs > 0u64 ?> segments_joined groups (pair_text "env " c.names " (" c.names_set " set)") |: groups
+    := paths =
+        ? c.existings > 0u64 ?> segments_joined env (pair_text "paths " c.paths " (" c.present " present)") |: env
+    := rows = counted_segment (c.tables > 0u64) paths "rows" c.rows
+    := matched = counted_segment (c.tables > 0u64) rows "matched" c.matched
+    counted_segment (c.tables > 0u64) matched "groups" c.table_groups
+
+:~ receipt_of (counts : array_base fact_counts) : string = receipt_text (am'.index_base 0i32 counts)
+
+///> rust
+:# a_hash_step_shows_files_bytes_and_distinct =
+    := c =
+        {
+            files = 2u64
+            bytes = 10u64
+            distinct = 1u64
+            hashes = 1u64
+            lookups = 0u64
+            nearests = 0u64
+            fields = 0u64
+            jsons = 0u64
+            lines = 0u64
+            groups = 0u64
+            groupings = 0u64
+            sized = 0u64
+            names = 0u64
+            names_set = 0u64
+            envs = 0u64
+            paths = 0u64
+            present = 0u64
+            existings = 0u64
+            rows = 0u64
+            matched = 0u64
+            table_groups = 0u64
+            tables = 0u64
+            dirs_matched = 0u64
+            dirs_total = 0u64
+            dir_steps = 0u64
+        }
+    testing.expect (receipt_text c = "files 2  bytes 10  distinct 1") (receipt_text c)
+///> _
+:= main () : i32 =
+    export "kit_do_facts_receipt" receipt_of
+    0i32

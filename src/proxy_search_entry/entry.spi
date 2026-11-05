@@ -21,58 +21,45 @@
         proxy_hash_tree_request_binding 1i32 1i32
     parallel_search_contract.search_terminal.emit_runtime ()
     path_tag_contract.path_tag_terminal.emit_runtime ()
-    !!!!Export("kit_proxy_search_descends_into", ((\ path => proxy_search_descends_into path) : string -> bool))
-    !!!!Export("kit_proxy_search_scope_binding", ((\ relative => proxy_search_scope_binding relative) : string -> i32))
-    !!!!Export(
-        "kit_proxy_search_proxy_path_tag_relative_packed_binding",
+    export "kit_proxy_search_descends_into" ((\ path => proxy_search_descends_into path) : string -> bool)
+    export "kit_proxy_search_scope_binding" ((\ relative => proxy_search_scope_binding relative) : string -> i32)
+    export
+        "kit_proxy_search_proxy_path_tag_relative_packed_binding"
         ((\ (first, second) => proxy_path_tag_relative_packed_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_path_tag_packed_indices_binding",
+    export
+        "kit_proxy_search_proxy_path_tag_packed_indices_binding"
         ((\ (first, second) => proxy_path_tag_packed_indices_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_path_tag_shape_binding",
+    export
+        "kit_proxy_search_proxy_path_tag_shape_binding"
         ((\ (first, second) => proxy_path_tag_shape_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_path_tag_determinism_binding",
+    export
+        "kit_proxy_search_proxy_path_tag_determinism_binding"
         ((\ (first, second) => proxy_path_tag_determinism_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_path_tag_collision_binding",
+    export
+        "kit_proxy_search_proxy_path_tag_collision_binding"
         ((\ (first, second) => proxy_path_tag_collision_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_parallel_search_request_binding",
+    export
+        "kit_proxy_search_proxy_parallel_search_request_binding"
         ((\ (first, second) => proxy_parallel_search_request_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_parallel_search_worker_binding",
+    export
+        "kit_proxy_search_proxy_parallel_search_worker_binding"
         ((\ (first, second) => proxy_parallel_search_worker_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_parallel_search_parity_binding",
+    export
+        "kit_proxy_search_proxy_parallel_search_parity_binding"
         ((\ (first, second) => proxy_parallel_search_parity_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_parallel_manifest_order_binding",
+    export
+        "kit_proxy_search_proxy_parallel_manifest_order_binding"
         ((\ (first, second) => proxy_parallel_manifest_order_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_parallel_manifest_parity_binding",
+    export
+        "kit_proxy_search_proxy_parallel_manifest_parity_binding"
         ((\ (first, second) => proxy_parallel_manifest_parity_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_parallel_consumer_mode_binding",
+    export
+        "kit_proxy_search_proxy_parallel_consumer_mode_binding"
         ((\ (first, second) => proxy_parallel_consumer_mode_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_parallel_consumer_output_binding",
+    export
+        "kit_proxy_search_proxy_parallel_consumer_output_binding"
         ((\ (first, second) => proxy_parallel_consumer_output_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_proxy_search_proxy_hash_tree_request_binding",
+    export
+        "kit_proxy_search_proxy_hash_tree_request_binding"
         ((\ (first, second) => proxy_hash_tree_request_binding first second) : i32 * i32 -> i32)
-    )
     0i32

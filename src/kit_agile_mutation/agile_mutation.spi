@@ -75,57 +75,20 @@
 := todos_recording () : bool = rust_std_env.model.argument_flag_present 4i32 "--record"
 := next_claims () : bool = rust_std_env.model.argument_flag_present 4i32 "--any"
 := claim_queue_call (s : agile_subcommand) : bool = ?= s ?| | AgileNext => next_claims () | AgileClaim | AgileRelease => !+ | _ => !-
-:~ state_lock_taken (~root : string) : bool =
-    $'{ let state = std::path::Path::new(&*!root).join("state"); let lock = state.join("agile.spi.lock"); \
-        let started = std::time::Instant::now(); loop { if std::fs::create_dir(&lock).is_ok() { break true; \
-        } if \!state.is_dir() { break true; } let stale = std::fs::metadata(&lock).and_then(|meta| \
-        meta.modified()).ok().and_then(|time| time.elapsed().ok()).map(|age| age.as_secs() >= 10).unwrap_or(false); \
-        if stale { let _ = std::fs::remove_dir(&lock); continue; \
-        } if started.elapsed() >= std::time::Duration::from_secs(30) { break false; \
-        } std::thread::sleep(std::time::Duration::from_millis(25)); } }' : bool
+:~ state_lock_taken (~root : string) : bool = kit_agile_lock.lock.lock_taken root
 
-:~ state_lock_released (~root : string) : () = $'{ let _ = std::fs::remove_dir(std::path::Path::new(&*!root).join("sta\
-    te").join("agile.spi.lock")); }' : ()
+:~ state_lock_released (~root : string) : () =
+    := _ = kit_agile_lock.lock.lock_released root
+    ()
 
 :~ state_lock_held (writes : bool) (~root : string) : bool = ? writes ?> state_lock_taken root |: !+
 
 :~ state_lock_done (writes : bool) (~root : string) : () = ? writes ?> state_lock_released root |: ()
 
 :~ state_lock_refused () : i32 =
-    := message = "agile state/agile.spi stayed locked by another writer for 30 s; nothing written, run the call again"
+    := message = "agile state/agile.spi stayed locked by a live writer for 5 min; nothing written, run the call again"
     agile_mutation_error message
 
-:= agile_writes (subcommand : agile_subcommand) : bool =
-    ?= subcommand ?|
-    | AgileInit => !-
-    | AgileLease => !-
-    | AgileStatus => !-
-    | AgileHandoff => !-
-    | AgileList => !-
-    | AgileCheck => !-
-    | AgileShow => !-
-    | AgilePlan => !-
-    | AgileNext => !-
-    | AgileClaim => !+
-    | AgileRelease => !+
-    | AgileLinks => !-
-    | AgileWip => !-
-    | AgileBegin => !+
-    | AgileRecord => !+
-    | AgileSet => !+
-    | AgileAdd => !+
-    | AgileEdit => !+
-    | AgileMigrateTags => !+
-    | AgileNote => !+
-    | AgileNoteEdit => !+
-    | AgileNotes => !+
-    | AgileRename => !+
-    | AgileSeal => !+
-    | AgileTodos => !+
-    | AgileRoots => !+
-    | AgileViews => !-
-    | AgileView => !-
-    | AgileViewAdd => !+
 := agile_route (subcommand : agile_subcommand) : i32 =
     ?= subcommand ?|
     | AgileInit => agile_root_only \ _ => $"agile_backlog_scaffold::kit_agile_init_run()"
@@ -144,6 +107,11 @@
     | AgileShow => agile_with_root \ () => $"agile_task_inspection::kit_agile_show_run()"
     | AgilePlan => agile_with_root \ () => $"agile_planning_rollup::kit_agile_planning_rollup_run()"
     | AgileMigrateTags => agile_with_root \ () => $"agile_planning_migration::kit_agile_migrate_tags_run()"
+    | AgileMigrateActivity => agile_with_root \ () => kit_agile_activity_migration.migration.migrate_run ()
+    | AgileSprint => agile_with_root \ () => kit_agile_sprint.sprint.sprint_run ()
+    | AgileLint => agile_with_root \ () => kit_agile_lint.lint_cli.lint_run ()
+    | AgileGate => agile_with_root \ () => kit_agile_gate.gate.gate_run ()
+    | AgileCadence => agile_with_root \ () => kit_agile_cadence.cadence.cadence_run ()
     | AgileNote => agile_arity_route (agile_either_arity 4i32 6i32) \ () => $"agile_task_notes::kit_agile_note_run()"
     | AgileNoteEdit => agile_with_root \ () => $"agile_note_edit::kit_agile_note_edit_run()"
     | AgileNotes => agile_arity_route (args_len_is 4i32) \ () => $"agile_title_notes::kit_agile_notes_from_title_run()"
@@ -171,7 +139,7 @@
             := name = argument_owned 0i32
             agile_mutation_error ($'kit_command_help::kit_agile_root_flag_refusal(&*!name, &*!flag)' : string)
         | RootNamed root =>
-            := writes = agile_writes subcommand || claim_queue_call subcommand
+            := writes = agile_state_access.access.writes_named (argument_owned 0i32) || claim_queue_call subcommand
             ? state_lock_held writes root ?>
                 := code = agile_route subcommand
                 state_lock_done writes root
@@ -183,7 +151,7 @@
     | AgileUnknownName => agile_usage_error ()
 
 := main () : i32 =
-    !!!!Export("kit_agile_run", ((\ () => agile_entry ()) : () -> i32))
+    export "kit_agile_run" ((\ () => agile_entry ()) : () -> i32)
     := _ = typed_agile_plan ()
     := _ = agile_entry ()
     0i32

@@ -1,5 +1,6 @@
 :< sm'_operators
-:< kit_os_search.search
+:< kit_grep_found.found
+:< hits
 
 :| search_root =
     | FolderRoot
@@ -16,11 +17,11 @@
     | CaselessNeedle
     | PatternNeedle : bool
 
-:= matcher_of (kind : needle_kind) (~needle : string) : line_matcher =
+:= needle_flags (kind : needle_kind) : bool * bool =
     ?= kind ?|
-    | LiteralNeedle => literal_matcher needle
-    | CaselessNeedle => caseless_matcher needle
-    | PatternNeedle caseless => pattern_matcher needle caseless
+    | LiteralNeedle => !-, !-
+    | CaselessNeedle => !+, !-
+    | PatternNeedle caseless => caseless, !+
 :~ json_text (~text : string) : string = json.quote text
 := stdout_text (~text : string) : () = console.write_line text
 := i32_text (value : i32) : string = (sm'.show value)

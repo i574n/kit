@@ -231,6 +231,6 @@
         | _, _, _, Invalid => agile_add_failure "difficulty must be D0..D8" (argument_owned 2i32)
 
 := main () : i32 =
-    !!!!Export("kit_agile_add_run", ((\ () => agile_add_entry ()) : () -> i32))
+    export "kit_agile_add_run" ((\ () => agile_add_entry ()) : () -> i32)
     := _ = agile_add_entry ()
     0i32

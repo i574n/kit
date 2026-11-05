@@ -7,16 +7,23 @@
         sections : u64
     }
 
-:~ ^ columns_from (index : i32) (count : i32) (~text : string) : string =
-    ? index + 1i32 >= count ?> text
-    |:
-        := word = argument index
-        := pick = ? word = "--first" ?> "first" |? word = "--last" ?> "last" |: ""
-        ? pick = "" ?> columns_from (index + 1i32) count text
-        |:
-            := name, pattern = split_pair (argument (index + 1i32)) "="
-            columns_from (index + 2i32) count (text ++# pick ++# "\t" ++# name ++# "\t" ++# pattern ++# "\n")
+:| column_pick =
+    | PickFirst
+    | PickLast
 
+:= pick_word (pick : column_pick) : string = union_reflection.cases.union_case_kebab "Pick" pick
+
+:~ ^ columns_read (words : list string) (~text : string) : string =
+    ?= words ?|
+    | word :: value :: rest =>
+        := picked =
+            union_reflection.cases.union_case_where (\ (pick : column_pick) => word = "--" ++# pick_word pick) Some None
+        ?= picked ?|
+        | Some pick =>
+            := name, pattern = split_pair value "="
+            columns_read rest (text ++# pick_word pick ++# "\t" ++# name ++# "\t" ++# pattern ++# "\n")
+        | None => columns_read (value :: rest) text
+    | _ => text
 :~ ^ sections_counted (lines : array string) (index : i32) (count : u64) : u64 =
     ? index >= am'.length lines
     ?> count
@@ -68,10 +75,10 @@
     0i32
 
 :~ sections_run () : i32 =
-    := count = env.command_line_argument_count ()
-    := paths, refusal = paths_from 2i32 count [] ""
-    := time = value_after "--time" 2i32 count
-    := columns = columns_from 2i32 count ""
+    := words = sequence_words ()
+    := paths, refusal = paths_from words [] ""
+    := time = value_after (flag_word FlagTime) words
+    := columns = columns_read words ""
     ? refusal <> ""
     ?> refused refusal
     |? time = ""
@@ -85,14 +92,14 @@
             ?> refused ("no such file or directory: " ++# missing)
             |:
                 := files = files_in paths []
-                := section_on = value_after "--section-on" 2i32 count
-                := carry = value_after "--carry" 2i32 count
+                := section_on = value_after (flag_word FlagSectionOn) words
+                := carry = value_after (flag_word FlagCarry) words
                 := empty = { table = { text = ""; rows = 0u64 }; sections = 0u64 }
                 sections_written columns
-                    (value_after "--out" 2i32 count)
+                    (value_after (flag_word FlagOut) words)
                     files
                     (sections_of_files files time section_on carry columns empty)
 
 := main () : i32 =
-    !!!!Export("kit_table_sections_run", ((\ () => sections_run ()) : () -> i32))
+    export "kit_table_sections_run" ((\ () => sections_run ()) : () -> i32)
     0i32

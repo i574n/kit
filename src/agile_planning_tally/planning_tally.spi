@@ -123,12 +123,11 @@
     tally.tasks, tally.open_tasks, tally.estimated, tally.minutes, tally.open_minutes
 
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_planning_tally",
+    export
+        "kit_agile_planning_tally"
         (
             \ (text, group, value) => planning_tally text group value
             : string * string * string -> i32 * i32 * i32 * i32 * i32
         )
-    )
     := _ = planning_tally "" "status" "Planned"
     0i32

@@ -201,10 +201,9 @@
         0i32
 
 := main () : i32 =
-    !!!!Export("kit_memory_check", ((\ data => memory_check data) : string -> i32))
-    !!!!Export("kit_memory_list", ((\ (data, kind) => memory_list_run data kind) : string * string -> i32))
-    !!!!Export(
-        "kit_memory_recall",
+    export "kit_memory_check" ((\ data => memory_check data) : string -> i32)
+    export "kit_memory_list" ((\ (data, kind) => memory_list_run data kind) : string * string -> i32)
+    export
+        "kit_memory_recall"
         ((\ (data, query, limit) => memory_recall data query limit) : string * string * i32 -> i32)
-    )
     0i32

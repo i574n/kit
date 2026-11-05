@@ -1,0 +1,150 @@
+///- --package .
+:# dispatch static =
+    :< sm'_operators
+    :< kit_coordinator_model.model
+    :< table
+
+:< sm'_operators
+:< kit_coordinator_model.model
+:< table
+
+:== job_spec = { label : string; machine : string; timeout_ms : u64; command : list string }
+
+:| dispatch_message =
+    | Submitted : job_id * job_spec
+    | LeaseGranted : job_id
+    | LaunchAnswered : job_id * bool
+    | JobEnded : job_id
+
+:| dispatch_effect =
+    | LaunchOn : job_id * job_spec
+    | TableInput : table_input
+    | UnknownJob : job_id
+    | LaunchGaveUp : job_id
+
+:== dispatch_state = { specs : list (job_id * job_spec); failures : list (job_id * i32) }
+
+:= launch_attempts () : i32 = 3i32
+
+:= empty_dispatch () : dispatch_state = { specs = []; failures = [] }
+
+:~ launch_args (spec : job_spec) : list string =
+    listm.append [ "job"; "start"; "--on"; spec.machine; spec.label; sm'.show spec.timeout_ms ] spec.command
+
+:~ failures_of (state : dispatch_state) (job : job_id) : i32 =
+    ?= state.failures |> listm'.try_find_ (\ (id, _) => id = job) ?|
+    | Some (_, n) => n
+    | None => 0i32
+
+:~ forgotten (state : dispatch_state) (job : job_id) : dispatch_state =
+    {
+        specs = state.specs |> listm'.filter (\ (id, _) => id <> job)
+        failures = state.failures |> listm'.filter (\ (id, _) => id <> job)
+    }
+
+:~ launch_failed (state : dispatch_state) (job : job_id) : dispatch_state * list dispatch_effect =
+    := failed = failures_of state job + 1i32
+    ? failed < launch_attempts ()
+    ?>
+        := others = state.failures |> listm'.filter (\ (id, _) => id <> job)
+        { state ?| failures = (job, failed) :: others }, [ TableInput (Moved (job, Expiring)) ]
+    |:
+        := given_up = [ LaunchGaveUp job; TableInput (Moved (job, Starting)); TableInput (Moved (job, Settling)) ]
+        forgotten state job, given_up
+
+:~ spec_of (state : dispatch_state) (job : job_id) : option job_spec =
+    ?= state.specs |> listm'.try_find_ (\ (id, _) => id = job) ?|
+    | Some (_, spec) => Some spec
+    | None => None
+
+:~ dispatch_step (state : dispatch_state) (message : dispatch_message) : dispatch_state * list dispatch_effect =
+    ?= message ?|
+    | Submitted (job, spec) => { state ?| specs = listm.append state.specs [ job, spec ] }, [ TableInput (Arrived job) ]
+    | LeaseGranted job =>
+        ?= spec_of state job ?|
+        | Some spec => state, [ LaunchOn (job, spec) ]
+        | None => state, [ UnknownJob job ]
+    | LaunchAnswered (job, started) =>
+        ? started ?> state, [ TableInput (Moved (job, Starting)) ] |: launch_failed state job
+    | JobEnded job => forgotten state job, [ TableInput (Moved (job, Settling)) ]
+
+:~ table_inputs (effects : list dispatch_effect) : list table_input =
+    := kept = \ (acc : list table_input) (e : dispatch_effect) =>
+        ?= e ?|
+        | TableInput input => listm.append acc [ input ]
+        | _ => acc
+    effects |> listm.fold kept []
+
+:~ launched_jobs (effects : list dispatch_effect) : list job_id =
+    := kept = \ (acc : list job_id) (e : dispatch_effect) =>
+        ?= e ?|
+        | LaunchOn (job, _) => listm.append acc [ job ]
+        | _ => acc
+    effects |> listm.fold kept []
+
+:| submission =
+    | SubmissionReady : dispatch_message
+    | SubmissionRefused : string
+
+:~ submission_of (~line : string) : submission =
+    := words = sm'.split_list " " (sm'.trim line) |> listm'.filter (\ (word : string) => word <> "")
+    ?= words ?|
+    | id :: label :: machine :: timeout :: "--" :: program :: args =>
+        ?= (convert.try_convert timeout : option u64) ?|
+        | Some ms ?& ms > 0u64 && sm'.starts_with "job-" id =>
+            := spec = { label = label; machine = machine; timeout_ms = ms; command = program :: args }
+            SubmissionReady (Submitted (JobId id, spec))
+        | Some _ => SubmissionRefused ("needs a job-... id and a positive timeout: " ++# line)
+        | None => SubmissionRefused ("timeout is not a number: " ++# timeout)
+    | _ => SubmissionRefused ("expected <job-id> <label> <machine> <timeout-ms> -- <program> [args...]: " ++# line)
+
+///> rust
+:# a_submission_line_becomes_a_submitted_message_or_a_named_refusal =
+    := spec = { label = "probe"; machine = "node"; timeout_ms = 60000u64; command = [ "pwsh"; "-File"; "x.ps1" ] }
+    := ready = submission_of "job-7 probe node 60000 -- pwsh -File x.ps1"
+    testing.expect (ready = SubmissionReady (Submitted (JobId "job-7", spec))) "the full shape"
+    testing.expect (submission_of "  job-7  probe node 60000 --  pwsh -File x.ps1 " = ready) "extra blanks are ignored"
+    ?= submission_of "job-7 probe node soon -- pwsh" ?|
+    | SubmissionRefused reason => testing.expect (sm'.contains "not a number" reason) reason
+    | SubmissionReady _ => testing.expect !- "a word timeout is refused"
+    ?= submission_of "7 probe node 60000 -- pwsh" ?|
+    | SubmissionRefused reason => testing.expect (sm'.contains "job-... id" reason) reason
+    | SubmissionReady _ => testing.expect !- "an id without the job- prefix is refused"
+    ?= submission_of "job-7 probe node 60000 pwsh" ?|
+    | SubmissionRefused reason => testing.expect (sm'.starts_with "expected <job-id>" reason) reason
+    | SubmissionReady _ => testing.expect !- "a line without -- is refused"
+
+///> rust
+:# the_dispatcher_launches_leased_jobs_and_reports_their_moves_to_the_table =
+    := a, b = JobId "job-a", JobId "job-b"
+    := spec = \ (label : string) =>
+        { label = label; machine = "node"; timeout_ms = 60000u64; command = [ "pwsh"; "-File"; "x.ps1" ] }
+    := run = \ ((state, table, launched) : dispatch_state * coord_table * list job_id) (message : dispatch_message) =>
+        := next, effects = dispatch_step state message
+        := after = table_inputs effects |> listm.fold table_after table
+        next, after, listm.append launched (launched_jobs effects)
+    := story = [ Submitted (a, spec "a"); Submitted (b, spec "b"); LeaseGranted a; LaunchAnswered (a, !+); JobEnded a ]
+    := state, table, launched = story |> listm.fold run (empty_dispatch (), empty_table 1i32, [])
+    testing.expect (launched = [ a ]) "only the leased job is launched"
+    testing.expect (status_in table a = Some Settled && status_in table b = Some (LeasedOn b)) "b takes the freed slot"
+    testing.expect (spec_of state a = None && spec_of state b <> None) "a settled job's spec is dropped"
+    := _, effects = dispatch_step state (LeaseGranted (JobId "job-z"))
+    testing.expect (effects = [ UnknownJob (JobId "job-z") ]) "a lease for an unknown job is reported, not launched"
+    := failed = table_after (table_of 1i32 [ Arrived a ]) (Moved (a, Expiring))
+    testing.expect (status_in failed a = Some (LeasedOn a)) "a failed launch requeues and the free slot leases it again"
+
+///> rust
+:# a_job_that_never_launches_is_given_up_after_three_tries_and_frees_its_slot =
+    := a, b = JobId "job-a", JobId "job-b"
+    := spec = { label = "kit-a"; machine = "node"; timeout_ms = 60000u64; command = [ "pwsh"; "-File"; "a.ps1" ] }
+    := args = [ "job"; "start"; "--on"; "node"; "kit-a"; "60000"; "pwsh"; "-File"; "a.ps1" ]
+    testing.expect (launch_args spec = args) "kit job start --on <machine> <label> <timeout> <command>"
+    := step = \ ((state, table, effects) : dispatch_state * coord_table * list dispatch_effect) (message) =>
+        := next, made = dispatch_step state message
+        next, table_inputs made |> listm.fold table_after table, listm.append effects made
+    := tries = [ LaunchAnswered (a, !-); LaunchAnswered (a, !-); LaunchAnswered (a, !-) ]
+    := story = listm.append [ Submitted (a, spec); Submitted (b, spec); LeaseGranted a ] tries
+    := state, table, effects = story |> listm.fold step (empty_dispatch (), empty_table 1i32, [])
+    := gave_up : i32 = effects |> listm'.filter (\ (e : dispatch_effect) => e = LaunchGaveUp a) |> listm.length
+    testing.expect (gave_up = 1i32 && spec_of state a = None && failures_of state a = 0i32) "given up once, forgotten"
+    testing.expect (status_in table a = Some Settled && status_in table b = Some (LeasedOn b)) "the slot goes to b"

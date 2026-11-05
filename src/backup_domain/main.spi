@@ -239,82 +239,70 @@
     |: 2i32
 
 := export_backup_slot () : () =
-    !!!!Export("kit_patch_backup_slot", ((\ (first, second) => backup_slot_for first second) : i32 * i32 -> i32))
+    export "kit_patch_backup_slot" ((\ (first, second) => backup_slot_for first second) : i32 * i32 -> i32)
 
 := export_backup_next_count () : () =
-    !!!!Export(
-        "kit_patch_backup_next_count",
+    export
+        "kit_patch_backup_next_count"
         ((\ (first, second) => backup_next_count first second) : i32 * i32 -> i32)
-    )
 
 := export_backup_capture_flag () : () =
-    !!!!Export(
-        "kit_patch_backup_should_capture",
+    export
+        "kit_patch_backup_should_capture"
         ((\ (first, second) => backup_should_capture first second) : i32 * i32 -> i32)
-    )
 
 := export_backup_binding_slot () : () =
-    !!!!Export(
-        "kit_patch_backup_binding_slot",
+    export
+        "kit_patch_backup_binding_slot"
         ((\ (first, second) => backup_binding_slot first second) : i32 * i32 -> i32)
-    )
 
 := export_capture_authorized () : () =
-    !!!!Export(
-        "kit_patch_capture_authorized",
+    export
+        "kit_patch_capture_authorized"
         ((\ (first, second) => capture_authorized first second) : i32 * i32 -> i32)
-    )
 
 := export_capture_binding_slot () : () =
-    !!!!Export(
-        "kit_patch_capture_binding_slot",
+    export
+        "kit_patch_capture_binding_slot"
         ((\ (first, second) => capture_binding_slot first second) : i32 * i32 -> i32)
-    )
 
 := export_promotion_slot_authorized () : () =
-    !!!!Export(
-        "kit_patch_promotion_slot_authorized",
+    export
+        "kit_patch_promotion_slot_authorized"
         ((\ (first, second) => promotion_slot_authorized first second) : i32 * i32 -> i32)
-    )
 
 := export_restoration_select () : () =
-    !!!!Export(
-        "kit_patch_restoration_select",
+    export
+        "kit_patch_restoration_select"
         ((\ (first, second) => restoration_select first second) : i32 * i32 -> i32)
-    )
 
 := export_restoration_bind () : () =
-    !!!!Export("kit_patch_restoration_bind", ((\ (first, second) => restoration_bind first second) : i32 * i32 -> i32))
+    export "kit_patch_restoration_bind" ((\ (first, second) => restoration_bind first second) : i32 * i32 -> i32)
 
 := export_restoration_complete () : () =
-    !!!!Export(
-        "kit_patch_restoration_complete",
+    export
+        "kit_patch_restoration_complete"
         ((\ (first, second) => restoration_complete first second) : i32 * i32 -> i32)
-    )
 
 := export_restoration_attempt_count () : () =
-    !!!!Export(
-        "kit_patch_restoration_attempt_count",
+    export
+        "kit_patch_restoration_attempt_count"
         ((\ (first, second) => restoration_attempt_count first second) : i32 * i32 -> i32)
-    )
 
 := export_restoration_attempt_authorized () : () =
-    !!!!Export(
-        "kit_patch_restoration_attempt_authorized",
+    export
+        "kit_patch_restoration_attempt_authorized"
         ((\ (first, second) => restoration_attempt_authorized first second) : i32 * i32 -> i32)
-    )
 
 := export_restoration_counter_next () : () =
-    !!!!Export(
-        "kit_patch_restoration_counter_next",
+    export
+        "kit_patch_restoration_counter_next"
         ((\ (first, second) => restoration_counter_next first second) : i32 * i32 -> i32)
-    )
 
 := export_restoration_accumulator_outcome () : () =
-    !!!!Export(
-        "kit_patch_restoration_accumulator_outcome",
+    export
+        "kit_patch_restoration_accumulator_outcome"
         ((\ (first, second) => restoration_accumulator_outcome first second) : i32 * i32 -> i32)
-    )
 
 := main () : i32 =
     := backup_probe = collect_backup (existing_backup_slot -1i32) (next_backup_slot 0i32)

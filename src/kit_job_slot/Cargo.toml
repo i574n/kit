@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_job_slot"
 path = "slot.rs"
+
+[dependencies]
+kit-process-alive = { path = "../kit_process_alive" }

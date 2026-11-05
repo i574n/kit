@@ -88,7 +88,7 @@
         goal_met : bool
     }
 
-:= first_open (sprints : list sprint) : option sprint =
+:~ first_open (sprints : list sprint) : option sprint =
     sprints
     |> listm.fold
         \ found (s : sprint) =>
@@ -97,7 +97,7 @@
             | None => ? s.status = SprintOpen ?> Some s |: None
         None
 
-:= first_refusal (candidates : list candidate) : option start_outcome =
+:~ first_refusal (candidates : list candidate) : option start_outcome =
     candidates
     |> listm.fold
         \ found (c : candidate) =>
@@ -109,7 +109,7 @@
                 |: None
         None
 
-:= started (sprints : list sprint) (terms : sprint_terms) (candidates : list candidate) : start_outcome =
+:~ started (sprints : list sprint) (terms : sprint_terms) (candidates : list candidate) : start_outcome =
     ?= first_open sprints ?|
     | Some s => AnotherSprintOpen s.terms.id
     | None =>
@@ -130,7 +130,7 @@
     := review = { done_minutes = done; carried_minutes = carried; dropped_minutes = dropped; goal_met = carried = 0i32 }
     { s ?| status = SprintClosed }, review
 
-:= velocity (reviews : list sprint_review) (last : i32) : i32 =
+:~ velocity (reviews : list sprint_review) (last : i32) : i32 =
     := step (count, total) (r : sprint_review) = ? count < last ?> count + 1i32, total + r.done_minutes |: count, total
     := count, total = reviews |> listm.fold step (0i32, 0i32)
     ? count = 0i32 ?> 0i32 |: total / count

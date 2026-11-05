@@ -12,3 +12,5 @@ publish.workspace = true
 [lib]
 name = "kit_jobs_doctor_env"
 path = "env.rs"
+
+[dependencies]

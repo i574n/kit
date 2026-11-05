@@ -73,25 +73,33 @@
     := at = sm'.index_of "=" text
     ? at < 0i32 ?> text, "" |: sm'.substring 0i32 at text, sm'.substring (at + 1i32) ((sm'.length text : i32) - at - 1i32) text
 
-:~ ^ named_after (~flag : string) (~name : string) (words : list string) : string =
+:| count_flag =
+    | FlagCount
+    | FlagInSet
+    | FlagCountIn
+
+:= count_flag_word (flag : count_flag) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Flag" flag
+
+:~ ^ named_after (flag : count_flag) (~name : string) (words : list string) : string =
     ?= words ?|
     | (word :: value :: rest) =>
         := key, found = pair_of value
-        ? word = flag && key = name ?> found |: named_after flag name (value :: rest)
+        ? word = count_flag_word flag && key = name ?> found |: named_after flag name (value :: rest)
     | _ => ""
 
 :~ ^ specs_from (words : list string) (all : list string) : list count_spec =
     ?= words ?|
     | (word :: value :: rest) =>
-        ? word = "--count"
+        ? word = count_flag_word FlagCount
         ?>
             := name, pattern = pair_of value
-            := set_path, set_pattern = set_split (named_after "--in-set" name all)
+            := set_path, set_pattern = set_split (named_after FlagInSet name all)
             := spec =
                 {
                     name = name
                     pattern = pattern
-                    scope = named_after "--count-in" name all
+                    scope = named_after FlagCountIn name all
                     set_path = set_path
                     set_pattern = set_pattern
                 }
@@ -99,13 +107,8 @@
         |: specs_from (value :: rest) all
     | _ => []
 
-:~ ^ words_from (index : i32) (count : i32) : list string =
-    ? index >= count
-    ?> []
-    |: optionm'.default_value "" (env.try_command_line_argument index) :: words_from (index + 1i32) count
-
 :~ command_specs () : list count_spec =
-    := words = words_from 2i32 (env.command_line_argument_count ())
+    := words = ?= env.command_line_arguments () ?| | _ :: _ :: rest => rest | _ => []
     specs_from words words
 
 :~ ^ missing_set (specs : list count_spec) : string =

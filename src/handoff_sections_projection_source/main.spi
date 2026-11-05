@@ -18,5 +18,5 @@
         four
         """
     := duplicate_ok = (=.) (handoff_sections_projection (fixture_handoff_duplicate ())) ""
-    !!!!Export("kit_handoff_sections_projection", ((\ value => handoff_sections_projection value) : string -> string))
+    export "kit_handoff_sections_projection" ((\ value => handoff_sections_projection value) : string -> string)
     ? sections_ok ?> ? duplicate_ok ?> 0i32 |: 2i32 |: 1i32

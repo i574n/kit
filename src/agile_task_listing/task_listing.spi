@@ -8,9 +8,6 @@
 :< workspace_primitives.console
 :< workspace_primitives.files
 
-:= argument_owned index : string = rust_std_env.model.argument_owned index
-:= argument_count () : i32 = rust_std_env.model.argument_count_after 2i32
-
 :== task_row =
     {
         id : string
@@ -140,14 +137,10 @@
     | SortDifficulty
     | SortProgress
 
-:= sort_word (sort : list_sort) : string =
-    ?= sort ?|
-    | SortPriority => "priority"
-    | SortDifficulty => "difficulty"
-    | SortProgress => "progress"
+:= sort_word (sort : list_sort) : string = union_reflection.cases.union_case_kebab "Sort" sort
 
 := sort_of_word (~word : string) : list_sort =
-    ? word = "difficulty" ?> SortDifficulty |? word = "progress" ?> SortProgress |: SortPriority
+    union_reflection.cases.union_case_where (\ (sort : list_sort) => word = sort_word sort) (\ sort => sort) SortPriority
 
 :== list_request =
     {
@@ -412,9 +405,9 @@
                 sort = sort_of_word sort
                 unsettled = ""
             }
-        agile_list (argument_owned 1i32) request
+        agile_list (kit_agile_list_args.args.list_root ()) request
     |: agile_list_failure reason
 := main () : i32 =
-    !!!!Export("kit_agile_list_run", ((\ () => agile_list_entry ()) : () -> i32))
+    export "kit_agile_list_run" ((\ () => agile_list_entry ()) : () -> i32)
     := _ = agile_list_entry ()
     0i32

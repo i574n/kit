@@ -4,5 +4,6 @@ packages:
 modules:
     registry
     notebook
+    batches
     failures
     main

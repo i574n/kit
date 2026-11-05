@@ -27,14 +27,12 @@
     agile_state_path_policy.model.state_path_candidate_code name
 
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_state_transient_schema_code",
+    export
+        "kit_agile_state_transient_schema_code"
         ((\ value => agile_transient_schema_code value) : string -> u64)
-    )
-    !!!!Export(
-        "kit_agile_state_path_candidate_code",
+    export
+        "kit_agile_state_path_candidate_code"
         ((\ value => agile_state_path_candidate_code value) : string -> u64)
-    )
     inl _ = agile_transient_schema_code """
         patch_resume.spi
         PatchResumeReceipt (x)

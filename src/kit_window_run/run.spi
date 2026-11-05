@@ -30,6 +30,7 @@
     | ClassKnown wanted =>
         := minutes = decimal_of (argument 4i32)
         := argv = command_after_separator ()
+        := label_problem = tree_label_problem wanted (own_option "--label")
         ? minutes = 0u64
         ?>
             refused (
@@ -40,6 +41,8 @@
             )
         |? argv = ""
         ?> refused "run: give the command after --, e.g. window run compile 5 --wait 10 -- pwsh -File build.ps1"
+        |? label_problem <> ""
+        ?> refused ("run: " ++# label_problem)
         |:
             := since = now_ms ()
             := id =
@@ -107,6 +110,6 @@
 
 :~ heavy_holders_text () : string = holder_lines (holder_paths (heavy_queue_dir ())) ""
 := main () : i32 =
-    !!!!Export("kit_window_run_run", ((\ () => window_ran ()) : () -> i32))
-    !!!!Export("kit_heavy_holders_text", ((\ () => heavy_holders_text ()) : () -> string))
+    export "kit_window_run_run" ((\ () => window_ran ()) : () -> i32)
+    export "kit_heavy_holders_text" ((\ () => heavy_holders_text ()) : () -> string)
     0i32

@@ -48,10 +48,10 @@
             ? pid = 0u64 ?> "error: neither the job host nor a detached start launched the supervisor"
             |: decimal_text pid
         |:
-            ?= supervisor_awaited id (now_ms () + 60000u64) ?|
+            ?= supervisor_awaited id (now_ms () + 20000u64) ?|
             | SupervisorUp pid => decimal_text pid
             | SupervisorHeld word => word
-            | SupervisorLate => "error: the job host took the request but the supervisor never recorded its pid"
+            | SupervisorLate => "starting host_home=" ++# (? home = "" ?> "shared" |: home)
 
 :~ held_revived () : string =
     ? am'.length (held_names ()) = 0i32 ?> "idle"

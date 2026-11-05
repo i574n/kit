@@ -238,30 +238,6 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> std::rc::Rc<Vec<std::rc::Rc<str>>>> {
         files_under_0(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn class_word_14(mut v0: US0) -> Rc<str> {
-    match &v0 {
-        US0::US0_MacroArith => {
-            let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("arith"); } LIT.with(|lit| lit.clone()) };
-            v5
-        }
-        US0::US0_MacroBlock => {
-            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("block"); } LIT.with(|lit| lit.clone()) };
-            v2
-        }
-        US0::US0_MacroCast => {
-            let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cast"); } LIT.with(|lit| lit.clone()) };
-            v4
-        }
-        US0::US0_MacroFlow => {
-            let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("flow"); } LIT.with(|lit| lit.clone()) };
-            v3
-        }
-        US0::US0_MacroLong => {
-            let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("long"); } LIT.with(|lit| lit.clone()) };
-            v1
-        }
-    }
-}
 fn method13(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: US0, mut v4: Rc<str>, mut v5: Rc<UH1>) -> US1 {
     loop {
         match &*v5 {
@@ -277,14 +253,35 @@ fn method13(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: US0, mut v4: 
                 } else {
                     false
                 };
-                let v16: bool = if v13 {
-                    let mut v14: Rc<str> = class_word_14(v3.clone());
-                    let v15: bool = &*v9 == &*v14;
-                    v15
+                let v21: bool = if v13 {
+                    let v19: Rc<str> = match &v3 {
+                        US0::US0_MacroArith => {
+                            let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("arith"); } LIT.with(|lit| lit.clone()) };
+                            v18.clone()
+                        }
+                        US0::US0_MacroBlock => {
+                            let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("block"); } LIT.with(|lit| lit.clone()) };
+                            v15.clone()
+                        }
+                        US0::US0_MacroCast => {
+                            let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cast"); } LIT.with(|lit| lit.clone()) };
+                            v17.clone()
+                        }
+                        US0::US0_MacroFlow => {
+                            let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("flow"); } LIT.with(|lit| lit.clone()) };
+                            v16.clone()
+                        }
+                        US0::US0_MacroLong => {
+                            let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("long"); } LIT.with(|lit| lit.clone()) };
+                            v14.clone()
+                        }
+                    };
+                    let v20: bool = &*v9 == &*v19;
+                    v20
                 } else {
                     false
                 };
-                if v16 {
+                if v21 {
                     return US1::US1_Some(v7.clone(), v8.clone(), v9.clone());
                 } else {
                     v5 = v10.clone();
@@ -310,7 +307,7 @@ fn known_12(mut v0: Rc<UH1>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut 
     let v8: bool = v7 != true;
     v8
 }
-fn method16(mut v0: Option<usize>) -> Option<usize> {
+fn method15(mut v0: Option<usize>) -> Option<usize> {
     v0
 }
 fn closure2() -> Rc<dyn Fn((usize)) -> i32> {
@@ -320,7 +317,7 @@ fn closure2() -> Rc<dyn Fn((usize)) -> i32> {
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn method18(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
+fn method17(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
         let v3: bool = v2 >= v1;
         if v3 {
@@ -354,7 +351,7 @@ fn method18(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
         }
     }
 }
-fn method19(mut v0: Rc<str>, mut v1: i32) -> i32 {
+fn method18(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
         let mut v2: bool = v1 <= 0i32;
         if v2 {
@@ -388,7 +385,7 @@ fn method19(mut v0: Rc<str>, mut v1: i32) -> i32 {
         }
     }
 }
-fn words_in_20(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
+fn words_in_19(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
     loop {
         let v3: i32 = (v0.clone().borrow().len() as i32);
         let mut v4: bool = v3 <= v1;
@@ -416,20 +413,20 @@ fn closure3() -> Rc<dyn Fn((usize)) -> i32> {
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn known_of_17(mut v0: Rc<str>) -> US1 {
+fn known_of_16(mut v0: Rc<str>) -> US1 {
     let mut v1: i32 = (v0.clone().len() as i32);
     let mut v2: i32 = 0i32;
-    let v3: i32 = method18(v0.clone(), v1, v2);
+    let v3: i32 = method17(v0.clone(), v1, v2);
     let mut v4: i32 = v1.wrapping_sub(1i32);
     let mut v5: Rc<str> = string_slice(&v0.clone(), v3 as i64, v4 as i64);
     let mut v6: i32 = (v5.clone().len() as i32);
-    let mut v7: i32 = method19(v5.clone(), v6);
+    let mut v7: i32 = method18(v5.clone(), v6);
     let v8: Rc<str> = string_slice(&v5.clone(), 0i32 as i64, v7 as i64);
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
     let mut v10: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v8.split(&*v9).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let mut v11: i32 = 0i32;
     let v12: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v13: Rc<UH0> = words_in_20(v10.clone(), v11, v12.clone());
+    let v13: Rc<UH0> = words_in_19(v10.clone(), v11, v12.clone());
     match &*v13 {
         UH0::UH0_Cons(v14, v15) => {
             let mut v14: Rc<str> = v14.clone();
@@ -444,60 +441,54 @@ fn known_of_17(mut v0: Rc<str>) -> US1 {
                             let v19: Rc<UH0> = v19.clone();
                             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
                             let v21: Option<usize> = v14.rfind(&*v20);
-                            let v22: Option<usize> = method16(v21.clone());
+                            let v22: Option<usize> = method15(v21.clone());
                             let mut v23: Rc<dyn Fn((usize)) -> i32> = closure3();
                             let mut v24: Option<i32> = v22.map(|x| v23(x));
                             let v26: i32 = v24.unwrap_or(-1i32);
                             let v27: bool = &*v16 == "long";
-                            let v29: bool = if v27 {
+                            let v35: bool = if v27 {
                                 true
                             } else {
                                 let v28: bool = &*v16 == "block";
-                                v28
-                            };
-                            let v31: bool = if v29 {
-                                true
-                            } else {
-                                let v30: bool = &*v16 == "flow";
-                                v30
-                            };
-                            let v33: bool = if v31 {
-                                true
-                            } else {
-                                let v32: bool = &*v16 == "cast";
-                                v32
-                            };
-                            let v35: bool = if v33 {
-                                true
-                            } else {
-                                let v34: bool = &*v16 == "arith";
-                                v34
+                                if v28 {
+                                    true
+                                } else {
+                                    let v29: bool = &*v16 == "flow";
+                                    if v29 {
+                                        true
+                                    } else {
+                                        let v30: bool = &*v16 == "cast";
+                                        if v30 {
+                                            true
+                                        } else {
+                                            let v31: bool = &*v16 == "arith";
+                                            v31
+                                        }
+                                    }
+                                }
                             };
                             let v46: bool = if v35 {
                                 let v36: bool = &*v18 == "long";
-                                let v38: bool = if v36 {
+                                let v44: bool = if v36 {
                                     true
                                 } else {
                                     let v37: bool = &*v18 == "block";
-                                    v37
-                                };
-                                let v40: bool = if v38 {
-                                    true
-                                } else {
-                                    let v39: bool = &*v18 == "flow";
-                                    v39
-                                };
-                                let v42: bool = if v40 {
-                                    true
-                                } else {
-                                    let v41: bool = &*v18 == "cast";
-                                    v41
-                                };
-                                let v44: bool = if v42 {
-                                    true
-                                } else {
-                                    let v43: bool = &*v18 == "arith";
-                                    v43
+                                    if v37 {
+                                        true
+                                    } else {
+                                        let v38: bool = &*v18 == "flow";
+                                        if v38 {
+                                            true
+                                        } else {
+                                            let v39: bool = &*v18 == "cast";
+                                            if v39 {
+                                                true
+                                            } else {
+                                                let v40: bool = &*v18 == "arith";
+                                                v40
+                                            }
+                                        }
+                                    }
                                 };
                                 let v45: bool = v44 == false;
                                 v45
@@ -534,7 +525,7 @@ fn known_of_17(mut v0: Rc<str>) -> US1 {
         }
     }
 }
-fn rows_of_file_15(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut v3: Rc<UH1>) -> Rc<UH1> {
+fn rows_of_file_14(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut v3: Rc<UH1>) -> Rc<UH1> {
     loop {
         let mut v4: i32 = (v1.clone().borrow().len() as i32);
         let mut v5: bool = v2 >= v4;
@@ -544,7 +535,7 @@ fn rows_of_file_15(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i
             let mut v6: Rc<str> = v1.borrow()[v2 as usize].clone();
             let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v8: Option<usize> = v6.find(&*v7);
-            let v9: Option<usize> = method16(v8.clone());
+            let v9: Option<usize> = method15(v8.clone());
             let mut v10: Rc<dyn Fn((usize)) -> i32> = closure2();
             let mut v11: Option<i32> = v9.map(|x| v10(x));
             let v13: i32 = v11.unwrap_or(-1i32);
@@ -559,7 +550,7 @@ fn rows_of_file_15(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i
             };
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
             let v21: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v19)), v18));
-            let v22: US1 = known_of_17(v21.clone());
+            let v22: US1 = known_of_16(v21.clone());
             match &v22 {
                 US1::US1_None => {
                     let v29: i32 = v2.wrapping_add(1i32);
@@ -591,7 +582,7 @@ fn known_text_11(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>,
     let mut v14: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v13.split(&*v9).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
     let v15: i32 = 1i32;
     let v16: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let v17: Rc<UH1> = rows_of_file_15(v1.clone(), v14.clone(), v15, v16.clone());
+    let v17: Rc<UH1> = rows_of_file_14(v1.clone(), v14.clone(), v15, v16.clone());
     known_12(v17.clone(), v1.clone(), v2, v3.clone(), v4.clone(), v5.clone())
 }
 fn known_in_10(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32) -> bool {

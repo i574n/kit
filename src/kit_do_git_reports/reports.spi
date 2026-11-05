@@ -95,19 +95,16 @@
     status_rows root repos 0u64 (row "repo" (row "state" (row "count" "paths"))) !- 0u64 0u64 0u64
 
 := main () : i32 =
-    !!!!Export(
-        "kit_do_git_history",
+    export
+        "kit_do_git_history"
         (
             \ (root, repo, needle, path) => history_report root repo needle path
             : string * string * string * string -> string * bool * u64 * u64
         )
-    )
-    !!!!Export(
-        "kit_do_git_days",
+    export
+        "kit_do_git_days"
         ((\ (root, repo, since) => days_report root repo since) : string * string * string -> string * bool * u64 * u64)
-    )
-    !!!!Export(
-        "kit_do_git_status",
+    export
+        "kit_do_git_status"
         ((\ (root, repos) => status_report root repos) : string * string -> string * bool * u64 * u64 * u64)
-    )
     0i32

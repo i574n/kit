@@ -128,6 +128,6 @@
     | ReplacementRejected text => 2i32, text
 
 := main () : i32 =
-    !!!!Export("kit_text_replace_outcome", ((\ () => text_replace_report ()) : () -> i32 * string))
+    export "kit_text_replace_outcome" ((\ () => text_replace_report ()) : () -> i32 * string)
     := _ = text_replace_outcome ()
     0i32

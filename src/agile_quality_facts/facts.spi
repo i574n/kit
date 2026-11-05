@@ -1,0 +1,105 @@
+///- --package .
+:# facts static =
+    :< sm'_operators
+    :< agile_quality_lint.lint
+
+:< sm'_operators
+:< agile_quality_lint.lint
+
+:| state_line =
+    | TaskLine : string * string * string
+    | PlanningLine : string * i32 * string * string
+    | NoteLine : string * string
+    | OtherLine
+
+:= part (parts : array string) (index : i32) : string = am'.index index parts
+
+:~ task_line (parts : array string) : state_line =
+    := count = am'.length parts
+    := fields = sm'.split_list "," (part parts (count - 9i32)) |> listm.map sm'.trim
+    := words = fields |> listm'.filter (\ (w : string) => w <> "")
+    := status = listm.fold (\ _ (w : string) => w) "" words
+    TaskLine (part parts 1i32, status, part parts (count - 6i32))
+
+:= after (~prefix : string) (~text : string) : string =
+    ? sm'.starts_with prefix text ?> sm'.replace prefix "" text |: ""
+
+:~ planning_line (parts : array string) : state_line =
+    ?= sm'.split_list "," (sm'.replace ")" "" (part parts 2i32)) |> listm.map sm'.trim ?|
+    | _ :: estimate :: load :: assignee :: _ =>
+        := digits = sm'.replace "u32" "" (after "Minutes " estimate)
+        := minutes = convert.try_convert digits |> optionm'.default_value 0i32
+        PlanningLine (part parts 1i32, minutes, after "Load " load, after "Assigned " assignee)
+    | _ => OtherLine
+
+:~ state_line_of (~line : string) : state_line =
+    := parts = sm'.split "\"" line |> array
+    := count = am'.length parts
+    ? count < 3i32 ?> OtherLine
+    |? sm'.starts_with "inl note_of_" line ?> NoteLine (part parts 1i32, line)
+    |? sm'.starts_with "inl planning_of_" line ?> planning_line parts
+    |? sm'.starts_with "inl " line && sm'.contains "() = Task (" line && count >= 10i32 ?> task_line parts
+    |: OtherLine
+
+:= blank () : item_facts = { status = ""; tags = ""; estimate_minutes = 0i32; load = ""; assignee = ""; notes = "" }
+
+:~ folded (acc : dict.dict string item_facts) (line : state_line) : dict.dict string item_facts =
+    ?= line ?|
+    | TaskLine (id, status, tags) =>
+        acc |> dict.updated id (blank ()) (\ (f : item_facts) => { f ?| status = status; tags = tags })
+    | PlanningLine (id, minutes, load, who) =>
+        := planned = \ (f : item_facts) => { f ?| estimate_minutes = minutes; load = load; assignee = who }
+        acc |> dict.updated id (blank ()) planned
+    | NoteLine (id, text) =>
+        acc |> dict.updated id (blank ()) (\ (f : item_facts) => { f ?| notes = f.notes ++# "\n" ++# text })
+    | OtherLine => acc
+
+:~ facts_of (~text : string) : dict.dict string item_facts =
+    sm'.split_list "\n" (sm'.replace "\r" "" text)
+    |> listm.fold
+        (\ (acc : dict.dict string item_facts) (line : string) => folded acc (state_line_of line))
+        (dict.empty ())
+
+:~ fact_rows_of (~text : string) : array_base fact_row =
+    := row = \ (id : string) (f : item_facts) =>
+        {
+            id = id
+            status = f.status
+            tags = f.tags
+            estimate_minutes = f.estimate_minutes
+            load = f.load
+            assignee = f.assignee
+            notes = f.notes
+        }
+    facts_of text
+    |> dict.fold
+        (\ (acc : list fact_row) (id : string) (f : item_facts) => ? f.status = "" ?> acc |: row id f :: acc)
+        []
+    |> listm.rev
+    |> listm'.box
+    |> listm'.to_array'
+
+///> rust
+:# state_rows_give_each_item_its_facts_in_one_pass =
+    := task =
+        "inl t_a () = Task (\"T-A\", \"say \\\"hi\\\" now\", Story, P0, D3, 0u32, Active, \"\", "
+        ++# "\"kit,team:kit\", \"current\", \"current\")"
+    := plan =
+        "inl planning_of_t_a () = Planning (\"T-A\", Minutes 60u32, Load Light, Assigned Agent)"
+    := note =
+        "inl note_of_t_a_1 () = Note (\"T-A\", 1u32, \"2026-11-04T10:00Z\", \"kit\", "
+        ++# "\"DoD: tests pass. NEXT: wire it.\")"
+    := done =
+        "inl t_b () = Task (\"T-B\", \"old\", Story, P1, D1, 100u32, Done, \"\", \"kit\", \"current\", \"current\")"
+    := text = sm'.concat_list "\n" [ "union x ="; task; plan; note; done ]
+    ?= dict.find "T-A" (facts_of text) ?|
+    | Some f =>
+        testing.expect (f.status = "Active" && f.tags = "kit,team:kit") f.status
+        testing.expect (f.estimate_minutes = 60i32 && f.load = "Light" && f.assignee = "Agent") f.load
+        testing.expect (failing f = [ TypeFeatures ]) (failing_words f)
+    | None => testing.expect !- "T-A read back"
+    testing.expect (am'.length_base (fact_rows_of text) = 2i32) "both tasks become fact rows"
+///> _
+:= main () : i32 =
+    export "kit_agile_fact_rows" fact_rows_of
+    0i32

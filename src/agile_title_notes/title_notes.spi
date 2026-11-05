@@ -75,6 +75,6 @@
     |: from_title_failure "usage: agile notes from-title <root> <id>" id
 
 := main () : i32 =
-    !!!!Export("kit_agile_notes_from_title_run", ((\ () => from_title_entry ()) : () -> i32))
+    export "kit_agile_notes_from_title_run" ((\ () => from_title_entry ()) : () -> i32)
     := _ = from_title_entry ()
     0i32

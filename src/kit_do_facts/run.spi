@@ -184,42 +184,39 @@
             | FactParsed _ => first_rejection records (index + 1i32)
     |: ""
 
-:~ segments_joined (~left : string) (~right : string) : string =
-    ? left = "" ?> right |: concat5 left "  " right "" ""
-
-:~ counted_segment (~shown : bool) (~text : string) (~label : string) (~value : u64) : string =
-    ? shown ?> segments_joined text (concat5 label " " (decimal_text value) "" "") |: text
-
 :~ receipt_counts (~state : fact_tally) : string =
-    := dirs =
-        ? state.dir_steps > 0u64
-        ?> concat5 "dirs " (decimal_text state.dirs_matched) " of " (decimal_text state.dirs_total) " matched"
-        |: ""
-    := file_steps = state.hashes + state.nearests + state.jsons + state.groupings + state.sized
-    := files = counted_segment (file_steps > 0u64) dirs "files" state.files
-    := bytes = counted_segment (state.hashes + state.sized > 0u64) files "bytes" state.bytes
-    := distinct = counted_segment (state.hashes > 0u64) bytes "distinct" state.distinct
-    := lookups = counted_segment (state.nearests > 0u64) distinct "lookups" state.lookups
-    := fields = counted_segment (state.jsons > 0u64) lookups "fields" state.fields
-    := lines = counted_segment (state.groupings > 0u64) fields "lines" state.lines
-    := groups = counted_segment (state.groupings > 0u64) lines "groups" state.groups
-    := env =
-        ? state.envs > 0u64
-        ?>
-            segments_joined groups (
-                concat5 "env " (decimal_text state.names) " (" (decimal_text state.names_set) " set)"
-            )
-        |: groups
-    := paths =
-        ? state.existings > 0u64
-        ?>
-            segments_joined env (
-                concat5 "paths " (decimal_text state.paths) " (" (decimal_text state.present) " present)"
-            )
-        |: env
-    := rows = counted_segment (state.tables > 0u64) paths "rows" state.rows
-    := matched = counted_segment (state.tables > 0u64) rows "matched" state.matched
-    counted_segment (state.tables > 0u64) matched "groups" state.table_groups
+    kit_do_facts_receipt.receipt.receipt_of (
+        ;[
+            {
+                files = state.files
+                bytes = state.bytes
+                distinct = state.distinct
+                hashes = state.hashes
+                lookups = state.lookups
+                nearests = state.nearests
+                fields = state.fields
+                jsons = state.jsons
+                lines = state.lines
+                groups = state.groups
+                groupings = state.groupings
+                sized = state.sized
+                names = state.names
+                names_set = state.names_set
+                envs = state.envs
+                paths = state.paths
+                present = state.present
+                existings = state.existings
+                rows = state.rows
+                matched = state.matched
+                table_groups = state.table_groups
+                tables = state.tables
+                dirs_matched = state.dirs_matched
+                dirs_total = state.dirs_total
+                dir_steps = state.dir_steps
+            }
+        ]
+        |> am'.base
+    )
 
 := tables_delegated (~records : record_list) : bool = $'!records.iter().skip(1).any(|fields| fields.get(1).map(|verb| \
     &**verb == "diff").unwrap_or(false))' : bool
@@ -249,5 +246,5 @@
         2i32
 
 := main () : i32 =
-    !!!!Export("kit_do_facts_run", ((\ (root, encoded) => facts_program_run root encoded) : string * string -> i32))
+    export "kit_do_facts_run" ((\ (root, encoded) => facts_program_run root encoded) : string * string -> i32)
     0i32

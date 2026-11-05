@@ -15,3 +15,4 @@ path = "note_edit.rs"
 
 [dependencies]
 kit-agile-records = { path = "../kit_agile_records" }
+agile-note-edit-args = { path = "../agile_note_edit_args" }

@@ -1,6 +1,15 @@
+///- --package .
+:# grep static =
+    :< sm'_operators
+    :< kit_receipt.receipt
+    :< kit_grep_found.found
+    :< hits
+    :< search
+
 :< sm'_operators
 :< kit_receipt.receipt
-:< kit_os_search.search
+:< kit_grep_found.found
+:< hits
 :< search
 
 :| needle_hint =
@@ -24,8 +33,6 @@
         | NoNeedleHint => ""
         | LiteralLooksLikePattern => "  hint: the needle is literal; pass --regex to use it as a pattern"
 
-:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
-:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
 := stderr_line (~text : string) : () = console.write_error_line text
 :~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
 
@@ -46,22 +53,53 @@
 :~ search_start () : search_options =
     { glob = ""; context = 0u64; limit = 200u64; ignore_case = !-; regex = !-; json = !- }
 
-:~ ^ search_options_from (index : i32) (count : i32) (options : search_options) : search_options =
-    ? index < count ?>
-        := word = argument index
-        ? word = "--ignore-case" ?> search_options_from (index + 1i32) count { options ?| ignore_case = !+ }
-        |? word = "--json" ?> search_options_from (index + 1i32) count { options ?| json = !+ }
-        |? word = "--regex" ?> search_options_from (index + 1i32) count { options ?| regex = !+ }
-        |? index + 1i32 < count ?>
-            := value = argument (index + 1i32)
-            ? word = "--glob" ?> search_options_from (index + 2i32) count { options ?| glob = value }
-            |? word = "--context"
-            ?> search_options_from (index + 2i32) count { options ?| context = decimal_u64 value }
-            |? word = "--max" ?> search_options_from (index + 2i32) count { options ?| limit = decimal_u64 value }
-            |: search_options_from (index + 1i32) count options
-        |: options
-    |: options
+:| grep_switch =
+    | SwitchIgnoreCase
+    | SwitchJson
+    | SwitchRegex
 
+:| grep_valued =
+    | ValuedGlob
+    | ValuedContext
+    | ValuedMax
+
+:= switch_word (flag : grep_switch) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Switch" flag
+
+:= valued_word (flag : grep_valued) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ switch_of (~word : string) : option grep_switch =
+    union_reflection.cases.union_case_where (\ (flag : grep_switch) => word = switch_word flag) Some None
+
+:~ valued_of (~word : string) : option grep_valued =
+    union_reflection.cases.union_case_where (\ (flag : grep_valued) => word = valued_word flag) Some None
+
+:~ switch_applied (flag : grep_switch) (options : search_options) : search_options =
+    ?= flag ?|
+    | SwitchIgnoreCase => { options ?| ignore_case = !+ }
+    | SwitchJson => { options ?| json = !+ }
+    | SwitchRegex => { options ?| regex = !+ }
+
+:~ valued_applied (flag : grep_valued) (~value : string) (options : search_options) : search_options =
+    ?= flag ?|
+    | ValuedGlob => { options ?| glob = value }
+    | ValuedContext => { options ?| context = decimal_u64 value }
+    | ValuedMax => { options ?| limit = decimal_u64 value }
+
+:~ ^ options_read (words : list string) (options : search_options) : search_options =
+    ?= words ?|
+    | [] => options
+    | word :: rest =>
+        ?= switch_of word ?|
+        | Some flag => options_read rest (switch_applied flag options)
+        | None =>
+            ?= valued_of word ?|
+            | Some flag =>
+                ?= rest ?|
+                | value :: after => options_read after (valued_applied flag value options)
+                | [] => options
+            | None => options_read rest options
 :~ search_receipt
     (hits : search_hits) (json : bool) (context : i32) (limit : i32) (hint : needle_hint) (~started : u64)
     : i32
@@ -89,37 +127,46 @@
             started
         0i32
 
-:~ grep_run () : i32 =
+:~ grep_searched (~root : string) (~needle : string) (flags : list string) : i32 =
     := started = now_ms ()
-    ? argument_count () < 4i32 ?> rejected (kit_read_query.model.read_usage ())
+    := options = options_read flags (search_start ())
+    := context = options.context
+    := limit = options.limit
+    ? root = "" || needle = "" ?> rejected (kit_read_query.model.read_usage ())
     |:
-        := options = search_options_from 4i32 (argument_count ()) (search_start ())
-        := context = options.context
-        := limit = options.limit
-        := root = argument 2i32
-        := needle = argument 3i32
         := kind =
             ? options.regex ?> PatternNeedle options.ignore_case
             |? options.ignore_case ?> CaselessNeedle
             |: LiteralNeedle
-        := problem = ? options.regex ?> pattern_problem needle |: ""
+        := problem = ? options.regex ?> found_problem needle |: ""
         ? problem <> "" ?> rejected ("grep: invalid --regex pattern: " ++# problem)
         |:
             ?= root_kind root ?|
             | MissingRoot => rejected ("grep root not found: " ++# root)
-            | found =>
-                := files =
-                    ?= found ?|
-                    | FileRoot => file_alone root
-                    | _ => files_under root
+            | _ =>
+                := caseless, pattern = needle_flags kind
                 search_receipt
-                    (hits_found root files (matcher_of kind needle) options.glob)
+                    (searched_in root options.glob needle caseless pattern)
                     options.json
                     ((conv context : i32))
                     ((conv limit : i32))
                     (needle_hint_of options.regex needle)
                     started
 
+:~ grep_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: root :: needle :: flags => grep_searched root needle flags
+    | _ => grep_searched "" "" []
+
+///> rust
+:# grep_flags_read_by_reflection =
+    := switches = union_reflection.cases.union_cases_joined switch_word "|"
+    testing.expect (switches = "--ignore-case|--json|--regex") switches
+    := valued = union_reflection.cases.union_cases_joined valued_word "|"
+    testing.expect (valued = "--glob|--context|--max") valued
+    := read = options_read [ "--json"; "--glob"; "*.spi"; "--bogus"; "--max"; "7"; "--context" ] (search_start ())
+    testing.expect (read.json && read.glob = "*.spi" && read.limit = 7u64 && read.context = 0u64) read.glob
+///> _
 := main () : i32 =
-    !!!!Export("kit_grep_run", ((\ () => grep_run ()) : () -> i32))
+    export "kit_grep_run" ((\ () => grep_run ()) : () -> i32)
     0i32

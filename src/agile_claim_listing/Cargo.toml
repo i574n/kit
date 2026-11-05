@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "listing.spi"
+output = "listing.rs"
+
+[package]
+name = "agile-claim-listing"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "agile_claim_listing"
+path = "listing.rs"

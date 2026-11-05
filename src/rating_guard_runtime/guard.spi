@@ -23,8 +23,7 @@
 := main () : i32 =
     := _ = rating_guard_contract.model.active_rating_ceiling_binding 620i32 620i32
     emit_runtime ()
-    !!!!Export(
-        "rating_guard_active_rating_ceiling_binding",
+    export
+        "rating_guard_active_rating_ceiling_binding"
         ((\ (first, second) => active_rating_ceiling_binding first second) : i32 * i32 -> i32)
-    )
     0i32

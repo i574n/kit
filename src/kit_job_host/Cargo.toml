@@ -17,3 +17,5 @@ path = "host_run.rs"
 kit-job-state = { path = "../kit_job_state" }
 kit-os-launch = { path = "../kit_os_launch" }
 kit-job-queue = { path = "../kit_job_queue" }
+kit-process-alive = { path = "../kit_process_alive" }
+kit-job-peers = { path = "../kit_job_peers" }

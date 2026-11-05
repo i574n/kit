@@ -12,3 +12,5 @@ publish.workspace = true
 [lib]
 name = "kit_machine_crowding"
 path = "crowding.rs"
+
+[dependencies]

@@ -74,6 +74,6 @@
             0i32
 
 := main () : i32 =
-    !!!!Export("kit_experiment_amend_run", ((\ () => amended ()) : () -> i32))
-    !!!!Export("kit_experiment_addendum_run", ((\ () => addended ()) : () -> i32))
+    export "kit_experiment_amend_run" ((\ () => amended ()) : () -> i32)
+    export "kit_experiment_addendum_run" ((\ () => addended ()) : () -> i32)
     0i32

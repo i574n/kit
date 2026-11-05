@@ -1,7 +1,6 @@
 :< sm'_operators
 :< mirror
 
-:= argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
 
 := under (~root : string) (~relative : string) : string = ? relative = "" ?> root |: root ++# "/" ++# relative
 
@@ -53,26 +52,28 @@
     | [] => text, count
     | (file :: rest) =>
         ?= drift_of file ?|
-        | SameOnBoth => drift_lines rest text count
+        | Same => drift_lines rest text count
         | drift => drift_lines rest (text ++# drift_word drift ++# "\t" ++# file.path ++# "\n") (count + 1u64)
 
-:~ ^ paths_from (index : i32) (count : i32) (~left : string) (~right : string) (acc : list string) : list string =
-    ? index >= count ?> acc
-    |:
-        := path = argument index
+:~ ^ paths_from (paths : list string) (~left : string) (~right : string) (acc : list string) : list string =
+    ?= paths ?|
+    | [] => acc
+    | (path :: rest) =>
         := on_left = listm.rev (files_under left (path :: []) [])
         := on_right = listm.rev (files_under right (path :: []) [])
-        paths_from (index + 1i32) count left right (merged on_right (merged on_left acc))
+        paths_from rest left right (merged on_right (merged on_left acc))
 
+:| mirror_command =
+    | CommandCheck
+
+:= mirror_command_word (command : mirror_command) : string =
+    union_reflection.cases.union_case_kebab "Command" command
 := usage () : string =
     "usage: mirror check <left-root> <right-root> <path>... (paths relative to both roots; a directory stands for "
     ^^ "every file under it)"
 
-:~ mirror_run () : i32 =
-    := count = env.command_line_argument_count ()
-    := left = argument 2i32
-    := right = argument 3i32
-    ? argument 1i32 <> "check" || count < 5i32
+:~ mirror_checked (~left : string) (~right : string) (paths : list string) : i32 =
+    ? paths = []
     ?>
         console.write_error_line ("kit error: mirror " ++# usage ())
         2i32
@@ -83,7 +84,7 @@
         )
         2i32
     |:
-        := files = mirrored left right (listm.rev (paths_from 4i32 count left right [])) []
+        := files = mirrored left right (listm.rev (paths_from paths left right [])) []
         := lines, differing = drift_lines files "" 0u64
         := state = mirror_state_of files "" ""
         ? lines <> "" ?> console.write_line (sm'.trim_end_suffix "\n" lines)
@@ -97,6 +98,17 @@
         )
         ? refuses_commit state ?> 1i32 |: 0i32
 
+:~ is_check (~word : string) : bool =
+    union_reflection.cases.union_case_where
+        \ (command : mirror_command) => word = mirror_command_word command
+        \ _ => !+
+        !-
+
+:~ mirror_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: left :: right :: paths ?& is_check word => mirror_checked left right paths
+    | _ => mirror_checked "" "" []
+
 := main () : i32 =
-    !!!!Export("kit_mirror_run", ((\ () => mirror_run ()) : () -> i32))
+    export "kit_mirror_run" ((\ () => mirror_run ()) : () -> i32)
     0i32

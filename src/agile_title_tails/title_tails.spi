@@ -151,14 +151,13 @@
         moved.moved, moved.rows
 
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_title_tail_rows",
+    export
+        "kit_agile_title_tail_rows"
         (
             \ (title, id, seq, fallback) => tail_rows title id seq fallback
             : string * string * i32 * string -> i32 * string
         )
-    )
-    !!!!Export("kit_agile_title_kept_end", ((\ title => stamped_separator_from title 0i32) : string -> i32))
+    export "kit_agile_title_kept_end" ((\ title => stamped_separator_from title 0i32) : string -> i32)
     := _ = tail_rows "a; 03:10 b" "X" 1i32 "now"
     := _ = tail_rows "a (b; c); 2026-10-12 d; e" "X" 1i32 "now"
     0i32

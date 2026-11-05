@@ -133,9 +133,11 @@
                     )
                 )
                 ? attached ?> (supervised_job id, id) |: (0i32, id)
-:~ started_text (attached : bool) : string =
+:== start_answer = { code : i32; id : string }
+
+:~ start_answered (attached : bool) : array start_answer =
     := code, id = job_started attached
-    ($'std::rc::Rc::<str>::from((!code).to_string().as_str())' : string) ++# "\t" ++# id
+    ;[ { code = code; id = id } ]
 
 := record_mark () : string = sm'.char_text 30u8
 
@@ -145,12 +147,11 @@
     | LaunchRefused problem => "error: " ++# problem
 
 := main () : i32 =
-    !!!!Export("kit_job_start", ((\ attached => started_text attached) : bool -> string))
-    !!!!Export(
-        "kit_job_launched_text",
+    export "kit_job_start" start_answered
+    export
+        "kit_job_launched_text"
         (
             \ (label, timeout, inner, cwd) => launched_text label timeout inner cwd
             : string * u64 * string * string -> string
         )
-    )
     0i32

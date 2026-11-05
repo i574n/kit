@@ -116,6 +116,6 @@
             0i32
 
 := main () : i32 =
-    !!!!Export("kit_experiment_import_run", ((\ () => imported ()) : () -> i32))
-    !!!!Export("kit_experiment_verdict_run", ((\ () => verdict_recorded ()) : () -> i32))
+    export "kit_experiment_import_run" ((\ () => imported ()) : () -> i32)
+    export "kit_experiment_verdict_run" ((\ () => verdict_recorded ()) : () -> i32)
     0i32

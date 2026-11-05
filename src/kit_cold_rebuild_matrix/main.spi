@@ -82,10 +82,9 @@ inl emit_runtime () : () = global """
 := main () : i32 =
     global "#![allow(dead_code)]"
     := _ = cold_format_lane_binding 0i32 0i32
-    !!!!Export(
-        "kit_cold_format_lane",
+    export
+        "kit_cold_format_lane"
         ((\ (first, second) => cold_format_lane_binding first second) : i32 * i32 -> i32)
-    )
     cold_owner_terminal.emit_runtime ()
     emit_runtime ()
     0i32

@@ -50,62 +50,65 @@
     | None => Tail
 
 :| query_option =
-    | InOption
-    | ContextOption
-    | FirstOption
-    | IncludeOption
-    | ExcludeOption
-    | TimeoutOption
+    | ValuedIn
+    | ValuedContext
+    | ValuedFirst
+    | ValuedInclude
+    | ValuedExclude
+    | ValuedTimeout
 
-:= query_option_word (option : query_option) : string =
-    ?= option ?|
-    | InOption => "in"
-    | ContextOption => "context"
-    | FirstOption => "first"
-    | IncludeOption => "include"
-    | ExcludeOption => "exclude"
-    | TimeoutOption => "timeout"
+:= query_option_word (choice : query_option) : string =
+    union_reflection.cases.union_case_kebab "Valued" choice
 
-:= query_option_applied (option : query_option) (~value : string) (~q : query) : query =
-    ?= option ?|
-    | InOption => { q ?| target = value }
-    | ContextOption => { q ?| before = first_number value; after = last_number value }
-    | FirstOption => { q ?| first = decimal_of value }
-    | IncludeOption => { q ?| include = value }
-    | ExcludeOption => { q ?| exclude = value }
-    | TimeoutOption => { q ?| timeout_ms = duration_ms value }
+:= query_option_applied (choice : query_option) (~value : string) (~q : query) : query =
+    ?= choice ?|
+    | ValuedIn => { q ?| target = value }
+    | ValuedContext => { q ?| before = first_number value; after = last_number value }
+    | ValuedFirst => { q ?| first = decimal_of value }
+    | ValuedInclude => { q ?| include = value }
+    | ValuedExclude => { q ?| exclude = value }
+    | ValuedTimeout => { q ?| timeout_ms = duration_ms value }
+
+:| query_flag =
+    | FlagLiteral
+    | FlagPaths
+
+:= query_flag_word (flag : query_flag) : string = union_reflection.cases.union_case_kebab "Flag" flag
+
+:= query_flag_applied (flag : query_flag) (~q : query) : query =
+    ?= flag ?|
+    | FlagLiteral => { q ?| literal = !+ }
+    | FlagPaths => { q ?| paths_only = !+ }
 
 :| query_filler =
-    | AroundFiller
-    | PerFiller
-    | FileFiller
-    | TildeFiller
-    | WithFiller
-    | GitFiller
-    | StatusFiller
+    | FillerAround
+    | FillerPer
+    | FillerFile
+    | FillerWith
+    | FillerGit
+    | FillerStatus
 
 := query_filler_word (filler : query_filler) : string =
-    ?= filler ?|
-    | AroundFiller => "around"
-    | PerFiller => "per"
-    | FileFiller => "file"
-    | TildeFiller => "~"
-    | WithFiller => "with"
-    | GitFiller => "git"
-    | StatusFiller => "status"
+    union_reflection.cases.union_case_kebab "Filler" filler
+
+:= tilde () : string = "~"
 
 := query_option_named (~word : string) : option query_option =
     union_reflection.cases.union_case_where
-        \ (option : query_option) => word = query_option_word option
-        \ option => Some option
+        \ (choice : query_option) => word = query_option_word choice
+        \ choice => Some choice
         None
 
-:= query_filler_named (~word : string) : bool =
-    union_reflection.cases.union_case_where
-        \ (filler : query_filler) => word = query_filler_word filler
-        \ _ => !+
-        !-
+:= query_flag_named (~word : string) : option query_flag =
+    union_reflection.cases.union_case_where (\ (flag : query_flag) => word = query_flag_word flag) Some None
 
+:= query_filler_named (~word : string) : bool =
+    := reflected =
+        union_reflection.cases.union_case_where
+            \ (filler : query_filler) => word = query_filler_word filler
+            \ _ => !+
+            !-
+    word = tilde () || reflected
 :~ opened_query (~verb : query_verb) : query =
     {
         verb = verb
@@ -128,18 +131,20 @@
     | Text text => query_options records record (field + 1i32) { q ?| needle = text }
     | Bare word =>
         := value = value_at records record (field + 1i32)
-        ? word = "literal" ?> query_options records record (field + 1i32) { q ?| literal = !+ }
-        |? word = "paths" ?> query_options records record (field + 1i32) { q ?| paths_only = !+ }
-        |? query_filler_named word ?> query_options records record (field + 1i32) q
-        |:
-            ?= query_option_named word ?|
-            | Some valued =>
-                ? value = "" ?> QueryRejected (word ++# ": expected a value after it")
-                |: query_options records record (field + 2i32) (query_option_applied valued value q)
-            | None =>
-                ? all_digits word ?> query_options records record (field + 1i32) { q ?| count = decimal_of word }
-                |? q.target = "" ?> query_options records record (field + 1i32) { q ?| target = word }
-                |: QueryRejected ("unexpected word: " ++# word)
+        ?= query_flag_named word ?|
+        | Some flag => query_options records record (field + 1i32) (query_flag_applied flag q)
+        | None =>
+            ? query_filler_named word ?> query_options records record (field + 1i32) q
+            |:
+                ?= query_option_named word ?|
+                | Some valued =>
+                    ? value = "" ?> QueryRejected (word ++# ": expected a value after it")
+                    |: query_options records record (field + 2i32) (query_option_applied valued value q)
+                | None =>
+                    := next = field + 1i32
+                    ? all_digits word ?> query_options records record next { q ?| count = decimal_of word }
+                    |? q.target = "" ?> query_options records record next { q ?| target = word }
+                    |: QueryRejected ("unexpected word: " ++# word)
 
 :~ query_problem (~q : query) : string =
     := target = q.target
@@ -221,3 +226,13 @@
     testing.expect (rejection_at records 2i32 = "read: expected around \"<text>\"") "read without around"
     testing.expect (rejection_at records 3i32 = "files: expected a path or glob") "files without target"
     testing.expect (rejection_at records 4i32 = "in: expected a value after it") "dangling in"
+
+///> rust
+:# query_words_read_by_reflection =
+    := options = union_reflection.cases.union_cases_joined query_option_word "|"
+    testing.expect (options = "in|context|first|include|exclude|timeout") options
+    := flags = union_reflection.cases.union_cases_joined query_flag_word "|"
+    testing.expect (flags = "literal|paths") flags
+    := fillers = union_reflection.cases.union_cases_joined query_filler_word "|"
+    testing.expect (fillers = "around|per|file|with|git|status") fillers
+    testing.expect (query_filler_named "~" && query_filler_named "git" && (query_filler_named "gits" |> not)) "fillers"

@@ -26,13 +26,18 @@
         (decimal_u64 (text_or_empty (job_file id "started_ms")))
         (now_ms ())
 
+:~ start_request_path (~id : string) : string =
+    := home = sm'.trim (text_or_empty (job_file id "host-home"))
+    := host = ? home = "" ?> joined (jobs_root ()) "shell-host" |: joined (joined (jobs_root ()) "hosts") home
+    joined (joined host "requests") (id ++# ".start")
+
 :~ job_state_now (~id : string) : job_state =
     := record = job_record_of id
     := state = job_state_of record
     ?= state ?|
     | Settled (JobLost) =>
         := supervisor = decimal_u64 (text_or_empty (job_file id "supervisor"))
-        ? file_exists (joined (joined (jobs_root ()) "held") id)
+        ? file_exists (joined (joined (jobs_root ()) "held") id) || file_exists (start_request_path id)
         ?> Live JobPending
         |? supervisor <> 0u64 && process_alive supervisor
         ?> Live JobRunning
@@ -146,14 +151,6 @@
 
 := known_job (~id : string) : bool = starts_with id "job-" && directory_exists (job_directory id)
 
-:~ job_status () : i32 =
-    := id = argument 3i32
-    ? known_job id ?>
-        := _ = held_revival ()
-        stdout_line (shared_summary "status" id)
-        0i32
-    |: rejected (concat5 "status: unknown job id " id "" "" "")
-
 :~ ^ waited (~id : string) (deadline : u64) (~watch : u64) : job_state =
     := state = shared_state id
     ? state_settled state || now_ms () > deadline || process_alive watch = !- ?> state
@@ -164,65 +161,3 @@
 :~ watched_caller () : u64 =
     := inherited = $'std::env::var("KIT_JOB_WATCH").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(0)' : u64
     ? inherited = 0u64 ?> parent_pid () |: inherited
-
-:~ job_waited () : i32 =
-    := id = argument 3i32
-    ? known_job id ?>
-        := _ = held_revival ()
-        := deadline = now_ms () + (? argument_count () > 4i32 ?> decimal_u64 (argument 4i32) |: 864000000u64)
-        := state = waited id deadline (watched_caller ())
-        stdout_line (shared_summary "wait" id)
-        state_exit state
-    |: rejected (concat5 "wait: unknown job id " id "" "" "")
-
-:~ dispatched () : i32 =
-    := root = jobs_root ()
-    $'kit_job_dispatch::kit_job_dispatch_run(&*!root)' : i32
-
-:~ placed (local : () -> i32) : i32 =
-    ?= job_placement (argument 3i32) ?|
-    | OnMachine m =>
-        := root = jobs_root ()
-        := name = machine_name m
-        $'kit_job_dispatch::kit_job_forward_run(&*!root, &*!name)' : i32
-    | Local => local ()
-
-:~ started_code (attached : bool) : i32 =
-    := result =
-        ? attached
-        ?> $'kit_job_launch::kit_job_start(true)' : string
-        |: $'kit_job_launch::kit_job_start(false)' : string
-    := code =
-        $'(!result).split(char::from(9u8)).next().and_then(|code| code.trim().parse::<i32>().ok()).unwrap_or(2)' : i32
-    := id = $'std::rc::Rc::<str>::from((!result).split(char::from(9u8)).nth(1).unwrap_or("").trim())' : string
-    := _ = ? attached && id <> "" ?> stdout_line (shared_summary "run" id) |: ()
-    code
-
-:~ job_run () : i32 =
-    ?= job_command_of (argument 2i32) ?|
-    | JobStart => ? argument 3i32 = "--on" ?> dispatched () |: started_code !-
-    | JobRun => started_code !+
-    | JobSupervise =>
-        := id = argument 3i32
-        $'kit_job_supervise::kit_job_supervise(&*!id)' : i32
-    | JobHost =>
-        ? sm'.starts_with "-" (argument 3i32)
-        ?> rejected "host is started by kit itself and takes no flags; see job --help"
-        |: $'kit_job_host::kit_job_host_run()' : i32
-    | JobStatus => placed (\ () => job_status ())
-    | JobWait => placed (\ () => job_waited ())
-    | JobList => $'kit_job_control::kit_job_list_run()' : i32
-    | JobTail => placed (\ () => $'kit_job_control::kit_job_tail_run()' : i32)
-    | JobStop => placed (\ () => $'kit_job_control::kit_job_stop_run()' : i32)
-    | JobAfter => $'kit_job_rechain::kit_job_rechain_run()' : i32
-    | JobChain =>
-        ? optionm'.default_value "" (env.try_command_line_argument 2i32) = "--run-serial"
-        ?> $'kit_job_serial::kit_job_serial_run()' : i32
-        |: $'kit_job_chain::kit_job_chain_run()' : i32
-    | JobAmend => $'kit_job_control::kit_job_amend_run()' : i32
-    | JobDoctor => $'kit_jobs_doctor::kit_job_doctor_run()' : i32
-    | JobUnknown => rejected (job_usage ())
-
-:= main () : i32 =
-    !!!!Export("kit_job_run", ((\ () => job_run ()) : () -> i32))
-    0i32

@@ -1,0 +1,33 @@
+///- --package .
+:# events static =
+    :< sm'_operators
+    :< agile_quality_lint.lint
+
+:< sm'_operators
+:< agile_quality_lint.lint
+
+:== note_event_row = { id : string; hour : i64; author : string }
+
+:~ note_events_in (~notes : string) : list note_event_row =
+    := event_of = \ (acc : list note_event_row) (line : string) =>
+        ?= sm'.split_list "\"" line ?|
+        | _ :: id :: _ :: stamp :: _ :: author :: _ =>
+            { id = id; hour = agile_quality_state.state_rows.stamp_hour stamp; author = author } :: acc
+        | _ => acc
+    sm'.split_list "\n" notes |> listm.fold event_of [] |> listm.rev
+
+:~ note_events_of (~text : string) : array_base note_event_row =
+    := gathered = \ (acc : list note_event_row) (f : fact_row) => listm.append acc (note_events_in f.notes)
+    agile_quality_state.state_rows.facts_list text |> listm.fold gathered [] |> listm'.box |> listm'.to_array'
+
+///> rust
+:# every_note_line_becomes_one_event_with_its_item_and_author =
+    := note = "inl note_of_t_a_1 () = Note (\"T-A\", 1u32, \"2026-11-04T10:00Z\", \"kit\", \"x\")"
+    := events = note_events_in (note ++# "\n\n" ++# sm'.replace "\"kit\"" "\"x\"" note)
+    testing.expect (events |> listm.map (\ (e : note_event_row) => e.author) = [ "kit"; "x" ]) "one event per note line"
+    testing.expect (events |> listm.map (\ (e : note_event_row) => e.id) = [ "T-A"; "T-A" ]) "the note's item id"
+    testing.expect (events |> listm.map (\ (e : note_event_row) => e.hour) = [ 498274i64; 498274i64 ]) "hours"
+///> _
+:= main () : i32 =
+    export "kit_agile_note_events" note_events_of
+    0i32

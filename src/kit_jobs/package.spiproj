@@ -1,9 +1,13 @@
 packages:
     |core-
     spiral-
+    union_reflection
     rust_std_string
     rust_std_env
     kit_job_placement
+    kit_process_alive
+link:
+    kit_process_alive
 modules:
     model
     host

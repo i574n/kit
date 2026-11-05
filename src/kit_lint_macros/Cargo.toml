@@ -22,3 +22,4 @@ kit-lint-baseline = { path = "../kit_lint_baseline" }
 kit-lint-flow-constructs = { path = "../kit_lint_flow_constructs" }
 kit-lint-flow-idioms = { path = "../kit_lint_flow_idioms" }
 kit-lint-shadows = { path = "../kit_lint_shadows" }
+kit-lint-args = { path = "../kit_lint_args" }

@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "text.spi"
+output = "text.rs"
+
+[package]
+name = "kit-tracked-text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_tracked_text"
+path = "text.rs"

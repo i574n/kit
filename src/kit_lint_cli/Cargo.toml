@@ -1,0 +1,20 @@
+[package.metadata.spiral]
+entry = "cli.spi"
+output = "cli.rs"
+
+[package]
+name = "kit-lint-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_cli"
+path = "cli.rs"
+
+[dependencies]
+kit-lint-macros = { path = "../kit_lint_macros" }
+kit-lint-growth = { path = "../kit_lint_growth" }
+kit-lint-precheck = { path = "../kit_lint_precheck" }
+kit-tracked-text = { path = "../kit_tracked_text" }

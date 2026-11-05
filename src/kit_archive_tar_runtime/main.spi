@@ -64,18 +64,15 @@
         """
 
 := main () : i32 =
-    !!!!Export(
-        "kit_archive_format_code",
+    export
+        "kit_archive_format_code"
         ((\ file_name => format.archive_classification_code file_name) : string -> i32)
-    )
-    !!!!Export(
-        "kit_archive_format_label",
+    export
+        "kit_archive_format_label"
         ((\ file_name => format.archive_classification_label file_name) : string -> string)
-    )
-    !!!!Export("kit_tar_octal_value", ((\ field_text => format.octal_field_value field_text) : string -> u64))
-    !!!!Export(
-        "kit_tar_octal_error",
+    export "kit_tar_octal_value" ((\ field_text => format.octal_field_value field_text) : string -> u64)
+    export
+        "kit_tar_octal_error"
         ((\ (field_text, label) => format.octal_field_error field_text label) : string * string -> string)
-    )
     emit_tar_metadata_runtime ()
     0i32

@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "scoreboard.spi"
+output = "scoreboard.rs"
+
+[package]
+name = "kit-style-scoreboard"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_style_scoreboard"
+path = "scoreboard.rs"
+
+[dependencies]
+kit-style-probes = { path = "../kit_style_probes" }
+kit-style-measure = { path = "../kit_style_measure" }

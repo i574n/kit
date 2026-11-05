@@ -27,44 +27,34 @@
     := _ = matrix_auto_checkpoint_binding 0i32 1i32
     := _ = matrix_auto_checkpoint_binding 1i32 1i32
     emit_matrix_runtime ()
-    !!!!Export(
-        "kit_batch_plan_accept",
+    export
+        "kit_batch_plan_accept"
         ((\ (first, second) => batch_plan_accept_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_plan_advance",
+    export
+        "kit_batch_plan_advance"
         ((\ (first, second) => batch_plan_advance_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_matrix_row_policy",
+    export
+        "kit_batch_matrix_row_policy"
         ((\ (first, second) => matrix_row_policy_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_matrix_dependency",
+    export
+        "kit_batch_matrix_dependency"
         ((\ (first, second) => matrix_dependency_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_matrix_observed_accept",
+    export
+        "kit_batch_matrix_observed_accept"
         ((\ (first, second) => matrix_observed_accept_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_matrix_resume_action",
+    export
+        "kit_batch_matrix_resume_action"
         ((\ (first, second) => matrix_resume_action_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_matrix_workspace_policy",
+    export
+        "kit_batch_matrix_workspace_policy"
         ((\ (first, second) => matrix_workspace_policy_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_matrix_auto_chain_budget",
+    export
+        "kit_batch_matrix_auto_chain_budget"
         ((\ (first, second) => matrix_auto_chain_budget_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_matrix_auto_checkpoint",
+    export
+        "kit_batch_matrix_auto_checkpoint"
         ((\ (first, second) => matrix_auto_checkpoint_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_batch_matrix_complete",
+    export
+        "kit_batch_matrix_complete"
         ((\ (first, second) => matrix_complete_binding first second) : i32 * i32 -> i32)
-    )
     0i32

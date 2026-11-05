@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    kit_os_process
+    kit_process_alive
+link:
+    kit_process_alive
+modules:
+    lock

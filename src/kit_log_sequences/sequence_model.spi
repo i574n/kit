@@ -182,11 +182,7 @@
     | Order terms => whole (order_of terms events :: [])
     | Latency terms => latency_rows terms events [] []
 
-:= verdict_word (verdict : order_verdict) : string =
-    ?= verdict ?|
-    | Before => "before"
-    | After => "after"
-    | Missing => "missing"
+:= verdict_word (verdict : order_verdict) : string = union_reflection.cases.union_case_kebab "" verdict
 
 := value_text (value : measure_value) : string =
     ?= value ?|

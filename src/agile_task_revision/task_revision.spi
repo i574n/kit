@@ -63,6 +63,6 @@
     |: agile_edit (argument_owned 1i32) (argument_owned 2i32) position field_name (argument_owned 4i32)
 
 := main () : i32 =
-    !!!!Export("kit_agile_edit_run", ((\ () => agile_edit_entry ()) : () -> i32))
+    export "kit_agile_edit_run" ((\ () => agile_edit_entry ()) : () -> i32)
     := _ = agile_edit_entry ()
     0i32

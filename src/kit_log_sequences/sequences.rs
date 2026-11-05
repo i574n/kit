@@ -311,7 +311,7 @@ fn rows_text_5(mut v0: Rc<str>, mut v1: Rc<UH1>, mut v2: Rc<str>) -> Rc<str> {
                 let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
                 let v9: Rc<str> = format_real_6(v3);
                 let v11: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v8, v9)), v7));
-                let mut v25: Rc<str> = match &v4 {
+                let mut v23: Rc<str> = match &v4 {
                     US4::US4_CountIn(v14) => {
                         let v14: u64 = *v14;
                         format_real_6(v14)
@@ -338,10 +338,10 @@ fn rows_text_5(mut v0: Rc<str>, mut v1: Rc<UH1>, mut v2: Rc<str>) -> Rc<str> {
                         }
                     }
                 };
-                let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v25));
-                let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
-                (v1, v2) = (v5.clone(), v28.clone());
+                let mut v24: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v23));
+                let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v25));
+                (v1, v2) = (v5.clone(), v26.clone());
                 continue;
             }
             UH1::UH1_Nil => {

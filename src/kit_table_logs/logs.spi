@@ -1,8 +1,6 @@
 :< sm'_operators
 :< logs_model
 
-:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
-:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
 :~ stdout_line (~text : string) : () = console.write_line text
 :~ stderr_line (~text : string) : () = console.write_error_line text
 :~ stdout_text (~text : string) : () = console.write_line (? sm'.ends_with "\n" text ?> sm'.substring 0i32 ((sm'.length text : i32) - 1i32) text |: text)
@@ -74,30 +72,25 @@
     | RequestTaken : request
     | RequestRejected : string
 
-:~ ^ options_from (index : i32) (count : i32) (acc : request) : request_step =
-    ? index >= count
-    ?> RequestTaken acc
+:~ ^ measures_applied
+    (words : array_base string) (values : array_base string) (at : i32) (acc : request)
+    : request_step
+    =
+    ? at >= am'.length_base words ?> RequestTaken acc
     |:
-        := word = argument index
-        ? word = "--quiet"
-        ?> options_from (index + 1i32) count { acc ?| quiet = !+ }
-        |? sm'.starts_with "--" word
-        ?>
-            ? index + 1i32 >= count ?> RequestRejected ("option " ++# word ++# " has no value")
-            |? word = "--glob" ?> options_from (index + 2i32) count { acc ?| glob = argument (index + 1i32) }
-            |? word = "--since" ?> options_from (index + 2i32) count { acc ?| since = argument (index + 1i32) }
-            |? word = "--out" ?> options_from (index + 2i32) count { acc ?| out = argument (index + 1i32) }
-            |:
-                ?= kind_of word ?|
-                | KindUnknown => RequestRejected ("unknown option " ++# word)
-                | KindKnown kind =>
-                    ?= spec_applied acc.list kind (argument (index + 1i32)) ?|
-                    | SpecRejected reason => RequestRejected reason
-                    | SpecTaken list => options_from (index + 2i32) count { acc ?| list = list }
-        |:
-            options_from (index + 1i32) count { acc ?|
-                paths = (? acc.paths = "" ?> word |: acc.paths ++# "\n" ++# word)
-            }
+        := word = am'.index_base at words
+        ?= kind_of word ?|
+        | KindUnknown => RequestRejected ("unknown option " ++# word)
+        | KindKnown kind =>
+            ?= spec_applied acc.list kind (am'.index_base at values) ?|
+            | SpecRejected reason => RequestRejected reason
+            | SpecTaken list => measures_applied words values (at + 1i32) { acc ?| list = list }
+
+:~ request_of (row : kit_table_logs_args.args.logs_args_row) : request_step =
+    := start =
+        { paths = row.paths; glob = row.glob; out = row.out; since = row.since; quiet = row.quiet; list = NoMeasures }
+    ? row.rejected <> "" ?> RequestRejected row.rejected
+    |: measures_applied row.measure_words row.measure_values 0i32 start
 
 :~ ^ pattern_problem (list : measures) : string =
     ?= list ?|
@@ -255,16 +248,7 @@
     ^^ "[--out file.tsv|file.spi] [--quiet]"
 
 :~ logs_run () : i32 =
-    ?=
-        options_from 3i32 (argument_count ()) {
-            paths = ""
-            glob = ""
-            out = ""
-            since = ""
-            quiet = !-
-            list = NoMeasures
-        }
-    ?|
+    ?= request_of (am'.index_base 0i32 (kit_table_logs_args.args.logs_args_read 2i32)) ?|
     | RequestRejected reason => failed (reason ++# "; " ++# (logs_usage ()))
     | RequestTaken ask =>
         := list = ask.list
@@ -296,5 +280,5 @@
                         measure_count columns 0i32)))
 
 := main () : i32 =
-    !!!!Export("kit_table_logs_run", ((\ () => logs_run ()) : () -> i32))
+    export "kit_table_logs_run" ((\ () => logs_run ()) : () -> i32)
     0i32

@@ -97,25 +97,19 @@
     := rows = listm.map render fresh
     { rows = ? tsv ?> "file\tline\tname\tclass\ttext" :: rows |: rows; tally = tally }
 
-:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+:~ lint_args () : kit_lint_args.args.lint_args_row =
+    am'.index_base 0i32 (kit_lint_args.args.lint_args_read 2i32)
 
-:~ ^ paths_from (index : i32) (count : i32) (found : list string) : list string =
-    ? count <= index || sm'.starts_with "--" (argument index) ?> listm.rev found
-    |: paths_from (index + 1i32) count (argument index :: found)
+:~ ^ listed_from (paths : array_base string) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found |: listed_from paths (at - 1i32) (am'.index_base at paths :: found)
 
-:~ ^ value_after (~flag : string) (index : i32) (count : i32) : string =
-    ? count <= index + 1i32 ?> ""
-    |? argument index = flag ?> argument (index + 1i32)
-    |: value_after flag (index + 1i32) count
-
-:~ ^ flag_given (~flag : string) (index : i32) (count : i32) : bool =
-    index < count && (argument index = flag || flag_given flag (index + 1i32) count)
+:~ listed_paths (paths : array_base string) : list string = listed_from paths (am'.length_base paths - 1i32) []
 
 :~ lint_run () : i32 =
     := started = kit_receipt.receipt.now_ms ()
-    := count = env.command_line_argument_count ()
-    := root = argument 2i32
-    := given = value_after "--baseline" 3i32 count
+    := args = lint_args ()
+    := root = args.root
+    := given = args.baseline
     := baseline_path = ? given = "" || file_system.file_exists given ?> given |: root </> given
     ? root = "" || file_system.directory_exists root |> not ?>
         console.write_error_line (
@@ -130,16 +124,16 @@
         := raw = ? baseline_path = "" ?> "" |: file_system.read_all_text baseline_path
         := typed = sm'.ends_with ".spi" baseline_path
         := baseline = ? typed ?> $'kit_lint_baseline::kit_lint_baseline_rows(&*!raw)' : string |: raw
-        := write_to = value_after "--write-baseline" 3i32 count
+        := write_to = args.write_baseline
         ? write_to <> ""
         ?>
-            := every = lint_report root (paths_from 3i32 count []) "" !-
+            := every = lint_report root (listed_paths args.paths) "" !-
             := rows = ? baseline <> "" ?> baseline |: sm'.concat_list "\n" every.rows
             := counted = $'kit_lint_baseline::kit_lint_baseline_write(&*!write_to, &*!rows)' : string
             console.write_line ("kit lint baseline written " ++# write_to ++# "  rows " ++# counted)
             0i32
         |:
-            := report = lint_report root (paths_from 3i32 count []) baseline (flag_given "--tsv" 3i32 count)
+            := report = lint_report root (listed_paths args.paths) baseline args.tsv
             report.rows |> listm.iter console.write_line
             := elapsed = kit_receipt.receipt.elapsed_text started
             := clock = kit_receipt.receipt.clock_text ()
@@ -148,8 +142,7 @@
 
 :~ shadows_run () : i32 = $'kit_lint_shadows::kit_lint_shadows_run()' : i32
 
-:~ routed () : i32 = ? argument 1i32 = "shadows" ?> shadows_run () |: lint_run ()
-
 := main () : i32 =
-    !!!!Export("kit_lint_run", ((\ () => routed ()) : () -> i32))
+    export "kit_lint_run" lint_run
+    export "kit_lint_shadows_routed" shadows_run
     0i32

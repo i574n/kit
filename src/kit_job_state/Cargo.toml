@@ -12,3 +12,7 @@ publish.workspace = true
 [lib]
 name = "kit_job_state"
 path = "state.rs"
+
+[dependencies]
+kit-process-alive = { path = "../kit_process_alive" }
+kit-job-orphans = { path = "../kit_job_orphans" }

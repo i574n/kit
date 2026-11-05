@@ -20,6 +20,11 @@
     | AgileShow
     | AgilePlan
     | AgileMigrateTags
+    | AgileMigrateActivity
+    | AgileSprint
+    | AgileLint
+    | AgileGate
+    | AgileCadence
     | AgileNote
     | AgileNoteEdit
     | AgileNotes
@@ -68,6 +73,18 @@
     | AgileShow => { name = "show"; shape = "<root> <id> [--json]" }
     | AgilePlan => { name = "plan"; shape = "<root> [--json]" }
     | AgileMigrateTags => { name = "migrate-tags"; shape = "preview|apply <root>" }
+    | AgileMigrateActivity => { name = "migrate-activity"; shape = "preview|apply <root>" }
+    | AgileSprint =>
+        {
+            name = "sprint"
+            shape =
+                "start <root> <id> <days> <goal> [--items A,B] | show <root> [<id>] | add|drop <root> <id> <item> | "
+                ^^ "close <root> <id> | velocity <root> [--last n]"
+        }
+    | AgileLint => { name = "lint"; shape = "<root> [--census | --team <team>]" }
+    | AgileGate => { name = "gate"; shape = "<root> --team <team> --as <lane>" }
+    | AgileCadence =>
+        { name = "cadence"; shape = "<root> [--hours n] [--days n | --since yyyy-mm-dd] [--team t] [--round h]" }
     | AgileNote => { name = "note"; shape = "<root> <id> <text> [--as <author>]" }
     | AgileNoteEdit =>
         {
@@ -128,12 +145,24 @@
     | AgileKnown _ => 1i32
     | AgileUnknownName => 0i32
 
+:| state_access =
+    | ReadsState
+    | WritesState
+
+:= state_access_of = \|
+    | AgileInit | AgileLease | AgileStatus | AgileHandoff | AgileList | AgileCheck | AgileShow => ReadsState
+    | AgilePlan | AgileNext | AgileLinks | AgileWip | AgileViews | AgileView | AgileLint => ReadsState
+    | AgileGate | AgileCadence => ReadsState
+    | AgileClaim | AgileRelease | AgileBegin | AgileRecord | AgileSet | AgileAdd | AgileEdit => WritesState
+    | AgileMigrateTags | AgileMigrateActivity | AgileNote | AgileNoteEdit | AgileNotes | AgileRename => WritesState
+    | AgileSeal | AgileTodos | AgileRoots | AgileViewAdd | AgileSprint => WritesState
+
 :| root_place =
     | RootLeads
     | RootAfterMode
 
 := agile_root_place = \|
-    | AgileMigrateTags | AgileNotes => RootAfterMode
+    | AgileMigrateTags | AgileMigrateActivity | AgileSprint | AgileNotes => RootAfterMode
     | _ => RootLeads
 
 := agile_root_index (subcommand : agile_subcommand) : i32 =

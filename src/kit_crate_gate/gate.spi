@@ -1,55 +1,12 @@
+:< kit_crate_walk.walk
 :< sm'_operators
 :< file_system_operators
 :< model
 
-:= skipped_dir (name : string) : bool =
-    sm'.starts_with "." name
-    || name = "target"
-    || name = "node_modules"
-    || name = "_build"
-    || name = "deps"
-    || name = "lab"
+:~ ^ rows_from (rows : array_base crate_measure) (at : i32) (kept : list crate_measure) : list crate_measure =
+    ? at < 0i32 ?> kept |: rows_from rows (at - 1i32) (am'.index_base at rows :: kept)
 
-:~ leaf_name (path : string) : string =
-    := slashed = sm'.replace "\\" "/" path
-    := at = sm'.last_index_of "/" slashed
-    ? at < 0i32 ?> slashed |: sm'.substring (at + 1i32) ((sm'.length slashed : i32) - at - 1i32) slashed
-
-:~ dir_names (path : string) : list string =
-    file_system.read_dir_names path
-    |> resultm.unwrap'
-    |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) []
-    |> listm.rev
-
-:~ largest_of (~text : string) : string = $'kit_crate_largest::kit_crate_largest(&*!text)' : string
-
-:~ measured (dir : string) : option crate_measure =
-    := manifest = dir </> "Cargo.toml"
-    ? file_system.file_exists manifest |> not ?> None
-    |:
-        ?= manifest_of (file_system.read_all_text manifest) ?|
-        | NotSpiralCrate => None
-        | SpiralCrate found =>
-            := output = dir </> found.output
-            := present = file_system.file_exists output
-            := text = ? present ?> file_system.read_all_text output |: ""
-            := lines = ? present ?> line_count text |: -1i32
-            := largest = ? lines > 0i32 ?> largest_of text |: ""
-            Some { crate = leaf_name dir; output = found.output; lines = lines; largest = largest }
-
-:~ ^ walked (todo : list string) (found : list crate_measure) : list crate_measure =
-    ?= todo ?|
-    | [] => listm.rev found
-    | (dir :: rest) =>
-        := found = ?= measured dir ?| | Some m => (m :: found) | None => found
-        := deeper =
-            dir_names dir
-            |> listm.fold \ acc (name : string) =>
-                    ? not (skipped_dir name) && file_system.directory_exists (dir </> name)
-                    ?> ((dir </> name) :: acc)
-                    |: acc
-                rest
-        walked deeper found
+:~ rows_listed (rows : array_base crate_measure) : list crate_measure = rows_from rows (am'.length_base rows - 1i32) []
 
 :~ ^ digits_value (text : string) (at : i32) (value : i32) : i32 =
     ? (sm'.length text : i32) <= at ?> value
@@ -58,15 +15,20 @@
         ? 48u32 <= c && c <= 57u32 ?> digits_value text (at + 1i32) (value * 10i32 + convert.i32 (c - 48u32))
         |: -1i32
 
-:~ argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+:| gate_flag =
+    | FlagEnforce
+    | FlagLimit
 
-:~ ^ flag_given (flag : string) (index : i32) (count : i32) : bool =
-    ? count <= index ?> !- |? argument index = flag ?> !+ |: flag_given flag (index + 1i32) count
+:== gate_flags = { enforce : bool; limit : string }
 
-:~ ^ value_after (flag : string) (index : i32) (count : i32) : string =
-    ? count <= index + 1i32 ?> ""
-    |? argument index = flag ?> argument (index + 1i32)
-    |: value_after flag (index + 1i32) count
+:~ flag_word (flag : gate_flag) : string = "--" ++# union_reflection.cases.union_case_kebab "Flag" flag
+
+:~ ^ gate_flags_read (words : list string) (flags : gate_flags) : gate_flags =
+    ?= words ?|
+    | word :: rest ?& word = flag_word FlagEnforce => gate_flags_read rest { flags ?| enforce = !+ }
+    | word :: value :: rest ?& word = flag_word FlagLimit => gate_flags_read rest { flags ?| limit = value }
+    | _ :: rest => gate_flags_read rest flags
+    | [] => flags
 
 :~ ^ lines_printed (limit : i32) (measures : list crate_measure) : () =
     ?= measures ?|
@@ -75,10 +37,19 @@
         console.write_line (measure_line limit m)
         lines_printed limit rest
 
-:~ gate_run () : i32 =
-    := count = env.command_line_argument_count ()
-    := root = argument 2i32
-    := given = value_after "--limit" 3i32 count
+:~ outcome_text (outcome : gate_outcome) (~summary : string) : i32 * string =
+    := refused = "kit crate gate refused: "
+    ?= outcome ?|
+    | GatePassed => 0i32, "kit crate gate ok" ++# summary
+    | GateFailedOver n => 1i32, refused ++# sm'.format n ++# " crate(s) over the limit;" ++# summary
+    | GateFailedMissing n =>
+        := why = " crate(s) have no generated output, so generation did not run or failed;"
+        1i32, refused ++# sm'.format n ++# why ++# summary
+    | GateFailedVacuous =>
+        1i32, refused ++# "no crate with [package.metadata.spiral] under the root, so nothing was measured;" ++# summary
+
+:~ gate_checked (~root : string) (flags : gate_flags) : i32 =
+    := given = flags.limit
     := limit = ? given = "" ?> 1000i32 |: digits_value given 0i32 0i32
     ? root = "" || file_system.directory_exists root |> not
     ?>
@@ -92,7 +63,7 @@
         console.write_line ("kit error: crate gate: --limit expects a positive whole number, got " ++# given)
         2i32
     |:
-        := measures = walked [ root ] []
+        := measures = kit_crate_walk.walk.crate_measures root |> rows_listed
         lines_printed limit measures
         := over = over_count limit measures
         := summary =
@@ -104,33 +75,16 @@
             ++# sm'.format limit
             ++# " root="
             ++# root
-        ?= gate_outcome_of (flag_given "--enforce" 3i32 count) limit measures ?|
-        | GatePassed =>
-            console.write_line ("kit crate gate ok" ++# summary)
-            0i32
-        | GateFailedOver n =>
-            console.write_line (
-                "kit crate gate refused: " ++# sm'.format n ++# " crate(s) over the limit;" ++# summary
-            )
-            1i32
-        | GateFailedMissing n =>
-            console.write_line (
-                "kit crate gate refused: "
-                ++# sm'.format n
-                ++# " crate(s) have no generated output, so generation did not run or failed;"
-                ++# summary
-            )
-            1i32
-        | GateFailedVacuous =>
-            console.write_line (
-                (
-                    "kit crate gate refused: no crate with [package.metadata.spiral] under the root, so nothing "
-                    ^^ "was measured;"
-                )
-                ++# summary
-            )
-            1i32
+        := code, text = outcome_text (gate_outcome_of flags.enforce limit measures) summary
+        console.write_line text
+        code
+
+:~ gate_run () : i32 =
+    := start = { enforce = !-; limit = "" }
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: root :: words => gate_checked root (gate_flags_read words start)
+    | _ => gate_checked "" start
 
 := main () : i32 =
-    !!!!Export("kit_crate_gate_run", ((\ () => gate_run ()) : () -> i32))
+    export "kit_crate_gate_run" ((\ () => gate_run ()) : () -> i32)
     0i32

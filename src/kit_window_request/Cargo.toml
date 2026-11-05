@@ -16,3 +16,4 @@ path = "request.rs"
 [dependencies]
 kit-window-admission = { path = "../kit_window_admission" }
 kit-window-announce-check = { path = "../kit_window_announce_check" }
+kit-process-alive = { path = "../kit_process_alive" }

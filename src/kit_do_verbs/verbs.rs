@@ -32,42 +32,46 @@ enum US4 {
     US4_Wait,
 }
 #[derive(Clone)]
-enum US5 {
-    US5_HashVerb,
-    US5_EnvVerb,
-    US5_ExistsVerb,
-    US5_NearestVerb,
-    US5_JsonVerb,
-    US5_LinesVerb,
-    US5_TableVerb,
-    US5_DirsVerb,
-    US5_TagVerb,
-    US5_CountVerb,
-    US5_DiffVerb,
+pub enum fact_verb {
+    fact_verb_FactHash,
+    fact_verb_FactEnv,
+    fact_verb_FactExists,
+    fact_verb_FactNearest,
+    fact_verb_FactJson,
+    fact_verb_FactLines,
+    fact_verb_FactTable,
+    fact_verb_FactDirs,
+    fact_verb_FactTag,
+    fact_verb_FactCount,
+    fact_verb_FactDiff,
 }
 #[derive(Clone)]
-enum US6 {
-    US6_RunVerb,
-    US6_ErrorsVerb,
-    US6_ProcessesVerb,
-    US6_StopVerb,
+pub enum run_verb {
+    run_verb_StepRun,
+    run_verb_StepErrors,
+    run_verb_StepProcesses,
+    run_verb_StepStop,
 }
 #[derive(Clone)]
-enum US7 {
-    US7_AppendVerb,
-    US7_CopyVerb,
-    US7_MoveVerb,
-    US7_WriteFileVerb,
+pub enum write_verb {
+    write_verb_FileAppend,
+    write_verb_FileCopy,
+    write_verb_FileMove,
+    write_verb_FileWrite,
+}
+#[derive(Clone)]
+pub enum tool_verb {
+    tool_verb_ToolGit,
+    tool_verb_ToolJob,
+    tool_verb_ToolLab,
 }
 #[derive(Clone)]
 enum US3 {
     US3_ReadVerb(US4),
-    US3_FactVerb(US5),
-    US3_RunStepVerb(US6),
-    US3_WriteVerb(US7),
-    US3_GitVerb,
-    US3_JobVerb,
-    US3_LabVerb,
+    US3_FactVerb(fact_verb),
+    US3_RunStepVerb(run_verb),
+    US3_WriteVerb(write_verb),
+    US3_ToolVerb(tool_verb),
 }
 #[derive(Clone)]
 enum US2 {
@@ -75,24 +79,147 @@ enum US2 {
     US2_None,
 }
 #[derive(Clone)]
-enum US8 {
-    US8_Some(US6),
-    US8_None,
+pub enum option_run_verb {
+    option_run_verb_Some(run_verb),
+    option_run_verb_None,
 }
 #[derive(Clone)]
-enum US9 {
-    US9_Some(US7),
-    US9_None,
+pub enum option_write_verb {
+    option_write_verb_Some(write_verb),
+    option_write_verb_None,
 }
 #[derive(Clone)]
-enum US10 {
-    US10_Some(US4),
-    US10_None,
+pub enum option_tool_verb {
+    option_tool_verb_Some(tool_verb),
+    option_tool_verb_None,
 }
 #[derive(Clone)]
-enum US11 {
-    US11_Some(US5),
-    US11_None,
+enum US12 {
+    US12_Some(US4),
+    US12_None,
+}
+#[derive(Clone)]
+pub enum option_fact_verb {
+    option_fact_verb_Some(fact_verb),
+    option_fact_verb_None,
+}
+impl fact_verb {
+    pub fn tag(&self) -> i32 {
+        match self {
+            fact_verb::fact_verb_FactHash => 0,
+            fact_verb::fact_verb_FactEnv => 1,
+            fact_verb::fact_verb_FactExists => 2,
+            fact_verb::fact_verb_FactNearest => 3,
+            fact_verb::fact_verb_FactJson => 4,
+            fact_verb::fact_verb_FactLines => 5,
+            fact_verb::fact_verb_FactTable => 6,
+            fact_verb::fact_verb_FactDirs => 7,
+            fact_verb::fact_verb_FactTag => 8,
+            fact_verb::fact_verb_FactCount => 9,
+            fact_verb::fact_verb_FactDiff => 10,
+        }
+    }
+}
+impl run_verb {
+    pub fn tag(&self) -> i32 {
+        match self {
+            run_verb::run_verb_StepRun => 0,
+            run_verb::run_verb_StepErrors => 1,
+            run_verb::run_verb_StepProcesses => 2,
+            run_verb::run_verb_StepStop => 3,
+        }
+    }
+}
+impl write_verb {
+    pub fn tag(&self) -> i32 {
+        match self {
+            write_verb::write_verb_FileAppend => 0,
+            write_verb::write_verb_FileCopy => 1,
+            write_verb::write_verb_FileMove => 2,
+            write_verb::write_verb_FileWrite => 3,
+        }
+    }
+}
+impl tool_verb {
+    pub fn tag(&self) -> i32 {
+        match self {
+            tool_verb::tool_verb_ToolGit => 0,
+            tool_verb::tool_verb_ToolJob => 1,
+            tool_verb::tool_verb_ToolLab => 2,
+        }
+    }
+}
+impl option_run_verb {
+    pub fn tag(&self) -> i32 {
+        match self {
+            option_run_verb::option_run_verb_Some(..) => 0,
+            option_run_verb::option_run_verb_None => 1,
+        }
+    }
+}
+impl option_write_verb {
+    pub fn tag(&self) -> i32 {
+        match self {
+            option_write_verb::option_write_verb_Some(..) => 0,
+            option_write_verb::option_write_verb_None => 1,
+        }
+    }
+}
+impl option_tool_verb {
+    pub fn tag(&self) -> i32 {
+        match self {
+            option_tool_verb::option_tool_verb_Some(..) => 0,
+            option_tool_verb::option_tool_verb_None => 1,
+        }
+    }
+}
+impl option_fact_verb {
+    pub fn tag(&self) -> i32 {
+        match self {
+            option_fact_verb::option_fact_verb_Some(..) => 0,
+            option_fact_verb::option_fact_verb_None => 1,
+        }
+    }
+}
+impl Default for fact_verb {
+    fn default() -> Self {
+        fact_verb::fact_verb_FactHash
+    }
+}
+impl Default for run_verb {
+    fn default() -> Self {
+        run_verb::run_verb_StepRun
+    }
+}
+impl Default for write_verb {
+    fn default() -> Self {
+        write_verb::write_verb_FileAppend
+    }
+}
+impl Default for tool_verb {
+    fn default() -> Self {
+        tool_verb::tool_verb_ToolGit
+    }
+}
+impl Default for option_run_verb {
+    fn default() -> Self {
+        option_run_verb::option_run_verb_Some(<run_verb>::default())
+    }
+}
+impl Default for option_write_verb {
+    fn default() -> Self {
+        option_write_verb::option_write_verb_Some(<write_verb>::default())
+    }
+}
+impl Default for option_tool_verb {
+    fn default() -> Self {
+        option_tool_verb::option_tool_verb_Some(<tool_verb>::default())
+    }
+}
+impl Default for option_fact_verb {
+    fn default() -> Self {
+        option_fact_verb::option_fact_verb_Some(<fact_verb>::default())
+    }
 }
 fn records_of_0(mut v0: Rc<str>) -> std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> {
     let v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = std::rc::Rc::new((&*v0).split(char::from(30u8)).map(|record| record.split(char::from(31u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>());
@@ -151,158 +278,171 @@ fn field_index_6(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, m
     let v3: i32 = v0.get(v1 as usize).and_then(|fields| fields.iter().position(|field| field.len() > 1 && field.starts_with(char::from(119u8)) && &field[1..] == &*v2)).map(|index| index as i32).unwrap_or(-1);
     v3
 }
-fn run_named_9(mut v0: Rc<str>) -> US8 {
+fn run_named_9(mut v0: Rc<str>) -> option_run_verb {
     let v1: bool = &*v0 == "run";
     if v1 {
-        let v2: US6 = US6::US6_RunVerb;
-        US8::US8_Some(v2)
+        let v2: run_verb = run_verb::run_verb_StepRun;
+        option_run_verb::option_run_verb_Some(v2)
     } else {
         let v4: bool = &*v0 == "errors";
         if v4 {
-            let v5: US6 = US6::US6_ErrorsVerb;
-            US8::US8_Some(v5)
+            let v5: run_verb = run_verb::run_verb_StepErrors;
+            option_run_verb::option_run_verb_Some(v5)
         } else {
             let v7: bool = &*v0 == "processes";
             if v7 {
-                let v8: US6 = US6::US6_ProcessesVerb;
-                US8::US8_Some(v8)
+                let v8: run_verb = run_verb::run_verb_StepProcesses;
+                option_run_verb::option_run_verb_Some(v8)
             } else {
                 let v10: bool = &*v0 == "stop";
                 if v10 {
-                    let v11: US6 = US6::US6_StopVerb;
-                    US8::US8_Some(v11)
+                    let v11: run_verb = run_verb::run_verb_StepStop;
+                    option_run_verb::option_run_verb_Some(v11)
                 } else {
-                    US8::US8_None
+                    option_run_verb::option_run_verb_None
                 }
             }
         }
     }
 }
-fn write_named_10(mut v0: Rc<str>) -> US9 {
+fn write_named_10(mut v0: Rc<str>) -> option_write_verb {
     let v1: bool = &*v0 == "append";
     if v1 {
-        let v2: US7 = US7::US7_AppendVerb;
-        US9::US9_Some(v2)
+        let v2: write_verb = write_verb::write_verb_FileAppend;
+        option_write_verb::option_write_verb_Some(v2)
     } else {
         let v4: bool = &*v0 == "copy";
         if v4 {
-            let v5: US7 = US7::US7_CopyVerb;
-            US9::US9_Some(v5)
+            let v5: write_verb = write_verb::write_verb_FileCopy;
+            option_write_verb::option_write_verb_Some(v5)
         } else {
             let v7: bool = &*v0 == "move";
             if v7 {
-                let v8: US7 = US7::US7_MoveVerb;
-                US9::US9_Some(v8)
+                let v8: write_verb = write_verb::write_verb_FileMove;
+                option_write_verb::option_write_verb_Some(v8)
             } else {
                 let v10: bool = &*v0 == "write";
                 if v10 {
-                    let v11: US7 = US7::US7_WriteFileVerb;
-                    US9::US9_Some(v11)
+                    let v11: write_verb = write_verb::write_verb_FileWrite;
+                    option_write_verb::option_write_verb_Some(v11)
                 } else {
-                    US9::US9_None
+                    option_write_verb::option_write_verb_None
                 }
+            }
+        }
+    }
+}
+fn tool_named_11(mut v0: Rc<str>) -> option_tool_verb {
+    let v1: bool = &*v0 == "git";
+    if v1 {
+        let v2: tool_verb = tool_verb::tool_verb_ToolGit;
+        option_tool_verb::option_tool_verb_Some(v2)
+    } else {
+        let v4: bool = &*v0 == "job";
+        if v4 {
+            let v5: tool_verb = tool_verb::tool_verb_ToolJob;
+            option_tool_verb::option_tool_verb_Some(v5)
+        } else {
+            let v7: bool = &*v0 == "lab";
+            if v7 {
+                let v8: tool_verb = tool_verb::tool_verb_ToolLab;
+                option_tool_verb::option_tool_verb_Some(v8)
+            } else {
+                option_tool_verb::option_tool_verb_None
             }
         }
     }
 }
 fn program_verb_tail_8(mut v0: Rc<str>) -> US2 {
-    let v1: US8 = run_named_9(v0.clone());
+    let v1: option_run_verb = run_named_9(v0.clone());
     match &v1 {
-        US8::US8_None => {
-            let v5: US9 = write_named_10(v0.clone());
+        option_run_verb::option_run_verb_None => {
+            let v5: option_write_verb = write_named_10(v0.clone());
             match &v5 {
-                US9::US9_None => {
-                    let v9: bool = &*v0 == "git";
-                    if v9 {
-                        let v10: US3 = US3::US3_GitVerb;
-                        US2::US2_Some(v10)
-                    } else {
-                        let v12: bool = &*v0 == "job";
-                        if v12 {
-                            let v13: US3 = US3::US3_JobVerb;
-                            US2::US2_Some(v13)
-                        } else {
-                            let v15: bool = &*v0 == "lab";
-                            if v15 {
-                                let v16: US3 = US3::US3_LabVerb;
-                                US2::US2_Some(v16)
-                            } else {
-                                US2::US2_None
-                            }
+                option_write_verb::option_write_verb_None => {
+                    let v9: option_tool_verb = tool_named_11(v0);
+                    match &v9 {
+                        option_tool_verb::option_tool_verb_None => {
+                            US2::US2_None
+                        }
+                        option_tool_verb::option_tool_verb_Some(v10) => {
+                            let v10: tool_verb = v10.clone();
+                            let v11: US3 = US3::US3_ToolVerb(v10);
+                            US2::US2_Some(v11)
                         }
                     }
                 }
-                US9::US9_Some(v6) => {
-                    let v6: US7 = v6.clone();
+                option_write_verb::option_write_verb_Some(v6) => {
+                    let v6: write_verb = v6.clone();
                     let v7: US3 = US3::US3_WriteVerb(v6);
                     US2::US2_Some(v7)
                 }
             }
         }
-        US8::US8_Some(v2) => {
-            let v2: US6 = v2.clone();
+        option_run_verb::option_run_verb_Some(v2) => {
+            let v2: run_verb = v2.clone();
             let v3: US3 = US3::US3_RunStepVerb(v2);
             US2::US2_Some(v3)
         }
     }
 }
-fn fact_named_11(mut v0: Rc<str>) -> US11 {
+fn fact_named_12(mut v0: Rc<str>) -> option_fact_verb {
     let v1: bool = &*v0 == "hash";
     if v1 {
-        let v2: US5 = US5::US5_HashVerb;
-        US11::US11_Some(v2)
+        let v2: fact_verb = fact_verb::fact_verb_FactHash;
+        option_fact_verb::option_fact_verb_Some(v2)
     } else {
         let v4: bool = &*v0 == "env";
         if v4 {
-            let v5: US5 = US5::US5_EnvVerb;
-            US11::US11_Some(v5)
+            let v5: fact_verb = fact_verb::fact_verb_FactEnv;
+            option_fact_verb::option_fact_verb_Some(v5)
         } else {
             let v7: bool = &*v0 == "exists";
             if v7 {
-                let v8: US5 = US5::US5_ExistsVerb;
-                US11::US11_Some(v8)
+                let v8: fact_verb = fact_verb::fact_verb_FactExists;
+                option_fact_verb::option_fact_verb_Some(v8)
             } else {
                 let v10: bool = &*v0 == "nearest";
                 if v10 {
-                    let v11: US5 = US5::US5_NearestVerb;
-                    US11::US11_Some(v11)
+                    let v11: fact_verb = fact_verb::fact_verb_FactNearest;
+                    option_fact_verb::option_fact_verb_Some(v11)
                 } else {
                     let v13: bool = &*v0 == "json";
                     if v13 {
-                        let v14: US5 = US5::US5_JsonVerb;
-                        US11::US11_Some(v14)
+                        let v14: fact_verb = fact_verb::fact_verb_FactJson;
+                        option_fact_verb::option_fact_verb_Some(v14)
                     } else {
                         let v16: bool = &*v0 == "lines";
                         if v16 {
-                            let v17: US5 = US5::US5_LinesVerb;
-                            US11::US11_Some(v17)
+                            let v17: fact_verb = fact_verb::fact_verb_FactLines;
+                            option_fact_verb::option_fact_verb_Some(v17)
                         } else {
                             let v19: bool = &*v0 == "table";
                             if v19 {
-                                let v20: US5 = US5::US5_TableVerb;
-                                US11::US11_Some(v20)
+                                let v20: fact_verb = fact_verb::fact_verb_FactTable;
+                                option_fact_verb::option_fact_verb_Some(v20)
                             } else {
                                 let v22: bool = &*v0 == "dirs";
                                 if v22 {
-                                    let v23: US5 = US5::US5_DirsVerb;
-                                    US11::US11_Some(v23)
+                                    let v23: fact_verb = fact_verb::fact_verb_FactDirs;
+                                    option_fact_verb::option_fact_verb_Some(v23)
                                 } else {
                                     let v25: bool = &*v0 == "tag";
                                     if v25 {
-                                        let v26: US5 = US5::US5_TagVerb;
-                                        US11::US11_Some(v26)
+                                        let v26: fact_verb = fact_verb::fact_verb_FactTag;
+                                        option_fact_verb::option_fact_verb_Some(v26)
                                     } else {
                                         let v28: bool = &*v0 == "count";
                                         if v28 {
-                                            let v29: US5 = US5::US5_CountVerb;
-                                            US11::US11_Some(v29)
+                                            let v29: fact_verb = fact_verb::fact_verb_FactCount;
+                                            option_fact_verb::option_fact_verb_Some(v29)
                                         } else {
                                             let v31: bool = &*v0 == "diff";
                                             if v31 {
-                                                let v32: US5 = US5::US5_DiffVerb;
-                                                US11::US11_Some(v32)
+                                                let v32: fact_verb = fact_verb::fact_verb_FactDiff;
+                                                option_fact_verb::option_fact_verb_Some(v32)
                                             } else {
-                                                US11::US11_None
+                                                option_fact_verb::option_fact_verb_None
                                             }
                                         }
                                     }
@@ -317,36 +457,36 @@ fn fact_named_11(mut v0: Rc<str>) -> US11 {
 }
 fn program_verb_named_7(mut v0: Rc<str>) -> US2 {
     let v1: bool = &*v0 == "search";
-    let v25: US10 = if v1 {
+    let v25: US12 = if v1 {
         let v2: US4 = US4::US4_Search;
-        US10::US10_Some(v2)
+        US12::US12_Some(v2)
     } else {
         let v4: bool = &*v0 == "read";
         if v4 {
             let v5: US4 = US4::US4_ReadAround;
-            US10::US10_Some(v5)
+            US12::US12_Some(v5)
         } else {
             let v7: bool = &*v0 == "files";
             if v7 {
                 let v8: US4 = US4::US4_ListFiles;
-                US10::US10_Some(v8)
+                US12::US12_Some(v8)
             } else {
                 let v10: bool = &*v0 == "head";
                 if v10 {
                     let v11: US4 = US4::US4_Head;
-                    US10::US10_Some(v11)
+                    US12::US12_Some(v11)
                 } else {
                     let v13: bool = &*v0 == "tail";
                     if v13 {
                         let v14: US4 = US4::US4_Tail;
-                        US10::US10_Some(v14)
+                        US12::US12_Some(v14)
                     } else {
                         let v16: bool = &*v0 == "wait";
                         if v16 {
                             let v17: US4 = US4::US4_Wait;
-                            US10::US10_Some(v17)
+                            US12::US12_Some(v17)
                         } else {
-                            US10::US10_None
+                            US12::US12_None
                         }
                     }
                 }
@@ -354,20 +494,20 @@ fn program_verb_named_7(mut v0: Rc<str>) -> US2 {
         }
     };
     match &v25 {
-        US10::US10_None => {
-            let v29: US11 = fact_named_11(v0.clone());
+        US12::US12_None => {
+            let v29: option_fact_verb = fact_named_12(v0.clone());
             match &v29 {
-                US11::US11_None => {
+                option_fact_verb::option_fact_verb_None => {
                     program_verb_tail_8(v0)
                 }
-                US11::US11_Some(v30) => {
-                    let v30: US5 = v30.clone();
+                option_fact_verb::option_fact_verb_Some(v30) => {
+                    let v30: fact_verb = v30.clone();
                     let v31: US3 = US3::US3_FactVerb(v30);
                     US2::US2_Some(v31)
                 }
             }
         }
-        US10::US10_Some(v26) => {
+        US12::US12_Some(v26) => {
             let v26: US4 = v26.clone();
             let v27: US3 = US3::US3_ReadVerb(v26);
             US2::US2_Some(v27)
@@ -397,34 +537,39 @@ fn query_family_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) 
             }
             US2::US2_Some(v12) => {
                 let v12: US3 = v12.clone();
-                let v30: US0 = match &v12 {
+                let v32: US0 = match &v12 {
                     US3::US3_FactVerb(v15) => {
-                        let v15: US5 = v15.clone();
+                        let v15: fact_verb = v15.clone();
                         US0::US0_Facts
-                    }
-                    US3::US3_GitVerb => {
-                        US0::US0_Git
-                    }
-                    US3::US3_JobVerb => {
-                        US0::US0_Jobs
-                    }
-                    US3::US3_LabVerb => {
-                        US0::US0_Labs
                     }
                     US3::US3_ReadVerb(v13) => {
                         let v13: US4 = v13.clone();
                         US0::US0_Reads
                     }
                     US3::US3_RunStepVerb(v17) => {
-                        let v17: US6 = v17.clone();
+                        let v17: run_verb = v17.clone();
                         US0::US0_Runs
                     }
+                    US3::US3_ToolVerb(v21) => {
+                        let v21: tool_verb = v21.clone();
+                        match &v21 {
+                            tool_verb::tool_verb_ToolGit => {
+                                US0::US0_Git
+                            }
+                            tool_verb::tool_verb_ToolJob => {
+                                US0::US0_Jobs
+                            }
+                            tool_verb::tool_verb_ToolLab => {
+                                US0::US0_Labs
+                            }
+                        }
+                    }
                     US3::US3_WriteVerb(v19) => {
-                        let v19: US7 = v19.clone();
+                        let v19: write_verb = v19.clone();
                         US0::US0_Writes
                     }
                 };
-                US1::US1_Some(v30)
+                US1::US1_Some(v32)
             }
         }
     }
@@ -596,74 +741,79 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn do_verb_family_12(mut v0: Rc<str>) -> Rc<str> {
+fn do_verb_family_13(mut v0: Rc<str>) -> Rc<str> {
     let v1: US2 = program_verb_named_7(v0);
     match &v1 {
         US2::US2_None => {
-            let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v37
+            let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            v32
         }
         US2::US2_Some(v2) => {
             let v2: US3 = v2.clone();
-            let v20: US0 = match &v2 {
+            let v22: US0 = match &v2 {
                 US3::US3_FactVerb(v5) => {
-                    let v5: US5 = v5.clone();
+                    let v5: fact_verb = v5.clone();
                     US0::US0_Facts
-                }
-                US3::US3_GitVerb => {
-                    US0::US0_Git
-                }
-                US3::US3_JobVerb => {
-                    US0::US0_Jobs
-                }
-                US3::US3_LabVerb => {
-                    US0::US0_Labs
                 }
                 US3::US3_ReadVerb(v3) => {
                     let v3: US4 = v3.clone();
                     US0::US0_Reads
                 }
                 US3::US3_RunStepVerb(v7) => {
-                    let v7: US6 = v7.clone();
+                    let v7: run_verb = v7.clone();
                     US0::US0_Runs
                 }
+                US3::US3_ToolVerb(v11) => {
+                    let v11: tool_verb = v11.clone();
+                    match &v11 {
+                        tool_verb::tool_verb_ToolGit => {
+                            US0::US0_Git
+                        }
+                        tool_verb::tool_verb_ToolJob => {
+                            US0::US0_Jobs
+                        }
+                        tool_verb::tool_verb_ToolLab => {
+                            US0::US0_Labs
+                        }
+                    }
+                }
                 US3::US3_WriteVerb(v9) => {
-                    let v9: US7 = v9.clone();
+                    let v9: write_verb = v9.clone();
                     US0::US0_Writes
                 }
             };
-            match &v20 {
+            match &v22 {
                 US0::US0_Edits => {
-                    let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edits"); } LIT.with(|lit| lit.clone()) };
-                    v21
-                }
-                US0::US0_Facts => {
-                    let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("facts"); } LIT.with(|lit| lit.clone()) };
+                    let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edits"); } LIT.with(|lit| lit.clone()) };
                     v23
                 }
+                US0::US0_Facts => {
+                    let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("facts"); } LIT.with(|lit| lit.clone()) };
+                    v25
+                }
                 US0::US0_Git => {
-                    let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("git"); } LIT.with(|lit| lit.clone()) };
-                    v26
-                }
-                US0::US0_Jobs => {
-                    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("jobs"); } LIT.with(|lit| lit.clone()) };
-                    v27
-                }
-                US0::US0_Labs => {
-                    let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("labs"); } LIT.with(|lit| lit.clone()) };
+                    let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("git"); } LIT.with(|lit| lit.clone()) };
                     v28
                 }
-                US0::US0_Reads => {
-                    let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("reads"); } LIT.with(|lit| lit.clone()) };
-                    v22
+                US0::US0_Jobs => {
+                    let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("jobs"); } LIT.with(|lit| lit.clone()) };
+                    v29
                 }
-                US0::US0_Runs => {
-                    let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runs"); } LIT.with(|lit| lit.clone()) };
+                US0::US0_Labs => {
+                    let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("labs"); } LIT.with(|lit| lit.clone()) };
+                    v30
+                }
+                US0::US0_Reads => {
+                    let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("reads"); } LIT.with(|lit| lit.clone()) };
                     v24
                 }
+                US0::US0_Runs => {
+                    let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runs"); } LIT.with(|lit| lit.clone()) };
+                    v26
+                }
                 US0::US0_Writes => {
-                    let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("writes"); } LIT.with(|lit| lit.clone()) };
-                    v25
+                    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("writes"); } LIT.with(|lit| lit.clone()) };
+                    v27
                 }
             }
         }
@@ -671,7 +821,27 @@ fn do_verb_family_12(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        do_verb_family_12(v0.clone())
+        do_verb_family_13(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure2() -> Rc<dyn Fn(Rc<str>) -> option_fact_verb> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> option_fact_verb> = Rc::new(move |mut v0: Rc<str>| -> option_fact_verb {
+        fact_named_12(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure3() -> Rc<dyn Fn(Rc<str>) -> option_run_verb> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> option_run_verb> = Rc::new(move |mut v0: Rc<str>| -> option_run_verb {
+        run_named_9(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure4() -> Rc<dyn Fn(Rc<str>) -> option_write_verb> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> option_write_verb> = Rc::new(move |mut v0: Rc<str>| -> option_write_verb {
+        write_named_10(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure5() -> Rc<dyn Fn(Rc<str>) -> option_tool_verb> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> option_tool_verb> = Rc::new(move |mut v0: Rc<str>| -> option_tool_verb {
+        tool_named_11(v0.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_do_program_family(v0: &str) -> Rc<str> {
@@ -679,4 +849,16 @@ pub fn kit_do_program_family(v0: &str) -> Rc<str> {
 }
 pub fn kit_do_verb_family(v0: &str) -> Rc<str> {
     closure1()(Rc::<str>::from(v0))
+}
+pub fn kit_do_fact_named(v0: &str) -> option_fact_verb {
+    closure2()(Rc::<str>::from(v0))
+}
+pub fn kit_do_run_named(v0: &str) -> option_run_verb {
+    closure3()(Rc::<str>::from(v0))
+}
+pub fn kit_do_write_named(v0: &str) -> option_write_verb {
+    closure4()(Rc::<str>::from(v0))
+}
+pub fn kit_do_tool_named(v0: &str) -> option_tool_verb {
+    closure5()(Rc::<str>::from(v0))
 }

@@ -1,0 +1,11 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    agile_sprint
+    agile_sprint_rows
+    kit_agile_sprint_read
+link:
+    kit_agile_sprint_read
+modules:
+    state

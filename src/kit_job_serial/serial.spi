@@ -28,5 +28,5 @@
     | ChainPlanned plan => serial_ran (env.current_executable ()) plan.head.mode plan.links 0i32 0i32
 
 := main () : i32 =
-    !!!!Export("kit_job_serial_run", ((\ () => serial_run ()) : () -> i32))
+    export "kit_job_serial_run" serial_run
     0i32

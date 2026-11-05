@@ -3,5 +3,10 @@ packages:
     spiral-
     rust_std_string
     kit_jobs
+    kit_process_alive
+    kit_job_orphans
+link:
+    kit_process_alive
+    kit_job_orphans
 modules:
     state

@@ -211,5 +211,5 @@
             | TableUnreadable problem => failed (concat5 "analyze: " problem "" "" "")
             | TableLoaded cells => analyzed_plan ledger study cells
 := main () : i32 =
-    !!!!Export("kit_experiment_analyze_run", ((\ () => analyzed ()) : () -> i32))
+    export "kit_experiment_analyze_run" ((\ () => analyzed ()) : () -> i32)
     0i32

@@ -62,11 +62,11 @@
         toolchain_u32_decimal_valid "42",
         toolchain_i32_decimal_code "-1"
 
-    !!!!Export("kit_toolchain_cwd", ((\ (first, second) => toolchain_cwd_binding first second) : i32 * i32 -> i32))
-    !!!!Export("kit_toolchain_u64_decimal_valid", ((\ value => toolchain_u64_decimal_valid value) : string -> u64))
-    !!!!Export("kit_toolchain_u64_decimal_value", ((\ value => toolchain_u64_decimal_value value) : string -> u64))
-    !!!!Export("kit_toolchain_u32_decimal_valid", ((\ value => toolchain_u32_decimal_valid value) : string -> u64))
-    !!!!Export("kit_toolchain_i32_decimal_code", ((\ value => toolchain_i32_decimal_code value) : string -> u64))
+    export "kit_toolchain_cwd" ((\ (first, second) => toolchain_cwd_binding first second) : i32 * i32 -> i32)
+    export "kit_toolchain_u64_decimal_valid" ((\ value => toolchain_u64_decimal_valid value) : string -> u64)
+    export "kit_toolchain_u64_decimal_value" ((\ value => toolchain_u64_decimal_value value) : string -> u64)
+    export "kit_toolchain_u32_decimal_valid" ((\ value => toolchain_u32_decimal_valid value) : string -> u64)
+    export "kit_toolchain_i32_decimal_code" ((\ value => toolchain_i32_decimal_code value) : string -> u64)
 
     := _ = toolchain_cwd_binding 0i32 0i32
     0i32

@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_job_dispatch"
 path = "dispatch.rs"
+
+[dependencies]
+kit-job-bin = { path = "../kit_job_bin" }

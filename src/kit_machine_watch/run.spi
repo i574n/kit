@@ -142,5 +142,5 @@ inl sorted_busy (~lines : string) : string = $'{ let mut rows = (&*!lines).lines
         2i32
 
 := main () : i32 =
-    !!!!Export("kit_machine_watch_run", ((\ () => machine_run ()) : () -> i32))
+    export "kit_machine_watch_run" ((\ () => machine_run ()) : () -> i32)
     0i32

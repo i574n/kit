@@ -16,3 +16,4 @@ path = "request.rs"
 [dependencies]
 kit-job-state = { path = "../kit_job_state" }
 kit-os-launch = { path = "../kit_os_launch" }
+kit-process-alive = { path = "../kit_process_alive" }

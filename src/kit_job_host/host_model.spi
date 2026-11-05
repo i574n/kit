@@ -71,6 +71,9 @@
     | Some n => ? n > 0u64 ?> AtMost n |: Unlimited
     | None => Unlimited
 
+:= cap_text_of (~env_text : string) (~file_text : string) : string =
+    ? sm'.trim env_text <> "" ?> env_text |: file_text
+
 := may_take (cap : slot_cap) (live : u64) : bool =
     ?= cap ?|
     | Unlimited => !+
@@ -129,6 +132,8 @@
 :# a_slot_cap_holds_new_requests_while_the_machine_is_full =
     testing.expect (slot_cap_of "" = Unlimited && slot_cap_of "0" = Unlimited) "unset or 0 means no cap"
     testing.expect (slot_cap_of " 1 " = AtMost 1u64 && slot_cap_of "two" = Unlimited) "a whole number caps"
+    testing.expect (cap_text_of "2" "6\n" = "2") "the env beats the file"
+    testing.expect (slot_cap_of (cap_text_of " " "6\n") = AtMost 6u64) "the file fills a blank env"
     testing.expect (may_take (AtMost 1u64) 0u64 && may_take (AtMost 1u64) 1u64 = !-) "one slot: the second waits"
     testing.expect (may_take Unlimited 50u64) "no cap takes every request"
     testing.expect (admitted (AtMost 1u64) 1u64 StartNow = HoldBack) "a full machine holds a ready job"

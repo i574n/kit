@@ -1,0 +1,133 @@
+///- --package .
+:< sm'_operators
+
+:| heal_verb =
+    | HealNameof
+
+:== tally = { files : i32; unreadable : i32; findings : i32; arms : i32 }
+
+:~ heal_named (~word : string) : option heal_verb =
+    union_reflection.cases.union_case_where
+        (\ (verb : heal_verb) => word = union_reflection.cases.union_case_kebab "Heal" verb)
+        (\ verb => Some verb)
+        None
+
+:~ skipped_dir (~name : string) : bool =
+    name = "target" || name = ".git" || name = ".cache" || name = "node_modules" || name = "deps" || name = "_build"
+
+:~ ^ spi_files_from (dirs : list string) (found : list string) : list string =
+    ?= dirs ?|
+    | [] => listm.rev found
+    | dir :: rest =>
+        := step = \ ((more, files) : list string * list string) (name : string) =>
+            := path = dir ++# "/" ++# name
+            ? file_system.directory_exists path ?> (? skipped_dir name ?> (more, files) |: (path :: more, files))
+            |? sm'.ends_with ".spi" name ?> (more, path :: files)
+            |: (more, files)
+        := more, files = kit_os_files.files.entry_names dir |> listm.fold step (rest, found)
+        spi_files_from more files
+
+:~ compiler_dll () : string =
+    := pinned = env.get_environment_variable "SPIRAL_COMPILER_DLL"
+    ? pinned <> "" ?> pinned
+    |:
+        env.get_environment_variable "LOCALAPPDATA"
+        ++# "/spiral-bin/bin/single-flight/SpiralCompiler/Release/net11.0/SpiralCompiler.dll"
+
+:~ tokens_of (~dll : string) (~path : string) : option string =
+    := command = process.shared_command_new "dotnet"
+    [ dll; "tokens"; path ] |> listm.iter (\ (arg : string) => process.shared_command_arg command arg)
+    process.shared_command_no_input command
+    := output = process.shared_command_output command
+    ? process.command_output_ran output && process.command_output_code output = 0i32
+    ?> Some (process.command_output_stdout output)
+    |: None
+
+:~ finding_line (~path : string) (row : kit_nameof_findings.findings.finding_row) : string =
+    "nameof "
+    ++# path
+    ++# ":"
+    ++# sm'.show row.first_line
+    ++# " "
+    ++# row.kind
+    ++# " arms="
+    ++# sm'.show row.arms
+    ++# " cases="
+    ++# row.cases
+
+:~ ^ rows_shown (~path : string) (rows : array_base kit_nameof_findings.findings.finding_row) (at : i32) (arms : i32)
+    : i32 * i32
+    =
+    ? at >= am'.length_base rows ?> at, arms
+    |:
+        := row = am'.index_base at rows
+        console.write_line (finding_line path row)
+        rows_shown path rows (at + 1i32) (arms + row.arms)
+
+:~ file_tally (~dll : string) (t : tally) (~path : string) : tally =
+    ?= tokens_of dll path ?|
+    | None => { files = t.files + 1i32; unreadable = t.unreadable + 1i32; findings = t.findings; arms = t.arms }
+    | Some tokens =>
+        := rows = kit_nameof_findings.findings.finding_rows (file_system.read_text_or_empty path, tokens)
+        := count, arms = rows_shown path rows 0i32 0i32
+        { files = t.files + 1i32; unreadable = t.unreadable; findings = t.findings + count; arms = t.arms + arms }
+
+:~ root_report (~dll : string) (~root : string) : i32 =
+    := zero = { files = 0i32; unreadable = 0i32; findings = 0i32; arms = 0i32 }
+    := t = spi_files_from [ root ] [] |> listm.fold (\ (acc : tally) (path : string) => file_tally dll acc path) zero
+    console.write_line (
+        "kit heal nameof root="
+        ++# root
+        ++# " files="
+        ++# sm'.show t.files
+        ++# " unreadable="
+        ++# sm'.show t.unreadable
+        ++# " findings="
+        ++# sm'.show t.findings
+        ++# " arms="
+        ++# sm'.show t.arms
+    )
+    t.arms
+
+:~ heal_usage () : i32 =
+    console.write_error_line (
+        "kit error: heal usage: heal nameof <dir>... (lists matches that map 3 or more cases to their own names as "
+        ^^ "strings, or back, per file and per root; the compiler's tokens command reads each .spi)"
+    )
+    2i32
+
+:~ heal_ran (verb : heal_verb) (roots : list string) : i32 =
+    ?= verb ?|
+    | HealNameof =>
+        := dll = compiler_dll ()
+        ? roots = [] ?> heal_usage ()
+        |? file_system.file_exists dll |> not ?>
+            console.write_error_line ("kit error: heal nameof: no compiler at " ++# dll ++# "; set SPIRAL_COMPILER_DLL")
+            2i32
+        |:
+            := arms = roots |> listm.fold (\ (sum : i32) (root : string) => sum + root_report dll root) 0i32
+            := count : i32 = listm.length roots
+            console.write_line ("kit heal nameof ok roots=" ++# sm'.show count ++# " arms=" ++# sm'.show arms)
+            0i32
+
+:~ heal_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: roots =>
+        ?= heal_named word ?|
+        | Some verb => heal_ran verb roots
+        | None => heal_usage ()
+    | _ => heal_usage ()
+
+///> rust
+:# heal_words_and_finding_lines_read_back =
+    testing.expect (heal_named "nameof" = Some HealNameof) "nameof names the case-name heal"
+    testing.expect (heal_named "x" = None) "the heal names no project"
+    testing.expect (skipped_dir "target" && skipped_dir "src" |> not) "build output is skipped, sources are not"
+    := row = { kind = "to-name"; first_line = 7i32; arms = 3i32; cases = "GadtCase,HostMacro,RcWrap" }
+    testing.expect
+        (finding_line "f.spi" row = "nameof f.spi:7 to-name arms=3 cases=GadtCase,HostMacro,RcWrap")
+        (finding_line "f.spi" row)
+///> _
+:= main () : i32 =
+    export "kit_heal_run" heal_run
+    0i32

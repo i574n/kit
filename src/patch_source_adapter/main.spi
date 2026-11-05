@@ -131,16 +131,13 @@
     := _ = source_resume_pair_binding 1i32 1i32
     := _ = source_resume_decision_binding 1i32 1i32
     := _ = source_resume_completion_binding 1i32 1i32
-    !!!!Export(
-        "kit_patch_source_adapter_source_resume_pair_binding",
+    export
+        "kit_patch_source_adapter_source_resume_pair_binding"
         ((\ (first, second) => source_resume_pair_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_source_adapter_source_resume_decision_binding",
+    export
+        "kit_patch_source_adapter_source_resume_decision_binding"
         ((\ (first, second) => source_resume_decision_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_source_adapter_source_resume_completion_binding",
+    export
+        "kit_patch_source_adapter_source_resume_completion_binding"
         ((\ (first, second) => source_resume_completion_binding first second) : i32 * i32 -> i32)
-    )
     0i32

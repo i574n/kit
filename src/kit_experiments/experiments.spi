@@ -1,10 +1,16 @@
+///- --package .
+:# experiments static =
+    :< rust_std_string.model
+    :< sm'_operators
+    :< experiment_model
+    :< ledger_host
+
 :< rust_std_string.model
+:< sm'_operators
 :< experiment_model
 :< ledger_host
 
-:~ registered () : i32 =
-    := ledger = argument 3i32
-    := id = argument 4i32
+:~ registered (~ledger : string) (~id : string) : i32 =
     ? identifier_ok id = !-
     ?>
         failed (
@@ -65,9 +71,7 @@
                     )
                     0i32
 
-:~ shown () : i32 =
-    := ledger = argument 3i32
-    := id = argument 4i32
+:~ shown (~ledger : string) (~id : string) : i32 =
     := plan = file_text (record_path ledger id "registration")
     ? plan = ""
     ?> failed (concat5 "show: no registration for " id " in " ledger "")
@@ -97,17 +101,48 @@
         )
         0i32
 
-:~ experiment_run () : i32 =
-    := verb = argument 2i32
-    ? verb = "register" ?> registered ()
-    |? verb = "analyze" ?> $'kit_experiment_analysis::kit_experiment_analyze_run()' : i32
-    |? verb = "show" ?> shown ()
-    |? verb = "amend" ?> $'kit_experiment_amend::kit_experiment_amend_run()' : i32
-    |? verb = "addendum" ?> $'kit_experiment_amend::kit_experiment_addendum_run()' : i32
-    |? verb = "import" ?> $'kit_experiment_import::kit_experiment_import_run()' : i32
-    |? verb = "record-verdict" ?> $'kit_experiment_import::kit_experiment_verdict_run()' : i32
-    |: failed (concat5 "unknown verb '" verb "'; " (experiment_usage ()) "")
+:| experiment_verb =
+    | VerbRegister
+    | VerbAnalyze
+    | VerbShow
+    | VerbAmend
+    | VerbAddendum
+    | VerbImport
+    | VerbRecordVerdict
 
+:= experiment_verb_word (verb : experiment_verb) : string =
+    union_reflection.cases.union_case_kebab "Verb" verb
+
+:~ experiment_verb_of (~word : string) : option experiment_verb =
+    union_reflection.cases.union_case_where (\ (verb : experiment_verb) => word = experiment_verb_word verb) Some None
+
+:~ verb_ran (verb : experiment_verb) (~ledger : string) (~id : string) : i32 =
+    ?= verb ?|
+    | VerbRegister => registered ledger id
+    | VerbAnalyze => $'kit_experiment_analysis::kit_experiment_analyze_run()' : i32
+    | VerbShow => shown ledger id
+    | VerbAmend => $'kit_experiment_amend::kit_experiment_amend_run()' : i32
+    | VerbAddendum => $'kit_experiment_amend::kit_experiment_addendum_run()' : i32
+    | VerbImport => $'kit_experiment_import::kit_experiment_import_run()' : i32
+    | VerbRecordVerdict => $'kit_experiment_import::kit_experiment_verdict_run()' : i32
+
+:~ experiment_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: rest =>
+        ?= experiment_verb_of word ?|
+        | Some verb =>
+            ?= rest ?|
+            | ledger :: id :: _ => verb_ran verb ledger id
+            | ledger :: [] => verb_ran verb ledger ""
+            | [] => verb_ran verb "" ""
+        | None => failed ("unknown verb '" ++# word ++# "'; " ++# experiment_usage ())
+    | _ => failed ("unknown verb ''; " ++# experiment_usage ())
+///> rust
+:# experiment_verbs_read_by_reflection =
+    := words = union_reflection.cases.union_cases_joined experiment_verb_word "|"
+    testing.expect (words = "register|analyze|show|amend|addendum|import|record-verdict") words
+    testing.expect (experiment_verb_word VerbRecordVerdict = "record-verdict") "kebab case"
+///> _
 := main () : i32 =
-    !!!!Export("kit_experiment_run", ((\ () => experiment_run ()) : () -> i32))
+    export "kit_experiment_run" ((\ () => experiment_run ()) : () -> i32)
     0i32

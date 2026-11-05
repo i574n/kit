@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "found.spi"
+output = "found.rs"
+
+[package]
+name = "kit-grep-found"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_grep_found"
+path = "found.rs"
+
+[dependencies]
+regex = "1.13.1"

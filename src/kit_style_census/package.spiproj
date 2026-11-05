@@ -1,7 +1,17 @@
 packages:
     |core-
     spiral-
-    rust_std_string
+    union_reflection
+    kit_style_probes
+    kit_style_measure
+    kit_style_baseline
+    kit_flag_words
+    kit_style_scoreboard
+link:
+    kit_style_probes
+    kit_style_measure
+    kit_style_baseline
+    kit_flag_words
+    kit_style_scoreboard
 modules:
-    probes
     census

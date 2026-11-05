@@ -8,24 +8,19 @@
     := _ = batch_write_stage_binding 1i32 1i32
     := _ = batch_write_verify_binding 1i32 1i32
     := _ = batch_write_rollback_binding 1i32 1i32
-    !!!!Export(
-        "kit_patch_driver_batch_write_shape_binding",
+    export
+        "kit_patch_driver_batch_write_shape_binding"
         ((\ (first, second) => batch_write_shape_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_batch_write_freshness_binding",
+    export
+        "kit_patch_driver_batch_write_freshness_binding"
         ((\ (first, second) => batch_write_freshness_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_batch_write_stage_binding",
+    export
+        "kit_patch_driver_batch_write_stage_binding"
         ((\ (first, second) => batch_write_stage_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_batch_write_verify_binding",
+    export
+        "kit_patch_driver_batch_write_verify_binding"
         ((\ (first, second) => batch_write_verify_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_batch_write_rollback_binding",
+    export
+        "kit_patch_driver_batch_write_rollback_binding"
         ((\ (first, second) => batch_write_rollback_binding first second) : i32 * i32 -> i32)
-    )
     0i32

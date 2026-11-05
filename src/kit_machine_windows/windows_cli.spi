@@ -177,6 +177,27 @@
     fixture_root_remove root
 
 ///> rust
+:# a_job_stopped_while_it_waits_for_the_heavy_slot_records_a_settled_ticket =
+    := root = fixture_root_create "slot settled"
+    fixture_write root "gate.ps1" (fake_gate ())
+    := ahead = cat (sm'.pad_left 20i32 '0' "1") (cat "-" (cat (sm'.show (env.process_id ())) ".t"))
+    fixture_write root (cat "queue/" ahead) ""
+    := quick = rustc_program root "quick" "fn main() {}"
+    := job =
+        word_after
+            (succeeded (heavy_call root (Arg ("start", Arg ("--heavy", Arg ("blocked", Arg ("30000", Arg (quick,
+                NoArgs))))))))
+            "id="
+    pause_ms 4000u64
+    shows (fixture_read root (cat "jobs/" (cat job "/slot"))) "waiting ticket="
+    shows (succeeded (heavy_call root (Arg ("stop", Arg (job, NoArgs))))) "state=stopped"
+    pause_ms 1500u64
+    := slot = fixture_read root (cat "jobs/" (cat job "/slot"))
+    shows slot "settled ticket="
+    shows slot "state=stopped"
+    fixture_root_remove root
+
+///> rust
 :# a_compile_job_waits_for_an_install_window_and_releases_its_own =
     := root = fixture_root_create "window compile job"
     := install = word_after (succeeded (requested root "compiler-install" "spiral install" NoArgs)) "id="

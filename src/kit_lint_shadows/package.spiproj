@@ -5,5 +5,8 @@ packages:
     kit_lint_macros
     kit_lint_walk
     kit_lint_shadows_core
+    kit_lint_args
+link:
+    kit_lint_args
 modules:
     shadows_run

@@ -73,11 +73,7 @@
     | HelpSpec => { name = "help"; effect = Inspect; summary = "render the public command catalog" }
     | UnknownSpec => { name = "unknown"; effect = Inspect; summary = "unknown public verb" }
 
-:= effect_name = \|
-    | Inspect => "inspect"
-    | Wrap => "wrap"
-    | Mutate => "mutate"
-    | Renew => "renew"
+:= effect_name (value : command_effect) : string = union_reflection.cases.union_case_kebab "" value
 
 := declared_code \* case. (value : case) : u64 = $'(!(union_reflection.cases.union_case_index value) - 1) as u64' : u64
 := missing_code () : u64 = $'u64::MAX' : u64
@@ -296,15 +292,8 @@
     | CargoVersion
     | SpiralVersion
 
-:= toolchain_action_name = \|
-    | CargoLock => "cargo-lock"
-    | CargoFmtCheck => "cargo-fmt-check"
-    | CargoCheck => "cargo-check"
-    | CargoTest => "cargo-test"
-    | CargoClippy => "cargo-clippy"
-    | CargoBuild => "cargo-build"
-    | CargoVersion => "cargo-version"
-    | SpiralVersion => "spiral-version"
+:= toolchain_action_name (value : toolchain_action) : string =
+    union_reflection.cases.union_case_kebab "" value
 
 :~ toolchain_action_code (~input : string) : u64 =
     union_reflection.cases.union_case_where

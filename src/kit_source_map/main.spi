@@ -7,22 +7,18 @@
     := _ = source_map_edges_binding 1i32 0i32
     := _ = source_diff_record_binding 0i32 1i32
     := _ = source_rebuild_count_binding 1i32 1i32
-    !!!!Export(
-        "kit_source_map_files_binding",
+    export
+        "kit_source_map_files_binding"
         ((\ (first, second) => source_map_files_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_source_map_edges_binding",
+    export
+        "kit_source_map_edges_binding"
         ((\ (first, second) => source_map_edges_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_source_diff_record_binding",
+    export
+        "kit_source_diff_record_binding"
         ((\ (first, second) => source_diff_record_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_source_rebuild_count_binding",
+    export
+        "kit_source_rebuild_count_binding"
         ((\ (first, second) => source_rebuild_count_binding first second) : i32 * i32 -> i32)
-    )
     global """
         use kit_proxy_search::mnemonic_path_tag;
         use std::collections::{BTreeMap, BTreeSet};

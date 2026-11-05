@@ -1,8 +1,8 @@
 packages:
     |core-
     spiral-
+    union_reflection
     kit_receipt
-    rust_std_env
 modules:
     model
     slice

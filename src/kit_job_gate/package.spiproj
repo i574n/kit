@@ -1,8 +1,12 @@
 packages:
     |core-
+    spiral-
     rust_std_string
     union_reflection
     kit_jobs
     kit_machine_windows
+    kit_process_alive
+link:
+    kit_process_alive
 modules:
     gate

@@ -66,6 +66,6 @@
     | ListingRejected text => 2i32, text
 
 := main () : i32 =
-    !!!!Export("kit_directory_listing_outcome", ((\ () => directory_listing_report ()) : () -> i32 * string))
+    export "kit_directory_listing_outcome" ((\ () => directory_listing_report ()) : () -> i32 * string)
     := _ = directory_listing_outcome ()
     0i32

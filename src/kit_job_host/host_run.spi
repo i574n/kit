@@ -25,7 +25,12 @@
     ? pid = 0u64 ?> "" |: decimal_text pid ++# "-" ++# decimal_text started
 
 :~ verdict_for (~kids : children) (terms : host_terms) (~id : string) : queue_verdict =
-    admitted terms.cap (live_children kids) (queue_verdict id)
+    := elsewhere = kit_job_peers.peers.live_elsewhere_of (host_home_directory terms.home)
+    admitted terms.cap (live_children kids + elsewhere) (queue_verdict id)
+
+:~ live_recorded (~home : string) (running : u64) : () =
+    := text = decimal_text running
+    ? text_or_empty (host_live_file home) = text ?> () |: (text_written (host_live_file home) text |> ignore)
 
 :~ request_served (~kids : children) (terms : host_terms) (~executable : string) (~id : string) : () =
     ?= verdict_for kids terms id ?|
@@ -85,6 +90,7 @@
     |:
         := present = owner_present terms.owner_pid terms.owner_start
         := _ = ? present ?> () |: held_stopped_from home (held_names ()) 0i32
+        := _ = live_recorded home (live_children kids)
         := live = live_children kids + held_served kids terms
         := now = now_ms ()
         ?= host_step_of terms.policy live idle_since now (home_of home) present ?|
@@ -108,7 +114,9 @@
         owner_pid = owner_pid
         owner_start = owner_start
         policy = idle_policy_of (env.get_environment_variable "KIT_JOB_HOST_IDLE_EXIT_SECONDS")
-        cap = slot_cap_of (env.get_environment_variable "KIT_JOB_SLOTS")
+        cap =
+            := machine_cap = text_or_empty (machine_slots_file ())
+            slot_cap_of (cap_text_of (env.get_environment_variable "KIT_JOB_SLOTS") machine_cap)
     }
 
 :~ host_run () : i32 =
@@ -122,5 +130,5 @@
         host_served (no_children ()) terms (now_ms ())
 
 := main () : i32 =
-    export "kit_job_host_run" ((\ () => host_run ()) : () -> i32)
+    export "kit_job_host_run" host_run
     0i32

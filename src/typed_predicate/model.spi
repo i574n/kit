@@ -61,10 +61,10 @@
         ?= item.representation ?|
         | Text =>
             :~ check (value : string) : bool = evaluate item.rule value
-            !!!!Export(item.name, ((\ value => check value) : string -> bool))
+            export item.name ((\ value => check value) : string -> bool)
         | Byte =>
             :~ check (value : u64) : bool = evaluate item.rule value
-            !!!!Export(item.name, ((\ value => check value) : u64 -> bool))
+            export item.name ((\ value => check value) : u64 -> bool)
     Emitted
 
 := inspect_one \* input. (named item : named input) : inspected input = inspected item.name

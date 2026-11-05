@@ -38,21 +38,21 @@
     := events = $'kit_log_sequences::kit_sequence_events(&*!log, &*!time, &*!first, &*!second)' : string
     data_rows (sm'.split "\n" (measured_text path events request.measure) |> array) 0i32 { text = ""; rows = 0u64 }
 
-:~ measure_from (count : i32) : string * option measure_request =
-    := interval = value_after "--interval" 2i32 count
-    := window = value_after "--window" 2i32 count
-    := order = value_after "--order" 2i32 count
-    := latency = value_after "--latency" 2i32 count
+:~ measure_from (words : list string) : string * option measure_request =
+    := interval = value_after (flag_word FlagInterval) words
+    := window = value_after (flag_word FlagWindow) words
+    := order = value_after (flag_word FlagOrder) words
+    := latency = value_after (flag_word FlagLatency) words
     ? interval <> ""
     ?>
         := name, pattern = split_pair interval "="
         name,
-        Some (IntervalOf (pattern, value_after "--between" 2i32 count, decimal (value_after "--modulo" 2i32 count)))
+        Some (IntervalOf (pattern, value_after (flag_word FlagBetween) words, decimal (value_after (flag_word FlagModulo) words)))
     |? window <> ""
     ?>
         := name, pattern = split_pair window "="
-        := marker = value_after "--from" 2i32 count
-        := low, high = split_pair (value_after "--ms" 2i32 count) ".."
+        := marker = value_after (flag_word FlagFrom) words
+        := low, high = split_pair (value_after (flag_word FlagMs) words) ".."
         name, (? marker = "" ?> None |: Some (WindowOf (pattern, marker, decimal low, decimal high)))
     |? order <> ""
     ?>
@@ -62,7 +62,7 @@
     |? latency <> ""
     ?>
         := name, pattern = split_pair latency "="
-        := ending = value_after "--to" 2i32 count
+        := ending = value_after (flag_word FlagTo) words
         name, (? ending = "" ?> None |: Some (LatencyOf (pattern, ending)))
     |: "", None
 
@@ -86,10 +86,10 @@
     0i32
 
 :~ measures_run () : i32 =
-    := count = env.command_line_argument_count ()
-    := paths, refusal = paths_from 2i32 count [] ""
-    := name, measure = measure_from count
-    := time = value_after "--time" 2i32 count
+    := words = sequence_words ()
+    := paths, refusal = paths_from words [] ""
+    := name, measure = measure_from words
+    := time = value_after (flag_word FlagTime) words
     ? refusal <> ""
     ?> refused refusal
     |:
@@ -109,10 +109,10 @@
                         := files = files_in paths []
                         := request = { name = name; time = time; measure = measure }
                         table_written name
-                            (value_after "--out" 2i32 count)
+                            (value_after (flag_word FlagOut) words)
                             files
                             (tables_of files request { text = ""; rows = 0u64 })
 
 := main () : i32 =
-    !!!!Export("kit_table_sequence_measures_run", ((\ () => measures_run ()) : () -> i32))
+    export "kit_table_sequence_measures_run" ((\ () => measures_run ()) : () -> i32)
     0i32

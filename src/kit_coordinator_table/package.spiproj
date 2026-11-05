@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    kit_coordinator_model
+modules:
+    table
+    decision
+    dispatch

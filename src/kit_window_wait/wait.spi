@@ -36,8 +36,7 @@
 := option_or (~flag : string) (fallback : u64) : u64 =
     ? option_value flag = "" ?> fallback |: decimal_of (option_value flag)
 
-:~ window_wait_cleared () : i32 =
-    := words = argument 3i32
+:~ window_wait_cleared (~words : string) : i32 =
     := every = option_or "--every" 30u64 * 1000u64
     ? words = "" || sm'.starts_with "--" words || (sm'.split "," words |> am'.any (\ word => unknown_class word))
     ?>
@@ -72,6 +71,10 @@
             stdout_line ("kit window wait-clear gave-up" ++# tail)
             1i32
 
+:~ wait_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: first :: _ => window_wait_cleared first
+    | _ => window_wait_cleared ""
 := main () : i32 =
-    !!!!Export("kit_window_wait_run", ((\ () => window_wait_cleared ()) : () -> i32))
+    export "kit_window_wait_run" ((\ () => wait_run ()) : () -> i32)
     0i32

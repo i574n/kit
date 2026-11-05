@@ -1,0 +1,46 @@
+///- --package .
+:# decision static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| millis =
+    | Millis : u64
+
+:| core_hundredths =
+    | CoreHundredths : u64
+
+:| beam_decision =
+    | StayResident
+    | PerCall
+    | MoveToRust
+
+:== beam_measure = { start_p95 : millis; coordinator_cpu : core_hundredths }
+
+:~ p95 (samples : list u64) : u64 =
+    := sorted = list_sort.sorted_by (\ (a : u64) (b : u64) => a <= b) samples
+    := count : i32 = listm.length sorted
+    := rank = (count * 95i32 + 99i32) / 100i32 - 1i32
+    ? count = 0i32 ?> 0u64
+    |: listm.fold (\ (found, at) (s : u64) => (? at = rank ?> s |: found), at + 1i32) (0u64, 0i32) sorted |> fst
+
+:~ beam_decision_of (m : beam_measure) : beam_decision =
+    := start, cpu = (?= m.start_p95 ?| | Millis ms => ms), (?= m.coordinator_cpu ?| | CoreHundredths h => h)
+    ? cpu >= 100u64 ?> MoveToRust
+    |? start > 2000u64 ?> StayResident
+    |: PerCall
+
+:~ decision_word (d : beam_decision) : string = reflection.union_to_string d
+
+///> rust
+:# the_beam_decision_follows_the_pre_registered_thresholds =
+    := samples = [ 900u64; 1200u64; 800u64; 3100u64; 1000u64; 950u64; 1100u64; 1050u64; 990u64; 1010u64 ]
+    testing.expect (p95 samples = 3100u64) "the 95th percentile of 10 is the largest"
+    testing.expect (p95 [] = 0u64 && p95 [ 7u64 ] = 7u64) "empty and single"
+    := cheap = { start_p95 = Millis 1500u64; coordinator_cpu = CoreHundredths 20u64 }
+    testing.expect (beam_decision_of cheap = PerCall) "fast start, cheap coordinator: start per call"
+    := slow = { cheap ?| start_p95 = Millis 2500u64 }
+    testing.expect (beam_decision_of slow = StayResident) "a slow start keeps it resident"
+    := costly = { cheap ?| coordinator_cpu = CoreHundredths 100u64 }
+    testing.expect (beam_decision_of costly = MoveToRust) "1% of a core moves it"
+    testing.expect (decision_word MoveToRust = "MoveToRust") "the decision word"

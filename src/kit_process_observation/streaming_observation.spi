@@ -50,10 +50,9 @@
 := emit_policy_exports () : () =
     := _ = process_receipt_policy_export 0i32 0i32
     := _ = process_receipt_policy_export 3i32 1i32
-    !!!!Export(
-        "kit_process_receipt_policy_binding",
+    export
+        "kit_process_receipt_policy_binding"
         ((\ (first, second) => process_receipt_policy_export first second) : i32 * i32 -> i32)
-    )
 
 := emit_runtime () : () =
     global """

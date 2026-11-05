@@ -139,8 +139,8 @@
     | LaunchRefused problem => "", "", problem
 
 := main () : i32 =
-    !!!!Export(
-        "kit_job_create",
+    export
+        "kit_job_create"
         (
             \ (
                 shape, after_mode, after_job, attached, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait,
@@ -152,5 +152,4 @@
             : string * string * string * bool * u64 * u64 * u64 * u64 * u64 * u64 * bool * string * u64 * string
             * string -> string * string * string
         )
-    )
     0i32

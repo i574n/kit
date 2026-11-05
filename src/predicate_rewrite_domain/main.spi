@@ -6,8 +6,7 @@
     | Rejected reason => !-, reason
 
 := main () : i32 =
-    !!!!Export(
-        "kit_predicate_rewrite",
+    export
+        "kit_predicate_rewrite"
         ((\ (source, name, kind) => rewrite_result source name kind) : string * string * string -> bool * string)
-    )
     0i32

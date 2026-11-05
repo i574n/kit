@@ -3,6 +3,11 @@ packages:
     spiral-
     kit_jobs
     kit_os_launch
+    kit_job_peers
+    kit_process_alive
+link:
+    kit_process_alive
+    kit_job_peers
 modules:
     host_model
     host_paths

@@ -207,5 +207,5 @@
 :~ standards_run () : i32 = ? census_requested () ?> $'kit_style_census::kit_census_run()' : i32 |: rules_run ()
 
 := main () : i32 =
-    !!!!Export("kit_standards_run", ((\ () => standards_run ()) : () -> i32))
+    export "kit_standards_run" ((\ () => standards_run ()) : () -> i32)
     0i32

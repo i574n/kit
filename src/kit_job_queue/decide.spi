@@ -17,5 +17,5 @@
         2i32
 
 := main () : i32 =
-    !!!!Export("kit_job_queue_decide", ((\ id => queue_decide id) : string -> i32))
+    export "kit_job_queue_decide" ((\ id => queue_decide id) : string -> i32)
     0i32

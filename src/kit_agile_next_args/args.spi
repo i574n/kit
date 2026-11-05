@@ -88,8 +88,7 @@
     | ArgsRejected reason => !-, reason, "", 0i32, "", "", !-
 
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_next_request",
+    export
+        "kit_agile_next_request"
         ((\ () => next_request ()) : () -> bool * string * string * i32 * string * string * bool)
-    )
     0i32

@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    kit_coordinator_model
+    kit_coordinator_table
+modules:
+    actor

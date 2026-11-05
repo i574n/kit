@@ -23,6 +23,10 @@
     shows census "fresh  lines=1"
     shows census "rust-global=1"
     shows census "kit standards census ok packages=2"
+    := board = succeeded (standards root (Arg ("--scoreboard", Arg (fixture_path root "pkgs", NoArgs))))
+    shows board " packages=2 lines=6"
+    shows board "gadt-case=2(333.3)"
+    shows board "kit standards scoreboard ok roots=1"
     fixture_root_remove root
 
 ///> rust
@@ -49,26 +53,29 @@
     fixture_root_remove root
 
 ///> rust
-:# a_merged_baseline_replaces_only_the_walked_packages =
+:# a_merge_shrinks_only_the_walked_packages_and_refuses_growth =
     := root = fixture_root_create "ratchet merge"
     fixture_write root "pkgs/old/a.spi" (typed_module ())
     fixture_write root "pkgs/typed/d.spi" (typed_module ())
+    fixture_write root "pkgs/typed/e.spi" (macro_lines 3i32)
     := baseline = fixture_path root "census.spi"
     shows
         (succeeded (standards root (Arg ("--baseline", Arg (baseline, Arg (fixture_path root "pkgs", NoArgs))))))
         "kit standards baseline ok packages=2"
-    fixture_write root "pkgs/old/b.spi" (macro_lines 20i32)
-    fixture_write root "pkgs/typed/e.spi" (macro_lines 3i32)
-    shows
-        (
-            succeeded (standards root (Arg ("--baseline-merge", Arg (baseline, Arg (fixture_path root "pkgs/typed",
-                NoArgs)))))
-        )
-        "kit standards baseline ok packages=1"
+    := merge = Arg ("--baseline-merge", Arg (baseline, Arg (fixture_path root "pkgs/typed", NoArgs)))
+    fixture_write root "pkgs/typed/e.spi" (macro_lines 1i32)
+    shows (succeeded (standards root merge)) "kit standards baseline ok packages=1"
+    shows (fixture_read root "census.spi") "(\"typed\", \"host-macro\", 1i32"
     shows (fixture_read root "census.spi") "inl census_old_gadt_case () = CensusCount ("
-    := ratchet = standards root (Arg ("--ratchet", Arg (baseline, Arg (fixture_path root "pkgs", NoArgs))))
-    testing.expect (ratchet.code = 1i32) (run_text ratchet)
-    shows ratchet.stdout "old  host-macro  0/5 -> 20/"
-    hides ratchet.stdout "typed  host-macro"
-    shows ratchet.stdout "kit standards ratchet failed packages=2 regressions=1"
+    fixture_write root "pkgs/typed/e.spi" (macro_lines 2i32)
+    := refused = standards root merge
+    testing.expect (refused.code = 1i32) (run_text refused)
+    shows refused.stdout "typed  host-macro  1/"
+    shows refused.stderr "kit error: standards merge refused; a baseline only shrinks"
+    shows (fixture_read root "census.spi") "(\"typed\", \"host-macro\", 1i32"
+    fixture_write root "pkgs/fresh/f.spi" (typed_module ())
+    := fresh = standards root (Arg ("--baseline-merge", Arg (baseline, Arg (fixture_path root "pkgs/fresh", NoArgs))))
+    testing.expect (fresh.code = 1i32) (run_text fresh)
+    shows fresh.stdout "fresh  new  a merge never adds a package that is not in the baseline"
+    hides (fixture_read root "census.spi") "census_fresh_"
     fixture_root_remove root

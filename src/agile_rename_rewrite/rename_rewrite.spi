@@ -104,12 +104,11 @@
     updated, tally.items, tally.deps_count, tally.deps_tasks, tally.title_count, tally.title_tasks
 
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_renamed_text",
+    export
+        "kit_agile_renamed_text"
         (
             \ (text, old, new) => renamed_text text old new
             : string * string * string -> string * i32 * i32 * string * i32 * string
         )
-    )
     := _ = renamed_text "" "A" "B"
     0i32

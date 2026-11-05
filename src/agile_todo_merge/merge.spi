@@ -114,7 +114,7 @@
     | ScanPath syntax =>
         := size = rust_std_fs.model.file_byte_size absolute
         ?= size_verdict size ?|
-        | SkipLarge => skipped state absolute
+        | ContentLarge => skipped state absolute
         | _ =>
             := mtime = rust_std_fs.model.file_modified_ms absolute
             ?= cached_row_of state.cache state.cursor absolute ?|
@@ -232,5 +232,5 @@
 
 ///> _
 := main () : i32 =
-    !!!!Export("kit_agile_wip_run", ((\ () => wip_run (rust_std_env.model.argument_owned 1i32)) : () -> i32))
+    export "kit_agile_wip_run" ((\ () => wip_run (rust_std_env.model.argument_owned 1i32)) : () -> i32)
     0i32

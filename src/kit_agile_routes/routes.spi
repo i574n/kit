@@ -102,20 +102,38 @@
                 ++# " rejected: TODO blocks still name it; cut them or keep the item open:\n"
                 ++# sites
         agile_mutation_error message
+:~ ^ checks_joined (rows : array_base agile_quality_lint.lint.failure_row) (at : i32) (~text : string) : string =
+    ? at >= am'.length_base rows ?> text
+    |:
+        := check = (am'.index_base at rows).check
+        checks_joined rows (at + 1i32) (? text = "" ?> check |: text ++# "," ++# check)
+
+:~ lint_warned (~root : string) (~id : string) (~status : string) : () =
+    := text = file_system.read_text_or_empty (sm'.replace "\\" "/" root ++# "/state/agile.spi")
+    := checks = checks_joined (agile_quality_state.state_rows.item_failures (text, id, status)) 0i32 ""
+    ? checks = ""
+    ?> ()
+    |:
+        := head = "kit agile lint warning id=" ++# id ++# " status=" ++# status ++# " failing=" ++# checks
+        console.write_error_line (head ++# " (add the marker lines; a later train refuses the change)")
+
 := agile_set_route () : i32 =
     := root = argument_owned 1i32
     := id = argument_owned 2i32
     ?= validate_progress (), validate_status () ?|
     | Valid progress, Valid status =>
-        ?= status ?|
-        | AgileDone => agile_done_route root id progress
-        | _ => agile_set root id progress status
+        := code =
+            ?= status ?|
+            | AgileDone => agile_done_route root id progress
+            | _ => agile_set root id progress status
+        := _ = ? code = 0i32 ?> lint_warned root id (argument_owned 4i32) |: ()
+        code
     | Invalid, _ => agile_progress_error ()
     | _, Invalid => agile_status_error ()
 
 := main () : i32 =
-    !!!!Export("kit_agile_usage_error", ((\ () => agile_usage_error ()) : () -> i32))
-    !!!!Export("kit_agile_begin_route", ((\ () => agile_begin_route ()) : () -> i32))
-    !!!!Export("kit_agile_set_route", ((\ () => agile_set_route ()) : () -> i32))
-    !!!!Export("kit_agile_edit_route", ((\ () => agile_edit_route ()) : () -> i32))
+    export "kit_agile_usage_error" ((\ () => agile_usage_error ()) : () -> i32)
+    export "kit_agile_begin_route" ((\ () => agile_begin_route ()) : () -> i32)
+    export "kit_agile_set_route" ((\ () => agile_set_route ()) : () -> i32)
+    export "kit_agile_edit_route" ((\ () => agile_edit_route ()) : () -> i32)
     0i32

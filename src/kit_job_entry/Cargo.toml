@@ -1,0 +1,31 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "entry.rs"
+
+[package]
+name = "kit-job-entry"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_entry"
+path = "entry.rs"
+
+[dependencies]
+kit-process-alive = { path = "../kit_process_alive" }
+kit-job-dispatch = { path = "../kit_job_dispatch" }
+kit-job-chain = { path = "../kit_job_chain" }
+kit-job-serial = { path = "../kit_job_serial" }
+kit-job-control = { path = "../kit_job_control" }
+kit-job-rechain = { path = "../kit_job_rechain" }
+kit-jobs-doctor = { path = "../kit_jobs_doctor" }
+kit-job-supervise = { path = "../kit_job_supervise" }
+kit-job-launch = { path = "../kit_job_launch" }
+kit-job-host = { path = "../kit_job_host" }
+kit-job-state = { path = "../kit_job_state" }
+kit-machine-windows = { path = "../kit_machine_windows" }
+kit-job-gate = { path = "../kit_job_gate" }
+kit-job-host-request = { path = "../kit_job_host_request" }
+kit-job-query = { path = "../kit_job_query" }

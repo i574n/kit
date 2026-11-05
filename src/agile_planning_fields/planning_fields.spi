@@ -38,27 +38,26 @@
     := plan = planning_of text id
     planned_minutes plan.estimate
 
+:~ minutes_pair ((text, id) : string * string) : i32 = planning_minutes_of text id
+
 := main () : i32 =
-    !!!!Export("kit_agile_planning_header", ((\ () => planning_header ()) : () -> string))
-    !!!!Export("kit_agile_planning_columns", ((\ (text, id) => planning_columns text id) : string * string -> string))
-    !!!!Export("kit_agile_planning_json", ((\ (text, id) => planning_json text id) : string * string -> string))
-    !!!!Export(
-        "kit_agile_planning_summary",
+    export "kit_agile_planning_minutes_of" minutes_pair
+    export "kit_agile_planning_header" ((\ () => planning_header ()) : () -> string)
+    export "kit_agile_planning_columns" ((\ (text, id) => planning_columns text id) : string * string -> string)
+    export "kit_agile_planning_json" ((\ (text, id) => planning_json text id) : string * string -> string)
+    export
+        "kit_agile_planning_summary"
         ((\ (text, id) => planning_summary_of text id) : string * string -> string)
-    )
-    !!!!Export("kit_agile_planning_minutes", ((\ (text, id) => planning_minutes_of text id) : string * string -> i32))
-    !!!!Export(
-        "kit_agile_planning_columns_near",
+    export "kit_agile_planning_minutes" ((\ (text, id) => planning_minutes_of text id) : string * string -> i32)
+    export
+        "kit_agile_planning_columns_near"
         ((\ (text, id, start) => planning_columns_near text id start) : string * string * i32 -> string)
-    )
-    !!!!Export(
-        "kit_agile_planning_json_near",
+    export
+        "kit_agile_planning_json_near"
         ((\ (text, id, start) => planning_json_near text id start) : string * string * i32 -> string)
-    )
-    !!!!Export(
-        "kit_agile_planning_minutes_near",
+    export
+        "kit_agile_planning_minutes_near"
         ((\ (text, id, start) => planning_minutes_near text id start) : string * string * i32 -> i32)
-    )
     := _ = planning_header ()
     := _ = planning_columns "" "ID"
     := _ = planning_json "" "ID"

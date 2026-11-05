@@ -89,5 +89,5 @@
             | TableLoaded cells => tested_run kind cells
 
 := main () : i32 =
-    !!!!Export("kit_table_test_run", ((\ () => table_tested ()) : () -> i32))
+    export "kit_table_test_run" ((\ () => table_tested ()) : () -> i32)
     0i32

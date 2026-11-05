@@ -1,5 +1,11 @@
 :< kit_machine_windows.windows
 
+:~ request_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: class_text :: minutes_text :: _ => window_requested class_text minutes_text
+    | _ :: _ :: class_text :: [] => window_requested class_text ""
+    | _ => window_requested "" ""
+
 := main () : i32 =
-    export "kit_window_request_run" ((\ () => window_requested ()) : () -> i32)
+    export "kit_window_request_run" ((\ () => request_run ()) : () -> i32)
     0i32

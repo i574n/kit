@@ -126,46 +126,40 @@
     emit_receipt AfterContent (parallel_manifest_receipt_text workers entries digest started serial_done parallel_done)
 
 := main () : i32 =
-    !!!!Export("kit_search_clock_ms", ((\ () => search_clock_ms ()) : () -> u64))
-    !!!!Export(
-        "kit_parallel_search_receipt",
+    export "kit_search_clock_ms" ((\ () => search_clock_ms ()) : () -> u64)
+    export
+        "kit_parallel_search_receipt"
         (
             \ (workers, found, limit, started, serial_done, parallel_done) =>
                 parallel_search_receipt workers found limit started serial_done parallel_done
             : i32 * i32 * i32 * u64 * u64 * u64 -> i32
         )
-    )
-    !!!!Export(
-        "kit_fs_search_receipt",
+    export
+        "kit_fs_search_receipt"
         ((\ (found, limit, started) => fs_search_receipt found limit started) : i32 * i32 * u64 -> i32)
-    )
-    !!!!Export(
-        "kit_fs_slice_receipt",
+    export
+        "kit_fs_slice_receipt"
         (
             \ (start, shown, requested, started) => fs_slice_receipt start shown requested started
             : u64 * u64 * u64 * u64 -> i32
         )
-    )
-    !!!!Export(
-        "kit_fs_context_receipt",
+    export
+        "kit_fs_context_receipt"
         (
             \ (offset, window, file_bytes, started) => fs_context_receipt offset window file_bytes started
             : u64 * u64 * u64 * u64 -> i32
         )
-    )
-    !!!!Export("kit_hash_receipt", ((\ (path, started) => hash_receipt path started) : string * u64 -> i32))
-    !!!!Export(
-        "kit_hash_tree_receipt",
+    export "kit_hash_receipt" ((\ (path, started) => hash_receipt path started) : string * u64 -> i32)
+    export
+        "kit_hash_tree_receipt"
         ((\ (relative, started) => hash_tree_receipt relative started) : string * u64 -> i32)
-    )
-    !!!!Export(
-        "kit_parallel_manifest_receipt",
+    export
+        "kit_parallel_manifest_receipt"
         (
             \ (workers, entries, digest, started, serial_done, parallel_done) =>
                 parallel_manifest_receipt workers entries digest started serial_done parallel_done
             : i32 * i32 * string * u64 * u64 * u64 -> i32
         )
-    )
     := started = search_clock_ms ()
     := _ = parallel_search_receipt_text 56i32 7i32 50i32 started started started
     := _ = parallel_search_receipt_text 56i32 51i32 50i32 started started started

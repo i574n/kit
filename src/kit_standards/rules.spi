@@ -51,14 +51,7 @@
     |? sm'.starts_with "//" lead ?> (? sm'.contains (todo_marker ()) lead ?> TodoLine |: CommentLine)
     |: CodeLine
 
-:= standard_word = \|
-    | NoCommentLines => "no-comment-lines"
-    | LineWidth _ => "line-width"
-    | LfOnly => "lf-only"
-    | IntegerOnly _ => "integer-only"
-    | TestTargets => "test-targets"
-    | HostFree => "host-free"
-    | LibReferenced => "lib-referenced"
+:= standard_word (value : standard) : string = union_reflection.cases.union_case_kebab "" value
 
 := default_standards () : standards =
     StandardThen (NoCommentLines, StandardThen (LineWidth 120i32, StandardThen (LfOnly, StandardThen (TestTargets,

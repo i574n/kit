@@ -17,17 +17,7 @@
     | CompileHold
     | TreeWrite
 
-:~ class_word (class : window_class) : string =
-    ?= class ?|
-    | LiveGui => "live-gui"
-    | TestSuite => "test-suite"
-    | HeavyBuild => "heavy-build"
-    | Compile => "compile"
-    | CompilerInstall => "compiler-install"
-    | TreeRead => "tree-read"
-    | Bench => "bench"
-    | CompileHold => "compile-hold"
-    | TreeWrite => "tree-write"
+:~ class_word (class : window_class) : string = union_reflection.cases.union_case_kebab "" class
 
 :| class_parse =
     | ClassKnown : window_class
@@ -103,10 +93,7 @@
     | Held
     | Waiting
 
-:= state_word (state : window_state) : string =
-    ?= state ?|
-    | Held => "held"
-    | Waiting => "waiting"
+:= state_word (state : window_state) : string = union_reflection.cases.union_case_kebab "" state
 
 :== window_row =
     {
@@ -145,7 +132,7 @@
     ?= class_of (tab_field text 1i32) ?|
     | ClassUnknown => RowUnknown
     | ClassKnown kind =>
-        := state = ? tab_field text 2i32 = "held" ?> Held |: Waiting
+        := state = ? tab_field text 2i32 = state_word Held ?> Held |: Waiting
         RowKnown {
             id = tab_field text 0i32
             kind = kind
@@ -170,6 +157,17 @@
     tree_access held && tree_access wanted && (writes_tree held || writes_tree wanted)
 
 :~ path_prefix (~path : string) : string = sm'.replace "//" "/" (sm'.to_lower (sm'.replace "\\" "/" path) ++# "/")
+
+:~ rooted_path (~text : string) : bool =
+    := slashed = sm'.replace "\\" "/" text
+    sm'.starts_with "/" slashed || sm'.index_of ":/" slashed = 1i32
+
+:= tree_label_problem (wanted : window_class) (~label : string) : string =
+    ? tree_access wanted && rooted_path label |> not
+    ?>
+        "a tree window guards the path in its label; give the rooted path it reads or writes, "
+        ^^ "e.g. C:/home/git/spiral/lib"
+    |: ""
 
 :~ path_overlaps (~held : string) (~wanted : string) : bool =
     := held_prefix = path_prefix held
@@ -269,15 +267,8 @@
     | WindowPruned
     | WindowDropped
 
-:= window_event_word (event : window_event) : string =
-    ?= event ?|
-    | WindowQueued => "queued"
-    | WindowGranted => "granted"
-    | WindowReleased => "released"
-    | WindowReleasedWaiting => "released-waiting"
-    | WindowGaveUp => "gave-up"
-    | WindowPruned => "pruned"
-    | WindowDropped => "dropped"
+:~ window_event_word (event : window_event) : string =
+    union_reflection.cases.union_case_kebab "Window" event
 
 := event_line (now : u64) (event : window_event) (~row : string) : string =
     concat5 (number_text now) "\t" (window_event_word event) "\t" (concat5 row "\n" "" "" "")
@@ -302,6 +293,23 @@
     | KeepWaiting => "queued"
 
 
+:| window_verb =
+    | VerbRequest
+    | VerbRelease
+    | VerbList
+    | VerbCheck
+    | VerbRun
+    | VerbClaim
+    | VerbWaitClear
+    | VerbAnnounce
+    | VerbRemote
+
+:= verb_word (verb : window_verb) : string = union_reflection.cases.union_case_kebab "Verb" verb
+
+:= verb_of (~word : string) : option window_verb =
+    union_reflection.cases.union_case_where (\ (verb : window_verb) => verb_word verb = word) Some None
+
+:= verb_words () : string = union_reflection.cases.union_cases_joined verb_word "|"
 := parsed_word (~text : string) : string =
     ?= class_of text ?|
     | ClassKnown class => class_word class
@@ -345,6 +353,7 @@
     := waiting = row_at LiveGui Waiting "win-1" 1000u64 31000u64
     testing.expect (row_blocks Compile "" "win-2" 2000u64 !- waiting) "a newer compile waits behind the live request"
     testing.expect (row_blocks Compile "" "win-2" 500u64 !- waiting = !-) "an older compile is not overtaken"
+    testing.expect (row_blocks HeavyBuild "" "win-3" 2000u64 !- waiting) "a newer heavy build waits behind the live request"
     testing.expect
         (row_blocks Compile "" "win-2" 2000u64 !- (row_at HeavyBuild Waiting "win-1" 1000u64 31000u64) = !-)
         "shared waiters never block"
@@ -413,6 +422,9 @@
         (row_blocks TreeWrite "C:/home/git/spiral/lib2" "win-2" 2000u64 !- reading = !-)
         "a sibling with a shared prefix is another path"
     testing.expect (clashes TreeWrite Compile = !- && needed_mb TreeWrite = 0u64) "a tree write is a lease, not a load"
+    testing.expect (tree_label_problem TreeWrite "LIB-KEBAB-CASE" <> "") "a tree write without a path guards nothing"
+    := rooted = tree_label_problem TreeRead "C:\\home\\git\\spiral\\lib"
+    testing.expect (rooted = "" && tree_label_problem Compile "x" = "") "a rooted path, and other classes need none"
 
 ///> rust
 :# a_compile_hold_keeps_compiles_out_and_nothing_else =
@@ -462,3 +474,13 @@
             = "5\tgranted\twin-1\tcompile\theld\tlabel\t1\t2\n"
         )
         "event line"
+
+///> rust
+:# window_verbs_read_and_print_by_reflection =
+    testing.expect (verb_words () = "request|release|list|check|run|claim|wait-clear|announce|remote") (verb_words ())
+    ?= verb_of "wait-clear" ?|
+    | Some verb => testing.expect (verb_word verb = "wait-clear") (verb_word verb)
+    | None => testing.expect false "wait-clear parses"
+    ?= verb_of "wait_clear" ?|
+    | Some verb => testing.expect false (verb_word verb)
+    | None => ()

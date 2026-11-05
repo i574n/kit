@@ -88,7 +88,7 @@
     |? (flag = "--last" || flag = "--grep") && value <> "" ?> Valid (ShowFiltered (sm'.replace "--" "" flag, value))
     |: Invalid
 
-:= json_string (~text : string) : string = "\"" ++# text ++# "\""
+:= json_string (~text : string) : string = json.quote text
 := json_field (~name : string) (~value : string) : string = "\"" ++# name ++# "\":" ++# value
 
 :~ task_json (record : task_record) (~planning : string) (started : u64) : string =
@@ -219,6 +219,6 @@
         | Invalid => agile_show_failure "options are --json, --last <n> or --grep <word>" (argument_owned 2i32)
 
 := main () : i32 =
-    !!!!Export("kit_agile_show_run", ((\ () => agile_show_entry ()) : () -> i32))
+    export "kit_agile_show_run" ((\ () => agile_show_entry ()) : () -> i32)
     := _ = agile_show_entry ()
     0i32

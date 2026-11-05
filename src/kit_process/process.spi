@@ -279,7 +279,9 @@
                 if candidate.is_file() { candidate } else { compiler.path.clone() }
             } else { compiler.path.clone() };
             let mut command = spiral_compiler_command(&check_compiler);
-            command.arg("--check").arg(path);
+            command.arg("--check");
+            if native_spiral_host(&check_compiler) { command.arg("--timeout-ms").arg(timeout_ms.to_string()); }
+            command.arg(path);
             let status = run_bounded(&mut command, timeout_ms)?;
             if !status.success() { return Err(format!("Spiral typecheck attestation failed for {} via {}", path.display(), check_compiler.display())); }
             Ok(())
@@ -449,16 +451,13 @@
     := _ = process_timeout_valid_export 1i32 0i32
     := _ = process_compiler_budget_valid_export 1i32 1i32
     := _ = process_session_match_export 3i32 7i32
-    !!!!Export(
-        "kit_process_timeout_valid_binding",
+    export
+        "kit_process_timeout_valid_binding"
         ((\ (first, second) => process_timeout_valid_export first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_process_compiler_budget_valid_binding",
+    export
+        "kit_process_compiler_budget_valid_binding"
         ((\ (first, second) => process_compiler_budget_valid_export first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_process_session_match_binding",
+    export
+        "kit_process_session_match_binding"
         ((\ (first, second) => process_session_match_export first second) : i32 * i32 -> i32)
-    )
     0i32

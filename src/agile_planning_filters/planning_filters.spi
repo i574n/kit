@@ -49,24 +49,21 @@
     plan_selected (planning_near text id start) load assignee
 
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_planning_filters_valid",
+    export
+        "kit_agile_planning_filters_valid"
         ((\ (load, assignee) => planning_filters_valid load assignee) : string * string -> bool)
-    )
-    !!!!Export(
-        "kit_agile_planning_selected",
+    export
+        "kit_agile_planning_selected"
         (
             \ (text, id, load, assignee) => planning_selected text id load assignee
             : string * string * string * string -> bool
         )
-    )
-    !!!!Export(
-        "kit_agile_planning_selected_near",
+    export
+        "kit_agile_planning_selected_near"
         (
             \ (text, id, start, load, assignee) => planning_selected_near text id start load assignee
             : string * string * i32 * string * string -> bool
         )
-    )
     := _ = planning_filters_valid "heavy" "all"
     := _ = planning_selected "" "ID" "heavy" "agent"
     := _ = planning_selected_near "" "ID" 0i32 "heavy" "agent"

@@ -6,11 +6,10 @@
 :~ rust_installed (channel : string) : bool = $'kit_ci_probe::kit_ci_rust_installed(&*!channel)' : bool
 
 := main () : i32 =
-    !!!!Export(
-        "kit_ci_parity_row",
+    export
+        "kit_ci_parity_row"
         (
             \ (name, ci, repo) => row_of probe_local rust_installed name ci repo
             : string * string * string -> string * bool
         )
-    )
     0i32

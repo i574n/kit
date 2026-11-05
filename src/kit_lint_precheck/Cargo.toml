@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "precheck.spi"
+output = "precheck.rs"
+
+[package]
+name = "kit-lint-precheck"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_precheck"
+path = "precheck.rs"

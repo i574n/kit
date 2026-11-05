@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_remote_status"
 path = "status.rs"
+
+[dependencies]
+kit-remote-activity = { path = "../kit_remote_activity" }

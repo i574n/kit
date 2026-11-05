@@ -7,66 +7,57 @@
 :< kit_do_records.records
 
 :| fact_verb =
-    | HashVerb
-    | EnvVerb
-    | ExistsVerb
-    | NearestVerb
-    | JsonVerb
-    | LinesVerb
-    | TableVerb
-    | DirsVerb
-    | TagVerb
-    | CountVerb
-    | DiffVerb
+    | FactHash
+    | FactEnv
+    | FactExists
+    | FactNearest
+    | FactJson
+    | FactLines
+    | FactTable
+    | FactDirs
+    | FactTag
+    | FactCount
+    | FactDiff
 
 :| run_verb =
-    | RunVerb
-    | ErrorsVerb
-    | ProcessesVerb
-    | StopVerb
+    | StepRun
+    | StepErrors
+    | StepProcesses
+    | StepStop
 
 :| write_verb =
-    | AppendVerb
-    | CopyVerb
-    | MoveVerb
-    | WriteFileVerb
+    | FileAppend
+    | FileCopy
+    | FileMove
+    | FileWrite
+
+:| tool_verb =
+    | ToolGit
+    | ToolJob
+    | ToolLab
 
 :| program_verb =
     | ReadVerb : query_verb
     | FactVerb : fact_verb
     | RunStepVerb : run_verb
     | WriteVerb : write_verb
-    | GitVerb
-    | JobVerb
-    | LabVerb
+    | ToolVerb : tool_verb
 
-:= fact_word (verb : fact_verb) : string =
-    ?= verb ?|
-    | HashVerb => "hash"
-    | EnvVerb => "env"
-    | ExistsVerb => "exists"
-    | NearestVerb => "nearest"
-    | JsonVerb => "json"
-    | LinesVerb => "lines"
-    | TableVerb => "table"
-    | DirsVerb => "dirs"
-    | TagVerb => "tag"
-    | CountVerb => "count"
-    | DiffVerb => "diff"
+:= fact_word (verb : fact_verb) : string = union_reflection.cases.union_case_kebab "Fact" verb
 
-:= run_word (verb : run_verb) : string =
-    ?= verb ?|
-    | RunVerb => "run"
-    | ErrorsVerb => "errors"
-    | ProcessesVerb => "processes"
-    | StopVerb => "stop"
+:= run_word (verb : run_verb) : string = union_reflection.cases.union_case_kebab "Step" verb
 
-:= write_word (verb : write_verb) : string =
+:= write_word (verb : write_verb) : string = union_reflection.cases.union_case_kebab "File" verb
+
+:= tool_word (verb : tool_verb) : string = union_reflection.cases.union_case_kebab "Tool" verb
+
+:~ fact_word_shown (verb : fact_verb) : string = fact_word verb
+
+:= tool_family (verb : tool_verb) : program_family =
     ?= verb ?|
-    | AppendVerb => "append"
-    | CopyVerb => "copy"
-    | MoveVerb => "move"
-    | WriteFileVerb => "write"
+    | ToolGit => Git
+    | ToolJob => Jobs
+    | ToolLab => Labs
 
 := program_verb_family (verb : program_verb) : program_family =
     ?= verb ?|
@@ -74,9 +65,7 @@
     | FactVerb _ => Facts
     | RunStepVerb _ => Runs
     | WriteVerb _ => Writes
-    | GitVerb => Git
-    | JobVerb => Jobs
-    | LabVerb => Labs
+    | ToolVerb tool => tool_family tool
 
 :~ fact_named (~word : string) : option fact_verb =
     union_reflection.cases.union_case_where (\ (verb : fact_verb) => word = fact_word verb) (\ verb => Some verb) None
@@ -87,6 +76,9 @@
 :~ write_named (~word : string) : option write_verb =
     union_reflection.cases.union_case_where (\ (verb : write_verb) => word = write_word verb) (\ verb => Some verb) None
 
+:~ tool_named (~word : string) : option tool_verb =
+    union_reflection.cases.union_case_where (\ (verb : tool_verb) => word = tool_word verb) (\ verb => Some verb) None
+
 :~ program_verb_tail (~word : string) : option program_verb =
     ?= run_named word ?|
     | Some verb => Some (RunStepVerb verb)
@@ -94,11 +86,9 @@
         ?= write_named word ?|
         | Some verb => Some (WriteVerb verb)
         | None =>
-            ? word = "git" ?> Some GitVerb
-            |? word = "job" ?> Some JobVerb
-            |? word = "lab" ?> Some LabVerb
-            |: None
-
+            ?= tool_named word ?|
+            | Some verb => Some (ToolVerb verb)
+            | None => None
 :~ program_verb_named (~word : string) : option program_verb =
     ?= query_verb_named word ?|
     | Some verb => Some (ReadVerb verb)
@@ -174,12 +164,17 @@
 :~ records_family (~records : record_list) : program_family =
     first_seen (family_priority ()) (families_of records 1i32 (nothing_seen ()))
 
+///> _
 := main () : i32 =
-    !!!!Export(
-        "kit_do_program_family",
+    export
+        "kit_do_program_family"
         ((\ encoded => program_family_word (records_family (records_of encoded))) : string -> string)
-    )
-    !!!!Export("kit_do_verb_family", ((\ word => do_verb_family word) : string -> string))
+    export "kit_do_verb_family" ((\ word => do_verb_family word) : string -> string)
+    export "kit_do_fact_named" fact_named
+    export "kit_do_fact_word" fact_word_shown
+    export "kit_do_run_named" run_named
+    export "kit_do_write_named" write_named
+    export "kit_do_tool_named" tool_named
     0i32
 
 
@@ -195,6 +190,14 @@
     testing.expect (do_verb_family "lab" = "labs") "lab"
     testing.expect (do_verb_family "replace" = "") "replace is no query verb"
     testing.expect (do_verb_family "edit" = "") "edit is a statement, not a query verb"
+    := facts = union_reflection.cases.union_cases_joined fact_word "|"
+    testing.expect (facts = "hash|env|exists|nearest|json|lines|table|dirs|tag|count|diff") facts
+    := steps = union_reflection.cases.union_cases_joined run_word "|"
+    testing.expect (steps = "run|errors|processes|stop") steps
+    := files = union_reflection.cases.union_cases_joined write_word "|"
+    testing.expect (files = "append|copy|move|write") files
+    := tools = union_reflection.cases.union_cases_joined tool_word "|"
+    testing.expect (tools = "git|job|lab") tools
 
 := family_of_bars (~text : string) : string = program_family_word (records_family (records_from_bars text))
 

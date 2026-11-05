@@ -58,9 +58,46 @@
     | Some output => status_of output
     | None => RemoteUnreachable "ssh did not run"
 
+:~ jobs_arguments (~alias : string) (~binary : string) : list string =
+    [ "-o"; "BatchMode=yes"; "-o"; "ConnectTimeout=10"; alias; binary ++# " job list" ]
+
+:= disk_floor_gb () : u64 = 10u64
+
+:| node_disk =
+    | DiskAbove : u64
+    | DiskBelow : u64
+    | DiskUnknown : string
+
+:~ disk_of (~output : string) : node_disk =
+    := at = byte_find_from output "kit machine health gate=" 0i32
+    := line = ? at < 0i32 ?> "" |: byte_slice output at (byte_len output)
+    := word = sm'.replace "gb" "" (kit_remote_activity.activity.field_text (line, "disk"))
+    ?= (convert.try_convert word : option u64) ?|
+    | Some free => ? free < disk_floor_gb () ?> DiskBelow free |: DiskAbove free
+    | None => DiskUnknown (sm'.trim output)
+
+:~ disk_line (~machine : string) (disk : node_disk) : string =
+    := floor = " floor_gb=" ++# sm'.show (disk_floor_gb ())
+    ?= disk ?|
+    | DiskAbove free => "kit remote status disk machine=" ++# machine ++# " free_gb=" ++# sm'.show free ++# floor
+    | DiskBelow free =>
+        "kit remote status DISK-LOW machine=" ++# machine ++# " free_gb=" ++# sm'.show free ++# floor
+        ++# " (prune finished staged workspaces before a heavy job)"
+    | DiskUnknown reason => "kit remote status disk unknown machine=" ++# machine ++# " reason=" ++# reason
+
+:~ disk_arguments (~alias : string) (~binary : string) : list string =
+    := gate = " machine health --gate --min-disk-gb 0 --max-busy-pct 1000"
+    [ "-o"; "BatchMode=yes"; "-o"; "ConnectTimeout=10"; alias; binary ++# gate ]
+
 :~ remote_status_run (~alias : string) (~binary : string) : i32 =
     := status = remote_status_of alias binary
     console.write_line (status_line alias status)
+    ?= process.try_capture_combined_list "ssh" (jobs_arguments alias binary) ?|
+    | Some output => console.write_line (kit_remote_activity.activity.activity_text (alias, output))
+    | None => console.write_line ("kit remote status jobs unknown machine=" ++# alias ++# " reason=ssh did not run")
+    ?= process.try_capture_combined_list "ssh" (disk_arguments alias binary) ?|
+    | Some output => console.write_line (disk_line alias (disk_of output))
+    | None => console.write_line (disk_line alias (DiskUnknown "ssh did not run"))
     ?= status ?|
     | RemoteReported _ => 0i32
     | RemoteUnreachable _ => 1i32
@@ -80,3 +117,13 @@
     ? field_value " windows=7" "heavy_slots" = 0u64 ?> () |: failwith "a missing field is zero"
     := line = status_line "node" (RemoteReported { windows = 1u64; free_mb = 2u64; heavy_slots = 3u64 })
     ? line = "kit remote status ok machine=node windows=1 free_mb=2 heavy_slots=3" ?> () |: failwith line
+
+///> rust
+:# a_health_gate_line_becomes_a_disk_state_against_the_floor =
+    := gate = \ (disk : string) =>
+        "kit machine health gate=ok reason=ok disk=" ++# disk ++# " ram=5058mb busy=95pct\n"
+    testing.expect (disk_of (gate "10gb") = DiskAbove 10u64) "at the floor is enough"
+    testing.expect (disk_of (gate "0gb") = DiskBelow 0u64) "TRAIN24's full disk"
+    testing.expect (disk_of "unknown verb" = DiskUnknown "unknown verb") "an old kit without the gate"
+    := low = disk_line "node" (DiskBelow 3u64)
+    testing.expect (sm'.starts_with "kit remote status DISK-LOW machine=node free_gb=3 floor_gb=10" low) low

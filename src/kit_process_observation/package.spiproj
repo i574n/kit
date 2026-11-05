@@ -1,5 +1,6 @@
 packages:
     |core-
+    spiral-
 modules:
     streaming_observation
     stdout_observation

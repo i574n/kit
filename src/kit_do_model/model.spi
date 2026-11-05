@@ -86,15 +86,7 @@
     | Labs
 
 := program_family_word (family : program_family) : string =
-    ?= family ?|
-    | Edits => "edits"
-    | Reads => "reads"
-    | Facts => "facts"
-    | Runs => "runs"
-    | Writes => "writes"
-    | Git => "git"
-    | Jobs => "jobs"
-    | Labs => "labs"
+    union_reflection.cases.union_case_kebab "" family
 
 :~ program_family_named (~word : string) : option program_family =
     union_reflection.cases.union_case_where

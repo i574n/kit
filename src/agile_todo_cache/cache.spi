@@ -91,25 +91,22 @@
 
 ///> _
 := main () : i32 =
-    !!!!Export("kit_agile_todo_ids_in", ((\ rendered => ids_in rendered 0i32 "") : string -> string))
-    !!!!Export(
-        "kit_agile_todo_cache_row",
+    export "kit_agile_todo_ids_in" ((\ rendered => ids_in rendered 0i32 "") : string -> string)
+    export
+        "kit_agile_todo_cache_row"
         (
             \ (path, size, mtime, ids, untracked) => cache_row path size mtime ids untracked
             : string * u64 * u64 * string * i32 -> string
         )
-    )
-    !!!!Export("kit_agile_todo_skipped_row", ((\ path => skipped_row path) : string -> string))
-    !!!!Export(
-        "kit_agile_todo_row_of",
+    export "kit_agile_todo_skipped_row" ((\ path => skipped_row path) : string -> string)
+    export
+        "kit_agile_todo_row_of"
         (
             \ (cache, cursor, path) => row_of cache cursor path
             : string * i32 * string -> i32 * u64 * u64 * string * i32 * i32
         )
-    )
-    !!!!Export(
-        "kit_agile_todo_head_row",
+    export
+        "kit_agile_todo_head_row"
         ((\ (root, head, dirty) => head_row root head dirty) : string * string * string -> string)
-    )
-    !!!!Export("kit_agile_todo_head_of", ((\ (cache, root) => head_of cache root) : string * string -> string * string))
+    export "kit_agile_todo_head_of" ((\ (cache, root) => head_of cache root) : string * string -> string * string)
     0i32

@@ -1,0 +1,41 @@
+///- --package . --timeout 900000
+
+:! listing = $'std::rc::Rc<sysinfo::System>'
+
+:! table_scan = $'sysinfo::RefreshKind'
+
+:! table_pid = $'sysinfo::Pid'
+
+:! table_status = $'Option<sysinfo::ProcessStatus>'
+
+:= listed_only () : table_scan = $'sysinfo::RefreshKind::nothing().with_processes(Default::default())' : table_scan
+:= listing_of (scan : table_scan) : listing = $'std::rc::Rc::new(sysinfo::System::new_with_specifics(!scan))' : listing
+:= pid_of (pid : u32) : table_pid = $'sysinfo::Pid::from_u32(!pid)' : table_pid
+:= status_in (t : listing) (pid : table_pid) : table_status = $'!t.process(!pid).map(|p| p.status())' : table_status
+:= no_status () : table_status = $'None' : table_status
+:= zombie_status () : table_status = $'Some(sysinfo::ProcessStatus::Zombie)' : table_status
+:= dead_status () : table_status = $'Some(sysinfo::ProcessStatus::Dead)' : table_status
+:= own_pid () : u32 = $'std::process::id()' : u32
+:= same_status (a : table_status) (b : table_status) : bool = $'!a.eq(&!b)' : bool
+:= started_in (t : listing) (pid : table_pid) : u64 = $'!t.process(!pid).map(|p| p.start_time()).unwrap_or(0)' : u64
+
+:= process_running (pid : u32) : bool =
+    := status = status_in (listing_of (listed_only ())) (pid_of pid)
+    := gone = same_status status (no_status ()) || same_status status (zombie_status ())
+    (gone || same_status status (dead_status ())) |> not
+
+:= process_started_at (pid : u32) (start_ms : u64) : bool =
+    := started = started_in (listing_of (listed_only ())) (pid_of pid) * 1000u64
+    started > 0u64 && started + 2000u64 > start_ms && start_ms + 2000u64 > started
+
+///> rust --deps sysinfo="0.38.4"
+:# a_listed_process_runs_and_an_unused_pid_does_not =
+    testing.expect (process_running (own_pid ())) "this process is running"
+    testing.expect (process_running 4294967290u32 |> not) "an unused pid is not running"
+///> rust --deps sysinfo="0.38.4"
+:# a_process_is_matched_by_its_pid_and_start_time =
+    := own = own_pid ()
+    := started = started_in (listing_of (listed_only ())) (pid_of own) * 1000u64
+    testing.expect (process_started_at own (started + 500u64)) "this process at its own start time"
+    testing.expect (process_started_at own (started + 60000u64) |> not) "a reused pid has another start time"
+    testing.expect (process_started_at 4294967290u32 started |> not) "an unused pid never matches"

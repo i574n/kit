@@ -61,6 +61,6 @@
         |: roots_failure ("unknown action " ++# action ++# " (expected add or drop)")
 
 := main () : i32 =
-    !!!!Export("kit_agile_roots_run", ((\ () => roots_entry ()) : () -> i32))
+    export "kit_agile_roots_run" ((\ () => roots_entry ()) : () -> i32)
     := _ = roots_entry ()
     0i32

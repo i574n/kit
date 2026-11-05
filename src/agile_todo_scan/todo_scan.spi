@@ -127,12 +127,12 @@
     =
     := has_nul, text = read_content absolute
     ?= bytes_verdict has_nul ?|
-    | ScanContent =>
+    | ContentScan =>
         ? negated (text_may_hold (todo_filter_of state.only) text)
-        ?> { state ?| tally = counted_content tally ScanContent }
+        ?> { state ?| tally = counted_content tally ContentScan }
         |:
             := rendered, count, wides = crate_findings syntax state.only state.backlog text display state.json
-            := tallied = { state ?| tally = counted_todos (counted_content tally ScanContent) count }
+            := tallied = { state ?| tally = counted_todos (counted_content tally ContentScan) count }
             := counted = widened tallied wides 0i32
             ? count <= 0i32 ?> counted |: standings_from (emitted_findings counted rendered) rendered
     | verdict => { state ?| tally = counted_content tally verdict }
@@ -147,11 +147,11 @@
             ?= verdict ?|
             | ScanPath syntax =>
                 ?= size_verdict (file_size absolute) ?|
-                | SkipLarge => { state ?| tally = counted_content tally SkipLarge }
+                | ContentLarge => { state ?| tally = counted_content tally ContentLarge }
                 | _ => read_and_scanned state tally syntax display absolute
             | _ => { state ?| tally = tally }
         | LinkedEntry => { state ?| tally = counted_path state.tally (SkipPath SkipLinkedEntry) }
-        | _ => { state ?| tally = counted_content (counted_path state.tally (crate_path_verdict relative !-)) SkipUnreadable }
+        | _ => { state ?| tally = counted_content (counted_path state.tally (crate_path_verdict relative !-)) ContentUnreadable }
     | verdict => { state ?| tally = counted_path state.tally verdict }
 
 :~ ^ listed_files
@@ -268,7 +268,7 @@
         | _ => todos_failure (rust_std_string.model.concat5 "the backlog root " root " is not a directory" "" "")
 
 := main () : i32 =
-    !!!!Export("kit_agile_todos_run", ((\ () => todos_entry ()) : () -> i32))
-    !!!!Export("kit_agile_todo_sites", ((\ (root, id) => todo_sites root id) : string * string -> string))
+    export "kit_agile_todos_run" ((\ () => todos_entry ()) : () -> i32)
+    export "kit_agile_todo_sites" ((\ (root, id) => todo_sites root id) : string * string -> string)
     := _ = todos_entry ()
     0i32

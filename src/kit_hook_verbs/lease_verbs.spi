@@ -1,0 +1,224 @@
+///- --package .
+:# lease_verbs static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:= lease_corpus () : list (string * bool) =
+    [
+        "Set-Location C:\\work\\file; & .\\lane.exe job status job-1-task 2>&1", !+;
+        "pwsh -NoProfile -File C:\\work\\file -Kit C:\\work\\file 2>&1", !+;
+        "$rows | Set-Content $out", !+;
+        "$rows | Set-Content 'C:\\work\\file'", !+;
+        "& C:\\work\\file job status job-1-task 2>&1", !+;
+        "Co-Authored-By: Claude Opus 5.5 <someone@example.org>", !+;
+        "the move (lane's tmp-retire/lane-dual-path.ps1, 10/10 anchors). Proven in use:", !+;
+        "if (Test-Path $out) { Remove-Item $out }", !+;
+        "'@; & $k agile note $b ITEM-1 $t.TrimEnd() --as lane 2>&1", !+;
+        "\"@; & $k agile note C:\\work\\file ITEM-1 $t.TrimEnd() --as lane 2>&1", !+;
+        ". 'C:\\work\\file'; & \"$env:WORK\\lane\\bin\\lane.exe\" agile show C:\\work\\file ITEM-1 2>&1", !+;
+        "\"@; & $k agile note $b ITEM-1 $t.TrimEnd() --as lane 2>&1", !+;
+        "if (Test-Path C:\\work\\file) { Remove-Item C:\\work\\file -Recurse -Force }", !+;
+        ". 'C:\\work\\file'; pwsh -NoProfile -File C:\\work\\file -Kit C:\\work\\file 2>&1", !+;
+        "& $k agile set $b ITEM-1 100 Done 2>&1 | Select-Object -Last 1", !+;
+        "pwsh -NoProfile -File C:\\work\\file -Stage apply 2>&1 | Select-Object -Last 8", !+;
+        "pwsh -NoProfile -File C:\\work\\file -Stage preflight 2>&1 | Select-Object -Last 3", !+;
+        "pwsh -NoProfile -File C:\\work\\file -Stage train 2>&1 | Select-Object -Last 2", !+;
+        ". 'C:\\work\\file'; Add-Content C:\\work\\file @'", !+;
+        ">>> with <<<", !+;
+        "pwsh -NoProfile -File C:\\work\\file 2>&1 | Select-Object -Last 8", !+;
+        "$d = 'C:\\work\\file'; New-Item -ItemType Directory -Force $d | Out-Null", !+;
+        "[IO.File]::WriteAllText(\"$d\\scan.spi\", @'", !+;
+        "[IO.File]::WriteAllText(\"$d\\Cargo.toml\", @'", !+;
+        "? verb = \"request\" ?> window_requested ()", !+;
+        "? verb = \"request\" ?> $'kit_window_request::kit_window_request_run()' : i32", !+;
+        "'@.Replace(\"`r`n\", \"`n\") | Set-Content -NoNewline C:\\work\\file", !+;
+        "pwsh -NoProfile -File C:\\work\\file 2>&1 | Select-Object -Last 2", !+;
+        "pwsh -NoProfile -File C:\\work\\file 2>&1", !+;
+        "Get-Content C:\\work\\file; pwsh -NoProfile -File C:\\work\\file 2>&1", !+;
+        "pwsh -NoProfile -File C:\\work\\file 2>&1 | Select-Object -Last 10", !+;
+        "pwsh -NoProfile -File C:\\work\\file -SkipShadows 2>&1", !+;
+        "$d = 'C:\\work\\file'; New-Item -ItemType Directory -Force $d | Out-Null; $prog = @'", !+;
+        "? at < 0i32 || width = 0i32 ?> [ s ]", !+;
+        "? length separator = 0i32 ?> [ s ]", !+;
+        "pwsh -NoProfile -File C:\\work\\file 2>&1 | Select-Object -Last 3", !+;
+        "pwsh -NoProfile -File C:\\work\\file -Stage apply 2>&1 | Select-Object -Last 20", !+;
+        "$k=\"$env:WORK\\lane\\bin\\lane.exe\"; & $k agile help 2>&1 | Select-Object -First 80", !+;
+        "@('kit_log_sequences\\sequences.spi','///> _'),", !+;
+        "Set-Content (Join-Path $tmp 'p.do') \"append $tmp\\deep\\a\\b.txt <<<`nhello`n>>>\"", !+;
+        "Push-Location $tmp; & $k do p.do 2>&1 | Select-Object -First 3; Pop-Location", !+;
+        "Remove-Item $tmp -Recurse -Force", !+;
+        "$w='C:\\work\\file'; if(Test-Path $w){Remove-Item $w -Recurse -Force}", !+;
+        "\"live dry-run:\"; & $k do C:\\work\\file --dry-run $p 2>&1 | Select-Object -Last 2", !+;
+        "\"scratch apply:\"; & $k do \"$w\\src\" $p 2>&1 | Select-Object -Last 2", !+;
+        "Get-Date -Format \"yyyy-MM-dd HH:mm:ss zzz\"", !-;
+        "& 'C:\\work\\file' -Path C:\\work\\file -Keep 40 -MaxChars 2500", !-;
+        "$cmd = @'", !-;
+        "foreach ($root in 'C:\\work\\file','C:\\work\\file') {", !-;
+        "Where-Object { $_.LastWriteTime -gt [datetime]'2026-10-27' -and $_.Name -match $pat } |", !-;
+        "$enc = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cmd))", !-;
+        "foreach ($b in 'train3-bundle','train4-bundle') {", !-;
+        "\"##### $b\"", !-;
+        "$r = \"C:\\work\\file\"", !-;
+        "$files = @{}", !-;
+        "foreach ($side in 'base','cand') {", !-;
+        "$rel = $_.FullName.Substring((\"$r\\$side\").Length)", !-;
+        "if (-not $files.ContainsKey($rel)) { $files[$rel] = @{} }", !-;
+        "$files[$rel][$side] = (Get-FileHash $_.FullName -Algorithm SHA1).Hash", !-;
+        "\"files compared: $($files.Count); differing: $(@($diff).Count)\"", !-;
+        "$rel = $_.FullName.Substring(\"$r\\cand\\\".Length)", !-;
+        "$bp = \"$r\\base\\$rel\"", !-;
+        "$bh = if (Test-Path $bp) { (Get-FileHash $bp -Algorithm SHA1).Hash } else { '' }", !-;
+        "$ch = (Get-FileHash $_.FullName -Algorithm SHA1).Hash", !-;
+        "if ($bh -ne $ch) { \"$b`t$rel`t$bh`t$ch\" }", !-;
+        "$out = 'C:\\work\\file'", !-;
+        "Set-Location C:\\work\\file", !-;
+        "$rows | ForEach-Object {", !-;
+        "$b, $rel, $bh, $ch = $_ -split \"`t\"", !-;
+        "$lp = Join-Path C:\\work\\file $rel", !-;
+        "$lh = if (Test-Path $lp) { (Get-FileHash $lp -Algorithm SHA1).Hash } else { '' }", !-;
+        "[pscustomobject]@{ bundle = $b.Replace('-bundle',''); state = $state; file = $rel }", !-;
+        "} | Sort-Object bundle, state, file | Format-Table -AutoSize | Out-String -Width 200", !-;
+        "$k = \"$env:WORK\\lane\"", !-;
+        "\"node lane state: $k exists=$(Test-Path $k)\"", !-;
+        "\"--- renameproof scripts\"", !-;
+        "& 'C:\\work\\file' -Dir 'C:\\work\\file' -Root C:\\work\\file", !-;
+        "$r = 'C:\\work\\file'", !-;
+        "\"m5`t$rel`t$bh`t$((Get-FileHash $_.FullName -Algorithm SHA1).Hash)\"", !-;
+        "kit_dev: find the CLI for the fresh_cli selected test through ancestors()", !-;
+        "The selected test looked for lane.exe exactly two folders above the test", !-;
+        "binary, which misses the layout CI builds into. It now walks the test", !-;
+        "binary's ancestors to the first folder holding the CLI. selected_tests.rs", !-;
+        "is regenerated from the .spi (dev.ps1 -Package kit_dev -Publish, job", !-;
+        "job-1793274811980; selected_packages_preserve_native_build_contracts 1/1).", !-;
+        "Claude-Session: https://claude.ai/code/session_01EBhfxS9NCRv9gSVZhXvcR7", !-;
+        "'@; git log -1 --format='%h %s'", !-;
+        "lane-contracts: find spiral scripts in either bundle layout", !-;
+        "ITEM-1 moves the lane's scripts from apps/lane/tmp/scripts", !-;
+        "up to apps/lane/scripts. Get-KitSpiralScript looks in ../scripts first and", !-
+    ]
+
+:| write_sign =
+    | LongVerb : string
+    | ShortVerb : string
+    | Redirect : i32
+    | GitVerb : string
+
+:= long_verbs () : list string =
+    [
+        "set-content"; "add-content"; "out-file"; "writealltext"; "writealllines"; "writeallbytes"; "copy-item"
+        "move-item"; "remove-item"; "rename-item"; "new-item"; "clear-content"; "robocopy"; "xcopy"
+    ]
+
+:= short_verbs () : list string = [ "copy"; "move"; "del"; "rd"; "rmdir"; "mkdir"; "cp"; "mv"; "rm"; "tee" ]
+
+:= git_verbs () : list string = [ "checkout"; "restore"; "reset"; "apply"; "stash"; "clean" ]
+
+:~ word_char (c : char) : bool =
+    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c = '_'
+
+:~ path_char (c : char) : bool = word_char c || c = '.' || c = '/' || c = '\\' || c = '-'
+
+:~ char_at (~text : string) (at : i32) : option char =
+    ? at < 0i32 || at >= sm'.length text ?> None |: Some (sm'.index at text)
+
+:~ apart (~text : string) (at : i32) : bool =
+    ?= char_at text at ?|
+    | Some c => path_char c |> not
+    | None => !+
+
+:~ ^ short_at (~text : string) (~verb : string) (from : i32) : bool =
+    := rest = sm'.substring from (sm'.length text - from) text
+    := found = sm'.index_of verb rest
+    ? found < 0i32 ?> !-
+    |:
+        := at = from + found
+        ? apart text (at - 1i32) && apart text (at + sm'.length verb) ?> !+ |: short_at text verb (at + 1i32)
+
+:~ redirect_at (~text : string) (at : i32) : bool =
+    := before = char_at text (at - 1i32)
+    := after = char_at text (at + 1i32)
+    := opened = ?= before ?|
+                | Some c => c <> '<' && c <> '>' && c <> '=' && c <> '-'
+                | None => !+
+    char_at text at = Some '>' && opened && after <> Some '='
+
+:~ ^ redirect_from (~text : string) (at : i32) : option i32 =
+    ? at >= sm'.length text ?> None |? redirect_at text at ?> Some at |: redirect_from text (at + 1i32)
+
+:~ ^ spaces_end (~text : string) (at : i32) : i32 =
+    ?= char_at text at ?|
+    | Some c ?& c = ' ' || c = '\t' || c = '\n' || c = '\r' => spaces_end text (at + 1i32)
+    | _ => at
+
+:~ ^ git_from (~text : string) (from : i32) : option string =
+    := rest = sm'.substring from (sm'.length text - from) text
+    := found = sm'.index_of "git" rest
+    ? found < 0i32 ?> None
+    |:
+        := after = from + found + 3i32
+        := word_at = spaces_end text after
+        := tail = sm'.substring word_at (sm'.length text - word_at) text
+        := named = git_verbs () |> listm'.filter (\ (verb : string) => sm'.starts_with verb tail)
+        ?= named ?|
+        | verb :: _ ?& word_at > after => Some verb
+        | _ => git_from text (after - 2i32)
+
+:~ write_sign_of (~command : string) : option write_sign =
+    := text = sm'.to_lower command
+    ?= long_verbs () |> listm'.filter (\ (verb : string) => sm'.contains verb text) ?|
+    | verb :: _ => Some (LongVerb verb)
+    | [] =>
+        ?= short_verbs () |> listm'.filter (\ (verb : string) => short_at text verb 0i32) ?|
+        | verb :: _ => Some (ShortVerb verb)
+        | [] =>
+            ?= redirect_from text 0i32 ?|
+            | Some at => Some (Redirect at)
+            | None =>
+                ?= git_from text 0i32 ?|
+                | Some verb => Some (GitVerb verb)
+                | None => None
+
+:~ writes (~command : string) : bool = write_sign_of command <> None
+
+:~ sign_line (~command : string) : string =
+    ?= write_sign_of command ?|
+    | Some (LongVerb verb) => "writes=yes sign=verb:" ++# verb
+    | Some (ShortVerb verb) => "writes=yes sign=short:" ++# verb
+    | Some (Redirect at) => "writes=yes sign=redirect@" ++# sm'.show at
+    | Some (GitVerb verb) => "writes=yes sign=git:" ++# verb
+    | None => "writes=no"
+
+///> rust
+:# the_classifier_agrees_with_the_pwsh_guard_on_every_corpus_row =
+    := disagreeing = lease_corpus () |> listm'.filter (\ (command, expected) => writes command <> expected)
+    ?= disagreeing ?|
+    | [] => ()
+    | (command, _) :: _ => failwith ("disagrees with the pwsh guard: " ++# command)
+
+///> rust
+:# each_rule_of_the_guard_has_its_own_case =
+    testing.expect (write_sign_of "Set-Content x" = Some (LongVerb "set-content")) "long verbs ignore case"
+    testing.expect (write_sign_of "rm -rf a" = Some (ShortVerb "rm")) "a short verb standing alone"
+    testing.expect (write_sign_of "Get-Item ./rm.txt" = None) "a short verb inside a path is not a write"
+    testing.expect (write_sign_of "a 2>&1" = Some (Redirect 3i32)) "2>&1 counts, as in the pwsh guard"
+    testing.expect (write_sign_of "x -ge 1 => y >= 2" = None) "=> and >= are not redirects"
+    testing.expect (write_sign_of "git  restore f" = Some (GitVerb "restore")) "git subcommands after spaces"
+    testing.expect (write_sign_of "git status" = None) "a read-only git subcommand"
+
+///> rust
+:# the_lease_corpus_keeps_both_classes =
+    := rows = lease_corpus ()
+    := writes : i32 = rows |> listm'.filter (\ (_, w) => w) |> listm.length
+    := total : i32 = listm.length rows
+    testing.expect (writes = 45i32 && total = 90i32) "labels from the pwsh guard"
+
+///> rust
+:# the_answer_line_names_the_sign =
+    testing.expect (sign_line "rm -rf out" = "writes=yes sign=short:rm") "a write"
+    testing.expect (sign_line "echo a > f" = "writes=yes sign=redirect@7") "a redirect names its position"
+    testing.expect (sign_line "git status" = "writes=no" && sign_line "" = "writes=no") "reads and empty"
+///> _
+:= main () : i32 =
+    export "kit_hook_sign_line" sign_line
+    0i32

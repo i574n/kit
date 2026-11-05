@@ -356,5 +356,5 @@
         | EditsStopped code => code
 
 := main () : i32 =
-    !!!!Export("kit_do_edit_run", ((\ (root, encoded) => edit_program_run root encoded) : string * string -> i32))
+    export "kit_do_edit_run" ((\ (root, encoded) => edit_program_run root encoded) : string * string -> i32)
     0i32

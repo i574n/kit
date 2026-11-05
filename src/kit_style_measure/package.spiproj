@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    kit_os_files
+    kit_os_search
+    kit_style_probes
+link:
+    kit_style_probes
+modules:
+    measure

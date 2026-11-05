@@ -1,0 +1,29 @@
+///- --package .
+:# bin static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:~ binary_of (~given : string) (~remembered : string) : string =
+    ? given <> "kit" || sm'.trim remembered = "" ?> given |: sm'.trim remembered
+
+:~ machines_folder (~jobs_root : string) : string = sm'.replace "\\" "/" jobs_root ++# "/machines"
+
+:~ machine_binary ((jobs_root, machine, given) : string * string * string) : string =
+    := path = machines_folder jobs_root ++# "/" ++# machine ++# ".bin"
+    ? given <> "kit"
+    ?>
+        := _ = file_system.create_dir_all (machines_folder jobs_root)
+        file_system.write_all_text path given
+        given
+    |: binary_of given (? file_system.file_exists path ?> file_system.read_all_text path |: "")
+
+///> rust
+:# a_remembered_binary_fills_a_bare_kit_and_bin_wins =
+    testing.expect (binary_of "kit" "C:/home/bin/kit.exe\r\n" = "C:/home/bin/kit.exe") "a remembered binary fills a bare kit"
+    testing.expect (binary_of "D:/k.exe" "C:/home/bin/kit.exe" = "D:/k.exe" && binary_of "kit" " " = "kit") "--bin wins"
+    testing.expect (machines_folder "C:\\jobs" = "C:/jobs/machines") "machines folder"
+///> _
+:= main () : i32 =
+    export "kit_job_machine_binary" machine_binary
+    0i32

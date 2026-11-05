@@ -120,7 +120,7 @@
     | ReadRejected text => 2i32, text
 
 := main () : i32 =
-    !!!!Export("kit_file_reading_outcome", ((\ () => file_reading_report ()) : () -> i32 * string))
+    export "kit_file_reading_outcome" ((\ () => file_reading_report ()) : () -> i32 * string)
     := _ = read_receipt_text "file_reading.spi" 5u64 10i32 (unix_ms ())
     := _ = file_reading_outcome ()
     0i32

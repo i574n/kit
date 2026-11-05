@@ -1,5 +1,6 @@
 packages:
     |core-
+    spiral-
     filesystem_action_batch_contract
 modules:
     fs_actions_terminal

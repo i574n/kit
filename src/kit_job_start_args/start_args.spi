@@ -1,3 +1,11 @@
+///- --package .
+:# start_args static =
+    :< sm'_operators
+    :< kit_jobs.model
+    :< kit_jobs.host
+    :< kit_jobs.jobs
+    :< kit_job_launch_model.shapes
+
 :< sm'_operators
 :< kit_jobs.model
 :< kit_jobs.host
@@ -5,32 +13,23 @@
 :< kit_job_launch_model.shapes
 
 :| start_flag =
-    | MaxPrivateMb
-    | SlotWithin
-    | DoneWithin
-    | QuietStart
-    | QuietHold
-    | QuietWait
-    | MinFreeMb
-    | SettleMs
-    | FrontStart
+    | StartMaxPrivateMb
+    | StartSlotWithin
+    | StartDoneWithin
+    | StartQuiet
+    | StartQuietHold
+    | StartQuietWait
+    | StartMinFreeMb
+    | StartSettleMs
+    | StartFront
 
-:= start_flag_word (flag : start_flag) : string =
-    ?= flag ?|
-    | MaxPrivateMb => "--max-private-mb"
-    | SlotWithin => "--slot-within"
-    | DoneWithin => "--done-within"
-    | QuietStart => "--quiet"
-    | QuietHold => "--quiet-hold"
-    | QuietWait => "--quiet-wait"
-    | MinFreeMb => "--min-free-mb"
-    | SettleMs => "--settle-ms"
-    | FrontStart => "--front"
+:~ start_flag_word (flag : start_flag) : string =
+    kit_flag_words.words.flag_word (union_reflection.cases.union_case_suffix "Start" flag)
 
 := start_flag_width (flag : start_flag) : i32 =
     ?= flag ?|
-    | QuietStart => 1i32
-    | FrontStart => 1i32
+    | StartQuiet => 1i32
+    | StartFront => 1i32
     | _ => 2i32
 
 :| start_flag_parse =
@@ -85,15 +84,15 @@
 
 := start_option_set (options : start_options) (flag : start_flag) (value : u64) : start_options =
     ?= flag ?|
-    | MaxPrivateMb => { options ?| capped = !+; cap_mb = value }
-    | SlotWithin => { options ?| slot_limited = !+; slot_minutes = value }
-    | DoneWithin => { options ?| done_limited = !+; done_minutes = value }
-    | QuietStart => { options ?| quiet = !+ }
-    | QuietHold => { options ?| held_given = !+; hold = value }
-    | QuietWait => { options ?| wait_given = !+; quiet_wait = value }
-    | MinFreeMb => { options ?| floored = !+; min_free = value }
-    | SettleMs => { options ?| settle_given = !+; settle_ms = value }
-    | FrontStart => { options ?| front = !+ }
+    | StartMaxPrivateMb => { options ?| capped = !+; cap_mb = value }
+    | StartSlotWithin => { options ?| slot_limited = !+; slot_minutes = value }
+    | StartDoneWithin => { options ?| done_limited = !+; done_minutes = value }
+    | StartQuiet => { options ?| quiet = !+ }
+    | StartQuietHold => { options ?| held_given = !+; hold = value }
+    | StartQuietWait => { options ?| wait_given = !+; quiet_wait = value }
+    | StartMinFreeMb => { options ?| floored = !+; min_free = value }
+    | StartSettleMs => { options ?| settle_given = !+; settle_ms = value }
+    | StartFront => { options ?| front = !+ }
 
 := after_mode_of (~flag : string) : string = ? flag = "--after" ?> "any" |? flag = "--after-ok" ?> "ok" |: ""
 
@@ -208,13 +207,27 @@
             timeout,
             options.front
 
+///> rust
+:# start_flag_words_come_from_the_case_names =
+    := joined = \ (text : string) (flag : start_flag) =>
+        ? text = "" ?> start_flag_word flag |: text ++# " " ++# start_flag_word flag
+    := words = union_reflection.cases.union_cases_fold joined ""
+    testing.expect
+        (
+            words
+            = (
+                "--max-private-mb --slot-within --done-within --quiet --quiet-hold --quiet-wait --min-free-mb "
+                ^^ "--settle-ms --front"
+            )
+        )
+        words
+///> _
 := main () : i32 =
-    !!!!Export(
-        "kit_job_start_args",
+    export
+        "kit_job_start_args"
         (
             \ () => start_args ()
             : () -> bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64
             * bool
         )
-    )
     0i32

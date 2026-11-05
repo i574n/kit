@@ -1,0 +1,56 @@
+///- --package .
+:# text static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| text_allowance =
+    | ToolCorpus
+    | ToolManifest
+    | UpstreamData
+
+:~ allowance_of (~path : string) : option text_allowance =
+    := name = ?= sm'.split_list "/" path |> listm.rev ?|
+              | last :: _ => last
+              | [] => path
+    ? sm'.contains "tree-sitter" path && sm'.contains "/test/corpus/" path ?> Some ToolCorpus
+    |? name = "requirements.txt" ?> Some ToolManifest
+    |? path = "apps/cells/data/tlds.txt" ?> Some UpstreamData
+    |: None
+
+:~ untyped_of (~listing : string) : list string =
+    sm'.split_list "\n" (sm'.replace "\r" "" listing)
+    |> listm.map sm'.trim
+    |> listm'.filter (\ (path : string) => path <> "" && allowance_of path = None)
+
+:~ repo_lines (~repo : string) : list string * i32 =
+    ?= process.try_capture_combined_list "git" [ "-C"; repo; "ls-files"; "*.txt" ] ?|
+    | Some listing =>
+        := untyped = untyped_of listing
+        := found = untyped |> listm.map (\ (path : string) => "kit lint tracked-text " ++# repo ++# ": " ++# path)
+        found, listm.length untyped
+    | None => [ "kit lint tracked-text " ++# repo ++# ": git did not run" ], 1i32
+
+:~ tracked_text_run (repos : array_base string) : i32 =
+    := listed = am'.to_list_base' repos |> listm'.unbox
+    := counted = \ (total : i32) (repo : string) =>
+        := lines, count = repo_lines repo
+        lines |> listm.iter console.write_line
+        total + count
+    := total = listed |> listm.fold counted 0i32
+    := repos_text = sm'.show (listm.length listed : i32)
+    console.write_line ("kit lint tracked-text ok repos=" ++# repos_text ++# " untyped=" ++# sm'.show total)
+    ? total = 0i32 ?> 0i32 |: 1i32
+
+///> rust
+:# only_the_decided_text_files_are_allowed =
+    testing.expect (allowance_of "apps/zed/tree-sitter-spiral/test/corpus/symbols.txt" = Some ToolCorpus) "corpus"
+    testing.expect (allowance_of "requirements.txt" = Some ToolManifest) "pip manifest"
+    testing.expect (allowance_of "apps/cells/data/tlds.txt" = Some UpstreamData) "the one IANA copy"
+    testing.expect (allowance_of "postability/tlds.txt" = None) "x's duplicate is not allowed"
+    := listing = "requirements.txt\r\nsrc/patterns.txt\n\napps/cells/data/tlds.txt\n"
+    testing.expect (untyped_of listing = [ "src/patterns.txt" ]) "only the undecided row is reported"
+///> _
+:= main () : i32 =
+    export "kit_tracked_text_run" tracked_text_run
+    0i32

@@ -1,0 +1,79 @@
+///- --package .
+:# baseline static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== baseline_entry = { name : string; word : string; count : i32; lines : i32 }
+
+:== reading_row = { word : string; count : i32 }
+
+:~ appended (~lines : string) (~line : string) : string = ? lines = "" ?> line |: lines ++# "\n" ++# line
+
+:~ number_in (~part : string) : i32 =
+    := plain = sm'.trim (sm'.replace "i32" "" (sm'.replace ")" "" part))
+    optionm'.default_value (-1i32) (convert.try_convert plain)
+
+:~ entry_in (~line : string) : option baseline_entry =
+    := quoted = sm'.split "\"" line |> array
+    ? sm'.starts_with "inl census_" line |> not || am'.length quoted < 5i32 ?> None
+    |:
+        ?= sm'.split_list "," (am'.index 4i32 quoted) ?|
+        | _ :: count :: lines :: _ =>
+            := name, word = am'.index 1i32 quoted, am'.index 3i32 quoted
+            Some { name = name; word = word; count = number_in count; lines = number_in lines }
+        | _ => None
+
+:~ baseline_entries (text : string) : array_base baseline_entry =
+    := keep = \ (kept : array baseline_entry) (line : string) =>
+        ?= entry_in line ?|
+        | Some entry => kept ++ ;[ entry ]
+        | None => kept
+    sm'.split_list "\n" (sm'.replace "\r" "" text) |> listm.fold keep ;[] |> am'.base
+
+:~ binding_of (~name : string) : string = sm'.replace "-" "_" (sm'.to_lower name)
+
+:~ row_of (~name : string) (lines : i32) (reading : reading_row) : string =
+    := head = "inl census_" ++# binding_of name ++# "_" ++# binding_of reading.word ++# " () = "
+    := key = "CensusCount (\"" ++# name ++# "\", \"" ++# reading.word ++# "\", "
+    head ++# key ++# sm'.show reading.count ++# "i32, " ++# sm'.show lines ++# "i32)"
+
+:~ ^ rendered_from
+    (~name : string) (lines : i32) (readings : array_base reading_row) (at : i32) (~rows : string)
+    : string
+    =
+    ? at >= am'.length_base readings ?> rows
+    |: rendered_from name lines readings (at + 1i32) (appended rows (row_of name lines (am'.index_base at readings)))
+
+:~ baseline_rendered ((name, lines, readings, rows) : string * i32 * array_base reading_row * string) : string =
+    rendered_from name lines readings 0i32 rows
+
+:~ row_package (~line : string) : string = optionm'.default_value "" (am'.try_item 1i32 (sm'.split "\"" line |> array))
+
+:~ ^ walked_has (walked : array_base string) (~name : string) (at : i32) : bool =
+    at < am'.length_base walked && (am'.index_base at walked = name || walked_has walked name (at + 1i32))
+
+:~ baseline_merged ((text, walked, rows) : string * array_base string * string) : string =
+    := keep = \ (kept : string) (line : string) =>
+        := walked_row = sm'.starts_with "inl census_" line && walked_has walked (row_package line) 0i32
+        ? walked_row |> not ?> appended kept line |: kept
+    appended (sm'.split_list "\n" text |> listm.fold keep "") rows
+
+///> rust
+:# baseline_rows_round_trip_and_merge_by_package =
+    := readings = (;[ { word = "forall"; count = 2i32 } ] : array reading_row) |> am'.base
+    := rows = baseline_rendered ("kit-x", 105i32, readings, "")
+    testing.expect (rows = "inl census_kit_x_forall () = CensusCount (\"kit-x\", \"forall\", 2i32, 105i32)") rows
+    := entries = baseline_entries rows
+    := entry = am'.index_base 0i32 entries
+    testing.expect (am'.length_base entries = 1i32 && entry.count = 2i32 && entry.lines = 105i32) "parsed back"
+    := other = "inl census_kit_y_forall () = CensusCount (\"kit-y\", \"forall\", 1i32, 9i32)"
+    := walked = (;[ "kit-x" ] : array string) |> am'.base
+    := merged = baseline_merged (rows ++# "\n" ++# other, walked, "NEW")
+    testing.expect (merged = other ++# "\nNEW") "walked rows are replaced"
+///> _
+:= main () : i32 =
+    export "kit_style_baseline_entries" baseline_entries
+    export "kit_style_baseline_rendered" baseline_rendered
+    export "kit_style_baseline_merged" baseline_merged
+    0i32

@@ -16,3 +16,4 @@ path = "control.rs"
 kit-job-state = { path = "../kit_job_state" }
 kit-machine-windows = { path = "../kit_machine_windows" }
 kit-job-launch = { path = "../kit_job_launch" }
+kit-process-alive = { path = "../kit_process_alive" }

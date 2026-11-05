@@ -111,17 +111,7 @@
     | FieldTime
 
 := amendable_word (field : amendable_field) : string =
-    ?= field ?|
-    | FieldQuestion => "question"
-    | FieldTest => "test"
-    | FieldMetric => "metric"
-    | FieldGroup => "group"
-    | FieldArms => "arms"
-    | FieldRuns => "runs"
-    | FieldPrediction => "prediction"
-    | FieldConfidence => "confidence"
-    | FieldDecision => "decision"
-    | FieldTime => "time"
+    union_reflection.cases.union_case_kebab "Field" field
 
 := amendable_fields () : string = union_reflection.cases.union_cases_joined amendable_word "|"
 

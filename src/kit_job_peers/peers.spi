@@ -1,0 +1,32 @@
+///- --package .
+:# peers static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:~ counted_live (~own_dir : string) (~dir : string) (alive : bool) (~live_text : string) : u64 =
+    ? dir = own_dir || alive |> not ?> 0u64 |: optionm'.default_value 0u64 (convert.try_convert (sm'.trim live_text))
+
+:~ ^ live_elsewhere (~own_dir : string) (dirs : list string) (sum : u64) : u64 =
+    ?= dirs ?|
+    | [] => sum
+    | dir :: rest =>
+        := pid = decimal_u64 (text_or_empty (joined dir "pid"))
+        := counted = counted_live own_dir dir (pid <> 0u64 && process_alive pid) (text_or_empty (joined dir "live"))
+        live_elsewhere own_dir rest (sum + counted)
+
+:~ live_elsewhere_of (~own_dir : string) : u64 =
+    := hosts = joined (jobs_root ()) "hosts"
+    := named = kit_os_files.files.entry_names hosts |> listm.map (\ (name : string) => joined hosts name)
+    live_elsewhere own_dir (joined (jobs_root ()) "shell-host" :: named) 0u64
+
+///> rust
+:# only_other_live_hosts_add_their_running_jobs =
+    testing.expect (counted_live "a" "b" !+ "3\n" = 3u64 && counted_live "a" "a" !+ "3" = 0u64) "other hosts count"
+    testing.expect (counted_live "a" "b" !- "3" = 0u64 && counted_live "a" "b" !+ "x" = 0u64) "dead or unreadable hosts"
+///> _
+:= main () : i32 =
+    export "kit_job_live_elsewhere" live_elsewhere_of
+    0i32

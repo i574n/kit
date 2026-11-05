@@ -116,6 +116,6 @@
 :~ agile_init_entry () : i32 = agile_init (argument_owned 1i32)
 
 := main () : i32 =
-    !!!!Export("kit_agile_init_run", ((\ () => agile_init_entry ()) : () -> i32))
+    export "kit_agile_init_run" ((\ () => agile_init_entry ()) : () -> i32)
     := _ = agile_init_entry ()
     0i32

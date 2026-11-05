@@ -97,13 +97,7 @@
     |? code = 3i32 ?> Some MacroCast
     |? code = 4i32 ?> Some MacroArith
     |: None
-:~ class_word (class : macro_class) : string =
-    ?= class ?|
-    | MacroLong => "long"
-    | MacroBlock => "block"
-    | MacroFlow => "flow"
-    | MacroCast => "cast"
-    | MacroArith => "arith"
+:= class_word (class : macro_class) : string = union_reflection.cases.union_case_kebab "Macro" class
 
 := definition_word (word : string) : bool =
     word = "inl" || word = "let" || word = ":=" || word = ":~" || word = ":!" || word = "nominal" || word = "type" || word = "union"
@@ -302,7 +296,7 @@
         words_in pieces (index + 1i32) (? word = "" ?> found |: word :: found)
 
 := class_spelled (word : string) : bool =
-    word = "long" || word = "block" || word = "flow" || word = "cast" || word = "arith"
+    union_reflection.cases.union_case_where (\ (class : macro_class) => word = class_word class) (\ _ => !+) !-
 
 :~ known_of (row : string) : option known_violation =
     ?= words_in (sm'.split " " (sm'.trim row) |> array) 0i32 [] ?|

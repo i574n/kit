@@ -1,0 +1,17 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    workspace_primitives
+    agile_sprint
+    agile_task_census
+    agile_planning_fields
+    kit_agile_sprint_state
+    kit_agile_sprint_append
+link:
+    agile_task_census
+    agile_planning_fields
+    kit_agile_sprint_state
+    kit_agile_sprint_append
+modules:
+    start

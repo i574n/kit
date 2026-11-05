@@ -149,5 +149,5 @@
 
 ///> _
 := main () : i32 =
-    !!!!Export("kit_agile_seal_run", ((\ () => seal_entry ()) : () -> i32))
+    export "kit_agile_seal_run" ((\ () => seal_entry ()) : () -> i32)
     0i32

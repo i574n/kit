@@ -125,8 +125,7 @@
 := main () : i32 =
     := _ = owner_growth_runtime_compensation_binding 15i32 15i32
     emit_runtime ()
-    !!!!Export(
-        "kit_bundle_owner_growth_compensation_binding",
+    export
+        "kit_bundle_owner_growth_compensation_binding"
         ((\ (first, second) => owner_growth_runtime_compensation_binding first second) : i32 * i32 -> i32)
-    )
     0i32

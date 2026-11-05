@@ -89,5 +89,5 @@
             |: $'kit_memory_save::kit_memory_edit(&*!dir, &*!slug, &*!field, &*!text)' : i32
 
 := main () : i32 =
-    !!!!Export("kit_memory_run", ((\ () => memory_run ()) : () -> i32))
+    export "kit_memory_run" ((\ () => memory_run ()) : () -> i32)
     0i32

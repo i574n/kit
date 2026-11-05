@@ -68,5 +68,5 @@
             ? drifted = 0u64 ?> 0i32 |: 1i32
 
 := main () : i32 =
-    !!!!Export("kit_env_run", ((\ () => env_run ()) : () -> i32))
+    export "kit_env_run" ((\ () => env_run ()) : () -> i32)
     0i32

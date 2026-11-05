@@ -37,6 +37,19 @@ let ticket_pid (~name : string) : u64 = $'(!name).trim_end_matches(".t").split(c
         := name = first_row names
         ? process_alive (ticket_pid name) ?> name |: first_live_ticket (other_rows names)
 
+:~ ^ live_rank (~names : string) (~ticket : string) (rank : i32) : i32 =
+    ? names = "" ?> -1i32
+    |:
+        := name = first_row names
+        ? name = ticket ?> rank
+        |? process_alive (ticket_pid name) ?> live_rank (other_rows names) ticket (rank + 1i32)
+        |: live_rank (other_rows names) ticket rank
+
+:~ heavy_slots () : i32 =
+    := written = sm'.trim (text_or_empty (joined (jobs_root ()) "heavy-slots"))
+    := asked = optionm'.default_value 1i32 (convert.try_convert written)
+    ? asked < 1i32 ?> 1i32 |: asked
+
 :~ ticket_ticks (~name : string) : u64 =
     $'(!name).split(char::from(45u8)).next().and_then(|ticks| ticks.parse::<u64>().ok()).unwrap_or(0)' : u64
 
@@ -70,6 +83,10 @@ let ticket_pid (~name : string) : u64 = $'(!name).trim_end_matches(".t").split(c
         true } let base = std::env::var("KIT_HEAVY_MUTEX").unwrap_or_else(|_| format\!("Global{}spiral-heavy-job", \
         char::from(92u8))); probe(&base) || (!free > 3072 && probe(&format\!("{base}-2"))) }' : bool
 
+:~ slot_turn (~queue : string) (~ticket : string) : bool =
+    := rank = live_rank (tickets_sorted queue) ticket 0i32
+    rank >= 0i32 && rank < heavy_slots () && slot_free (free_mb ())
+
 :~ ticket_adopted (~name : string) : () = env.set_environment_variable "SPIRAL_HEAVY_TICKET" name
 
 :~ slot_deadline_passed (~id : string) (now : u64) : bool =
@@ -92,7 +109,7 @@ let ticket_pid (~name : string) : u64 = $'(!name).trim_end_matches(".t").split(c
                 (exit_line 75i32 now JobExpiredInQueue "no heavy slot within --slot-within; the job never started")
         := _ = text_written (job_file id "slot") ("settled ticket=" ++# ticket ++# " state=expired-in-queue")
         75i32
-    |? first_live_ticket (tickets_sorted queue) = ticket && slot_free (free_mb ()) ?>
+    |? slot_turn queue ticket ?>
         ticket_adopted ticket
         := _ =
             text_written (job_file id "slot") ("ready ticket=" ++# ticket ++# " waited_ms=" ++# (decimal_text (
@@ -159,7 +176,7 @@ let ticket_pid (~name : string) : u64 = $'(!name).trim_end_matches(".t").split(c
                     (exit_line 75i32 now JobExpiredInQueue "no heavy slot within --slot-within; the job never started")
             := _ = text_written (job_file id "slot") ("settled ticket=" ++# ticket ++# " state=expired-in-queue")
             2i32
-        |? first = ticket && slot_free (free_mb ()) ?>
+        |? slot_turn queue ticket ?>
             := _ = text_written (joined queue ticket) (id ++# "\n" ++# decimal_text now)
             := _ = text_written (job_file id "slot") ("handed ticket=" ++# ticket)
             0i32
@@ -183,9 +200,16 @@ let ticket_pid (~name : string) : u64 = $'(!name).trim_end_matches(".t").split(c
     := handed = "00639286833110079225-7.t"
     ? ticket_name (ticket_ticks handed) 42u64 = "00639286833110079225-42.t" ?> () |: failwith "same ticks, new pid"
 
+///> rust --deps sysinfo="0.38.4"
+:# a_ticket_ranks_among_the_live_tickets_ahead_of_it =
+    := mine, gone = ticket_name 3u64 (own_pid ()), ticket_name 2u64 4294967290u64
+    := names = sm'.concat_list "\n" [ ticket_name 1u64 (own_pid ()); gone; mine ]
+    testing.expect (live_rank names mine 0i32 = 1i32) "a dead ticket ahead is not counted"
+    testing.expect (live_rank names (ticket_name 9u64 1u64) 0i32 = -1i32) "a missing ticket has no rank"
+
 ///> _
 := main () : i32 =
-    !!!!Export("kit_job_slot_gate", ((\ id => slot_gate id) : string -> i32))
-    !!!!Export("kit_job_slot_held_step", ((\ id => slot_held_step id) : string -> i32))
-    !!!!Export("kit_job_slot_ticket_dropped", ((\ id => slot_ticket_dropped id) : string -> ()))
+    export "kit_job_slot_gate" ((\ id => slot_gate id) : string -> i32)
+    export "kit_job_slot_held_step" ((\ id => slot_held_step id) : string -> i32)
+    export "kit_job_slot_ticket_dropped" ((\ id => slot_ticket_dropped id) : string -> ())
     0i32

@@ -9,29 +9,23 @@
     := _ = source_authoring_freshness_binding 1i32 1i32
     := _ = source_authoring_mode_binding 0i32 0i32
     := _ = source_authoring_commit_binding 1i32 1i32
-    !!!!Export(
-        "kit_patch_driver_source_authoring_shape_binding",
+    export
+        "kit_patch_driver_source_authoring_shape_binding"
         ((\ (first, second) => source_authoring_shape_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_source_authoring_template_binding",
+    export
+        "kit_patch_driver_source_authoring_template_binding"
         ((\ (first, second) => source_authoring_template_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_source_authoring_render_binding",
+    export
+        "kit_patch_driver_source_authoring_render_binding"
         ((\ (first, second) => source_authoring_render_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_source_authoring_freshness_binding",
+    export
+        "kit_patch_driver_source_authoring_freshness_binding"
         ((\ (first, second) => source_authoring_freshness_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_source_authoring_mode_binding",
+    export
+        "kit_patch_driver_source_authoring_mode_binding"
         ((\ (first, second) => source_authoring_mode_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_driver_source_authoring_commit_binding",
+    export
+        "kit_patch_driver_source_authoring_commit_binding"
         ((\ (first, second) => source_authoring_commit_binding first second) : i32 * i32 -> i32)
-    )
 
     0i32

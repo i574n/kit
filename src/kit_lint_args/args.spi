@@ -1,0 +1,88 @@
+///- --package .
+:# args static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| lint_switch =
+    | SwitchTsv
+    | SwitchOpens
+
+:| lint_valued =
+    | ValuedBaseline
+    | ValuedWriteBaseline
+    | ValuedLib
+
+:== lint_args_row =
+    {
+        root : string
+        baseline : string
+        write_baseline : string
+        lib : string
+        tsv : bool
+        opens : bool
+        paths : array_base string
+    }
+
+:= switch_word (flag : lint_switch) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Switch" flag
+
+:= valued_word (flag : lint_valued) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ switch_applied (flag : lint_switch) (row : lint_args_row) : lint_args_row =
+    ?= flag ?|
+    | SwitchTsv => { row ?| tsv = !+ }
+    | SwitchOpens => { row ?| opens = !+ }
+
+:~ valued_applied (flag : lint_valued) (~value : string) (row : lint_args_row) : lint_args_row =
+    ?= flag ?|
+    | ValuedBaseline => { row ?| baseline = value }
+    | ValuedWriteBaseline => { row ?| write_baseline = value }
+    | ValuedLib => { row ?| lib = value }
+
+:~ ^ leading_paths (words : list string) (found : array string) : array string =
+    ?= words ?|
+    | word :: rest ?& sm'.starts_with "--" word |> not => leading_paths rest (found ++ ;[ word ])
+    | _ => found
+
+:~ ^ flags_read (words : list string) (row : lint_args_row) : lint_args_row =
+    ?= words ?|
+    | [] => row
+    | word :: rest =>
+        := switched =
+            union_reflection.cases.union_case_where (\ (flag : lint_switch) => word = switch_word flag) Some None
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : lint_valued) => word = valued_word flag) Some None
+        ?= switched, valued, rest ?|
+        | Some flag, _, _ => flags_read rest (switch_applied flag row)
+        | _, Some flag, (value :: after) => flags_read after (valued_applied flag value row)
+        | _ => flags_read rest row
+
+:~ args_of (words : list string) : lint_args_row =
+    := none = (;[] : array string) |> am'.base
+    := start = { root = ""; baseline = ""; write_baseline = ""; lib = ""; tsv = !-; opens = !-; paths = none }
+    ?= words ?|
+    | root :: rest => flags_read rest { start ?| root = root; paths = leading_paths rest ;[] |> am'.base }
+    | [] => start
+
+:~ ^ dropped (count : i32) (words : list string) : list string =
+    ?= words ?|
+    | _ :: rest ?& count > 0i32 => dropped (count - 1i32) rest
+    | _ => words
+
+:~ lint_args_read (skipped : i32) : array_base lint_args_row =
+    (;[ args_of (dropped skipped (env.command_line_arguments ())) ] : array lint_args_row) |> am'.base
+
+///> rust
+:# lint_flags_read_by_reflection =
+    := words = [ "src"; "a.spi"; "b"; "--baseline"; "base.spi"; "--tsv"; "--write-baseline"; "out.spi"; "--opens" ]
+    := row = args_of words
+    testing.expect (row.root = "src" && row.baseline = "base.spi" && row.write_baseline = "out.spi") row.write_baseline
+    testing.expect (row.tsv && row.opens && am'.length_base row.paths = 2i32) "switches and leading paths"
+    := words = union_reflection.cases.union_cases_joined valued_word "|"
+    testing.expect (words = "--baseline|--write-baseline|--lib") words
+///> _
+:= main () : i32 =
+    export "kit_lint_args_read" lint_args_read
+    0i32

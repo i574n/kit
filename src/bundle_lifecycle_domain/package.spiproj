@@ -1,5 +1,6 @@
 packages:
     |core-
+    spiral-
     bundle_output_contract
     bundle_verify_contract
 modules:

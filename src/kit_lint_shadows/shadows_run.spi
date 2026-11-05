@@ -78,9 +78,9 @@
 
 :~ shadows_run () : i32 =
     := started = kit_receipt.receipt.now_ms ()
-    := count = env.command_line_argument_count ()
-    := root = kit_lint_macros.lint.argument 2i32
-    := given = kit_lint_macros.lint.value_after "--baseline" 3i32 count
+    := args = kit_lint_macros.lint.lint_args ()
+    := root = args.root
+    := given = args.baseline
     := baseline_path = ? given = "" || file_system.file_exists given ?> given |: root </> given
     ? root = "" || file_system.directory_exists root |> not ?>
         console.write_error_line (
@@ -92,10 +92,10 @@
         2i32
     |:
         := baseline = ? baseline_path = "" ?> "" |: file_system.read_all_text baseline_path
-        := opens = kit_lint_macros.lint.flag_given "--opens" 3i32 count
-        := lib_given = kit_lint_macros.lint.value_after "--lib" 3i32 count
+        := opens = args.opens
+        := lib_given = args.lib
         := lib = ? lib_given <> "" ?> lib_given |: env.get_environment_variable "SPIRAL_LIB"
-        := rows, tally = shadows_report root (kit_lint_macros.lint.paths_from 3i32 count []) baseline opens lib
+        := rows, tally = shadows_report root (kit_lint_macros.lint.listed_paths args.paths) baseline opens lib
         rows |> listm.iter console.write_line
         := elapsed = kit_receipt.receipt.elapsed_text started
         := clock = kit_receipt.receipt.clock_text ()
@@ -104,5 +104,5 @@
 
 ///> _
 := main () : i32 =
-    !!!!Export("kit_lint_shadows_run", ((\ () => shadows_run ()) : () -> i32))
+    export "kit_lint_shadows_run" ((\ () => shadows_run ()) : () -> i32)
     0i32

@@ -1,8 +1,6 @@
 :< sm'_operators
 :< links_model
 
-:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
-:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
 := stdout_line (~text : string) : () = console.write_line text
 := stderr_line (~text : string) : () = console.write_error_line text
 := i32_text (value : i32) : string = (sm'.show value)
@@ -13,11 +11,6 @@
     *!name).to_string_lossy().as_ref())' : string
 := line_head (~text : string) : string = sm'.first_line text
 := line_rest (~text : string) : string = sm'.after_first_line text
-:= option_value (~name : string) : string = $'std::rc::Rc::<str>::from({ let args = \
-    std::env::args().collect::<Vec<_>>(); args.iter().position(|argument| argument == &*!name).and_then(|at| \
-    args.get(at + 1)).cloned().unwrap_or_default() }.as_str())' : string
-:= flag_present (~name : string) : bool = rust_std_env.model.argument_flag_present 0i32 name
-
 := memory_files (~directory : string) : string =
     $'std::rc::Rc::<str>::from({ let mut names = std::fs::read_dir(&*!directory).into_iter().flatten().flatten().map(|\
         entry| entry.file_name().to_string_lossy().into_owned()).filter(|name| name.ends_with(".md") && name \!= \
@@ -157,9 +150,35 @@
         parts.next()?, parts.next()?, parts.next()?.trim_start_matches("[[").trim_end_matches("]]"))) \
         }).collect::<Vec<_>>().join(",") }.as_str())' : string
 
-:~ links_run () : i32 =
-    := root = argument 3i32
-    := directory = option_value "--memory"
+:| links_switch =
+    | SwitchJson
+
+:| links_valued =
+    | ValuedMemory
+
+:== links_flags = { memory : string; json : bool }
+
+:= switch_word (flag : links_switch) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Switch" flag
+
+:= valued_word (flag : links_valued) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ ^ links_flags_read (words : list string) (flags : links_flags) : links_flags =
+    ?= words ?|
+    | [] => flags
+    | word :: rest =>
+        := switched =
+            union_reflection.cases.union_case_where (\ (flag : links_switch) => word = switch_word flag) Some None
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : links_valued) => word = valued_word flag) Some None
+        ?= switched, valued, rest ?|
+        | Some _, _, _ => links_flags_read rest { flags ?| json = !+ }
+        | _, Some _, (value :: after) => links_flags_read after { flags ?| memory = value }
+        | _ => links_flags_read rest flags
+
+:~ links_checked (~root : string) (flags : links_flags) : i32 =
+    := directory = flags.memory
     ? directory = "" || directory_exists directory = !-
     ?>
         stderr_line "kit error: agile links rejected: --memory <dir> must name a memory directory"
@@ -194,7 +213,7 @@
             )
         := report = tally.report
         := _ =
-            ? flag_present "--json"
+            ? flags.json
             ?>
                 stdout_line (
                     "{\"findings\":["
@@ -204,10 +223,16 @@
                     ++# "}"
                 )
             |:
-                := _ = ? report <> "" ?> stdout_line ($'std::rc::Rc::<str>::from((!report).trim_end())' : string) |: ()
+                := _ = ? report <> "" ?> stdout_line (sm'.trim_end [] report) |: ()
                 stdout_line ("kit agile links ok " ++# counts)
         ? tally.dangling = 0i32 ?> 0i32 |: 1i32
 
+:~ links_run () : i32 =
+    := start = { memory = ""; json = !- }
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: root :: words => links_checked root (links_flags_read words start)
+    | _ => links_checked "" start
+
 := main () : i32 =
-    !!!!Export("kit_agile_links_run", ((\ () => links_run ()) : () -> i32))
+    export "kit_agile_links_run" ((\ () => links_run ()) : () -> i32)
     0i32

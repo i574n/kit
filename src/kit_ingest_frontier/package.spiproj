@@ -1,5 +1,6 @@
 packages:
     |core-
+    spiral-
     ingest_frontier_contract
 modules:
     model

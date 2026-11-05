@@ -173,11 +173,47 @@ fn main() {
         "a stale heartbeat with a live supervisor is a stall, not a loss"
     fixture_root_remove root
 ///> rust
+:# a_held_job_stopped_long_ago_with_no_live_holder_settles_as_stopped =
+    := root = fixture_root_create "job held orphan"
+    fixture_write root "jobs/job-3-orphan/label" "orphan"
+    fixture_write root "jobs/job-3-orphan/timeout_ms" "600000"
+    fixture_write root "jobs/job-3-orphan/started_ms" (stamp 600000u64)
+    fixture_write root "jobs/job-3-orphan/heartbeat_ms" (stamp 300000u64)
+    fixture_write root "jobs/job-3-orphan/stop" (stamp 120000u64)
+    fixture_write root "jobs/held/job-3-orphan" "a host that is gone"
+    shows (succeeded (job_call root (Arg ("status", Arg ("job-3-orphan", NoArgs))))) "state=stopped exit=143"
+    expect (path_exists (fixture_path root "jobs/held/job-3-orphan") = !-) "the dead host's hold is dropped"
+    fixture_write root "jobs/job-4-fresh/label" "fresh"
+    fixture_write root "jobs/job-4-fresh/timeout_ms" "600000"
+    fixture_write root "jobs/job-4-fresh/started_ms" (stamp 600000u64)
+    fixture_write root "jobs/job-4-fresh/stop" (stamp 1000u64)
+    fixture_write root "jobs/held/job-4-fresh" "a host that may still act"
+    succeeded (job_call root (Arg ("status", Arg ("job-4-fresh", NoArgs)))) |> ignore
+    expect (path_exists (fixture_path root "jobs/job-4-fresh/exit") = !-) "a fresh stop is left to the live host"
+    fixture_write root "jobs/job-5-ownerless/label" "ownerless"
+    fixture_write root "jobs/job-5-ownerless/timeout_ms" "600000"
+    fixture_write root "jobs/job-5-ownerless/started_ms" (stamp 600000u64)
+    fixture_write root "jobs/job-5-ownerless/host-home" "4294967290-1000"
+    fixture_write root "jobs/held/job-5-ownerless" "a host whose owner ended"
+    shows (succeeded (job_call root (Arg ("status", Arg ("job-5-ownerless", NoArgs))))) "state=lost exit=125"
+    expect (path_exists (fixture_path root "jobs/held/job-5-ownerless") = !-) "an ownerless hold is dropped"
+    fixture_root_remove root
+///> rust
 :# a_wait_without_a_limit_waits_out_the_job =
     := root = fixture_root_create "job wait default"
     := nap = rustc_program root "nap" "fn main() { std::thread::sleep(std::time::Duration::from_secs(3)); }"
     := id = word_after (succeeded (job_call root (Arg ("start", Arg ("nap", Arg ("60000", Arg (nap, NoArgs))))))) "id="
     shows (succeeded (job_call root (Arg ("wait", Arg (id, NoArgs))))) "state=finished exit=0"
+    fixture_root_remove root
+
+///> rust
+:# internal_job_verbs_refuse_flags_instead_of_starting =
+    := root = fixture_root_create "job internal verbs"
+    := refusal = "supervise is started by kit itself for one job id and takes no flags"
+    rejected_with (job_call root (Arg ("supervise", Arg ("--help", NoArgs)))) 2i32 refusal
+    rejected_with (job_call root (Arg ("supervise", NoArgs))) 2i32 refusal
+    := host_refusal = "host is started by kit itself and takes no flags"
+    rejected_with (job_call root (Arg ("host", Arg ("--help", NoArgs)))) 2i32 host_refusal
     fixture_root_remove root
 
 ///> rust

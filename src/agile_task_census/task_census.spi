@@ -91,23 +91,24 @@
     := unmet = unmet_deps unsettled deps
     ? unmet = "" ?> "" |: "  waits " ++# unmet
 
+:~ status_pair ((text, id) : string * string) : string = task_status_of text id
+
 := main () : i32 =
-    !!!!Export("kit_agile_status_counts", ((\ text => census_text text) : string -> string))
-    !!!!Export("kit_agile_status_counts_json", ((\ text => census_json text) : string -> string))
-    !!!!Export("kit_agile_task_status", ((\ (text, id) => task_status_of text id) : string * string -> string))
+    export "kit_agile_task_status_of" status_pair
+    export "kit_agile_status_counts" ((\ text => census_text text) : string -> string)
+    export "kit_agile_status_counts_json" ((\ text => census_json text) : string -> string)
+    export "kit_agile_task_status" ((\ (text, id) => task_status_of text id) : string * string -> string)
     := _ = census_text ""
-    !!!!Export("kit_agile_unsettled_ids", ((\ text => unsettled_ids text) : string -> string))
-    !!!!Export(
-        "kit_agile_first_malformed_task",
+    export "kit_agile_unsettled_ids" ((\ text => unsettled_ids text) : string -> string)
+    export
+        "kit_agile_first_malformed_task"
         ((\ text => first_malformed_task text 0i32 (byte_len text)) : string -> i32)
-    )
     := _ = task_status_of "" ""
     := _ = unsettled_ids ""
-    !!!!Export("kit_agile_done_ids", ((\ text => done_ids text) : string -> string))
+    export "kit_agile_done_ids" ((\ text => done_ids text) : string -> string)
     := _ = done_ids ""
-    !!!!Export(
-        "kit_agile_waits_column",
+    export
+        "kit_agile_waits_column"
         ((\ (unsettled, deps) => waits_column unsettled deps) : string * string -> string)
-    )
     := _ = waits_column "" ""
     0i32

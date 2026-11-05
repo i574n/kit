@@ -12,5 +12,8 @@ packages:
     agile_claim_api
     kit_jobs
     kit_os_files
+    kit_process_alive
+link:
+    kit_process_alive
 modules:
     rank

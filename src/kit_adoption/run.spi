@@ -152,5 +152,5 @@ inl sorted_lines (~text : string) : string = $'{ let mut lines = (&*!text).lines
         0i32
 
 := main () : i32 =
-    !!!!Export("kit_adoption_run", ((\ () => adoption_run ()) : () -> i32))
+    export "kit_adoption_run" ((\ () => adoption_run ()) : () -> i32)
     0i32

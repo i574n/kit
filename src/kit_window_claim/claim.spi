@@ -20,8 +20,7 @@
             |: rest
         | RowUnknown => rest
 
-:~ window_claim_run () : i32 =
-    := path = argument 3i32
+:~ window_claimed (~path : string) : i32 =
     ? path = "" ?>
         stderr_line "kit error: window claim <path> (refused while a tree-read window covers the path)"
         2i32
@@ -38,6 +37,10 @@
             stdout_line ("kit window claim refused path=" ++# path ++# " " ++# verdict_text verdict now)
             1i32
 
+:~ claim_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: first :: _ => window_claimed first
+    | _ => window_claimed ""
 := main () : i32 =
-    !!!!Export("kit_window_claim_run", ((\ () => window_claim_run ()) : () -> i32))
+    export "kit_window_claim_run" ((\ () => claim_run ()) : () -> i32)
     0i32

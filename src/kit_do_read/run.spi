@@ -175,8 +175,8 @@
     $'std::rc::Rc::<str>::from(!paths.iter().map(|path| path.to_string()).collect::<Vec<_>>().join("\n"))' : string
 
 := main () : i32 =
-    !!!!Export("kit_do_read_run", ((\ (root, encoded) => read_run root encoded) : string * string -> i32))
-    !!!!Export("kit_do_read_matching", ((\ (root, target) => matching_text root target) : string * string -> string))
-    !!!!Export("kit_do_read_rejection", ((\ encoded => first_rejection (records_of encoded) 1i32) : string -> string))
-    !!!!Export("kit_do_read_report", ((\ (root, encoded) => report_text root encoded) : string * string -> string))
+    export "kit_do_read_run" ((\ (root, encoded) => read_run root encoded) : string * string -> i32)
+    export "kit_do_read_matching" ((\ (root, target) => matching_text root target) : string * string -> string)
+    export "kit_do_read_rejection" ((\ encoded => first_rejection (records_of encoded) 1i32) : string -> string)
+    export "kit_do_read_report" ((\ (root, encoded) => report_text root encoded) : string * string -> string)
     0i32

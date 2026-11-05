@@ -1,0 +1,10 @@
+///- --package .
+
+:! run_status = $'Option<std::process::ExitStatus>'
+
+:= status_of (~program : string) (args : array string) : run_status =
+    $'std::process::Command::new(&*!program).args((!args).borrow().iter().map(|a| &**a)).status().ok()' : run_status
+
+:= exit_code_of (status : run_status) : i32 = $'!status.and_then(|s| s.code()).unwrap_or(127)' : i32
+
+:= inherited_exit (~program : string) (args : array string) : i32 = exit_code_of (status_of program args)

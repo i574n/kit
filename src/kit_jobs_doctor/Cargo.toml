@@ -14,7 +14,6 @@ name = "kit_jobs_doctor"
 path = "doctor.rs"
 
 [dependencies]
-sysinfo = "0.38.4"
 kit-machine-sample = { path = "../kit_machine_sample" }
 kit-jobs-doctor-env = { path = "../kit_jobs_doctor_env" }
 kit-jobs-doctor-servers = { path = "../kit_jobs_doctor_servers" }

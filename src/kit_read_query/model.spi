@@ -1,16 +1,17 @@
 ///- --package .
 :# model static =
+    :< sm'_operators
 
 
 :| read_command =
-    | ReadFiles
-    | CountLines
-    | ReadUnknown
+    | CommandRead
+    | CommandLines
 
-:= read_command_of (~word : string) : read_command =
-    ? word = "read" ?> ReadFiles
-    |? word = "lines" ?> CountLines
-    |: ReadUnknown
+:= read_command_word (command : read_command) : string =
+    union_reflection.cases.union_case_kebab "Command" command
+
+:= read_command_of (~word : string) : option read_command =
+    union_reflection.cases.union_case_where (\ (command : read_command) => word = read_command_word command) Some None
 
 := read_usage () : string =
     "read <path|glob>[:from-to|:-last]... [--max-lines n] [--json] | lines <path|glob>... | grep <root> <needle> "
@@ -138,3 +139,5 @@
         (e.path = "C:\\x\\log.txt" && range_first e.range 10u64 = 8u64 && range_last e.range 10u64 = 10u64)
         "a minus count reads the last lines"
     expect (range_first e.range 2u64 = 1u64) "more lines asked than the file has reads it all"
+    := commands = union_reflection.cases.union_cases_joined read_command_word "|"
+    expect (commands = "read|lines") commands

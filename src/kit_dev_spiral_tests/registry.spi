@@ -39,6 +39,7 @@
         { package = "agile-task-views"; relative = "src/agile_task_views/views_cli.spi" }
         { package = "kit-do-edit"; relative = "src/kit_do_edit/edit_cli.spi" }
         { package = "kit-dev-spiral-tests"; relative = "src/kit_dev_spiral_tests/failures.spi" }
+        { package = "kit-dev-spiral-tests"; relative = "src/kit_dev_spiral_tests/batches.spi" }
         { package = "kit-handoff-render"; relative = "src/kit_handoff_render/render.spi" }
         { package = "authority-state-domain"; relative = "src/authority_state_domain/model.spi" }
         { package = "agile-note-model"; relative = "src/agile_note_model/model.spi" }
@@ -48,7 +49,9 @@
         { package = "kit-process-table"; relative = "src/kit_process_table/ps_cli.spi" }
         { package = "kit-cli"; relative = "src/kit_cli_model/model.spi" }
         { package = "kit-cli"; relative = "src/kit_cli_model/argument_file.spi" }
-        { package = "kit-jobs"; relative = "src/kit_jobs/model.spi" }
+        { package = "kit-job-entry"; relative = "src/kit_jobs/model.spi" }
+        { package = "kit-job-entry"; relative = "src/kit_os_process/process.spi" }
+        { package = "kit-process-alive"; relative = "src/kit_process_alive/alive.spi" }
         { package = "kit-repo-state"; relative = "src/kit_repo_state/state.spi" }
         { package = "kit-table-query"; relative = "src/kit_table_query/query.spi" }
         { package = "kit-lcov"; relative = "src/kit_lcov/lcov.spi" }
@@ -63,6 +66,11 @@
         { package = "kit-do-process"; relative = "src/kit_do_process/grammar.spi" }
         { package = "kit-do-tables"; relative = "src/kit_do_tables/grammar.spi" }
         { package = "kit-do-write"; relative = "src/kit_do_write/grammar.spi" }
+        { package = "kit-grep-query"; relative = "src/kit_grep_query/grep.spi" }
+        { package = "kit-lint-args"; relative = "src/kit_lint_args/args.spi" }
+        { package = "kit-experiments"; relative = "src/kit_experiments/experiments.spi" }
+        { package = "kit-do-file-steps"; relative = "src/kit_do_file_steps/steps.spi" }
+        { package = "agile-claim-lease"; relative = "src/agile_claim_lease/lease.spi" }
         { package = "kit-do-git"; relative = "src/kit_do_git/grammar.spi" }
         { package = "kit-do-jobs"; relative = "src/kit_do_jobs/grammar.spi" }
         { package = "kit-do-lab"; relative = "src/kit_do_lab/grammar.spi" }
@@ -78,7 +86,7 @@
         { package = "kit-coverage-prune"; relative = "src/kit_coverage_prune/evidence_cli.spi" }
         { package = "kit-release-contracts"; relative = "src/kit_release_contracts/hygiene_cli.spi" }
         { package = "kit-proxy-search"; relative = "src/kit_proxy_search/hash_cli.spi" }
-        { package = "kit-jobs"; relative = "src/kit_jobs/stop_cli.spi" }
+        { package = "kit-job-entry"; relative = "src/kit_jobs/stop_cli.spi" }
         { package = "agile-task-query"; relative = "src/agile_task_query/query.spi" }
         { package = "agile-task-next"; relative = "src/agile_task_next/ranking.spi" }
         { package = "agile-task-next"; relative = "src/agile_task_next/next_cli.spi" }
@@ -89,7 +97,14 @@
         { package = "agile-todo-record"; relative = "src/agile_todo_record/ledger.spi" }
         { package = "agile-todo-record"; relative = "src/agile_todo_record/record_cli.spi" }
         { package = "kit-standards"; relative = "src/kit_standards/rules.spi" }
-        { package = "kit-style-census"; relative = "src/kit_style_census/probes.spi" }
+        { package = "kit-style-probes"; relative = "src/kit_style_probes/probes.spi" }
+        { package = "kit-style-baseline"; relative = "src/kit_style_baseline/baseline.spi" }
+        { package = "kit-style-measure"; relative = "src/kit_style_measure/measure.spi" }
+        { package = "kit-grep-found"; relative = "src/kit_grep_found/found.spi" }
+        { package = "kit-gauge-xsd"; relative = "src/kit_gauge_xsd/gauge.spi" }
+        { package = "kit-lint-growth"; relative = "src/kit_lint_growth/growth.spi" }
+        { package = "kit-lint-cli"; relative = "src/kit_lint_cli/cli.spi" }
+        { package = "agile-claim-request"; relative = "src/agile_claim_request/request.spi" }
         { package = "kit-style-census"; relative = "src/kit_style_census/census_cli.spi" }
         { package = "kit-window-run"; relative = "src/kit_window_run/run_cli.spi" }
         { package = "kit-table-test"; relative = "src/kit_table_test/table_test_cli.spi" }

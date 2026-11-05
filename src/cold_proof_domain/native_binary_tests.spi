@@ -180,12 +180,12 @@
     0i32
 
 := emit_tests () : () =
-    := _ = !!!!Export("kit_test_family_renewal", ((\ root => family_renewal root) : string -> i32))
-    := _ = !!!!Export("kit_test_differential_renewal", ((\ root => differential_renewal root) : string -> i32))
-    := _ = !!!!Export("kit_test_cold_selection", ((\ root => selection root) : string -> i32))
-    := _ = !!!!Export("kit_test_cold_binary_gate", ((\ root => binary_gate root) : string -> i32))
-    := _ = !!!!Export("kit_test_cold_census_bounds", ((\ root => census_bounds root) : string -> i32))
-    := _ = !!!!Export("kit_test_cold_renewal", ((\ root => renewal root) : string -> i32))
+    := _ = export "kit_test_family_renewal" ((\ root => family_renewal root) : string -> i32)
+    := _ = export "kit_test_differential_renewal" ((\ root => differential_renewal root) : string -> i32)
+    := _ = export "kit_test_cold_selection" ((\ root => selection root) : string -> i32)
+    := _ = export "kit_test_cold_binary_gate" ((\ root => binary_gate root) : string -> i32)
+    := _ = export "kit_test_cold_census_bounds" ((\ root => census_bounds root) : string -> i32)
+    := _ = export "kit_test_cold_renewal" ((\ root => renewal root) : string -> i32)
     !!!!Global("""
         #[cfg(test)] mod native_binary_tests {
         struct Fixture(std::path::PathBuf);

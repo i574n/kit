@@ -56,11 +56,24 @@
     := kept = changed |> listm'.filter (\ (c : claim) => listm'.contains c.item listed_ids)
     ? change_of change = ChangeNone ?> "" |: claims_saved root existed original (claims_text kept)
 
+:== claim_application =
+    {
+        root : string
+        existed : bool
+        original : string
+        change : string
+        item : string
+        owner : string
+        expires_ms : u64
+        paths : string
+        known : string
+    }
+
+:~ applied_claims (applications : array_base claim_application) : string =
+    := a = am'.index_base 0i32 applications
+    claims_applied a.root a.existed a.original a.change a.item a.owner a.expires_ms a.paths a.known
+
 := main () : i32 =
     export "kit_claims_loaded" ((\ root => claims_loaded root) : string -> bool * string)
-    export "kit_claims_applied" (
-        (\ (root, existed, original, change, item, owner, expires, paths, known) =>
-            claims_applied root existed original change item owner expires paths known)
-        : string * bool * string * string * string * string * u64 * string * string -> string
-    )
+    export "kit_claims_applied" applied_claims
     0i32

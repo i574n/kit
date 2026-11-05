@@ -17,3 +17,4 @@ path = "do_write.rs"
 kit-do-file-steps = { path = "../kit_do_file_steps" }
 kit-do-read = { path = "../kit_do_read" }
 regex = "1.13.1"
+kit-do-verbs = { path = "../kit_do_verbs" }

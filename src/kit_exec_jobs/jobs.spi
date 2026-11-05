@@ -1,0 +1,50 @@
+///- --package .
+:# jobs static =
+    :< sm'_operators
+    :< kit_exec_metrics.metrics
+
+:< sm'_operators
+:< kit_exec_metrics.metrics
+
+:~ lane_of (~label : string) : string =
+    ?= sm'.split_list "-" label ?|
+    | lane :: _ :: _ => lane
+    | _ => label
+
+:~ job_sample (m : machine) (~label : string) (elapsed : u64) (settled : bool) : option exec_sample =
+    ? settled && elapsed > 0u64 ?> Some (TimedSample (m, JobDuration (lane_of label, elapsed))) |: None
+
+:~ job_samples (m : machine) (since : u64) : list exec_sample =
+    := sampled = \ (acc : list exec_sample) (id : string) =>
+        := record = kit_jobs.jobs.job_record_of id
+        := label = sm'.trim (kit_jobs.host.text_or_empty (kit_jobs.jobs.job_file id "label"))
+        := settled = record.exit_text <> "" && record.started_ms >= since
+        ?= job_sample m label (kit_jobs.jobs.elapsed_of id) settled ?|
+        | Some sample => sample :: acc
+        | None => acc
+    := root = kit_jobs.host.jobs_root ()
+    ? file_system.directory_exists root |> not ?> []
+    |:
+        file_system.read_dir_names root
+        |> resultm.unwrap'
+        |> am'.vec_fold' (\ names name => sm'.from_std_string name :: names) []
+        |> listm'.filter (sm'.starts_with "job-")
+        |> listm.fold sampled []
+
+:~ jobs_prom ((machine_word, since) : string * u64) : string =
+    exported (job_samples (? machine_word = "node" ?> Node |: Box) since)
+
+///> rust
+:# a_settled_job_becomes_one_duration_sample_for_its_lane =
+    ?= job_sample Box "kit-owner-alive-tests" 189047u64 !+ ?|
+    | Some s =>
+        := line = "kit_job_duration_ms{machine=\"box\",lane=\"kit\"} 189047"
+        testing.expect (exported [ s ] = line) (exported [ s ])
+    | None => testing.expect !- "a settled job has a duration"
+    testing.expect (job_sample Box "x" 5u64 !- = None) "a running job has none"
+    testing.expect (job_sample Box "x" 0u64 !+ = None) "a job without a duration has none"
+    testing.expect (lane_of "x-parity-probe" = "x" && lane_of "solo" = "solo") "the lane is the label prefix"
+///> _
+:= main () : i32 =
+    export "kit_exec_jobs_prom" jobs_prom
+    0i32

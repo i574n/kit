@@ -16,6 +16,10 @@
     ^^ "Story, P4, D2, 0u32, Planned, \"\", \"kit\", \"current\", \"current\")\ninl main () : i32 = 0i32\n"
 
 := next_any (root : fixture_root) (~lane : string) : cli_run =
+    := listed = Arg ("--any", Arg ("--as", Arg (lane, NoArgs)))
+    agile_call root (Arg ("next", Arg (fixture_text_of root, Arg ("--claim", listed))))
+
+:= next_listed (root : fixture_root) (~lane : string) : cli_run =
     agile_call root (Arg ("next", Arg (fixture_text_of root, Arg ("--any", Arg ("--as", Arg (lane, NoArgs))))))
 
 ///> rust
@@ -23,6 +27,9 @@
     := root = fixture_root_create "agile claim queue"
     fixture_write root "state/agile.spi" (backlog ())
     fixture_write root "state/package.spiproj" "modules:\n    agile\n"
+    := listed = succeeded (next_listed root "lane-a")
+    shows listed "kit agile next ok listed="
+    shows listed " lane=lane-a claimed=none\nitem MAIN-C P0 D1 Planned main other team"
     := first = succeeded (next_any root "lane-a")
     shows first "kit agile next ok claimed=MAIN-C owner=lane-a expires="
     shows first " ttl_min=90 wip=1 rank=1"

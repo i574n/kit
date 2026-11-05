@@ -14,6 +14,6 @@
                 ^^ "generated_rust_loc=27530 cargo_crates=81 spiral_packages=239 package_only=158 max_crate_loc=996 "
                 ^^ "max_rust_file_loc=957"
             )
-    !!!!Export("kit_handoff_ratings_projection", ((\ value => handoff_ratings_projection value) : string -> string))
-    !!!!Export("kit_handoff_census_projection", ((\ value => handoff_census_projection value) : string -> string))
+    export "kit_handoff_ratings_projection" ((\ value => handoff_ratings_projection value) : string -> string)
+    export "kit_handoff_census_projection" ((\ value => handoff_census_projection value) : string -> string)
     ? ratings_ok ?> ? census_ok ?> 0i32 |: 2i32 |: 1i32

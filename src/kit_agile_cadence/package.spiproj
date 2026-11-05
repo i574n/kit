@@ -1,0 +1,14 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    agile_quality_lint
+    agile_quality_state
+    kit_cadence_done
+    kit_cadence_activity
+link:
+    agile_quality_state
+    kit_cadence_done
+    kit_cadence_activity
+modules:
+    cadence

@@ -20,7 +20,7 @@ $kitRoot = Split-Path $PSScriptRoot -Parent
 $kit = Join-Path $env:LOCALAPPDATA 'kit\bin\kit.exe'
 if ($Node -and -not $NodeStage) {
     Set-Location $kitRoot
-    & $kit job start "kit-$Name-node" 21600000 pwsh -NoProfile -File $PSCommandPath -Name $Name -Node $Node -NodeMirror $NodeMirror -SshHost $SshHost -NodeStage -CellsPort $CellsPort
+    & $kit job start "kit-$Name-node" 43200000 pwsh -NoProfile -File $PSCommandPath -Name $Name -Node $Node -NodeMirror $NodeMirror -SshHost $SshHost -NodeStage -CellsPort $CellsPort
     exit $LASTEXITCODE
 }
 if ($NodeStage) {
@@ -45,10 +45,16 @@ if ($NodeStage) {
         $lines
     }
     $dllPath = 'AppData\Local\spiral-bin\bin\single-flight\SpiralCompiler\Release\net11.0\SpiralCompiler.dll'
-    $boxParity = "dll=$((Get-FileHash (Join-Path $HOME $dllPath)).Hash) $(rustc --version)"
-    $nodeParity = (Invoke-NodePwsh "`"dll=`$((Get-FileHash (Join-Path `$HOME '$dllPath')).Hash) `$(rustc --version)`"") -join ''
+    $corePath = $dllPath.Replace('SpiralCompiler.dll', 'SpiralCompilerCore.dll')
+    $boxParity = "dll=$((Get-FileHash (Join-Path $HOME $dllPath)).Hash) core=$((Get-FileHash (Join-Path $HOME $corePath)).Hash) $(rustc --version)"
+    $nodeParity = (Invoke-NodePwsh "`"dll=`$((Get-FileHash (Join-Path `$HOME '$dllPath')).Hash) core=`$((Get-FileHash (Join-Path `$HOME '$corePath')).Hash) `$(rustc --version)`"") -join ''
     if ($boxParity -ne $nodeParity) { throw "toolchain parity: box [$boxParity] node [$nodeParity]; refusing a node train" }
     Say "parity ok: $boxParity"
+    $regenDir = 'C:\Users\alias\AppData\Local\spiral-bin\kit-regeneration'
+    $space = (Invoke-NodePwsh "`$f = [math]::Round((Get-PSDrive C).Free/1GB,1); `$s = @(Get-ChildItem '$regenDir' -Directory -ErrorAction SilentlyContinue | Where-Object { `$_.LastWriteTime -lt (Get-Date).AddHours(-6) }).Count; `"`$f `$s`"") -join ''
+    $freeGb, $staleDirs = $space.Trim() -split ' '
+    if ([double]$freeGb -lt 5) { throw "node C: has $freeGb GB free (< 5 GB; a regen needs ~1.5 GB plus caches); $staleDirs staged workspace(s) older than 6 h sit in $regenDir; free space first, refusing a node train" }
+    Say "node disk ok: $freeGb GB free, $staleDirs stale staged workspace(s) in kit-regeneration"
     $snapshotRoot = Join-Path $kitRoot ".cache\release-tree\$Name"
     $libCopy = Join-Path $kitRoot ".cache\release-tree\$Name-lib\lib\spiral"
     $liveLib = (Resolve-Path -LiteralPath (Join-Path $kitRoot '..\spiral\lib\spiral')).Path
@@ -104,7 +110,7 @@ if ($NodeStage) {
         Say "node notebook selection uses the box's last installed train $lastName"
     }
     $before = Invoke-NodePwsh "Get-ChildItem '$mirror\kit\src' -Recurse -File -Filter *.rs | Where-Object { `$_.FullName -notmatch '\\target\\' } | ForEach-Object { `"`$(`$_.FullName.Substring('$mirror\kit\'.Length)) `$((Get-FileHash `$_.FullName).Hash)`" }"
-    $start = & $remote $Node job start "kit-$Name" 18000000 pwsh -NoProfile -File "$mirror\kit\scripts\release-train.ps1" -Name $Name -KitRoot "$mirror\kit" -Lib "$mirror\spiral\lib\spiral" -NotebooksOnly 2>&1 | Out-String
+    $start = & $remote $Node job start "kit-$Name" 36000000 pwsh -NoProfile -File "$mirror\kit\scripts\release-train.ps1" -Name $Name -KitRoot "$mirror\kit" -Lib "$mirror\spiral\lib\spiral" -NotebooksOnly 2>&1 | Out-String
     $jobId = [regex]::Match($start, 'id=(\S+)').Groups[1].Value
     if (-not $jobId) { throw "node job did not start: $start" }
     Say "node half started: $jobId"

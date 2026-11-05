@@ -3,5 +3,8 @@ packages:
     spiral-
     rust_std_env
     workspace_primitives
+    kit_job_bin
+link:
+    kit_job_bin
 modules:
     dispatch

@@ -1,0 +1,13 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    agile_task_census
+    kit_agile_sprint_state
+    agile_note_listing
+link:
+    agile_task_census
+    kit_agile_sprint_state
+    agile_note_listing
+modules:
+    show

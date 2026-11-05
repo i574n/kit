@@ -105,7 +105,7 @@ fn definition_name_4(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
                 let mut v16: bool = &*v10 == ":~";
                 v16
             };
-            let mut v19: bool = if v17 {
+            let v19: bool = if v17 {
                 true
             } else {
                 let v18: bool = &*v10 == ":!";
@@ -249,7 +249,7 @@ fn global_macro_7(mut v0: i32, mut v1: Rc<str>) -> (i32, Rc<str>, US0, Rc<str>, 
     let mut v17: i32 = (v9.clone().len() as i32);
     let v18: bool = v16 < 0i32;
     let v27: Rc<str> = if v18 {
-        let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v19.clone()
     } else {
         let v20: i32 = v16.wrapping_add(1i32);
@@ -340,7 +340,7 @@ fn place_of_10(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
     if v17 {
         US0::US0_TypeMacro
     } else {
-        let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
+        let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
         let v20: bool = v9.ends_with(&*v19);
         let v23: bool = if v20 {
             true
@@ -371,7 +371,7 @@ fn line_macros_9(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut
         let v15: Option<usize> = method8(v14.clone());
         let mut v16: Rc<dyn Fn((usize)) -> i32> = closure1();
         let mut v17: Option<i32> = v15.map(|x| v16(x));
-        let mut v19: i32 = v17.unwrap_or(-1i32);
+        let v19: i32 = v17.unwrap_or(-1i32);
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
         let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$\""); } LIT.with(|lit| lit.clone()) };
         let v22: Option<usize> = v10.find(&*v21);
@@ -485,7 +485,7 @@ fn macros_from_2(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<str>
             let mut v16: i32 = method6(v14.clone(), v15);
             let mut v17: Rc<str> = string_slice(&v14.clone(), 0i32 as i64, v16 as i64);
             let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("global "); } LIT.with(|lit| lit.clone()) };
-            let mut v19: bool = v17.starts_with(&*v18);
+            let v19: bool = v17.starts_with(&*v18);
             let v22: bool = if v19 {
                 true
             } else {
@@ -751,7 +751,7 @@ fn added_from_19(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32, mut v2: Rc<UH1>
                 let mut v16: i32 = v8.wrapping_sub(1i32);
                 let mut v17: usize = ((1i32) as usize);
                 let v18: i32 = 1i32.wrapping_add(v16);
-                let mut v19: usize = ((v18) as usize);
+                let v19: usize = ((v18) as usize);
                 let v20: Rc<str> = Rc::<str>::from(&(v7)[v17..v19]);
                 Rc::new(UH1::UH1_Cons(v20.clone(), v2.clone()))
             } else {
@@ -817,41 +817,17 @@ fn closure10(mut v0: i32, mut v1: Rc<str>, mut v2: i32) -> Rc<dyn Fn(Rc<str>) ->
 fn method24(mut v0: i32, mut v1: Rc<str>, mut v2: i32) -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     closure10(v0, v1, v2)
 }
-fn class_word_25(mut v0: US2) -> Rc<str> {
-    match &v0 {
-        US2::US2_MacroArith => {
-            let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("arith"); } LIT.with(|lit| lit.clone()) };
-            v5
-        }
-        US2::US2_MacroBlock => {
-            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("block"); } LIT.with(|lit| lit.clone()) };
-            v2
-        }
-        US2::US2_MacroCast => {
-            let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cast"); } LIT.with(|lit| lit.clone()) };
-            v4
-        }
-        US2::US2_MacroFlow => {
-            let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("flow"); } LIT.with(|lit| lit.clone()) };
-            v3
-        }
-        US2::US2_MacroLong => {
-            let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("long"); } LIT.with(|lit| lit.clone()) };
-            v1
-        }
-    }
-}
-fn method27(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+fn method26(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let mut v2: Rc<str> = v0.borrow().l0.clone();
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
     ()
 }
-fn format_real_26(mut v0: i32) -> Rc<str> {
+fn format_real_25(mut v0: i32) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method27(v2.clone(), v3);
+    method26(v2.clone(), v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
@@ -865,20 +841,41 @@ fn violation_row_23(mut v0: i32, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, 
     let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v13: Rc<str> = v11(v12.clone());
     let mut v14: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v13));
-    let v15: Rc<str> = class_word_25(v4);
-    let mut v16: i32 = (v15.clone().len() as i32);
-    let mut v17: i32 = 7i32.wrapping_sub(v16);
-    let v18: i32 = 0i32;
-    let mut v19: Rc<dyn Fn(Rc<str>) -> Rc<str>> = method24(v17, v7, v18);
-    let v20: Rc<str> = v19(v12);
-    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v20));
-    let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
-    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v22));
-    let mut v24: Rc<str> = format_real_26(v2);
-    let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-    let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
-    let v30: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v25, v26)), v14)), v21)), v5));
-    v30
+    let v20: Rc<str> = match &v4 {
+        US2::US2_MacroArith => {
+            let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("arith"); } LIT.with(|lit| lit.clone()) };
+            v19
+        }
+        US2::US2_MacroBlock => {
+            let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("block"); } LIT.with(|lit| lit.clone()) };
+            v16
+        }
+        US2::US2_MacroCast => {
+            let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cast"); } LIT.with(|lit| lit.clone()) };
+            v18
+        }
+        US2::US2_MacroFlow => {
+            let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("flow"); } LIT.with(|lit| lit.clone()) };
+            v17
+        }
+        US2::US2_MacroLong => {
+            let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("long"); } LIT.with(|lit| lit.clone()) };
+            v15
+        }
+    };
+    let v21: i32 = (v20.clone().len() as i32);
+    let v22: i32 = 7i32.wrapping_sub(v21);
+    let v23: i32 = 0i32;
+    let mut v24: Rc<dyn Fn(Rc<str>) -> Rc<str>> = method24(v22, v7, v23);
+    let v25: Rc<str> = v24(v12);
+    let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v25));
+    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
+    let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v27));
+    let v29: Rc<str> = format_real_25(v2);
+    let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
+    let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
+    let v35: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v30, v31)), v14)), v26)), v5));
+    v35
 }
 fn row_of_22(mut v0: i32, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut v4: i32, mut v5: Rc<str>) -> Rc<str> {
     let mut v6: bool = v4 == 0i32;
@@ -903,7 +900,7 @@ fn row_of_22(mut v0: i32, mut v1: Rc<str>, mut v2: i32, mut v3: Rc<str>, mut v4:
                 } else {
                     let v18: bool = v4 == 4i32;
                     if v18 {
-                        let mut v19: US2 = US2::US2_MacroArith;
+                        let v19: US2 = US2::US2_MacroArith;
                         US3::US3_Some(v19)
                     } else {
                         US3::US3_None
@@ -928,7 +925,7 @@ fn closure9() -> Rc<dyn Fn(i32, Rc<str>, i32, Rc<str>, i32, Rc<str>) -> Rc<str>>
         row_of_22(v0, v1.clone(), v2, v3.clone(), v4, v5.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn tally_head_29(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32) -> Rc<str> {
+fn tally_head_28(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32) -> Rc<str> {
     let v4: bool = v3 == 0i32;
     let v7: Rc<str> = if v4 {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
@@ -939,28 +936,28 @@ fn tally_head_29(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32) -> Rc<str> 
     };
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  files "); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-    let v10: Rc<str> = format_real_26(v0);
+    let v10: Rc<str> = format_real_25(v0);
     let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
     let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  macros "); } LIT.with(|lit| lit.clone()) };
     let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v12));
-    let mut v14: Rc<str> = format_real_26(v1);
+    let mut v14: Rc<str> = format_real_25(v1);
     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
     let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  violations "); } LIT.with(|lit| lit.clone()) };
     let mut v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
-    let v18: Rc<str> = format_real_26(v2);
-    let mut v19: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v18));
+    let v18: Rc<str> = format_real_25(v2);
+    let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v18));
     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  new "); } LIT.with(|lit| lit.clone()) };
     let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v20));
-    let v22: Rc<str> = format_real_26(v3);
+    let v22: Rc<str> = format_real_25(v3);
     let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
     v23
 }
-fn tally_text_28(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32) -> Rc<str> {
-    tally_head_29(v0, v1, v2, v3)
+fn tally_text_27(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32) -> Rc<str> {
+    tally_head_28(v0, v1, v2, v3)
 }
 fn closure11() -> Rc<dyn Fn(i32, i32, i32, i32) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(i32, i32, i32, i32) -> Rc<str>> = Rc::new(move |mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32| -> Rc<str> {
-        tally_text_28(v0, v1, v2, v3)
+        tally_text_27(v0, v1, v2, v3)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_lint_scan(v0: &str) -> (Rc<RefCell<Vec<i32>>>, Rc<RefCell<Vec<Rc<str>>>>, Rc<RefCell<Vec<Rc<str>>>>, Rc<RefCell<Vec<bool>>>, Rc<RefCell<Vec<i32>>>, Rc<RefCell<Vec<i32>>>) {

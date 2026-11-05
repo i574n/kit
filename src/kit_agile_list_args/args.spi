@@ -101,9 +101,14 @@
         !+, "", request.status, request.load, request.assignee, request.json, request.query, request.sort
     | ListRejected reason => !-, reason, "", "", "", !-, "", ""
 
+:~ list_root () : string =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: root :: _ => root
+    | _ => ""
+
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_list_request",
+    export "kit_agile_list_root" list_root
+    export
+        "kit_agile_list_request"
         ((\ () => list_request ()) : () -> bool * string * string * string * string * bool * string * string)
-    )
     0i32

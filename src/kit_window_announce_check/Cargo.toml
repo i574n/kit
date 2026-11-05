@@ -12,3 +12,5 @@ publish.workspace = true
 [lib]
 name = "kit_window_announce_check"
 path = "check.rs"
+
+[dependencies]

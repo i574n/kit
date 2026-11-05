@@ -121,11 +121,10 @@
     plain_query file { base ?| wheres = wheres; cols = cols; group = group; limit = limit; quiet = quiet }
 
 := main () : i32 =
-    !!!!Export(
-        "kit_table_plain",
+    export
+        "kit_table_plain"
         (
             \ (file, wheres, cols, group, limit, quiet) => plain_entry file wheres cols group limit quiet
             : string * string * string * string * u64 * bool -> i32
         )
-    )
     0i32

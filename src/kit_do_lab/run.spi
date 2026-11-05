@@ -153,5 +153,5 @@
         2i32
 
 := main () : i32 =
-    !!!!Export("kit_do_lab_run", ((\ (root, encoded) => lab_program_run root encoded) : string * string -> i32))
+    export "kit_do_lab_run" ((\ (root, encoded) => lab_program_run root encoded) : string * string -> i32)
     0i32

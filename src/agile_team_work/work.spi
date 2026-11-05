@@ -1,0 +1,50 @@
+///- --package .
+:# work static =
+    :< sm'_operators
+    :< agile_task_next.ranking
+
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< workspace_primitives.bytes
+:< workspace_primitives.files
+:< agile_task_next.ranking
+
+:~ ^ ranked_words (list : ranked_list) : list string =
+    ?= list ?|
+    | NoRanked => []
+    | RankedThen (head, rest) => head.id :: ranked_words rest
+
+:~ team_words (~tags : string) : list string =
+    sm'.split_list "," tags
+    |> listm.map sm'.trim
+    |> listm'.filter (\ (w : string) => sm'.starts_with "team:" w)
+    |> listm.map (\ (w : string) => sm'.replace "team:" "" w)
+
+:~ tasks_of (~root : string) : string * task_list =
+    ?= probe (unchecked (backlog_state_path root)) ?|
+    | FileMissing _ => "", NoTasks
+    | FileReadable file =>
+        := records = records_text (loaded_string (read_text file))
+        records, agile_task_next.task_next.tasks_from records 0i32 (byte_len records) NoTasks
+
+:~ light_work (~records : string) (task : backlog_task) : bool =
+    := selected = \ (~load : string) (~assignee : string) =>
+        agile_claim_api.api.planning_selected records task.id load assignee
+    task.kind <> "Epic" && selected "all" "user" = !- && (selected "light" "all" || selected "none" "all")
+
+:== gate_row = { id : string; parked : bool }
+
+:~ gate_rows ((root, team) : string * string) : array_base gate_row =
+    := records, tasks = tasks_of root
+    := own = \ (task : backlog_task) => listm'.contains team (team_words task.tags) && light_work records task
+    := ready = ranked_words (ranking_where MainAgent own tasks) |> listm'.take_ 3i32
+    ready |> listm.map (\ (id : string) => { id = id; parked = !- }) |> listm'.box |> listm'.to_array'
+
+///> rust
+:# gate_work_reads_team_tags =
+    testing.expect (team_words "kit, team:kit,agile,team:x" = [ "kit"; "x" ]) "team tags"
+///> _
+:= main () : i32 =
+    export "kit_agile_gate_rows" gate_rows
+    0i32

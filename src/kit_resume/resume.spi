@@ -114,5 +114,5 @@
         0i32
 
 := main () : i32 =
-    !!!!Export("kit_resume_run", ((\ () => resume_run ()) : () -> i32))
+    export "kit_resume_run" ((\ () => resume_run ()) : () -> i32)
     0i32

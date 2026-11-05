@@ -1,0 +1,29 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= cadence_call (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("agile", Arg ("cadence", Arg (fixture_text_of root, args))))
+
+:= cadence_backlog () : string =
+    "inl task_kit_a () = Task (\"KIT-A\", \"kit item\", Story, P1, D2, 0u32, Active, \"\", \"team:kit\", \"current\", "
+    ^^ "\"current\")\ninl task_x_b () = Task (\"X-B\", \"x item\", Story, P1, D2, 0u32, Active, \"\", \"team:x\", "
+    ^^ "\"current\", \"current\")\ninl note_of_kit_a_1 () = Note (\"KIT-A\", 1u32, \"2026-11-02T10:00Z\", \"kit\", "
+    ^^ "\"first\")\ninl note_of_kit_a_2 () = Note (\"KIT-A\", 2u32, \"2026-11-02T11:00Z\", \"kit\", \"second\")\n"
+    ^^ "inl note_of_x_b_1 () = Note (\"X-B\", 1u32, \"2026-11-02T12:00Z\", \"x\", \"x note\")\n"
+    ^^ "inl main () : i32 = 0i32\n"
+
+///> rust
+:# cadence_prints_activity_per_team_day_and_filters_by_team =
+    := root = fixture_root_create "agile cadence"
+    fixture_write root "state/agile.spi" (cadence_backlog ())
+    fixture_write root "state/package.spiproj" "modules:\n    agile\n"
+    := all = succeeded (cadence_call root (Arg ("--since", Arg ("2026-11-01", NoArgs))))
+    shows all "kit agile cadence activity team=kit days_ago="
+    shows all " notes=2 touched=1"
+    shows all "kit agile cadence activity team=x days_ago="
+    shows all "kit agile cadence ok done_rows=0 activity_rows=2"
+    := team_kit = Arg ("--team", Arg ("kit", NoArgs))
+    := kit_only = succeeded (cadence_call root (Arg ("--since", Arg ("2026-11-01", team_kit))))
+    shows kit_only "activity_rows=1"
+    expect (sm'.contains "team=x" kit_only |> not) "--team kit prints no x rows"
+    fixture_root_remove root

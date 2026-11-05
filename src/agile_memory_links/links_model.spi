@@ -5,11 +5,11 @@
 :< sm'_operators
 
 :| memory_kind =
-    | UserMemory
-    | FeedbackMemory
-    | ProjectMemory
-    | ReferenceMemory
-    | UntypedMemory
+    | MemoryUser
+    | MemoryFeedback
+    | MemoryProject
+    | MemoryReference
+    | MemoryUntyped
 
 :| citation =
     | CitesOpen
@@ -23,12 +23,14 @@
     | UnwrittenLink : string * string
     | UnknownMemory : string * string
 
+:= memory_kind_word (kind : memory_kind) : string =
+    union_reflection.cases.union_case_kebab "Memory" kind
+
 := memory_kind_of (~word : string) : memory_kind =
-    ? word = "user" ?> UserMemory
-    |? word = "feedback" ?> FeedbackMemory
-    |? word = "project" ?> ProjectMemory
-    |? word = "reference" ?> ReferenceMemory
-    |: UntypedMemory
+    union_reflection.cases.union_case_where
+        \ (kind : memory_kind) => word = memory_kind_word kind
+        \ kind => kind
+        MemoryUntyped
 
 := citation_of (~status : string) : citation =
     ? status = "" ?> CitesMissing
@@ -36,8 +38,8 @@
     |: CitesOpen
 
 := rule_bearing = \|
-    | FeedbackMemory => !+
-    | ProjectMemory => !+
+    | MemoryFeedback => !+
+    | MemoryProject => !+
     | _ => !-
 
 := id_finding (kind : memory_kind) (~slug : string) (~id : string) (~status : string) : link_finding =
@@ -80,21 +82,21 @@
 
 ///> rust
 :# citations_report_missing_ids_and_done_items_only_in_rule_memories =
-    testing.expect (finding_text (id_finding FeedbackMemory "no-sleep" "KIT-JOBS" "Active") = "") "open item"
+    testing.expect (finding_text (id_finding MemoryFeedback "no-sleep" "KIT-JOBS" "Active") = "") "open item"
     testing.expect
         (
-            finding_text (id_finding ProjectMemory "lanes" "KIT-GONE" "")
+            finding_text (id_finding MemoryProject "lanes" "KIT-GONE" "")
             = "dangling  lanes  KIT-GONE  no backlog item with this id\n"
         )
         "missing"
     testing.expect
         (
-            finding_text (id_finding FeedbackMemory "rule" "OLD-ONE" "Done")
+            finding_text (id_finding MemoryFeedback "rule" "OLD-ONE" "Done")
             = "done  rule  OLD-ONE  the item is Done; check that the rule still holds\n"
         )
         "done in a rule"
-    testing.expect (finding_text (id_finding ReferenceMemory "pointer" "OLD-ONE" "Done") = "") "references may cite history"
-    testing.expect (gating (id_finding UserMemory "me" "NEW-ONE" "")) "a dangling id gates"
+    testing.expect (finding_text (id_finding MemoryReference "pointer" "OLD-ONE" "Done") = "") "references may cite history"
+    testing.expect (gating (id_finding MemoryUser "me" "NEW-ONE" "")) "a dangling id gates"
 
 ///> rust
 :# wiki_links_resolve_against_memory_names =
@@ -106,7 +108,7 @@
         )
         "unwritten"
     testing.expect (finding_word (link_finding_of "kit-first" "rule" "x") = "unwritten-link") "word"
-    testing.expect (memory_kind_of "feedback" = FeedbackMemory) "kind"
+    testing.expect (memory_kind_of "feedback" = MemoryFeedback) "kind"
     testing.expect
         (finding_text (memory_cite_finding "no-sleep-polling" "KIT-X" "no-sleep-polling") = "")
         "a cited memory that exists"

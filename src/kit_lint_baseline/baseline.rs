@@ -348,55 +348,49 @@ fn known_of_14(mut v0: Rc<str>) -> US0 {
                             let mut v24: Option<i32> = v22.map(|x| v23(x));
                             let v26: i32 = v24.unwrap_or(-1i32);
                             let v27: bool = &*v16 == "long";
-                            let v29: bool = if v27 {
+                            let v35: bool = if v27 {
                                 true
                             } else {
                                 let v28: bool = &*v16 == "block";
-                                v28
-                            };
-                            let v31: bool = if v29 {
-                                true
-                            } else {
-                                let v30: bool = &*v16 == "flow";
-                                v30
-                            };
-                            let v33: bool = if v31 {
-                                true
-                            } else {
-                                let v32: bool = &*v16 == "cast";
-                                v32
-                            };
-                            let v35: bool = if v33 {
-                                true
-                            } else {
-                                let v34: bool = &*v16 == "arith";
-                                v34
+                                if v28 {
+                                    true
+                                } else {
+                                    let v29: bool = &*v16 == "flow";
+                                    if v29 {
+                                        true
+                                    } else {
+                                        let v30: bool = &*v16 == "cast";
+                                        if v30 {
+                                            true
+                                        } else {
+                                            let v31: bool = &*v16 == "arith";
+                                            v31
+                                        }
+                                    }
+                                }
                             };
                             let v46: bool = if v35 {
                                 let v36: bool = &*v18 == "long";
-                                let v38: bool = if v36 {
+                                let v44: bool = if v36 {
                                     true
                                 } else {
                                     let v37: bool = &*v18 == "block";
-                                    v37
-                                };
-                                let v40: bool = if v38 {
-                                    true
-                                } else {
-                                    let v39: bool = &*v18 == "flow";
-                                    v39
-                                };
-                                let v42: bool = if v40 {
-                                    true
-                                } else {
-                                    let v41: bool = &*v18 == "cast";
-                                    v41
-                                };
-                                let v44: bool = if v42 {
-                                    true
-                                } else {
-                                    let v43: bool = &*v18 == "arith";
-                                    v43
+                                    if v37 {
+                                        true
+                                    } else {
+                                        let v38: bool = &*v18 == "flow";
+                                        if v38 {
+                                            true
+                                        } else {
+                                            let v39: bool = &*v18 == "cast";
+                                            if v39 {
+                                                true
+                                            } else {
+                                                let v40: bool = &*v18 == "arith";
+                                                v40
+                                            }
+                                        }
+                                    }
                                 };
                                 let v45: bool = v44 == false;
                                 v45

@@ -14,28 +14,22 @@
     := _ = retention_complete_binding 3i32 3i32
     := _ = external_payload_public_mask_binding 1i32 15i32
     external_payload_terminal.emit_runtime ()
-    !!!!Export(
-        "kit_retention_window_binding",
+    export
+        "kit_retention_window_binding"
         ((\ (first, second) => retention_window_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_retention_current_binding",
+    export
+        "kit_retention_current_binding"
         ((\ (first, second) => retention_current_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_retention_dry_run_binding",
+    export
+        "kit_retention_dry_run_binding"
         ((\ (first, second) => retention_dry_run_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_retention_apply_binding",
+    export
+        "kit_retention_apply_binding"
         ((\ (first, second) => retention_apply_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_retention_complete_binding",
+    export
+        "kit_retention_complete_binding"
         ((\ (first, second) => retention_complete_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_external_payload_public_mask_binding",
+    export
+        "kit_external_payload_public_mask_binding"
         ((\ (first, second) => external_payload_public_mask_binding first second) : i32 * i32 -> i32)
-    )
     0i32

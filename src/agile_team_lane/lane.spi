@@ -1,0 +1,74 @@
+///- --package .
+:# lane static =
+    :< sm'_operators
+    :< agile_task_next.ranking
+
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< workspace_primitives.bytes
+:< workspace_primitives.files
+:< agile_task_next.ranking
+
+:~ team_words (~tags : string) : list string =
+    sm'.split_list "," tags
+    |> listm.map sm'.trim
+    |> listm'.filter (\ (w : string) => sm'.starts_with "team:" w)
+    |> listm.map (\ (w : string) => sm'.replace "team:" "" w)
+
+:~ ^ task_teams (tasks : task_list) : list string =
+    ?= tasks ?|
+    | NoTasks => []
+    | TaskThen (task, rest) => listm.append (team_words task.tags) (task_teams rest)
+
+:~ lane_team (~lane : string) (teams : list string) : string =
+    := longer = \ (best : string) (team : string) =>
+        := fits = lane = team || sm'.starts_with (team ++# "-") lane
+        ? fits && (sm'.length team : i32) > (sm'.length best : i32) ?> team |: best
+    teams |> listm.fold longer ""
+
+:~ ^ team_ids (tasks : task_list) (~team : string) : list string =
+    ?= tasks ?|
+    | NoTasks => []
+    | TaskThen (task, rest) =>
+        := later = team_ids rest team
+        ? team <> "" && listm'.contains team (team_words task.tags) ?> task.id :: later |: later
+
+:~ tasks_of (~root : string) : string * task_list =
+    ?= probe (unchecked (backlog_state_path root)) ?|
+    | FileMissing _ => "", NoTasks
+    | FileReadable file =>
+        := records = records_text (loaded_string (read_text file))
+        records, agile_task_next.task_next.tasks_from records 0i32 (byte_len records) NoTasks
+
+:~ lane_items ((root, lane) : string * string) : string =
+    := _, tasks = tasks_of root
+    sm'.concat_list " " (team_ids tasks (lane_team lane (task_teams tasks)))
+
+:~ ^ team_paused (tasks : task_list) (~team : string) : list string =
+    ?= tasks ?|
+    | NoTasks => []
+    | TaskThen (task, rest) =>
+        := later = team_paused rest team
+        := mine = listm'.contains team (team_words task.tags)
+        ? mine && task.status = "Paused" && task.priority <= 1i32 ?> task.id :: later |: later
+
+:== paused_row = { id : string }
+
+:~ paused_of ((root, team) : string * string) : array_base paused_row =
+    := _, tasks = tasks_of root
+    := ids = team_paused tasks team |> listm'.take_ 5i32
+    ids |> listm.map (\ (id : string) => { id = id }) |> listm'.box |> listm'.to_array'
+
+///> rust
+:# a_lane_belongs_to_the_longest_team_its_name_starts_with =
+    := teams = [ "x"; "kit"; "x-dumps" ]
+    testing.expect (lane_team "kit-fc1568a6" teams = "kit" && lane_team "x-dumps-ec368ac8" teams = "x-dumps") "prefix"
+    testing.expect (lane_team "x" teams = "x" && lane_team "tibia-1" teams = "") "exact name, or no team"
+    testing.expect (team_words "kit, team:kit,agile,team:x" = [ "kit"; "x" ]) "team tags"
+
+///> _
+:= main () : i32 =
+    export "kit_claim_lane_items" lane_items
+    export "kit_agile_team_paused" paused_of
+    0i32

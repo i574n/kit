@@ -58,5 +58,5 @@
     |: concat5 "rejected" (record_separator ()) "control characters 30 and 31 are reserved" "" ""
 
 := main () : i32 =
-    !!!!Export("kit_do_program_compiled", ((\ text => compiled text) : string -> string))
+    export "kit_do_program_compiled" ((\ text => compiled text) : string -> string)
     0i32

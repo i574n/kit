@@ -245,8 +245,8 @@
 :~ job_compile_gate (~id : string) : i32 = windowed_gate id Compile
 
 := main () : i32 =
-    !!!!Export("kit_job_window_gate", ((\ id => job_window_gate id) : string -> i32))
-    !!!!Export("kit_job_compile_gate", ((\ id => job_compile_gate id) : string -> i32))
-    !!!!Export("kit_job_gate_held_step", ((\ id => held_window_step id) : string -> i32))
-    !!!!Export("kit_job_gate_window_dropped", ((\ id => held_window_dropped id) : string -> ()))
+    export "kit_job_window_gate" ((\ id => job_window_gate id) : string -> i32)
+    export "kit_job_compile_gate" ((\ id => job_compile_gate id) : string -> i32)
+    export "kit_job_gate_held_step" ((\ id => held_window_step id) : string -> i32)
+    export "kit_job_gate_window_dropped" ((\ id => held_window_dropped id) : string -> ())
     0i32

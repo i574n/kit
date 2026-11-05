@@ -1,0 +1,100 @@
+///- --package .
+:# args static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| edit_switch =
+    | SwitchAppend
+
+:| edit_valued =
+    | ValuedAs
+    | ValuedExpectAt
+    | ValuedExpectPrefix
+
+:== note_args_row =
+    {
+        root : string
+        id : string
+        seq : string
+        text : string
+        editor : string
+        append : bool
+        expect_at : string
+        expect_prefix : string
+        valid : bool
+    }
+
+:= switch_word (flag : edit_switch) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Switch" flag
+
+:= valued_word (flag : edit_valued) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ valued_applied (flag : edit_valued) (~value : string) (row : note_args_row) : note_args_row =
+    := trimmed = sm'.trim value
+    := invalid = { row ?| valid = !- }
+    ?= flag ?|
+    | ValuedAs => ? trimmed = "" ?> invalid |: { row ?| editor = trimmed }
+    | ValuedExpectAt => ? trimmed = "" ?> invalid |: { row ?| expect_at = trimmed; expect_prefix = "" }
+    | ValuedExpectPrefix => ? value = "" ?> invalid |: { row ?| expect_prefix = value; expect_at = "" }
+
+:~ ^ flags_read (words : list string) (row : note_args_row) : note_args_row =
+    ?= words ?|
+    | [] => row
+    | word :: rest =>
+        := switched =
+            union_reflection.cases.union_case_where (\ (flag : edit_switch) => word = switch_word flag) Some None
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : edit_valued) => word = valued_word flag) Some None
+        ?= switched, valued, rest ?|
+        | _ ?& word = "" => row
+        | Some _, _, _ => flags_read rest { row ?| append = !+ }
+        | _, Some flag, (value :: after) =>
+            := applied = valued_applied flag value row
+            ? applied.valid ?> flags_read after applied |: applied
+        | _ => { row ?| valid = !- }
+
+:~ args_of (words : list string) : note_args_row =
+    := start =
+        {
+            root = ""
+            id = ""
+            seq = ""
+            text = ""
+            editor = ""
+            append = !-
+            expect_at = ""
+            expect_prefix = ""
+            valid = !+
+        }
+    ?= words ?|
+    | root :: id :: seq :: text :: flags => flags_read flags { start ?| root = root; id = id; seq = seq; text = text }
+    | root :: id :: seq :: [] => { start ?| root = root; id = id; seq = seq }
+    | root :: id :: [] => { start ?| root = root; id = id }
+    | _ => start
+
+:~ ^ dropped (count : i32) (words : list string) : list string =
+    ?= words ?|
+    | _ :: rest ?& count > 0i32 => dropped (count - 1i32) rest
+    | _ => words
+
+:~ note_args_read (skipped : i32) : array_base note_args_row =
+    (;[ args_of (dropped skipped (env.command_line_arguments ())) ] : array note_args_row) |> am'.base
+
+///> rust
+:# note_edit_flags_read_by_reflection =
+    := read = args_of [ "r"; "T-1"; "2"; "x"; "--as"; " kit "; "--append"; "--expect-prefix"; "Old" ]
+    testing.expect (read.valid && read.root = "r" && read.id = "T-1" && read.seq = "2") read.id
+    testing.expect (read.editor = "kit" && read.append && read.expect_prefix = "Old") read.editor
+    := last = args_of [ "r"; "T-1"; "2"; "x"; "--expect-prefix"; "Old"; "--expect-at"; " 2026 " ]
+    testing.expect (last.expect_at = "2026" && last.expect_prefix = "") "the last guard wins"
+    testing.expect ((args_of [ "r"; "T"; "1"; "x"; "--as"; " " ]).valid |> not) "a blank author is invalid"
+    testing.expect ((args_of [ "r"; "T"; "1"; "x"; "--bogus" ]).valid |> not) "an unknown flag is invalid"
+    testing.expect ((args_of [ "r"; "T" ]).seq = "" && (args_of [ "r" ]).root = "") "short argument lists"
+    := words = union_reflection.cases.union_cases_joined valued_word "|"
+    testing.expect (words = "--as|--expect-at|--expect-prefix") words
+///> _
+:= main () : i32 =
+    export "agile_note_edit_args_read" note_args_read
+    0i32

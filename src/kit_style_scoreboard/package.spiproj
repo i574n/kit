@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    kit_style_probes
+    kit_style_measure
+link:
+    kit_style_probes
+    kit_style_measure
+modules:
+    scoreboard

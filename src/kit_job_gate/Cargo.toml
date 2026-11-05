@@ -16,3 +16,4 @@ path = "gate.rs"
 [dependencies]
 kit-job-slot = { path = "../kit_job_slot" }
 kit-window-admission = { path = "../kit_window_admission" }
+kit-process-alive = { path = "../kit_process_alive" }

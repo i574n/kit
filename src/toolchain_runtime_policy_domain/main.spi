@@ -5,13 +5,11 @@
     := _ = toolchain_observed_outcome_binding 0i32 1i32
     := _ = toolchain_observed_outcome_binding 0i32 0i32
     := _ = toolchain_receipt_catalog "v1"
-    !!!!Export(
-        "kit_toolchain_execution_gate",
+    export
+        "kit_toolchain_execution_gate"
         ((\ (first, second) => toolchain_execution_gate_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_toolchain_observed_outcome",
+    export
+        "kit_toolchain_observed_outcome"
         ((\ (first, second) => toolchain_observed_outcome_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export("kit_toolchain_receipt_catalog", ((\ value => toolchain_receipt_catalog value) : string -> string))
+    export "kit_toolchain_receipt_catalog" ((\ value => toolchain_receipt_catalog value) : string -> string)
     0i32

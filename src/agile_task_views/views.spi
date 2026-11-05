@@ -221,5 +221,5 @@
     | CommandUnknown => stderr_failure "agile views: expected views, view or view-add"
 
 := main () : i32 =
-    !!!!Export("kit_agile_views_run", ((\ () => views_entry ()) : () -> i32))
+    export "kit_agile_views_run" ((\ () => views_entry ()) : () -> i32)
     0i32

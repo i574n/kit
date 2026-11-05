@@ -1,0 +1,22 @@
+///- --package .
+:# access static =
+    :< sm'_operators
+    :< agile_subcommand_domain.subcommand
+
+:< sm'_operators
+:< agile_subcommand_domain.subcommand
+
+:~ writes_named (~name : string) : bool =
+    ?= agile_subcommand_of name ?|
+    | AgileKnown subcommand => state_access_of subcommand = WritesState
+    | AgileUnknownName => !-
+
+///> rust
+:# reading_verbs_take_no_lock_and_writing_verbs_do =
+    testing.expect (writes_named "set" && writes_named "note" && writes_named "view-add") "writers"
+    testing.expect (writes_named "list" = !- && writes_named "show" = !- && writes_named "views" = !-) "readers"
+    testing.expect (writes_named "nope" = !-) "an unknown name writes nothing"
+///> _
+:= main () : i32 =
+    export "kit_agile_writes_named" writes_named
+    0i32

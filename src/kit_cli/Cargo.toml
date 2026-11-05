@@ -14,7 +14,11 @@ name = "kit"
 path = "kit.rs"
 
 [dependencies]
-kit-jobs = { path = "../kit_jobs" }
+kit-heal-nameof = { path = "../kit_heal_nameof" }
+kit-hook = { path = "../kit_hook" }
+kit-run-cli = { path = "../kit_run_cli" }
+kit-exec-export = { path = "../kit_exec_export" }
+kit-job-entry = { path = "../kit_job_entry" }
 kit-repo-state = { path = "../kit_repo_state" }
 kit-repo-affected = { path = "../kit_repo_affected" }
 kit-repo-accept-review = { path = "../kit_repo_accept_review" }
@@ -28,6 +32,7 @@ kit-mirror = { path = "../kit_mirror" }
 kit-ceremonies = { path = "../kit_ceremonies" }
 kit-evidence = { path = "../kit_evidence" }
 kit-lint-macros = { path = "../kit_lint_macros" }
+kit-lint-cli = { path = "../kit_lint_cli" }
 kit-table-sequences = { path = "../kit_table_sequences" }
 kit-guide = { path = "../kit_guide" }
 kit-machine-watch = { path = "../kit_machine_watch" }

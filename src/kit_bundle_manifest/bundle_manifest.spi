@@ -639,23 +639,21 @@
     |:
         ? readonly = 1i32 ?> 292i32 |: 420i32
 
+///> _
 := main () : i32 =
     := _ = deterministic_plan ()
     := _ = manifest_parity_binding 1i32 1i32
     := _ = manifest_executable_mode_binding 1i32 1i32
-    !!!!Export(
-        "kit_bundle_manifest_parity_binding",
+    export
+        "kit_bundle_manifest_parity_binding"
         ((\ (first, second) => manifest_parity_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_bundle_manifest_executable_mode_binding",
+    export
+        "kit_bundle_manifest_executable_mode_binding"
         ((\ (first, second) => manifest_executable_mode_binding first second) : i32 * i32 -> i32)
-    )
     := _ = bundle_portable_mode_binding 1i32 0i32
-    !!!!Export(
-        "kit_bundle_portable_mode_binding",
+    export
+        "kit_bundle_portable_mode_binding"
         ((\ (first, second) => bundle_portable_mode_binding first second) : i32 * i32 -> i32)
-    )
     emit_runtime ()
     emit_archive_extract_runtime ()
     emit_long_name_tests ()

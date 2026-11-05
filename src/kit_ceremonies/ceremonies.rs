@@ -157,13 +157,13 @@ fn ceremony_admits_0(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let mut v2: US0 = ceremony_of_subcommand_2(v1.clone());
     match &v2 {
         US0::US0_None => {
-            let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile "); } LIT.with(|lit| lit.clone()) };
-            let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v1));
-            refused_1(v1.clone(), v25)
+            let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile "); } LIT.with(|lit| lit.clone()) };
+            let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v1));
+            refused_1(v1.clone(), v21)
         }
         US0::US0_Some(v3) => {
             let v3: US1 = v3.clone();
-            let mut v9: Rc<str> = match &v3 {
+            let v7: Rc<str> = match &v3 {
                 US1::US1_Backlog => {
                     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("backlog"); } LIT.with(|lit| lit.clone()) };
                     v4
@@ -177,29 +177,29 @@ fn ceremony_admits_0(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
                     v5
                 }
             };
-            let v10: bool = &*v9 == &*v0;
-            if v10 {
+            let v8: bool = &*v7 == &*v0;
+            if v8 {
                 true
             } else {
-                let v16: Rc<str> = match &v3 {
+                let v12: Rc<str> = match &v3 {
                     US1::US1_Backlog => {
-                        let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("backlog"); } LIT.with(|lit| lit.clone()) };
-                        v11
+                        let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("backlog"); } LIT.with(|lit| lit.clone()) };
+                        v9
                     }
                     US1::US1_Standup => {
-                        let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("standup"); } LIT.with(|lit| lit.clone()) };
-                        v13
+                        let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("standup"); } LIT.with(|lit| lit.clone()) };
+                        v11
                     }
                     US1::US1_Story => {
-                        let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("story"); } LIT.with(|lit| lit.clone()) };
-                        v12
+                        let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("story"); } LIT.with(|lit| lit.clone()) };
+                        v10
                     }
                 };
-                let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit "); } LIT.with(|lit| lit.clone()) };
-                let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v16));
-                let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                let v21: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v18, v19)), v1));
-                refused_1(v1, v21)
+                let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit "); } LIT.with(|lit| lit.clone()) };
+                let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v12));
+                let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+                let v17: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v14, v15)), v1));
+                refused_1(v1, v17)
             }
         }
     }

@@ -3,10 +3,12 @@
     :< rust_std_string.model
     :< host
     :< kit_do_records.records
+    :< kit_do_verbs.verbs
 
 :< rust_std_string.model
 :< host
 :< kit_do_records.records
+:< kit_do_verbs.verbs
 
 :| fact =
     | HashFiles : string
@@ -24,11 +26,13 @@
     | FactParsed : fact
     | FactRejected : string
 
-:~ listed_fact (~verb : string) (~items : string) : fact_parse =
-    ? items = "" ?> FactRejected (concat5 verb ": expected a list of names" "" "" "")
-    |? verb = "hash" ?> FactParsed (HashFiles items)
-    |? verb = "env" ?> FactParsed (EnvValues items)
-    |: FactParsed (PathsExist items)
+:~ listed_fact (step : fact_verb) (~items : string) : fact_parse =
+    ? items = "" ?> FactRejected (concat5 (kit_do_verbs.verbs.fact_word_shown step) ": expected a list of names" "" "" "")
+    |:
+        ?= step ?|
+        | FactHash => FactParsed (HashFiles items)
+        | FactEnv => FactParsed (EnvValues items)
+        | _ => FactParsed (PathsExist items)
 
 :~ nearest_fact (~records : record_list) (~record : i32) : fact_parse =
     := pattern = first_of_kind records record 113u8
@@ -51,14 +55,14 @@
         := fields = items_span records record (get_at + 1i32) (-1i32)
         ? fields = "" ?> FactRejected "get: expected a value after it" |: FactParsed (JsonFields (path, fields))
 
-:~ counted_fact (~records : record_list) (~record : i32) (~verb : string) : fact_parse =
+:~ counted_fact (~records : record_list) (~record : i32) (~verb : string) (files : bool) : fact_parse =
     := target = first_of_kind records record 119u8
     := by_at = field_index records record "by"
     ? target = "" || target = "count"
     ?> FactRejected (concat5 verb ": expected a path" "" "" "")
     |? field_index records record "count" < 0i32 || by_at < 0i32
     ?> FactRejected (concat5 verb ": expected count by ..." "" "" "")
-    |? verb = "files"
+    |? files
     ?>
         ? body_at records record (by_at + 1i32) = "extension" ?> FactParsed (FilesCounted target)
         |: FactRejected "files count by: only extension is supported"
@@ -89,8 +93,14 @@
 :~ ^ dirs_above (~records : record_list) (~record : i32) : bool =
     ? record < 1i32 ?> !-
     |:
-        := verb = field_at records record 1i32
-        ? verb = "dirs" ?> !+ |? verb = "tag" || verb = "count" ?> dirs_above records (record - 1i32) |: !-
+        ?= fact_named (field_at records record 1i32) ?|
+        | Some step =>
+            ?= step ?|
+            | FactDirs => !+
+            | FactTag => dirs_above records (record - 1i32)
+            | FactCount => dirs_above records (record - 1i32)
+            | _ => !-
+        | None => !-
 
 :~ dirs_fact (~records : record_list) (~record : i32) : fact_parse =
     := target = first_of_kind records record 119u8
@@ -98,37 +108,53 @@
     |? field_index records record "having" < 0i32 ?> FactRejected "dirs: expected having <file> [and <file>...]"
     |: FactParsed (DirsClassified record)
 
+:~ unshared (~verb : string) : fact_parse =
+    FactRejected (
+        concat5 verb
+            (
+                " cannot share one program with hash, env, exists, nearest, json, table, dirs or count by yet; "
+                ^^ "run it as its own call"
+            )
+            ""
+            ""
+            ""
+    )
+
+:~ detail_fact (~records : record_list) (~record : i32) (step : fact_verb) : fact_parse =
+    ? dirs_above records (record - 1i32)
+    ?> FactParsed DirsDetail
+    |: FactRejected (concat5 (kit_do_verbs.verbs.fact_word_shown step) ": needs a dirs line above it" "" "" "")
+
+:~ fact_step_parsed (~records : record_list) (~record : i32) (step : fact_verb) : fact_parse =
+    := items = items_span records record 2i32 (-1i32)
+    ?= step ?|
+    | FactHash => listed_fact step items
+    | FactEnv => listed_fact step items
+    | FactExists => listed_fact step items
+    | FactNearest => nearest_fact records record
+    | FactJson => json_fact records record
+    | FactLines => counted_fact records record (kit_do_verbs.verbs.fact_word_shown step) !-
+    | FactTable => table_fact records record
+    | FactDirs => dirs_fact records record
+    | FactTag => detail_fact records record step
+    | FactCount => detail_fact records record step
+    | FactDiff => unshared (kit_do_verbs.verbs.fact_word_shown step)
+
+:~ query_word (verb : kit_do_model.model.query_verb) : string = kit_do_model.model.query_verb_word verb
+
+:~ query_fact_parsed (~records : record_list) (~record : i32) (verb : kit_do_model.model.query_verb) : fact_parse =
+    ?= verb ?|
+    | ListFiles => counted_fact records record (query_word verb) !+
+    | _ => unshared (query_word verb)
+
 :~ fact_parsed (~records : record_list) (~record : i32) : fact_parse =
     := verb = field_at records record 1i32
-    ? verb = "hash" || verb = "env" || verb = "exists"
-    ?> listed_fact verb (items_span records record 2i32 (-1i32))
-    |? verb = "nearest"
-    ?> nearest_fact records record
-    |? verb = "json"
-    ?> json_fact records record
-    |? verb = "lines" || verb = "files"
-    ?> counted_fact records record verb
-    |? verb = "table"
-    ?> table_fact records record
-    |? verb = "dirs"
-    ?> dirs_fact records record
-    |? verb = "tag" || verb = "count"
-    ?>
-        ? dirs_above records (record - 1i32)
-        ?> FactParsed DirsDetail
-        |: FactRejected (concat5 verb ": needs a dirs line above it" "" "" "")
-    |:
-        FactRejected (
-            concat5 verb
-                (
-                    " cannot share one program with hash, env, exists, nearest, json, table, dirs or count by yet; "
-                    ^^ "run it as its own call"
-                )
-                ""
-                ""
-                ""
-        )
-
+    ?= fact_named verb ?|
+    | Some step => fact_step_parsed records record step
+    | None =>
+        ?= kit_do_model.model.query_verb_named verb ?|
+        | Some query => query_fact_parsed records record query
+        | None => unshared verb
 := expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
 
 := rejection_at (~records : record_list) (~record : i32) : string =

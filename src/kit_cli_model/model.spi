@@ -61,7 +61,7 @@
         | LeaseDeniedHandler => 2i32
     | _ => 2i32
 
-:= job_run () : i32 = $"kit_jobs::kit_job_run()" : i32
+:= job_run () : i32 = $"kit_job_entry::kit_job_run()" : i32
 
 := repo_run () : i32 = $"kit_repo_state::kit_repo_run()" : i32
 := repo_affected_run () : i32 = $"kit_repo_affected::kit_repo_affected_run()" : i32
@@ -90,7 +90,7 @@
 := env_run () : i32 = $"kit_env_pins::kit_env_run()" : i32
 := mirror_run () : i32 = $"kit_mirror::kit_mirror_run()" : i32
 := evidence_run () : i32 = $"kit_evidence::kit_evidence_run()" : i32
-:= lint_run () : i32 = $"kit_lint_macros::kit_lint_run()" : i32
+:= lint_run () : i32 = $"kit_lint_cli::kit_lint_cli_run()" : i32
 := schedule_run () : i32 = $"kit_schedule::kit_schedule_run()" : i32
 
 :~ direct_help (~usage : string) : i32 =
@@ -106,11 +106,11 @@
     | DirectKnown : direct_verb
     | DirectUnknown
 
-:~ lowercase_named (~word : string) (~name : string) : bool = $'(!name).to_ascii_lowercase() == &*!word' : bool
+:= direct_word (verb : direct_verb) : string = union_reflection.cases.union_case_kebab "Verb" verb
 
 :~ direct_of (~word : string) : direct_parse =
     union_reflection.cases.union_case_where
-        \ (verb : direct_verb) => lowercase_named word (union_reflection.cases.union_case_suffix "Verb" verb)
+        \ (verb : direct_verb) => word = direct_word verb
         \ verb => DirectKnown verb
         DirectUnknown
 
@@ -156,6 +156,10 @@
     | VerbEvidence => evidence_run ()
     | VerbLint => lint_run ()
     | VerbSchedule => schedule_run ()
+    | VerbHeal => kit_heal_nameof.heal.heal_run ()
+    | VerbHook => kit_hook.hook.hook_run ()
+    | VerbRun => kit_run_cli.run.run_run ()
+    | VerbMetrics => kit_exec_export.export.export_run ()
 
 := run_direct () : i32 =
     := verb = argument_file.process_argument 1i32
@@ -187,9 +191,7 @@
     expect (known_word "agile" = !-) "agile stays on the public verb route"
     expect (known_word "" = !-) "an empty verb is not direct"
 
-:= verb_word (verb : direct_verb) : string =
-    := name = union_reflection.cases.union_case_suffix "Verb" verb
-    $'std::rc::Rc::<str>::from((!name).to_ascii_lowercase())' : string
+:= verb_word (verb : direct_verb) : string = direct_word verb
 
 ///> rust
 :# every_direct_verb_has_a_help_line =

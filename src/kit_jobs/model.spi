@@ -62,21 +62,9 @@
     | Live : job_live
     | Settled : job_settled
 
-:~ live_word (live : job_live) : string =
-    ?= live ?|
-    | JobPending => "pending"
-    | JobRunning => "running"
+:~ live_word (live : job_live) : string = union_reflection.cases.union_case_kebab "Job" live
 
-:~ settled_word (settled : job_settled) : string =
-    ?= settled ?|
-    | JobFinished _ => "finished"
-    | JobTimedOut => "timed-out"
-    | JobStopped => "stopped"
-    | JobSpawnFailed _ => "spawn-failed"
-    | JobSkipped _ => "skipped"
-    | JobLost => "lost"
-    | JobMemoryCapped => "memory-capped"
-    | JobExpiredInQueue => "expired-in-queue"
+:= settled_word (settled : job_settled) : string = union_reflection.cases.union_case_kebab "Job" settled
 
 :~ settled_exit (settled : job_settled) : i32 =
     ?= settled ?|
@@ -155,15 +143,7 @@
 
 :~ job_state_of (record : job_record) : job_state =
     ? record.exit_text <> "" ?>
-        := word = exit_word record.exit_text
-        ? word = "finished" ?> Settled (JobFinished (exit_code record.exit_text))
-        |? word = "timed-out" ?> Settled JobTimedOut
-        |? word = "stopped" ?> Settled JobStopped
-        |? word = "lost" ?> Settled JobLost
-        |? word = "memory-capped" ?> Settled JobMemoryCapped
-        |? word = "expired-in-queue" ?> Settled JobExpiredInQueue
-        |? word = "skipped" ?> Settled (JobSkipped (exit_detail record.exit_text))
-        |: Settled (JobSpawnFailed (exit_detail record.exit_text))
+        state_of_parts (exit_word record.exit_text) (exit_code record.exit_text) (exit_detail record.exit_text)
     |? record.heartbeat_ms > 0u64 ?>
         ? silent_since record record.heartbeat_ms ?> Settled JobLost |: Live JobRunning
     |? silent_since record record.started_ms ?> Settled JobLost
@@ -196,16 +176,6 @@
 
 := halt_of (expired : bool) (requested : bool) (capped : bool) : job_halt =
     ? requested ?> HaltOnRequest |? capped ?> HaltOnMemory |? expired ?> HaltOnTimeout |: KeepRunning
-
-:= halt_code = \|
-    | HaltOnRequest => 143i32
-    | HaltOnMemory => 137i32
-    | _ => 124i32
-
-:= halt_word = \|
-    | HaltOnRequest => "stopped"
-    | HaltOnMemory => "memory-capped"
-    | _ => "timed-out"
 
 := halt_reason = \|
     | HaltOnRequest => "stopped on request"
@@ -378,8 +348,9 @@
     := round (state : job_state) : bool =
         state_of_parts (state_word state) (state_exit state) (state_detail state) = state
     expect (round (Live JobRunning) && round (Live JobPending)) "live states"
+    expect (round (Settled (JobFinished 3i32))) "a finished state"
     expect
-        (round (Settled (JobFinished 3i32)) && round (Settled JobTimedOut) && round (Settled JobLost))
+        (round (Settled JobTimedOut) && round (Settled JobLost) && round (Settled JobMemoryCapped))
         "settled states"
     expect
         (round (Settled (JobSkipped "after failed")) && round (Settled (JobSpawnFailed "no such program")))

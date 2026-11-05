@@ -15,3 +15,4 @@ path = "run.rs"
 
 [dependencies]
 kit-window-admission = { path = "../kit_window_admission" }
+kit-process-alive = { path = "../kit_process_alive" }

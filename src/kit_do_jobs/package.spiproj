@@ -1,8 +1,13 @@
 packages:
     |core-
     spiral-
+    union_reflection
     kit_receipt
     kit_do_records
+    kit_do_model
+    kit_do_verbs
+link:
+    kit_do_verbs
 modules:
     host
     grammar

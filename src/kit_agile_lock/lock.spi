@@ -1,0 +1,70 @@
+///- --package .
+:< sm'_operators
+
+:~ lock_dir_claimed (~path : string) : bool = $'std::fs::create_dir(&*!path).is_ok()' : bool
+
+:~ lock_dir_removed (~path : string) : () = $'{ let _ = std::fs::remove_dir(&*!path); }' : ()
+
+:~ state_lock_path (~root : string) : string = root ++# "/state/agile.spi.lock"
+
+:~ lock_holder_path (~root : string) : string = state_lock_path root ++# "/holder"
+
+:~ lock_holder_text (pid : u64) (started : u64) : string = sm'.show pid ++# " " ++# sm'.show started
+
+:~ lock_number (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert (sm'.trim text))
+
+:~ holder_stale_by (alive : u64 -> bool) (~holder : string) (now : u64) : bool =
+    := space = sm'.index_of " " holder
+    ? space < 0i32 ?> !+
+    |:
+        := pid = lock_number (sm'.substring 0i32 space holder)
+        := started = lock_number (sm'.substring (space + 1i32) ((sm'.length holder : i32) - space - 1i32) holder)
+        pid = 0u64 || now > started + 600000u64 || alive pid |> not
+
+:~ lock_holder_stale (~holder : string) (now : u64) : bool =
+    holder_stale_by (\ (pid : u64) => kit_process_alive.alive.process_alive pid) holder now
+
+:~ state_lock_cleared (~root : string) : () =
+    file_system.file_delete (lock_holder_path root)
+    lock_dir_removed (state_lock_path root)
+
+:~ ^ state_lock_waited (~root : string) (deadline : u64) (unread : i32) : bool =
+    ? lock_dir_claimed (state_lock_path root) ?>
+        := pid : u64 = convert.convert (kit_os_process.process.own_pid ())
+        := started = workspace_primitives.clock.unix_ms ()
+        file_system.write_all_text (lock_holder_path root) (lock_holder_text pid started)
+        !+
+    |? file_system.directory_exists (root ++# "/state") |> not ?> !+
+    |:
+        := holder = file_system.read_text_or_empty (lock_holder_path root)
+        ? holder = "" && unread < 400i32 ?>
+            threading.rust_sleep_ms 25u64
+            state_lock_waited root deadline (unread + 1i32)
+        |? lock_holder_stale holder (workspace_primitives.clock.unix_ms ()) ?>
+            state_lock_cleared root
+            state_lock_waited root deadline 0i32
+        |? workspace_primitives.clock.unix_ms () >= deadline ?> !-
+        |:
+            threading.rust_sleep_ms 25u64
+            state_lock_waited root deadline unread
+
+:~ lock_taken (~root : string) : bool =
+    state_lock_waited root (workspace_primitives.clock.unix_ms () + 300000u64) 0i32
+
+:~ lock_released (~root : string) : bool =
+    state_lock_cleared root
+    !+
+
+///> rust
+:# a_lock_is_stale_only_when_its_holder_is_gone_or_ten_minutes_old =
+    := alive = \ (pid : u64) => pid = 7u64
+    testing.expect (holder_stale_by alive "" 1000u64) "a lock without a holder line is stale"
+    testing.expect (holder_stale_by alive "7 1000" 2000u64 |> not) "a live holder keeps its lock"
+    testing.expect (holder_stale_by alive "8 1000" 2000u64) "a dead holder's lock is stale"
+    testing.expect (holder_stale_by alive "7 1000" 700000u64) "a ten-minute-old lock is stale even if its pid lives"
+    testing.expect (lock_holder_text 7u64 1000u64 = "7 1000") "the holder line is the pid, then the start"
+///> _
+:= main () : i32 =
+    export "kit_agile_lock_taken" lock_taken
+    export "kit_agile_lock_released" lock_released
+    0i32

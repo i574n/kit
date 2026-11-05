@@ -98,12 +98,11 @@
     "median=" ++# number_shown median ++# band ++# (? inside ?> " median_inside=yes" |: " median_inside=no")
 
 := main () : i32 =
-    !!!!Export(
-        "kit_median_terms",
+    export
+        "kit_median_terms"
         ((\ (values, low, high) => median_terms values low high) : string * f64 * f64 -> string)
-    )
-    !!!!Export(
-        "kit_experiment_terms",
+    export
+        "kit_experiment_terms"
         (
             \ (word, left_rows, left_count, left_sum, left_squares, left_successes, right_rows, right_count, right_sum, right_squares, right_successes, prediction, confidence) =>
                 terms_text word
@@ -125,5 +124,4 @@
                     confidence
             : string * i32 * f64 * f64 * f64 * i32 * i32 * f64 * f64 * f64 * i32 * f64 * f64 -> string
         )
-    )
     0i32

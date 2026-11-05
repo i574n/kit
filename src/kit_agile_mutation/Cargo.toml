@@ -40,3 +40,10 @@ agile-memory-links = { path = "../agile_memory_links" }
 agile-task-views = { path = "../agile_task_views" }
 kit-agile-routes = { path = "../kit_agile_routes" }
 kit-command-help = { path = "../kit_command_help" }
+kit-agile-lock = { path = "../kit_agile_lock" }
+kit-agile-activity-migration = { path = "../kit_agile_activity_migration" }
+agile-state-access = { path = "../agile_state_access" }
+kit-agile-sprint = { path = "../kit_agile_sprint" }
+kit-agile-lint = { path = "../kit_agile_lint" }
+kit-agile-gate = { path = "../kit_agile_gate" }
+kit-agile-cadence = { path = "../kit_agile_cadence" }

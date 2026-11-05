@@ -76,6 +76,6 @@
     planning_edit (argument_owned 1i32) (argument_owned 2i32) (argument_owned 3i32) (argument_owned 4i32)
 
 := main () : i32 =
-    !!!!Export("kit_agile_planning_edit_run", ((\ () => planning_edit_entry ()) : () -> i32))
+    export "kit_agile_planning_edit_run" ((\ () => planning_edit_entry ()) : () -> i32)
     := _ = planning_edit_entry ()
     0i32

@@ -16,3 +16,4 @@ path = "query.rs"
 [dependencies]
 kit-window-run = { path = "../kit_window_run" }
 kit-window-admission = { path = "../kit_window_admission" }
+kit-process-alive = { path = "../kit_process_alive" }

@@ -4,6 +4,8 @@
 
 :~ server_report () : i32 * string = $'kit_jobs_doctor_servers::kit_job_doctor_server_report()' : i32 * string
 
+:~ doctor_checked () : i32 = doctor_run env_drift server_report
+
 := main () : i32 =
-    !!!!Export("kit_job_doctor_run", ((\ () => doctor_run env_drift server_report) : () -> i32))
+    export "kit_job_doctor_run" doctor_checked
     0i32

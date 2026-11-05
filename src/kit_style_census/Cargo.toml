@@ -14,4 +14,8 @@ name = "kit_style_census"
 path = "census.rs"
 
 [dependencies]
-regex = "1.13.1"
+kit-style-measure = { path = "../kit_style_measure" }
+kit-style-probes = { path = "../kit_style_probes" }
+kit-style-baseline = { path = "../kit_style_baseline" }
+kit-flag-words = { path = "../kit_flag_words" }
+kit-style-scoreboard = { path = "../kit_style_scoreboard" }

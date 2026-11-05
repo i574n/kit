@@ -18,13 +18,12 @@
     agile_record_catalog_line (counted ++# i32_text required) (agile_record_catalog_of present required missing)
 
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_record_catalog_text",
+    export
+        "kit_agile_record_catalog_text"
         (
             \ (version, present, required, missing) => agile_record_catalog_text version present required missing
             : string * i32 * i32 * string -> string
         )
-    )
     := _ = agile_record_catalog_text "v1" 4i32 4i32 ""
     := _ = agile_record_catalog_text "v1" 0i32 4i32 "history.spi"
     0i32

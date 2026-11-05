@@ -46,17 +46,9 @@
     | Rustdoc
     | Rustfmt
 
-:= rust_tool_identity = \|
-    | Rustc => "rustc"
-    | Cargo => "cargo"
-    | Rustdoc => "rustdoc"
-    | Rustfmt => "rustfmt"
+:= rust_tool_identity (value : rust_tool) : string = union_reflection.cases.union_case_kebab "" value
 
-:= rust_tool_environment = \|
-    | Rustc => "RUSTC"
-    | Cargo => "CARGO"
-    | Rustdoc => "RUSTDOC"
-    | Rustfmt => "RUSTFMT"
+:= rust_tool_environment (value : rust_tool) : string = sm'.to_upper (rust_tool_identity value)
 
 :~ rust_tool_environment_binding (relative : string) : string =
     := check tool next =

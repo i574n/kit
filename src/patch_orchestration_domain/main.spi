@@ -92,37 +92,29 @@
     := promotion1 = orchestration_promotion_binding 0i32 0i32
     := _ = orchestration_promotion_binding promotion1 1i32
     := _ = orchestration_complete_binding 2i32 2i32
-    !!!!Export(
-        "kit_patch_orchestration_witness_binding",
+    export
+        "kit_patch_orchestration_witness_binding"
         ((\ (first, second) => orchestration_witness_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_orchestration_operation_binding",
+    export
+        "kit_patch_orchestration_operation_binding"
         ((\ (first, second) => orchestration_operation_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_orchestration_guard_identity",
+    export
+        "kit_patch_orchestration_guard_identity"
         ((\ (first, second) => orchestration_guard_identity first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_orchestration_guard_needle_binding",
+    export
+        "kit_patch_orchestration_guard_needle_binding"
         ((\ (first, second) => orchestration_guard_needle_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_orchestration_guard_match_binding",
+    export
+        "kit_patch_orchestration_guard_match_binding"
         ((\ (first, second) => orchestration_guard_match_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_orchestration_stage_binding",
+    export
+        "kit_patch_orchestration_stage_binding"
         ((\ (first, second) => orchestration_stage_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_orchestration_promotion_binding",
+    export
+        "kit_patch_orchestration_promotion_binding"
         ((\ (first, second) => orchestration_promotion_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_orchestration_complete_binding",
+    export
+        "kit_patch_orchestration_complete_binding"
         ((\ (first, second) => orchestration_complete_binding first second) : i32 * i32 -> i32)
-    )
 
     0i32

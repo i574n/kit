@@ -32,11 +32,7 @@
     | LegacyPair
     | LegacyNo
 
-:= legacy_word (flag : legacy_agent) : string =
-    ?= flag ?|
-    | LegacyYes => "yes"
-    | LegacyPair => "pair"
-    | LegacyNo => "no"
+:= legacy_word (flag : legacy_agent) : string = union_reflection.cases.union_case_kebab "Legacy" flag
 
 := legacy_assignee (flag : legacy_agent) : string =
     ?= flag ?|
@@ -51,11 +47,10 @@
         ""
 
 := main () : i32 =
-    !!!!Export(
-        "kit_agile_planning_value_token",
+    export
+        "kit_agile_planning_value_token"
         ((\ (field_name, value) => planning_value_token field_name value) : string * string -> i32 * string)
-    )
-    !!!!Export("kit_agile_planning_legacy_agent_value", ((\ value => legacy_agent_value value) : string -> string))
+    export "kit_agile_planning_legacy_agent_value" ((\ value => legacy_agent_value value) : string -> string)
     := _ = planning_value_token "load" "heavy"
     := _ = legacy_agent_value "yes"
     0i32

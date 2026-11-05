@@ -1,5 +1,7 @@
 packages:
     |core-
+    spiral-
+    union_reflection
     state_receipt_codec_model-
     toolchain_command_domain
 modules:

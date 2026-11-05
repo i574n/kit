@@ -108,6 +108,6 @@
             | problem => record_failure (state_write_problem problem)
 
 := main () : i32 =
-    !!!!Export("kit_agile_todos_record_run", ((\ () => record_entry ()) : () -> i32))
+    export "kit_agile_todos_record_run" ((\ () => record_entry ()) : () -> i32)
     := _ = record_entry ()
     0i32

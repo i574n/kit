@@ -15,3 +15,4 @@ path = "gate.rs"
 
 [dependencies]
 kit-crate-largest = { path = "../kit_crate_largest" }
+kit-crate-walk = { path = "../kit_crate_walk" }

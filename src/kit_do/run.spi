@@ -75,5 +75,5 @@
     |: program_run mode root (program_from first count "")
 
 := main () : i32 =
-    !!!!Export("kit_do_run", ((\ () => do_run ()) : () -> i32))
+    export "kit_do_run" ((\ () => do_run ()) : () -> i32)
     0i32

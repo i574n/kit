@@ -69,6 +69,6 @@
     | RemovalRejected text => 2i32, text
 
 := main () : i32 =
-    !!!!Export("kit_file_removal_outcome", ((\ () => file_removal_report ()) : () -> i32 * string))
+    export "kit_file_removal_outcome" ((\ () => file_removal_report ()) : () -> i32 * string)
     := _ = file_removal_outcome ()
     0i32

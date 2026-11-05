@@ -72,7 +72,7 @@
     ? diffed_ok && untracked_ok ?> nul_text () ++# diffed ++# untracked |: ""
 
 := main () : i32 =
-    !!!!Export("kit_agile_todo_sources", ((\ path => todo_sources path) : string -> bool * string))
+    export "kit_agile_todo_sources" ((\ path => todo_sources path) : string -> bool * string)
     := _ = todo_sources ""
     export "kit_agile_todo_git_head" ((\ root => git_head root) : string -> string)
     export "kit_agile_todo_git_changed" ((\ (root, since) => git_changed_since root since) : string * string -> string)

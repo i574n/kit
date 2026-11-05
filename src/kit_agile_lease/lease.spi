@@ -191,6 +191,6 @@
     package_inputs.emit_runtime ()
     emit_lease_runtime ()
     emit_effect_authority_runtime ()
-    !!!!Export("kit_lease_title_words", ((\ () => lease_title_entry ()) : () -> i32))
+    export "kit_lease_title_words" ((\ () => lease_title_entry ()) : () -> i32)
     := _ = lease_title_entry ()
     0i32

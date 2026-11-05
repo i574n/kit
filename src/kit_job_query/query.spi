@@ -1,0 +1,42 @@
+:< sm'_operators
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+:< kit_job_placement.placement
+
+:~ job_status (~id : string) : i32 =
+    ? known_job id ?>
+        := _ = held_revival ()
+        stdout_line (shared_summary "status" id)
+        0i32
+    |: rejected ("status: unknown job id " ++# id)
+
+:~ job_waited (~id : string) (~limit : string) : i32 =
+    ? known_job id ?>
+        := _ = held_revival ()
+        := deadline = now_ms () + (? limit = "" ?> 864000000u64 |: decimal_u64 limit)
+        := state = waited id deadline (watched_caller ())
+        stdout_line (shared_summary "wait" id)
+        state_exit state
+    |: rejected ("wait: unknown job id " ++# id)
+
+:~ placed (~first : string) (local : () -> i32) : i32 =
+    ?= job_placement first ?|
+    | OnMachine m => kit_job_dispatch.dispatch.forward_run (jobs_root (), machine_name m)
+    | Local => local ()
+
+:~ status_placed (~first : string) : i32 = placed first (\ () => job_status first)
+
+:~ wait_placed ((first, second) : string * string) : i32 = placed first (\ () => job_waited first second)
+
+:~ tail_placed (~first : string) : i32 = placed first (\ () => kit_job_control.control.job_tailed ())
+
+:~ stop_placed (~first : string) : i32 = placed first (\ () => kit_job_control.control.job_stopped ())
+
+///> _
+:= main () : i32 =
+    export "kit_job_status_placed" status_placed
+    export "kit_job_wait_placed" wait_placed
+    export "kit_job_tail_placed" tail_placed
+    export "kit_job_stop_placed" stop_placed
+    0i32

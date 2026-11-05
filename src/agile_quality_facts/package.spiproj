@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    agile_quality_lint
+modules:
+    facts

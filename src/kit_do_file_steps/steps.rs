@@ -1,6 +1,7 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
+use kit_do_verbs::{write_verb, option_write_verb};
 fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
     let bytes = value.as_bytes();
     let length = bytes.len() as i64;
@@ -16,9 +17,9 @@ enum US0 {
     US0_Error(Rc<str>),
 }
 #[derive(Clone)]
-enum US1 {
-    US1_Succeeded,
-    US1_Failed,
+enum US3 {
+    US3_Succeeded,
+    US3_Failed,
 }
 fn file_text_1(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(std::path::Path::new(&*v0).join(&*v1)).unwrap_or_default());
@@ -238,30 +239,15 @@ fn field_at_18(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut
     let v3: Rc<str> = v0.get(v1 as usize).and_then(|fields| fields.get(v2 as usize)).cloned().unwrap_or_default();
     v3.clone()
 }
-fn body_at_19(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> Rc<str> {
+fn body_at_21(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> Rc<str> {
     let v3: Rc<str> = v0.get(v1 as usize).and_then(|fields| fields.get(v2 as usize)).filter(|field| !field.is_empty()).map(|field| std::rc::Rc::<str>::from(&field[1..])).unwrap_or_default();
     v3.clone()
 }
-fn quoted_at_20(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> bool {
+fn quoted_at_22(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> bool {
     let v3: bool = v0.get(v1 as usize).and_then(|fields| fields.get(v2 as usize)).map(|field| field.starts_with(char::from(113u8))).unwrap_or(false);
     v3
 }
-fn joined_21(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let mut v2: bool = &*v1 == "";
-    if v2 {
-        v0.clone()
-    } else {
-        let v3: bool = &*v0 == "";
-        if v3 {
-            v1.clone()
-        } else {
-            let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v4)), v1));
-            v6
-        }
-    }
-}
-fn directory_exists_23(mut v0: Rc<str>) -> bool {
+fn directory_exists_24(mut v0: Rc<str>) -> bool {
     let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
@@ -273,7 +259,7 @@ fn directory_exists_23(mut v0: Rc<str>) -> bool {
         false
     }
 }
-fn append_preview_22(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<str>, u64) {
+fn append_preview_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<str>, u64) {
     let v3: Rc<str> = file_text_1(v0.clone(), v1.clone());
     let v4: bool = uses_crlf_2(v3.clone());
     let mut v7: Rc<str> = if v4 {
@@ -299,7 +285,7 @@ fn append_preview_22(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<s
     let v20: Rc<str> = v16.unwrap_or(v19);
     let v21: bool = &*v20 != "";
     let v24: bool = if v21 {
-        let v22: bool = directory_exists_23(v20.clone());
+        let v22: bool = directory_exists_24(v20.clone());
         let mut v23: bool = v22 == false;
         v23
     } else {
@@ -327,6 +313,78 @@ fn append_preview_22(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<s
     let v43: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v39, v1)), v33)), v38)), v27));
     (v43, v28)
 }
+fn append_previewed_20(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32) -> (Rc<str>, u64, u64, bool) {
+    let v3: i32 = 2i32;
+    let v4: Rc<str> = body_at_21(v1.clone(), v2, v3);
+    let v5: bool = &*v4 == "";
+    let v8: bool = if v5 {
+        true
+    } else {
+        let mut v6: i32 = 2i32;
+        quoted_at_22(v1.clone(), v2, v6)
+    };
+    let mut v12: bool = if v8 {
+        true
+    } else {
+        let v9: i32 = 3i32;
+        let v10: bool = quoted_at_22(v1.clone(), v2, v9);
+        let v11: bool = v10 == false;
+        v11
+    };
+    if v12 {
+        let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("append: expected a file, then the quoted line"); } LIT.with(|lit| lit.clone()) };
+        (v13, 0u64, 0u64, true)
+    } else {
+        let mut v14: i32 = 3i32;
+        let v15: Rc<str> = body_at_21(v1, v2, v14);
+        let (mut v16, mut v17): (Rc<str>, u64) = append_preview_23(v0, v4, v15);
+        (v16, 1u64, v17, false)
+    }
+}
+fn step_previewed_19(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32, mut v3: write_verb) -> (Rc<str>, u64, u64, bool) {
+    match &v3 {
+        write_verb::write_verb_FileAppend => {
+            append_previewed_20(v0, v1, v2)
+        }
+        _ => {
+            let v11: Rc<str> = match &v3 {
+                write_verb::write_verb_FileCopy => {
+                    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("copy"); } LIT.with(|lit| lit.clone()) };
+                    v8
+                }
+                write_verb::write_verb_FileMove => {
+                    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("move"); } LIT.with(|lit| lit.clone()) };
+                    v9
+                }
+                write_verb::write_verb_FileWrite => {
+                    let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
+                    v10
+                }
+                _ => unreachable!(),
+            };
+            let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dry run previews append only; "); } LIT.with(|lit| lit.clone()) };
+            let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v11));
+            let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" runs only without --dry-run"); } LIT.with(|lit| lit.clone()) };
+            let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
+            (v15, 0u64, 0u64, true)
+        }
+    }
+}
+fn joined_25(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+    let mut v2: bool = &*v1 == "";
+    if v2 {
+        v0.clone()
+    } else {
+        let v3: bool = &*v0 == "";
+        if v3 {
+            v1.clone()
+        } else {
+            let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+            let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v4)), v1));
+            v6
+        }
+    }
+}
 fn previews_from_17(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v2: i32, mut v3: Rc<str>, mut v4: u64, mut v5: u64, mut v6: bool) -> (Rc<str>, u64, u64, bool) {
     loop {
         let mut v7: i32 = v1.len() as i32;
@@ -335,78 +393,28 @@ fn previews_from_17(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str
             let v9: i32 = v2.wrapping_add(1i32);
             let v10: i32 = 0i32;
             let v11: Rc<str> = field_at_18(v1.clone(), v2, v10);
-            let mut v12: i32 = 1i32;
-            let mut v13: Rc<str> = field_at_18(v1.clone(), v2, v12);
-            let mut v14: i32 = 2i32;
-            let v15: Rc<str> = body_at_19(v1.clone(), v2, v14);
-            let mut v16: bool = &*v11 == "";
-            if v16 {
+            let mut v12: bool = &*v11 == "";
+            if v12 {
                 v2 = v9;
                 continue;
             } else {
-                let v21: bool = &*v13 == "append";
-                let v30: bool = if v21 {
-                    let v22: bool = &*v15 == "";
-                    let v25: bool = if v22 {
-                        true
-                    } else {
-                        let mut v23: i32 = 2i32;
-                        quoted_at_20(v1.clone(), v2, v23)
-                    };
-                    if v25 {
-                        true
-                    } else {
-                        let v26: i32 = 3i32;
-                        let v27: bool = quoted_at_20(v1.clone(), v2, v26);
-                        let v28: bool = v27 == false;
-                        v28
-                    }
-                } else {
-                    false
-                };
-                if v30 {
-                    let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("append: expected a file, then the quoted line"); } LIT.with(|lit| lit.clone()) };
-                    let v32: Rc<str> = joined_21(v3.clone(), v31.clone());
-                    let v33: bool = true;
-                    (v2, v3, v6) = (v9, v32.clone(), v33);
-                    continue;
-                } else {
-                    if v21 {
-                        let v38: i32 = 3i32;
-                        let mut v39: Rc<str> = body_at_19(v1.clone(), v2, v38);
-                        let (mut v40, mut v41): (Rc<str>, u64) = append_preview_22(v0.clone(), v15.clone(), v39.clone());
-                        let v42: Rc<str> = joined_21(v3.clone(), v40.clone());
-                        let v43: u64 = v4.wrapping_add(1u64);
-                        let v44: u64 = v5.wrapping_add(v41);
-                        (v2, v3, v4, v5) = (v9, v42.clone(), v43, v44);
+                let v17: i32 = 1i32;
+                let v18: Rc<str> = field_at_18(v1.clone(), v2, v17);
+                let v19: option_write_verb = kit_do_verbs::kit_do_write_named(&v18);
+                match &v19 {
+                    option_write_verb::option_write_verb_None => {
+                        v2 = v9;
                         continue;
-                    } else {
-                        let v49: bool = &*v13 == "copy";
-                        let v51: bool = if v49 {
-                            true
-                        } else {
-                            let v50: bool = &*v13 == "move";
-                            v50
-                        };
-                        let v53: bool = if v51 {
-                            true
-                        } else {
-                            let v52: bool = &*v13 == "write";
-                            v52
-                        };
-                        if v53 {
-                            let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dry run previews append only; "); } LIT.with(|lit| lit.clone()) };
-                            let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v13));
-                            let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" runs only without --dry-run"); } LIT.with(|lit| lit.clone()) };
-                            let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v56));
-                            let v58: Rc<str> = joined_21(v3.clone(), v57.clone());
-                            let v59: bool = true;
-                            (v2, v3, v6) = (v9, v58.clone(), v59);
-                            continue;
-                        } else {
-                            v2 = v9;
-                            continue;
-                        }
+                    }
+                    option_write_verb::option_write_verb_Some(v24) => {
+                        let v24: write_verb = v24.clone();
+                        let (mut v25, mut v26, mut v27, mut v28): (Rc<str>, u64, u64, bool) = step_previewed_19(v0.clone(), v1.clone(), v2, v24.clone());
+                        let v29: bool = v6 || v28;
+                        let v30: Rc<str> = joined_25(v3.clone(), v25.clone());
+                        let v31: u64 = v4.wrapping_add(v26);
+                        let v32: u64 = v5.wrapping_add(v27);
+                        (v2, v3, v4, v5, v6) = (v9, v30.clone(), v31, v32, v29);
+                        continue;
                     }
                 }
             }
@@ -415,31 +423,31 @@ fn previews_from_17(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str
         }
     }
 }
-fn elapsed_text_25(mut v0: u64) -> Rc<str> {
+fn elapsed_text_27(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
     v1.clone()
 }
-fn clock_text_26() -> Rc<str> {
+fn clock_text_28() -> Rc<str> {
     let v0: i64 = local_offset_minutes_4();
     let v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_24(mut v0: US1, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_26(mut v0: US3, mut v1: Rc<str>, mut v2: u64) -> () {
     let mut v6: Rc<str> = match &v0 {
-        US1::US1_Failed => {
+        US3::US3_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
             v4
         }
-        US1::US1_Succeeded => {
+        US3::US3_Succeeded => {
             let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
             v3
         }
     };
     let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v7)), v1)), v7));
-    let v11: Rc<str> = elapsed_text_25(v2);
+    let v11: Rc<str> = elapsed_text_27(v2);
     let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v7));
-    let mut v14: Rc<str> = clock_text_26();
+    let mut v14: Rc<str> = clock_text_28();
     let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
     println!("{}", v15);
     ()
@@ -470,12 +478,12 @@ fn writes_preview_14(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  dry run, nothing written"); } LIT.with(|lit| lit.clone()) };
     let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v21));
     if v12 {
-        let mut v23: US1 = US1::US1_Failed;
-        receipt_line_24(v23, v22.clone(), v2);
+        let mut v23: US3 = US3::US3_Failed;
+        receipt_line_26(v23, v22.clone(), v2);
         2i32
     } else {
-        let v24: US1 = US1::US1_Succeeded;
-        receipt_line_24(v24, v22, v2);
+        let v24: US3 = US3::US3_Succeeded;
+        receipt_line_26(v24, v22, v2);
         0i32
     }
 }
@@ -484,7 +492,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> i32> {
         writes_preview_14(v0.clone(), v1.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn file_exists_28(mut v0: Rc<str>) -> bool {
+fn file_exists_30(mut v0: Rc<str>) -> bool {
     let mut v2: &str = &*v0;
     let v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
@@ -496,11 +504,11 @@ fn file_exists_28(mut v0: Rc<str>) -> bool {
         false
     }
 }
-fn glob_base_30(mut v0: Rc<str>) -> Rc<str> {
+fn glob_base_32(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = std::rc::Rc::<str>::from((v0).replace(char::from(92u8), "/").split(char::from(47u8)).take_while(|part| !part.contains(char::from(42u8)) && !part.contains(char::from(63u8))).collect::<Vec<_>>().join("/"));
     v1.clone()
 }
-fn method31(mut v0: Option<usize>) -> Option<usize> {
+fn method33(mut v0: Option<usize>) -> Option<usize> {
     v0
 }
 fn closure3() -> Rc<dyn Fn((usize)) -> i32> {
@@ -510,8 +518,8 @@ fn closure3() -> Rc<dyn Fn((usize)) -> i32> {
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn copy_base_29(mut v0: Rc<str>, mut v1: bool) -> Rc<str> {
-    let mut v2: Rc<str> = glob_base_30(v0.clone());
+fn copy_base_31(mut v0: Rc<str>, mut v1: bool) -> Rc<str> {
+    let mut v2: Rc<str> = glob_base_32(v0.clone());
     let v3: bool = v1 == false;
     let v8: bool = if v3 {
         true
@@ -527,7 +535,7 @@ fn copy_base_29(mut v0: Rc<str>, mut v1: bool) -> Rc<str> {
     } else {
         let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
         let v10: Option<usize> = v2.rfind(&*v9);
-        let v11: Option<usize> = method31(v10.clone());
+        let v11: Option<usize> = method33(v10.clone());
         let mut v12: Rc<dyn Fn((usize)) -> i32> = closure3();
         let mut v13: Option<i32> = v11.map(|x| v12(x));
         let v15: i32 = v13.unwrap_or(-1i32);
@@ -543,11 +551,11 @@ fn copy_base_29(mut v0: Rc<str>, mut v1: bool) -> Rc<str> {
         }
     }
 }
-fn matching_32(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn matching_34(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: Rc<str> = kit_do_read::kit_do_read_matching(&*v0, &*v1);
     v2
 }
-fn line_at_34(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
+fn line_at_36(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
     let mut v2: i32 = (v1 as i32);
     let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v4: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v3).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
@@ -598,40 +606,40 @@ fn line_at_34(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
         v27.clone()
     }
 }
-fn excluded_by_35(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
+fn excluded_by_37(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let mut v2: bool = (v0).lines().any(|pattern| { let name = (v1).rsplit(char::from(47u8)).next().unwrap_or(""); let mut translated = String::from("^"); for c in pattern.chars() { if c == char::from(42u8) { translated.push_str("[^/]*") } else if c == char::from(63u8) { translated.push_str("[^/]") } else { translated.push_str(&regex::escape(&c.to_string())) } } let translated = format!("{}$", translated.replace("[^/]*[^/]*", ".*")); regex::Regex::new(&translated).map(|regex| regex.is_match(name) || regex.is_match(&*v1)).unwrap_or(false) });
     v2
 }
-fn relative_under_36(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
+fn relative_under_38(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: Rc<str> = std::rc::Rc::<str>::from(if (v0).is_empty() { &*v1 } else { (v1).strip_prefix(&*v0).map(|rest| rest.trim_start_matches(char::from(47u8))).unwrap_or(&*v1) });
     v2.clone()
 }
-fn copied_bytes_37(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i64 {
+fn copied_bytes_39(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i64 {
     let v3: i64 = { let root = std::path::Path::new(&*v0); let target = root.join(&*v2); target.parent().map(std::fs::create_dir_all).unwrap_or(Ok(())).and_then(|_| std::fs::copy(root.join(&*v1), &target)).map(|bytes| bytes as i64).unwrap_or(-1) };
     v3
 }
-fn copies_run_33(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: u64, mut v6: Rc<str>, mut v7: bool, mut v8: u64, mut v9: u64, mut v10: u64) -> (Rc<str>, bool, u64, u64, u64) {
+fn copies_run_35(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: u64, mut v6: Rc<str>, mut v7: bool, mut v8: u64, mut v9: u64, mut v10: u64) -> (Rc<str>, bool, u64, u64, u64) {
     let v11: u64 = line_count_11(v4.clone());
     let mut v12: bool = v5 < v11;
     let (mut v46, mut v47, mut v48, mut v49, mut v50): (Rc<str>, bool, u64, u64, u64) = if v12 {
-        let mut v13: Rc<str> = line_at_34(v4.clone(), v5);
-        let mut v14: bool = excluded_by_35(v3.clone(), v13.clone());
+        let mut v13: Rc<str> = line_at_36(v4.clone(), v5);
+        let mut v14: bool = excluded_by_37(v3.clone(), v13.clone());
         let (mut v35, mut v36, mut v37, mut v38, mut v39): (Rc<str>, bool, u64, u64, u64) = if v14 {
             let v15: u64 = v9.wrapping_add(1u64);
             (v6.clone(), v7, v8, v15, v10)
         } else {
             let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
             let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v16));
-            let v18: Rc<str> = relative_under_36(v1.clone(), v13.clone());
+            let v18: Rc<str> = relative_under_38(v1.clone(), v13.clone());
             let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v18));
-            let v20: i64 = copied_bytes_37(v0.clone(), v13.clone(), v19);
+            let v20: i64 = copied_bytes_39(v0.clone(), v13.clone(), v19);
             let v21: bool = v20 < 0i64;
             let (mut v30, mut v31, mut v32, mut v33, mut v34): (Rc<str>, bool, u64, u64, u64) = if v21 {
                 let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("copy "); } LIT.with(|lit| lit.clone()) };
                 let mut v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v13));
                 let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  failed"); } LIT.with(|lit| lit.clone()) };
                 let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-                let v26: Rc<str> = joined_21(v6.clone(), v25);
+                let v26: Rc<str> = joined_25(v6.clone(), v25);
                 (v26, true, v8, v9, v10)
             } else {
                 let v27: u64 = v8.wrapping_add(1u64);
@@ -642,25 +650,25 @@ fn copies_run_33(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
             (v30, v31, v32, v33, v34)
         };
         let mut v40: u64 = v5.wrapping_add(1u64);
-        let (mut v41, mut v42, mut v43, mut v44, mut v45): (Rc<str>, bool, u64, u64, u64) = copies_run_33(v0, v1, v2, v3, v4, v40, v35, v36, v37, v38, v39);
+        let (mut v41, mut v42, mut v43, mut v44, mut v45): (Rc<str>, bool, u64, u64, u64) = copies_run_35(v0, v1, v2, v3, v4, v40, v35, v36, v37, v38, v39);
         (v41, v42, v43, v44, v45)
     } else {
         (v6, v7, v8, v9, v10)
     };
     (v46, v47, v48, v49, v50)
 }
-fn copy_step_27(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> (Rc<str>, bool, u64, u64, u64) {
+fn copy_step_29(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> (Rc<str>, bool, u64, u64, u64) {
     let v4: Rc<str> = method7(v0.clone(), v1.clone());
-    let v5: bool = file_exists_28(v4);
-    let mut v6: Rc<str> = copy_base_29(v1.clone(), v5);
-    let mut v7: Rc<str> = matching_32(v0.clone(), v1.clone());
+    let v5: bool = file_exists_30(v4);
+    let mut v6: Rc<str> = copy_base_31(v1.clone(), v5);
+    let mut v7: Rc<str> = matching_34(v0.clone(), v1.clone());
     let v8: u64 = 0u64;
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v10: bool = false;
     let v11: u64 = 0u64;
     let mut v12: u64 = 0u64;
     let mut v13: u64 = 0u64;
-    let (mut v14, mut v15, mut v16, mut v17, mut v18): (Rc<str>, bool, u64, u64, u64) = copies_run_33(v0, v6.clone(), v2.clone(), v3.clone(), v7.clone(), v8, v9.clone(), v10, v11, v12, v13);
+    let (mut v14, mut v15, mut v16, mut v17, mut v18): (Rc<str>, bool, u64, u64, u64) = copies_run_35(v0, v6.clone(), v2.clone(), v3.clone(), v7.clone(), v8, v9.clone(), v10, v11, v12, v13);
     let v19: bool = &*v3 == "";
     let v31: Rc<str> = if v19 {
         v9
@@ -712,12 +720,12 @@ fn copy_step_27(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<st
     } else {
         v51
     };
-    let v58: Rc<str> = joined_21(v14, v57);
+    let v58: Rc<str> = joined_25(v14, v57);
     (v58, v53, v16, v17, v18)
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (Rc<str>, bool, u64, u64, u64)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (Rc<str>, bool, u64, u64, u64)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>| -> (Rc<str>, bool, u64, u64, u64) {
-        copy_step_27(v0.clone(), v1.clone(), v2.clone(), v3.clone())
+        copy_step_29(v0.clone(), v1.clone(), v2.clone(), v3.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_do_append_step(v0: &str, v1: &str, v2: &str) -> (Rc<str>, bool, u64, u64) {

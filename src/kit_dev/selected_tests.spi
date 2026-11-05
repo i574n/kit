@@ -122,5 +122,5 @@
         }
 
         """)
-    !!!!Export("kit_dev_selected_scenarios", ((\ root => scenarios root) : string -> i32))
+    export "kit_dev_selected_scenarios" ((\ root => scenarios root) : string -> i32)
     0i32

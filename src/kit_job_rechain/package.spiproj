@@ -3,6 +3,9 @@ packages:
     spiral-
     kit_jobs
     kit_job_after_model
+    kit_process_alive
+link:
+    kit_process_alive
 modules:
     rechain
     entry

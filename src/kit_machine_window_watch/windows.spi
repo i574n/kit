@@ -35,6 +35,6 @@ inl label_job (~label : string) : string = $'std::rc::Rc::<str>::from((&*!label)
         })).collect::<Vec<_>>().join("\n").as_str()) }' : string
 
 := main () : i32 =
-    !!!!Export("kit_machine_windows_lines", ((\ windows => windows_watched windows 0i32 "") : string -> string))
-    !!!!Export("kit_machine_gate_summary", ((\ () => gate_summary ()) : () -> string))
+    export "kit_machine_windows_lines" ((\ windows => windows_watched windows 0i32 "") : string -> string)
+    export "kit_machine_gate_summary" ((\ () => gate_summary ()) : () -> string)
     0i32

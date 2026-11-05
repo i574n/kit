@@ -16,7 +16,7 @@
     }
 
 :| file_drift =
-    | SameOnBoth
+    | Same
     | LeftOnly
     | RightOnly
     | LeftNewer
@@ -30,19 +30,13 @@
 
 :~ drift_of (file : mirrored_file) : file_drift =
     ?= file.left, file.right ?|
-    | Missing, Missing => SameOnBoth
+    | Missing, Missing => Same
     | Present _, Missing => LeftOnly
     | Missing, Present _ => RightOnly
     | Present (left, left_ms), Present (right, right_ms) =>
-        ? left = right ?> SameOnBoth |? left_ms > right_ms ?> LeftNewer |: RightNewer
+        ? left = right ?> Same |? left_ms > right_ms ?> LeftNewer |: RightNewer
 
-:= drift_word (drift : file_drift) : string =
-    ?= drift ?|
-    | SameOnBoth => "same"
-    | LeftOnly => "left-only"
-    | RightOnly => "right-only"
-    | LeftNewer => "left-newer"
-    | RightNewer => "right-newer"
+:~ drift_word (drift : file_drift) : string = union_reflection.cases.union_case_kebab "" drift
 
 := left_moved (drift : file_drift) : bool =
     ?= drift ?|
@@ -61,7 +55,7 @@
         |: Diverged (left ++# " | " ++# right)
     | (file :: rest) =>
         ?= drift_of file ?|
-        | SameOnBoth => mirror_state_of rest left right
+        | Same => mirror_state_of rest left right
         | drift =>
             ? left_moved drift
             ?> mirror_state_of rest (joined_path left file.path) right
@@ -108,5 +102,5 @@
 ///> rust
 :# an_empty_file_is_present_not_missing =
     testing.expect (drift_of (file_at "e" (Present ("", 1u64)) Missing) = LeftOnly) "an empty file on the left only"
-    testing.expect (drift_of (file_at "e" (Present ("", 1u64)) (Present ("", 2u64))) = SameOnBoth) "two empty files agree"
+    testing.expect (drift_of (file_at "e" (Present ("", 1u64)) (Present ("", 2u64))) = Same) "two empty files agree"
     testing.expect (drift_word (drift_of (file_at "e" Missing Missing)) = "same") "absent on both sides"

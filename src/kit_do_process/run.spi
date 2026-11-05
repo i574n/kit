@@ -196,13 +196,11 @@
         (? state.failed ?> "1" |: "0")
 
 := main () : i32 =
-    !!!!Export(
-        "kit_do_process_rejection",
+    export
+        "kit_do_process_rejection"
         ((\ encoded => query_rejection (records_of encoded) 1i32) : string -> string)
-    )
-    !!!!Export(
-        "kit_do_process_after_edits",
+    export
+        "kit_do_process_after_edits"
         ((\ (root, encoded) => after_edits_run root encoded) : string * string -> string)
-    )
-    !!!!Export("kit_do_process_run", ((\ (root, encoded) => run_program_run root encoded) : string * string -> i32))
+    export "kit_do_process_run" ((\ (root, encoded) => run_program_run root encoded) : string * string -> i32)
     0i32

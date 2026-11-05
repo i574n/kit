@@ -46,6 +46,18 @@ $src = Join-Path $KitRoot 'src'
 
 $installed = Join-Path $KitRoot 'kit.exe'
 Say "train $Name on $KitRoot; installed kit.exe $((Get-FileHash $installed).Hash.Substring(0, 8)); results $out"
+. (Join-Path $KitRoot 'compiler-contracts/workspace.ps1')
+if (-not $env:SPIRAL_COMPILER_DLL) {
+    $liveDll = Join-Path $env:LOCALAPPDATA 'spiral-bin\bin\single-flight\SpiralCompiler\Release\net11.0\SpiralCompiler.dll'
+    $pinnedDir = Join-Path $out 'compiler'
+    if (-not (Test-Path -LiteralPath (Join-Path $pinnedDir 'SpiralCompiler.dll'))) { [void](Copy-KitCompilerSnapshot -Compiler $liveDll -Destination $pinnedDir) }
+    $env:SPIRAL_COMPILER_DLL = Join-Path $pinnedDir 'SpiralCompiler.dll'
+}
+function Get-CompilerStamp {
+    $core = Join-Path (Split-Path $env:SPIRAL_COMPILER_DLL) 'SpiralCompilerCore.dll'
+    "host $((Get-FileHash -LiteralPath $env:SPIRAL_COMPILER_DLL).Hash.Substring(0, 16)) core $(if (Test-Path -LiteralPath $core) { (Get-FileHash -LiteralPath $core).Hash.Substring(0, 16) } else { 'none' })"
+}
+Say "compiler pinned at $env:SPIRAL_COMPILER_DLL ($(Get-CompilerStamp))"
 
 if (-not $SkipRegen) {
     Say 'phase regen: every owner (3 compilers in parallel), cargo check, publish'
@@ -93,7 +105,7 @@ $binaryUsers = Get-ChildItem $src -Recurse -File -Filter *.spi | Where-Object { 
 function Get-SourceFiles([string]$dir) {
     foreach ($entry in [IO.Directory]::EnumerateFileSystemEntries($dir)) {
         if ([IO.Directory]::Exists($entry)) { if ([IO.Path]::GetFileName($entry) -notin 'target', '.cache', '.git') { Get-SourceFiles $entry } }
-        elseif ([IO.Path]::GetExtension($entry) -in '.spi', '.spir' -or [IO.Path]::GetFileName($entry) -eq 'package.spiproj') { $entry }
+        elseif ([IO.Path]::GetExtension($entry) -in '.spi', '.spir' -or [IO.Path]::GetFileName($entry) -in 'package.spiproj', 'spiral.toml') { $entry }
     }
 }
 function Get-SourceManifest([string]$root) {
@@ -136,6 +148,12 @@ if ($Verdicts) {
 $spiral = (Resolve-Path -LiteralPath (Join-Path $liveRoot '../spiral')).Path
 $runner = Join-Path $spiral 'apps/cells/spi/run_notebook.ps1'
 $spiralLib = if ($Lib) { (Resolve-Path -LiteralPath $Lib).Path } else { Join-Path $spiral 'lib/spiral' }
+if ($Lib -and $KitRoot -ne $liveRoot) {
+    $nearest = Join-Path $KitRoot 'deps/spiral/lib/spiral'
+    & robocopy $spiralLib $nearest /MIR /NFL /NDL /NJH /NJS /NP | Out-Null
+    if ($LASTEXITCODE -ge 8 -or -not ((Test-Path -LiteralPath (Join-Path $nearest 'package.spiproj')) -or (Test-Path -LiteralPath (Join-Path $nearest 'spiral.toml')))) { Stop-Train "lib snapshot copy into $nearest failed (robocopy exit $LASTEXITCODE)" }
+    $spiralLib = $nearest
+}
 Say "notebooks read the lib at $spiralLib"
 $env:SPIRAL_LIB = $spiralLib
 $env:SPIRAL_CELLS_LIB = $spiralLib
@@ -238,14 +256,15 @@ if ($timedOut.Count) {
 $rows = @($rows | Sort-Object { ($_ -split '\s+')[1] })
 Set-Content (Join-Path $out 'notebooks-verdicts.txt') $rows
 $bad = @($rows | Where-Object { $_ -notmatch '^pass ' })
-Say "phase notebooks: end, $($rows.Count - $bad.Count)/$($rows.Count) pass (notebooks-verdicts.txt)"
+Say "phase notebooks: end, $($rows.Count - $bad.Count)/$($rows.Count) pass (notebooks-verdicts.txt); compiler at end $(Get-CompilerStamp)"
 $bad | ForEach-Object { Say "  $_" }
 if ($NotebooksOnly) { Say 'DONE (notebooks only, nothing installed)'; exit $(if ($bad.Count) { 1 } else { 0 }) }
 if ($bad.Count) { Stop-Train "$($bad.Count) candidate notebooks are not green; nothing installed" }
 }
 
 Say 'phase release: build.ps1 (release build, schema and topology checks, publish kit.exe)'
-& pwsh -NoProfile -File (Join-Path $KitRoot 'build.ps1') -TimeoutMs 3600000 *> (Join-Path $out 'release.log')
+Say "phase release: compiler $env:SPIRAL_COMPILER_DLL ($(Get-CompilerStamp))"
+& pwsh -NoProfile -File (Join-Path $KitRoot 'build.ps1') -TimeoutMs 3600000 -SpiralCompiler $env:SPIRAL_COMPILER_DLL *> (Join-Path $out 'release.log')
 if ($LASTEXITCODE -ne 0) { Get-Content (Join-Path $out 'release.log') -Tail 15 | ForEach-Object { Say "  release: $_" }; Stop-Train 'release build failed; installed kit.exe unchanged' }
 Say "phase release: installed kit.exe $((Get-FileHash $installed).Hash.Substring(0, 8)) ($((Select-String -Path (Join-Path $out 'release.log') -Pattern 'published=').Line))"
 

@@ -135,5 +135,5 @@
     ? flag_given "--gate" ?> gate_run () |: health_normal_run ()
 
 := main () : i32 =
-    !!!!Export("kit_machine_health_run", ((\ () => health_run ()) : () -> i32))
+    export "kit_machine_health_run" ((\ () => health_run ()) : () -> i32)
     0i32

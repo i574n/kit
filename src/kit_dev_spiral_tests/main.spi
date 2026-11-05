@@ -1,6 +1,7 @@
 :< registry
 :< sm'_operators
 :< failures
+:< batches
 
 :~ ^ selected_notebooks
     (root : string) (names : string) (separator : string) (notebooks : list spiral_test_notebook) (~acc : string)
@@ -32,6 +33,18 @@
         := _ = $'eprintln\!("spiral notebooks failed ({}): {}", !count, &*!listed)' : ()
         first_code failures 1i32
 
+:~ ^ batches_run
+    (root : string) (target : string) (timeout : u64) (chunks : list string) (failures : failed_notebooks) (code : i32)
+    : i32
+    =
+    ?= chunks ?|
+    | [] => reported failures code
+    | chunk :: rest =>
+        := outcome = notebook.run_batch root target chunk timeout
+        := batch = notebook.batch_code outcome
+        := failed = failures_of (notebook.batch_failed outcome) 0i32 (? batch = 0i32 ?> 1i32 |: batch) failures
+        batches_run root target timeout rest failed (? code = 0i32 ?> batch |: code)
+
 :~ run_registered
     (root : string) (target : string) (names : string) (separator : string) (dry : bool) (timeout : u64)
     : i32
@@ -40,16 +53,15 @@
     ? dry ?> announced listed 0i32
     |? listed = "" ?> 0i32
     |:
-        := outcome = notebook.run_batch root target listed timeout
-        := code = notebook.batch_code outcome
-        reported (failures_of (notebook.batch_failed outcome) 0i32 (? code = 0i32 ?> 1i32 |: code) NoFailures) code
+        := ordered = \ (kept : list string) (chunk : string) => chunk :: kept
+        := chunks = chunks_from 32i32 (sm'.split_list "\n" listed) "" 0i32 [] |> listm.fold ordered []
+        batches_run root target timeout chunks NoFailures 0i32
 
 := main () : i32 =
-    !!!!Export(
-        "kit_dev_spiral_tests_run",
+    export
+        "kit_dev_spiral_tests_run"
         (
             \ (root, target, names, separator, dry, timeout) => run_registered root target names separator dry timeout
             : string * string * string * string * bool * u64 -> i32
         )
-    )
     0i32

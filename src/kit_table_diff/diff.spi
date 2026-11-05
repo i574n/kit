@@ -197,11 +197,10 @@
     diff_files left right { base ?| key = key; cols = cols; latest = latest; limit = limit }
 
 := main () : i32 =
-    !!!!Export(
-        "kit_table_diff_run",
+    export
+        "kit_table_diff_run"
         (
             \ (left, right, key, cols, latest, limit) => table_diff_run left right key cols latest limit
             : string * string * string * string * string * u64 -> i32
         )
-    )
     0i32

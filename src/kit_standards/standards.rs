@@ -247,7 +247,7 @@ fn rule_words_12(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
                 let mut v2: US1 = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
                 let mut v4: bool = &*v1 == "";
-                let v40: Rc<str> = if v4 {
+                let v28: Rc<str> = if v4 {
                     match &v2 {
                         US1::US1_HostFree => {
                             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("host-free"); } LIT.with(|lit| lit.clone()) };
@@ -281,44 +281,44 @@ fn rule_words_12(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
                         }
                     }
                 } else {
-                    let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                    let mut v22: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v21));
-                    let v38: Rc<str> = match &v2 {
+                    let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
+                    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v15));
+                    let v26: Rc<str> = match &v2 {
                         US1::US1_HostFree => {
-                            let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("host-free"); } LIT.with(|lit| lit.clone()) };
-                            v30.clone()
+                            let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("host-free"); } LIT.with(|lit| lit.clone()) };
+                            v24.clone()
                         }
-                        US1::US1_IntegerOnly(v27) => {
-                            let mut v27: Rc<str> = v27.clone();
-                            let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("integer-only"); } LIT.with(|lit| lit.clone()) };
-                            v28.clone()
+                        US1::US1_IntegerOnly(v21) => {
+                            let v21: Rc<str> = v21.clone();
+                            let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("integer-only"); } LIT.with(|lit| lit.clone()) };
+                            v22.clone()
                         }
                         US1::US1_LfOnly => {
-                            let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lf-only"); } LIT.with(|lit| lit.clone()) };
-                            v26.clone()
+                            let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lf-only"); } LIT.with(|lit| lit.clone()) };
+                            v20.clone()
                         }
                         US1::US1_LibReferenced => {
-                            let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lib-referenced"); } LIT.with(|lit| lit.clone()) };
-                            v31.clone()
-                        }
-                        US1::US1_LineWidth(v24) => {
-                            let v24: i32 = *v24;
-                            let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("line-width"); } LIT.with(|lit| lit.clone()) };
+                            let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lib-referenced"); } LIT.with(|lit| lit.clone()) };
                             v25.clone()
                         }
+                        US1::US1_LineWidth(v18) => {
+                            let mut v18: i32 = *v18;
+                            let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("line-width"); } LIT.with(|lit| lit.clone()) };
+                            v19.clone()
+                        }
                         US1::US1_NoCommentLines => {
-                            let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no-comment-lines"); } LIT.with(|lit| lit.clone()) };
-                            v23.clone()
+                            let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no-comment-lines"); } LIT.with(|lit| lit.clone()) };
+                            v17.clone()
                         }
                         US1::US1_TestTargets => {
-                            let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test-targets"); } LIT.with(|lit| lit.clone()) };
-                            v29.clone()
+                            let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test-targets"); } LIT.with(|lit| lit.clone()) };
+                            v23.clone()
                         }
                     };
-                    let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v38));
-                    v39.clone()
+                    let mut v27: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v26));
+                    v27.clone()
                 };
-                (v0, v1) = (v3.clone(), v40.clone());
+                (v0, v1) = (v3.clone(), v28.clone());
                 continue;
             }
         }

@@ -2,6 +2,9 @@ packages:
     |core-
     spiral-
     workspace_primitives
+    kit_remote_activity
+link:
+    kit_remote_activity
 modules:
     status
     entry

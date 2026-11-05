@@ -9,17 +9,13 @@
     | Story
     | Standup
 
-:= ceremony_word (value : ceremony) : string =
-    ?= value ?|
-    | Backlog => "backlog"
-    | Story => "story"
-    | Standup => "standup"
+:= ceremony_word (value : ceremony) : string = union_reflection.cases.union_case_kebab "" value
 
 := backlog_verbs () : list string =
-    [ "list"; "next"; "plan"; "views"; "view"; "view-add"; "roots"; "check"; "todos"; "links" ]
+    [ "list"; "next"; "plan"; "views"; "view"; "view-add"; "roots"; "check"; "todos"; "links"; "sprint"; "lint" ]
 := story_verbs () : list string =
     [ "add"; "edit"; "show"; "set"; "rename"; "migrate-tags"; "note"; "note-edit"; "notes" ]
-:= standup_verbs () : list string = [ "status"; "handoff" ]
+:= standup_verbs () : list string = [ "status"; "handoff"; "cadence" ]
 
 :~ ceremony_of_subcommand (~subcommand : string) : option ceremony =
     ? listm'.contains subcommand (backlog_verbs ()) ?> Some Backlog
@@ -47,8 +43,7 @@
 
 ///> _
 := main () : i32 =
-    !!!!Export(
-        "kit_ceremony_admits",
+    export
+        "kit_ceremony_admits"
         ((\ (word, subcommand) => ceremony_admits word subcommand) : string * string -> bool)
-    )
     0i32

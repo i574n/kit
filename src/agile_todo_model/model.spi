@@ -37,10 +37,10 @@
     | SkipPath : path_skip
 
 :| content_verdict =
-    | ScanContent
-    | SkipBinary
-    | SkipLarge
-    | SkipUnreadable
+    | ContentScan
+    | ContentBinary
+    | ContentLarge
+    | ContentUnreadable
 
 :| todo_match =
     | NoTodo
@@ -213,9 +213,9 @@
 :~ path_verdict_of_code (code : i32) : path_verdict =
     ? 0i32 < code ?> ScanPath (case_at code CFamily) |: SkipPath (case_at (0i32 - code) SkipUnknownSyntax)
 := size_verdict (size : u64) : content_verdict =
-    ? (size > (largest_scanned_bytes ())) ?> SkipLarge |: ScanContent
+    ? (size > (largest_scanned_bytes ())) ?> ContentLarge |: ContentScan
 
-:= bytes_verdict (has_nul : bool) : content_verdict = ? has_nul ?> SkipBinary |: ScanContent
+:= bytes_verdict (has_nul : bool) : content_verdict = ? has_nul ?> ContentBinary |: ContentScan
 
 := identifier_byte (code : i32) : bool =
     ? both (65i32 <= code) (code <= 90i32) ?> !+
@@ -319,10 +319,10 @@
 
 :~ counted_content (tally : scan_tally) (verdict : content_verdict) : scan_tally =
     ?= verdict ?|
-    | ScanContent => { tally ?| scanned = (tally.scanned + 1i32) }
-    | SkipBinary => { tally ?| binary = (tally.binary + 1i32) }
-    | SkipLarge => { tally ?| large = (tally.large + 1i32) }
-    | SkipUnreadable => { tally ?| unreadable = (tally.unreadable + 1i32) }
+    | ContentScan => { tally ?| scanned = (tally.scanned + 1i32) }
+    | ContentBinary => { tally ?| binary = (tally.binary + 1i32) }
+    | ContentLarge => { tally ?| large = (tally.large + 1i32) }
+    | ContentUnreadable => { tally ?| unreadable = (tally.unreadable + 1i32) }
 
 :~ counted_todos (tally : scan_tally) (found : i32) : scan_tally = { tally ?| todos = i32_add tally.todos found }
 
@@ -581,12 +581,7 @@
     | SkipPath (SkipGeneratedOutput) => "generated"
     | SkipPath (SkipLinkedEntry) => "link"
 
-:= content_label (verdict : content_verdict) : string =
-    ?= verdict ?|
-    | ScanContent => "scan"
-    | SkipBinary => "binary"
-    | SkipLarge => "large"
-    | SkipUnreadable => "unreadable"
+:~ content_label (verdict : content_verdict) : string = union_reflection.cases.union_case_kebab "Content" verdict
 
 := labelled (~actual : string) (~expected : string) : () =
     expect
@@ -734,7 +729,7 @@
             (
                 counted_content
                     (counted_path (counted_path (empty_tally ()) (ScanPath CFamily)) (SkipPath SkipGeneratedOutput))
-                    ScanContent
+                    ContentScan
             )
             2i32
     expect

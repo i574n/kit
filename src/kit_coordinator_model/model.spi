@@ -66,12 +66,19 @@
     | Running
     | Settled
 
-:= status_after (status : job_status) (word : string) (job : job_id) : option job_status =
-    ?= status ?|
-    | Queued => ? word = "lease" ?> Some (LeasedOn job) |: None
-    | LeasedOn _ => ? word = "start" ?> Some Running |? word = "expire" ?> Some Queued |: None
-    | Running => ? word = "settle" ?> Some Settled |: None
-    | Settled => None
+:| job_event =
+    | Leasing
+    | Starting
+    | Expiring
+    | Settling
+
+:= status_after (status : job_status) (event : job_event) (job : job_id) : option job_status =
+    ?= status, event ?|
+    | Queued, Leasing => Some (LeasedOn job)
+    | LeasedOn _, Starting => Some Running
+    | LeasedOn _, Expiring => Some Queued
+    | Running, Settling => Some Settled
+    | _ => None
 
 := id_text (job : job_id) : string =
     ?= job ?|
@@ -86,11 +93,11 @@
     testing.expect (second = SlotBusy a) "a held slot refuses a second lease and names its holder"
     testing.expect (released (Held a) b = Held a) "only the holder releases"
     testing.expect (released (Held a) a = Free) "the holder frees the slot"
-    testing.expect (status_after Queued "start" a = None) "a queued job cannot start without a lease"
+    testing.expect (status_after Queued Starting a = None) "a queued job cannot start without a lease"
     := step s w = ?= s ?| | Some st => status_after st w a | None => None
-    := walked = [ "lease"; "start"; "settle" ] |> listm.fold step (Some Queued)
+    := walked = [ Leasing; Starting; Settling ] |> listm.fold step (Some Queued)
     testing.expect (walked = Some Settled) "lease, start, settle reaches Settled"
-    testing.expect (status_after Settled "lease" a = None) "a settled job never moves again"
+    testing.expect (status_after Settled Leasing a = None) "a settled job never moves again"
 
 ///> rust
 :# a_plan_that_skips_start_does_not_typecheck fails "Unification failure" =
@@ -100,4 +107,4 @@
 :# the_slot_rules_hold_on_the_gleam_target_too =
     := a = JobId "job-a"
     testing.expect (leased (Held a) (JobId "job-b") = SlotBusy a) "gleam: a held slot refuses"
-    testing.expect (status_after (LeasedOn a) "expire" a = Some Queued) "gleam: an expired lease requeues"
+    testing.expect (status_after (LeasedOn a) Expiring a = Some Queued) "gleam: an expired lease requeues"

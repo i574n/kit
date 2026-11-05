@@ -1,5 +1,6 @@
 packages:
     |core-
+    spiral-
     typed_predicate
     binary_install_contract
     release_closeout_contract

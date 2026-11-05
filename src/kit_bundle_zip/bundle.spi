@@ -145,40 +145,31 @@
     := _ = bundle_workspace_members_parse "members=[\"a\"]"
 
     archive_terminal.emit_runtime ()
-    !!!!Export(
-        "kit_flat_bundle_preflight_binding",
+    export
+        "kit_flat_bundle_preflight_binding"
         ((\ (first, second) => flat_preflight_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_flat_bundle_manifest_binding",
+    export
+        "kit_flat_bundle_manifest_binding"
         ((\ (first, second) => flat_manifest_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_flat_bundle_size_binding",
+    export
+        "kit_flat_bundle_size_binding"
         ((\ (first, second) => flat_size_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_flat_bundle_compression_binding",
+    export
+        "kit_flat_bundle_compression_binding"
         ((\ (first, second) => flat_compression_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_flat_bundle_complete_binding",
+    export
+        "kit_flat_bundle_complete_binding"
         ((\ (first, second) => flat_complete_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_bundle_profile_resolve_binding",
+    export
+        "kit_bundle_profile_resolve_binding"
         ((\ (first, second) => bundle_profile_resolve_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_bundle_manifest_mapping_binding",
+    export
+        "kit_bundle_manifest_mapping_binding"
         ((\ (first, second) => bundle_manifest_authority_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_bundle_archive_root_shape_binding",
+    export
+        "kit_bundle_archive_root_shape_binding"
         ((\ (first, second) => bundle_archive_root_shape_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_bundle_workspace_members_parse",
+    export
+        "kit_bundle_workspace_members_parse"
         ((\ value => bundle_workspace_members_parse value) : string -> string)
-    )
     0i32

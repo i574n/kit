@@ -1,0 +1,30 @@
+///- --package . --timeout 900000
+
+:~ process_alive (~pid : u64) : bool = pid = 0u64 || kit_os_process.process.process_running (convert.convert pid)
+
+:~ owner_running ((pid, start_ms) : u64 * u64) : bool =
+    pid > 0u64 && kit_os_process.process.process_started_at (convert.convert pid) start_ms
+
+:~ home_abandoned ((home, host_pid) : string * u64) : bool =
+    := number = \ (text : string) => optionm'.default_value 0u64 (convert.try_convert text)
+    ?= sm'.split_list "-" home ?|
+    | pid :: start :: [] =>
+        owner_running (number pid, number start) |> not && (host_pid = 0u64 || process_alive host_pid |> not)
+    | _ => !-
+
+///> rust --deps sysinfo="0.38.4"
+:# pid_zero_and_a_listed_process_are_alive =
+    testing.expect (process_alive 0u64) "pid 0 names no process to wait on"
+    testing.expect (process_alive (convert.convert (kit_os_process.process.own_pid ()))) "this process is alive"
+    testing.expect (process_alive 4294967290u64 |> not) "an unused pid is not alive"
+    testing.expect (owner_running (0u64, 1u64) |> not && owner_running (4294967290u64, 1u64) |> not) "no owner"
+    := own = convert.convert (kit_os_process.process.own_pid ())
+    testing.expect (home_abandoned ("4294967290-1000", 0u64)) "owner and host both gone"
+    testing.expect (home_abandoned ("4294967290-1000", own) |> not) "a live host keeps its holds"
+    testing.expect (home_abandoned ("", 0u64) |> not && home_abandoned ("shell", 0u64) |> not) "no parsable owner"
+///> _
+:= main () : i32 =
+    export "kit_process_alive" process_alive
+    export "kit_process_owner_running" owner_running
+    export "kit_process_home_abandoned" home_abandoned
+    0i32

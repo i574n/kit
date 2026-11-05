@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "cells.spi"
+output = "cells.rs"
+
+[package]
+name = "kit-exec-cells"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_exec_cells"
+path = "cells.rs"
+
+[dependencies]
+serde_json = "1.0.151"

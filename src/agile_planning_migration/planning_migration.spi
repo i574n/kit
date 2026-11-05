@@ -199,6 +199,6 @@
     |: migration_failure "migrate-tags expects preview <root> or apply <root>"
 
 := main () : i32 =
-    !!!!Export("kit_agile_migrate_tags_run", ((\ () => tags_migration_entry ()) : () -> i32))
+    export "kit_agile_migrate_tags_run" ((\ () => tags_migration_entry ()) : () -> i32)
     := _ = tags_migration_entry ()
     0i32

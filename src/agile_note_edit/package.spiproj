@@ -1,11 +1,13 @@
 packages:
     |core-
     workspace_primitives
-    rust_std_env
+    agile_note_edit_args
     spiral-
     rust_std_fs
     agile_mutation_policy
     agile_task_text
     agile_note_model
+link:
+    agile_note_edit_args
 modules:
     note_edit

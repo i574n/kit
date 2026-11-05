@@ -88,5 +88,5 @@
                 2i32
 
 := main () : i32 =
-    !!!!Export("kit_guide_run", ((\ () => guide_run ()) : () -> i32))
+    export "kit_guide_run" ((\ () => guide_run ()) : () -> i32)
     0i32

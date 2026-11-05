@@ -1,0 +1,192 @@
+///- --package .
+:# ledger static =
+    :< sm'_operators
+    :< kit_gauge_model.gauge
+
+:< sm'_operators
+:< kit_gauge_model.gauge
+
+:| rubric_id =
+    | RubricId : string
+
+:| rubric_version =
+    | RubricVersion : u64
+
+:| model_id =
+    | ModelId : string
+
+:| content_hash =
+    | ContentHash : string
+
+:| backend_answer =
+    | Beam
+    | Native
+    | EitherWithReason : string
+
+:== xsd_reading = { complete : bool; wildcards : i32; modeled : i32; declared : i32 }
+
+:| verdict_answer =
+    | BackendAnswer : backend_answer
+    | XsdReading : xsd_reading
+
+:== verdict =
+    {
+        target : unit_id
+        hash : content_hash
+        rubric : rubric_id
+        version : rubric_version
+        model : model_id
+        answer : verdict_answer
+    }
+
+:== unit_state = { target : unit_id; hash : content_hash }
+
+:| verdict_standing =
+    | VerdictCurrent
+    | VerdictStale
+
+:~ verdict_standing_of
+    (tree : list unit_state) (rubric : rubric_id) (version : rubric_version) (v : verdict)
+    : verdict_standing
+    =
+    := unchanged = listm.fold (\ found (u : unit_state) => found || (u.target = v.target && u.hash = v.hash)) !- tree
+    ? v.rubric = rubric && v.version <> version ?> VerdictStale
+    |? unchanged ?> VerdictCurrent
+    |: VerdictStale
+
+:~ current_verdicts
+    (tree : list unit_state) (rubric : rubric_id) (version : rubric_version) (ledger : list verdict)
+    : list verdict
+    =
+    ledger |> listm'.filter (\ (v : verdict) => verdict_standing_of tree rubric version v = VerdictCurrent)
+
+:= unit_at (~name : string) (~hash : string) : unit_state = { target = UnitId name; hash = ContentHash hash }
+
+:= verdict_at (~name : string) (~hash : string) (version : u64) (backend : backend_answer) : verdict =
+    {
+        target = UnitId name
+        hash = ContentHash hash
+        rubric = RubricId "backend"
+        version = RubricVersion version
+        model = ModelId "judge"
+        answer = BackendAnswer backend
+    }
+
+:= verdict_of
+    (~target : string) (~hash : string) (~rubric : string) (version : u64) (~model : string) (answer : verdict_answer)
+    : verdict
+    =
+    {
+        target = UnitId target
+        hash = ContentHash hash
+        rubric = RubricId rubric
+        version = RubricVersion version
+        model = ModelId model
+        answer = answer
+    }
+
+:~ same_slot (a : verdict) (b : verdict) : bool = a.target = b.target && a.rubric = b.rubric && a.model = b.model
+
+:~ ledger_recorded (ledger : list verdict) (v : verdict) : list verdict =
+    := kept = ledger |> listm'.filter (\ (old : verdict) => same_slot old v |> not)
+    listm.rev (v :: listm.rev kept)
+
+:~ quoted (~text : string) : string = "\"" ++# (text |> sm'.replace "\\" "\\\\" |> sm'.replace "\"" "\\\"") ++# "\""
+
+:~ backend_source (answer : backend_answer) : string =
+    ?= answer ?|
+    | Beam => "Beam"
+    | Native => "Native"
+    | EitherWithReason reason => "(EitherWithReason " ++# quoted reason ++# ")"
+
+:~ flag_source (value : bool) : string = ? value ?> "!+" |: "!-"
+
+:~ answer_source (answer : verdict_answer) : string =
+    ?= answer ?|
+    | BackendAnswer backend => "(BackendAnswer " ++# backend_source backend ++# ")"
+    | XsdReading r =>
+        "(XsdReading { complete = "
+        ++# flag_source r.complete
+        ++# "; wildcards = "
+        ++# sm'.show r.wildcards
+        ++# "i32; modeled = "
+        ++# sm'.show r.modeled
+        ++# "i32; declared = "
+        ++# sm'.show r.declared
+        ++# "i32 })"
+
+:~ verdict_source (v : verdict) : string =
+    ?= v.target, v.hash, v.rubric, v.version, v.model ?|
+    | UnitId t, ContentHash h, RubricId r, RubricVersion n, ModelId m =>
+        "verdict_of " ++# quoted t ++# " " ++# quoted h ++# " " ++# quoted r ++# " " ++# sm'.show n ++# "u64 "
+        ++# quoted m ++# " " ++# answer_source v.answer
+
+:~ ledger_source (ledger : list verdict) : string =
+    := row = \ (rows : string) (v : verdict) => rows ++# "        " ++# verdict_source v ++# "\n"
+    "///- --no-respell\n:< kit_gauge_ledger.ledger\n\n:= ledger () : list verdict =\n    [\n"
+    ++# (ledger |> listm.fold row "")
+    ++# "    ]\n"
+
+///> rust
+:# a_content_change_invalidates_only_that_units_verdicts =
+    := ledger = [ verdict_at "a" "h1" 1u64 Beam; verdict_at "b" "h2" 1u64 Native ]
+    := tree = [ unit_at "a" "h1"; unit_at "b" "h2" ]
+    := rubric = RubricId "backend"
+    := v1 = RubricVersion 1u64
+    testing.expect (listm.length (current_verdicts tree rubric v1 ledger) = 2i32) "an unchanged tree keeps both"
+    := edited = [ unit_at "a" "h1"; unit_at "b" "h3" ]
+    testing.expect (listm.length (current_verdicts edited rubric v1 ledger) = 1i32) "only b goes stale"
+
+///> rust
+:# a_rubric_version_bump_invalidates_every_verdict_of_that_rubric =
+    := ledger = [ verdict_at "a" "h1" 1u64 Beam; verdict_at "b" "h2" 1u64 (EitherWithReason "both fit") ]
+    := tree = [ unit_at "a" "h1"; unit_at "b" "h2" ]
+    := v2 = RubricVersion 2u64
+    testing.expect (listm.length (current_verdicts tree (RubricId "backend") v2 ledger) = 0i32) "bumped"
+    testing.expect (listm.length (current_verdicts tree (RubricId "style") v2 ledger) = 2i32) "other rubric"
+
+///> rust
+:# replaying_an_unchanged_tree_with_the_ledger_gives_the_same_verdicts =
+    := ledger = [ verdict_at "a" "h1" 1u64 Beam; verdict_at "b" "h2" 1u64 Native; verdict_at "c" "h9" 1u64 Native ]
+    := tree = [ unit_at "a" "h1"; unit_at "b" "h2"; unit_at "c" "h3" ]
+    := rubric = RubricId "backend"
+    := v1 = RubricVersion 1u64
+    := first = current_verdicts tree rubric v1 ledger
+    testing.expect (first = current_verdicts tree rubric v1 ledger) "a replay gives identical verdicts"
+    testing.expect (listm.length first = 2i32) "c's content changed, so only a and b stand"
+
+///> rust
+:# the_ledger_persists_as_a_typed_state_module =
+    := ledger = [ verdict_at "a" "h1" 1u64 Beam; verdict_at "b" "h2" 2u64 (EitherWithReason "both \"fit\"") ]
+    := text = ledger_source ledger
+    := expected =
+        "///- --no-respell\n:< kit_gauge_ledger.ledger\n\n:= ledger () : list verdict =\n    [\n"
+        ^^ "        verdict_of \"a\" \"h1\" \"backend\" 1u64 \"judge\" (BackendAnswer Beam)\n"
+        ^^ "        verdict_of \"b\" \"h2\" \"backend\" 2u64 \"judge\" "
+        ^^ "(BackendAnswer (EitherWithReason \"both \\\"fit\\\"\"))\n"
+        ^^ "    ]\n"
+    testing.expect (text = expected) text
+    testing.expect
+        (verdict_of "a" "h1" "backend" 1u64 "judge" (BackendAnswer Beam) = verdict_at "a" "h1" 1u64 Beam)
+        "a persisted row rebuilds the same verdict"
+    := reading = XsdReading { complete = !-; wildcards = 2i32; modeled = 7i32; declared = 8i32 }
+    := xsd = verdict_of "saft-pt" "x1" "xsd-completeness" 1u64 "census" reading
+    testing.expect
+        (
+            verdict_source xsd
+            = (
+                "verdict_of \"saft-pt\" \"x1\" \"xsd-completeness\" 1u64 \"census\" "
+                ^^ "(XsdReading { complete = !-; wildcards = 2i32; modeled = 7i32; declared = 8i32 })"
+            )
+        )
+        (verdict_source xsd)
+
+///> rust
+:# recording_a_verdict_replaces_that_units_rubric_slot =
+    := ledger = [ verdict_at "a" "h1" 1u64 Beam; verdict_at "b" "h2" 1u64 Native ]
+    := newer = verdict_at "a" "h5" 2u64 Native
+    := recorded = ledger_recorded ledger newer
+    testing.expect (listm.length recorded = 2i32) "the old verdict for a gives way"
+    testing.expect (recorded = [ verdict_at "b" "h2" 1u64 Native; newer ]) "the newest verdict comes last"
+    := other = verdict_of "a" "h1" "style" 1u64 "judge" (BackendAnswer Beam)
+    testing.expect (listm.length (ledger_recorded ledger other) = 3i32) "another rubric keeps its own slot"

@@ -17,7 +17,7 @@
 := row_text (head : string) (ctor : string) (fields : list string) : string =
     sm'.concat_list "" [ "inl "; head; " () = "; ctor; " ("; sm'.concat_list ", " fields; ")" ]
 
-:= sprint_row (s : sprint) : string =
+:~ sprint_row (s : sprint) : string =
     := t = s.terms
     := fields = [ quoted t.id; quoted t.goal; quoted t.start; quoted t.finish; status_word s.status ]
     row_text ("sprint_" ++# binding_of t.id) "Sprint" fields
@@ -35,16 +35,16 @@
 
 := field (parts : array string) (index : i32) : string = am'.index index parts
 
-:= minutes_of (text : string) : i32 =
+:~ minutes_of (text : string) : i32 =
     ?= sm'.split_list "," text ?|
     | _ :: minutes :: _ => convert.try_convert (sm'.trim (sm'.replace "i32" "" minutes)) |> optionm'.default_value 0i32
     | _ => 0i32
 
-:= item_line (line : string) (parts : array string) : sprint_line =
+:~ item_line (line : string) (parts : array string) : sprint_line =
     := fate = ? sm'.ends_with "Dropped)" line ?> Dropped |: Committed
     ItemLine (field parts 1i32, { task = field parts 3i32; minutes = minutes_of (field parts 4i32); fate = fate })
 
-:= head_line (parts : array string) : sprint_line =
+:~ head_line (parts : array string) : sprint_line =
     := terms = { id = field parts 1i32; goal = field parts 3i32; start = field parts 5i32; finish = field parts 7i32 }
     SprintLine (terms, ? sm'.contains "SprintClosed" (field parts 8i32) ?> SprintClosed |: SprintOpen)
 
@@ -57,18 +57,129 @@
 
 := head_of (acc : list sprint) (line : sprint_line) : list sprint =
     ?= line ?|
+    | SprintLine (t, st) ?& listm'.exists' (\ (old : sprint) => old.terms.id = t.id) acc =>
+        := latest = { terms = t; status = st; items = [] }
+        acc |> listm.map (\ (old : sprint) => ? old.terms.id = t.id ?> latest |: old)
     | SprintLine (t, st) => { terms = t; status = st; items = [] } :: acc
     | _ => acc
 
 := items_of (id : string) (acc : list sprint_item) (line : sprint_line) : list sprint_item =
     ?= line ?|
-    | ItemLine (owner, item) => ? owner = id ?> item :: acc |: acc
+    | ItemLine (owner, item) ?& owner = id =>
+        ? listm'.exists' (\ (old : sprint_item) => old.task = item.task) acc
+        ?> acc |> listm.map (\ (old : sprint_item) => ? old.task = item.task ?> item |: old)
+        |: item :: acc
     | _ => acc
 
-:= sprints_of (text : string) : list sprint =
+:~ sprint_review_row (id : string) (r : sprint_review) : string =
+    := minutes =
+        [ r.done_minutes; r.carried_minutes; r.dropped_minutes ] |> listm.map (\ (m : i32) => sm'.show m ++# "i32")
+    row_text ("sprint_review_" ++# binding_of id) "SprintReview" (quoted id :: minutes)
+
+:~ review_of_line (line : string) : option sprint_review =
+    ? sm'.starts_with "inl sprint_review_" line |> not ?> None
+    |:
+        := parts = sm'.split "\"" line |> array
+        ? am'.length parts < 3i32 ?> None
+        |:
+            := number = \ (text : string) =>
+                := digits = sm'.trim (sm'.replace ")" "" (sm'.replace "i32" "" text))
+                convert.try_convert digits |> optionm'.default_value 0i32
+            ?= sm'.split_list "," (field parts 2i32) ?|
+            | _ :: done :: carried :: dropped :: _ =>
+                := c = number carried
+                := d = number done
+                Some { done_minutes = d; carried_minutes = c; dropped_minutes = number dropped; goal_met = c = 0i32 }
+            | _ => None
+
+:~ reviews_of (text : string) : list sprint_review =
+    sm'.split_list "\n" (sm'.replace "\r" "" text)
+    |> listm.fold
+        (\ (acc : list sprint_review) (line : string) =>
+            ?= review_of_line line ?|
+            | Some r => r :: acc
+            | None => acc
+        )
+        []
+    |> listm.rev
+
+:~ sprints_of (text : string) : list sprint =
     := lines = sm'.split_list "\n" (sm'.replace "\r" "" text) |> listm.map sprint_line_of
     := attach (s : sprint) : sprint = { s ?| items = lines |> listm.fold (items_of s.terms.id) [] |> listm.rev }
     lines |> listm.fold head_of [] |> listm.rev |> listm.map attach
+
+:== sprint_flat =
+    {
+        id : string
+        goal : string
+        start : string
+        finish : string
+        running : bool
+        task : string
+        minutes : i32
+        committed : bool
+    }
+
+:== review_flat = { done : i32; carried : i32; dropped : i32 }
+
+:~ flat_of (s : sprint) : list sprint_flat =
+    := t = s.terms
+    := row = \ (task : string) (minutes : i32) (committed : bool) =>
+        {
+            id = t.id
+            goal = t.goal
+            start = t.start
+            finish = t.finish
+            running = s.status = SprintOpen
+            task = task
+            minutes = minutes
+            committed = committed
+        }
+    ? s.items = [] ?> [ row "" 0i32 !+ ]
+    |: s.items |> listm.map (\ (i : sprint_item) => row i.task i.minutes (i.fate = Committed))
+
+:~ sprints_from (rows : array_base sprint_flat) : list sprint =
+    := step = \ (acc : list sprint) (r : sprint_flat) =>
+        := item = { task = r.task; minutes = r.minutes; fate = ? r.committed ?> Committed |: Dropped }
+        := items = ? r.task = "" ?> [] |: [ item ]
+        ?= acc ?|
+        | s :: rest ?& s.terms.id = r.id => { s ?| items = listm.append s.items items } :: rest
+        | _ =>
+            := terms = { id = r.id; goal = r.goal; start = r.start; finish = r.finish }
+            { terms = terms; status = ? r.running ?> SprintOpen |: SprintClosed; items = items } :: acc
+    am'.to_list_base' rows |> listm'.unbox |> listm.fold step [] |> listm.rev
+
+:~ reviews_from (rows : array_base review_flat) : list sprint_review =
+    am'.to_list_base' rows
+    |> listm'.unbox
+    |> listm.map (\ (r : review_flat) =>
+        { done_minutes = r.done; carried_minutes = r.carried; dropped_minutes = r.dropped; goal_met = r.carried = 0i32 }
+    )
+
+:= sprints_schema_text () : string =
+    := statuses =
+        union_reflection.cases.union_cases_joined
+            (\ (status : sprint_status) => union_reflection.cases.union_case_suffix "" status)
+            " :: sprint_status_row\n    | "
+    := fates =
+        union_reflection.cases.union_cases_joined
+            (\ (fate : item_fate) => union_reflection.cases.union_case_suffix "" fate)
+            " :: item_fate_row\n    | "
+    "///- --no-respell\nunion sprint_status_row =\n    | "
+    ++# statuses
+    ++# " :: sprint_status_row\n\nunion item_fate_row =\n    | "
+    ++# fates
+    ++# " :: item_fate_row\n\nunion sprint_row =\n"
+    ++# "    | Sprint :: string * string * string * string * sprint_status_row -> sprint_row\n"
+    ++# "    | SprintItem :: string * string * i32 * item_fate_row -> sprint_row\n"
+    ++# "    | SprintReview :: string * i32 * i32 * i32 -> sprint_row\n"
+
+:~ sprints_appended (existing : string) (s : sprint) : string =
+    := base =
+        ? existing = "" ?> sprints_schema_text () ++# "\n"
+        |? sm'.ends_with "\n" existing ?> existing
+        |: existing ++# "\n"
+    base ++# sm'.concat_list "\n" (sprint_rows s) ++# "\n"
 
 ///> rust
 :# sprint_rows_round_trip_through_the_state_text =
@@ -80,3 +191,35 @@
     testing.expect (sprints_of text = [ s ]) "the sprint and both items read back, other rows ignored"
     := closed = { s ?| status = SprintClosed }
     testing.expect (sprints_of (sm'.concat_list "\n" (sprint_rows closed)) = [ closed ]) "a closed sprint stays closed"
+
+///> rust
+:# appending_a_sprint_never_rewrites_existing_rows =
+    := a = { task = "KIT-A"; minutes = 60i32; fate = Committed }
+    := s1 = { terms = fixture_terms "S-1"; status = SprintOpen; items = [ a ] }
+    := s2 = { terms = fixture_terms "S-2"; status = SprintOpen; items = [] }
+    := first = sprints_appended "" s1
+    := second = sprints_appended first s2
+    testing.expect (sm'.starts_with (sprints_schema_text ()) first) "a new file declares its unions first"
+    testing.expect (sm'.starts_with first second) "the earlier text is an untouched prefix"
+    testing.expect (sprints_of second = [ s1; s2 ]) "both sprints read back in order"
+    := schema = sprints_schema_text ()
+    := statuses = "    | SprintOpen :: sprint_status_row\n    | SprintClosed :: sprint_status_row\n"
+    testing.expect (sm'.contains statuses schema) schema
+    testing.expect (sm'.contains "    | Committed :: item_fate_row\n    | Dropped :: item_fate_row\n" schema) schema
+
+///> rust
+:# a_later_item_row_replaces_the_earlier_one_for_that_task =
+    := a = { task = "KIT-A"; minutes = 60i32; fate = Committed }
+    := s = { terms = fixture_terms "S-1"; status = SprintOpen; items = [ a ] }
+    := dropped = sprint_item_row "S-1" { a ?| fate = Dropped }
+    := text = sprints_appended "" s ++# dropped ++# "\n"
+    testing.expect (sprints_of text = [ { s ?| items = [ { a ?| fate = Dropped } ] } ]) "the drop row wins, one item"
+
+///> rust
+:# a_closed_sprint_and_its_review_read_back =
+    := s = { terms = fixture_terms "S-1"; status = SprintOpen; items = [] }
+    := closed = { s ?| status = SprintClosed }
+    := review = { done_minutes = 60i32; carried_minutes = 45i32; dropped_minutes = 0i32; goal_met = !- }
+    := text = sprints_appended "" s ++# sprint_row closed ++# "\n" ++# sprint_review_row "S-1" review ++# "\n"
+    testing.expect (sprints_of text = [ closed ]) "the closed head row wins"
+    testing.expect (reviews_of text = [ review ]) "the review reads back"

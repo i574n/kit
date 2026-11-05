@@ -76,10 +76,8 @@
     |? should_wrap ?> LeaseWrapping
     |: LeaseRunning
 
-:= lease_phase_text = \|
-    | LeaseRunning => "running"
-    | LeaseWrapping => "wrapping"
-    | LeaseExpired => "expired"
+:= lease_phase_text (value : lease_phase) : string =
+    union_reflection.cases.union_case_kebab "Lease" value
 
 := u64_text (value : u64) : string = (sm'.show value)
 := u64_div (a : u64) (b : u64) : u64 = (a / b)
@@ -133,15 +131,14 @@
     (head ++# readable ++# remaining_text) ++# flags ++# raw_start ++# raw_end
 
 := main () : i32 =
-    !!!!Export("kit_lease_effect_code", ((\ () => lease_effect_entry ()) : () -> i32))
-    !!!!Export("kit_lease_policy_text", ((\ () => lease_policy_entry ()) : () -> string))
-    !!!!Export(
-        "kit_lease_status_text",
+    export "kit_lease_effect_code" ((\ () => lease_effect_entry ()) : () -> i32)
+    export "kit_lease_policy_text" ((\ () => lease_policy_entry ()) : () -> string)
+    export
+        "kit_lease_status_text"
         (
             \ (root, started, wrap_at, deadline, remaining, should_wrap, should_yield) =>
                 lease_status_entry root started wrap_at deadline remaining should_wrap should_yield
             : string * u64 * u64 * u64 * u64 * bool * bool -> string
         )
-    )
     := _ = lease_effect_entry ()
     0i32

@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_job_start_args"
 path = "start_args.rs"
+
+[dependencies]
+kit-flag-words = { path = "../kit_flag_words" }

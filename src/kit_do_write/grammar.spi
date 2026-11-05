@@ -3,10 +3,12 @@
     :< sm'_operators
     :< kit_do_write_host.host
     :< kit_do_records.records
+    :< kit_do_verbs.verbs
 
 :< sm'_operators
 :< kit_do_write_host.host
 :< kit_do_records.records
+:< kit_do_verbs.verbs
 
 :| write_mode =
     | CreateOnly
@@ -61,21 +63,26 @@
     |? quoted_at records record text_at = !- ?> WriteRejected "write: expected the <<< block after the file"
     |: WriteParsed (WriteFile (path, body_at records record text_at, ? overwrite ?> Overwrite |: CreateOnly))
 
+:~ file_step_parsed (~records : record_list) (~record : i32) (step : write_verb) : write_parse =
+    ?= step ?|
+    | FileAppend => append_parsed records record
+    | FileCopy => copy_parsed records record
+    | FileMove => move_parsed records record
+    | FileWrite => file_write_parsed records record
 :~ write_parsed (~records : record_list) (~record : i32) : write_parse =
     := kind = field_at records record 0i32
     := verb = field_at records record 1i32
     ? kind = "" ?> WriteParsed Blank
     |? kind <> "query"
     ?> WriteRejected "edit and write statements cannot share one program yet; run them as two calls"
-    |? verb = "append" ?> append_parsed records record
-    |? verb = "copy" ?> copy_parsed records record
-    |? verb = "move" ?> move_parsed records record
-    |? verb = "write" ?> file_write_parsed records record
     |:
-        ?= kit_do_model.model.query_verb_named verb ?|
-        | Some _ => WriteParsed ReadAfter
+        ?= write_named verb ?|
+        | Some step => file_step_parsed records record step
         | None =>
-            WriteRejected (verb ++# " cannot share one program with append, copy or move yet; run it as its own call")
+            ?= kit_do_model.model.query_verb_named verb ?|
+            | Some _ => WriteParsed ReadAfter
+            | None =>
+                WriteRejected (verb ++# " cannot share one program with append, copy or move yet; run it as its own call")
 
 
 := rejection_at (~records : record_list) (~record : i32) : string =

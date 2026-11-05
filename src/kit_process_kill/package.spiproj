@@ -1,6 +1,7 @@
 packages:
     |core-
     spiral-
+    union_reflection
     kit_receipt
     kit_machine_watch
     kit_jobs

@@ -2,7 +2,6 @@ packages:
     |core-
     spiral-
     union_reflection
-    rust_std_env
     workspace_primitives
     kit_receipt
     kit_jobs

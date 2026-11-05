@@ -138,7 +138,7 @@ function Copy-Workspace([string]$From, [string]$To) {
 Copy-Workspace $KitRoot $staged
 $spiralLib = Join-Path $CompilerBundle '../../../lib/spiral'
 $libReaders = @(Get-ChildItem -LiteralPath (Join-Path $staged 'src') -Directory | Where-Object { $project = Join-Path $_.FullName 'package.spiproj'; [IO.File]::Exists($project) -and [IO.File]::ReadAllText($project) -match '(?m)^\s*\|?spiral-\s*$' })
-$libPresent = Test-Path -LiteralPath (Join-Path $spiralLib 'package.spiproj')
+$libPresent = (Test-Path -LiteralPath (Join-Path $spiralLib 'package.spiproj')) -or (Test-Path -LiteralPath (Join-Path $spiralLib 'spiral.toml'))
 if ($libReaders.Count -and -not $libPresent) { throw "Spiral lib not found at $spiralLib; $($libReaders[0].Name) and $($libReaders.Count - 1) other packages reference it as spiral-." }
 $stagedLib = Join-Path $staged 'src/spiral'
 $libRoot = if ($libPresent) { (Resolve-Path -LiteralPath $spiralLib).Path } else { '' }
@@ -148,7 +148,7 @@ if ($FrozenLib) {
     $libRoot = (Resolve-Path -LiteralPath (Join-Path $FrozenLib 'spiral')).Path
     Write-Host "Compiling against the frozen lib $libRoot (SPIRAL_LIB_ROOT)"
 }
-foreach ($file in $(if ($libRoot) { Get-ChildItem -LiteralPath $libRoot -Recurse -File -Include *.spi, *.spir, package.spiproj })) {
+foreach ($file in $(if ($libRoot) { Get-ChildItem -LiteralPath $libRoot -Recurse -File -Include *.spi, *.spir, package.spiproj, spiral.toml })) {
     $relative = $file.FullName.Substring($libRoot.Length).TrimStart('\', '/')
     if ($relative -match '(^|[\\/])(target|node_modules|bench)[\\/]') { continue }
     $destination = Join-Path $stagedLib $relative
@@ -170,7 +170,7 @@ if ($Incremental) {
     New-Item -ItemType Directory -Force $keyStore | Out-Null
     $shared = [Text.StringBuilder]::new()
     [void]$shared.AppendLine("compiler $((Get-FileHash -LiteralPath $compiler -Algorithm SHA256).Hash)")
-    foreach ($file in $($(if ($libRoot) { Get-ChildItem -LiteralPath $libRoot -Recurse -File -Include *.spi, *.spir, package.spiproj }) | Where-Object { $_.FullName -notmatch '[\\/](target|node_modules|bench)[\\/]' } | Sort-Object FullName)) {
+    foreach ($file in $($(if ($libRoot) { Get-ChildItem -LiteralPath $libRoot -Recurse -File -Include *.spi, *.spir, package.spiproj, spiral.toml }) | Where-Object { $_.FullName -notmatch '[\\/](target|node_modules|bench)[\\/]' } | Sort-Object FullName)) {
         [void]$shared.AppendLine("lib $($file.FullName.Substring($libRoot.Length)) $((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash)")
     }
     $sharedText = $shared.ToString()

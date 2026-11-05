@@ -3,16 +3,36 @@
     :< sm'_operators
     :< host
     :< kit_do_records.records
+    :< kit_do_verbs.verbs
 
 :< sm'_operators
 :< host
 :< kit_do_records.records
+:< kit_do_verbs.verbs
 
 :| job_step =
     | JobStart : string * string * string * bool
     | JobWait : string * u64
     | JobStop : string
     | Blank
+
+:| job_action =
+    | ActionStart
+    | ActionWait
+    | ActionStop
+
+:= action_word (action : job_action) : string = union_reflection.cases.union_case_kebab "Action" action
+
+:~ action_named (~word : string) : option job_action =
+    union_reflection.cases.union_case_where (\ (action : job_action) => word = action_word action) Some None
+
+:~ job_tool (~word : string) : bool =
+    ?= tool_named word ?|
+    | Some tool =>
+        ?= tool ?|
+        | ToolJob => !+
+        | _ => !-
+    | None => !-
 
 :| job_parse =
     | JobParsed : job_step
@@ -54,20 +74,23 @@
     := name = body_at records record 3i32
     ? name = "" ?> JobRejected "job stop: expected job stop <name>" |: JobParsed (JobStop name)
 
+:~ action_parsed (~records : record_list) (~record : i32) (step : job_action) : job_parse =
+    ?= step ?|
+    | ActionStart => start_parsed records record
+    | ActionWait => wait_parsed records record
+    | ActionStop => stop_parsed records record
+
 :~ job_parsed (~records : record_list) (~record : i32) : job_parse =
     := kind = field_at records record 0i32
     := action = body_at records record 2i32
     ? kind = ""
     ?> JobParsed Blank
-    |? kind <> "query" || field_at records record 1i32 <> "job"
+    |? kind <> "query" || job_tool (field_at records record 1i32) |> not
     ?> JobRejected ((field_at records record 1i32) ++# " cannot share one program with job yet; run it as its own call")
-    |? action = "start"
-    ?> start_parsed records record
-    |? action = "wait"
-    ?> wait_parsed records record
-    |? action = "stop"
-    ?> stop_parsed records record
-    |: JobRejected ("job: unknown action " ++# action ++# "; expected start, wait or stop")
+    |:
+        ?= action_named action ?|
+        | Some step => action_parsed records record step
+        | None => JobRejected ("job: unknown action " ++# action ++# "; expected start, wait or stop")
 
 
 := rejection_at (~records : record_list) (~record : i32) : string =
@@ -104,6 +127,8 @@
         (rejection_at records 2i32 = "job start: expected timeout <duration> such as 30s or 5m")
         "start without a timeout"
     testing.expect (rejection_at records 3i32 = "job: unknown action kill; expected start, wait or stop") "unknown action"
+    := actions = union_reflection.cases.union_cases_joined action_word "|"
+    testing.expect (actions = "start|wait|stop") actions
     testing.expect
         (duration_text 2000u64 = "2s" && duration_text 1500u64 = "1.5s" && duration_text 250u64 = "250ms")
         "durations"

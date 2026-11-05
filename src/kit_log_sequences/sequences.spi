@@ -112,39 +112,34 @@
         "an empty log has no first occurrence"
 
 := main () : i32 =
-    !!!!Export(
-        "kit_sequence_interval",
+    export
+        "kit_sequence_interval"
         (
             \ (file, events, marked, between, modulo) => interval_text file events marked between modulo
             : string * string * string * string * u64 -> string
         )
-    )
-    !!!!Export(
-        "kit_sequence_window",
+    export
+        "kit_sequence_window"
         (
             \ (file, events, counted, marker, low, high) => window_text file events counted marker low high
             : string * string * string * string * u64 * u64 -> string
         )
-    )
-    !!!!Export(
-        "kit_sequence_order",
+    export
+        "kit_sequence_order"
         (
             \ (file, events, first, second) => order_text file events first second
             : string * string * string * string -> string
         )
-    )
-    !!!!Export(
-        "kit_sequence_latency",
+    export
+        "kit_sequence_latency"
         (
             \ (file, events, starting, ending) => latency_text file events starting ending
             : string * string * string * string -> string
         )
-    )
-    !!!!Export(
-        "kit_sequence_events",
+    export
+        "kit_sequence_events"
         (
             \ (log, time, first, second) => events_text log time first second
             : string * string * string * string -> string
         )
-    )
     0i32

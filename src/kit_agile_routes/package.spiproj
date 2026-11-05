@@ -7,5 +7,9 @@ packages:
     agile_planning_model
     agile_subcommand_domain
     union_reflection
+    agile_quality_lint
+    agile_quality_state
+link:
+    agile_quality_state
 modules:
     routes

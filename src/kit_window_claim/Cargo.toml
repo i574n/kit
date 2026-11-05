@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_window_claim"
 path = "claim.rs"
+
+[dependencies]
+kit-process-alive = { path = "../kit_process_alive" }

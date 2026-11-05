@@ -35,7 +35,7 @@
     0i32
 
 := main () : i32 =
-    !!!!Export("kit_test_typed_predicates", ((\ () => differential ()) : () -> i32))
+    export "kit_test_typed_predicates" ((\ () => differential ()) : () -> i32)
     !!!!Global("""
         #[cfg(test)] mod typed_predicate_tests { #[test] fn ascii_and_unicode_match_original_rust_predicates() { assert_eq!(super::kit_test_typed_predicates(),0); } }
 

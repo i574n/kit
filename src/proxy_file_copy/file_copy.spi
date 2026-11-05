@@ -40,12 +40,11 @@
     | CopyRejected text => 2i32, text
 
 := main () : i32 =
-    !!!!Export(
-        "kit_file_copy_outcome",
+    export
+        "kit_file_copy_outcome"
         (
             \ (operands, root, source, target) => file_copy_report operands root source target
             : i32 * string * string * string -> i32 * string
         )
-    )
     := _ = file_copy_report 4i32 "." "a" "b"
     0i32

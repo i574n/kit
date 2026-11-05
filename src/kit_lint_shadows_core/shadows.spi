@@ -213,8 +213,7 @@
 
 ///> _
 := main () : i32 =
-    !!!!Export(
-        "kit_lint_shadows_scan",
+    export
+        "kit_lint_shadows_scan"
         ((\ text => scanned text) : string -> array string * array i32 * array i32 * array i32)
-    )
     0i32

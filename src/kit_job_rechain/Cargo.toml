@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_job_rechain"
 path = "rechain.rs"
+
+[dependencies]
+kit-process-alive = { path = "../kit_process_alive" }

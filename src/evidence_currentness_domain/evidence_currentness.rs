@@ -483,33 +483,37 @@ fn closure1() -> Rc<dyn Fn(i32, i32) -> i32> {
 }
 fn rust_tool_environment_binding_3(mut v0: Rc<str>) -> Rc<str> {
     let v1: bool = &*v0 == "rustfmt";
-    let v4: Rc<str> = if v1 {
-        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTFMT"); } LIT.with(|lit| lit.clone()) };
-        v2
-    } else {
-        let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v5: Rc<str> = if v1 {
+        let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rustfmt"); } LIT.with(|lit| lit.clone()) };
+        let v3: Rc<str> = Rc::<str>::from(v2.to_uppercase());
         v3
-    };
-    let v5: bool = &*v0 == "rustdoc";
-    let v7: Rc<str> = if v5 {
-        let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTDOC"); } LIT.with(|lit| lit.clone()) };
-        v6
     } else {
+        let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         v4
     };
-    let v8: bool = &*v0 == "cargo";
-    let v10: Rc<str> = if v8 {
-        let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("CARGO"); } LIT.with(|lit| lit.clone()) };
-        v9
+    let v6: bool = &*v0 == "rustdoc";
+    let v9: Rc<str> = if v6 {
+        let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rustdoc"); } LIT.with(|lit| lit.clone()) };
+        let v8: Rc<str> = Rc::<str>::from(v7.to_uppercase());
+        v8
     } else {
-        v7
+        v5
     };
-    let v11: bool = &*v0 == "rustc";
-    if v11 {
-        let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RUSTC"); } LIT.with(|lit| lit.clone()) };
+    let v10: bool = &*v0 == "cargo";
+    let v13: Rc<str> = if v10 {
+        let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cargo"); } LIT.with(|lit| lit.clone()) };
+        let v12: Rc<str> = Rc::<str>::from(v11.to_uppercase());
         v12
     } else {
-        v10
+        v9
+    };
+    let v14: bool = &*v0 == "rustc";
+    if v14 {
+        let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rustc"); } LIT.with(|lit| lit.clone()) };
+        let v16: Rc<str> = Rc::<str>::from(v15.to_uppercase());
+        v16
+    } else {
+        v13
     }
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {

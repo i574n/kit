@@ -32,57 +32,44 @@
     := _ = release_closeout_mode_binding 1i32 3i32
     := _ = release_closeout_commit_binding 7i32 7i32
     := _ = release_closeout_refresh_binding 127i32 127i32
-    !!!!Export(
-        "kit_handoff_binary_install_shape_binding",
+    export
+        "kit_handoff_binary_install_shape_binding"
         ((\ (first, second) => binary_install_shape_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_binary_install_source_binding",
+    export
+        "kit_handoff_binary_install_source_binding"
         ((\ (first, second) => binary_install_source_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_binary_install_freshness_binding",
+    export
+        "kit_handoff_binary_install_freshness_binding"
         ((\ (first, second) => binary_install_freshness_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_binary_install_running_destination_binding",
+    export
+        "kit_handoff_binary_install_running_destination_binding"
         ((\ (first, second) => binary_install_running_destination_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_binary_install_permission_binding",
+    export
+        "kit_handoff_binary_install_permission_binding"
         ((\ (first, second) => binary_install_permission_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_binary_install_mode_binding",
+    export
+        "kit_handoff_binary_install_mode_binding"
         ((\ (first, second) => binary_install_mode_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_binary_install_commit_binding",
+    export
+        "kit_handoff_binary_install_commit_binding"
         ((\ (first, second) => binary_install_commit_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_release_closeout_shape_binding",
+    export
+        "kit_handoff_release_closeout_shape_binding"
         ((\ (first, second) => release_closeout_shape_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_release_closeout_migration_binding",
+    export
+        "kit_handoff_release_closeout_migration_binding"
         ((\ (first, second) => release_closeout_migration_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_release_closeout_evidence_binding",
+    export
+        "kit_handoff_release_closeout_evidence_binding"
         ((\ (first, second) => release_closeout_evidence_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_release_closeout_mode_binding",
+    export
+        "kit_handoff_release_closeout_mode_binding"
         ((\ (first, second) => release_closeout_mode_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_release_closeout_commit_binding",
+    export
+        "kit_handoff_release_closeout_commit_binding"
         ((\ (first, second) => release_closeout_commit_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_handoff_release_closeout_refresh_binding",
+    export
+        "kit_handoff_release_closeout_refresh_binding"
         ((\ (first, second) => release_closeout_refresh_binding first second) : i32 * i32 -> i32)
-    )
     := _ = readable_handoff ()
     0i32

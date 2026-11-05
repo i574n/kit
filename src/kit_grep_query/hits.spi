@@ -1,0 +1,37 @@
+:< sm'_operators
+:< kit_grep_found.found
+
+:== search_hits =
+    {
+        searched : u64
+        files : array_base file_hits
+    }
+
+:~ searched_in (~root : string) (~glob : string) (~needle : string) (caseless : bool) (pattern : bool) : search_hits =
+    := files = found_files (root, glob)
+    { searched = conv (am'.length_base files); files = found_hits (root, files, needle, caseless, pattern) }
+
+:= searched_files (hits : search_hits) : u64 = hits.searched
+:= hit_files (hits : search_hits) : i32 = am'.length_base hits.files
+:= hit_of (hits : search_hits) (file : i32) : file_hits = am'.index_base file hits.files
+:= hit_path (hits : search_hits) (file : i32) : string = (hit_of hits file).path
+:= found_count (hits : search_hits) (file : i32) : i32 = am'.length_base (hit_of hits file).found
+:= found_at (hits : search_hits) (file : i32) (k : i32) : i32 = am'.index_base k (hit_of hits file).found
+:= line_count (hits : search_hits) (file : i32) : i32 = am'.length_base (hit_of hits file).lines
+
+:~ ^ taken_from (found : array_base i32) (taken : i32) (line : i32) (k : i32) : bool =
+    ? k >= taken || k >= am'.length_base found ?> !-
+    |? am'.index_base k found = line ?> !+
+    |: taken_from found taken line (k + 1i32)
+
+:~ taken_line (hits : search_hits) (file : i32) (taken : i32) (line : i32) : bool =
+    taken_from (hit_of hits file).found taken line 0i32
+
+:~ clipped_line (hits : search_hits) (file : i32) (line : i32) : string =
+    := text = am'.index_base line (hit_of hits file).lines
+    ? (sm'.length text : i32) > 200i32 ?> sm'.substring 0i32 200i32 text ++# "..." |: text
+
+:= digits (value : i32) : i32 = sm'.length (sm'.show value)
+
+:~ numbered (number : i32) (width : i32) (taken : bool) (~text : string) : string =
+    sm'.pad_left width ' ' (sm'.show number) ++# (? taken ?> ">" |: " ") ++# " " ++# text

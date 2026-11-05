@@ -208,9 +208,9 @@
 
 ///> rust
 :# active_items_without_a_recent_note_are_stale =
-    := stale = stale_active 48i64 12i64 (fixture ())
+    := stale = stale_active 80i64 48i64 (fixture ())
     := ids = stale |> listm.map (\ (item : tracked) => item.id)
-    testing.expect (ids = [ "C" ]) "only C is Active and quiet for over 12 hours"
+    testing.expect (ids = [ "C" ]) "only C is Active and quiet for over 48 hours; D's 35 quiet hours are not stale"
     testing.expect ((listm.length (stale_active 48i64 1i64 (fixture ())) : i32) = 2i32) "a 1-hour window flags both"
 
 ///> rust

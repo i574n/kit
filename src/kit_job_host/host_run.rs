@@ -38,35 +38,24 @@ enum US3 {
 }
 #[derive(Clone)]
 enum US4 {
-    US4_JobFinished(i32),
-    US4_JobTimedOut,
-    US4_JobStopped,
-    US4_JobSpawnFailed(Rc<str>),
-    US4_JobSkipped(Rc<str>),
-    US4_JobLost,
-    US4_JobMemoryCapped,
-    US4_JobExpiredInQueue,
+    US4_HomePresent,
+    US4_HomeGone,
 }
 #[derive(Clone)]
 enum US5 {
-    US5_HomePresent,
-    US5_HomeGone,
+    US5_KeepServing,
+    US5_HostIdleExit,
+    US5_HostDraining,
 }
 #[derive(Clone)]
 enum US6 {
-    US6_KeepServing,
-    US6_HostIdleExit,
-    US6_HostDraining,
+    US6_Some(u64),
+    US6_None,
 }
 #[derive(Clone)]
 enum US7 {
-    US7_Some(u64),
-    US7_None,
-}
-#[derive(Clone)]
-enum US8 {
-    US8_HostOwns,
-    US8_OtherHostServes(u64),
+    US7_HostOwns,
+    US7_OtherHostServes(u64),
 }
 fn joined_3(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: Rc<str> = std::rc::Rc::<str>::from(std::path::Path::new(&*v0).join(&*v1).to_string_lossy().as_ref());
@@ -379,66 +368,26 @@ fn held_owned_by_36(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let v5: bool = &*v4 == &*v1;
     v5
 }
-fn settled_word_38(mut v0: US4) -> Rc<str> {
-    match &v0 {
-        US4::US4_JobExpiredInQueue => {
-            let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expired-in-queue"); } LIT.with(|lit| lit.clone()) };
-            v11
-        }
-        US4::US4_JobFinished(v1) => {
-            let mut v1: i32 = *v1;
-            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
-            v2
-        }
-        US4::US4_JobLost => {
-            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lost"); } LIT.with(|lit| lit.clone()) };
-            v9
-        }
-        US4::US4_JobMemoryCapped => {
-            let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memory-capped"); } LIT.with(|lit| lit.clone()) };
-            v10
-        }
-        US4::US4_JobSkipped(v7) => {
-            let mut v7: Rc<str> = v7.clone();
-            let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
-            v8
-        }
-        US4::US4_JobSpawnFailed(v5) => {
-            let v5: Rc<str> = v5.clone();
-            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spawn-failed"); } LIT.with(|lit| lit.clone()) };
-            v6
-        }
-        US4::US4_JobStopped => {
-            let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
-            v4
-        }
-        US4::US4_JobTimedOut => {
-            let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timed-out"); } LIT.with(|lit| lit.clone()) };
-            v3
-        }
-    }
-}
-fn concat5_39(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
+fn concat5_38(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
     let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
     v8
 }
 fn settled_in_queue_37(mut v0: Rc<str>, mut v1: US3) -> () {
     match &v1 {
-        US3::US3_SettleSkipped(v16) => {
-            let mut v16: Rc<str> = v16.clone();
-            let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
-            let v18: Rc<str> = job_file_14(v0.clone(), v17);
-            let mut v19: u64 = now_ms_16();
-            let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let mut v21: US4 = US4::US4_JobSkipped(v20.clone());
-            let v22: Rc<str> = settled_word_38(v21);
-            let mut v23: Rc<str> = std::rc::Rc::<str>::from((125i32).to_string());
-            let v24: Rc<str> = std::rc::Rc::<str>::from((v19).to_string());
-            let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-            let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let v27: Rc<str> = concat5_39(v22, v25.clone(), v16, v26, v20);
-            let mut v28: Rc<str> = concat5_39(v23, v25.clone(), v24, v25, v27);
-            let v29: Rc<str> = text_written_20(v18, v28);
+        US3::US3_SettleSkipped(v15) => {
+            let mut v15: Rc<str> = v15.clone();
+            let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
+            let v17: Rc<str> = job_file_14(v0.clone(), v16);
+            let v18: u64 = now_ms_16();
+            let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
+            let mut v20: Rc<str> = std::rc::Rc::<str>::from((125i32).to_string());
+            let mut v21: Rc<str> = std::rc::Rc::<str>::from((v18).to_string());
+            let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+            let mut v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+            let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let v25: Rc<str> = concat5_38(v19, v22.clone(), v15, v23, v24);
+            let v26: Rc<str> = concat5_38(v20, v22.clone(), v21, v22, v25);
+            let v27: Rc<str> = text_written_20(v17, v26);
             ()
         }
         US3::US3_SettleStopped(v2) => {
@@ -446,16 +395,15 @@ fn settled_in_queue_37(mut v0: Rc<str>, mut v1: US3) -> () {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
             let mut v4: Rc<str> = job_file_14(v0, v3);
             let v5: u64 = now_ms_16();
-            let mut v6: US4 = US4::US4_JobStopped;
-            let mut v7: Rc<str> = settled_word_38(v6);
-            let v8: Rc<str> = std::rc::Rc::<str>::from((143i32).to_string());
-            let v9: Rc<str> = std::rc::Rc::<str>::from((v5).to_string());
-            let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-            let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v13: Rc<str> = concat5_39(v7, v10.clone(), v2, v11, v12);
-            let v14: Rc<str> = concat5_39(v8, v10.clone(), v9, v10, v13);
-            let mut v15: Rc<str> = text_written_20(v4, v14);
+            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
+            let mut v7: Rc<str> = std::rc::Rc::<str>::from((143i32).to_string());
+            let v8: Rc<str> = std::rc::Rc::<str>::from((v5).to_string());
+            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+            let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+            let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let v12: Rc<str> = concat5_38(v6, v9.clone(), v2, v10, v11);
+            let v13: Rc<str> = concat5_38(v7, v9.clone(), v8, v9, v12);
+            let v14: Rc<str> = text_written_20(v4, v13);
             ()
         }
         _ => {
@@ -463,7 +411,7 @@ fn settled_in_queue_37(mut v0: Rc<str>, mut v1: US3) -> () {
         }
     }
 }
-fn held_released_40(mut v0: Rc<str>) -> () {
+fn held_released_39(mut v0: Rc<str>) -> () {
     let mut v1: Rc<str> = held_file_22(v0);
     { let _ = std::fs::remove_file(&*v1); };
     ()
@@ -481,7 +429,7 @@ fn held_stopped_from_35(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut 
                 let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("its owner session ended before the job started"); } LIT.with(|lit| lit.clone()) };
                 let v8: US3 = US3::US3_SettleStopped(v7.clone());
                 settled_in_queue_37(v5.clone(), v8.clone());
-                held_released_40(v5.clone())
+                held_released_39(v5.clone())
             };
             let v9: i32 = v2.wrapping_add(1i32);
             v2 = v9;
@@ -490,7 +438,7 @@ fn held_stopped_from_35(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut 
         return ();
     }
 }
-fn held_from_42(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u64, mut v3: u64, mut v4: US0, mut v5: US1, mut v6: Rc<RefCell<Vec<Rc<str>>>>, mut v7: i32, mut v8: u64) -> u64 {
+fn held_from_41(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u64, mut v3: u64, mut v4: US0, mut v5: US1, mut v6: Rc<RefCell<Vec<Rc<str>>>>, mut v7: i32, mut v8: u64) -> u64 {
     loop {
         let v9: i32 = (v6.clone().borrow().len() as i32);
         let mut v10: bool = v7 >= v9;
@@ -509,7 +457,7 @@ fn held_from_42(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u64
                 let v17: US2 = verdict_for_23(v0.clone(), v1.clone(), v2, v3, v4.clone(), v5.clone(), v16.clone());
                 match &v17 {
                     US2::US2_DropRequest => {
-                        held_released_40(v16.clone());
+                        held_released_39(v16.clone());
                         let v26: i32 = v7.wrapping_add(1i32);
                         v7 = v26;
                         continue;
@@ -524,7 +472,7 @@ fn held_from_42(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u64
                     US2::US2_StartNow => {
                         let mut v21: Rc<str> = held_file_22(v16.clone());
                         let v22: Rc<str> = text_or_empty_7(v21.clone());
-                        held_released_40(v16.clone());
+                        held_released_39(v16.clone());
                         let mut v23: bool = supervisor_child_started_26(v0.clone(), v22.clone(), v16.clone());
                         let v24: i32 = v7.wrapping_add(1i32);
                         v7 = v24;
@@ -535,44 +483,44 @@ fn held_from_42(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u64
         }
     }
 }
-fn held_served_41(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u64, mut v3: u64, mut v4: US0, mut v5: US1) -> u64 {
+fn held_served_40(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u64, mut v3: u64, mut v4: US0, mut v5: US1) -> u64 {
     let mut v6: Rc<RefCell<Vec<Rc<str>>>> = held_names_29();
     let mut v7: i32 = 0i32;
     let v8: u64 = 0u64;
-    held_from_42(v0, v1, v2, v3, v4, v5, v6, v7, v8)
+    held_from_41(v0, v1, v2, v3, v4, v5, v6, v7, v8)
 }
-fn directory_exists_44(mut v0: Rc<str>) -> bool {
+fn directory_exists_43(mut v0: Rc<str>) -> bool {
     let mut v2: &str = &*v0;
     let mut v4: std::string::String = String::from(v2);
     let mut v6: std::path::PathBuf = std::path::PathBuf::from(v4);
     let v8: bool = v6.is_dir();
     v8
 }
-fn home_of_43(mut v0: Rc<str>) -> US5 {
+fn home_of_42(mut v0: Rc<str>) -> US4 {
     let mut v1: Rc<str> = requests_directory_2(v0);
-    let mut v2: bool = directory_exists_44(v1);
+    let mut v2: bool = directory_exists_43(v1);
     if v2 {
-        US5::US5_HomePresent
+        US4::US4_HomePresent
     } else {
-        US5::US5_HomeGone
+        US4::US4_HomeGone
     }
 }
-fn host_step_of_45(mut v0: US0, mut v1: u64, mut v2: u64, mut v3: u64, mut v4: US5, mut v5: bool) -> US6 {
+fn host_step_of_44(mut v0: US0, mut v1: u64, mut v2: u64, mut v3: u64, mut v4: US4, mut v5: bool) -> US5 {
     let mut v6: bool = v5 == false;
     if v6 {
         let mut v7: bool = v1 > 0u64;
         if v7 {
-            US6::US6_HostDraining
+            US5::US5_HostDraining
         } else {
-            US6::US6_HostIdleExit
+            US5::US5_HostIdleExit
         }
     } else {
         let mut v11: bool = v1 > 0u64;
         if v11 {
-            US6::US6_KeepServing
+            US5::US5_KeepServing
         } else {
             let v13: bool = match &v4 {
-                US5::US5_HomeGone => {
+                US4::US4_HomeGone => {
                     true
                 }
                 _ => {
@@ -580,7 +528,7 @@ fn host_step_of_45(mut v0: US0, mut v1: u64, mut v2: u64, mut v3: u64, mut v4: U
                 }
             };
             if v13 {
-                US6::US6_HostIdleExit
+                US5::US5_HostIdleExit
             } else {
                 let mut v15: u64 = v3.wrapping_sub(v2);
                 let mut v19: bool = match &v0 {
@@ -594,52 +542,52 @@ fn host_step_of_45(mut v0: US0, mut v1: u64, mut v2: u64, mut v3: u64, mut v4: U
                     }
                 };
                 if v19 {
-                    US6::US6_HostIdleExit
+                    US5::US5_HostIdleExit
                 } else {
-                    US6::US6_KeepServing
+                    US5::US5_KeepServing
                 }
             }
         }
     }
 }
-fn owner_ended_file_46(mut v0: Rc<str>) -> Rc<str> {
+fn owner_ended_file_45(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = host_home_directory_4(v0);
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("owner-ended"); } LIT.with(|lit| lit.clone()) };
     joined_3(v1, v2)
 }
-fn host_pid_file_47(mut v0: Rc<str>) -> Rc<str> {
+fn host_pid_file_46(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = host_home_directory_4(v0);
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pid"); } LIT.with(|lit| lit.clone()) };
     joined_3(v1, v2)
 }
-fn method49(mut v0: Option<u64>) -> Option<u64> {
+fn method48(mut v0: Option<u64>) -> Option<u64> {
     v0
 }
-fn closure2() -> Rc<dyn Fn((u64)) -> US7> {
-    thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US7> = Rc::new(move |mut v0: (u64)| -> US7 {
+fn closure2() -> Rc<dyn Fn((u64)) -> US6> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US6> = Rc::new(move |mut v0: (u64)| -> US6 {
         let mut v1: u64 = (v0);
-        US7::US7_Some(v1)
+        US6::US6_Some(v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn decimal_u64_48(mut v0: Rc<str>) -> u64 {
+fn decimal_u64_47(mut v0: Rc<str>) -> u64 {
     let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
-    let mut v2: Option<u64> = method49(v1.clone());
-    let mut v3: Rc<dyn Fn((u64)) -> US7> = closure2();
-    let mut v4: Option<US7> = v2.map(|x| v3(x));
-    let mut v6: US7 = US7::US7_None;
-    let mut v7: US7 = v6.clone();
-    let v8: US7 = v4.unwrap_or(v7);
+    let mut v2: Option<u64> = method48(v1.clone());
+    let mut v3: Rc<dyn Fn((u64)) -> US6> = closure2();
+    let mut v4: Option<US6> = v2.map(|x| v3(x));
+    let mut v6: US6 = US6::US6_None;
+    let mut v7: US6 = v6.clone();
+    let v8: US6 = v4.unwrap_or(v7);
     match &v8 {
-        US7::US7_None => {
+        US6::US6_None => {
             0u64
         }
-        US7::US7_Some(v9) => {
+        US6::US6_Some(v9) => {
             let v9: u64 = *v9;
             v9
         }
     }
 }
-fn own_pid_50() -> u64 {
+fn own_pid_49() -> u64 {
     let mut v0: u64 = std::process::id() as u64;
     v0
 }
@@ -667,35 +615,35 @@ fn host_served_1(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u6
                 held_stopped_from_35(v1.clone(), v17.clone(), v18)
             };
             let mut v19: u64 = live_children_24(v0.clone());
-            let mut v20: u64 = held_served_41(v0.clone(), v1.clone(), v2, v3, v4.clone(), v5.clone());
+            let mut v20: u64 = held_served_40(v0.clone(), v1.clone(), v2, v3, v4.clone(), v5.clone());
             let mut v21: u64 = v19.wrapping_add(v20);
             let v22: u64 = now_ms_16();
-            let mut v23: US5 = home_of_43(v1.clone());
-            let v24: US6 = host_step_of_45(v4.clone(), v21, v6, v22, v23.clone(), v16);
+            let mut v23: US4 = home_of_42(v1.clone());
+            let v24: US5 = host_step_of_44(v4.clone(), v21, v6, v22, v23.clone(), v16);
             match &v24 {
-                US6::US6_HostDraining => {
-                    let v33: Rc<str> = owner_ended_file_46(v1.clone());
+                US5::US5_HostDraining => {
+                    let v33: Rc<str> = owner_ended_file_45(v1.clone());
                     let v34: Rc<str> = decimal_text_17(v22);
                     let v35: Rc<str> = text_written_20(v33.clone(), v34.clone());
                     let v36: u64 = 500u64;
                     std::thread::sleep(std::time::Duration::from_millis(v36));
                     continue;
                 }
-                US6::US6_HostIdleExit => {
-                    let v25: Rc<str> = host_pid_file_47(v1.clone());
+                US5::US5_HostIdleExit => {
+                    let v25: Rc<str> = host_pid_file_46(v1.clone());
                     let v26: Rc<str> = text_or_empty_7(v25.clone());
-                    let v27: u64 = decimal_u64_48(v26.clone());
-                    let mut v28: u64 = own_pid_50();
+                    let v27: u64 = decimal_u64_47(v26.clone());
+                    let mut v28: u64 = own_pid_49();
                     let v29: bool = v27 == v28;
                     let v32: bool = if v29 {
-                        let v30: Rc<str> = host_pid_file_47(v1.clone());
+                        let v30: Rc<str> = host_pid_file_46(v1.clone());
                         request_removed_8(v30.clone())
                     } else {
                         false
                     };
                     return 0i32;
                 }
-                US6::US6_KeepServing => {
+                US5::US5_KeepServing => {
                     let v38: u64 = 500u64;
                     std::thread::sleep(std::time::Duration::from_millis(v38));
                     let v39: bool = v21 > 0u64;
@@ -711,7 +659,7 @@ fn host_served_1(mut v0: kit_os_launch::KitChildren, mut v1: Rc<str>, mut v2: u6
         }
     }
 }
-fn owner_home_of_52(mut v0: u64, mut v1: u64) -> Rc<str> {
+fn owner_home_of_51(mut v0: u64, mut v1: u64) -> Rc<str> {
     let mut v2: bool = v0 == 0u64;
     if v2 {
         let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -725,11 +673,11 @@ fn owner_home_of_52(mut v0: u64, mut v1: u64) -> Rc<str> {
         v8
     }
 }
-fn get_environment_variable_53(mut v0: Rc<str>) -> Rc<str> {
+fn get_environment_variable_52(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = Rc::<str>::from(std::env::var(&*v0).unwrap_or_default());
     v1
 }
-fn method54(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
+fn method53(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
     loop {
         let mut v3: bool = v2 >= v1;
         if v3 {
@@ -763,7 +711,7 @@ fn method54(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
         }
     }
 }
-fn method55(mut v0: Rc<str>, mut v1: i32) -> i32 {
+fn method54(mut v0: Rc<str>, mut v1: i32) -> i32 {
     loop {
         let mut v2: bool = v1 <= 0i32;
         if v2 {
@@ -797,30 +745,30 @@ fn method55(mut v0: Rc<str>, mut v1: i32) -> i32 {
         }
     }
 }
-fn host_terms_of_51(mut v0: u64, mut v1: u64) -> (Rc<str>, u64, u64, US0, US1) {
-    let mut v2: Rc<str> = owner_home_of_52(v0, v1);
+fn host_terms_of_50(mut v0: u64, mut v1: u64) -> (Rc<str>, u64, u64, US0, US1) {
+    let mut v2: Rc<str> = owner_home_of_51(v0, v1);
     let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("KIT_JOB_HOST_IDLE_EXIT_SECONDS"); } LIT.with(|lit| lit.clone()) };
-    let mut v4: Rc<str> = get_environment_variable_53(v3.clone());
+    let mut v4: Rc<str> = get_environment_variable_52(v3.clone());
     let v5: i32 = (v4.clone().len() as i32);
     let mut v6: i32 = 0i32;
-    let mut v7: i32 = method54(v4.clone(), v5, v6);
+    let mut v7: i32 = method53(v4.clone(), v5, v6);
     let v8: i32 = v5.wrapping_sub(1i32);
     let v9: Rc<str> = string_slice(&v4.clone(), v7 as i64, v8 as i64);
     let mut v10: i32 = (v9.clone().len() as i32);
-    let mut v11: i32 = method55(v9.clone(), v10);
+    let mut v11: i32 = method54(v9.clone(), v10);
     let v12: Rc<str> = string_slice(&v9.clone(), 0i32 as i64, v11 as i64);
     let v13: Option<u64> = (v12).trim().parse::<u64>().ok();
-    let v14: Option<u64> = method49(v13.clone());
-    let mut v15: Rc<dyn Fn((u64)) -> US7> = closure2();
-    let mut v16: Option<US7> = v14.map(|x| v15(x));
-    let v18: US7 = US7::US7_None;
-    let mut v19: US7 = v18.clone();
-    let mut v20: US7 = v16.unwrap_or(v19);
+    let v14: Option<u64> = method48(v13.clone());
+    let mut v15: Rc<dyn Fn((u64)) -> US6> = closure2();
+    let mut v16: Option<US6> = v14.map(|x| v15(x));
+    let v18: US6 = US6::US6_None;
+    let mut v19: US6 = v18.clone();
+    let mut v20: US6 = v16.unwrap_or(v19);
     let v29: US0 = match &v20 {
-        US7::US7_None => {
+        US6::US6_None => {
             US0::US0_ExitAfter(600000u64)
         }
-        US7::US7_Some(v21) => {
+        US6::US6_Some(v21) => {
             let mut v21: u64 = *v21;
             let v22: bool = v21 == 0u64;
             if v22 {
@@ -832,26 +780,26 @@ fn host_terms_of_51(mut v0: u64, mut v1: u64) -> (Rc<str>, u64, u64, US0, US1) {
         }
     };
     let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("KIT_JOB_SLOTS"); } LIT.with(|lit| lit.clone()) };
-    let v31: Rc<str> = get_environment_variable_53(v30.clone());
+    let v31: Rc<str> = get_environment_variable_52(v30.clone());
     let v32: i32 = (v31.clone().len() as i32);
     let v33: i32 = 0i32;
-    let v34: i32 = method54(v31.clone(), v32, v33);
+    let v34: i32 = method53(v31.clone(), v32, v33);
     let v35: i32 = v32.wrapping_sub(1i32);
     let v36: Rc<str> = string_slice(&v31.clone(), v34 as i64, v35 as i64);
     let v37: i32 = (v36.clone().len() as i32);
-    let v38: i32 = method55(v36.clone(), v37);
+    let v38: i32 = method54(v36.clone(), v37);
     let v39: Rc<str> = string_slice(&v36.clone(), 0i32 as i64, v38 as i64);
     let v40: Option<u64> = (v39).trim().parse::<u64>().ok();
-    let v41: Option<u64> = method49(v40.clone());
-    let mut v42: Option<US7> = v41.map(|x| v15(x));
-    let v44: US7 = US7::US7_None;
-    let v45: US7 = v44.clone();
-    let v46: US7 = v42.unwrap_or(v45);
+    let v41: Option<u64> = method48(v40.clone());
+    let mut v42: Option<US6> = v41.map(|x| v15(x));
+    let v44: US6 = US6::US6_None;
+    let v45: US6 = v44.clone();
+    let v46: US6 = v42.unwrap_or(v45);
     let v54: US1 = match &v46 {
-        US7::US7_None => {
+        US6::US6_None => {
             US1::US1_Unlimited
         }
-        US7::US7_Some(v47) => {
+        US6::US6_Some(v47) => {
             let v47: u64 = *v47;
             let v48: bool = v47 > 0u64;
             if v48 {
@@ -863,11 +811,11 @@ fn host_terms_of_51(mut v0: u64, mut v1: u64) -> (Rc<str>, u64, u64, US0, US1) {
     };
     (v2.clone(), v0, v1, v29.clone(), v54.clone())
 }
-fn process_alive_56(mut v0: u64) -> bool {
-    let mut v1: bool = { #[cfg(windows)] fn alive(pid: u64) -> bool { unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; fn GetLastError() -> u32; } if pid == 0 { return true; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid as u32); if handle.is_null() { return GetLastError() == 5; } let running = WaitForSingleObject(handle, 0) == 258; CloseHandle(handle); running } } #[cfg(not(windows))] fn alive(pid: u64) -> bool { pid == 0 || std::os::unix::process::parent_id() as u64 == pid } alive(v0) };
+fn process_alive_55(mut v0: u64) -> bool {
+    let mut v1: bool = kit_process_alive::kit_process_alive(v0);
     v1
 }
-fn host_claim_of_57(mut v0: u64, mut v1: u64, mut v2: bool) -> US8 {
+fn host_claim_of_56(mut v0: u64, mut v1: u64, mut v2: bool) -> US7 {
     let mut v3: bool = v0 != 0u64;
     let v5: bool = if v3 {
         let mut v4: bool = v0 != v1;
@@ -877,42 +825,42 @@ fn host_claim_of_57(mut v0: u64, mut v1: u64, mut v2: bool) -> US8 {
     };
     let mut v6: bool = v5 && v2;
     if v6 {
-        US8::US8_OtherHostServes(v0)
+        US7::US7_OtherHostServes(v0)
     } else {
-        US8::US8_HostOwns
+        US7::US7_HostOwns
     }
 }
-fn no_children_58() -> kit_os_launch::KitChildren {
+fn no_children_57() -> kit_os_launch::KitChildren {
     let mut v0: kit_os_launch::KitChildren = kit_os_launch::kit_children();
     v0
 }
 fn host_run_0() -> i32 {
     let mut v0: i32 = 3i32;
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v0 as usize).unwrap_or_default());
-    let mut v2: u64 = decimal_u64_48(v1.clone());
+    let mut v2: u64 = decimal_u64_47(v1.clone());
     let mut v3: i32 = 4i32;
     let mut v4: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v3 as usize).unwrap_or_default());
-    let v5: u64 = decimal_u64_48(v4.clone());
-    let (mut v6, mut v7, mut v8, mut v9, mut v10): (Rc<str>, u64, u64, US0, US1) = host_terms_of_51(v2, v5);
-    let mut v11: Rc<str> = host_pid_file_47(v6.clone());
+    let v5: u64 = decimal_u64_47(v4.clone());
+    let (mut v6, mut v7, mut v8, mut v9, mut v10): (Rc<str>, u64, u64, US0, US1) = host_terms_of_50(v2, v5);
+    let mut v11: Rc<str> = host_pid_file_46(v6.clone());
     let v12: Rc<str> = text_or_empty_7(v11.clone());
-    let v13: u64 = decimal_u64_48(v12.clone());
-    let v14: u64 = own_pid_50();
-    let mut v15: bool = process_alive_56(v13);
-    let mut v16: US8 = host_claim_of_57(v13, v14, v15);
+    let v13: u64 = decimal_u64_47(v12.clone());
+    let v14: u64 = own_pid_49();
+    let mut v15: bool = process_alive_55(v13);
+    let mut v16: US7 = host_claim_of_56(v13, v14, v15);
     match &v16 {
-        US8::US8_HostOwns => {
+        US7::US7_HostOwns => {
             let v18: Rc<str> = requests_directory_2(v6.clone());
             let mut v19: Rc<str> = std::rc::Rc::<str>::from(std::fs::create_dir_all(&*v18).err().map(|error| format!("create {}: {error}", &*v18)).unwrap_or_default());
-            let mut v20: Rc<str> = host_pid_file_47(v6.clone());
-            let mut v21: u64 = own_pid_50();
+            let mut v20: Rc<str> = host_pid_file_46(v6.clone());
+            let mut v21: u64 = own_pid_49();
             let v22: Rc<str> = decimal_text_17(v21);
             let mut v23: Rc<str> = text_written_20(v20.clone(), v22.clone());
-            let v24: kit_os_launch::KitChildren = no_children_58();
+            let v24: kit_os_launch::KitChildren = no_children_57();
             let v25: u64 = now_ms_16();
             host_served_1(v24.clone(), v6.clone(), v7, v8, v9.clone(), v10.clone(), v25)
         }
-        US8::US8_OtherHostServes(v17) => {
+        US7::US7_OtherHostServes(v17) => {
             let v17: u64 = *v17;
             0i32
         }

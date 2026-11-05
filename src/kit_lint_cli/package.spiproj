@@ -1,0 +1,15 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_lint_macros
+    kit_lint_growth
+    kit_lint_precheck
+    kit_tracked_text
+link:
+    kit_lint_macros
+    kit_lint_growth
+    kit_lint_precheck
+    kit_tracked_text
+modules:
+    cli

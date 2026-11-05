@@ -89,5 +89,5 @@
         ? halted <> 0i32 ?> halted |: supervise_cleared id
 
 := main () : i32 =
-    !!!!Export("kit_job_supervise", ((\ id => supervise_job id) : string -> i32))
+    export "kit_job_supervise" supervise_job
     0i32

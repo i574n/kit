@@ -16,3 +16,4 @@ path = "shadows.rs"
 [dependencies]
 kit-lint-shadows-core = { path = "../kit_lint_shadows_core" }
 kit-lint-opens = { path = "../kit_lint_opens" }
+kit-lint-args = { path = "../kit_lint_args" }

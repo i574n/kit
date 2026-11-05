@@ -94,15 +94,8 @@
     | IdentityRootFallback => "src"
     | IdentityTargetFallback => "target"
 
-:= toolchain_action_name_label = \|
-    | CargoLock => "cargo-lock"
-    | CargoFmtCheck => "cargo-fmt-check"
-    | CargoCheck => "cargo-check"
-    | CargoTest => "cargo-test"
-    | CargoClippy => "cargo-clippy"
-    | CargoBuild => "cargo-build"
-    | CargoVersion => "cargo-version"
-    | SpiralVersion => "spiral-version"
+:= toolchain_action_name_label (value : toolchain_action) : string =
+    union_reflection.cases.union_case_kebab "" value
 
 := toolchain_action_ctor_label = \|
     | CargoLock => "CargoLockProcess"

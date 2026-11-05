@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "export.spi"
+output = "export.rs"
+
+[package]
+name = "kit-exec-export"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_exec_export"
+path = "export.rs"
+
+[dependencies]
+kit-exec-cells = { path = "../kit_exec_cells" }
+kit-exec-jobs = { path = "../kit_exec_jobs" }

@@ -183,50 +183,55 @@ fn job_record_of_13(mut v0: Rc<str>) -> (Rc<str>, u64, u64, u64) {
     let v12: u64 = now_ms_2();
     (v3, v7, v11, v12)
 }
-fn job_state_of_16(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: u64) -> US1 {
-    let mut v4: bool = &*v0 != "";
-    if v4 {
-        let v5: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(9u8)).nth(2).unwrap_or("").trim());
-        let mut v6: bool = &*v5 == "finished";
+fn state_of_parts_17(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US1 {
+    let mut v3: bool = &*v0 == "pending";
+    if v3 {
+        let mut v4: US2 = US2::US2_JobPending;
+        US1::US1_Live(v4)
+    } else {
+        let mut v6: bool = &*v0 == "running";
         if v6 {
-            let v7: i32 = v0.split(char::from(9u8)).next().and_then(|code| code.trim().parse::<i32>().ok()).unwrap_or(1);
-            let v8: US3 = US3::US3_JobFinished(v7);
-            US1::US1_Settled(v8.clone())
+            let v7: US2 = US2::US2_JobRunning;
+            US1::US1_Live(v7)
         } else {
-            let v10: bool = &*v5 == "timed-out";
-            if v10 {
-                let v11: US3 = US3::US3_JobTimedOut;
-                US1::US1_Settled(v11.clone())
+            let v9: bool = &*v0 == "finished";
+            if v9 {
+                let v10: US3 = US3::US3_JobFinished(v1);
+                US1::US1_Settled(v10)
             } else {
-                let v13: bool = &*v5 == "stopped";
-                if v13 {
-                    let v14: US3 = US3::US3_JobStopped;
-                    US1::US1_Settled(v14.clone())
+                let v12: bool = &*v0 == "timed-out";
+                if v12 {
+                    let v13: US3 = US3::US3_JobTimedOut;
+                    US1::US1_Settled(v13)
                 } else {
-                    let v16: bool = &*v5 == "lost";
-                    if v16 {
-                        let v17: US3 = US3::US3_JobLost;
-                        US1::US1_Settled(v17.clone())
+                    let v15: bool = &*v0 == "stopped";
+                    if v15 {
+                        let v16: US3 = US3::US3_JobStopped;
+                        US1::US1_Settled(v16)
                     } else {
-                        let v19: bool = &*v5 == "memory-capped";
-                        if v19 {
-                            let v20: US3 = US3::US3_JobMemoryCapped;
-                            US1::US1_Settled(v20.clone())
+                        let v18: bool = &*v0 == "lost";
+                        if v18 {
+                            let v19: US3 = US3::US3_JobLost;
+                            US1::US1_Settled(v19)
                         } else {
-                            let v22: bool = &*v5 == "expired-in-queue";
-                            if v22 {
-                                let v23: US3 = US3::US3_JobExpiredInQueue;
-                                US1::US1_Settled(v23.clone())
+                            let v21: bool = &*v0 == "memory-capped";
+                            if v21 {
+                                let v22: US3 = US3::US3_JobMemoryCapped;
+                                US1::US1_Settled(v22)
                             } else {
-                                let v25: bool = &*v5 == "skipped";
-                                if v25 {
-                                    let v26: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(9u8)).nth(3).unwrap_or("").trim());
-                                    let v27: US3 = US3::US3_JobSkipped(v26.clone());
-                                    US1::US1_Settled(v27.clone())
+                                let v24: bool = &*v0 == "expired-in-queue";
+                                if v24 {
+                                    let v25: US3 = US3::US3_JobExpiredInQueue;
+                                    US1::US1_Settled(v25)
                                 } else {
-                                    let v29: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(9u8)).nth(3).unwrap_or("").trim());
-                                    let v30: US3 = US3::US3_JobSpawnFailed(v29.clone());
-                                    US1::US1_Settled(v30.clone())
+                                    let v27: bool = &*v0 == "skipped";
+                                    if v27 {
+                                        let v28: US3 = US3::US3_JobSkipped(v2.clone());
+                                        US1::US1_Settled(v28)
+                                    } else {
+                                        let v30: US3 = US3::US3_JobSpawnFailed(v2);
+                                        US1::US1_Settled(v30)
+                                    }
                                 }
                             }
                         }
@@ -234,73 +239,43 @@ fn job_state_of_16(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: u64) -> US
                 }
             }
         }
+    }
+}
+fn job_state_of_16(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: u64) -> US1 {
+    let mut v4: bool = &*v0 != "";
+    if v4 {
+        let v5: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(9u8)).nth(2).unwrap_or("").trim());
+        let mut v6: i32 = v0.split(char::from(9u8)).next().and_then(|code| code.trim().parse::<i32>().ok()).unwrap_or(1);
+        let v7: Rc<str> = std::rc::Rc::<str>::from(v0.split(char::from(9u8)).nth(3).unwrap_or("").trim());
+        state_of_parts_17(v5.clone(), v6, v7.clone())
     } else {
-        let v39: bool = v1 > 0u64;
-        if v39 {
-            let v40: u64 = v1.wrapping_add(15000u64);
-            let v41: bool = v40 < v3;
-            if v41 {
-                let v42: US3 = US3::US3_JobLost;
-                US1::US1_Settled(v42.clone())
+        let v9: bool = v1 > 0u64;
+        if v9 {
+            let v10: u64 = v1.wrapping_add(15000u64);
+            let v11: bool = v10 < v3;
+            if v11 {
+                let v12: US3 = US3::US3_JobLost;
+                US1::US1_Settled(v12.clone())
             } else {
-                let v44: US2 = US2::US2_JobRunning;
-                US1::US1_Live(v44.clone())
+                let v14: US2 = US2::US2_JobRunning;
+                US1::US1_Live(v14.clone())
             }
         } else {
-            let v47: u64 = v2.wrapping_add(15000u64);
-            let v48: bool = v47 < v3;
-            if v48 {
-                let v49: US3 = US3::US3_JobLost;
-                US1::US1_Settled(v49.clone())
+            let v17: u64 = v2.wrapping_add(15000u64);
+            let v18: bool = v17 < v3;
+            if v18 {
+                let v19: US3 = US3::US3_JobLost;
+                US1::US1_Settled(v19.clone())
             } else {
-                let v51: US2 = US2::US2_JobPending;
-                US1::US1_Live(v51.clone())
+                let v21: US2 = US2::US2_JobPending;
+                US1::US1_Live(v21.clone())
             }
         }
     }
 }
-fn process_alive_17(mut v0: u64) -> bool {
-    let mut v1: bool = { #[cfg(windows)] fn alive(pid: u64) -> bool { unsafe extern "system" { fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void; fn WaitForSingleObject(handle: *mut std::ffi::c_void, ms: u32) -> u32; fn CloseHandle(handle: *mut std::ffi::c_void) -> i32; fn GetLastError() -> u32; } if pid == 0 { return true; } unsafe { let handle = OpenProcess(0x0010_0000, 0, pid as u32); if handle.is_null() { return GetLastError() == 5; } let running = WaitForSingleObject(handle, 0) == 258; CloseHandle(handle); running } } #[cfg(not(windows))] fn alive(pid: u64) -> bool { pid == 0 || std::os::unix::process::parent_id() as u64 == pid } alive(v0) };
+fn process_alive_18(mut v0: u64) -> bool {
+    let mut v1: bool = kit_process_alive::kit_process_alive(v0);
     v1
-}
-fn settled_word_18(mut v0: US3) -> Rc<str> {
-    match &v0 {
-        US3::US3_JobExpiredInQueue => {
-            let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expired-in-queue"); } LIT.with(|lit| lit.clone()) };
-            v11
-        }
-        US3::US3_JobFinished(v1) => {
-            let mut v1: i32 = *v1;
-            let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
-            v2
-        }
-        US3::US3_JobLost => {
-            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lost"); } LIT.with(|lit| lit.clone()) };
-            v9
-        }
-        US3::US3_JobMemoryCapped => {
-            let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memory-capped"); } LIT.with(|lit| lit.clone()) };
-            v10
-        }
-        US3::US3_JobSkipped(v7) => {
-            let v7: Rc<str> = v7.clone();
-            let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
-            v8
-        }
-        US3::US3_JobSpawnFailed(v5) => {
-            let v5: Rc<str> = v5.clone();
-            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spawn-failed"); } LIT.with(|lit| lit.clone()) };
-            v6
-        }
-        US3::US3_JobStopped => {
-            let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
-            v4
-        }
-        US3::US3_JobTimedOut => {
-            let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timed-out"); } LIT.with(|lit| lit.clone()) };
-            v3
-        }
-    }
 }
 fn concat5_19(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
     let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
@@ -333,7 +308,7 @@ fn job_state_now_12(mut v0: Rc<str>) -> US1 {
                     } else {
                         let v18: bool = v10 != 0u64;
                         let v20: bool = if v18 {
-                            process_alive_17(v10)
+                            process_alive_18(v10)
                         } else {
                             false
                         };
@@ -349,13 +324,13 @@ fn job_state_now_12(mut v0: Rc<str>) -> US1 {
                             let v30: bool = if v27 {
                                 true
                             } else {
-                                let v28: bool = process_alive_17(v26);
+                                let v28: bool = process_alive_18(v26);
                                 let v29: bool = v28 == false;
                                 v29
                             };
                             let v31: bool = &*v1 == "";
                             let v32: bool = v31 && v30;
-                            let v49: Rc<str> = if v32 {
+                            let v48: Rc<str> = if v32 {
                                 let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
                                 let v34: Rc<str> = job_file_4(v0, v33);
                                 let v35: bool = v2 > 0u64;
@@ -365,19 +340,18 @@ fn job_state_now_12(mut v0: Rc<str>) -> US1 {
                                     v3
                                 };
                                 let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the supervisor stopped beating: it was killed (with its caller, by the memory reaper) or crashed, and its job tree ended with it"); } LIT.with(|lit| lit.clone()) };
-                                let v38: US3 = US3::US3_JobLost;
-                                let v39: Rc<str> = settled_word_18(v38);
-                                let v40: Rc<str> = std::rc::Rc::<str>::from((125i32).to_string());
-                                let v41: Rc<str> = std::rc::Rc::<str>::from((v36).to_string());
-                                let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                                let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                                let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                let v45: Rc<str> = concat5_19(v39, v42.clone(), v37, v43, v44);
-                                let v46: Rc<str> = concat5_19(v40, v42.clone(), v41, v42, v45);
-                                text_written_20(v34, v46)
+                                let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lost"); } LIT.with(|lit| lit.clone()) };
+                                let v39: Rc<str> = std::rc::Rc::<str>::from((125i32).to_string());
+                                let v40: Rc<str> = std::rc::Rc::<str>::from((v36).to_string());
+                                let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+                                let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                                let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                let v44: Rc<str> = concat5_19(v38, v41.clone(), v37, v42, v43);
+                                let v45: Rc<str> = concat5_19(v39, v41.clone(), v40, v41, v44);
+                                text_written_20(v34, v45)
                             } else {
-                                let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                v48
+                                let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                v47
                             };
                             v5.clone()
                         }
@@ -542,7 +516,43 @@ fn state_word_27(mut v0: US1) -> Rc<str> {
         }
         US1::US1_Settled(v3) => {
             let mut v3: US3 = v3.clone();
-            settled_word_18(v3)
+            match &v3 {
+                US3::US3_JobExpiredInQueue => {
+                    let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expired-in-queue"); } LIT.with(|lit| lit.clone()) };
+                    v14
+                }
+                US3::US3_JobFinished(v4) => {
+                    let mut v4: i32 = *v4;
+                    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
+                    v5
+                }
+                US3::US3_JobLost => {
+                    let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lost"); } LIT.with(|lit| lit.clone()) };
+                    v12
+                }
+                US3::US3_JobMemoryCapped => {
+                    let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("memory-capped"); } LIT.with(|lit| lit.clone()) };
+                    v13
+                }
+                US3::US3_JobSkipped(v10) => {
+                    let v10: Rc<str> = v10.clone();
+                    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
+                    v11
+                }
+                US3::US3_JobSpawnFailed(v8) => {
+                    let v8: Rc<str> = v8.clone();
+                    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spawn-failed"); } LIT.with(|lit| lit.clone()) };
+                    v9
+                }
+                US3::US3_JobStopped => {
+                    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
+                    v7
+                }
+                US3::US3_JobTimedOut => {
+                    let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timed-out"); } LIT.with(|lit| lit.clone()) };
+                    v6
+                }
+            }
         }
     }
 }
@@ -583,82 +593,80 @@ fn after_outcome_of_1(mut v0: Rc<str>) -> US0 {
         let v23: u64 = now_ms_2();
         let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped on request while waiting for "); } LIT.with(|lit| lit.clone()) };
         let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v20));
-        let v26: US3 = US3::US3_JobStopped;
-        let v27: Rc<str> = settled_word_18(v26.clone());
-        let v28: Rc<str> = std::rc::Rc::<str>::from((143i32).to_string());
-        let v29: Rc<str> = std::rc::Rc::<str>::from((v23).to_string());
-        let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v32: Rc<str> = concat5_19(v27.clone(), v6.clone(), v25.clone(), v30.clone(), v31.clone());
-        let v33: Rc<str> = concat5_19(v28.clone(), v6.clone(), v29.clone(), v6.clone(), v32.clone());
-        let v34: Rc<str> = text_written_20(v22.clone(), v33.clone());
+        let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stopped"); } LIT.with(|lit| lit.clone()) };
+        let v27: Rc<str> = std::rc::Rc::<str>::from((143i32).to_string());
+        let v28: Rc<str> = std::rc::Rc::<str>::from((v23).to_string());
+        let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+        let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let v31: Rc<str> = concat5_19(v26.clone(), v6.clone(), v25.clone(), v29.clone(), v30.clone());
+        let v32: Rc<str> = concat5_19(v27.clone(), v6.clone(), v28.clone(), v6.clone(), v31.clone());
+        let v33: Rc<str> = text_written_20(v22.clone(), v32.clone());
         US0::US0_AfterHalted(143i32)
     } else {
-        let v36: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v5.split(&*v6).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
-        let v37: i32 = (v36.clone().borrow().len() as i32);
-        let v38: bool = 1i32 < v37;
-        let v49: Rc<str> = if v38 {
-            let v39: Rc<str> = v36.borrow()[1i32 as usize].clone();
-            let v40: i32 = (v39.clone().len() as i32);
-            let v41: i32 = 0i32;
-            let v42: i32 = method10(v39.clone(), v40, v41);
-            let v43: i32 = v40.wrapping_sub(1i32);
-            let v44: Rc<str> = string_slice(&v39.clone(), v42 as i64, v43 as i64);
-            let v45: i32 = (v44.clone().len() as i32);
-            let v46: i32 = method11(v44.clone(), v45);
-            let v47: Rc<str> = string_slice(&v44.clone(), 0i32 as i64, v46 as i64);
-            v47.clone()
+        let v35: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v5.split(&*v6).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
+        let v36: i32 = (v35.clone().borrow().len() as i32);
+        let v37: bool = 1i32 < v36;
+        let v48: Rc<str> = if v37 {
+            let v38: Rc<str> = v35.borrow()[1i32 as usize].clone();
+            let v39: i32 = (v38.clone().len() as i32);
+            let v40: i32 = 0i32;
+            let v41: i32 = method10(v38.clone(), v39, v40);
+            let v42: i32 = v39.wrapping_sub(1i32);
+            let v43: Rc<str> = string_slice(&v38.clone(), v41 as i64, v42 as i64);
+            let v44: i32 = (v43.clone().len() as i32);
+            let v45: i32 = method11(v43.clone(), v44);
+            let v46: Rc<str> = string_slice(&v43.clone(), 0i32 as i64, v45 as i64);
+            v46.clone()
         } else {
-            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v48.clone()
+            let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            v47.clone()
         };
-        let v50: bool = &*v49 == "ok";
-        let v53: bool = if v50 {
-            let v51: i32 = state_exit_25(v3.clone());
-            let v52: bool = v51 != 0i32;
-            v52
+        let v49: bool = &*v48 == "ok";
+        let v52: bool = if v49 {
+            let v50: i32 = state_exit_25(v3.clone());
+            let v51: bool = v50 != 0i32;
+            v51
         } else {
             false
         };
-        if v53 {
-            let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--after-ok: "); } LIT.with(|lit| lit.clone()) };
-            let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v20));
-            let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ended "); } LIT.with(|lit| lit.clone()) };
-            let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v56));
-            let v58: Rc<str> = state_word_27(v3.clone());
-            let v59: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v58));
-            let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" exit "); } LIT.with(|lit| lit.clone()) };
-            let v61: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v60));
-            let v62: i32 = state_exit_25(v3.clone());
-            let v63: Rc<str> = format_real_29(v62);
-            let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v63));
-            let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
-            let v66: Rc<str> = job_file_4(v0.clone(), v65.clone());
-            let v67: u64 = now_ms_2();
-            let v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v69: US3 = US3::US3_JobSkipped(v68.clone());
-            let v70: Rc<str> = settled_word_18(v69.clone());
-            let v71: Rc<str> = std::rc::Rc::<str>::from((125i32).to_string());
-            let v72: Rc<str> = std::rc::Rc::<str>::from((v67).to_string());
-            let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let v74: Rc<str> = concat5_19(v70.clone(), v6.clone(), v64.clone(), v73.clone(), v68.clone());
-            let v75: Rc<str> = concat5_19(v71.clone(), v6.clone(), v72.clone(), v6.clone(), v74.clone());
-            let v76: Rc<str> = text_written_20(v66.clone(), v75.clone());
+        if v52 {
+            let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--after-ok: "); } LIT.with(|lit| lit.clone()) };
+            let v54: Rc<str> = Rc::<str>::from(format!("{}{}", v53, v20));
+            let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ended "); } LIT.with(|lit| lit.clone()) };
+            let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v55));
+            let v57: Rc<str> = state_word_27(v3.clone());
+            let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v57));
+            let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" exit "); } LIT.with(|lit| lit.clone()) };
+            let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v59));
+            let v61: i32 = state_exit_25(v3.clone());
+            let v62: Rc<str> = format_real_29(v61);
+            let v63: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v62));
+            let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exit"); } LIT.with(|lit| lit.clone()) };
+            let v65: Rc<str> = job_file_4(v0.clone(), v64.clone());
+            let v66: u64 = now_ms_2();
+            let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("skipped"); } LIT.with(|lit| lit.clone()) };
+            let v68: Rc<str> = std::rc::Rc::<str>::from((125i32).to_string());
+            let v69: Rc<str> = std::rc::Rc::<str>::from((v66).to_string());
+            let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+            let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let v72: Rc<str> = concat5_19(v67.clone(), v6.clone(), v63.clone(), v70.clone(), v71.clone());
+            let v73: Rc<str> = concat5_19(v68.clone(), v6.clone(), v69.clone(), v6.clone(), v72.clone());
+            let v74: Rc<str> = text_written_20(v65.clone(), v73.clone());
             US0::US0_AfterHalted(125i32)
         } else {
-            let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after-done"); } LIT.with(|lit| lit.clone()) };
-            let v79: Rc<str> = job_file_4(v0.clone(), v78.clone());
-            let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-            let v81: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v80));
-            let v82: Rc<str> = state_word_27(v3.clone());
+            let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("after-done"); } LIT.with(|lit| lit.clone()) };
+            let v77: Rc<str> = job_file_4(v0.clone(), v76.clone());
+            let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+            let v79: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v78));
+            let v80: Rc<str> = state_word_27(v3.clone());
+            let v81: Rc<str> = Rc::<str>::from(format!("{}{}", v79, v80));
+            let v82: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" waited_ms="); } LIT.with(|lit| lit.clone()) };
             let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v81, v82));
-            let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" waited_ms="); } LIT.with(|lit| lit.clone()) };
-            let v85: Rc<str> = Rc::<str>::from(format!("{}{}", v83, v84));
-            let v86: u64 = now_ms_2();
-            let v87: u64 = v86.wrapping_sub(v1);
-            let v88: Rc<str> = decimal_text_22(v87);
-            let v89: Rc<str> = Rc::<str>::from(format!("{}{}", v85, v88));
-            let v90: Rc<str> = text_written_20(v79.clone(), v89.clone());
+            let v84: u64 = now_ms_2();
+            let v85: u64 = v84.wrapping_sub(v1);
+            let v86: Rc<str> = decimal_text_22(v85);
+            let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v83, v86));
+            let v88: Rc<str> = text_written_20(v77.clone(), v87.clone());
             US0::US0_AfterCleared
         }
     }

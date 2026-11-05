@@ -1,4 +1,5 @@
 :< rust_std_string.model
+:< sm'_operators
 :< kit_jobs.host
 :< window_model
 
@@ -201,22 +202,24 @@
     := root = windows_root ()
     $'kit_window_announce_check::kit_window_announced_refusal(&*!root, &*!class_text, !minutes)' : string
 
-:~ window_requested () : i32 =
-    ?= class_of (argument 3i32) ?|
-    | ClassUnknown => refused (concat5 "request: unknown class '" (argument 3i32) "'; " (window_usage ()) "")
+:~ window_requested (~class_text : string) (~minutes_text : string) : i32 =
+    ?= class_of class_text ?|
+    | ClassUnknown => refused (concat5 "request: unknown class '" class_text "'; " (window_usage ()) "")
     | ClassKnown wanted =>
-        := minutes = decimal_of (argument 4i32)
+        := minutes = decimal_of minutes_text
         ? minutes = 0u64
         ?>
             refused (
                 concat5
                     "request: minutes must be a whole number above 0, received '"
-                    (argument 4i32)
+                    minutes_text
                     "'; "
                     (window_usage ())
                     ""
             )
-        |? announce_refusal (argument 3i32) minutes <> "" ?> refused (concat5 "request: " (announce_refusal (argument 3i32) minutes) "" "" "")
+        |? announce_refusal class_text minutes <> "" ?> refused (concat5 "request: " (announce_refusal class_text minutes) "" "" "")
+        |? tree_label_problem wanted (option_value "--label") <> ""
+        ?> refused ("request: " ++# tree_label_problem wanted (option_value "--label"))
         |:
             := since = now_ms ()
             := id =
@@ -241,8 +244,7 @@
                 }
                 !-
 
-:~ window_released () : i32 =
-    := id = argument 3i32
+:~ window_released (~id : string) : i32 =
     := root = windows_root ()
     := row = text_or_empty (window_file root id)
     ? starts_with id "win-" = !- ?> refused (concat5 "release: unknown window id '" id "'" "" "")
@@ -257,19 +259,30 @@
 :~ remote_status (~alias : string) (~binary : string) : i32 =
     $'kit_remote_status::kit_remote_status_run(&*!alias, &*!binary)' : i32
 
-:~ window_run () : i32 =
-    := verb = argument 2i32
-    ? verb = "request" ?> $'kit_window_request::kit_window_request_run()' : i32
-    |? verb = "release" ?> window_released ()
-    |? verb = "list" ?> listed_with_announced ()
-    |? verb = "check" ?> $'kit_window_query::kit_window_check_run()' : i32
-    |? verb = "run" ?> $'kit_window_run::kit_window_run_run()' : i32
-    |? verb = "claim" ?> $'kit_window_claim::kit_window_claim_run()' : i32
-    |? verb = "wait-clear" ?> $'kit_window_wait::kit_window_wait_run()' : i32
-    |? verb = "announce" ?> announce_verb ()
-    |? verb = "remote" ?> remote_status (argument 3i32) (? option_value "--bin" = "" ?> "kit" |: option_value "--bin")
-    |: refused (concat5 "unknown verb '" verb "'; " (window_usage ()) "")
+:~ first_word (words : list string) : string =
+    ?= words ?|
+    | word :: _ => word
+    | [] => ""
 
+:~ verb_ran (verb : window_verb) (words : list string) : i32 =
+    ?= verb ?|
+    | VerbRequest => $'kit_window_request::kit_window_request_run()' : i32
+    | VerbRelease => window_released (first_word words)
+    | VerbList => listed_with_announced ()
+    | VerbCheck => $'kit_window_query::kit_window_check_run()' : i32
+    | VerbRun => $'kit_window_run::kit_window_run_run()' : i32
+    | VerbClaim => $'kit_window_claim::kit_window_claim_run()' : i32
+    | VerbWaitClear => $'kit_window_wait::kit_window_wait_run()' : i32
+    | VerbAnnounce => announce_verb ()
+    | VerbRemote => remote_status (first_word words) (? option_value "--bin" = "" ?> "kit" |: option_value "--bin")
+
+:~ window_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: words =>
+        ?= verb_of word ?|
+        | Some verb => verb_ran verb words
+        | None => refused ("unknown verb '" ++# word ++# "'; " ++# window_usage ())
+    | _ => refused ("unknown verb ''; " ++# window_usage ())
 :~ ^ dropped_tagged (~root : string) (~rows : string) (~tag : string) (count : u64) : u64 =
     ? rows = "" ?> count
     |:
@@ -299,13 +312,12 @@
         ""
 
 := main () : i32 =
-    !!!!Export("kit_window_run", ((\ () => window_run ()) : () -> i32))
-    !!!!Export("kit_job_windows_dropped", ((\ id => job_windows_dropped id) : string -> u64))
-    !!!!Export(
-        "kit_heavy_wrapper",
+    export "kit_window_run" ((\ () => window_run ()) : () -> i32)
+    export "kit_job_windows_dropped" ((\ id => job_windows_dropped id) : string -> u64)
+    export
+        "kit_heavy_wrapper"
         (
             \ (gate, inner, label, id, timeout) => heavy_wrapper gate inner label id timeout
             : string * string * string * string * u64 -> string
         )
-    )
     0i32

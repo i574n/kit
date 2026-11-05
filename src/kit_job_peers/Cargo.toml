@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "peers.spi"
+output = "peers.rs"
+
+[package]
+name = "kit-job-peers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_peers"
+path = "peers.rs"
+
+[dependencies]
+kit-job-state = { path = "../kit_job_state" }
+kit-process-alive = { path = "../kit_process_alive" }

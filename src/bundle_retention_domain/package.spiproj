@@ -1,5 +1,6 @@
 packages:
     |core-
+    spiral-
     external_payload_contract
 modules:
     retention_plan-

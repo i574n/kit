@@ -1,6 +1,10 @@
 packages:
     |core-
     spiral-
+    union_reflection
+    kit_crate_walk
+link:
+    kit_crate_walk
 modules:
     model
     gate

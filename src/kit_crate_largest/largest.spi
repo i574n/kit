@@ -57,8 +57,7 @@
 
 ///> _
 := main () : i32 =
-    !!!!Export(
-        "kit_crate_largest",
+    export
+        "kit_crate_largest"
         ((\ text => largest_text text) : string -> string)
-    )
     0i32

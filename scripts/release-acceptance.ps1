@@ -52,6 +52,10 @@ $flow = @($lint | Where-Object { $_ -match '^\S+\.spi:\d+\s+\S+\s+flow\s' }).Cou
 Row 'lint macros on lib: 0 flow rows' ($flow -eq 0 -and $lint[-1] -match 'violations') (Clip $lint[-1])
 $kitLint = @(& $Candidate lint macros C:\home\git\kit\src --baseline C:\home\git\kit\standards\lint-macros.spi 2>&1)
 Row 'lint macros on kit: no new rows past baseline' ("$($kitLint[-1])" -match '\bnew 0\b') (Clip "$($kitLint[-1])")
+$growth = @(& $Candidate lint growth C:/home/git/kit standards/lint-macros.spi C:/home/git/kit src 2>&1)
+Row 'kit lint baseline grows only for code at HEAD' ($LASTEXITCODE -eq 0 -and "$($growth[-1])" -match '^kit lint growth ok') (Clip "$($growth[-1])")
+$libGrowth = @(& $Candidate lint growth C:/home/git/kit standards/lint-macros-lib.spi C:/home/git/spiral lib/spiral 2>&1)
+Row 'lib lint baseline grows only for code at HEAD' ($LASTEXITCODE -eq 0 -and "$($libGrowth[-1])" -match '^kit lint growth ok') (Clip "$($libGrowth[-1])")
 
 $backlog = Join-Path $Work 'backlog'
 & $installed agile init $backlog *> $null

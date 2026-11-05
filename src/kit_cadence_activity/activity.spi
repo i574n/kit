@@ -1,0 +1,122 @@
+///- --package .
+:# activity static =
+    :< sm'_operators
+    :< agile_cadence.model
+
+:< sm'_operators
+:< agile_cadence.model
+
+:~ team_words (~tags : string) : list string =
+    sm'.split_list "," tags
+    |> listm.map sm'.trim
+    |> listm'.filter (\ (w : string) => sm'.starts_with "team:" w)
+    |> listm.map (\ (w : string) => sm'.replace "team:" "" w)
+
+:== item_teams = { id : string; teams : list string }
+
+:~ ^ teams_from
+    (rows : array_base agile_quality_state.state_rows.cadence_row) (at : i32) (acc : list item_teams)
+    : list item_teams
+    =
+    ? at < 0i32 ?> acc
+    |:
+        := r = am'.index_base at rows
+        teams_from rows (at - 1i32) ({ id = r.id; teams = team_words r.tags } :: acc)
+
+:~ ^ events_from
+    (rows : array_base agile_note_events.events.note_event_row) (at : i32) (acc : list note_event)
+    : list note_event
+    =
+    ? at < 0i32 ?> acc
+    |:
+        := r = am'.index_base at rows
+        events_from rows (at - 1i32) ({ id = r.id; hour = r.hour; author = r.author } :: acc)
+
+:~ events_of (~text : string) : list note_event =
+    := rows = agile_note_events.events.note_events_of text
+    events_from rows (am'.length_base rows - 1i32) []
+
+:== team_activity = { team : string; day : i64; notes : i32; touched : list string }
+
+:~ activity_added (rows : list team_activity) (~team : string) (day : i64) (~id : string) : list team_activity =
+    := here = \ (r : team_activity) => r.team = team && r.day = day
+    := present : i32 = rows |> listm'.filter here |> listm.length
+    := grown = \ (r : team_activity) =>
+        := touched = ? listm'.contains id r.touched ?> r.touched |: id :: r.touched
+        ? here r ?> { r ?| notes = r.notes + 1i32; touched = touched } |: r
+    ? present = 0i32 ?> { team = team; day = day; notes = 1i32; touched = [ id ] } :: rows |: rows |> listm.map grown
+
+:~ activity_of (items : list item_teams) (events : list note_event) (since_day : i64) : list team_activity =
+    := teams_of_id = \ (id : string) =>
+        ?= items |> listm'.try_find_ (\ (t : item_teams) => t.id = id) ?|
+        | Some t => t.teams
+        | None => []
+    := counted = \ (rows : list team_activity) (e : note_event) =>
+        := day = e.hour / 24i64
+        := added = \ (acc : list team_activity) (team : string) => activity_added acc team day e.id
+        ? day < since_day ?> rows |: teams_of_id e.id |> listm.fold added rows
+    events |> listm.fold counted [] |> listm.rev
+
+:~ activity_line (now_day : i64) (r : team_activity) : string =
+    := touched : i32 = listm.length r.touched
+    "kit agile cadence activity team=" ++# r.team ++# " days_ago=" ++# sm'.show (now_day - r.day)
+    ++# " notes=" ++# sm'.show r.notes ++# " touched=" ++# sm'.show touched
+
+:~ activity_lines (items : list item_teams) (events : list note_event) (now_day : i64) (days : i64) (~team : string)
+    : list string
+    =
+    activity_of items events (now_day - days)
+    |> listm'.filter (\ (r : team_activity) => team = "" || r.team = team)
+    |> listm.map (activity_line now_day)
+
+:~ activity_report ((text, now_day, days, team) : string * i64 * i64 * string) : array_base string =
+    := rows = agile_quality_state.state_rows.cadence_of text
+    := items = teams_from rows (am'.length_base rows - 1i32) []
+    activity_lines items (events_of text) now_day days team |> listm'.box |> listm'.to_array'
+
+:~ round_lines (events : list note_event) (now_hour : i64) (hours : i64) : list string =
+    := from, until = now_hour - hours, now_hour + 1i64
+    := seen = \ (found : list string) (e : note_event) =>
+        ? e.hour < from || e.hour >= until || listm'.contains e.author found ?> found |: e.author :: found
+    := authors = events |> listm.fold seen [] |> listm.rev
+    := line = \ (author : string) =>
+        := c = round_counters_of author from until events
+        "kit agile cadence round author=" ++# author ++# " notes=" ++# sm'.show c.notes
+        ++# " items=" ++# sm'.show c.items_touched
+    := count : i32 = listm.length authors
+    := summary = "kit agile cadence round ok authors=" ++# sm'.show count ++# " window_hours=" ++# sm'.show hours
+    listm.append (authors |> listm.map line) [ summary ]
+
+:~ round_report ((text, now_hour, hours) : string * i64 * i64) : array_base string =
+    round_lines (events_of text) now_hour hours |> listm'.box |> listm'.to_array'
+
+///> rust
+:# activity_rows_count_notes_and_touched_items_per_team_day_and_filter_by_team =
+    := both = { id = "K-2"; teams = [ "kit"; "x" ] }
+    := items = [ { id = "K-1"; teams = [ "kit" ] }; both; { id = "X-1"; teams = [ "x" ] } ]
+    := note = \ (id : string) (hour : i64) => { id = id; hour = hour; author = "a" }
+    := day = 100i64 * 24i64
+    := events = [ note "K-1" (day + 1i64); note "K-1" (day + 2i64); note "K-2" (day + 3i64); note "X-1" (day - 30i64) ]
+    := lines = activity_lines items events 100i64 0i64 ""
+    testing.expect (listm'.contains "kit agile cadence activity team=kit days_ago=0 notes=3 touched=2" lines) "kit"
+    testing.expect (listm'.contains "kit agile cadence activity team=x days_ago=0 notes=1 touched=1" lines) "x via K-2"
+    := kit_only = activity_lines items events 100i64 0i64 "kit"
+    := x_lines : i32 = kit_only |> listm'.filter (sm'.contains "team=x") |> listm.length
+    testing.expect (x_lines = 0i32) "--team keeps one team's rows"
+    testing.expect (team_words "kit, team:kit,team:x" = [ "kit"; "x" ]) "team tags"
+
+///> rust
+:# a_round_report_counts_notes_and_items_per_author_inside_the_window =
+    := e = \ (id : string) (hour : i64) (author : string) => { id = id; hour = hour; author = author }
+    := events = [ e "A" 10i64 "kit"; e "A" 11i64 "kit"; e "B" 11i64 "kit"; e "C" 11i64 "x"; e "D" 5i64 "main" ]
+    := lines = round_lines events 11i64 2i64
+    := kit_line = "kit agile cadence round author=kit notes=3 items=2"
+    testing.expect (listm'.contains kit_line lines) "kit: 3 notes on 2 items"
+    testing.expect (listm'.contains "kit agile cadence round author=x notes=1 items=1" lines) "x"
+    := counted_main : i32 = lines |> listm'.filter (sm'.contains "author=main") |> listm.length
+    testing.expect (counted_main = 0i32) "a note before the window is not counted"
+///> _
+:= main () : i32 =
+    export "kit_cadence_activity_report" activity_report
+    export "kit_cadence_round_report" round_report
+    0i32

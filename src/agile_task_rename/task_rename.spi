@@ -123,6 +123,6 @@
     |: renamed (argument_owned 1i32) old new
 
 := main () : i32 =
-    !!!!Export("kit_agile_rename_run", ((\ () => rename_entry ()) : () -> i32))
+    export "kit_agile_rename_run" ((\ () => rename_entry ()) : () -> i32)
     := _ = rename_entry ()
     0i32

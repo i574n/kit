@@ -28,12 +28,8 @@ enum US3 {
 }
 #[derive(Clone)]
 enum US5 {
-    US5_InOption,
-    US5_ContextOption,
-    US5_FirstOption,
-    US5_IncludeOption,
-    US5_ExcludeOption,
-    US5_TimeoutOption,
+    US5_FlagLiteral,
+    US5_FlagPaths,
 }
 #[derive(Clone)]
 enum US4 {
@@ -41,14 +37,28 @@ enum US4 {
     US4_None,
 }
 #[derive(Clone)]
+enum US7 {
+    US7_ValuedIn,
+    US7_ValuedContext,
+    US7_ValuedFirst,
+    US7_ValuedInclude,
+    US7_ValuedExclude,
+    US7_ValuedTimeout,
+}
+#[derive(Clone)]
 enum US6 {
-    US6_Some(u64),
+    US6_Some(US7),
     US6_None,
 }
 #[derive(Clone)]
-enum US7 {
-    US7_Succeeded,
-    US7_Failed,
+enum US8 {
+    US8_Some(u64),
+    US8_None,
+}
+#[derive(Clone)]
+enum US9 {
+    US9_Succeeded,
+    US9_Failed,
 }
 fn now_ms_1() -> u64 {
     let mut v0: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0);
@@ -150,25 +160,25 @@ fn value_at_10(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut
 fn method12(mut v0: Option<u64>) -> Option<u64> {
     v0
 }
-fn closure1() -> Rc<dyn Fn((u64)) -> US6> {
-    thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US6> = Rc::new(move |mut v0: (u64)| -> US6 {
+fn closure1() -> Rc<dyn Fn((u64)) -> US8> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn((u64)) -> US8> = Rc::new(move |mut v0: (u64)| -> US8 {
         let mut v1: u64 = (v0);
-        US6::US6_Some(v1)
+        US8::US8_Some(v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn decimal_of_11(mut v0: Rc<str>) -> u64 {
     let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
     let mut v2: Option<u64> = method12(v1.clone());
-    let mut v3: Rc<dyn Fn((u64)) -> US6> = closure1();
-    let mut v4: Option<US6> = v2.map(|x| v3(x));
-    let v6: US6 = US6::US6_None;
-    let v7: US6 = v6.clone();
-    let v8: US6 = v4.unwrap_or(v7);
+    let mut v3: Rc<dyn Fn((u64)) -> US8> = closure1();
+    let mut v4: Option<US8> = v2.map(|x| v3(x));
+    let v6: US8 = US8::US8_None;
+    let v7: US8 = v6.clone();
+    let v8: US8 = v4.unwrap_or(v7);
     match &v8 {
-        US6::US6_None => {
+        US8::US8_None => {
             0u64
         }
-        US6::US6_Some(v9) => {
+        US8::US8_Some(v9) => {
             let v9: u64 = *v9;
             v9
         }
@@ -183,174 +193,193 @@ fn query_options_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32,
                 let v21: i32 = v2.wrapping_add(1i32);
                 let mut v22: Rc<str> = value_at_10(v0.clone(), v1, v21);
                 let v23: bool = &*v20 == "literal";
-                if v23 {
-                    let v24: bool = true;
-                    (v2, v5) = (v21, v24);
-                    continue;
+                let v31: US4 = if v23 {
+                    let v24: US5 = US5::US5_FlagLiteral;
+                    US4::US4_Some(v24.clone())
                 } else {
                     let v26: bool = &*v20 == "paths";
                     if v26 {
-                        let v27: bool = true;
-                        (v2, v12) = (v21, v27);
-                        continue;
+                        let v27: US5 = US5::US5_FlagPaths;
+                        US4::US4_Some(v27.clone())
                     } else {
-                        let v29: bool = &*v20 == "around";
-                        let v41: bool = if v29 {
+                        US4::US4_None
+                    }
+                };
+                match &v31 {
+                    US4::US4_None => {
+                        let v58: bool = &*v20 == "around";
+                        let v68: bool = if v58 {
                             true
                         } else {
-                            let v30: bool = &*v20 == "per";
-                            if v30 {
+                            let v59: bool = &*v20 == "per";
+                            if v59 {
                                 true
                             } else {
-                                let v31: bool = &*v20 == "file";
-                                if v31 {
+                                let v60: bool = &*v20 == "file";
+                                if v60 {
                                     true
                                 } else {
-                                    let v32: bool = &*v20 == "~";
-                                    if v32 {
+                                    let v61: bool = &*v20 == "with";
+                                    if v61 {
                                         true
                                     } else {
-                                        let v33: bool = &*v20 == "with";
-                                        if v33 {
+                                        let v62: bool = &*v20 == "git";
+                                        if v62 {
                                             true
                                         } else {
-                                            let v34: bool = &*v20 == "git";
-                                            if v34 {
-                                                true
-                                            } else {
-                                                let v35: bool = &*v20 == "status";
-                                                v35
-                                            }
+                                            let v63: bool = &*v20 == "status";
+                                            v63
                                         }
                                     }
                                 }
                             }
                         };
-                        if v41 {
+                        let v69: bool = &*v20 == "~";
+                        let v70: bool = v69 || v68;
+                        if v70 {
                             v2 = v21;
                             continue;
                         } else {
-                            let v43: bool = &*v20 == "in";
-                            let v67: US4 = if v43 {
-                                let v44: US5 = US5::US5_InOption;
-                                US4::US4_Some(v44.clone())
+                            let v72: bool = &*v20 == "in";
+                            let v96: US6 = if v72 {
+                                let v73: US7 = US7::US7_ValuedIn;
+                                US6::US6_Some(v73.clone())
                             } else {
-                                let v46: bool = &*v20 == "context";
-                                if v46 {
-                                    let v47: US5 = US5::US5_ContextOption;
-                                    US4::US4_Some(v47.clone())
+                                let v75: bool = &*v20 == "context";
+                                if v75 {
+                                    let v76: US7 = US7::US7_ValuedContext;
+                                    US6::US6_Some(v76.clone())
                                 } else {
-                                    let v49: bool = &*v20 == "first";
-                                    if v49 {
-                                        let v50: US5 = US5::US5_FirstOption;
-                                        US4::US4_Some(v50.clone())
+                                    let v78: bool = &*v20 == "first";
+                                    if v78 {
+                                        let v79: US7 = US7::US7_ValuedFirst;
+                                        US6::US6_Some(v79.clone())
                                     } else {
-                                        let v52: bool = &*v20 == "include";
-                                        if v52 {
-                                            let v53: US5 = US5::US5_IncludeOption;
-                                            US4::US4_Some(v53.clone())
+                                        let v81: bool = &*v20 == "include";
+                                        if v81 {
+                                            let v82: US7 = US7::US7_ValuedInclude;
+                                            US6::US6_Some(v82.clone())
                                         } else {
-                                            let v55: bool = &*v20 == "exclude";
-                                            if v55 {
-                                                let v56: US5 = US5::US5_ExcludeOption;
-                                                US4::US4_Some(v56.clone())
+                                            let v84: bool = &*v20 == "exclude";
+                                            if v84 {
+                                                let v85: US7 = US7::US7_ValuedExclude;
+                                                US6::US6_Some(v85.clone())
                                             } else {
-                                                let v58: bool = &*v20 == "timeout";
-                                                if v58 {
-                                                    let v59: US5 = US5::US5_TimeoutOption;
-                                                    US4::US4_Some(v59.clone())
+                                                let v87: bool = &*v20 == "timeout";
+                                                if v87 {
+                                                    let v88: US7 = US7::US7_ValuedTimeout;
+                                                    US6::US6_Some(v88.clone())
                                                 } else {
-                                                    US4::US4_None
+                                                    US6::US6_None
                                                 }
                                             }
                                         }
                                     }
                                 }
                             };
-                            match &v67 {
-                                US4::US4_None => {
-                                    let v152: bool = !v20.is_empty() && v20.bytes().all(|byte| byte.is_ascii_digit());
-                                    if v152 {
-                                        let v153: u64 = decimal_of_11(v20.clone());
-                                        (v2, v13) = (v21, v153);
+                            match &v96 {
+                                US6::US6_None => {
+                                    let v181: bool = !v20.is_empty() && v20.bytes().all(|byte| byte.is_ascii_digit());
+                                    if v181 {
+                                        let v182: u64 = decimal_of_11(v20.clone());
+                                        (v2, v13) = (v21, v182);
                                         continue;
                                     } else {
-                                        let v155: bool = &*v6 == "";
-                                        if v155 {
+                                        let v184: bool = &*v6 == "";
+                                        if v184 {
                                             (v2, v6) = (v21, v20.clone());
                                             continue;
                                         } else {
-                                            let v157: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected word: "); } LIT.with(|lit| lit.clone()) };
-                                            let v158: Rc<str> = Rc::<str>::from(format!("{}{}", v157, v20));
-                                            return US0::US0_QueryRejected(v158.clone());
+                                            let v186: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected word: "); } LIT.with(|lit| lit.clone()) };
+                                            let v187: Rc<str> = Rc::<str>::from(format!("{}{}", v186, v20));
+                                            return US0::US0_QueryRejected(v187.clone());
                                         }
                                     }
                                 }
-                                US4::US4_Some(v68) => {
-                                    let v68: US5 = v68.clone();
-                                    let v69: bool = &*v22 == "";
-                                    if v69 {
-                                        let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": expected a value after it"); } LIT.with(|lit| lit.clone()) };
-                                        let v71: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v70));
-                                        return US0::US0_QueryRejected(v71.clone());
+                                US6::US6_Some(v97) => {
+                                    let v97: US7 = v97.clone();
+                                    let v98: bool = &*v22 == "";
+                                    if v98 {
+                                        let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": expected a value after it"); } LIT.with(|lit| lit.clone()) };
+                                        let v100: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v99));
+                                        return US0::US0_QueryRejected(v100.clone());
                                     } else {
-                                        let v73: i32 = v2.wrapping_add(2i32);
-                                        let (mut v138, mut v139, mut v140, mut v141, mut v142, mut v143, mut v144, mut v145, mut v146, mut v147, mut v148, mut v149): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v68 {
-                                            US5::US5_InOption => {
+                                        let v102: i32 = v2.wrapping_add(2i32);
+                                        let (mut v167, mut v168, mut v169, mut v170, mut v171, mut v172, mut v173, mut v174, mut v175, mut v176, mut v177, mut v178): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v97 {
+                                            US7::US7_ValuedIn => {
                                                 (v3.clone(), v4.clone(), v5, v22.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v13, v14)
                                             }
                                             _ => {
-                                                let (mut v126, mut v127, mut v128, mut v129, mut v130, mut v131, mut v132, mut v133, mut v134, mut v135, mut v136, mut v137): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v68 {
-                                                    US5::US5_ContextOption => {
-                                                        let v74: u64 = v22.split(char::from(44u8)).next().and_then(|value| value.trim().parse::<u64>().ok()).unwrap_or(0);
-                                                        let v75: u64 = v22.rsplit(char::from(44u8)).next().and_then(|value| value.trim().parse::<u64>().ok()).unwrap_or(0);
-                                                        (v3.clone(), v4.clone(), v5, v6.clone(), v74, v75, v9, v10.clone(), v11.clone(), v12, v13, v14)
+                                                let (mut v155, mut v156, mut v157, mut v158, mut v159, mut v160, mut v161, mut v162, mut v163, mut v164, mut v165, mut v166): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v97 {
+                                                    US7::US7_ValuedContext => {
+                                                        let v103: u64 = v22.split(char::from(44u8)).next().and_then(|value| value.trim().parse::<u64>().ok()).unwrap_or(0);
+                                                        let v104: u64 = v22.rsplit(char::from(44u8)).next().and_then(|value| value.trim().parse::<u64>().ok()).unwrap_or(0);
+                                                        (v3.clone(), v4.clone(), v5, v6.clone(), v103, v104, v9, v10.clone(), v11.clone(), v12, v13, v14)
                                                     }
                                                     _ => {
-                                                        let (mut v114, mut v115, mut v116, mut v117, mut v118, mut v119, mut v120, mut v121, mut v122, mut v123, mut v124, mut v125): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v68 {
-                                                            US5::US5_FirstOption => {
-                                                                let v76: u64 = decimal_of_11(v22.clone());
-                                                                (v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v76, v10.clone(), v11.clone(), v12, v13, v14)
+                                                        let (mut v143, mut v144, mut v145, mut v146, mut v147, mut v148, mut v149, mut v150, mut v151, mut v152, mut v153, mut v154): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v97 {
+                                                            US7::US7_ValuedFirst => {
+                                                                let v105: u64 = decimal_of_11(v22.clone());
+                                                                (v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v105, v10.clone(), v11.clone(), v12, v13, v14)
                                                             }
                                                             _ => {
-                                                                let (mut v102, mut v103, mut v104, mut v105, mut v106, mut v107, mut v108, mut v109, mut v110, mut v111, mut v112, mut v113): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v68 {
-                                                                    US5::US5_IncludeOption => {
+                                                                let (mut v131, mut v132, mut v133, mut v134, mut v135, mut v136, mut v137, mut v138, mut v139, mut v140, mut v141, mut v142): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v97 {
+                                                                    US7::US7_ValuedInclude => {
                                                                         (v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v9, v22.clone(), v11.clone(), v12, v13, v14)
                                                                     }
                                                                     _ => {
-                                                                        let (mut v90, mut v91, mut v92, mut v93, mut v94, mut v95, mut v96, mut v97, mut v98, mut v99, mut v100, mut v101): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v68 {
-                                                                            US5::US5_ExcludeOption => {
+                                                                        let (mut v119, mut v120, mut v121, mut v122, mut v123, mut v124, mut v125, mut v126, mut v127, mut v128, mut v129, mut v130): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v97 {
+                                                                            US7::US7_ValuedExclude => {
                                                                                 (v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v9, v10.clone(), v22.clone(), v12, v13, v14)
                                                                             }
                                                                             _ => {
-                                                                                let (mut v78, mut v79, mut v80, mut v81, mut v82, mut v83, mut v84, mut v85, mut v86, mut v87, mut v88, mut v89): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v68 {
-                                                                                    US5::US5_TimeoutOption => {
-                                                                                        let v77: u64 = { let text = (&*v22).trim(); let (digits, scale) = if let Some(value) = text.strip_suffix("ms") { (value, 1) } else if let Some(value) = text.strip_suffix(char::from(115u8)) { (value, 1000) } else if let Some(value) = text.strip_suffix(char::from(109u8)) { (value, 60000) } else { (text, 1000) }; digits.trim().parse::<u64>().map(|value| value * scale).unwrap_or(0) };
-                                                                                        (v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v13, v77)
+                                                                                let (mut v107, mut v108, mut v109, mut v110, mut v111, mut v112, mut v113, mut v114, mut v115, mut v116, mut v117, mut v118): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v97 {
+                                                                                    US7::US7_ValuedTimeout => {
+                                                                                        let v106: u64 = { let text = (&*v22).trim(); let (digits, scale) = if let Some(value) = text.strip_suffix("ms") { (value, 1) } else if let Some(value) = text.strip_suffix(char::from(115u8)) { (value, 1000) } else if let Some(value) = text.strip_suffix(char::from(109u8)) { (value, 60000) } else { (text, 1000) }; digits.trim().parse::<u64>().map(|value| value * scale).unwrap_or(0) };
+                                                                                        (v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v13, v106)
                                                                                     }
                                                                                     _ => unreachable!(),
                                                                                 };
-                                                                                (v78.clone(), v79.clone(), v80, v81.clone(), v82, v83, v84, v85.clone(), v86.clone(), v87, v88, v89)
+                                                                                (v107.clone(), v108.clone(), v109, v110.clone(), v111, v112, v113, v114.clone(), v115.clone(), v116, v117, v118)
                                                                             }
                                                                         };
-                                                                        (v90.clone(), v91.clone(), v92, v93.clone(), v94, v95, v96, v97.clone(), v98.clone(), v99, v100, v101)
+                                                                        (v119.clone(), v120.clone(), v121, v122.clone(), v123, v124, v125, v126.clone(), v127.clone(), v128, v129, v130)
                                                                     }
                                                                 };
-                                                                (v102.clone(), v103.clone(), v104, v105.clone(), v106, v107, v108, v109.clone(), v110.clone(), v111, v112, v113)
+                                                                (v131.clone(), v132.clone(), v133, v134.clone(), v135, v136, v137, v138.clone(), v139.clone(), v140, v141, v142)
                                                             }
                                                         };
-                                                        (v114.clone(), v115.clone(), v116, v117.clone(), v118, v119, v120, v121.clone(), v122.clone(), v123, v124, v125)
+                                                        (v143.clone(), v144.clone(), v145, v146.clone(), v147, v148, v149, v150.clone(), v151.clone(), v152, v153, v154)
                                                     }
                                                 };
-                                                (v126.clone(), v127.clone(), v128, v129.clone(), v130, v131, v132, v133.clone(), v134.clone(), v135, v136, v137)
+                                                (v155.clone(), v156.clone(), v157, v158.clone(), v159, v160, v161, v162.clone(), v163.clone(), v164, v165, v166)
                                             }
                                         };
-                                        (v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v73, v138.clone(), v139.clone(), v140, v141.clone(), v142, v143, v144, v145.clone(), v146.clone(), v147, v148, v149);
+                                        (v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v102, v167.clone(), v168.clone(), v169, v170.clone(), v171, v172, v173, v174.clone(), v175.clone(), v176, v177, v178);
                                         continue;
                                     }
                                 }
                             }
                         }
+                    }
+                    US4::US4_Some(v32) => {
+                        let v32: US5 = v32.clone();
+                        let (mut v45, mut v46, mut v47, mut v48, mut v49, mut v50, mut v51, mut v52, mut v53, mut v54, mut v55, mut v56): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v32 {
+                            US5::US5_FlagLiteral => {
+                                (v3.clone(), v4.clone(), true, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), v12, v13, v14)
+                            }
+                            _ => {
+                                let (mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40, mut v41, mut v42, mut v43, mut v44): (US1, Rc<str>, bool, Rc<str>, u64, u64, u64, Rc<str>, Rc<str>, bool, u64, u64) = match &v32 {
+                                    US5::US5_FlagPaths => {
+                                        (v3.clone(), v4.clone(), v5, v6.clone(), v7, v8, v9, v10.clone(), v11.clone(), true, v13, v14)
+                                    }
+                                    _ => unreachable!(),
+                                };
+                                (v33.clone(), v34.clone(), v35, v36.clone(), v37, v38, v39, v40.clone(), v41.clone(), v42, v43, v44)
+                            }
+                        };
+                        (v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14) = (v21, v45.clone(), v46.clone(), v47, v48.clone(), v49, v50, v51, v52.clone(), v53.clone(), v54, v55, v56);
+                        continue;
                     }
                 }
             }
@@ -817,13 +846,13 @@ fn clock_text_32() -> Rc<str> {
     let mut v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
     v1.clone()
 }
-fn receipt_line_30(mut v0: US7, mut v1: Rc<str>, mut v2: u64) -> () {
+fn receipt_line_30(mut v0: US9, mut v1: Rc<str>, mut v2: u64) -> () {
     let v6: Rc<str> = match &v0 {
-        US7::US7_Failed => {
+        US9::US9_Failed => {
             let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
             v4
         }
-        US7::US7_Succeeded => {
+        US9::US9_Succeeded => {
             let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ok"); } LIT.with(|lit| lit.clone()) };
             v3
         }
@@ -864,7 +893,7 @@ fn read_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         let v37: u64 = v10.borrow().len() as u64;
         let v38: Rc<str> = receipt_counts_28(v24.clone(), v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v37);
         if v25 {
-            let v39: US7 = US7::US7_Failed;
+            let v39: US9 = US9::US9_Failed;
             receipt_line_30(v39.clone(), v38.clone(), v2);
             let v40: bool = v35 > 0u64;
             if v40 {
@@ -873,7 +902,7 @@ fn read_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
                 1i32
             }
         } else {
-            let v42: US7 = US7::US7_Succeeded;
+            let v42: US9 = US9::US9_Succeeded;
             receipt_line_30(v42.clone(), v38.clone(), v2);
             0i32
         }
@@ -881,7 +910,7 @@ fn read_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("program rejected: "); } LIT.with(|lit| lit.clone()) };
         let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v8));
         println!("{}", v45);
-        let v46: US7 = US7::US7_Failed;
+        let v46: US9 = US9::US9_Failed;
         let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files 0"); } LIT.with(|lit| lit.clone()) };
         receipt_line_30(v46.clone(), v47.clone(), v2);
         2i32

@@ -27,5 +27,5 @@
             |: failed ("import could not write " ++# data)
 
 := main () : i32 =
-    !!!!Export("kit_memory_import", ((\ (dir, data) => memory_import dir data) : string * string -> i32))
+    export "kit_memory_import" ((\ (dir, data) => memory_import dir data) : string * string -> i32)
     0i32

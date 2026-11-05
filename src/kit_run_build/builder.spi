@@ -1,0 +1,83 @@
+///- --package .
+:# builder static =
+    :< sm'_operators
+    :< kit_run_model.model
+
+:< sm'_operators
+:< kit_run_model.model
+
+:~ stem_of (~file : string) : string =
+    := name = listm.fold (\ _ (part : string) => part) "" (sm'.split_list "/" (sm'.replace "\\" "/" file))
+    sm'.to_lower (sm'.replace "-" "_" (sm'.replace ".spi" "" name))
+
+:== run_paths = { packages : string; package : string; source : string; rs : string; exe : string }
+
+:~ paths_of (~cache : string) (~stem : string) (windows : bool) : run_paths =
+    := packages = cache ++# "/pkgs"
+    := package = packages ++# "/" ++# stem
+    := exe = cache ++# "/" ++# stem ++# (? windows ?> ".exe" |: "")
+    := file = package ++# "/" ++# stem
+    { packages = packages; package = package; source = file ++# ".spi"; rs = file ++# ".rs"; exe = exe }
+
+:~ manifest_of (~stem : string) : string = "packages:\n    |core-\n    spiral-\nmodules:\n    " ++# stem ++# "\n"
+
+:== build_setup = { lib : string; core : string; compiler : string; cache_root : string }
+
+:~ key_of (s : build_setup) (~text : string) : run_key =
+    { file_hash = sm'.show (fnv text); closure_hashes = [ s.lib; s.core ]; compiler_hash = sm'.show (fnv s.compiler) }
+
+:| built =
+    | BuiltReady : string
+    | BuildFailed : string
+
+:~ windows () : bool = kit_os_machine.metrics.is_windows ()
+
+:~ native (~path : string) : string = ? windows () ?> sm'.replace "/" "\\" path |: path
+
+:~ step_code (~program : string) (args : list string) : i32 =
+    := gather = \ (kept : array string) (arg : string) => kept ++ ;[ arg ]
+    kit_os_run.run_os.inherited_exit program (args |> listm.fold gather ;[])
+
+:~ linked (~link : string) (~target : string) : bool =
+    ? file_system.directory_exists link ?> !+
+    |? windows () ?> step_code "cmd" [ "/c"; "mklink"; "/J"; native link; native target ] = 0i32
+    |: step_code "ln" [ "-s"; target; link ] = 0i32
+
+:~ step_failed (~step : string) (code : i32) : built = BuildFailed (step ++# " failed with exit " ++# sm'.show code)
+
+:~ program_built (s : build_setup) (~file : string) : built =
+    := text = file_system.read_text_or_empty file
+    := p = paths_of (s.cache_root ++# "/" ++# cache_name (key_of s text)) (stem_of file) (windows ())
+    ? text = "" ?> BuildFailed ("cannot read " ++# file)
+    |? file_system.file_exists p.exe ?> BuiltReady p.exe
+    |:
+        := _ = file_system.create_dir_all p.package
+        file_system.write_all_text p.source text
+        file_system.write_all_text (p.package ++# "/package.spiproj") (manifest_of (stem_of file))
+        ? linked (p.packages ++# "/spiral") s.lib |> not || linked (p.packages ++# "/core") s.core |> not
+        ?> BuildFailed "could not link the lib and core packages beside the script"
+        |:
+            := compiled = step_code "dotnet" [ s.compiler; "--backend"; "Rust"; p.source; p.rs ]
+            ? compiled <> 0i32 ?> step_failed "compile" compiled
+            |:
+                := rustc = step_code "rustc" [ "-O"; "--edition"; "2021"; p.rs; "-o"; p.exe ]
+                ? rustc = 0i32 ?> BuiltReady p.exe |: step_failed "rustc" rustc
+
+:~ built_exe ((lib, core, compiler, cache_root, file) : string * string * string * string * string) : string * string =
+    ?= program_built { lib = lib; core = core; compiler = compiler; cache_root = cache_root } file ?|
+    | BuiltReady exe => exe, ""
+    | BuildFailed reason => "", reason
+
+///> rust
+:# a_script_builds_into_a_cached_package_beside_lib_and_core =
+    testing.expect (stem_of "C:\\work\\my-tool.spi" = "my_tool" && stem_of "a/b/Run.spi" = "run") "stems"
+    := p = paths_of "C:/c/key" "tool" !+
+    testing.expect (p.exe = "C:/c/key/tool.exe" && p.source = "C:/c/key/pkgs/tool/tool.spi") p.exe
+    testing.expect ((paths_of "/c/key" "tool" !-).exe = "/c/key/tool") "no suffix off Windows"
+    testing.expect (sm'.ends_with "modules:\n    tool\n" (manifest_of "tool")) (manifest_of "tool")
+    := missing = built_exe ("l", "c", "d", "e", "no/such/file.spi")
+    testing.expect (missing = ("", "cannot read no/such/file.spi")) "an unreadable script fails before any build step"
+///> _
+:= main () : i32 =
+    export "kit_run_built_exe" built_exe
+    0i32

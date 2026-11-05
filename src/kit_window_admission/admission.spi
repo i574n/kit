@@ -39,12 +39,11 @@
         admission_terms wanted verdict
 
 := main () : i32 =
-    !!!!Export(
-        "kit_window_verdict",
+    export
+        "kit_window_verdict"
         (
             \ (wanted_word, label, mine, since, minutes, rows, free, now, min_free) =>
                 verdict_terms wanted_word label mine since minutes rows free now min_free
             : string * string * string * u64 * u64 * string * u64 * u64 * u64 -> string
         )
-    )
     0i32

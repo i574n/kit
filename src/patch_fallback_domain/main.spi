@@ -8,29 +8,23 @@
     := _ = patch_route_hash_binding 1i32 1i32
     := _ = patch_route_complete_binding 0i32 1i32
     := _ = patch_route_agreement_binding 1i32 1i32
-    !!!!Export(
-        "kit_patch_route_role_binding",
+    export
+        "kit_patch_route_role_binding"
         ((\ (first, second) => patch_route_role_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_route_forward_binding",
+    export
+        "kit_patch_route_forward_binding"
         ((\ (first, second) => patch_route_forward_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_route_restore_binding",
+    export
+        "kit_patch_route_restore_binding"
         ((\ (first, second) => patch_route_restore_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_route_hash_binding",
+    export
+        "kit_patch_route_hash_binding"
         ((\ (first, second) => patch_route_hash_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_route_complete_binding",
+    export
+        "kit_patch_route_complete_binding"
         ((\ (first, second) => patch_route_complete_binding first second) : i32 * i32 -> i32)
-    )
-    !!!!Export(
-        "kit_patch_route_agreement_binding",
+    export
+        "kit_patch_route_agreement_binding"
         ((\ (first, second) => patch_route_agreement_binding first second) : i32 * i32 -> i32)
-    )
 
     0i32

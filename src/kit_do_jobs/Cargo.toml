@@ -15,5 +15,6 @@ path = "do_jobs.rs"
 
 [dependencies]
 kit-command-line = { path = "../kit_command_line" }
-kit-jobs = { path = "../kit_jobs" }
+kit-job-entry = { path = "../kit_job_entry" }
 kit-job-control = { path = "../kit_job_control" }
+kit-do-verbs = { path = "../kit_do_verbs" }

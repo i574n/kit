@@ -119,5 +119,5 @@
 
 ///> _
 := main () : i32 =
-    !!!!Export("kit_evidence_run", ((\ () => evidence_run ()) : () -> i32))
+    export "kit_evidence_run" ((\ () => evidence_run ()) : () -> i32)
     0i32

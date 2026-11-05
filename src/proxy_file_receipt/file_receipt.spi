@@ -9,7 +9,7 @@
 :~ elapsed_field (started : u64) : string = elapsed_text started
 
 := main () : i32 =
-    !!!!Export("kit_file_clock_ms", ((\ () => file_clock_ms ()) : () -> u64))
-    !!!!Export("kit_elapsed_field", ((\ started => elapsed_field started) : u64 -> string))
+    export "kit_file_clock_ms" ((\ () => file_clock_ms ()) : () -> u64)
+    export "kit_elapsed_field" ((\ started => elapsed_field started) : u64 -> string)
     := _ = elapsed_field (file_clock_ms ())
     0i32

@@ -534,13 +534,13 @@ fn print_rows_4(mut v0: Rc<str>, mut v1: i32, mut v2: US0, mut v3: Rc<str>, mut 
     rows_printed_5(v0, v2, v3, v4, v5, v6, v7, v8, v9, v10, v13, v14)
 }
 fn query_text_19(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US1, mut v4: std::rc::Rc<std::collections::HashMap<String, (u32, String)>>, mut v5: std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>>, mut v6: Rc<str>, mut v7: US2, mut v8: Rc<str>) -> Rc<str> {
-    let v16: Rc<str> = match &v7 {
+    let v15: Rc<str> = match &v7 {
         US2::US2_SortPriority => {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v9
         }
         _ => {
-            let mut v13: Rc<str> = match &v7 {
+            let v12: Rc<str> = match &v7 {
                 US2::US2_SortDifficulty => {
                     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("difficulty"); } LIT.with(|lit| lit.clone()) };
                     v10
@@ -551,21 +551,21 @@ fn query_text_19(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: US1, mut
                 }
                 _ => unreachable!(),
             };
-            let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" sort="); } LIT.with(|lit| lit.clone()) };
-            let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v13));
-            v15
+            let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" sort="); } LIT.with(|lit| lit.clone()) };
+            let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v12));
+            v14
         }
     };
-    let v17: bool = &*v6 == "";
-    let v20: Rc<str> = if v17 {
-        let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v18
+    let v16: bool = &*v6 == "";
+    let v19: Rc<str> = if v16 {
+        let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v17
     } else {
-        let v19: Rc<str> = agile_task_query::kit_query_shown(&*v6);
-        v19
+        let v18: Rc<str> = agile_task_query::kit_query_shown(&*v6);
+        v18
     };
-    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v16));
-    v21
+    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v15));
+    v20
 }
 fn filter_text_20(mut v0: US0) -> Rc<str> {
     match &v0 {
@@ -899,27 +899,32 @@ fn agile_list_entry_0() -> i32 {
         let v15: std::rc::Rc<std::collections::HashMap<String, (u32, String)>> = std::rc::Rc::new(std::collections::HashMap::new());
         let v17: std::collections::BTreeMap<Rc<str>, Rc<str>> = std::collections::BTreeMap::new();
         let v18: std::rc::Rc<std::collections::BTreeMap<Rc<str>, Rc<str>>> = std::rc::Rc::new(v17);
-        let v19: bool = &*v7 == "difficulty";
-        let mut v25: US2 = if v19 {
-            US2::US2_SortDifficulty
+        let v19: bool = &*v7 == "priority";
+        let v28: US2 = if v19 {
+            US2::US2_SortPriority
         } else {
-            let v21: bool = &*v7 == "progress";
+            let v21: bool = &*v7 == "difficulty";
             if v21 {
-                US2::US2_SortProgress
+                US2::US2_SortDifficulty
             } else {
-                US2::US2_SortPriority
+                let mut v23: bool = &*v7 == "progress";
+                if v23 {
+                    US2::US2_SortProgress
+                } else {
+                    US2::US2_SortPriority
+                }
             }
         };
-        let v26: i32 = 1i32;
-        let v27: Rc<str> = usize::try_from(v26).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-        let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        agile_list_1(v27.clone(), v11.clone(), v3.clone(), v4.clone(), v14.clone(), v15.clone(), v18.clone(), v6.clone(), v25.clone(), v28.clone())
+        let mut v29: i32 = 1i32;
+        let mut v30: Rc<str> = usize::try_from(v29).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+        let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        agile_list_1(v30.clone(), v11.clone(), v3.clone(), v4.clone(), v14.clone(), v15.clone(), v18.clone(), v6.clone(), v28.clone(), v31.clone())
     } else {
-        let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile list rejected: "); } LIT.with(|lit| lit.clone()) };
-        let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v1));
-        let v32: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v31 + "
+        let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile list rejected: "); } LIT.with(|lit| lit.clone()) };
+        let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v1));
+        let v35: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v34 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-        v32
+        v35
     }
 }
 fn closure0() -> Rc<dyn Fn() -> i32> {

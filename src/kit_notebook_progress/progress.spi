@@ -36,8 +36,7 @@
         batch_progress_text progress started_ms now
 
 := main () : i32 =
-    !!!!Export(
-        "kit_notebook_batch_line",
+    export
+        "kit_notebook_batch_line"
         ((\ (command, age_minutes) => notebook_batch_line command age_minutes (now_ms ())) : string * u64 -> string)
-    )
     0i32

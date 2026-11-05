@@ -7,14 +7,18 @@
     ? rows = ""
     ?> count
     |:
-        := row = first_row rows
-        := timing =
-            ? tab_field row 2i32 = "waiting"
-            ?> "waited " ++# (number_text ((now - decimal_of (tab_field row 4i32)) / 60000u64)) ++# "m"
-            |: (number_text (minutes_left (decimal_of (tab_field row 5i32)) now)) ++# "m left"
-        stdout_line ((tab_field row 0i32) ++# "  " ++# (tab_field row 1i32) ++# "  " ++# (
-            (tab_field row 2i32) ++# "  " ++# timing ++# "  " ++# (tab_field row 3i32)))
-        shown_rows (other_rows rows) now (count + 1u64)
+        ?= row_of (first_row rows) ?|
+        | RowKnown row =>
+            := timing =
+                ?= row.state ?|
+                | Waiting => "waited " ++# (number_text ((now - row.start_ms) / 60000u64)) ++# "m"
+                | Held => (number_text (minutes_left row.until_ms now)) ++# "m left"
+            stdout_line (
+                row.id ++# "  " ++# (class_word row.kind) ++# "  " ++# (state_word row.state) ++# "  " ++# timing ++# "  "
+                ++# row.label
+            )
+            shown_rows (other_rows rows) now (count + 1u64)
+        | RowUnknown => shown_rows (other_rows rows) now count
 
 :~ window_listed () : i32 =
     := root = windows_root ()
@@ -32,14 +36,16 @@
     ? rows = ""
     ?> found
     |:
-        := row = first_row rows
-        := item = (tab_field row 1i32) ++# " " ++# (tab_field row 3i32)
-        := held = tab_field row 2i32 = "held"
-        shared_with (other_rows rows) (? held && found <> "" ?> found ++# ", " ++# item |? held ?> item |: found)
+        ?= row_of (first_row rows) ?|
+        | RowKnown row =>
+            := item = (class_word row.kind) ++# " " ++# row.label
+            := held = row.state = Held
+            shared_with (other_rows rows) (? held && found <> "" ?> found ++# ", " ++# item |? held ?> item |: found)
+        | RowUnknown => shared_with (other_rows rows) found
 
-:~ window_checked () : i32 =
-    ?= class_of (argument 3i32) ?|
-    | ClassUnknown => refused ("check: unknown class '" ++# (argument 3i32) ++# "'; " ++# (window_usage ()))
+:~ window_checked (~class_text : string) : i32 =
+    ?= class_of class_text ?|
+    | ClassUnknown => refused ("check: unknown class '" ++# class_text ++# "'; " ++# (window_usage ()))
     | ClassKnown wanted =>
         := root = windows_root ()
         := now = now_ms ()
@@ -54,24 +60,26 @@
             stdout_line ("kit window check blocked class=" ++# (class_word wanted) ++# " " ++# terms)
             1i32
 
-:~ class_admitted (~word : string) : bool =
-    ?= class_of word ?|
-    | ClassUnknown => !-
-    | ClassKnown wanted =>
-        := root = windows_root ()
-        := moment = now_ms ()
-        := rows = live_rows root (stored_rows root) moment ""
-        verdict_text wanted "" "" moment 0u64 rows (free_mb ()) moment 0u64 = ""
+:~ class_admitted (wanted : window_class) : bool =
+    := root = windows_root ()
+    := moment = now_ms ()
+    := rows = live_rows root (stored_rows root) moment ""
+    verdict_text wanted "" "" moment 0u64 rows (free_mb ()) moment 0u64 = ""
 
 :~ fitting_loads () : string =
     := holders = $'kit_window_run::kit_heavy_holders_text()' : string
-    := slots = $'(!holders).lines().count() as u64' : u64
-    := medium = ? class_admitted "compile" ?> ",medium" |: ""
-    := heavy = ? slots < 2u64 && class_admitted "heavy-build" ?> ",heavy" |: ""
+    := slots : i32 = sm'.split_list "\n" holders |> listm'.filter (\ (line : string) => line <> "") |> listm.length
+    := medium = ? class_admitted Compile ?> ",medium" |: ""
+    := heavy = ? slots < 2i32 && class_admitted HeavyBuild ?> ",heavy" |: ""
     "light,none" ++# medium ++# heavy
 
+:~ check_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: class_text :: _ => window_checked class_text
+    | _ => window_checked ""
+
 := main () : i32 =
-    !!!!Export("kit_fitting_loads", ((\ () => fitting_loads ()) : () -> string))
-    !!!!Export("kit_window_list_run", ((\ () => window_listed ()) : () -> i32))
-    !!!!Export("kit_window_check_run", ((\ () => window_checked ()) : () -> i32))
+    export "kit_fitting_loads" ((\ () => fitting_loads ()) : () -> string)
+    export "kit_window_list_run" ((\ () => window_listed ()) : () -> i32)
+    export "kit_window_check_run" ((\ () => check_run ()) : () -> i32)
     0i32
