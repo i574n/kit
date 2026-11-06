@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "rec_cycle.spi"
+output = "rec_cycle.rs"
+
+[package]
+name = "kit-rec-cycle"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_rec_cycle"
+path = "rec_cycle.rs"

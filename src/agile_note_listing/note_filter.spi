@@ -1,0 +1,89 @@
+///- --package .
+:# note_filter static =
+    :< sm'_operators
+    :< agile_note_model.model
+    :< workspace_primitives.numbers
+
+:< sm'_operators
+:< agile_note_model.model
+:< workspace_primitives.numbers
+
+:| note_filter =
+    | AllNotes
+    | NewestNotes : i32
+    | NotesMatching : string
+
+:~ note_filter_of (~mode : string) (~value : string) : note_filter =
+    ? mode = "last" ?>
+        ?= (convert.try_convert value : option i32) ?|
+        | Some newest => NewestNotes newest
+        | None => AllNotes
+    |? mode = "grep" ?> NotesMatching (sm'.to_lower value)
+    |: AllNotes
+
+:= note_kept (filter : note_filter) (index : i32) (count : i32) (note : task_note) : bool =
+    ?= filter ?|
+    | AllNotes => !+
+    | NewestNotes newest => index > count - newest
+    | NotesMatching needle =>
+        sm'.contains needle (sm'.to_lower note.text) || sm'.contains needle (sm'.to_lower note.author)
+
+:~ ^ kept_lines
+    (text : string) (~needle : string) (offset : i32) (filter : note_filter) (index : i32) (count : i32)
+    (~lines : string) (kept : i32)
+    : string * i32
+    =
+    := found = declared_from text needle offset
+    ? found < 0i32
+    ?> lines, kept
+    |:
+        := note = note_at text found
+        := next = index + 1i32
+        ? note_kept filter next count note
+        ?>
+            := seq = sm'.replace "u32" "" (item_field text NoteItem found 1i32)
+            kept_lines text needle
+                (found + 1i32)
+                filter
+                next
+                count
+                (lines ++# "\n#" ++# seq ++# " " ++# note_line note)
+                (kept + 1i32)
+        |: kept_lines text needle (found + 1i32) filter next count lines kept
+
+:~ notes_filtered_text (text : string) (~id : string) (filter : note_filter) : string =
+    := count = note_count text id
+    ? count = 0i32 ?> ""
+    |:
+        := lines, kept = kept_lines text (item_anchor NoteItem id) 0i32 filter 0i32 count "" 0i32
+        "notes (" ++# i32_text kept ++# "/" ++# i32_text count ++# ")" ++# lines
+
+
+:= sample_notes () : string =
+    := first = note_row "T-1" 1i32 { at = "2026-10-22T01:00Z"; author = "kit"; text = "lease probe" }
+    := second = note_row "T-1" 2i32 { at = "2026-10-22T02:00Z"; author = "tibia-lane"; text = "rows written" }
+    := third = note_row "T-1" 3i32 { at = "2026-10-22T03:00Z"; author = "kit"; text = "window Lease held" }
+    "inl task_t_1 () = Task (\"T-1\", \"t\", TaskKind, P1, D1, 0u32, Active, \"\", \"\")\n"
+    ++# first
+    ++# "\n"
+    ++# second
+    ++# "\n"
+    ++# third
+    ++# "\n"
+
+///> rust
+:# notes_filter_by_newest_and_by_text_and_keep_their_numbers =
+    := newest = notes_filtered_text (sample_notes ()) "T-1" (note_filter_of "last" "1")
+    testing.expect (sm'.starts_with "notes (1/3)\n#3 2026-10-22T03:00Z" newest) newest
+    := matching = notes_filtered_text (sample_notes ()) "T-1" (note_filter_of "grep" "LEASE")
+    testing.expect (sm'.starts_with "notes (2/3)\n#1 2026-10-22T01:00Z" matching && sm'.contains "\n#3 " matching) matching
+    testing.expect
+        (
+            sm'.starts_with
+                "notes (1/3)\n#2 "
+                (notes_filtered_text (sample_notes ()) "T-1" (note_filter_of "grep" "tibia"))
+        )
+        "the author matches too"
+    testing.expect
+        (sm'.starts_with "notes (3/3)\n#1 " (notes_filtered_text (sample_notes ()) "T-1" (note_filter_of "last" "x")))
+        "an unreadable count keeps every note"

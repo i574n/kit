@@ -1,0 +1,13 @@
+///- --package .
+:< sm'_operators
+
+:~ flag_word (~suffix : string) : string = "--" ++# sm'.kebab_of suffix
+
+///> rust
+:# a_case_suffix_reads_as_a_kebab_flag =
+    testing.expect (flag_word "Enforce" = "--enforce") "one word"
+    testing.expect (flag_word "IgnoreCase" = "--ignore-case") "two words"
+///> _
+:= main () : i32 =
+    export "kit_flag_word" flag_word
+    0i32

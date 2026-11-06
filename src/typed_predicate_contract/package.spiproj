@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    typed_predicate
+modules:
+    model

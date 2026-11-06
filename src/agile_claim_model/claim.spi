@@ -1,0 +1,333 @@
+///- --package .
+:# claim static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== claim = { item : string; owner : string; expires_ms : u64; paths : list string }
+
+:| claim_state =
+    | Unclaimed
+    | LeasedTo : claim
+    | Expired : claim
+
+:| liveness =
+    | Idle
+    | LiveJob : string
+    | RecentEdit : string
+
+:| pick =
+    | Claimed : string * i32
+    | NothingReady
+    | AllLeased
+    | AllLive
+
+:| refusal =
+    | LeasedBy : claim
+    | JobRunning : string
+    | RecentEditOn : string
+    | PathOverlap : string * string
+    | DeclinedByYou : claim
+
+:| claim_change =
+    | ChangeUpsert
+    | ChangeRemove
+    | ChangeNone
+
+:~ change_word (c : claim_change) : string = sm'.to_lower (union_reflection.cases.union_case_suffix "Change" c)
+
+:~ change_of (~word : string) : claim_change =
+    union_reflection.cases.union_case_where (\ (c : claim_change) => change_word c = word) (\ c => c) ChangeNone
+
+:| outcome =
+    | OutcomeGranted
+    | OutcomeRefused
+    | OutcomeNone
+    | OutcomeDropped
+    | OutcomeReleaseRefused
+    | OutcomeUnknown
+
+:~ outcome_word (o : outcome) : string = sm'.to_lower (union_reflection.cases.union_case_suffix "Outcome" o)
+
+:~ outcome_of (~word : string) : outcome =
+    union_reflection.cases.union_case_where (\ (o : outcome) => outcome_word o = word) (\ o => o) OutcomeUnknown
+
+:~ decliner (c : claim) : string = ? sm'.starts_with "~" c.owner ?> sm'.substring 1i32 ((sm'.length c.owner : i32) - 1i32) c.owner |: ""
+
+:~ ^ claim_of (claims : list claim) (~item : string) : option claim =
+    ?= claims ?|
+    | [] => None
+    | c :: rest => ? c.item = item && decliner c = "" ?> Some c |: claim_of rest item
+
+:~ declined_by (claims : list claim) (~item : string) (~caller : string) (now_ms : u64) : option claim =
+    listm'.try_find_ (\ (c : claim) => c.item = item && decliner c = caller && now_ms < c.expires_ms) claims
+
+:~ state_of (claims : list claim) (~item : string) (now_ms : u64) : claim_state =
+    ?= claim_of claims item ?|
+    | None => Unclaimed
+    | Some c => ? now_ms < c.expires_ms ?> LeasedTo c |: Expired c
+
+:~ glob_stem (~glob : string) : string =
+    := star = sm'.index_of "*" glob
+    ? star < 0i32 ?> glob |: sm'.substring 0i32 star glob
+
+:~ globs_overlap (~left : string) (~right : string) : bool =
+    := a = glob_stem left
+    := b = glob_stem right
+    sm'.starts_with a b || sm'.starts_with b a
+
+:~ ^ overlap_in (~glob : string) (others : list string) : option string =
+    ?= others ?|
+    | [] => None
+    | other :: rest => ? globs_overlap glob other ?> Some glob |: overlap_in glob rest
+
+:~ ^ first_overlap (paths : list string) (others : list string) : option string =
+    ?= paths ?|
+    | [] => None
+    | glob :: rest =>
+        ?= overlap_in glob others ?|
+        | Some hit => Some hit
+        | None => first_overlap rest others
+
+:~ ^ overlapping_claim
+    (paths : list string) (claims : list claim) (~item : string) (now_ms : u64)
+    : option (string * string)
+    =
+    ?= claims ?|
+    | [] => None
+    | c :: rest =>
+        := hit = ? now_ms < c.expires_ms && c.item <> item ?> first_overlap paths c.paths |: None
+        ?= hit ?|
+        | Some glob => Some (c.item, glob)
+        | None => overlapping_claim paths rest item now_ms
+
+:~ lease_refusal_idle (live : liveness) : option refusal =
+    ?= live ?|
+    | LiveJob job => Some (JobRunning job)
+    | RecentEdit path => Some (RecentEditOn path)
+    | Idle => None
+
+:~ lease_refusal (claims : list claim) (live : liveness) (~item : string) (~caller : string) (now_ms : u64) : option refusal =
+    ?= state_of claims item now_ms ?|
+    | LeasedTo c => ? c.owner = caller ?> None |: Some (LeasedBy c)
+    | _ =>
+        ?= declined_by claims item caller now_ms ?|
+        | Some d => Some (DeclinedByYou d)
+        | None => lease_refusal_idle live
+
+:~ refusal_of
+    (claims : list claim) (live : liveness) (~item : string) (~caller : string) (paths : list string) (now_ms : u64)
+    : option refusal
+    =
+    ?= lease_refusal claims live item caller now_ms ?|
+    | Some refused => Some refused
+    | None =>
+        ?= overlapping_claim paths claims item now_ms ?|
+        | Some (other, glob) => Some (PathOverlap (other, glob))
+        | None => None
+:~ finishing (claims : list claim) (~caller : string) (now_ms : u64) (~item : string) : bool =
+    ?= state_of claims item now_ms ?|
+    | LeasedTo c => c.owner = caller
+    | Expired _ => !+
+    | Unclaimed => !-
+
+:== tally = { leased : i32; lived : i32 }
+
+:~ ^ first_free
+    (ranked : list string) (rank : i32) (claims : list claim) (live : string -> liveness) (~caller : string)
+    (now_ms : u64) (finish_only : bool) (seen : tally)
+    : pick * tally
+    =
+    ?= ranked ?|
+    | [] => NothingReady, seen
+    | item :: rest =>
+        := next = first_free rest (rank + 1i32) claims live caller now_ms finish_only
+        ? finish_only && finishing claims caller now_ms item = !- ?> next seen
+        |:
+            ?= lease_refusal claims (live item) item caller now_ms ?|
+            | None => Claimed (item, rank), seen
+            | Some (LeasedBy _) => next { seen ?| leased = seen.leased + 1i32 }
+            | Some _ => next { seen ?| lived = seen.lived + 1i32 }
+
+:~ choose
+    (ranked : list string) (claims : list claim) (live : string -> liveness) (~caller : string) (now_ms : u64)
+    : pick
+    =
+    := empty = { leased = 0i32; lived = 0i32 }
+    ?= first_free ranked 1i32 claims live caller now_ms !+ empty ?|
+    | (Claimed found), _ => Claimed found
+    | _ =>
+        ?= first_free ranked 1i32 claims live caller now_ms !- empty ?|
+        | (Claimed found), _ => Claimed found
+        | _, seen =>
+            ? seen.leased > 0i32 && seen.leased >= seen.lived ?> AllLeased
+            |? seen.lived > 0i32 ?> AllLive
+            |: NothingReady
+
+:~ candidates
+    (ranked : list string) (claims : list claim) (~caller : string) (now_ms : u64) (count : i32)
+    : list string
+    =
+    := free = \ (item : string) =>
+        ?= lease_refusal claims Idle item caller now_ms ?|
+        | None => !+
+        | Some _ => !-
+    ranked |> listm'.filter free |> listm'.take_ count
+
+:~ live_count (claims : list claim) (now_ms : u64) : i32 =
+    claims |> listm.fold (\ n (c : claim) => ? now_ms < c.expires_ms && decliner c = "" ?> n + 1i32 |: n) 0i32
+
+:~ quoted (~text : string) : string = "\"" ++# sm'.replace "\"" "\\\"" (sm'.replace "\\" "\\\\" text) ++# "\""
+
+:~ ^ paths_term (paths : list string) : string =
+    ?= paths ?|
+    | [] => "NoPaths"
+    | glob :: rest => "PathThen (" ++# quoted glob ++# ", " ++# paths_term rest ++# ")"
+
+:~ claim_row (c : claim) : string =
+    := binding = \ (~text : string) => sm'.to_lower (sm'.replace "-" "_" text)
+    := declined = ? decliner c = "" ?> "" |: "__declined_" ++# binding (decliner c)
+    := head = "inl claim_" ++# binding c.item ++# declined ++# " () = Claim (" ++# quoted c.item
+    head ++# ", " ++# quoted c.owner ++# ", " ++# sm'.show c.expires_ms ++# "u64, " ++# paths_term c.paths ++# ")"
+
+:= claims_schema () : string =
+    sm'.concat_list "\n" [
+        "///- --no-respell"
+        "union rec claim_paths ="
+        "    | NoPaths :: claim_paths"
+        "    | PathThen :: string * claim_paths -> claim_paths"
+        "union agile_claim ="
+        "    | Claim :: string * string * u64 * claim_paths -> agile_claim"
+    ]
+
+:~ claims_text (claims : list claim) : string =
+    claims |> listm.fold (\ text (c : claim) => text ++# claim_row c ++# "\n") (claims_schema () ++# "\n")
+
+:~ ^ globs_from (parts : array string) (at : i32) : list string =
+    ? am'.length parts <= at ?> [] |: am'.index at parts :: globs_from parts (at + 2i32)
+
+:~ claim_of_row (~line : string) : option claim =
+    := parts = sm'.split "\"" line |> array
+    ? am'.length parts < 5i32 || sm'.starts_with "inl claim_" line = !- ?> None
+    |:
+        := middle = am'.index 4i32 parts
+        := stop = sm'.index_of "u64" middle
+        := number = ? stop > 2i32 ?> sm'.substring 2i32 (stop - 2i32) middle |: ""
+        ?= (convert.try_convert number : option u64) ?|
+        | Some expires_ms => Some { item = am'.index 1i32 parts; owner = am'.index 3i32 parts; expires_ms = expires_ms; paths = globs_from parts 5i32 }
+        | None => None
+:~ claims_of_text (~text : string) : list claim =
+    sm'.split_list "\n" (sm'.replace "\r" "" text)
+    |> listm.fold (\ found (line : string) => ?= claim_of_row line ?| | Some c => c :: found | None => found) []
+    |> listm.rev
+
+:~ upserted (claims : list claim) (c : claim) : list claim =
+    := kept = \ (other : claim) =>
+        ? other.item <> c.item ?> !+
+        |? decliner c <> "" ?> other.owner <> c.owner && other.owner <> decliner c
+        |: decliner other <> ""
+    listm.append (claims |> listm'.filter kept) [ c ]
+
+:~ released (claims : list claim) (~item : string) : list claim =
+    claims |> listm'.filter (\ (c : claim) => c.item <> item)
+
+:~ plain_text (~text : string) : bool =
+    [ "\""; "\\"; ","; ";"; " "; "("; ")"; "\n" ]
+    |> listm.fold (\ ok (forbidden : string) => ok && sm'.contains forbidden text = !-) (text <> "")
+
+:~ refusal_reason (r : refusal) : string =
+    ?= r ?|
+    | LeasedBy c => "leased-by:" ++# c.owner ++# ":" ++# sm'.show c.expires_ms
+    | JobRunning job => "job-running:" ++# job
+    | RecentEditOn path => "recent-edit:" ++# path
+    | PathOverlap (other, glob) => "path-overlap:" ++# other ++# ":" ++# glob
+    | DeclinedByYou c => "declined-by-you-until:" ++# sm'.show c.expires_ms
+
+:~ none_reason (p : pick) : string =
+    ?= p ?|
+    | AllLeased => "all-leased"
+    | AllLive => "all-live"
+    | _ => "none-ready"
+
+:= lease_a () : claim = { item = "A-1"; owner = "kit"; expires_ms = 2000u64; paths = [ "src/agile/**" ] }
+
+:= lease_b () : claim = { item = "B-2"; owner = "x"; expires_ms = 500u64; paths = [ "lib/json.spi" ] }
+
+:= fixture_claims () : list claim = [ lease_a (); lease_b () ]
+
+:= idle (_ : string) : liveness = Idle
+
+///> rust
+:# a_live_lease_belongs_to_its_owner_and_an_old_one_expires =
+    testing.expect (state_of (fixture_claims ()) "A-1" 1000u64 = LeasedTo (lease_a ())) "live"
+    testing.expect (state_of (fixture_claims ()) "B-2" 1000u64 = Expired (lease_b ())) "expired"
+    testing.expect (state_of (fixture_claims ()) "C-3" 1000u64 = Unclaimed) "never claimed"
+
+///> rust
+:# path_globs_overlap_by_their_literal_stem =
+    testing.expect (globs_overlap "src/agile/**" "src/agile/claim.spi") "stem contains the file"
+    testing.expect (globs_overlap "src/agile/**" "src/kit_jobs/**" = !-) "disjoint stems"
+    := refused = refusal_of (fixture_claims ()) Idle "C-3" "y" [ "src/agile/x.spi" ] 1000u64
+    testing.expect (refused = Some (PathOverlap ("A-1", "src/agile/x.spi"))) "a live lease's paths refuse a claim"
+    := job = refusal_of (fixture_claims ()) (LiveJob "job-7") "C-3" "y" [] 1000u64
+    testing.expect (job = Some (JobRunning "job-7")) "a running job refuses a claim"
+
+///> rust
+:# choose_finishes_held_or_expired_work_first_then_ranks =
+    := held = fixture_claims ()
+    testing.expect (choose [ "C-3"; "B-2" ] held idle "y" 1000u64 = Claimed ("B-2", 2i32)) "expired first"
+    testing.expect (choose [ "C-3"; "A-1" ] held idle "kit" 1000u64 = Claimed ("A-1", 2i32)) "owner resumes"
+    testing.expect (choose [ "C-3"; "D-4" ] held idle "y" 1000u64 = Claimed ("C-3", 1i32)) "then rank order"
+    testing.expect (choose [ "A-1" ] held idle "y" 1000u64 = AllLeased) "only a live foreign lease"
+    testing.expect (choose [ "C-3" ] [] (\ _ => LiveJob "job-1") "y" 1000u64 = AllLive) "a running job keeps others off"
+    testing.expect (choose [] [] idle "y" 1000u64 = NothingReady) "empty queue"
+
+///> rust
+:# candidates_list_what_the_caller_could_take_without_claiming =
+    := held = fixture_claims ()
+    := listed = \ (ranked : list string) (~caller : string) => candidates ranked held caller 1000u64 5i32
+    testing.expect (listed [ "A-1"; "B-2"; "C-3" ] "y" = [ "B-2"; "C-3" ]) "a live foreign lease is hidden"
+    testing.expect (listed [ "A-1"; "C-3" ] "kit" = [ "A-1"; "C-3" ]) "the owner sees its own lease"
+    testing.expect (candidates [ "B-2"; "C-3"; "D-4" ] held "y" 1000u64 2i32 = [ "B-2"; "C-3" ]) "capped at count"
+
+///> rust
+:# a_claim_renders_as_one_typed_row =
+    := row = claim_row (lease_a ())
+    testing.expect (row = "inl claim_a_1 () = Claim (\"A-1\", \"kit\", 2000u64, PathThen (\"src/agile/**\", NoPaths))") row
+    := b = lease_b ()
+    := two = claim_row { b ?| paths = [ "a/**"; "b.spi" ] }
+    testing.expect (sm'.ends_with "500u64, PathThen (\"a/**\", PathThen (\"b.spi\", NoPaths)))" two) two
+    testing.expect (sm'.ends_with "500u64, NoPaths)" (claim_row { b ?| paths = [] })) "no paths"
+    testing.expect (live_count (fixture_claims ()) 1000u64 = 1i32) "one live lease"
+    testing.expect (refusal_reason (LeasedBy (lease_a ())) = "leased-by:kit:2000") "receipt reason"
+
+///> rust
+:# claim_rows_read_back_to_the_same_claims =
+    := a = lease_a ()
+    := b = lease_b ()
+    := many = [ a; { b ?| paths = [ "a/**"; "b.spi" ] }; { b ?| item = "C-3"; paths = [] } ]
+    := text = claims_text many
+    testing.expect (sm'.starts_with "///- --no-respell\nunion rec claim_paths =" text) text
+    testing.expect (claims_of_text text = many) text
+    testing.expect (claims_of_text (sm'.replace "\n" "\r\n" text) = many) "carriage returns are ignored"
+    testing.expect (claims_of_text "inl claim_x () = Claim (\"X\", \"k\", nope, NoPaths)" = []) "a bad number reads as no row"
+    := renewed = upserted many { a ?| owner = "y" }
+    testing.expect (listm.map (\ (c : claim) => c.item) renewed = [ "B-2"; "C-3"; "A-1" ]) "upsert replaces by item"
+    testing.expect (listm.length (released many "B-2") = 2i32) "release drops the row"
+
+///> rust
+:# a_decline_outlives_another_lanes_lease_of_the_same_item =
+    := held = [ { item = "M-1"; owner = "main-a"; expires_ms = 9000u64; paths = [] } ]
+    := main_declined = upserted held { item = "M-1"; owner = "~main-a"; expires_ms = 9000u64; paths = [] }
+    testing.expect (state_of main_declined "M-1" 1000u64 = Unclaimed) "the decline drops main's own lease"
+    := x_leased = upserted main_declined { item = "M-1"; owner = "x-b"; expires_ms = 9000u64; paths = [] }
+    := x_declined = upserted x_leased { item = "M-1"; owner = "~x-b"; expires_ms = 9000u64; paths = [] }
+    testing.expect (listm.length x_declined = 2i32) "both declines are kept"
+    testing.expect (lease_refusal x_declined Idle "M-1" "main-a" 1000u64 <> None) "main is still refused"
+    testing.expect (lease_refusal x_declined Idle "M-1" "z-c" 1000u64 = None) "a third lane is offered it"
+    testing.expect (lease_refusal x_declined Idle "M-1" "main-a" 9500u64 = None) "a decline expires"
+    testing.expect (claims_of_text (claims_text x_declined) = x_declined) "decline rows round-trip"
+    testing.expect (sm'.contains "inl claim_m_1__declined_x_b ()" (claims_text x_declined)) "one binding per decline"
+    testing.expect (plain_text "src/agile/**" && plain_text "" = !- && plain_text "a,b" = !-) "plain words only"
+    testing.expect (outcome_word OutcomeReleaseRefused = "releaserefused" && outcome_of "granted" = OutcomeGranted) "outcome words"
+    testing.expect (change_word ChangeUpsert = "upsert" && change_of "remove" = ChangeRemove && change_of "x" = ChangeNone) "change words"

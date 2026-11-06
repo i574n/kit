@@ -1,0 +1,83 @@
+///- --package .
+:# names static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_jobs.host
+
+:= earlier_of (~best : string) (~name : string) : string = ? best = "" || lt_is (comp name best) ?> name |: best
+
+:~ earliest_ending ((dir, suffix) : string * string) : string =
+    kit_os_files.files.entry_names dir
+    |> listm'.filter (\ (name : string) => sm'.ends_with suffix name)
+    |> listm.fold (\ best name => earlier_of best name) ""
+
+:= job_stamp (~name : string) : u64 =
+    ?= sm'.split_list "-" name ?|
+    | _ :: stamp :: _ => optionm'.default_value 0u64 (convert.try_convert stamp)
+    | _ => 0u64
+
+:= newer_of (~best : string) (~name : string) : string = ? best = "" || job_stamp name > job_stamp best ?> name |: best
+
+:~ newest_labeled (label : string) : string =
+    := root = jobs_root ()
+    := labeled = \ (name : string) => sm'.trim (text_or_empty (joined (joined root name) "label")) = label
+    ? label = "" ?> ""
+    |: kit_os_files.files.entry_names root |> listm'.filter labeled |> listm.fold (\ best name => newer_of best name) ""
+
+:= dashed_of (~name : string) : string = sm'.replace "." "-" (sm'.replace "_" "-" (sm'.to_lower name)) ++# "-"
+
+:~ live_of_names (names : list string) (ids : list string) (now_ms : u64) (finished : string -> bool) : list string =
+    := fresh = \ (name : string) => sm'.starts_with "job-" name && now_ms < job_stamp name + 43200000u64
+    := recent = names |> listm'.filter fresh
+    := running_for = \ (id : string) =>
+        := token = "-" ++# sm'.to_lower id ++# "-"
+        := hits = \ (name : string) => sm'.contains token (dashed_of name) && finished name = !-
+        recent |> listm.fold (\ hit (name : string) => hit || hits name) !-
+    ids |> listm'.filter running_for
+
+:~ live_items (ids : string) : string =
+    := root = sm'.replace "\\" "/" (jobs_root ())
+    := names = kit_os_files.files.entry_names root
+    := finished = \ (name : string) => file_system.file_exists (root ++# "/" ++# name ++# "/exit")
+    := wanted = sm'.split_list " " ids |> listm'.filter (\ (id : string) => id <> "")
+    sm'.concat_list " " (live_of_names names wanted (workspace_primitives.clock.unix_ms ()) finished)
+
+///> rust
+:# a_running_job_labelled_with_an_item_keeps_it_live =
+    := names =
+        [
+            "job-1000-kit-agile-claim-queue-proof"
+            "job-1000-tibia-arena"
+            "job-1-kit-old-claim"
+            "held"
+            "job-1000-done-x-9"
+        ]
+    := finished = \ (name : string) => name = "job-1000-done-x-9"
+    := asked = [ "KIT-AGILE-CLAIM-QUEUE"; "TIBIA-ARENA"; "X-9"; "KIT-OLD-CLAIM" ]
+    := live = [ "KIT-AGILE-CLAIM-QUEUE"; "TIBIA-ARENA"; "KIT-OLD-CLAIM" ]
+    testing.expect (live_of_names names asked 2000u64 finished = live) "running labels only, finished jobs excluded"
+    := words = live_of_names names [ "KIT-D"; "TIBIA" ] 2000u64 finished
+    testing.expect (words = [ "TIBIA" ]) "whole label words, not a prefix"
+    testing.expect (live_of_names names [ "KIT-OLD-CLAIM" ] 50000000u64 finished = []) "jobs older than 12 h are gone"
+
+///> rust
+:# the_earliest_start_file_and_the_newest_labeled_job_are_found =
+    := dir = joined (file_system.get_temp_path ()) ("kit-job-names-" ++# sm'.format (kit_os_process.process.own_pid ()))
+    := _ = directory_created dir
+    := _ = text_written (joined dir "b.start") ""
+    := _ = text_written (joined dir "a.start") ""
+    := _ = text_written (joined dir "x.txt") ""
+    := found = earliest_ending (dir, ".start")
+    := missing = earliest_ending (joined dir "missing", ".start")
+    file_system.directory_delete !+ dir
+    testing.expect (found = "a.start" && missing = "") found
+    testing.expect (job_stamp "job-1793882344973-kit-nb" = 1793882344973u64 && job_stamp "stray" = 0u64) "stamps"
+    testing.expect (newer_of "job-5-a" "job-12-a" = "job-12-a" && newer_of "job-12-a" "job-5-a" = "job-12-a") "newer"
+    testing.expect (newer_of "" "job-1-a" = "job-1-a" && newest_labeled "" = "") "empty label finds nothing"
+///> _
+:= main () : i32 =
+    export "kit_job_earliest_ending" earliest_ending
+    export "kit_job_newest_labeled" newest_labeled
+    export "kit_job_live_items" live_items
+    0i32

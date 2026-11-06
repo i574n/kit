@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+    kit_os_files
+    kit_process_alive
+link:
+    kit_process_alive
+modules:
+    peers

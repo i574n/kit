@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "check.spi"
+output = "check.rs"
+
+[package]
+name = "kit-mirror"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_mirror"
+path = "check.rs"
+
+[dependencies]
+kit-mirror-remote = { path = "../kit_mirror_remote" }

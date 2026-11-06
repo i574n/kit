@@ -1,0 +1,59 @@
+///- --package .
+:< sm'_operators
+:< kit_style_probes.probes
+:< kit_style_measure.measure
+
+:== word_total = { word : string; count : i32 }
+
+:~ per_kloc (count : i32) (lines : i32) : string =
+    := tenths : i64 = (conv count : i64) * 10000i64 / (conv (? lines > 0i32 ?> lines |: 1i32) : i64)
+    sm'.show (tenths / 10i64) ++# "." ++# sm'.show (tenths % 10i64)
+
+:~ ^ row_count (rows : array_base probe_row) (~word : string) (at : i32) (sum : i32) : i32 =
+    ? at >= am'.length_base rows ?> sum
+    |:
+        := row = am'.index_base at rows
+        row_count rows word (at + 1i32) (? row.word = word ?> sum + row.count |: sum)
+
+:~ ^ first_totals (rows : array_base probe_row) (at : i32) (kept : list word_total) : list word_total =
+    ? at < 0i32 ?> kept
+    |: first_totals rows (at - 1i32) ({ word = (am'.index_base at rows).word; count = 0i32 } :: kept)
+
+:~ totals_added (totals : list word_total) (rows : array_base probe_row) : list word_total =
+    := base = ? totals = [] ?> first_totals rows (am'.length_base rows - 1i32) [] |: totals
+    base |> listm.map (\ (t : word_total) => { word = t.word; count = t.count + row_count rows t.word 0i32 0i32 })
+
+:~ scoreboard_line (~root : string) : string =
+    := wrap = \ (kept : array string) (path : string) => kept ++ ;[ path ]
+    := found = packages_under ([ root ] |> listm.fold wrap ;[] |> am'.base)
+    := dirs = list_of_base found (am'.length_base found - 1i32) []
+    := add = \ ((lines, totals) : i32 * list word_total) (dir : string) =>
+        := rows = measured dir
+        := counted = ? am'.length_base rows > 0i32 ?> (am'.index_base 0i32 rows).lines |: 0i32
+        lines + counted, totals_added totals rows
+    := lines, totals = dirs |> listm.fold add (0i32, [])
+    := shown = \ (text : string) (t : word_total) =>
+        text ++# " " ++# t.word ++# "=" ++# sm'.show t.count ++# "(" ++# per_kloc t.count lines ++# ")"
+    := packages : i32 = listm.length dirs
+    "scoreboard " ++# root ++# " packages=" ++# sm'.show packages ++# " lines=" ++# sm'.show lines
+    ++# (totals |> listm.fold shown "")
+
+:~ scoreboard_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: roots ?& roots <> [] =>
+        roots |> listm.iter (\ (root : string) => console.write_line (scoreboard_line root))
+        := count : i32 = listm.length roots
+        console.write_line ("kit standards scoreboard ok roots=" ++# sm'.show count)
+        0i32
+    | _ =>
+        console.write_error_line "kit error: standards --scoreboard needs at least one root directory"
+        2i32
+
+///> rust
+:# densities_read_per_thousand_lines =
+    testing.expect (per_kloc 3i32 1000i32 = "3.0" && per_kloc 1i32 3i32 = "333.3") "count per thousand lines"
+    testing.expect (per_kloc 5i32 0i32 = "5000.0") "no lines counts as one line"
+///> _
+:= main () : i32 =
+    export "kit_style_scoreboard_run" scoreboard_run
+    0i32

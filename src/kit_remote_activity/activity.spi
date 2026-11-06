@@ -1,0 +1,90 @@
+///- --package .
+:# activity static =
+    :< sm'_operators
+
+:< sm'_operators
+:< workspace_primitives.bytes
+
+:== lane_job = { lane : string; label : string; running : bool }
+
+:| node_activity =
+    | NodeBusy : list lane_job
+    | NodeIdle : i32
+
+:~ text_field (~line : string) (~key : string) : string =
+    := at = byte_find_from line (" " ++# key ++# "=") 0i32
+    ? at < 0i32
+    ?> ""
+    |:
+        := start = at + byte_len key + 2i32
+        := space = byte_find_from line " " start
+        byte_slice line start (? space < 0i32 ?> byte_len line |: space)
+
+:~ lane_of (~label : string) : string =
+    ?= sm'.split_list "-" label ?|
+    | lane :: _ :: _ => lane
+    | _ => label
+
+:~ job_of (~line : string) : option lane_job =
+    := state, label = text_field line "state", text_field line "label"
+    ? sm'.starts_with "kit job list ok " line && (state = "running" || state = "queued")
+    ?> Some { lane = lane_of label; label = label; running = state = "running" }
+    |: None
+
+:~ activity_of (~output : string) : node_activity =
+    := kept = \ (acc : list lane_job) (line : string) =>
+        ?= job_of line ?|
+        | Some job => job :: acc
+        | None => acc
+    := jobs = sm'.split_list "\n" (sm'.replace "\r" "" output) |> listm.fold kept [] |> listm.rev
+    := running : i32 = jobs |> listm'.filter (\ (job : lane_job) => job.running) |> listm.length
+    := queued : i32 = listm.length jobs
+    ? running > 0i32 ?> NodeBusy jobs |: NodeIdle queued
+
+:~ activity_lines (~machine : string) (activity : node_activity) : list string =
+    ?= activity ?|
+    | NodeIdle queued =>
+        [
+            "kit remote status IDLE machine=" ++# machine ++# " running=0 queued=" ++# sm'.show queued
+            ++# " (start the top node-runnable item: kit agile next <backlog root> --tag node --open 3)"
+        ]
+    | NodeBusy jobs =>
+        := lanes = jobs |> listm.fold (\ (seen : list string) (job : lane_job) =>
+            ? listm'.contains job.lane seen ?> seen |: job.lane :: seen) [] |> listm.rev
+        := line = \ (lane : string) =>
+            := mine = jobs |> listm'.filter (\ (job : lane_job) => job.lane = lane)
+            := running : i32 = mine |> listm'.filter (\ (job : lane_job) => job.running) |> listm.length
+            := total : i32 = listm.length mine
+            "kit remote status jobs machine=" ++# machine ++# " lane=" ++# lane ++# " running=" ++# sm'.show running
+            ++# " queued=" ++# sm'.show (total - running)
+        lanes |> listm.map line
+
+:~ activity_text ((machine, output) : string * string) : string =
+    sm'.concat_list "\n" (activity_lines machine (activity_of output))
+
+:~ field_text ((line, key) : string * string) : string = text_field line key
+
+///> rust
+:# a_job_list_becomes_per_lane_activity_or_idle =
+    := row = \ (id : string) (state : string) (label : string) =>
+        "kit job list ok id=" ++# id ++# " state=" ++# state ++# " exit=- elapsed_ms=1 label=" ++# label
+    := busy =
+        sm'.concat_list "\n" [
+            row "job-1" "running" "kit-TRAIN22-node"
+            row "job-2" "queued" "kit-size-tablelogs"
+            row "job-3" "finished" "x-proof"
+            row "job-4" "queued" "x-parity"
+        ]
+    := lines = activity_lines "node" (activity_of busy)
+    := kit_line = "kit remote status jobs machine=node lane=kit running=1 queued=1"
+    testing.expect (lines = [ kit_line; "kit remote status jobs machine=node lane=x running=0 queued=1" ]) "per lane"
+    ?= activity_of (row "job-4" "queued" "x-parity" ++# "\n" ++# row "job-3" "finished" "x-proof") ?|
+    | NodeIdle queued => testing.expect (queued = 1i32) "idle with one queued job"
+    | NodeBusy _ => testing.expect !- "no running job means idle"
+    testing.expect (lane_of "kit-TRAIN22-node" = "kit" && lane_of "solo" = "solo") "lane from the label prefix"
+
+///> _
+:= main () : i32 =
+    export "kit_remote_activity_text" activity_text
+    export "kit_remote_field_text" field_text
+    0i32

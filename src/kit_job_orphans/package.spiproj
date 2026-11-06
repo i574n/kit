@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    kit_jobs
+    kit_process_alive
+link:
+    kit_process_alive
+modules:
+    orphans

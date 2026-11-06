@@ -1,0 +1,211 @@
+:< sm'_operators
+:< workspace_primitives.bytes
+:< rules
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
+:= stdout_line (~text : string) : () = console.write_line text
+:= stderr_line (~text : string) : () = console.write_error_line text
+:= text_of (~path : string) : string = file_system.read_text_or_empty path
+:~ directory_exists (~path : string) : bool =
+    file_system.path_buf_is_dir (file_system.new_path_buf (sm'.to_std_string path))
+:= joined (~base : string) (~name : string) : string = $'std::rc::Rc::<str>::from(std::path::Path::new(&*!base).join(&\
+    *!name).to_string_lossy().replace(char::from(92u8), "/").as_str())' : string
+:= json_requested () : bool = rust_std_env.model.argument_flag_present 2i32 "--json"
+
+:~ sorted_names (~directory : string) : array string =
+    ? directory_exists directory
+    ?>
+        file_system.read_dir_names directory
+        |> resultm.unwrap'
+        |> am'.from_vec_base
+        |> am'.map_base sm'.from_std_string
+        |> array
+        |> am'.sort_by id
+    |: ;[]
+
+:~ ^ names_where (names : array string) (index : i32) (keep : string -> bool) (found : list string) : list string =
+    ? index < 0i32 ?> found
+    |:
+        := name = am'.index index names
+        names_where names (index - 1i32) keep (? keep name ?> name :: found |: found)
+
+:= spiral_name (~name : string) : bool =
+    (sm'.ends_with ".spi" name || sm'.ends_with ".spir" name) && name <> "standards.spi"
+
+:= skipped_folder (~name : string) : bool =
+    name = "target" || name = "node_modules" || sm'.starts_with "." name
+
+:~ package_entry (~path : string) : bool =
+    := text = text_of path
+    sm'.starts_with "///- --package ..\n" text || sm'.starts_with "///- --package ..\r\n" text
+
+:~ entries_in (~directory : string) (~sub : string) : list string =
+    := folder = joined directory sub
+    := names = sorted_names folder
+    names_where names (am'.length names - 1i32) (\ name => spiral_name name && package_entry (joined folder name)) []
+    |> listm.map (\ (name : string) => sub ++# "/" ++# name)
+
+:~ spiral_files (~directory : string) : string =
+    := names = sorted_names directory
+    := last = am'.length names - 1i32
+    := files = names_where names last (\ name => spiral_name name && file_system.file_exists (joined directory name)) []
+    := folder_named = \ name => not (skipped_folder name) && directory_exists (joined directory name)
+    := folders = names_where names last folder_named []
+    := entries = folders |> listm.fold (\ found (sub : string) => listm.append found (entries_in directory sub)) []
+    listm.append files entries |> sm'.concat_list "\n"
+
+:~ file_stem (~name : string) : string =
+    := at = sm'.last_index_of "/" name
+    ? at < 0i32 ?> name |: sm'.substring (at + 1i32) (sm'.length name - at - 1i32) name
+
+:= module_of (~name : string) : string = $'std::rc::Rc::<str>::from((!name).rsplit_once(char::from(46u8)).map(|(stem, \
+    _)| stem).unwrap_or(&*!name))' : string
+
+:= findings_json (~text : string) : string =
+    $'std::rc::Rc::<str>::from({ let q = char::from(34u8); let b = char::from(92u8); \
+        let escape = |value: &str| value.replace(b, &format\!("{b}{b}")).replace(q, &format\!("{b}{q}")); \
+        let items = (!text).lines().filter_map(|line| { let mut parts = line.splitn(3, "  "); \
+        let place = parts.next()?; let rule = parts.next()?; let detail = parts.next().unwrap_or(""); \
+        let (path, number) = place.rsplit_once(char::from(58u8))?; \
+        Some(format\!("{{{q}path{q}:{q}{}{q},{q}line{q}:{},{q}rule{q}:{q}{}{q},{q}detail{q}:{q}{}{q}}}", \
+        escape(path), number, rule, escape(detail))) }).collect::<Vec<_>>(); items.join(",") }.as_str())' : string
+:~ ^ rule_words (list : standards) (~found : string) : string =
+    ?= list ?|
+    | NoStandards => found
+    | StandardThen (rule, rest) =>
+        rule_words rest (? found = "" ?> standard_word rule |: found ++# "," ++# (standard_word rule))
+
+:~ package_standards (~directory : string) : standards * bool =
+    := declared = declared_from (text_of (joined directory "standards.spi")) NoStandards
+    ?= declared ?|
+    | NoStandards => default_standards (), !-
+    | _ => declared, !+
+
+:~ ^ package_findings (list : standards) (~directory : string) (~found : string) : string =
+    ?= list ?|
+    | NoStandards => found
+    | StandardThen (rule, rest) =>
+        ?= rule ?|
+        | LibReferenced =>
+            := project = joined directory "package.spiproj"
+            package_findings rest directory (
+                ? sm'.contains "spiral-" (text_of project)
+                ?> found
+                |:
+                    found
+                    ++# project
+                    ++# ":1  lib-referenced  package.spiproj does not list spiral-; every package reuses lib/spiral\n"
+            )
+        | _ => package_findings rest directory found
+
+:== standards_tally =
+    {
+        packages : i32
+        files : i32
+        findings : string
+        count : i32
+        declared : i32
+        rules : string
+    }
+
+:~ ^ files_checked
+    (list : standards) (~directory : string) (~names : string) (tally : standards_tally)
+    : standards_tally
+    =
+    ? names = ""
+    ?> tally
+    |:
+        := name = line_head names
+        := path = joined directory name
+        := declaration = text_of (joined directory "standards.spi")
+        := module = module_of (file_stem name)
+        := text = text_of path
+        := found =
+            $'kit_standards_scan::kit_standards_file_findings(&*!declaration, &*!path, &*!module, &*!text)' : string
+        files_checked list directory (line_rest names) { tally ?|
+            files = (tally.files + 1i32)
+            findings = tally.findings ++# found
+            count = (tally.count + findings_count found)
+        }
+
+:~ ^ packages_checked (index : i32) (total : i32) (tally : standards_tally) : standards_tally =
+    ? total <= index
+    ?> tally
+    |:
+        := directory = argument index
+        ? directory = "--json"
+        ?> packages_checked (index + 1i32) total tally
+        |? directory_exists directory = !-
+        ?>
+            := missing =
+                { tally ?|
+                    findings = tally.findings ++# directory ++# ":0  package  not a directory\n"
+                    count = (tally.count + 1i32)
+                }
+            packages_checked (index + 1i32) total missing
+        |:
+            := list, declared = package_standards directory
+            := counted =
+                { tally ?|
+                    packages = (tally.packages + 1i32)
+                    declared = (tally.declared + (? declared ?> 1i32 |: 0i32))
+                    rules = rule_words list ""
+                }
+            := checked = files_checked list directory (spiral_files directory) counted
+            := declaration = joined directory "standards.spi"
+            := extra = package_findings list directory (unknown_rules (text_of declaration) declaration 1i32 "")
+            packages_checked
+                (index + 1i32)
+                total
+                (
+                    ? extra = ""
+                    ?> checked
+                    |:
+                        { checked ?|
+                            findings = checked.findings ++# extra
+                            count = (checked.count + findings_count extra)
+                        }
+                )
+
+:~ tally_start () : standards_tally =
+    { packages = 0i32; files = 0i32; findings = ""; count = 0i32; declared = 0i32; rules = "" }
+
+:~ rules_run () : i32 =
+    ? argument_count () < 3i32
+    ?>
+        stderr_line "kit error: standards <package-dir>... [--json]"
+        2i32
+    |:
+        := tally = packages_checked 2i32 (argument_count ()) (tally_start ())
+        := counts =
+            "packages="
+            ++# i32_text tally.packages
+            ++# " declared="
+            ++# i32_text tally.declared
+            ++# (" files=" ++# (i32_text tally.files) ++# " findings=" ++# (i32_text tally.count))
+        := _ =
+            ? json_requested ()
+            ?>
+                stdout_line (
+                    "{\"findings\":["
+                    ++# findings_json tally.findings
+                    ++# "],\"count\":"
+                    ++# i32_text tally.count
+                    ++# "}"
+                )
+            |:
+                := findings = tally.findings
+                := _ =
+                    ? findings <> "" ?> stdout_line ($'std::rc::Rc::<str>::from((!findings).trim_end())' : string) |: ()
+                stdout_line ("kit standards ok " ++# counts ++# " rules=" ++# tally.rules)
+        ? tally.count = 0i32 ?> 0i32 |: 1i32
+
+:~ census_requested () : bool = $'std::env::args().nth(2).is_some_and(|flag| matches\!(flag.as_str(), \
+    "--census" | "--baseline" | "--baseline-merge" | "--ratchet" | "--scoreboard"))' : bool
+
+:~ standards_run () : i32 = ? census_requested () ?> $'kit_style_census::kit_census_run()' : i32 |: rules_run ()
+
+:= main () : i32 =
+    export "kit_standards_run" ((\ () => standards_run ()) : () -> i32)
+    0i32

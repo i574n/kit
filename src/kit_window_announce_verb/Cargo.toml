@@ -1,0 +1,16 @@
+[package.metadata.spiral]
+entry = "verb.spi"
+output = "verb.rs"
+
+[package]
+name = "kit-window-announce-verb"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_window_announce_verb"
+path = "verb.rs"
+
+[dependencies]

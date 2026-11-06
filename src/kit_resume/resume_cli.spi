@@ -1,0 +1,56 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= resume_call (root : fixture_root) (args : cli_args) : cli_run =
+    := sets =
+        Arg (cat "KIT_JOBS_HOME=" (fixture_path root "jobs"),
+            Arg (cat "KIT_WINDOWS_HOME=" (fixture_path root "windows"), Arg ("KIT_WINDOWS_FREE_MB=8000", NoArgs)))
+    kit_run (fixture_text_of root) sets NoArgs (Arg ("resume", args))
+
+:= backlog () : string =
+    "inl task_kit_a () = Task (\"KIT-A\", \"resume item\", Story, P1, D2, 0u32, Planned, \"\", \"kit\", "
+    ^^ "\"current\", \"current\")\ninl task_main_b () = Task (\"MAIN-B\", \"other item\", Story, P0, D1, 0u32, "
+    ^^ "Planned, \"\", \"\", \"current\", \"current\")\ninl main () : i32 = 0i32\n"
+
+///> rust
+:# resume_prints_next_work_jobs_and_windows_in_one_call =
+    := root = fixture_root_create "resume"
+    fixture_write root "state/agile.spi" (backlog ())
+    := out = succeeded (resume_call root (Arg (fixture_text_of root, Arg ("--team", Arg ("kit", NoArgs)))))
+    shows out "== next work (agile next, WSJF)"
+    shows out "KIT-A"
+    hides out "MAIN-B"
+    shows out "== recent jobs (job list)"
+    shows out "== machine windows (window list)"
+    shows out "kit window list ok windows=0"
+    shows out "kit resume ok sections=3 team=kit"
+    shows (succeeded (resume_call root (Arg (fixture_text_of root, NoArgs)))) "MAIN-B"
+    rejected_with (resume_call root NoArgs) 2i32 "usage: kit resume <backlog-root>"
+    fixture_root_remove root
+
+:= noted_backlog () : string =
+    cat
+        (backlog ())
+        (
+            "union task_note =\n    | Note :: string * u32 * string * string * string -> task_note\n"
+            ^^ "inl note_of_kit_a_1 () = Note (\"KIT-A\", 1u32, \"2026-10-21T09:00Z\", \"kit-lane\", \"older note\")\n"
+            ^^ "inl note_of_kit_a_2 () = Note (\"KIT-A\", 2u32, \"2026-10-21T11:00Z\", \"main-thread\", \"someone "
+            ^^ "else\")\ninl note_of_main_b_1 () = Note (\"MAIN-B\", 1u32, \"2026-10-21T10:00Z\", \"kit-lane\", "
+            ^^ "\"newer note\\nsecond line\")\n"
+        )
+
+///> rust
+:# resume_as_an_author_adds_that_authors_newest_notes_across_items =
+    := root = fixture_root_create "resume notes"
+    fixture_write root "state/agile.spi" (noted_backlog ())
+    := out = succeeded (resume_call root (Arg (fixture_text_of root, Arg ("--as", Arg ("kit-lane", NoArgs)))))
+    shows out "== recent notes by author (agile notes --as)"
+    same (line_starting out "2026-10-21T") "2026-10-21T10:00Z  MAIN-B  newer note second line"
+    shows out "2026-10-21T09:00Z  KIT-A  older note"
+    hides out "someone else"
+    shows out "kit resume ok sections=4 author=kit-lane"
+    shows
+        (succeeded (resume_call root (Arg (fixture_text_of root, Arg ("--as", Arg ("nobody", NoArgs))))))
+        "no notes by nobody"
+    hides (succeeded (resume_call root (Arg (fixture_text_of root, NoArgs)))) "== recent notes by author"
+    fixture_root_remove root

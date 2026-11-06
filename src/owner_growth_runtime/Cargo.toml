@@ -1,0 +1,20 @@
+[package.metadata.spiral]
+entry = "growth.spi"
+output = "growth.rs"
+
+[package]
+name = "owner-growth-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "owner_growth_runtime"
+path = "growth.rs"
+
+[dependencies]
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-source-map = { path = "../kit_source_map" }
+kit-bundle-manifest = { path = "../kit_bundle_manifest" }
+kit-proxy-search = { path = "../kit_proxy_search" }

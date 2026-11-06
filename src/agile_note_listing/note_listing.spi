@@ -1,0 +1,24 @@
+:< agile_note_model.model
+:< note_filter
+
+:~ last_note_of ((text, id) : string * string) : string = notes_filtered_text text id (note_filter_of "last" "1")
+
+:~ segments_of (~state_dir : string) : string = state_segments_text state_dir
+
+:= main () : i32 =
+    export "kit_agile_last_note" last_note_of
+    export "kit_agile_segments_of" segments_of
+    export "kit_agile_notes_text" ((\ (text, id) => notes_text text id) : string * string -> string)
+    export "kit_agile_notes_json" ((\ (text, id) => notes_json text id) : string * string -> string)
+    export "kit_agile_state_segments" ((\ state_dir => state_segments_text state_dir) : string -> string)
+    export
+        "kit_agile_notes_filtered_text"
+        (
+            \ (text, id, mode, value) => notes_filtered_text text id (note_filter_of mode value)
+            : string * string * string * string -> string
+        )
+    := _ = notes_text "" "X"
+    := _ = notes_json "" "X"
+    := _ = state_segments_text ""
+    := _ = notes_filtered_text "" "X" AllNotes
+    0i32

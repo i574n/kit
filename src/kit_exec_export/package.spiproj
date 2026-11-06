@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    kit_exec_cells
+    kit_exec_jobs
+link:
+    kit_exec_cells
+    kit_exec_jobs
+modules:
+    export

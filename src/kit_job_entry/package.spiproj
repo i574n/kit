@@ -1,0 +1,35 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    rust_std_string
+    rust_std_env
+    kit_job_placement
+    kit_jobs
+    kit_process_alive
+    kit_job_dispatch
+    kit_job_chain
+    kit_job_serial
+    kit_job_control
+    kit_job_rechain
+    kit_jobs_doctor
+    kit_job_supervise
+    kit_job_launch
+    kit_job_host
+    kit_job_query
+    kit_job_coordinator
+link:
+    kit_process_alive
+    kit_job_dispatch
+    kit_job_chain
+    kit_job_serial
+    kit_job_control
+    kit_job_rechain
+    kit_jobs_doctor
+    kit_job_supervise
+    kit_job_launch
+    kit_job_host
+    kit_job_query
+    kit_job_coordinator
+modules:
+    entry

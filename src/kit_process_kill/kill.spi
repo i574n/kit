@@ -1,0 +1,103 @@
+:< sm'_operators
+:< kit_receipt.receipt
+:< kit_process_table.model
+:< kit_process_table.host
+:< kit_process_table.listing
+
+:| kill_switch =
+    | SwitchTree
+    | SwitchMine
+
+:| kill_valued =
+    | ValuedTheirs
+
+:== kill_flags = { tree : bool; mine : bool; theirs : string; targets : list string }
+
+:= switch_word (flag : kill_switch) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Switch" flag
+
+:= valued_word (flag : kill_valued) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ switch_applied (flag : kill_switch) (flags : kill_flags) : kill_flags =
+    ?= flag ?|
+    | SwitchTree => { flags ?| tree = !+ }
+    | SwitchMine => { flags ?| mine = !+ }
+
+:~ ^ kill_flags_read (words : list string) (flags : kill_flags) : kill_flags =
+    ?= words ?|
+    | [] => { flags ?| targets = listm.rev flags.targets }
+    | word :: rest =>
+        := switched =
+            union_reflection.cases.union_case_where (\ (flag : kill_switch) => word = switch_word flag) Some None
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : kill_valued) => word = valued_word flag) Some None
+        ?= switched, valued, rest ?|
+        | Some flag, _, _ => kill_flags_read rest (switch_applied flag flags)
+        | _, Some _, (value :: after) => kill_flags_read after { flags ?| theirs = value }
+        | _, Some _, [] => kill_flags_read [] flags
+        | _ => kill_flags_read rest { flags ?| targets = word :: flags.targets }
+:~ stop_once (~word : string) (~pid : u64) (~tree : bool) : bool =
+    := tally = process_stopped pid tree
+    := result = stop_result_of (tally_stopped tally) (tally_total tally)
+    stdout_line (stop_text word result)
+    stop_complete result
+
+:~ ^ stops_from
+    (targets : list string) (~tree : bool) (guard : stop_guard) (~own : u64) (~ancestors : string) (~stopped : u64)
+    (~failed : u64)
+    : u64 * u64
+    =
+    ?= targets ?|
+    | [] => stopped, failed
+    | word :: rest =>
+        ?= stop_refusal_of word own ancestors ?|
+        | Allowed pid =>
+            ?= guard_refusal guard pid ?|
+            | Some reason =>
+                stdout_line (refusal_text word (NotYours reason))
+                stops_from rest tree guard own ancestors stopped (failed + 1u64)
+            | None =>
+                ? stop_once word pid tree
+                ?> stops_from rest tree guard own ancestors (stopped + 1u64) failed
+                |: stops_from rest tree guard own ancestors stopped (failed + 1u64)
+        | refusal =>
+            stdout_line (refusal_text word refusal)
+            stops_from rest tree guard own ancestors stopped (failed + 1u64)
+:~ kill_words () : list string =
+    ?= env.command_line_arguments () ?|
+    | _ :: rest => rest
+    | [] => []
+
+:~ stop_run (~started : u64) : i32 =
+    := words = kill_words ()
+    := flags = kill_flags_read words { tree = !-; mine = !-; theirs = ""; targets = [] }
+    ? words = []
+    ?>
+        stdout_line ("usage: kit " ++# (process_usage ()))
+        2i32
+    |:
+        := own = own_pid ()
+        := guard =
+            ? flags.mine
+            ?>
+                MineOnly {
+                    rows = kit_machine_watch.host.process_rows_sampled 100u64
+                    own = own
+                    author = env.get_environment_variable "KIT_AUTHOR"
+                    theirs = flags.theirs
+                }
+            |: AnyProcess
+        := stopped, failed =
+            stops_from flags.targets flags.tree guard own (ancestor_pids ()) 0u64 0u64
+        := counts = "stopped " ++# (decimal_text stopped) ++# "  failed " ++# (decimal_text failed)
+        ? failed = 0u64 ?>
+            receipt_line Succeeded counts started
+            0i32
+        |:
+            receipt_line Failed counts started
+            1i32
+
+:= main () : i32 =
+    export "kit_process_kill_run" ((\ () => stop_run (now_ms ())) : () -> i32)
+    0i32

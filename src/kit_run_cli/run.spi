@@ -1,0 +1,87 @@
+///- --package .
+:# run static =
+    :< sm'_operators
+    :< kit_run_model.model
+
+:< sm'_operators
+:< kit_run_model.model
+
+:== run_setup = { lib : string; core : string; compiler : string; cache_root : string }
+
+:| setup_read =
+    | SetupReady : run_setup
+    | SetupMissing : string
+
+:~ setup_of (~lib : string) (~core : string) (~compiler : string) (~cache_root : string) : setup_read =
+    ? lib = "" ?> SetupMissing "SPIRAL_LIB (the lib/spiral package folder)"
+    |? core = "" ?> SetupMissing "SPIRAL_CORE (the core package folder)"
+    |? compiler = "" ?> SetupMissing "SPIRAL_COMPILER_DLL (SpiralCompiler.dll)"
+    |: SetupReady { lib = lib; core = core; compiler = compiler; cache_root = cache_root }
+
+:~ test_names_in (~text : string) : list string =
+    := named = \ (line : string) =>
+        ?= sm'.split_list " " (sm'.trim line) ?|
+        | marker :: name :: third :: _ ?& marker = ":#" && name <> "" && third <> "static" => Some name
+        | _ => None
+    sm'.split_list "\n" (sm'.replace "\r" "" text)
+    |> listm.fold (\ (acc : list string) (line : string) => ?= named line ?| | Some n => n :: acc | None => acc) []
+    |> listm.rev
+
+:~ test_args (~runner : string) (~file : string) (names : list string) (~out : string) : list string =
+    := picked = names |> listm.fold (\ (acc : list string) (name : string) => listm.append acc [ "--test"; name ]) []
+    listm.append [ "-NoProfile"; "-File"; runner; "--path"; file; "--output-path"; out; "--no-html" ] picked
+
+:~ program_ran (~exe : string) (args : list string) : i32 =
+    := gather = \ (kept : array string) (arg : string) => kept ++ ;[ arg ]
+    kit_os_run.run_os.inherited_exit exe (args |> listm.fold gather ;[])
+
+:~ run_run () : i32 =
+    := setup =
+        setup_of (env.get_environment_variable "SPIRAL_LIB") (env.get_environment_variable "SPIRAL_CORE")
+            (env.get_environment_variable "SPIRAL_COMPILER_DLL")
+            (sm'.replace "\\" "/" (env.get_environment_variable "LOCALAPPDATA") ++# "/kit/run-cache")
+    := words = ?= env.command_line_arguments () ?| | _ :: rest => rest | [] => []
+    ?= setup, request_of words ?|
+    | _, RunRefused reason =>
+        console.write_error_line ("kit error: " ++# reason)
+        2i32
+    | SetupMissing what, _ =>
+        console.write_error_line ("kit error: kit run needs " ++# what)
+        2i32
+    | SetupReady s, RunProgram (file, args) =>
+        ?= kit_run_build.builder.built_exe (s.lib, s.core, s.compiler, s.cache_root, file) ?|
+        | exe, "" => program_ran exe args
+        | _, reason =>
+            console.write_error_line ("kit error: kit run " ++# reason)
+            1i32
+    | _, RunTests (file, ListTests) =>
+        := names = test_names_in (file_system.read_text_or_empty file)
+        names |> listm.iter console.write_line
+        console.write_line ("kit run list ok tests=" ++# sm'.show (listm.length names : i32))
+        0i32
+    | _, RunTests (file, selection) =>
+        := runner = env.get_environment_variable "SPIRAL_CELLS_RUNNER"
+        ? runner = ""
+        ?>
+            console.write_error_line "kit error: kit run --test needs SPIRAL_CELLS_RUNNER (the Cells run_notebook.ps1)"
+            2i32
+        |:
+            := names = ?= selection ?| | NamedTests picked => picked | _ => []
+            := cache = sm'.replace "\\" "/" (env.get_environment_variable "LOCALAPPDATA") ++# "/kit/run-cache"
+            := out = cache ++# "/" ++# kit_run_build.builder.stem_of file ++# "-tests.ipynb"
+            program_ran "pwsh" (test_args runner file names out)
+
+///> rust
+:# a_script_builds_into_a_cached_package_beside_lib_and_core =
+    := file = ":# one =\n    x\n:# two fails \"Unification\" =\n:# lint static =\n"
+    testing.expect (test_names_in file = [ "one"; "two" ]) "test names, static preludes skipped"
+    := args = test_args "r.ps1" "a.spi" [ "one"; "two" ] "o.ipynb"
+    testing.expect (listm'.contains "--no-html" args && listm.length args = 12i32) "runner args with two --test filters"
+    testing.expect (program_ran "rustc" [ "--version" ] = 0i32) "a program runs with inherited output and its exit code"
+    ?= setup_of "" "c" "d" "e" ?|
+    | SetupMissing what => testing.expect (sm'.starts_with "SPIRAL_LIB" what) what
+    | SetupReady _ => testing.expect !- "a missing lib refuses"
+///> _
+:= main () : i32 =
+    export "kit_run_run" run_run
+    0i32

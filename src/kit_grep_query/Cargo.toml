@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "grep.spi"
+output = "grep_query.rs"
+
+[package]
+name = "kit-grep-query"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_grep_query"
+path = "grep_query.rs"
+
+[dependencies]
+kit-grep-found = { path = "../kit_grep_found" }

@@ -1,0 +1,75 @@
+///- --package .
+:# done static =
+    :< sm'_operators
+    :< agile_cadence.model
+
+:< sm'_operators
+:< agile_cadence.model
+
+:~ status_named (~word : string) : item_status =
+    ? word = "Active" ?> Active
+    |? word = "Blocked" ?> Blocked
+    |? word = "Paused" ?> Paused
+    |? word = "Done" ?> Done
+    |: Planned
+
+:~ teams_of (~tags : string) : list string =
+    sm'.split_list "," tags
+    |> listm.map sm'.trim
+    |> listm'.filter (\ (w : string) => sm'.starts_with "team:" w)
+    |> listm.map (\ (w : string) => sm'.replace "team:" "" w)
+
+:~ ^ tracked_from
+    (rows : array_base agile_quality_state.state_rows.cadence_row) (at : i32) (acc : list tracked)
+    : list tracked
+    =
+    ? at < 0i32 ?> acc
+    |:
+        := r = am'.index_base at rows
+        := status = status_named r.status
+        := item = { id = r.id; status = status; teams = teams_of r.tags; deps = []; last_note_hour = r.last_note_hour }
+        tracked_from rows (at - 1i32) (item :: acc)
+
+:~ done_line (now_day : i64) (row : team_day) : string =
+    "kit agile cadence done team=" ++# row.team ++# " days_ago=" ++# sm'.show (now_day - row.day)
+    ++# " done=" ++# sm'.show row.done
+
+:~ silent_line (now_hour : i64) (item : tracked) : string =
+    "kit agile cadence silent id=" ++# item.id ++# " teams=" ++# sm'.concat_list "," item.teams
+    ++# " hours=" ++# sm'.show (now_hour - item.last_note_hour)
+
+:~ done_lines (items : list tracked) (now_hour : i64) (hours : i64) (days : i64) (~team : string) : list string =
+    := now_day = now_hour / 24i64
+    := ours = \ (teams : list string) => team = "" || listm'.contains team teams
+    := done =
+        done_per_team_day ByLastNote (now_day - days) items
+        |> listm'.filter (\ (row : team_day) => ours [ row.team ])
+        |> listm.map (done_line now_day)
+    := silent =
+        stale_active now_hour hours items
+        |> listm'.filter (\ (t : tracked) => ours t.teams)
+        |> listm.map (silent_line now_hour)
+    listm.append done silent
+
+:~ done_report ((text, now_hour, hours, days, team) : string * i64 * i64 * i64 * string) : array_base string =
+    := rows = agile_quality_state.state_rows.cadence_of text
+    := items = tracked_from rows (am'.length_base rows - 1i32) []
+    done_lines items now_hour hours days team |> listm'.box |> listm'.to_array'
+
+///> rust
+:# cadence_counts_done_per_team_day_and_names_silent_active_items =
+    := done = { id = "D-1"; status = Done; teams = [ "kit" ]; deps = []; last_note_hour = 100i64 * 24i64 + 3i64 }
+    := silent = { id = "A-1"; status = Active; teams = [ "kit" ]; deps = []; last_note_hour = 100i64 * 24i64 }
+    := lines = done_lines [ done; silent ] (102i64 * 24i64) 48i64 7i64 ""
+    testing.expect (listm'.contains "kit agile cadence done team=kit days_ago=2 done=1" lines) "done per team per day"
+    := at_bound = "kit agile cadence silent id=A-1 teams=kit hours=48"
+    testing.expect (listm'.contains at_bound lines |> not) "48 h is not over 48"
+    := later = done_lines [ silent ] (102i64 * 24i64 + 1i64) 48i64 7i64 ""
+    testing.expect (listm'.contains "kit agile cadence silent id=A-1 teams=kit hours=49" later) "49 h is silent"
+    testing.expect (done_lines [ done ] (102i64 * 24i64) 48i64 7i64 "x" = []) "--team x drops kit rows"
+    testing.expect (status_named "Paused" = Paused && status_named "x" = Planned) "status words"
+    testing.expect (teams_of "kit, team:kit,team:x" = [ "kit"; "x" ]) "team tags"
+///> _
+:= main () : i32 =
+    export "kit_cadence_done_report" done_report
+    0i32

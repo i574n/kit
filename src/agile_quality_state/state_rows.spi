@@ -1,0 +1,101 @@
+///- --package .
+:# state_rows static =
+    :< sm'_operators
+    :< agile_quality_lint.lint
+
+:< sm'_operators
+:< agile_quality_lint.lint
+
+:~ facts_list (~text : string) : list fact_row =
+    am'.to_list_base' (agile_quality_facts.facts.fact_rows_of text) |> listm'.unbox
+
+:== census_row = { check : string; items : i32 }
+
+:~ open_failures_in (facts : list fact_row) : list failure_row =
+    := unsettled = facts |> listm'.filter (\ (f : fact_row) => f.status <> "Done")
+    := rows = agile_quality_lint.lint.failing_rows (unsettled |> listm'.box |> listm'.to_array')
+    am'.to_list_base' rows |> listm'.unbox
+
+:~ open_failures (~text : string) : list failure_row = open_failures_in (facts_list text)
+
+:~ census_of (rows : list failure_row) : list census_row =
+    rows
+    |> listm.fold
+        (\ (acc : dict.dict string i32) (row : failure_row) =>
+            acc |> dict.updated row.check 0i32 (\ (n : i32) => n + 1i32)
+        )
+        (dict.empty ())
+    |> dict.fold (\ (acc : list census_row) (check : string) (n : i32) => { check = check; items = n } :: acc) []
+    |> listm.rev
+
+:~ item_failures ((text, id, status) : string * string * string) : array_base failure_row =
+    ?= facts_list text |> listm'.try_find_ (\ (f : fact_row) => f.id = id) ?|
+    | Some f => agile_quality_lint.lint.failing_rows (;[ { f ?| status = status } ] |> am'.base)
+    | None => (;[] : array failure_row) |> am'.base
+
+:== cadence_row = { id : string; status : string; tags : string; last_note_hour : i64 }
+
+:~ stamp_hour (~stamp : string) : i64 =
+    := number = \ (from : i32) (size : i32) =>
+        optionm'.default_value 0i64 (convert.try_convert (sm'.substring from size stamp))
+    ? (sm'.length stamp : i32) < 13i32 ?> 0i64
+    |: date_time.days_from_civil (number 0i32 4i32) (number 5i32 2i32) (number 8i32 2i32) * 24i64 + number 11i32 2i32
+
+:~ last_note_hour (~notes : string) : i64 =
+    := hour_of = \ (line : string) =>
+        ?= sm'.split_list "\"" line ?|
+        | _ :: _ :: _ :: stamp :: _ => stamp_hour stamp
+        | _ => 0i64
+    := later = \ (best : i64) (line : string) =>
+        := hour = hour_of line
+        ? hour > best ?> hour |: best
+    sm'.split_list "\n" notes |> listm.fold later 0i64
+
+:~ cadence_of (~text : string) : array_base cadence_row =
+    facts_list text
+    |> listm.map (\ (f : fact_row) =>
+        { id = f.id; status = f.status; tags = f.tags; last_note_hour = last_note_hour f.notes }
+    )
+    |> listm'.box
+    |> listm'.to_array'
+
+:~ failures_of (~text : string) : array_base failure_row = open_failures text |> listm'.box |> listm'.to_array'
+
+:~ of_team (~team : string) (f : fact_row) : bool =
+    team = "" || sm'.split_list "," f.tags |> listm.map sm'.trim |> listm'.contains ("team:" ++# team)
+
+:~ team_failures_of ((text, team) : string * string) : array_base failure_row =
+    open_failures_in (facts_list text |> listm'.filter (of_team team)) |> listm'.box |> listm'.to_array'
+
+:~ census_text_of (~text : string) : array_base census_row =
+    census_of (open_failures text) |> listm'.box |> listm'.to_array'
+
+///> rust
+:# failures_census_and_cadence_come_from_the_fact_rows =
+    := fact =
+        {
+            id = "T-A"
+            status = "Active"
+            tags = "kit,team:kit"
+            estimate_minutes = 60i32
+            load = "Light"
+            assignee = "Agent"
+            notes = ""
+        }
+    := done = { fact ?| id = "T-B"; status = "Done" }
+    := rows = open_failures_in [ fact; done ]
+    testing.expect (listm.length rows = 3i32) "the open item fails DoD, NEXT and TYPEFEATURES; Done is skipped"
+    testing.expect (census_of rows |> listm.length = 3i32) "one census row per check"
+    testing.expect (of_team "kit" fact && of_team "x" fact |> not && of_team "" fact) "team filter by team tag"
+    testing.expect (stamp_hour "2026-11-04T10:00Z" = 20761i64 * 24i64 + 10i64) "note stamps read as hours"
+    := note = "inl note_of_t_a_1 () = Note (\"T-A\", 1u32, \"2026-11-04T10:00Z\", \"kit\", \"x\")"
+    testing.expect (last_note_hour note = 20761i64 * 24i64 + 10i64) "the latest note hour"
+///> _
+:= main () : i32 =
+    export "kit_agile_lint_failures" failures_of
+    export "kit_agile_lint_census" census_text_of
+    export "kit_agile_lint_item_failures" item_failures
+    export "kit_agile_cadence_rows" cadence_of
+    export "kit_agile_stamp_hour" stamp_hour
+    export "kit_agile_lint_team_failures" team_failures_of
+    0i32

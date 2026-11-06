@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "resume.spi"
+output = "resume.rs"
+
+[package]
+name = "kit-resume"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_resume"
+path = "resume.rs"
+
+[dependencies]
+kit-agile-records = { path = "../kit_agile_records" }

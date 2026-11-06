@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "verb.spi"
+output = "verb.rs"
+
+[package]
+name = "kit-table-sequences"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_table_sequences"
+path = "verb.rs"
+
+[dependencies]
+kit-table-sequence-measures = { path = "../kit_table_sequence_measures" }
+kit-table-sections = { path = "../kit_table_sections" }
+kit-table-counts = { path = "../kit_table_counts" }

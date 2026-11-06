@@ -1,0 +1,148 @@
+///- --package .
+:# lint static =
+    :< sm'_operators
+
+:< sm'_operators
+:< file_system_operators
+:< kit_lint_model.model
+:< kit_lint_walk.walk
+
+:~ walked_from (~start : string) : path_list = $'kit_lint_walk::kit_lint_walk_files(&*!start)' : path_list
+:= path_count (~paths : path_list) : i32 = ($'!paths.len()' : convert.unativeint) |> convert.convert
+:= path_at (~paths : path_list) (at : i32) : string =
+    := index : convert.unativeint = convert.convert at
+    $'!paths[!index].clone()' : string
+
+:~ ^ listed_paths (~paths : path_list) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found |: listed_paths paths (at - 1i32) (path_at paths at :: found)
+
+:~ files_from (starts : list string) : list string =
+    := each (~start : string) =
+        := paths = walked_from start
+        listed_paths paths (path_count paths - 1i32) []
+    starts |> listm.fold (\ all start => listm.append all (each start)) []
+:~ scan_of (~text : string) : array i32 * array string * array string * array bool * array i32 * array i32 =
+    $'kit_lint_scan::kit_lint_scan(&*!text)'
+    : array i32 * array string * array string * array bool * array i32 * array i32
+:~ class_at (~text : string) (closed : bool) (flow : bool) (place : i32) (origin : i32) : i32 =
+    $'kit_lint_classify::kit_lint_class(&*!text, !closed, !flow, !place, !origin)' : i32
+:~ flow_at (~line : string) : bool = $'kit_lint_flow::kit_lint_flow(&*!line)' : bool
+:~ construct_at (~line : string) : bool = $'kit_lint_flow_constructs::kit_lint_flow_construct(&*!line)' : bool
+:~ idiom_at (~line : string) : bool = $'kit_lint_flow_idioms::kit_lint_flow_idiom(&*!line)' : bool
+:~ flow_candidate_at (~line : string) : bool = flow_at line && not (construct_at line) && not (idiom_at line)
+:~ added (~diff : string) : string = $'kit_lint_scan::kit_lint_added_text(&*!diff)' : string
+:~ known_in (~baseline : string) (item : violation) : bool =
+    := file, name, class = item.file, item.name, class_index item.class
+    $'kit_lint_walk::kit_lint_known(&*!baseline, &*!file, &*!name, !class)' : bool
+:~ row_of (width : i32) (item : violation) : string =
+    := file, line, name, class, text = item.file, item.line, item.name, class_index item.class, item.text
+    $'kit_lint_scan::kit_lint_row(!width, &*!file, !line, &*!name, !class, &*!text)' : string
+:~ tally_text (tally : lint_tally) : string =
+    := files, macros, violations, fresh = tally.files, tally.macros, tally.violations, tally.fresh
+    $'kit_lint_scan::kit_lint_tally(!files, !macros, !violations, !fresh)' : string
+
+:~ file_findings (~file : string) (~text : string) : i32 * list violation =
+    := lines, names, texts, closed, places, origins = scan_of text
+    := count = am'.length lines : i32
+    := source = sm'.split "\n" (sm'.replace "\r" "" text) |> array
+    := line_text (number : i32) : string =
+        ? number >= 1i32 && number <= am'.length source ?> am'.index (number - 1i32) source |: ""
+    :~ ^ walk (index : i32) (found : list violation) : list violation =
+        ? index >= count
+        ?> listm.rev found
+        |:
+            := body = am'.index index texts
+            := flow = flow_candidate_at (line_text (am'.index index lines))
+            := code = class_at body (am'.index index closed) flow (am'.index index places) (am'.index index origins)
+            ?= class_of_code code ?|
+            | Some class =>
+                := item =
+                    {
+                        file = file; line = am'.index index lines; name = am'.index index names; class = class
+                        text = body
+                    }
+                walk (index + 1i32) (item :: found)
+            | None => walk (index + 1i32) found
+    count, walk 0i32 []
+:== lint_report =
+    {
+        rows : list string
+        tally : lint_tally
+    }
+
+:~ tsv_row (item : violation) : string =
+    := file, line, name, class, text = item.file, item.line, item.name, class_index item.class, item.text
+    $'kit_lint_classify::kit_lint_tsv_row(&*!file, !line, &*!name, !class, &*!text)' : string
+
+:~ lint_report (~root : string) (paths : list string) (~baseline : string) (tsv : bool) : lint_report =
+    := starts = ?= paths ?| | [] => [ root ] | _ => paths |> listm.map (\ (path : string) => root </> path)
+    := named = starts |> listm'.filter \ (path : string) => file_system.file_exists path
+    := walked = files_from (starts |> listm'.filter \ (path : string) => file_system.file_exists path |> not)
+    := files = listm.fold (\ all path => path :: all) (listm.rev named) walked |> listm.rev
+    := macros, found =
+        files
+        |> listm.fold
+            \ (macros, found) (path : string) =>
+                := read = file_system.read_all_text path
+                := text = ? sm'.ends_with ".diff" path || sm'.ends_with ".patch" path ?> added read |: read
+                := count, here = file_findings (relative_to root path) text
+                macros + count, listm.fold (\ all item => item :: all) found here
+            (0i32, [])
+    := found = listm.rev found
+    := fresh = found |> listm'.filter \ (item : violation) => not (known_in baseline item)
+    := width = name_width fresh
+    := violations : i32 = listm.length found
+    := tally = { files = listm.length files; macros = macros; violations = violations; fresh = listm.length fresh }
+    := render (item : violation) : string = ? tsv ?> tsv_row item |: row_of width item
+    := rows = listm.map render fresh
+    { rows = ? tsv ?> "file\tline\tname\tclass\ttext" :: rows |: rows; tally = tally }
+
+:~ lint_args () : kit_lint_args.args.lint_args_row =
+    am'.index_base 0i32 (kit_lint_args.args.lint_args_read 2i32)
+
+:~ ^ listed_from (paths : array_base string) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found |: listed_from paths (at - 1i32) (am'.index_base at paths :: found)
+
+:~ listed_paths (paths : array_base string) : list string = listed_from paths (am'.length_base paths - 1i32) []
+
+:~ lint_run () : i32 =
+    := started = kit_receipt.receipt.now_ms ()
+    := args = lint_args ()
+    := root = args.root
+    := given = args.baseline
+    := baseline_path = ? given = "" || file_system.file_exists given ?> given |: root </> given
+    ? root = "" || file_system.directory_exists root |> not ?>
+        console.write_error_line (
+            "kit error: lint usage: lint macros <root> [<path>...] [--baseline <rows|file.spi>] [--tsv]"
+            ++# " [--write-baseline <file.spi>]"
+        )
+        2i32
+    |? baseline_path <> "" && file_system.file_exists baseline_path |> not ?>
+        console.write_error_line ("kit error: lint macros: no baseline file at " ++# given)
+        2i32
+    |:
+        := raw = ? baseline_path = "" ?> "" |: file_system.read_all_text baseline_path
+        := typed = sm'.ends_with ".spi" baseline_path
+        := baseline = ? typed ?> $'kit_lint_baseline::kit_lint_baseline_rows(&*!raw)' : string |: raw
+        := write_to = args.write_baseline
+        ? write_to <> ""
+        ?>
+            := every = lint_report root (listed_paths args.paths) "" !-
+            := rows = ? baseline <> "" ?> baseline |: sm'.concat_list "\n" every.rows
+            := counted = $'kit_lint_baseline::kit_lint_baseline_write(&*!write_to, &*!rows)' : string
+            console.write_line ("kit lint baseline written " ++# write_to ++# "  rows " ++# counted)
+            0i32
+        |:
+            := report = lint_report root (listed_paths args.paths) baseline args.tsv
+            report.rows |> listm.iter console.write_line
+            := elapsed = kit_receipt.receipt.elapsed_text started
+            := clock = kit_receipt.receipt.clock_text ()
+            console.write_line (tally_text report.tally ++# "  " ++# elapsed ++# "  " ++# clock)
+            ? report.tally.fresh = 0i32 ?> 0i32 |: 1i32
+
+:~ shadows_run () : i32 = $'kit_lint_shadows::kit_lint_shadows_run()' : i32
+
+:= main () : i32 =
+    export "kit_lint_run" lint_run
+    export "kit_lint_shadows_routed" shadows_run
+    0i32

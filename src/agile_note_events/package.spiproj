@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    agile_quality_lint
+    agile_quality_facts
+    agile_quality_state
+link:
+    agile_quality_facts
+modules:
+    events

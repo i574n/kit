@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "counts.spi"
+output = "table_counts.rs"
+
+[package]
+name = "kit-table-counts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_table_counts"
+path = "table_counts.rs"
+
+[dependencies]
+kit-log-counts = { path = "../kit_log_counts" }

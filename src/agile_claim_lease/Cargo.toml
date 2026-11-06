@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "lease.spi"
+output = "lease.rs"
+
+[package]
+name = "agile-claim-lease"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "agile_claim_lease"
+path = "lease.rs"

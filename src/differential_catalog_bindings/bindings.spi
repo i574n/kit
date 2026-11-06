@@ -1,0 +1,21 @@
+:~ differential_catalog_equal_binding (expected : i32) (observed : i32) : i32 =
+    ? expected = observed ?> 1i32 |: 0i32
+
+:= differential_catalog_shape_binding (gate_mask : i32) (gate_count : i32) : i32 =
+    ? gate_mask = 15i32 ?>
+        ? gate_count = 4i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:= differential_catalog_settlement_binding (scenarios : i32) (receipts : i32) (evidence_flags : i32) : i32 =
+    ? scenarios = 10i32 ?>
+        ? receipts = 9i32 ?>
+            ? evidence_flags = 31i32 ?> 1i32 |: 0i32
+        |: 0i32
+    |: 0i32
+
+:= differential_catalog_legacy_binding (cataloged : i32) (decided : i32) (complete : i32) : i32 =
+    ? cataloged = 36i32 ?>
+        ? decided = 36i32 ?>
+            ? complete = 1i32 ?> 1i32 |: 0i32
+        |: 0i32
+    |: 0i32

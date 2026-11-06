@@ -1,0 +1,31 @@
+:< model
+
+:~ fs_action_shape_binding (row_count : i32) (problem_count : i32) : i32 =
+    ? row_count < 1i32 ?> 0i32
+    |? problem_count < 0i32 ?> 0i32
+    |? 0i32 < problem_count ?> 0i32
+    |: 1i32
+
+:~ fs_action_freshness_binding (kind_code : i32) (expected_ok : i32) : i32 =
+    ? kind_code < 0i32 ?> 0i32
+    |? 3i32 < kind_code ?> 0i32
+    |? expected_ok < 1i32 ?> 0i32
+    |: 1i32
+
+:~ fs_action_apply_binding (row_count : i32) (applied_count : i32) : i32 =
+    ? row_count < 1i32 ?> 0i32
+    |? applied_count < row_count ?> 0i32
+    |? row_count < applied_count ?> 0i32
+    |: 1i32
+
+:~ fs_action_verify_binding (row_count : i32) (verified_count : i32) : i32 =
+    ? row_count < 1i32 ?> 0i32
+    |? verified_count < row_count ?> 0i32
+    |? row_count < verified_count ?> 0i32
+    |: 1i32
+
+:~ fs_action_rollback_binding (row_count : i32) (restored_count : i32) : i32 =
+    ? row_count < 1i32 ?> 0i32
+    |? restored_count < row_count ?> 0i32
+    |? row_count < restored_count ?> 0i32
+    |: 1i32

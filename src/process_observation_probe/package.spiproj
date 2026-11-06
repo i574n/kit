@@ -1,0 +1,5 @@
+packages:
+    |core-
+    kit_process_observation
+modules:
+    main

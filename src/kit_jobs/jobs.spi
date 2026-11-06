@@ -1,0 +1,164 @@
+:< rust_std_string.model
+:< sm'_operators
+:< model
+:< host
+:< kit_job_placement.placement
+
+:~ job_directory (~id : string) : string = joined (jobs_root ()) id
+:~ job_file (~id : string) (~name : string) : string = joined (job_directory id) name
+
+:~ job_environment_adopted (~id : string) : snapshot_verdict =
+    := path = job_file id "env"
+    ? file_exists path ?>
+        := snapshot = text_or_empty path
+        := verdict = snapshot_verdict_of snapshot (\ name => env.get_environment_variable name <> "")
+        ? verdict = SnapshotUsable ?>
+            env.environment_restored snapshot "KIT_JOB_"
+            file_system.file_delete path
+            verdict
+        |: verdict
+    |: SnapshotUsable
+
+:~ job_record_of (~id : string) : job_record =
+    record_at
+        (text_or_empty (job_file id "exit"))
+        (decimal_u64 (text_or_empty (job_file id "heartbeat_ms")))
+        (decimal_u64 (text_or_empty (job_file id "started_ms")))
+        (now_ms ())
+
+:~ start_request_path (~id : string) : string =
+    := home = sm'.trim (text_or_empty (job_file id "host-home"))
+    := host = ? home = "" ?> joined (jobs_root ()) "shell-host" |: joined (joined (jobs_root ()) "hosts") home
+    joined (joined host "requests") (id ++# ".start")
+
+:~ job_state_now (~id : string) : job_state =
+    := record = job_record_of id
+    := state = job_state_of record
+    ?= state ?|
+    | Live (JobRunning) ?& file_exists (joined (joined (jobs_root ()) "held") id) => Live JobPending
+    | Settled (JobLost) =>
+        := supervisor = decimal_u64 (text_or_empty (job_file id "supervisor"))
+        ? file_exists (joined (joined (jobs_root ()) "held") id) || file_exists (start_request_path id)
+        ?> Live JobPending
+        |? supervisor <> 0u64 && process_alive supervisor
+        ?> Live JobRunning
+        |:
+            := child = decimal_u64 (text_or_empty (job_file id "pid"))
+            := gone = child = 0u64 || process_alive child = !-
+            := _ =
+                ? record.exit_text = "" && gone
+                ?>
+                    text_written
+                        (job_file id "exit")
+                        (
+                            exit_line 125i32
+                                (? record.heartbeat_ms > 0u64 ?> record.heartbeat_ms |: record.started_ms)
+                                JobLost
+                                (
+                                    "the supervisor stopped beating: it was killed (with its caller, by the memory "
+                                    ^^ "reaper) or crashed, and its job tree ended with it"
+                                )
+                        )
+                |: ""
+            state
+    | _ => state
+
+:~ elapsed_of (~id : string) : u64 =
+    := record = job_record_of id
+    := exit_text = record.exit_text
+    := ended = ? exit_text = "" ?> record.now_ms |: decimal_u64 ($'std::rc::Rc::<str>::from(!exit_text.split(char::fro\
+        m(9u8)).nth(1).unwrap_or("0"))' : string)
+    ? ended > record.started_ms ?> ended - record.started_ms |: 0u64
+
+:| gate_wait =
+    | NotWaiting
+    | WaitingAfter : string
+    | WaitingWindow : string * string
+    | WaitingSlot
+
+:~ window_reason (~window : string) : string =
+    := at : i32 = sm'.index_of " reason=" window
+    ? at < 0i32 ?> "" |: sm'.trim (sm'.substring (at + 1i32) ((sm'.length window : i32) - at - 1i32) window)
+
+:~ gate_wait_of (~id : string) : gate_wait =
+    ? file_exists (job_file id "after") && not (file_exists (job_file id "after-done"))
+    ?> WaitingAfter (sm'.split "\t" (text_or_empty (job_file id "after")) |> array |> am'.index 0i32 |> sm'.trim)
+    |? file_exists (job_file id "window-class")
+    ?>
+        := window = text_or_empty (job_file id "window")
+        ? sm'.starts_with "granted" window ?> NotWaiting
+        |: WaitingWindow (sm'.trim (text_or_empty (job_file id "window-class")), window_reason window)
+    |?
+        file_exists (job_file id "heavy-wrapper.ps1") && not (sm'.contains "Invoke-Heavy: acquired slot" (
+            text_or_empty (job_file id "stdout.log")))
+    ?> WaitingSlot
+    |: NotWaiting
+
+:= waiting_for (wait : gate_wait) : string =
+    ?= wait ?|
+    | NotWaiting => ""
+    | WaitingAfter predecessor => " waiting_for=after:" ++# predecessor
+    | WaitingWindow (window_class, reason) =>
+        " waiting_for=window:" ++# window_class ++# (? reason = "" ?> "" |: " " ++# reason)
+    | WaitingSlot => " waiting_for=heavy-slot"
+
+:~ gate_queued (~id : string) : bool = gate_wait_of id <> NotWaiting
+
+:~ job_placement (~id : string) : placement =
+    optionm'.default_value Local (placement_of_text (text_or_empty (job_file id "placement")))
+
+:~ job_summary (~verb : string) (~id : string) : string =
+    := state = job_state_now id
+    := head = concat5 "kit job " verb " ok id=" id " state="
+    := wait = ? state_settled state ?> NotWaiting |: gate_wait_of id
+    := codes =
+        state_shown state (wait <> NotWaiting)
+        ++# waiting_for wait
+        ++# " exit="
+        ++# exit_shown state
+        ++# " elapsed_ms="
+        ++# decimal_text (elapsed_of id)
+    := sizes =
+        concat5
+            " stdout_bytes="
+            (decimal_text (file_bytes (job_file id "stdout.log")))
+            " stderr_bytes="
+            (decimal_text (file_bytes (job_file id "stderr.log")))
+            ""
+    := detail = exit_detail (text_or_empty (job_file id "exit"))
+    := detail_text = ? detail = "" ?> "" |: concat5 " detail=\"" detail "\"" "" ""
+    := label = concat5 " label=" (text_or_empty (job_file id "label")) "" "" ""
+    := cap = text_or_empty (job_file id "memory_cap_mb")
+    := memory =
+        ? cap = ""
+        ?> ""
+        |:
+            concat5
+                " max_private_mb="
+                cap
+                " peak_private_mb="
+                (? file_exists (job_file id "peak_private_mb") ?> text_or_empty (job_file id "peak_private_mb") |: "0")
+                ""
+    concat5 head codes sizes detail_text (concat5 memory label (shown_suffix (job_placement id)) "" "")
+
+:~ shared_state (~id : string) : job_state =
+    := word, code, detail = $'kit_job_state::kit_job_state_parts(&*!id)' : string * i32 * string
+    state_of_parts word code detail
+
+:~ shared_summary (~verb : string) (~id : string) : string = $'kit_job_summary::kit_job_summary(&*!verb, &*!id)' : string
+:~ rejected (~message : string) : i32 =
+    stderr_line (concat5 "kit error: job " message "" "" "")
+    2i32
+
+:= known_job (~id : string) : bool = starts_with id "job-" && directory_exists (job_directory id)
+
+:~ ^ waited (~id : string) (deadline : u64) (~watch : u64) : job_state =
+    := state = shared_state id
+    ? state_settled state || now_ms () > deadline || process_alive watch = !- ?> state
+    |:
+        sleep_ms 250u64
+        waited id deadline watch
+
+:~ watched_caller () : u64 =
+    := inherited = $'std::env::var("KIT_JOB_WATCH").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(0)' : u64
+    ? inherited = 0u64 ?> parent_pid () |: inherited

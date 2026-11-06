@@ -1,0 +1,126 @@
+:< rewriter
+:< sm'_operators
+
+:~ source (rust : string) : string =
+    "inl rust_global (x : string) : () = !!!!Global(x)\ninl emit () : () = rust_global "
+    ++# predicate_lex.model.encode rust
+    ++# "\n"
+:= candidate (value : rewriter.outcome) : string =
+    ?= value ?|
+    | Candidate text => text
+    | Rejected _ => ""
+:= rejects (value : rewriter.outcome) : bool =
+    ?= value ?|
+    | Rejected _ => !+
+    | _ => !-
+:= contains (text : string) (part : string) : bool = sm'.contains part text
+:~ check (success : bool) (label : string) : i32 =
+    ? success ?> 0i32
+    |:
+        host.print (predicate_rules.model.append label " failed\n")
+        1i32
+:~ run () : i32 =
+    := original = source "fn digest(v:&str)->bool { v.len()==64 && v.bytes().all(|b|b.is_ascii_hexdigit()) }"
+    := revised = candidate (rewriter.rewrite original "digest" "sha256")
+    := a = check (contains revised "lift_sha256 \"digest\"") "hash lift"
+    := b = check (rejects (rewriter.rewrite revised "digest" "sha256")) "idempotent rejection"
+    := c =
+        check
+            (
+                rejects (
+                    rewriter.rewrite
+                        (source "fn digest(v:&str)->bool{v.len()==63&&v.bytes().all(|b|b.is_ascii_hexdigit())}")
+                        "digest"
+                        "sha256"
+                )
+            )
+            "near miss"
+    := d =
+        check
+            (
+                rejects (
+                    rewriter.rewrite
+                        (source "pub fn digest(v:&str)->bool{v.len()==64&&v.bytes().all(|b|b.is_ascii_hexdigit())}")
+                        "digest"
+                        "sha256"
+                )
+            )
+            "visibility preservation"
+    := e =
+        check
+            (rejects (rewriter.rewrite (predicate_rules.model.append original original) "digest" "sha256"))
+            "ambiguity"
+    := f = check (rejects (rewriter.rewrite original "digest" "unknown")) "unknown family"
+    := pair =
+        source (
+            "fn digest(v:&str)->bool{v.len()==64&&v.bytes().all(|b|b.is_ascii_hexdigit())} fn "
+            ^^ "safe(v:&str)->bool{!v.is_empty()&&v.bytes().all(|b|b.is_ascii_alphanumeric()||matches!(b,b'.'|b'_'|b'-"
+            ^^ "'|b'/'))}"
+        )
+    := first = candidate (rewriter.rewrite pair "digest" "sha256")
+    := second = candidate (rewriter.rewrite first "safe" "receipt-text")
+    := g =
+        check (contains second "lift_receipt_text \"safe\"" && contains second "lift_sha256 \"digest\"") "nested lifts"
+    := commented = predicate_rules.model.append "// rust_global \"fake function\"\n" original
+    := h =
+        check (contains (candidate (rewriter.rewrite commented "digest" "sha256")) "// rust_global") "Spiral comments"
+    := i =
+        check
+            (
+                rejects (
+                    rewriter.rewrite
+                        (source "const TEXT:&str=r###\"fn digest(v:&str)->bool{false}\"###;")
+                        "digest"
+                        "sha256"
+                )
+            )
+            "raw string isolation"
+    := unicode = predicate_rules.model.append "// ü 路\n" original
+    := j = check (contains (candidate (rewriter.rewrite unicode "digest" "sha256")) "ü 路") "UTF-8 preservation"
+    := k =
+        check
+            (
+                rejects (
+                    rewriter.rewrite
+                        (
+                            source (
+                                "#[cfg(test)] fn digest(v:&str)->bool{v.len()==64&&v.bytes().all(|b|b.is_ascii_hexd"
+                                ^^ "igit())}"
+                            )
+                        )
+                        "digest"
+                        "sha256"
+                )
+            )
+            "attribute preservation"
+    := l =
+        check
+            (rejects (rewriter.rewrite "rust_global (typed_predicate.model.lift_sha256 /*" "digest" "sha256"))
+            "malformed wrapper comment"
+    := quoted =
+        source (
+            "const MSG:&str=\"ü 路\"; /* nested /* fn digest() {} */ comment */ fn "
+            ^^ "digest(v:&str)->bool{v.len()==64&&v.bytes().all(|b|b.is_ascii_hexdigit())}"
+        )
+    := m =
+        check (contains (candidate (rewriter.rewrite quoted "digest" "sha256")) "ü 路") "Rust UTF-8 and nested comments"
+    := n =
+        check
+            (
+                rejects (
+                    rewriter.rewrite
+                        (
+                            source (
+                                "fn outer(){fn digest(v:&str)->bool{v.len()==64&&v.bytes().all(|b|b.is_ascii_hexdig"
+                                ^^ "it())}}"
+                            )
+                        )
+                        "digest"
+                        "sha256"
+                )
+            )
+            "nested function isolation"
+    := total = (+.) a ((+.) b ((+.) c ((+.) d ((+.) e ((+.) f ((+.) g ((+.) h ((+.) i ((+.) j k)))))))))
+    := total = (+.) total ((+.) l ((+.) m n))
+    ? (=.) total 0i32 ?> host.print "14 native Spiral codemod checks passed\n"
+    total

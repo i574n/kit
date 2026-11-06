@@ -1,0 +1,60 @@
+///- --package .
+:# plan static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== shipment =
+    {
+        refused : string
+        added : array_base string
+        changed : array_base string
+        removed : array_base string
+        found : string
+    }
+
+:~ remote_arguments (~alias : string) (~root : string) (~listed : string) : list string =
+    := skip = ? listed = "" ?> "" |: " --skip " ++# listed
+    [ "-o"; "BatchMode=yes"; "-o"; "ConnectTimeout=12"; alias; "kit mirror manifest " ++# root ++# skip ]
+
+:~ paths (items : list string) : array_base string = items |> listm'.box |> listm'.to_array'
+
+:~ refusal (~reason : string) : shipment =
+    { refused = reason; added = paths []; changed = paths []; removed = paths []; found = "" }
+
+:~ ^ sorted_changes (changes : list file_manifest.manifest_change) (added : list string) (changed : list string) (removed : list string)
+    : list string * list string * list string
+    =
+    ?= changes ?|
+    | [] => listm.rev added, listm.rev changed, listm.rev removed
+    | file_manifest.Added path :: rest => sorted_changes rest (path :: added) changed removed
+    | file_manifest.Changed path :: rest => sorted_changes rest added (path :: changed) removed
+    | file_manifest.Removed path :: rest => sorted_changes rest added changed (path :: removed)
+
+:~ compared (theirs : list file_manifest.manifest_entry) (ours : list file_manifest.manifest_entry) : shipment =
+    := added, changed, removed = sorted_changes (file_manifest.manifest_changes theirs ours) [] [] []
+    { refused = ""; added = paths added; changed = paths changed; removed = paths removed; found = file_manifest.manifest_fingerprint theirs }
+
+:~ plan_of ((alias, remote, listed, local_text) : string * string * string * string) : array_base shipment =
+    := run = process.captured_by "ssh" (remote_arguments alias remote listed) !-
+    := planned =
+        ? process.succeeded run = !- ?> refusal ("ssh or the remote kit failed, exit " ++# sm'.format run.code)
+        |:
+            ?= file_manifest.manifest_of_text run.stdout ?|
+            | None => refusal "the remote manifest has a line that is not '<sha256> <bytes> <path>'"
+            | Some theirs =>
+                ?= file_manifest.manifest_of_text local_text ?|
+                | Some ours => compared theirs ours
+                | None => refusal "the local manifest did not read back"
+    (;[ planned ] : array shipment) |> am'.base
+
+///> rust
+:# changes_sort_into_added_changed_and_removed =
+    := added, changed, removed =
+        sorted_changes [ file_manifest.Added "a"; file_manifest.Removed "b"; file_manifest.Changed "c" ] [] [] []
+    testing.expect (added = [ "a" ] && changed = [ "c" ] && removed = [ "b" ]) "three lists"
+    testing.expect (listm.length (remote_arguments "node" "C:/r" "x,y") = 6i32) "six ssh words"
+///> _
+:= main () : i32 =
+    export "kit_mirror_plan_of" plan_of
+    0i32

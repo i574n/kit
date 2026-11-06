@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "agile_records.rs"
+
+[package]
+name = "kit-agile-records"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_records"
+path = "agile_records.rs"

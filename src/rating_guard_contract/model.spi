@@ -1,0 +1,4 @@
+:~ active_rating_ceiling_binding (score : i32) (ceiling : i32) : i32 =
+    ? score < 0i32 ?> 0i32
+    |? ceiling < score ?> 0i32
+    |: 1i32

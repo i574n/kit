@@ -1,0 +1,11 @@
+packages:
+    |core-
+    spiral-
+    kit_run_model
+    kit_os_machine
+    kit_os_run
+    kit_run_build
+link:
+    kit_run_build
+modules:
+    run

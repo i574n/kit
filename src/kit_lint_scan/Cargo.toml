@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "scan.spi"
+output = "lint_scan.rs"
+
+[package]
+name = "kit-lint-scan"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_scan"
+path = "lint_scan.rs"

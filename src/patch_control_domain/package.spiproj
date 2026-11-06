@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+modules:
+    model-
+    control_terminal-
+
+    main

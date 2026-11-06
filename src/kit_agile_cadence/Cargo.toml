@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "cadence.spi"
+output = "cadence.rs"
+
+[package]
+name = "kit-agile-cadence"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_cadence"
+path = "cadence.rs"
+
+[dependencies]
+agile-quality-state = { path = "../agile_quality_state" }
+kit-cadence-done = { path = "../kit_cadence_done" }
+kit-cadence-activity = { path = "../kit_cadence_activity" }

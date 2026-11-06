@@ -1,0 +1,50 @@
+///- --package .
+:# append static =
+    :< sm'_operators
+    :< agile_sprint.model
+    :< agile_sprint_rows.rows
+
+:< sm'_operators
+:< agile_sprint.model
+:< agile_sprint_rows.rows
+
+:== item_row = { task : string; minutes : i32 }
+
+:~ ^ items_from (rows : array_base item_row) (at : i32) (kept : list sprint_item) : list sprint_item =
+    ? at < 0i32 ?> kept
+    |:
+        := row = am'.index_base at rows
+        items_from rows (at - 1i32) ({ task = row.task; minutes = row.minutes; fate = Committed } :: kept)
+
+:~ sprint_appended_text
+    ((existing, id, goal, start, finish, rows) : string * string * string * string * string * array_base item_row)
+    : string
+    =
+    := terms = { id = id; goal = goal; start = start; finish = finish }
+    := items = items_from rows (am'.length_base rows - 1i32) []
+    sprints_appended existing { terms = terms; status = SprintOpen; items = items }
+
+:~ sprint_item_appended
+    ((existing, sprint_id, task, minutes, dropped) : string * string * string * i32 * bool)
+    : string
+    =
+    := item = { task = task; minutes = minutes; fate = ? dropped ?> Dropped |: Committed }
+    := base = ? existing = "" || sm'.ends_with "\n" existing ?> existing |: existing ++# "\n"
+    base ++# sprint_item_row sprint_id item ++# "\n"
+
+///> rust
+:# appends_never_rewrite_earlier_rows_and_a_drop_replaces_the_item =
+    := rows = ;[ { task = "KIT-A"; minutes = 60i32 } ] |> am'.base
+    := first = sprint_appended_text ("", "S-1", "goal", "2026-11-04", "2026-11-11", rows)
+    := second = sprint_appended_text (first, "S-2", "next", "2026-11-11", "2026-11-18", ;[] |> am'.base)
+    testing.expect (sm'.starts_with first second) "earlier rows are never rewritten"
+    testing.expect (sprints_of second |> listm.length = 2i32) "both sprints read back"
+    := dropped = sprint_item_appended (first, "S-1", "KIT-A", 60i32, !+)
+    ?= sprints_of dropped ?|
+    | [ s ] => testing.expect (s.items = [ { task = "KIT-A"; minutes = 60i32; fate = Dropped } ]) "drop replaces"
+    | _ => testing.expect !- "one sprint"
+///> _
+:= main () : i32 =
+    export "kit_agile_sprint_appended" sprint_appended_text
+    export "kit_agile_sprint_item_appended" sprint_item_appended
+    0i32

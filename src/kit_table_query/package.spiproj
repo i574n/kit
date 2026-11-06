@@ -1,0 +1,14 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    union_reflection
+    kit_table_rows
+modules:
+    query
+    stats
+    cells
+    lines
+    wheres
+    tospi
+    table

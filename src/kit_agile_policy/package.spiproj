@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    agile_mutation_policy
+modules:
+    policy

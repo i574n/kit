@@ -1,0 +1,165 @@
+///- --package .
+:# verbs static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| amend_valued =
+    | AmendField
+    | AmendReason
+    | AmendValue
+
+:== amend_row =
+    {
+        ledger : string
+        id : string
+        note : string
+        field : string
+        reason : string
+        value : string
+        rejected : string
+    }
+
+:= amend_word (flag : amend_valued) : string = "--" ++# union_reflection.cases.union_case_kebab "Amend" flag
+
+:~ amend_applied (flag : amend_valued) (~value : string) (row : amend_row) : amend_row =
+    ?= flag ?|
+    | AmendField => { row ?| field = value }
+    | AmendReason => { row ?| reason = value }
+    | AmendValue => { row ?| value = value }
+
+:~ placed (~word : string) (row : amend_row) : amend_row =
+    ? row.ledger = "" ?> { row ?| ledger = word }
+    |? row.id = "" ?> { row ?| id = word }
+    |? row.note = "" ?> { row ?| note = word }
+    |: { row ?| rejected = "unexpected word " ++# word }
+
+:~ ^ amend_read (words : list string) (row : amend_row) : amend_row =
+    ?= words ?|
+    | [] => row
+    | _ ?& row.rejected <> "" => row
+    | word :: rest =>
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : amend_valued) => word = amend_word flag) Some None
+        ?= valued, rest ?|
+        | Some _, [] => { row ?| rejected = "option " ++# word ++# " has no value" }
+        | Some flag, (value :: after) => amend_read after (amend_applied flag value row)
+        | None, _ ?& sm'.starts_with "--" word => { row ?| rejected = "unknown option " ++# word }
+        | None, _ => amend_read rest (placed word row)
+
+:~ amend_of (words : list string) : amend_row =
+    amend_read words { ledger = ""; id = ""; note = ""; field = ""; reason = ""; value = ""; rejected = "" }
+
+:| analyze_valued =
+    | AnalyzeInterim
+    | AnalyzeWhere
+
+:== analyze_row = { ledger : string; id : string; table : string; interim : string; wheres : string; rejected : string }
+
+:= analyze_word (flag : analyze_valued) : string = "--" ++# union_reflection.cases.union_case_kebab "Analyze" flag
+
+:~ analyze_applied (flag : analyze_valued) (~value : string) (row : analyze_row) : analyze_row =
+    ?= flag ?|
+    | AnalyzeInterim => { row ?| interim = value }
+    | AnalyzeWhere => { row ?| wheres = ? row.wheres = "" ?> value |: row.wheres ++# "\n" ++# value }
+
+:~ analyze_placed (~word : string) (row : analyze_row) : analyze_row =
+    ? row.ledger = "" ?> { row ?| ledger = word }
+    |? row.id = "" ?> { row ?| id = word }
+    |? row.table = "" ?> { row ?| table = word }
+    |: { row ?| rejected = "unexpected word " ++# word }
+
+:~ ^ analyze_read (words : list string) (row : analyze_row) : analyze_row =
+    ?= words ?|
+    | [] => row
+    | _ ?& row.rejected <> "" => row
+    | word :: rest =>
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : analyze_valued) => word = analyze_word flag) Some None
+        ?= valued, rest ?|
+        | Some _, [] => { row ?| rejected = "option " ++# word ++# " has no value" }
+        | Some flag, (value :: after) => analyze_read after (analyze_applied flag value row)
+        | None, _ ?& sm'.starts_with "--" word => { row ?| rejected = "unknown option " ++# word }
+        | None, _ => analyze_read rest (analyze_placed word row)
+
+:~ analyze_of (words : list string) : analyze_row =
+    analyze_read words { ledger = ""; id = ""; table = ""; interim = ""; wheres = ""; rejected = "" }
+
+:| record_valued =
+    | RecordVerdict
+    | RecordAt
+    | RecordEvidence
+
+:== verdict_row = { ledger : string; id : string; verdict : string; at : string; evidence : string; rejected : string }
+
+:= record_word (flag : record_valued) : string = "--" ++# union_reflection.cases.union_case_kebab "Record" flag
+
+:~ record_applied (flag : record_valued) (~value : string) (row : verdict_row) : verdict_row =
+    ?= flag ?|
+    | RecordVerdict => { row ?| verdict = value }
+    | RecordAt => { row ?| at = value }
+    | RecordEvidence => { row ?| evidence = value }
+
+:~ ^ verdict_read (words : list string) (row : verdict_row) : verdict_row =
+    ?= words ?|
+    | [] => row
+    | _ ?& row.rejected <> "" => row
+    | word :: rest =>
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : record_valued) => word = record_word flag) Some None
+        ?= valued, rest ?|
+        | Some _, [] => { row ?| rejected = "option " ++# word ++# " has no value" }
+        | Some flag, (value :: after) => verdict_read after (record_applied flag value row)
+        | None, _ ?& sm'.starts_with "--" word => { row ?| rejected = "unknown option " ++# word }
+        | None, _ ?& row.ledger = "" => verdict_read rest { row ?| ledger = word }
+        | None, _ ?& row.id = "" => verdict_read rest { row ?| id = word }
+        | None, _ => { row ?| rejected = "unexpected word " ++# word }
+
+:~ verdict_of (words : list string) : verdict_row =
+    verdict_read words { ledger = ""; id = ""; verdict = ""; at = ""; evidence = ""; rejected = "" }
+
+:~ ^ dropped (count : i32) (words : list string) : list string =
+    ?= words ?|
+    | _ :: rest ?& count > 0i32 => dropped (count - 1i32) rest
+    | _ => words
+
+:~ amend_args_read (skipped : i32) : array_base amend_row =
+    (;[ amend_of (dropped skipped (env.command_line_arguments ())) ] : array amend_row) |> am'.base
+
+:~ analyze_args_read (skipped : i32) : array_base analyze_row =
+    (;[ analyze_of (dropped skipped (env.command_line_arguments ())) ] : array analyze_row) |> am'.base
+
+:~ verdict_args_read (skipped : i32) : array_base verdict_row =
+    (;[ verdict_of (dropped skipped (env.command_line_arguments ())) ] : array verdict_row) |> am'.base
+
+///> rust
+:# amend_words_place_ledger_id_and_note_and_read_flags =
+    := row = amend_of [ "ledger"; "PR-1"; "--field"; "runs"; "--value"; "20"; "--reason"; "power" ]
+    testing.expect (row.ledger = "ledger" && row.id = "PR-1" && row.field = "runs" && row.value = "20") row.id
+    testing.expect (row.reason = "power" && row.note = "" && row.rejected = "") row.reason
+    := note = amend_of [ "ledger"; "PR-1"; "a post-hoc note" ]
+    testing.expect (note.note = "a post-hoc note") note.note
+    testing.expect ((amend_of [ "l"; "i"; "n"; "extra" ]).rejected = "unexpected word extra") "a fourth word is refused"
+    := crossed = amend_of [ "l"; "i"; "--runs"; "2" ]
+    testing.expect (crossed.rejected = "unknown option --runs") "register flags are not amend flags"
+    testing.expect (union_reflection.cases.union_cases_joined amend_word "|" = "--field|--reason|--value") "amend flags"
+
+///> rust
+:# analyze_words_place_the_table_and_collect_every_where =
+    := row = analyze_of [ "ledger"; "PR-1"; "t.tsv"; "--where"; "a=1"; "--interim"; "1"; "--where"; "b=2" ]
+    testing.expect (row.ledger = "ledger" && row.id = "PR-1" && row.table = "t.tsv" && row.interim = "1") row.table
+    testing.expect (row.wheres = "a=1\nb=2") "every --where is kept, one per line"
+    testing.expect ((analyze_of [ "l"; "i"; "t"; "--field"; "x" ]).rejected = "unknown option --field") "amend flags"
+
+
+///> rust
+:# verdict_words_read_their_own_flags =
+    := verdict = verdict_of [ "l"; "PR-2"; "--verdict"; "win"; "--at"; "2026-11-02" ]
+    testing.expect (verdict.verdict = "win" && verdict.at = "2026-11-02" && verdict.id = "PR-2") verdict.verdict
+    testing.expect ((verdict_of [ "l"; "i"; "--runs"; "1" ]).rejected = "unknown option --runs") "register flags"
+///> _
+:= main () : i32 =
+    export "kit_experiment_amend_args" amend_args_read
+    export "kit_experiment_analyze_args" analyze_args_read
+    export "kit_experiment_verdict_args" verdict_args_read
+    0i32

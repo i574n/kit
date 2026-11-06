@@ -1,0 +1,20 @@
+:< model
+:< rooted_effects
+
+:= root () = "/tmp/kit-rooted-filesystem-main"
+:= source () = "/tmp/kit-rooted-filesystem-main/source.txt"
+:= copied () = "/tmp/kit-rooted-filesystem-main/copied.txt"
+
+:= rooted_roundtrip () : bool =
+    cleanup_tree (root ())
+        && create_dir (root ())
+        && model.write_text (source ()) "abcdef"
+        && copy_atomic (source ()) (copied ())
+        && model.text_equals "abcdef" (copied ())
+        && remove_regular (copied ())
+        && model.file_missing (copied ())
+        && remove_tree_within "/tmp" (root ())
+        && tree_missing (root ())
+
+:= main () : i32 =
+    ? rooted_roundtrip () ?> 0i32 |: 1i32

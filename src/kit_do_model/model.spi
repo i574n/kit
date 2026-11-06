@@ -1,0 +1,121 @@
+:| replace_count =
+    | Once
+    | Every
+    | Exactly : u64
+
+:| rule_matcher =
+    | Literal
+    | Pattern
+
+:== rule =
+    {
+        anchor : string
+        replacement : string
+        count : replace_count
+        matcher : rule_matcher
+    }
+
+:| ^ rule_list =
+    | NoRules
+    | Rule : rule * rule_list
+
+:| expectation =
+    | Unchecked
+    | Expected : u64 * u64
+
+:| write_mode =
+    | Apply
+    | Preview
+
+:== edit_block =
+    {
+        target : string
+        mode : write_mode
+        expectation : expectation
+        excluded : string
+        rules : rule_list
+    }
+
+:| query_verb =
+    | Search
+    | Read
+    | Files
+    | Head
+    | Tail
+    | Wait
+
+:= query_verb_word (verb : query_verb) : string = union_reflection.cases.union_case_kebab "" verb
+
+:= query_verb_named (~word : string) : option query_verb =
+    union_reflection.cases.union_case_where
+        \ (verb : query_verb) => word = query_verb_word verb
+        \ verb => Some verb
+        None
+
+:== query =
+    {
+        verb : query_verb
+        needle : string
+        literal : bool
+        target : string
+        before : u64
+        after : u64
+        first : u64
+        include : string
+        exclude : string
+        paths_only : bool
+        count : u64
+        timeout_ms : u64
+    }
+
+:| program_family =
+    | Edits
+    | Reads
+    | Facts
+    | Runs
+    | Writes
+    | Git
+    | Jobs
+    | Labs
+
+:= program_family_word (family : program_family) : string =
+    union_reflection.cases.union_case_kebab "" family
+
+:~ program_family_named (~word : string) : option program_family =
+    union_reflection.cases.union_case_where
+        \ (family : program_family) => word = program_family_word family
+        \ family => Some family
+        None
+
+:| step =
+    | EditStep : edit_block
+    | ShowStep : string
+    | QueryStep : string * string
+
+:| ^ steps =
+    | Done
+    | Step : step * steps
+
+:= replace_count_same (value : replace_count) : replace_count = value
+:= rule_matcher_same (value : rule_matcher) : rule_matcher = value
+:= rule_list_same (value : rule_list) : rule_list = value
+:= expectation_same (value : expectation) : expectation = value
+:= write_mode_same (value : write_mode) : write_mode = value
+:= query_verb_same (value : query_verb) : query_verb = value
+:= program_family_same (value : program_family) : program_family = value
+:= step_same (value : step) : step = value
+:= steps_same (value : steps) : steps = value
+
+:= main () : i32 =
+    export "kit_do_model_replace_count" replace_count_same
+    export "kit_do_model_rule_matcher" rule_matcher_same
+    export "kit_do_model_rule_list" rule_list_same
+    export "kit_do_model_expectation" expectation_same
+    export "kit_do_model_write_mode" write_mode_same
+    export "kit_do_model_query_verb" query_verb_same
+    export "kit_do_model_program_family" program_family_same
+    export "kit_do_model_step" step_same
+    export "kit_do_model_steps" steps_same
+    export "kit_do_model_query_verb_word" query_verb_word
+    export "kit_do_model_program_family_word" program_family_word
+    0i32

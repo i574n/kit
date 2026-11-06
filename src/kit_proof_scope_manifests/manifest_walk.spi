@@ -1,0 +1,57 @@
+///- --package .
+:# manifest_walk static =
+    :< sm'_operators
+    :< manifest
+
+:< sm'_operators
+:< manifest
+
+:== manifest_row = { dir : string; deps : array_base string; modules : array_base string }
+
+:~ listed (items : list string) : array_base string = items |> listm'.box |> listm'.to_array'
+
+:~ row_of (dir : string) (text : string) : manifest_row =
+    := pdir, deps, mods = manifest_of text
+    { dir = normal_path dir; deps = listm.map (\ (dep : string) => resolved dir pdir dep) deps |> listed; modules = listed mods }
+
+:= skipped_names () : list string = [ "target"; ".git"; "node_modules"; ".cache"; "_build"; "deps"; "bin"; "obj" ]
+
+:~ child_names (~dir : string) : list string =
+    file_system.read_dir_names dir
+    |> resultm.unwrap'
+    |> am'.vec_fold' (\ names name => sm'.from_std_string name :: names) []
+    |> listm.rev
+
+:~ ^ manifests_in (~dir : string) (depth : i32) (found : list manifest_row) : list manifest_row =
+    := project = dir ++# "/package.spiproj"
+    := here = ? file_system.file_exists project ?> row_of dir (file_system.read_all_text project) :: found |: found
+    ? depth >= 8i32 ?> here
+    |:
+        := descended = \ (acc : list manifest_row) (name : string) =>
+            := child = dir ++# "/" ++# name
+            ? listm'.contains name (skipped_names ()) || file_system.directory_exists child |> not ?> acc
+            |: manifests_in child (depth + 1i32) acc
+        child_names dir |> listm.fold descended here
+
+:~ manifests_under (root : string) : array_base manifest_row =
+    listm'.box (manifests_in (normal_path root) 0i32 []) |> listm'.to_array'
+
+:~ anchored (~root : string) (~path : string) : string =
+    ? sm'.starts_with "/" path || sm'.contains ":" path ?> normal_path path |: joined_path root path
+
+:~ anchored_paths ((root, changed) : string * array_base string) : array_base string =
+    := base = normal_path root
+    changed |> am'.to_list_base' |> listm'.unbox |> listm.map (\ (path : string) => anchored base path) |> listed
+
+///> rust
+:# relative_changed_paths_join_the_root_and_absolute_ones_stay =
+    testing.expect (anchored "C:/r" "src/a.spi" = "C:/r/src/a.spi") "relative paths join the root"
+    testing.expect (anchored "C:/r" "D:\\x\\b.spi" = "D:/x/b.spi") "absolute paths are only normalized"
+    := row = row_of "w/apps/arena" "packageDir: ../../lib\npackages:\n    |core-\n    ../../src-\nmodules:\n    x\n"
+    testing.expect (row.dir = "w/apps/arena" && am'.length_base row.deps = 2i32) "a row resolves its deps"
+    testing.expect (am'.index_base 1i32 row.deps = "w/src" && am'.index_base 0i32 row.modules = "x") "dep dirs and modules"
+///> _
+:= main () : i32 =
+    export "kit_proof_scope_manifests_under" manifests_under
+    export "kit_proof_scope_anchored_paths" anchored_paths
+    0i32

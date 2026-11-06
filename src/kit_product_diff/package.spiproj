@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    product_diff_contract
+    source_recovery_contract
+modules:
+    recovery_terminal
+    main

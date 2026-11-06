@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    rust_std_env
+modules:
+    evidence

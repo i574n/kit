@@ -1,0 +1,143 @@
+///- --package .
+:# cli static =
+    :< sm'_operators
+    :< agile_claim_model.claim
+
+:< sm'_operators
+:< agile_note_model.model
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< agile_claim_model.claim
+:< agile_claim_api.api
+:< agile_claim_request.request
+
+:== claim_order =
+    {
+        next : bool
+        grab : bool
+        release : bool
+        verb : string
+        item : string
+        lane : string
+        ttl_min : i32
+        paths : list string
+    }
+
+:~ ^ listed_paths (paths : array_base string) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found |: listed_paths paths (at - 1i32) (am'.index_base at paths :: found)
+
+:~ order_of (parsed : parsed_request) : claim_order =
+    := paths = listed_paths parsed.paths (am'.length_base parsed.paths - 1i32) []
+    := item, lane = parsed.item, parsed.lane
+    {
+        next = parsed.next
+        grab = parsed.grab
+        release = parsed.release
+        verb = parsed.verb
+        item = item
+        lane = lane
+        ttl_min = parsed.ttl_min
+        paths = paths
+    }
+:~ anchored (~cwd : string) (~glob : string) : string =
+    := slashed = sm'.replace "\\" "/" glob
+    := rooted = sm'.starts_with "/" slashed || sm'.index_of ":/" slashed = 1i32
+    := size : i32 = sm'.length slashed
+    := local = ? sm'.starts_with "./" slashed ?> sm'.substring 2i32 (size - 2i32) slashed |: slashed
+    ? rooted ?> slashed |: sm'.replace "\\" "/" cwd ++# "/" ++# local
+:~ receipt
+    (~verb : string) (~item : string) (~owner : string) (expires_ms : u64) (ttl_min : i32) (wip : i32) (rank : i32)
+    : string
+    =
+    := head = "kit agile " ++# verb ++# " ok claimed=" ++# item ++# " owner=" ++# owner
+    := expiry = " expires=" ++# utc_stamp expires_ms
+    := ranked = ? rank > 0i32 ?> " rank=" ++# sm'.show rank |: ""
+    head ++# expiry ++# " ttl_min=" ++# sm'.show ttl_min ++# " wip=" ++# sm'.show wip ++# ranked
+
+:~ printed (lines : list string) (code : i32) : i32 =
+    := wrote = stdout_line (sm'.concat_list "\n" (lines |> listm'.filter (\ (line : string) => line <> "")))
+    ? wrote <> 0i32 ?> wrote |: code
+
+:~ claim_answered
+    (r : claim_order) (~root : string) (stored : bool * string) (~wsjf : string) (~active : string) (~known : string)
+    (~live : string)
+    : i32
+    =
+    := existed, rows = stored
+    := now_ms = unix_ms ()
+    := kind, item, owner, expires, rank, wip, detail, change =
+        ? r.next ?> claim_next r.lane r.ttl_min wsjf active live rows now_ms
+        |? r.release ?> claim_release r.item r.lane r.ttl_min rows now_ms
+        |:
+            := paths = sm'.concat_list "," r.paths
+            claim_lease r.item r.lane r.ttl_min paths wsjf known live rows now_ms
+    := failed = \ (~problem : string) => stderr_failure ("agile " ++# r.verb ++# " rejected: " ++# problem)
+    := application =
+        {
+            root = root
+            existed = existed
+            original = rows
+            change = change
+            item = item
+            owner = owner
+            expires_ms = expires
+            paths = detail
+            known = known
+        }
+    := problem = agile_claim_store.store.applied_claims ((;[ application ] : array agile_claim_store.store.claim_application) |> am'.base)
+    ? problem <> "" ?> failed problem
+    |:
+        ?= outcome_of kind ?|
+        | OutcomeGranted =>
+            := where = ? detail = "" ?> "paths none" |: "paths " ++# detail
+            := line = receipt r.verb item owner expires r.ttl_min wip rank
+            printed [ line; claim_item_lines root item; where ] 0i32
+        | OutcomeRefused => printed [ "kit agile claim refused id=" ++# r.item ++# " reason=" ++# detail ] 5i32
+        | OutcomeNone =>
+            := text = "kit agile next ok claimed=none reason=" ++# detail ++# " wip=" ++# sm'.show wip
+            printed [ text ] 3i32
+        | OutcomeDropped =>
+            := head = "kit agile release ok id=" ++# r.item ++# " owner=" ++# r.lane
+            printed [ head ++# " released=" ++# detail ++# " wip=" ++# sm'.show wip ] 0i32
+        | OutcomeReleaseRefused => printed [ "kit agile release refused id=" ++# r.item ++# " reason=" ++# detail ] 5i32
+        | OutcomeUnknown => failed ("no open task with id " ++# r.item)
+:~ listed_next (~root : string) (~lane : string) (~wsjf : string) (~active : string) : i32 =
+    := _, rows = claims_loaded root
+    := picked = agile_claim_listing.listing.listed_ids (rows, lane, wsjf, active, unix_ms ())
+    := picks = am'.to_list_base' picked |> listm'.unbox
+    := count : i32 = listm.length picks
+    := head = "kit agile next ok listed=" ++# sm'.show count ++# " lane=" ++# lane ++# " claimed=none"
+    := hint = "take one: kit agile claim " ++# root ++# " <ID> --as " ++# lane ++# " (or next --claim takes the first)"
+    printed (head :: listm.append (picks |> listm.map (claim_item_lines root)) [ ? count > 0i32 ?> hint |: "" ]) 0i32
+
+:~ claim_requested (~root : string) (asked : claim_order) : i32 =
+    := here = file_system.get_current_directory ()
+    := r = { asked ?| paths = asked.paths |> listm.map (anchored here) }
+    := found, ranked, started, known, live = claim_ranking root
+    := mine = ? asked.next ?> agile_team_lane.lane.lane_items (root, asked.lane) |: ""
+    := wsjf, active = ? asked.next ?> agile_claim_listing.listing.lane_order (ranked, started, mine) |: ranked, started
+    ? found = !- ?> stderr_failure ("agile " ++# asked.verb ++# ": state/agile.spi is missing")
+    |? asked.next && asked.grab |> not ?> listed_next root asked.lane wsjf active
+    |: claim_answered r root (claims_loaded root) wsjf active known live
+
+:~ claim_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: root :: words =>
+        := gather = \ (kept : array string) (item : string) => kept ++ ;[ item ]
+        := parsed = am'.index_base 0i32 (request_parsed (word, words |> listm.fold gather ;[] |> am'.base))
+        ? parsed.refusal <> "" ?> stderr_failure ("agile " ++# word ++# ": " ++# parsed.refusal)
+        |: claim_requested root (order_of parsed)
+    | _ => stderr_failure "agile: usage: next|claim|release <root> ..."
+
+
+///> rust
+:# relative_globs_are_anchored_at_the_callers_directory =
+    := windows = anchored "C:\\home\\git\\kit" "src/agile/**"
+    testing.expect (windows = "C:/home/git/kit/src/agile/**") windows
+    testing.expect (anchored "/home/x" "./lib/a.spi" = "/home/x/lib/a.spi") (anchored "/home/x" "./lib/a.spi")
+    testing.expect (anchored "/home/x" "/etc/y" = "/etc/y" && anchored "/home/x" "D:/z/**" = "D:/z/**") "absolute"
+
+///> _
+:= main () : i32 =
+    export "kit_agile_claim_run" ((\ () => claim_run ()) : () -> i32)
+    0i32

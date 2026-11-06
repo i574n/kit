@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+modules:
+    arguments
+    bridge-
+    main

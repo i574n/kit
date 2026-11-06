@@ -1,0 +1,92 @@
+:! patch_scope = ()
+:! validated = ()
+:! staged = ()
+:! committed = ()
+:! rolled_back = ()
+
+:! validated_patch = { count : i32 }
+:! staged_patch = { count : i32 }
+:! committed_patch = { count : i32 }
+:! rolled_back_patch = { count : i32 }
+
+:| patch_plan scope state =
+    | ValidatedPlan :: \* scope. validated_patch -> patch_plan scope validated
+    | StagedPlan :: \* scope. staged_patch -> patch_plan scope staged
+    | CommittedPlan :: \* scope. committed_patch -> patch_plan scope committed
+    | RolledBackPlan :: \* scope. rolled_back_patch -> patch_plan scope rolled_back
+
+:| patch_transition scope from to =
+    | StageTransition :: \* scope. patch_transition scope validated staged
+    | CommitTransition :: \* scope. patch_transition scope staged committed
+    | RollbackTransition :: \* scope. patch_transition scope staged rolled_back
+
+:= execute \* scope from to.
+    (transition : patch_transition scope from to)
+    (plan : patch_plan scope from)
+    : patch_plan scope to =
+    ?= transition, plan ?|
+    | StageTransition, ValidatedPlan payload =>
+        StagedPlan (staged_patch { count = payload.count })
+    | CommitTransition, StagedPlan payload =>
+        CommittedPlan (committed_patch { count = payload.count })
+    | RollbackTransition, StagedPlan payload =>
+        RolledBackPlan (rolled_back_patch { count = payload.count })
+
+:| patch_fault =
+    | NoFault
+    | FailAfterStage
+    | FailDuringCommit
+    | FailBetweenPromotions
+
+:| transaction_outcome scope =
+    | TransactionCommitted :: \* scope. patch_plan scope committed -> transaction_outcome scope
+    | TransactionRolledBack :: \* scope. patch_plan scope rolled_back -> transaction_outcome scope
+
+:= transact \* scope.
+    (fault : patch_fault)
+    (plan : patch_plan scope validated)
+    : transaction_outcome scope =
+    := staged_plan = execute StageTransition plan
+    ?= fault ?|
+    | NoFault => TransactionCommitted (execute CommitTransition staged_plan)
+    | FailAfterStage => TransactionRolledBack (execute RollbackTransition staged_plan)
+    | FailDuringCommit => TransactionRolledBack (execute RollbackTransition staged_plan)
+    | FailBetweenPromotions => TransactionRolledBack (execute RollbackTransition staged_plan)
+
+:| patch_validation =
+    | PatchPlanValid : i32
+    | PatchPlanEmpty
+    | PatchPlanMalformed
+    | PatchPlanTooLarge
+    | PatchPlanUnavailable
+
+:= validation_witness (validation : patch_validation) : i32 =
+    ?= validation ?|
+    | PatchPlanValid count => count
+    | PatchPlanEmpty => 0i32
+    | PatchPlanMalformed => -1i32
+    | PatchPlanTooLarge => -2i32
+    | PatchPlanUnavailable => -3i32
+
+:= patch_domain_probe_result () : i32 = validation_witness PatchPlanEmpty
+
+:= transaction_probe_result () : i32 =
+    := committed_plan : patch_plan patch_scope validated =
+        ValidatedPlan (validated_patch { count = 2i32 })
+    := rollback_plan : patch_plan patch_scope validated =
+        ValidatedPlan (validated_patch { count = 3i32 })
+    := _ = transact FailAfterStage rollback_plan
+    ?=
+        transact NoFault committed_plan,
+        transact FailDuringCommit rollback_plan,
+        transact FailBetweenPromotions rollback_plan
+    ?|
+    | TransactionCommitted (CommittedPlan _),
+        TransactionRolledBack (RolledBackPlan _),
+        TransactionRolledBack (RolledBackPlan _)
+        => 0i32
+
+:= outcome_is_rolled_back \* scope. (outcome : transaction_outcome scope) : bool =
+    ?= outcome ?|
+    | TransactionCommitted _ => !-
+    | TransactionRolledBack _ => !+

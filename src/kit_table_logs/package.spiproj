@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_table_logs_args
+link:
+    kit_table_logs_args
+modules:
+    logs_model
+    logs

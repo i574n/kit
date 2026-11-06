@@ -1,0 +1,25 @@
+///- --package .
+:# batches static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:~ ^ chunks_from
+    (size : i32) (relatives : list string) (~current : string) (count : i32) (chunks : list string) : list string
+    =
+    ?= relatives ?|
+    | [] => ? current = "" ?> chunks |: current :: chunks
+    | relative :: rest =>
+        ? count >= size ?> chunks_from size rest relative 1i32 (current :: chunks)
+        |: chunks_from size rest (? current = "" ?> relative |: current ++# "\n" ++# relative) (count + 1i32) chunks
+
+///> rust
+:# a_long_notebook_list_runs_in_batches_that_fit_one_command_line =
+    ?= chunks_from 2i32 ("src/a.spi" :: "src/b.spi" :: "src/c.spi" :: []) "" 0i32 [] ?|
+    | last :: first :: [] =>
+        testing.expect (first = "src/a.spi\nsrc/b.spi") first
+        testing.expect (last = "src/c.spi") last
+    | _ => testing.expect false "two batches of at most two"
+    ?= chunks_from 2i32 [] "" 0i32 [] ?|
+    | [] => ()
+    | _ => testing.expect false "no notebooks, no batches"

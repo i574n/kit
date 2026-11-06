@@ -1,0 +1,89 @@
+:< rust_std_fs.model
+
+:! policy_owner = string
+:! agile_owner = string
+:! copy_pending owner = owner
+:! copy_absent owner = owner
+:! copy_source_ready owner = owner
+:! copy_verified owner = owner
+:! copy_cleaned owner = owner
+
+:| file_copy_transition from to =
+    | EnsureCopyAbsent :: \* owner. string -> file_copy_transition (copy_pending owner) (copy_absent owner)
+    | WriteCopySource :: \* owner. string -> file_copy_transition (copy_absent owner) (copy_source_ready owner)
+    | CopyAndVerify :: \* owner. string -> file_copy_transition (copy_source_ready owner) (copy_verified owner)
+    | CleanupCopy :: \* owner. string -> file_copy_transition (copy_verified owner) (copy_cleaned owner)
+
+:| ^ file_copy_plan from to =
+    | FileCopyStep :: \* from to. file_copy_transition from to -> file_copy_plan from to
+    | FileCopyThen :: \* from to.
+        (\? middle. file_copy_plan from middle * file_copy_plan middle to) ->
+        file_copy_plan from to
+
+:| copy_outcome =
+    | CopyAccepted : string
+    | CopyRejected : string
+    | CopyFailed : string
+
+:= ensure_absent_step \* owner. () : file_copy_plan (copy_pending owner) (copy_absent owner) =
+    FileCopyStep (EnsureCopyAbsent "ensure-copy-absent")
+
+:= write_source_step \* owner. () : file_copy_plan (copy_absent owner) (copy_source_ready owner) =
+    FileCopyStep (WriteCopySource "write-copy-source")
+
+:= copy_verify_step \* owner. () : file_copy_plan (copy_source_ready owner) (copy_verified owner) =
+    FileCopyStep (CopyAndVerify "copy-and-verify")
+
+:= cleanup_copy_step \* owner. () : file_copy_plan (copy_verified owner) (copy_cleaned owner) =
+    FileCopyStep (CleanupCopy "cleanup-copy")
+
+:= full_plan \* owner. () : file_copy_plan (copy_pending owner) (copy_cleaned owner) =
+    FileCopyThen (
+        \? (
+            ensure_absent_step (),
+            FileCopyThen (
+                \? (
+                    write_source_step (),
+                    FileCopyThen (
+                        \? (
+                            copy_verify_step (),
+                            cleanup_copy_step ()))))))
+
+:= policy_plan () : file_copy_plan (copy_pending policy_owner) (copy_cleaned policy_owner) = full_plan ()
+:= agile_plan () : file_copy_plan (copy_pending agile_owner) (copy_cleaned agile_owner) = full_plan ()
+
+:= copy_exact (source : string) (target : string) : bool =
+    ? file_exists source ?>
+        ?= read_text (readable_file source) ?|
+        | loaded_text text => write_text target text
+    |: !-
+
+:= cleanup (source : string) (target : string) : bool =
+    remove_file source && remove_file target && file_missing source && file_missing target
+
+:= run (source : string) (target : string) (expected : string) (actual : string) : copy_outcome =
+    ? cleanup source target ?>
+        ? write_text source actual ?>
+            ? copy_exact source target ?>
+                ? file_exists source && file_exists target && text_equals expected target ?>
+                    ? cleanup source target
+                    ?> CopyAccepted "exact-copy-accepted"
+                    |: CopyFailed "accepted-copy-cleanup-failed"
+                |:
+                    ? cleanup source target
+                    ?> CopyRejected "exact-copy-readback-mismatch"
+                    |: CopyFailed "rejected-copy-cleanup-failed"
+            |:
+                ? cleanup source target
+                ?> CopyFailed "exact-copy-commit-failed"
+                |: CopyFailed "exact-copy-failure-cleanup-failed"
+        |: CopyFailed "copy-source-write-failed"
+    |: CopyFailed "copy-ensure-absent-failed"
+
+:= policy_copy (source : string) (target : string) (text : string) : copy_outcome =
+    := _ = policy_plan ()
+    run source target text text
+
+:= agile_rejection (source : string) (target : string) (expected : string) (actual : string) : copy_outcome =
+    := _ = agile_plan ()
+    run source target expected actual

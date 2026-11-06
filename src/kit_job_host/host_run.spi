@@ -1,0 +1,136 @@
+///- --package .
+:# host_run static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_jobs.host
+:< kit_jobs.jobs
+:< kit_os_launch.calls
+:< host_model
+:< host_paths
+:< queue
+
+:= own_pid () : u64 = conv (kit_os_process.process.own_pid ())
+
+:~ owner_ended_file (~home : string) : string = joined (host_home_directory home) "owner-ended"
+
+:~ next_request (~dir : string) : string = kit_job_names.names.earliest_ending (dir, ".start")
+
+:~ supervisor_child_started (~kids : children) (~executable : string) (~id : string) : bool =
+    child_started kids executable ;[ "job"; "supervise"; id ]
+
+:~ queue_verdict (~id : string) : queue_verdict =
+    queue_verdict_of ($'kit_job_queue::kit_job_queue_decide(&*!id)' : i32)
+
+:~ owner_home_of (pid : u64) (started : u64) : string =
+    ? pid = 0u64 ?> "" |: decimal_text pid ++# "-" ++# decimal_text started
+
+:~ verdict_for (~kids : children) (terms : host_terms) (~id : string) : queue_verdict =
+    := elsewhere = kit_job_peers.peers.live_elsewhere_of (host_home_directory terms.home)
+    admitted terms.cap (live_children kids + elsewhere) (queue_verdict id)
+
+:~ live_recorded (~home : string) (running : u64) : () =
+    := text = decimal_text running
+    ? text_or_empty (host_live_file home) = text ?> () |: (text_written (host_live_file home) text |> ignore)
+
+:~ request_served (~kids : children) (terms : host_terms) (~executable : string) (~id : string) : () =
+    ?= verdict_for kids terms id ?|
+    | StartNow =>
+        := _ = supervisor_child_started kids executable id
+        ()
+    | HoldBack => held_recorded id executable
+    | DropRequest => ()
+
+:~ ^ held_from (~kids : children) (terms : host_terms) (names : array string) (index : i32) (held : u64) : u64 =
+    ? index >= am'.length names
+    ?> held
+    |? held_owned_by (am'.index index names) terms.home = !-
+    ?> held_from kids terms names (index + 1i32) held
+    |:
+        := id = am'.index index names
+        ?= verdict_for kids terms id ?|
+        | HoldBack =>
+            held_beat id
+            held_from kids terms names (index + 1i32) (held + 1u64)
+        | StartNow =>
+            := executable = text_or_empty (held_file id)
+            held_released id
+            := _ = supervisor_child_started kids executable id
+            held_from kids terms names (index + 1i32) held
+        | DropRequest =>
+            held_released id
+            held_from kids terms names (index + 1i32) held
+
+:~ held_served (~kids : children) (terms : host_terms) : u64 = held_from kids terms (held_names ()) 0i32 0u64
+
+:~ ^ held_stopped_from (~home : string) (names : array string) (index : i32) : () =
+    ? index >= am'.length names
+    ?> ()
+    |:
+        := id = am'.index index names
+        := _ =
+            ? held_owned_by id home
+            ?>
+                settled_in_queue id (SettleStopped (owner_ended_detail ()))
+                held_released id
+            |: ()
+        held_stopped_from home names (index + 1i32)
+
+:~ home_of (~home : string) : host_home = ? directory_exists (requests_directory home) ?> HomePresent |: HomeGone
+
+:~ ^ host_served (~kids : children) (terms : host_terms) (~idle_since : u64) : i32 =
+    := home = terms.home
+    := dir = requests_directory home
+    := name = next_request dir
+    ? name <> "" ?>
+        := path = joined dir name
+        := executable = text_or_empty path
+        := _ = request_removed path
+        := _ = request_served kids terms executable (request_id name)
+        host_served kids terms (now_ms ())
+    |:
+        := present = owner_present terms.owner_pid terms.owner_start
+        := _ = ? present ?> () |: held_stopped_from home (held_names ()) 0i32
+        := _ = live_recorded home (live_children kids)
+        := live = live_children kids + held_served kids terms
+        := now = now_ms ()
+        ?= host_step_of terms.policy live idle_since now (home_of home) present ?|
+        | HostIdleExit =>
+            := _ =
+                ? decimal_u64 (text_or_empty (host_pid_file home)) = own_pid ()
+                ?> request_removed (host_pid_file home)
+                |: !-
+            0i32
+        | HostDraining =>
+            := _ = text_written (owner_ended_file home) (decimal_text now)
+            sleep_ms 500u64
+            host_served kids terms idle_since
+        | KeepServing =>
+            sleep_ms 500u64
+            host_served kids terms (? live > 0u64 ?> now |: idle_since)
+
+:~ host_terms_of (owner_pid : u64) (owner_start : u64) : host_terms =
+    {
+        home = owner_home_of owner_pid owner_start
+        owner_pid = owner_pid
+        owner_start = owner_start
+        policy = idle_policy_of (env.get_environment_variable "KIT_JOB_HOST_IDLE_EXIT_SECONDS")
+        cap =
+            := machine_cap = text_or_empty (machine_slots_file ())
+            slot_cap_of (cap_text_of (env.get_environment_variable "KIT_JOB_SLOTS") machine_cap)
+    }
+
+:~ host_run () : i32 =
+    := terms = host_terms_of (decimal_u64 (argument 3i32)) (decimal_u64 (argument 4i32))
+    := recorded = decimal_u64 (text_or_empty (host_pid_file terms.home))
+    ?= host_claim_of recorded (own_pid ()) (process_alive recorded) ?|
+    | OtherHostServes _ => 0i32
+    | HostOwns =>
+        := _ = directory_created (requests_directory terms.home)
+        := _ = text_written (host_pid_file terms.home) (decimal_text (own_pid ()))
+        host_served (no_children ()) terms (now_ms ())
+
+
+:= main () : i32 =
+    export "kit_job_host_run" host_run
+    0i32

@@ -1,0 +1,17 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    rust_std_string
+    rust_std_env
+    kit_job_placement
+    kit_jobs
+    kit_process_alive
+    kit_job_dispatch
+    kit_job_control
+link:
+    kit_process_alive
+    kit_job_dispatch
+    kit_job_control
+modules:
+    query

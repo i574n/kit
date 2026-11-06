@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "lint_cli.spi"
+output = "lint_cli.rs"
+
+[package]
+name = "kit-agile-lint"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_lint"
+path = "lint_cli.rs"
+
+[dependencies]
+agile-quality-lint = { path = "../agile_quality_lint" }
+agile-quality-state = { path = "../agile_quality_state" }

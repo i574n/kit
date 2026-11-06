@@ -1,0 +1,64 @@
+:! patch_resume_policy_owner = string
+:! patch_resume_negative_owner = string
+:! resume_pending owner = owner
+:! resume_identified owner = owner
+:! resume_matching owner = owner
+:! resume_mutated owner = owner
+:! resume_closed owner = owner
+
+:| patch_resume_transition from to =
+    | RecordIdentity :: \* owner. patch_resume_transition (resume_pending owner) (resume_identified owner)
+    | MatchResumeReceipt :: \* owner. patch_resume_transition (resume_identified owner) (resume_matching owner)
+    | ResumeMutation :: \* owner. patch_resume_transition (resume_matching owner) (resume_mutated owner)
+    | CloseResumeReceipt :: \* owner. patch_resume_transition (resume_mutated owner) (resume_closed owner)
+
+:| ^ patch_resume_plan from to =
+    | PatchResumeStep :: \* from to. patch_resume_transition from to -> patch_resume_plan from to
+    | PatchResumeThen :: \* from to.
+        (\? middle. patch_resume_plan from middle * patch_resume_plan middle to) ->
+        patch_resume_plan from to
+
+:~ bool_pair_binding (left : i32) (right : i32) : i32 =
+    ? left < 1i32 ?> 0i32
+    |? 1i32 < left ?> 0i32
+    |? right < 1i32 ?> 0i32
+    |? 1i32 < right ?> 0i32
+    |: 1i32
+
+:~ receipt_shape_binding (schema_ok : i32) (phase_ok : i32) (plan_match : i32) (source_match : i32) : i32 =
+    := header = bool_pair_binding schema_ok phase_ok
+    := identity = bool_pair_binding plan_match source_match
+    bool_pair_binding header identity
+
+:~ resume_decision_binding (receipt_present : i32) (receipt_matches : i32) : i32 =
+    ? receipt_present < 1i32 ?> 0i32
+    |? 1i32 < receipt_present ?> -1i32
+    |? receipt_matches < 1i32 ?> -1i32
+    |? 1i32 < receipt_matches ?> -1i32
+    |: 1i32
+
+:~ completion_binding (mutation_ok : i32) (receipt_removed : i32) : i32 =
+    bool_pair_binding mutation_ok receipt_removed
+
+:= full_plan \* owner. () : patch_resume_plan (resume_pending owner) (resume_closed owner) =
+    PatchResumeThen (\? (
+        PatchResumeStep RecordIdentity,
+        PatchResumeThen (\? (
+            PatchResumeStep MatchResumeReceipt,
+            PatchResumeThen (\? (
+                PatchResumeStep ResumeMutation,
+                PatchResumeStep CloseResumeReceipt
+            ))
+        ))
+    ))
+
+:= policy_plan
+    ()
+    : patch_resume_plan (resume_pending patch_resume_policy_owner) (resume_closed patch_resume_policy_owner)
+    =
+    full_plan ()
+:= negative_plan
+    ()
+    : patch_resume_plan (resume_pending patch_resume_negative_owner) (resume_closed patch_resume_negative_owner)
+    =
+    full_plan ()

@@ -1,0 +1,14 @@
+:< patch_resume_contract.model
+
+:= one_is (value : i32) : bool =
+    ? value < 1i32 ?> !-
+    |? 1i32 < value ?> !-
+    |: !+
+
+:= main () : i32 =
+    := _ = policy_plan ()
+    ? one_is (receipt_shape_binding 1i32 1i32 1i32 1i32) ?>
+        ? one_is (resume_decision_binding 1i32 1i32) ?>
+            ? one_is (completion_binding 1i32 1i32) ?> 0i32 |: 3i32
+        |: 2i32
+    |: 1i32

@@ -1,0 +1,15 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_receipt
+    kit_do_model
+    kit_do_records
+    kit_do_verbs
+    kit_do_write_host
+link:
+    kit_do_model
+    kit_do_verbs
+modules:
+    grammar
+    run

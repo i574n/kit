@@ -1,0 +1,20 @@
+///- --package .
+
+:! json_value = $'std::rc::Rc<serde_json::Value>'
+
+:! json_found = $'Option<serde_json::Value>'
+
+:= value_of (~text : string) : json_found = $'serde_json::from_str::<serde_json::Value>(&*!text).ok()' : json_found
+
+:= value_or_null (found : json_found) : json_value = $'std::rc::Rc::new(!found.unwrap_or_default())' : json_value
+
+:= parsed (~text : string) : json_value = value_or_null (value_of text)
+
+:= text_at (value : json_value) (~pointer : string) : string =
+    $'std::rc::Rc::<str>::from(!value.pointer(&*!pointer).and_then(serde_json::Value::as_str).unwrap_or(""))' : string
+
+:= u64_at (value : json_value) (~pointer : string) : u64 =
+    $'!value.pointer(&*!pointer).and_then(serde_json::Value::as_u64).unwrap_or(0)' : u64
+
+:= count_at (value : json_value) (~pointer : string) : i32 =
+    $'!value.pointer(&*!pointer).and_then(serde_json::Value::as_array).map_or(0, |items| items.len() as i32)' : i32

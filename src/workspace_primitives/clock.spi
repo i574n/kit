@@ -1,0 +1,11 @@
+:= unix_ms () : u64 = $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as \
+    u64).unwrap_or(0)' : u64
+:! since_epoch = $'std::time::Duration'
+:= epoch_elapsed () : since_epoch = $'std::time::UNIX_EPOCH.elapsed().unwrap_or_default()' : since_epoch
+:= whole_seconds (elapsed : since_epoch) : u64 = $'!elapsed.as_secs()' : u64
+:= sub_second_nanos (elapsed : since_epoch) : u32 = $'!elapsed.subsec_nanos()' : u32
+:= dotnet_ticks () : u64 =
+    := elapsed = epoch_elapsed ()
+    whole_seconds elapsed * 10000000u64 + (conv (sub_second_nanos elapsed) : u64) / 100u64 + 621355968000000000u64
+:= ms_since (started : u64) : u64 = $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| \
+    d.as_millis() as u64).unwrap_or(0).saturating_sub(!started)' : u64

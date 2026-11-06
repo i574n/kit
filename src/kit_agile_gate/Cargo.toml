@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "gate.spi"
+output = "gate.rs"
+
+[package]
+name = "kit-agile-gate"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_gate"
+path = "gate.rs"
+
+[dependencies]
+agile-team-work = { path = "../agile_team_work" }
+agile-team-lane = { path = "../agile_team_lane" }

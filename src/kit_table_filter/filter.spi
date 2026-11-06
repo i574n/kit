@@ -1,0 +1,15 @@
+:< kit_table_query.cells
+:< kit_table_query.wheres
+
+:~ ^ kept_marks (list : filters) (cells : table_cells) (row : i32) (total : i32) (marks : list string) : list string =
+    ? row > total
+    ?> marks
+    |: kept_marks list cells (row + 1i32) total ((? row_passes list cells row ?> "1" |: "0") :: marks)
+
+:~ rows_kept (~path : string) (~wheres : string) : bool * string =
+    ?= table_read path ?|
+    | TableUnreadable problem => !-, problem
+    | TableLoaded cells =>
+        := list, missing = filters_from cells wheres
+        ? missing <> "" ?> !-, missing
+        |: !+, sm'.concat_list "" ("-" :: listm.rev (kept_marks list cells 1i32 (row_total cells) []))

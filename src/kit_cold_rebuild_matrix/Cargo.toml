@@ -1,0 +1,25 @@
+[package.metadata.spiral]
+entry = "main.spi"
+output = "matrix.rs"
+
+[package]
+name = "kit-cold-rebuild-matrix"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+path = "matrix.rs"
+
+[dependencies]
+kit-source-map = { path = "../kit_source_map" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+process-batch-plan-domain = { path = "../process_batch_plan_domain" }
+kit-process-observation = { path = "../kit_process_observation" }
+kit-proxy-search = { path = "../kit_proxy_search" }
+serde_json = "1.0"
+
+[[test]]
+name = "native_matrix"
+path = "native_matrix.rs"

@@ -1,0 +1,111 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_ci_model.tools
+
+:| setup_action =
+    | OtherAction
+    | SetupRust
+    | SetupZig
+    | SetupBeam
+    | SetupPython
+
+:== tool_pin =
+    {
+        tool : ci_tool
+        version : string
+    }
+
+:~ action_of (~line : string) (current : setup_action) : setup_action =
+    ? sm'.contains "uses:" line = !- ?> current
+    |? sm'.contains "setup-rust" line || sm'.contains "rust-toolchain" line ?> SetupRust
+    |? sm'.contains "setup-zig" line ?> SetupZig
+    |? sm'.contains "setup-beam" line ?> SetupBeam
+    |? sm'.contains "setup-python" line ?> SetupPython
+    |: OtherAction
+
+:~ beam_tool (~key : string) : option ci_tool =
+    ? key = "otp-version" ?> Some ToolOtp
+    |? key = "elixir-version" ?> Some ToolElixir
+    |? key = "gleam-version" ?> Some ToolGleam
+    |? key = "rebar3-version" ?> Some ToolRebar
+    |: None
+
+:~ key_tool (action : setup_action) (~key : string) : option ci_tool =
+    ?= action ?|
+    | SetupRust => ? key = "channel" || key = "toolchain" ?> Some ToolRust |: None
+    | SetupZig => ? key = "version" ?> Some ToolZig |: None
+    | SetupBeam => beam_tool key
+    | SetupPython => ? key = "python-version" ?> Some ToolPython |: None
+    | OtherAction => None
+
+:~ key_of (~line : string) : string = sm'.trim line |> sm'.split ":" |> array |> am'.index 0i32
+
+:~ value_of (~line : string) (~key : string) : string =
+    := trimmed = sm'.trim line
+    := skip = (sm'.length key : i32) + 1i32
+    unquoted (sm'.substring skip ((sm'.length trimmed : i32) - skip) trimmed)
+
+:~ already_pinned (pins : list tool_pin) (pin : tool_pin) : bool =
+    pins |> listm'.try_find_ (\ (seen : tool_pin) => seen.tool = pin.tool && seen.version = pin.version) <> None
+
+:~ ^ pins_from (lines : array string) (at : i32) (action : setup_action) (found : list tool_pin) : list tool_pin =
+    ? at >= (am'.length lines : i32) ?> listm.rev found
+    |:
+        := line = am'.index at lines
+        := next_action = action_of line action
+        := key = ? sm'.contains ":" line ?> key_of line |: ""
+        ?= key_tool next_action key ?|
+        | Some tool =>
+            := pin = { tool = tool; version = value_of line key }
+            := found = ? already_pinned found pin ?> found |: pin :: found
+            pins_from lines (at + 1i32) next_action found
+        | None => pins_from lines (at + 1i32) next_action found
+
+:~ workflow_pins (~workflow : string) : list tool_pin =
+    pins_from (sm'.replace "\r" "" workflow |> sm'.split "\n" |> array) 0i32 OtherAction []
+
+:= usage () : string =
+    "ci parity <repo> (setup-* pins in <repo>/.github/workflows and its rust-toolchain file against the local "
+    ^^ "toolchain; one row per tool, a fix line per mismatch, exit 1 on a difference)"
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:= kit_workflow () : string =
+    := rust =
+        "      - uses: moonrepo/setup-rust@v1.3.0\r\n        with:\r\n          channel: \"nightly-2026-10-18\"\r\n"
+    := beam = "      - uses: erlef/setup-beam@v1.24.1\n        with:\n          otp-version: \"29\"\n"
+    := gleam = "          gleam-version: \"1.19.2\"\n          rebar3-version: '3.27.3'\n\n"
+    := zig = "      - uses: mlugg/setup-zig@v2.2.1\n        with:\n          version: 0.17.0\n"
+    := head = "    steps:\n      - uses: actions/checkout@v6.1.0\n\n"
+    head ++# rust ++# "          components: \"rustfmt\"\n\n" ++# beam ++# gleam ++# zig ++# zig
+
+:= version_of (pins : list tool_pin) (tool : ci_tool) : option string =
+    pins
+    |> listm'.try_find_ (\ (pin : tool_pin) => pin.tool = tool)
+    |> optionm.map \ (pin : tool_pin) => pin.version
+
+///> rust
+:# a_workflow_yields_one_pin_per_setup_key_in_file_order =
+    := pins = workflow_pins (kit_workflow ())
+    expect (version_of pins ToolRust = Some "nightly-2026-10-18") "setup-rust channel, CRLF dropped"
+    expect (version_of pins ToolZig = Some "0.17.0") "setup-zig version"
+    expect (version_of pins ToolRebar = Some "3.27.3") "single-quoted rebar3-version"
+    expect (version_of pins ToolElixir = None) "a key the workflow does not set"
+    expect ((listm.length pins : i32) = 5i32) "the repeated setup-zig step pins zig once"
+    ?= pins ?|
+    | pin :: _ => expect (pin.tool = ToolRust) "rows follow the workflow"
+    | [] => failwith "no pins"
+
+///> rust
+:# a_python_setup_step_pins_python =
+    := pins =
+        workflow_pins (
+            "    steps:\n      - uses: actions/setup-python@v6.0.0\n        with:\n"
+            ^^ "          python-version: \"3.12.10\"\n"
+        )
+    ?= pins ?|
+    | pin :: _ => expect (pin.tool = ToolPython && pin.version = "3.12.10") "setup-python pin"
+    | [] => failwith "no python pin"

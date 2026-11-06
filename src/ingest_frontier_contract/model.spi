@@ -1,0 +1,110 @@
+:! ingest_frontier_policy_owner = string
+:! ingest_frontier_negative_owner = string
+
+:! ingest_unmapped owner = owner
+:! ingest_manifest_classified owner = owner
+:! ingest_trim_classified owner = owner
+:! ingest_extracted_classified owner = owner
+:! ingest_targets_derived owner = owner
+:! ingest_frontier_ranked owner = owner
+:! ingest_frontier_settled owner = owner
+
+:| ingest_frontier_transition from to =
+    | MapIngest :: \* owner. ingest_frontier_transition (ingest_unmapped owner) (ingest_manifest_classified owner)
+    | ClassifyTrim :: \* owner.
+        ingest_frontier_transition (ingest_manifest_classified owner) (ingest_trim_classified owner)
+    | ClassifyExtracted :: \* owner.
+        ingest_frontier_transition (ingest_trim_classified owner) (ingest_extracted_classified owner)
+    | DeriveTargets :: \* owner.
+        ingest_frontier_transition (ingest_extracted_classified owner) (ingest_targets_derived owner)
+    | RankFrontier :: \* owner. ingest_frontier_transition (ingest_targets_derived owner) (ingest_frontier_ranked owner)
+    | SettleIngestFrontier :: \* owner.
+        ingest_frontier_transition (ingest_frontier_ranked owner) (ingest_frontier_settled owner)
+
+:| ^ ingest_frontier_plan from to =
+    | IngestFrontierStep :: \* from to. ingest_frontier_transition from to -> ingest_frontier_plan from to
+    | IngestFrontierThen :: \* from to.
+        (\? middle. ingest_frontier_plan from middle * ingest_frontier_plan middle to) ->
+        ingest_frontier_plan from to
+
+:~ manifest_binding (has_manifest : i32) (payload_files : i32) : i32 =
+    ? has_manifest < 1i32 ?> 0i32
+    |? payload_files < 0i32 ?> 0i32
+    |? payload_files < 1i32 ?> 1i32
+    |: 2i32
+
+:~ trim_binding (toolchain_tarballs : i32) : i32 =
+    ? toolchain_tarballs < 0i32 ?> 0i32
+    |? 0i32 < toolchain_tarballs ?> 0i32
+    |: 1i32
+
+:~ extracted_binding (has_ingest_md : i32) (has_extracted_manifest : i32) (toolchain_tarballs : i32) : i32 =
+    := trim_ok = trim_binding toolchain_tarballs
+    ? has_ingest_md < 1i32 ?> 0i32
+    |? has_extracted_manifest < 1i32 ?> 0i32
+    |? trim_ok < 1i32 ?> 0i32
+    |: 1i32
+
+:~ targets_binding (manual_targets : i32) (derived_targets : i32) : i32 =
+    ? manual_targets < 0i32 ?> 0i32
+    |? derived_targets < 0i32 ?> 0i32
+    |? manual_targets < 1i32 ?>
+        ? derived_targets < 1i32 ?> 0i32 |: 1i32
+    |: 1i32
+
+:~ frontier_binding (frontier_count : i32) (top_priority : i32) : i32 =
+    ? frontier_count < 1i32 ?> 0i32
+    |? top_priority < 1i32 ?> 0i32
+    |? 3i32 < top_priority ?> 0i32
+    |: 1i32
+
+:~ complete_binding
+    (manifest_code : i32) (trim_ok : i32) (extracted_ok : i32) (targets_ok : i32) (frontier_ok : i32)
+    : i32
+    =
+    ? manifest_code < 1i32 ?> 0i32
+    |? trim_ok < 1i32 ?> 0i32
+    |? extracted_ok < 1i32 ?> 0i32
+    |? targets_ok < 1i32 ?> 0i32
+    |? frontier_ok < 1i32 ?> 0i32
+    |: 1i32
+
+:= full_plan \* owner. () : ingest_frontier_plan (ingest_unmapped owner) (ingest_frontier_settled owner) =
+    IngestFrontierThen (\? (
+        IngestFrontierStep MapIngest,
+        IngestFrontierThen (\? (
+            IngestFrontierStep ClassifyTrim,
+            IngestFrontierThen (\? (
+                IngestFrontierStep ClassifyExtracted,
+                IngestFrontierThen (\? (
+                    IngestFrontierStep DeriveTargets,
+                    IngestFrontierThen (\? (
+                        IngestFrontierStep RankFrontier,
+                        IngestFrontierStep SettleIngestFrontier
+                    ))
+                ))
+            ))
+        ))
+    ))
+
+:= policy_plan
+    ()
+    : ingest_frontier_plan (ingest_unmapped ingest_frontier_policy_owner)
+        (ingest_frontier_settled ingest_frontier_policy_owner)
+    =
+    full_plan ()
+:= negative_plan
+    ()
+    : ingest_frontier_plan (ingest_unmapped ingest_frontier_negative_owner)
+        (ingest_frontier_settled ingest_frontier_negative_owner)
+    =
+    full_plan ()
+
+:= authority_status () : i32 =
+    := _ = policy_plan ()
+    := manifest = manifest_binding 1i32 2i32
+    := trim = trim_binding 0i32
+    := extracted = extracted_binding 1i32 1i32 0i32
+    := targets = targets_binding 1i32 2i32
+    := frontier = frontier_binding 3i32 3i32
+    complete_binding manifest trim extracted targets frontier

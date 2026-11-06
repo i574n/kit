@@ -1,0 +1,43 @@
+:< sm'_operators
+:< file_system_operators
+:< schedule
+:< workspace_primitives.clock
+
+:~ schedules_root () : option string =
+    := explicit = env.get_environment_variable "KIT_SCHEDULES_HOME"
+    := local = env.get_environment_variable "LOCALAPPDATA"
+    ? explicit <> "" ?> Some explicit
+    |? local <> "" ?> Some (local </> "kit" </> "schedules")
+    |: None
+
+:~ stamp_of (~root : string) (~name : string) : option u64 =
+    := path = root </> name
+    ? file_system.file_exists path ?> convert.try_convert (sm'.trim (file_system.read_all_text path)) |: None
+
+:~ stamp_written (~root : string) (~name : string) (now : u64) : () =
+    file_system.create_dir_all root |> ignore
+    file_system.write_all_text (root </> name) (sm'.show now)
+
+:~ refused (~message : string) : i32 =
+    console.write_line ("kit error: schedule " ++# message)
+    2i32
+
+:~ schedule_run () : i32 =
+    := request = request_of (env.command_line_arguments_from 1i32)
+    ?= schedules_root () ?|
+    | None => refused "has no stamp folder: neither KIT_SCHEDULES_HOME nor LOCALAPPDATA is set"
+    | Some root =>
+        ?= request ?|
+        | AskDue (name, period) =>
+            := verdict = verdict_of (stamp_of root name) (unix_ms ()) period
+            console.write_line (verdict_line name verdict)
+            ? verdict = ScheduleDue ?> 0i32 |: 1i32
+        | MarkRan name =>
+            := now = unix_ms ()
+            stamp_written root name now
+            console.write_line ("kit schedule ran ok name=" ++# name ++# " at_ms=" ++# sm'.show now)
+            0i32
+        | ListSchedules =>
+            console.write_line ("kit schedule list ok root=" ++# root)
+            0i32
+        | ScheduleUsage => refused (usage ())

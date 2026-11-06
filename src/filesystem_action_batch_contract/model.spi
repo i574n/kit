@@ -1,0 +1,42 @@
+:! fs_action_raw = ()
+:! fs_action_validated = ()
+:! fs_action_applied = ()
+:! fs_action_verified = ()
+:! fs_action_committed = ()
+:! fs_action_rolled_back = ()
+
+:| fs_action_kind =
+    | MkdirKind
+    | CopyKind
+    | ChmodKind
+    | SymlinkKind
+
+:| fs_action_operation =
+    | BatchMkdir : string
+    | BatchCopy : string * string * string
+    | BatchChmod : string * string * string
+    | BatchSymlink : string * string
+
+:| fs_action_transition from to =
+    | ValidateActions :: fs_action_transition fs_action_raw fs_action_validated
+    | ApplyActions :: fs_action_transition fs_action_validated fs_action_applied
+    | VerifyActions :: fs_action_transition fs_action_applied fs_action_verified
+    | CommitActions :: fs_action_transition fs_action_verified fs_action_committed
+
+:| ^ fs_action_plan from to =
+    | FsActionStep :: \* from to. fs_action_transition from to -> fs_action_plan from to
+    | FsActionThen :: \* from to.
+        (\? middle. fs_action_plan from middle * fs_action_plan middle to) ->
+        fs_action_plan from to
+
+:= public_plan () : fs_action_plan fs_action_raw fs_action_committed =
+    FsActionThen (\? (
+        FsActionStep ValidateActions,
+        FsActionThen (\? (
+            FsActionStep ApplyActions,
+            FsActionThen (\? (
+                FsActionStep VerifyActions,
+                FsActionStep CommitActions
+            ))
+        ))
+    ))

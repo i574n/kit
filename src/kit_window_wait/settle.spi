@@ -1,0 +1,117 @@
+///- --package .
+:# settle static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| window_hold =
+    | HeldNow
+    | WaitingNow
+
+:== sampled_window =
+    {
+        class_word : string
+        hold : window_hold
+    }
+
+:| ^ window_sample =
+    | NoWindows
+    | WindowThen : sampled_window * window_sample
+
+:| ^ watched_classes =
+    | NoClasses
+    | ClassThen : string * watched_classes
+
+:== settle_terms =
+    {
+        clear_samples_needed : u64
+        max_samples : u64
+    }
+
+:== settle_progress =
+    {
+        clear_streak : u64
+        samples_taken : u64
+        busy_samples : u64
+    }
+
+:| settle_verdict =
+    | KeepWaiting
+    | ClearNow
+    | GaveUp
+
+:| run_contention =
+    | Quiet
+    | Contended : u64
+
+:~ ^ watched (classes : watched_classes) (~word : string) : bool =
+    ?= classes ?|
+    | NoClasses => !-
+    | ClassThen (name, rest) => name = word || watched rest word
+
+:~ ^ sample_busy (classes : watched_classes) (sample : window_sample) : bool =
+    ?= sample ?|
+    | NoWindows => !-
+    | WindowThen (window, rest) => watched classes window.class_word || sample_busy classes rest
+
+:= progress_start () : settle_progress = { clear_streak = 0u64; samples_taken = 0u64; busy_samples = 0u64 }
+
+:= observed (progress : settle_progress) (busy : bool) : settle_progress =
+    := taken = progress.samples_taken + 1u64
+    ? busy ?> { clear_streak = 0u64; samples_taken = taken; busy_samples = progress.busy_samples + 1u64 }
+    |: { progress ?| clear_streak = progress.clear_streak + 1u64; samples_taken = taken }
+
+:= verdict_of (terms : settle_terms) (progress : settle_progress) : settle_verdict =
+    ? progress.clear_streak >= terms.clear_samples_needed ?> ClearNow
+    |? progress.samples_taken >= terms.max_samples ?> GaveUp
+    |: KeepWaiting
+
+:= contention_of (progress : settle_progress) : run_contention =
+    ? progress.busy_samples = 0u64 ?> Quiet |: Contended progress.busy_samples
+
+:| ^ sample_series sample =
+    | SeriesEnd
+    | SampleThen : sample * sample_series sample
+
+:~ ^ settled \* sample. (terms : settle_terms) (busy : sample -> bool) (series : sample_series sample)
+        (progress : settle_progress) : settle_verdict * settle_progress =
+    ?= series ?|
+    | SeriesEnd => verdict_of terms progress, progress
+    | SampleThen (current, rest) =>
+        := next = observed progress (busy current)
+        ?= verdict_of terms next ?|
+        | KeepWaiting => settled terms busy rest next
+        | finished => finished, next
+
+
+:= blocks () : watched_classes = ClassThen ("live-gui", ClassThen ("compiler-install", NoClasses))
+
+:= gui () : window_sample = WindowThen ({ class_word = "live-gui"; hold = HeldNow }, NoWindows)
+
+:= compile_only () : window_sample = WindowThen ({ class_word = "compile"; hold = HeldNow }, NoWindows)
+
+:= two_samples () : settle_terms = { clear_samples_needed = 2u64; max_samples = 10u64 }
+
+:= limit_three () : settle_terms = { clear_samples_needed = 2u64; max_samples = 3u64 }
+
+///> rust
+:# a_gap_between_back_to_back_blocks_is_not_the_end =
+    := second_block = SampleThen (gui (), SampleThen (NoWindows, SeriesEnd))
+    := gap_then_block = SampleThen (gui (), SampleThen (NoWindows, second_block))
+    := verdict, progress = settled (two_samples ()) (sample_busy (blocks ())) gap_then_block (progress_start ())
+    testing.expect (verdict = KeepWaiting) "one clear sample after a block is a gap, not the end"
+    testing.expect (progress.samples_taken = 4u64) "every sample counted"
+    := ended = SampleThen (gui (), SampleThen (compile_only (), SampleThen (NoWindows, SeriesEnd)))
+    := verdict_after, _ = settled (two_samples ()) (sample_busy (blocks ())) ended (progress_start ())
+    testing.expect (verdict_after = ClearNow) "a compile window is not a block, so two clear samples end it"
+
+///> rust
+:# a_watch_gives_up_at_its_limit_and_a_run_knows_its_contention =
+    := busy_forever = SampleThen (gui (), SampleThen (gui (), SampleThen (gui (), SeriesEnd)))
+    := verdict, progress = settled (limit_three ()) (sample_busy (blocks ())) busy_forever (progress_start ())
+    testing.expect (verdict = GaveUp) "three busy samples reach the limit"
+    testing.expect (contention_of progress = Contended 3u64) "all three samples were busy"
+    := compiles = ClassThen ("compile", NoClasses)
+    := one_gui = SampleThen (gui (), SeriesEnd)
+    := _, quiet_progress = settled (two_samples ()) (sample_busy compiles) one_gui (progress_start ())
+    testing.expect (contention_of quiet_progress = Quiet) "a live window does not contend with a compile-only watch"

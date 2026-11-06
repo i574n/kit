@@ -1,0 +1,72 @@
+///- --package .
+:# gaps static =
+    :< sm'_operators
+    :< workspace_primitives.bytes
+    :< agile_planning_model.model
+    :< agile_task_text.model
+
+:< sm'_operators
+:< workspace_primitives.bytes
+:< agile_planning_model.model
+:< agile_task_text.model
+
+:== gap_task =
+    {
+        id : string
+        kind : string
+        status : string
+    }
+
+:= unquoted (~token : string) : string = byte_slice token 1i32 (byte_len token - 1i32)
+
+:~ ^ gap_tasks_from (text : string) (offset : i32) (length : i32) (found : list gap_task) : list gap_task =
+    := at = byte_find_from text (task_marker ()) offset
+    ? at < 0i32
+    ?> found
+    |:
+        := arguments = at + task_arguments_offset ()
+        ? declared_task text at
+        ?>
+            := field = tuple_field text arguments length
+            := task = { id = unquoted (field 0i32); kind = field 2i32; status = field 6i32 }
+            gap_tasks_from text arguments length (task :: found)
+        |: gap_tasks_from text arguments length found
+
+:= missing_fields (plan : task_planning) : string =
+    := joined (~sofar : string) (~name : string) : string = ? sofar = "" ?> name |: sofar ++# "," ++# name
+    := with_estimate = ? plan.estimate = Unestimated ?> "estimate" |: ""
+    := with_load = ? plan.load = LoadUnset ?> joined with_estimate "load" |: with_estimate
+    ? plan.assignee = Unassigned ?> joined with_load "assignee" |: with_load
+
+:= gap_line (~id : string) (~fields : string) : string =
+    ? fields = "" ?> "" |: "kit agile check warn missing=" ++# fields ++# " id=" ++# id ++# "\n"
+
+:= gap_candidate (task : gap_task) : bool =
+    (task.status = "Planned" || task.status = "Active") && task.kind <> "Epic"
+
+:~ ^ gaps_from (~text : string) (tasks : list gap_task) (~found : string) : string =
+    ?= tasks ?|
+    | [] => found
+    | task :: rest =>
+        := line = ? gap_candidate task ?> gap_line task.id (missing_fields (planning_of text task.id)) |: ""
+        gaps_from text rest (line ++# found)
+
+:~ planning_gaps_text (~text : string) : string = gaps_from text (gap_tasks_from text 0i32 (byte_len text) []) ""
+
+///> rust
+:# open_leaf_items_without_planning_fields_are_listed =
+    := planned =
+        "inl a () = Task (\"A\", \"t\", TaskKind, P1, D1, 0u32, Planned, \"\", \"\", \"current\", \"current\")\n"
+        ^^ "inl planning_of_a () = Planning (\"A\", Minutes 30u32, Load Light, Assigned Agent)\n"
+    := unestimated =
+        "inl b () = Task (\"B\", \"t\", Story, P1, D2, 0u32, Active, \"\", \"\", \"current\", \"current\")\n"
+        ^^ "inl planning_of_b () = Planning (\"B\", Unestimated, Load Medium, Assigned Pair)\n"
+    := no_row = "inl c () = Task (\"C\", \"t\", TaskKind, P2, D1, 0u32, Planned, \"\", \"\", \"current\", \"current\")\n"
+    := epic = "inl e () = Task (\"E\", \"t\", Epic, P1, D6, 0u32, Planned, \"\", \"\", \"current\", \"current\")\n"
+    := done = "inl d () = Task (\"D\", \"t\", TaskKind, P1, D1, 100u32, Done, \"\", \"\", \"current\", \"current\")\n"
+    := text = planned ++# unestimated ++# no_row ++# epic ++# done
+    := gaps = planning_gaps_text text
+    ? sm'.contains "missing=estimate id=B" gaps ?> () |: failwith gaps
+    ? sm'.contains "missing=estimate,load,assignee id=C" gaps ?> () |: failwith gaps
+    ? sm'.contains "id=A" gaps |> not && sm'.contains "id=E" gaps |> not && sm'.contains "id=D" gaps |> not ?> ()
+    |: failwith gaps

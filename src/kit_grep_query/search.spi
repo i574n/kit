@@ -1,0 +1,103 @@
+:< sm'_operators
+:< kit_grep_found.found
+:< hits
+
+:| search_root =
+    | FolderRoot
+    | FileRoot
+    | MissingRoot
+
+:= root_kind (~root : string) : search_root =
+    ? file_system.directory_exists root ?> FolderRoot
+    |? file_system.file_exists root ?> FileRoot
+    |: MissingRoot
+
+:| needle_kind =
+    | LiteralNeedle
+    | CaselessNeedle
+    | PatternNeedle : bool
+
+:= needle_flags (kind : needle_kind) : bool * bool =
+    ?= kind ?|
+    | LiteralNeedle => !-, !-
+    | CaselessNeedle => !+, !-
+    | PatternNeedle caseless => caseless, !+
+:~ json_text (~text : string) : string = json.quote text
+:= stdout_text (~text : string) : () = console.write_line text
+:= i32_text (value : i32) : string = (sm'.show value)
+:= at_least_zero (value : i32) : i32 = ? value < 0i32 ?> 0i32 |: value
+:= smaller (a : i32) (b : i32) : i32 = ? a < b ?> a |: b
+:= larger (a : i32) (b : i32) : i32 = ? a < b ?> b |: a
+
+:== search_counts =
+    {
+        shown : i32
+        total : i32
+        json : string
+    }
+
+:~ ^ window_lines (hits : search_hits) (file : i32) (taken : i32) (width : i32) (line : i32) (last : i32) : () =
+    ? line <= last ?>
+        stdout_text (numbered (line + 1i32) width (taken_line hits file taken line) (clipped_line hits file line))
+        window_lines hits file taken width (line + 1i32) last
+    |: ()
+
+:~ ^ windows_printed
+    (hits : search_hits) (file : i32) (taken : i32) (context : i32) (width : i32) (k : i32) (printed_until : i32)
+    : ()
+    =
+    ? k < taken ?>
+        := index = found_at hits file k
+        := reach = at_least_zero (index - context)
+        := start = ? 0i32 <= printed_until && reach < printed_until + 1i32 ?> printed_until + 1i32 |: reach
+        := last = smaller (index + context) (line_count hits file - 1i32)
+        window_lines hits file taken width start last
+        windows_printed hits file taken context width (k + 1i32) (larger printed_until last)
+    |: ()
+
+:~ ^ last_window_line (hits : search_hits) (file : i32) (taken : i32) (context : i32) (k : i32) (found : i32) : i32 =
+    ? k < taken ?>
+        last_window_line hits file taken context (k + 1i32) (larger found (smaller (found_at hits file k + context) (
+            line_count hits file - 1i32)))
+    |: found
+
+:~ ^ json_matches (hits : search_hits) (file : i32) (taken : i32) (k : i32) (~items : string) : string =
+    ? k < taken ?>
+        := line = found_at hits file k
+        := item =
+            "{\"path\":"
+            ++# json_text (hit_path hits file)
+            ++# ",\"line\":"
+            ++# i32_text (line + 1i32)
+            ++# (",\"text\":" ++# (json_text (clipped_line hits file line)) ++# "}")
+        json_matches hits file taken (k + 1i32) (? items = "" ?> item |: items ++# "," ++# item)
+    |: items
+
+:~ ^ files_rendered
+    (hits : search_hits) (json : bool) (context : i32) (limit : i32) (file : i32) (counts : search_counts)
+    : search_counts
+    =
+    ? hit_files hits <= file ?> counts
+    |:
+        := found = found_count hits file
+        := total = counts.total + found
+        ? limit <= counts.shown ?> files_rendered hits json context limit (file + 1i32) { counts ?| total = total }
+        |:
+            := taken = smaller found (limit - counts.shown)
+            := next =
+                ? json ?>
+                    { counts ?|
+                        shown = (counts.shown + taken)
+                        total = total
+                        json = json_matches hits file taken 0i32 counts.json
+                    }
+                |:
+                    stdout_text (hit_path hits file)
+                    windows_printed hits file taken context
+                        (digits (last_window_line hits file taken context 0i32 0i32 + 1i32))
+                        0i32
+                        (-1i32)
+                    { counts ?| shown = (counts.shown + taken); total = total }
+            files_rendered hits json context limit (file + 1i32) next
+
+:~ counts_start () : search_counts = { shown = 0i32; total = 0i32; json = "" }

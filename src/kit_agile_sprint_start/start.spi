@@ -1,0 +1,113 @@
+///- --package .
+:# start static =
+    :< sm'_operators
+    :< agile_sprint.model
+
+:< sm'_operators
+:< agile_sprint.model
+
+:~ two_digits (n : i64) : string = ? n < 10i64 ?> "0" ++# sm'.show n |: sm'.show n
+
+:~ civil_date (days : i64) : string =
+    := z = days + 719468i64
+    := era = (? z >= 0i64 ?> z |: z - 146096i64) / 146097i64
+    := doe = z - era * 146097i64
+    := yoe = (doe - doe / 1460i64 + doe / 36524i64 - doe / 146096i64) / 365i64
+    := doy = doe - (365i64 * yoe + yoe / 4i64 - yoe / 100i64)
+    := mp = (5i64 * doy + 2i64) / 153i64
+    := day = doy - (153i64 * mp + 2i64) / 5i64 + 1i64
+    := month = ? mp < 10i64 ?> mp + 3i64 |: mp - 9i64
+    := year = yoe + era * 400i64 + (? month <= 2i64 ?> 1i64 |: 0i64)
+    sm'.show year ++# "-" ++# two_digits month ++# "-" ++# two_digits day
+
+:~ standing_of (~status : string) : item_standing =
+    ? status = "" ?> ItemUnknown |? status = "Done" ?> ItemDone |: ItemOpen
+
+:~ candidate_of (~state_text : string) (~task : string) : candidate =
+    := status = agile_task_census.task_census.status_pair (state_text, task)
+    := minutes = agile_planning_fields.planning_fields.minutes_pair (state_text, task)
+    { task = task; minutes = minutes; standing = standing_of status }
+
+:~ ^ items_given (words : list string) : list string =
+    ?= words ?|
+    | flag :: value :: _ ?& flag = "--items" =>
+        sm'.split_list "," value |> listm.map sm'.trim |> listm'.filter (\ (w : string) => w <> "")
+    | _ :: rest => items_given rest
+    | [] => []
+
+:~ modules_with_sprints (~text : string) : string =
+    ? sm'.contains "\n    sprints\n" ("\n" ++# text) ?> text
+    |? sm'.ends_with "\n" text ?> text ++# "    sprints\n"
+    |: text ++# "\n    sprints\n"
+
+:~ outcome_text (outcome : start_outcome) : i32 * string =
+    := refused = "kit error: agile sprint start refused: "
+    ?= outcome ?|
+    | Started s =>
+        := count : i32 = listm.length s.items
+        := head = "kit agile sprint start ok id=" ++# s.terms.id
+        0i32, head ++# " items=" ++# sm'.show count ++# " finish=" ++# s.terms.finish
+    | AnotherSprintOpen id => 1i32, refused ++# "sprint " ++# id ++# " is still open"
+    | ItemNotOpen task => 1i32, refused ++# "item " ++# task ++# " is unknown or Done"
+    | ItemUnestimated task => 1i32, refused ++# "item " ++# task ++# " has no estimate"
+
+:~ sprint_started (~root : string) (~id : string) (~days : string) (~goal : string) (rest : list string) : i32 =
+    := count = optionm'.default_value 0i64 (convert.try_convert days)
+    ? count <= 0i64 || id = ""
+    ?>
+        console.write_error_line "kit error: agile usage: sprint start <root> <id> <days> <goal> [--items A,B]"
+        2i32
+    |:
+        := state = sm'.replace "\\" "/" root ++# "/state"
+        := agile_text = file_system.read_text_or_empty (state ++# "/agile.spi")
+        := sprints_path = state ++# "/sprints.spi"
+        := existing = file_system.read_text_or_empty sprints_path
+        := today = (conv (workspace_primitives.clock.unix_ms ()) : i64) / 86400000i64
+        := terms = { id = id; goal = goal; start = civil_date today; finish = civil_date (today + count) }
+        := candidates = items_given rest |> listm.map (\ (task : string) => candidate_of agile_text task)
+        := running = kit_agile_sprint_state.state.open_sprint_of existing
+        := outcome =
+            ? running <> "" ?> AnotherSprintOpen running
+            |:
+                ?= first_refusal candidates ?|
+                | Some refused => refused
+                | None =>
+                    := committed = \ (c : candidate) => { task = c.task; minutes = c.minutes; fate = Committed }
+                    Started { terms = terms; status = SprintOpen; items = candidates |> listm.map committed }
+        := _ =
+            ?= outcome ?|
+            | Started _ =>
+                := gather = \ (kept : array kit_agile_sprint_append.append.item_row) (c : candidate) =>
+                    kept ++ ;[ { task = c.task; minutes = c.minutes } ]
+                := rows = candidates |> listm.fold gather ;[] |> am'.base
+                := args = existing, id, goal, terms.start, terms.finish, rows
+                := text = kit_agile_sprint_append.append.sprint_appended_text args
+                file_system.write_all_text sprints_path text
+                := project_path = state ++# "/package.spiproj"
+                := project = file_system.read_text_or_empty project_path
+                := updated = modules_with_sprints project
+                ? updated <> project ?> file_system.write_all_text project_path updated |: ()
+            | _ => ()
+        := code, text = outcome_text outcome
+        := _ = ? code = 0i32 ?> console.write_line text |: console.write_error_line text
+        code
+
+:~ started ((root, id, days, goal, rest) : string * string * string * string * array_base string) : i32 =
+    sprint_started root id days goal (am'.to_list_base' rest |> listm'.unbox)
+
+///> rust
+:# sprint_start_reads_dates_items_and_manifest_lines =
+    testing.expect (civil_date 0i64 = "1970-01-01") (civil_date 0i64)
+    testing.expect (civil_date 20761i64 = "2026-11-04") (civil_date 20761i64)
+    testing.expect (civil_date 11016i64 = "2000-02-29") "a leap day"
+    testing.expect (items_given [ "--items"; "KIT-A, KIT-B,"; "x" ] = [ "KIT-A"; "KIT-B" ]) "items are trimmed"
+    testing.expect (items_given [] = []) "no items"
+    testing.expect (standing_of "" = ItemUnknown && standing_of "Done" = ItemDone) "unknown and done"
+    testing.expect (standing_of "Active" = ItemOpen) "any other status is open"
+    := project = "modules:\n    claims\n    agile\n"
+    testing.expect (modules_with_sprints project = project ++# "    sprints\n") "the sprints module is appended"
+    testing.expect (modules_with_sprints (project ++# "    sprints\n") = project ++# "    sprints\n") "only once"
+///> _
+:= main () : i32 =
+    export "kit_agile_sprint_started" started
+    0i32

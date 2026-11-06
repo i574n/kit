@@ -1,0 +1,100 @@
+///- --package .
+:# idioms static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_lint_pattern.pattern
+
+:| one_construct =
+    | ScopingIdiom
+    | HostCombinator
+    | ThunkOpener
+    | OneConstructTernary
+    | OneCallParse
+    | OneOpHostOperator
+    | GleamRebindingBlock
+    | HealedAlready
+    | LambdaArrow
+    | OneOpTernary
+    | FsharpPipeMutate
+
+:= idioms () : list one_construct =
+    [
+        ScopingIdiom; HostCombinator; ThunkOpener; OneConstructTernary; OneCallParse; OneOpHostOperator
+        GleamRebindingBlock; HealedAlready; FsharpPipeMutate; LambdaArrow; OneOpTernary
+    ]
+
+:= rule_of (idiom : one_construct) : list (list piece) =
+    ?= idiom ?|
+    | ScopingIdiom => [ [ Start; blanks (); Maybe "Gleam = \\ () => "; Text "$'let "; name_run (); Text " = fn ()" ] ]
+    | HostCombinator =>
+        [
+            [ Texts [ ".all("; "String.forall"; ".any("; "Array.map (fun " ] ]
+            [ Text ".map(|"; name_run (); Text "|" ]
+        ]
+    | ThunkOpener => [ [ Text "$'(fun () ->'"; blanks (); End ] ]
+    | OneConstructTernary =>
+        [
+            [
+                Text "(if !"; name_run (); Text " then \""; Run (NoneOf "\"", 0i32); Text "\" else \""
+                Run (NoneOf "\"", 0i32); Text "\")"
+            ]
+            [ Text "(\"true\" if !"; name_run (); Text " else \"false\")" ]
+            [ Text "(if (!"; name_run (); Text ") \"true\" else \"false\")" ]
+        ]
+    | OneCallParse =>
+        [
+            [ Text "strto"; Run (AnyOf "lfd", 0i32); Text "(" ]
+            [ Texts [ "string.match("; "spiralParseInt"; "Int32(String(" ] ]
+        ]
+    | OneOpHostOperator => [ [ Text "$0?\"" ] ]
+    | GleamRebindingBlock => [ [ Text "$'"; some_blanks (); Texts [ "case trace_state"; "option.None ->"; "x -> x" ] ] ]
+    | HealedAlready => [ [ Start; blanks (); Text "? $'"; Run (NoneOf "'", 1i32); Text "' : bool ?>" ] ]
+    | LambdaArrow =>
+        [
+            [ Words [ "fun" ]; Text " "; name_run (); Text " ->" ]
+            [ Text "$'!x ' |> \\ x =>" ]
+            [ Words [ "fn" ]; Text " $'!x '" ]
+        ]
+    | OneOpTernary =>
+        [
+            [ Text "$'"; Maybe "("; Text "!"; name_run (); Text " ?? undefined"; Maybe ")"; Text "'" ]
+            [
+                Text "$'"; blanks (); Text "("; blanks (); Text "!"; name_run (); Text " ? "; Run (NoneOf ":", 1i32)
+                Text " : "; Run (NoneOf ")", 1i32); Text ")"; blanks (); Text "'"
+            ]
+        ]
+    | FsharpPipeMutate => [ [ Text "$'|> fun x -> _"; name_run (); Text "_!"; name_run (); Text " <- Some x'" ] ]
+
+:~ idiom_of (~line : string) : option one_construct =
+    := text = sm'.to_lower line
+    := matching (idiom : one_construct) = found text (rule_of idiom |> listm.map (listm.map lowered))
+    listm'.try_find_ matching (idioms ())
+
+///> rust
+:# each_one_construct_idiom_has_a_sample_line =
+    :~ expect_idiom (line : string) (idiom : one_construct) : () =
+        ? found (sm'.to_lower line) (rule_of idiom |> listm.map (listm.map lowered)) ?> () |: failwith line
+    expect_idiom "$'    x -> x' : ()" GleamRebindingBlock
+    expect_idiom "? $'result.is_error(!rescued)' : bool ?> ex_fn (\\ () => $'Nil' : exn) |: ()" HealedAlready
+    expect_idiom "$'!array |> Array.map (fun (struct (a, b)) -> a, b) |> Map.ofArray'" HostCombinator
+    expect_idiom "$'|> fun x -> x ()'" LambdaArrow
+    expect_idiom ":= ok = ($'(string.match(!x, \"^%s*[+-]?%d+%s*$\") ~= nil)' : bool)" OneCallParse
+    expect_idiom "?> $'(\"true\" if !x else \"false\")' : string" OneConstructTernary
+    expect_idiom "?> (!\\\\(x, $'\"true; $0?\"') : bool) |> \\ _ => $''" OneOpHostOperator
+    expect_idiom "parsed_integer ok ($'(!ok ? BigInt(!x) : 0n)' : i64)" OneOpTernary
+    expect_idiom "$'(fun () ->'" ThunkOpener
+    expect_idiom "Gleam = \\ () => $'let out = fn () { case x { _ -> 1 } }' : ()" ScopingIdiom
+    expect_idiom "$'|> fun x -> _cell_!name <- Some x'" FsharpPipeMutate
+    ? idiom_of "$'|> fun x -> _cell_!name <- Some x'" = Some FsharpPipeMutate ?> () |: failwith "the specific class wins"
+
+///> rust
+:# a_candidate_is_flow_that_no_family_exempts =
+    :~ candidate (line : string) : bool =
+        kit_lint_flow.flow.flow_line line && kit_lint_flow_constructs.constructs.construct_of line = None
+        && idiom_of line = None
+    ? candidate "$'{ let t = &*!s; if t.len() <= 3 { t } else { \"...\" } }' : string" ?> () |: failwith "a block"
+    ? candidate "| _ => $'(for (!a) |x| { if (x == !b) break true; } else false)' : bool" ?> () |: failwith "a for loop"
+    ? candidate "$'(f(!p) ? g(!p) : 0)' : u64" ?> () |: failwith "a ternary over calls"
+    ? candidate "parsed_integer ok ($'(!ok ? BigInt(!x) : 0n)' : i64)" |> not ?> () |: failwith "a one-op ternary"
+    ? candidate "$'|> fun x -> x ()'" |> not ?> () |: failwith "a lambda arrow"

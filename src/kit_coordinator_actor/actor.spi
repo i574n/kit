@@ -1,0 +1,316 @@
+///- --package .
+:# actor static =
+    :< sm'_operators
+    :< kit_coordinator_model.model
+    :< kit_coordinator_table.table
+    :< kit_coordinator_table.dispatch
+    :< otp_supervisor
+
+:< sm'_operators
+:< kit_coordinator_model.model
+:< kit_coordinator_table.table
+:< kit_coordinator_table.dispatch
+:< otp_supervisor
+
+:| keeper_message =
+    | Keep : table_input
+    | Replay : erlang_process.subject (list table_input)
+
+:= keeper_step (kept : list table_input) (message : keeper_message) : otp_actor.next (list table_input) keeper_message =
+    ?= message ?|
+    | Keep input => otp_actor.continue (listm.append kept [ input ])
+    | Replay reply =>
+        erlang_process.send reply kept
+        otp_actor.continue kept
+
+:= keeper_started () = otp_actor.new [] |> otp_actor.on_message keeper_step |> otp_actor.start |> otp_actor.started_data
+
+:| coordinator_message =
+    | Input : table_input
+    | Read : erlang_process.subject coord_table
+    | Watch : erlang_process.subject dispatch_message
+    | Crash
+
+:== coordinator_state =
+    {
+        table : coord_table
+        keeper : erlang_process.subject keeper_message
+        outbox : list (erlang_process.subject dispatch_message)
+    }
+
+:= coordinator_step (state : coordinator_state) (message : coordinator_message)
+    : otp_actor.next coordinator_state coordinator_message
+    =
+    ?= message ?|
+    | Input input =>
+        otp_actor.send state.keeper (Keep input)
+        := after = table_after state.table input
+        := sent = \ (job : job_id) =>
+            := told = \ (out : erlang_process.subject dispatch_message) => erlang_process.send out (LeaseGranted job)
+            state.outbox |> listm.iter told
+        granted_by state.table input after |> listm.iter sent
+        otp_actor.continue { state ?| table = after }
+    | Watch out => otp_actor.continue { state ?| outbox = out :: state.outbox }
+    | Read reply =>
+        erlang_process.send reply state.table
+        otp_actor.continue state
+    | Crash => otp_actor.stop_abnormal "crash requested"
+
+:= replayed (count : i32) (keeper : erlang_process.subject keeper_message) : coordinator_state =
+    { table = table_of count (otp_actor.call keeper 10000i32 Replay); keeper = keeper; outbox = [] }
+
+:= coordinator_spec (count : i32) (keeper : erlang_process.subject keeper_message) =
+    otp_actor.new_with_init 10000i32 (\ () => replayed count keeper) |> otp_actor.on_message coordinator_step
+
+:= coordinator_started (count : i32) (keeper : erlang_process.subject keeper_message) =
+    coordinator_spec count keeper |> otp_actor.start |> otp_actor.started_data
+
+:= coordinator_worker (count : i32) (keeper : erlang_process.subject keeper_message) =
+    otp_supervisor.worker (\ () => coordinator_spec count keeper |> otp_actor.start)
+
+:= named_worker
+    (count : i32) (keeper : erlang_process.subject keeper_message) (address : erlang_process.name coordinator_message)
+    =
+    otp_supervisor.worker (\ () => coordinator_spec count keeper |> otp_actor.named address |> otp_actor.start)
+
+:= paused (ms : i32) : () =
+    := quiet = (erlang_process.new_subject () : erlang_process.subject i32)
+    erlang_process.receive_within quiet ms |> ignore
+
+:== dispatcher_state =
+    {
+        core : dispatch_state
+        coordinator : erlang_process.subject coordinator_message
+        launch : job_spec -> bool
+    }
+
+:= reported (coordinator : erlang_process.subject coordinator_message) (effects : list dispatch_effect) : () =
+    table_inputs effects |> listm.iter (\ (input : table_input) => otp_actor.send coordinator (Input input))
+
+:= dispatcher_step (state : dispatcher_state) (message : dispatch_message)
+    : otp_actor.next dispatcher_state dispatch_message
+    =
+    := core, effects = dispatch_step state.core message
+    reported state.coordinator effects
+    := answered = \ (now : dispatch_state) (effect : dispatch_effect) =>
+        ?= effect ?|
+        | LaunchOn (job, spec) =>
+            := after, followed = dispatch_step now (LaunchAnswered (job, state.launch spec))
+            reported state.coordinator followed
+            after
+        | _ => now
+    otp_actor.continue { state ?| core = effects |> listm.fold answered core }
+
+:= kit_launch (~kit : string) (spec : job_spec) : bool =
+    process.captured_by kit (launch_args spec) !+ |> process.succeeded
+
+:= dispatcher_started (coordinator : erlang_process.subject coordinator_message) (launch : job_spec -> bool) =
+    := state = { core = empty_dispatch (); coordinator = coordinator; launch = launch }
+    ?= otp_actor.new state |> otp_actor.on_message dispatcher_step |> otp_actor.start |> otp_actor.started_data ?|
+    | Some inbox =>
+        otp_actor.send coordinator (Watch inbox)
+        Some inbox
+    | None => None
+
+:~ ^ settled_within (coordinator : erlang_process.subject coordinator_message) (job : job_id) (tries : i32) : bool =
+    ? status_in (otp_actor.call coordinator 10000i32 Read) job = Some Settled ?> !+
+    |? tries <= 0i32 ?> !-
+    |:
+        paused 500i32
+        settled_within coordinator job (tries - 1i32)
+
+:= submitted_to (dispatcher : erlang_process.subject dispatch_message) (lines : list string) : list string =
+    := fed = \ (refused : list string) (line : string) =>
+        ?= submission_of line ?|
+        | SubmissionReady message =>
+            otp_actor.send dispatcher message
+            refused
+        | SubmissionRefused reason => listm.append refused [ reason ]
+    lines |> listm.fold fed []
+
+:= spool_taken (~spool : string) : list string =
+    := taken = \ (lines : list string) (path : string) =>
+        := text = erlang_file.file_text path
+        erlang_term.apply "file" "delete" [ erlang_term.of path ] |> ignore
+        listm.append lines (sm'.split_list "\n" text |> listm'.filter (\ (line : string) => sm'.trim line <> ""))
+    erlang_file.matching_paths (erlang_file.joined_path spool "*.sub") |> listm.fold taken []
+
+:= served_once (dispatcher : erlang_process.subject dispatch_message) (~spool : string) : list string =
+    submitted_to dispatcher (spool_taken spool)
+
+:= environment_named (~name : string) : string =
+    := found = erlang_term.apply "os" "getenv" [ erlang_term.charlist name ]
+    ? erlang_term.equal found (erlang_term.atom "false") ?> "" |: erlang_file.text_of found
+
+:= spool_named () : string = environment_named "KIT_COORDINATOR_SPOOL"
+
+:= kit_named () : string =
+    := given = environment_named "KIT_COORDINATOR_KIT"
+    ? given = "" ?> "kit" |: given
+
+:~ ^ served (dispatcher : erlang_process.subject dispatch_message) (~spool : string) : () =
+    served_once dispatcher spool |> listm.iter (\ (reason : string) => erlang_file.put_error_text (reason ++# "\n"))
+    paused 1000i32
+    served dispatcher spool
+
+:= system_started (count : i32) (launch : job_spec -> bool) =
+    ?= keeper_started () ?|
+    | Some keeper =>
+        ?= coordinator_started count keeper ?|
+        | Some coordinator =>
+            ?= dispatcher_started coordinator launch ?|
+            | Some dispatcher => Some (coordinator, dispatcher)
+            | None => None
+        | None => None
+    | None => None
+
+///> gleam
+:# a_crashed_coordinator_restarts_under_its_supervisor_with_the_queue_kept =
+    ?= keeper_started () ?|
+    | Some keeper =>
+        := address = (erlang_process.new_name "kit_coordinator_restart" : erlang_process.name coordinator_message)
+        := started =
+            otp_supervisor.new OneForOne
+            |> otp_supervisor.restart_tolerance 3i32 5i32
+            |> otp_supervisor.add (named_worker 1i32 keeper address |> otp_supervisor.with_restart Transient)
+            |> otp_supervisor.start
+            |> otp_actor.started_data
+        ?= started ?|
+        | Some _ =>
+            := inbox = erlang_process.named_subject address
+            := a, b = JobId "job-a", JobId "job-b"
+            [ Arrived a; Arrived b ] |> listm.iter (\ (input : table_input) => otp_actor.send inbox (Input input))
+            := before = otp_actor.call inbox 10000i32 Read
+            otp_actor.send inbox Crash
+            paused 3000i32
+            testing.expect (otp_actor.call inbox 10000i32 Read = before) "the restarted coordinator kept its queue"
+        | None => testing.expect !- "the supervisor did not start"
+    | None => testing.expect !- "the keeper did not start"
+
+///> gleam
+:# the_actor_holds_the_same_table_as_the_model_and_a_restart_replays_it =
+    ?= keeper_started () ?|
+    | Some keeper =>
+        ?= coordinator_started 1i32 keeper ?|
+        | Some inbox =>
+            one_slot_story () |> listm.iter (\ (input : table_input) => otp_actor.send inbox (Input input))
+            := model = table_of 1i32 (one_slot_story ())
+            testing.expect (otp_actor.call inbox 10000i32 Read = model) "the actor's table equals the model's fold"
+            ?= coordinator_started 1i32 keeper ?|
+            | Some again => testing.expect (otp_actor.call again 10000i32 Read = model) "a restart replays the inputs"
+            | None => testing.expect !- "the restarted coordinator did not start"
+        | None => testing.expect !- "the coordinator did not start"
+    | None => testing.expect !- "the keeper did not start"
+
+///> gleam
+:# the_coordinator_starts_under_a_supervisor =
+    ?= keeper_started () ?|
+    | Some keeper =>
+        := started =
+            otp_supervisor.new OneForOne
+            |> otp_supervisor.restart_tolerance 3i32 5i32
+            |> otp_supervisor.add (coordinator_worker 2i32 keeper |> otp_supervisor.with_restart Transient)
+            |> otp_supervisor.start
+            |> otp_actor.started_data
+        ?= started ?|
+        | Some _ => ()
+        | None => testing.expect !- "the supervisor did not start the coordinator"
+    | None => testing.expect !- "the keeper did not start"
+
+///> gleam
+:# leased_jobs_are_sent_to_the_dispatcher_in_order =
+    ?= keeper_started () ?|
+    | Some keeper =>
+        ?= coordinator_started 1i32 keeper ?|
+        | Some inbox =>
+            := out = (erlang_process.new_subject () : erlang_process.subject dispatch_message)
+            otp_actor.send inbox (Watch out)
+            one_slot_story () |> listm.iter (\ (input : table_input) => otp_actor.send inbox (Input input))
+            := _ = otp_actor.call inbox 10000i32 Read
+            := next = \ (ms : i32) => erlang_process.receive_within out ms |> erlang_process.receipt_value
+            := first = next 1000i32
+            := second = next 1000i32
+            := third = next 100i32
+            := granted = \ (job : string) => Some (LeaseGranted (JobId job))
+            testing.expect (first = granted "job-a" && second = granted "job-b") "a, then b when a settles"
+            testing.expect (third = None) "nothing else is dispatched"
+        | None => testing.expect !- "the coordinator did not start"
+    | None => testing.expect !- "the keeper did not start"
+
+///> gleam
+:# the_dispatcher_launches_each_leased_job_once_and_the_next_after_it_ends =
+    ?= keeper_started () ?|
+    | Some keeper =>
+        ?= coordinator_started 1i32 keeper ?|
+        | Some coordinator =>
+            := probe = (erlang_process.new_subject () : erlang_process.subject string)
+            := launch = \ (spec : job_spec) =>
+                erlang_process.send probe spec.label
+                !+
+            ?= dispatcher_started coordinator launch ?|
+            | Some dispatcher =>
+                := spec = \ (label : string) =>
+                    { label = label; machine = "node"; timeout_ms = 1000u64; command = [ "pwsh" ] }
+                otp_actor.send dispatcher (Submitted (JobId "job-a", spec "a"))
+                otp_actor.send dispatcher (Submitted (JobId "job-b", spec "b"))
+                := next = \ (ms : i32) => erlang_process.receive_within probe ms |> erlang_process.receipt_value
+                := first = next 2000i32
+                := early = next 300i32
+                otp_actor.send dispatcher (JobEnded (JobId "job-a"))
+                := second = next 2000i32
+                testing.expect (first = Some "a" && early = None) "only the leased job launches"
+                testing.expect (second = Some "b") "b launches once a ends"
+            | None => testing.expect !- "the dispatcher did not start"
+        | None => testing.expect !- "the coordinator did not start"
+    | None => testing.expect !- "the keeper did not start"
+
+///> gleam
+:# a_launcher_that_cannot_run_gives_every_job_up_and_frees_the_slot =
+    ?= system_started 1i32 (kit_launch "kit-binary-that-does-not-exist") ?|
+    | Some (coordinator, dispatcher) =>
+        := spec = \ (label : string) =>
+            { label = label; machine = "node"; timeout_ms = 1000u64; command = [ "pwsh" ] }
+        otp_actor.send dispatcher (Submitted (JobId "job-a", spec "a"))
+        otp_actor.send dispatcher (Submitted (JobId "job-b", spec "b"))
+        testing.expect (settled_within coordinator (JobId "job-a") 120i32) "a was given up after three failed launches"
+        testing.expect (settled_within coordinator (JobId "job-b") 120i32) "b got the freed slot and was given up too"
+    | None => testing.expect !- "the system did not start"
+
+///> gleam
+:# submission_lines_reach_the_dispatcher_and_bad_lines_are_refused =
+    ?= system_started 1i32 (kit_launch "kit-binary-that-does-not-exist") ?|
+    | Some (coordinator, dispatcher) =>
+        := lines = [ "job-a probe node 1000 -- pwsh -NoProfile"; "not a submission" ]
+        := refused = submitted_to dispatcher lines
+        testing.expect (listm.length refused = 1i32) "one bad line, one refusal"
+        testing.expect (settled_within coordinator (JobId "job-a") 120i32) "the parsed job reached the dispatcher"
+    | None => testing.expect !- "the system did not start"
+
+///> gleam
+:# a_spool_file_is_taken_once_and_its_lines_reach_the_dispatcher =
+    := spool = erlang_file.dir_name (erlang_file.test_cache_file "kit-coordinator-spool/a.sub")
+    := _ = spool_taken spool
+    ?= system_started 1i32 (kit_launch "kit-binary-that-does-not-exist") ?|
+    | Some (coordinator, dispatcher) =>
+        := path = erlang_file.joined_path spool "a.sub"
+        := text = "job-s probe node 1000 -- pwsh -NoProfile\n\nnot a submission\n"
+        testing.expect (erlang_file.file_written path text) "the spool file is written"
+        testing.expect (listm.length (served_once dispatcher spool) = 1i32) "one bad line, one refusal; blanks skipped"
+        testing.expect (erlang_file.regular_file path = !-) "a taken spool file is removed"
+        testing.expect (served_once dispatcher spool = []) "nothing is taken twice"
+        testing.expect (settled_within coordinator (JobId "job-s") 120i32) "the spooled job reached the dispatcher"
+    | None => testing.expect !- "the system did not start"
+
+///> gleam
+:# the_coordinator_serves_the_spool_its_environment_names =
+    := spool = spool_named ()
+    ? spool = "" ?> ()
+    |:
+        ?= system_started 4i32 (kit_launch (kit_named ())) ?|
+        | Some (_, dispatcher) => served dispatcher spool
+        | None => erlang_file.put_error_text "kit coordinator: the system did not start\n"
+
+///> gleam
+:# an_unset_environment_reads_empty_and_the_kit_path_falls_back_to_the_path_lookup =
+    testing.expect (environment_named "KIT_COORDINATOR_SURELY_UNSET_VARIABLE" = "") "unset reads empty"
+    testing.expect (environment_named "KIT_COORDINATOR_KIT" <> "" || kit_named () = "kit") "kit on PATH by default"

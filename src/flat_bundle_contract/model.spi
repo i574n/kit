@@ -1,0 +1,77 @@
+:! flat_bundle_policy_owner = string
+:! flat_bundle_negative_owner = string
+:! flat_root_pending owner = owner
+:! flat_root_validated owner = owner
+:! flat_manifest_collected owner = owner
+:! flat_archive_written owner = owner
+:! flat_archive_verified owner = owner
+
+:| flat_bundle_transition from to =
+    | ValidateFlatRoot :: \* owner. flat_bundle_transition (flat_root_pending owner) (flat_root_validated owner)
+    | CollectFlatManifest :: \* owner.
+        flat_bundle_transition (flat_root_validated owner) (flat_manifest_collected owner)
+    | WriteFlatArchive :: \* owner. flat_bundle_transition (flat_manifest_collected owner) (flat_archive_written owner)
+    | VerifyFlatArchive :: \* owner. flat_bundle_transition (flat_archive_written owner) (flat_archive_verified owner)
+
+:| ^ flat_bundle_plan from to =
+    | FlatBundleStep :: \* from to. flat_bundle_transition from to -> flat_bundle_plan from to
+    | FlatBundleThen :: \* from to.
+        (\? middle. flat_bundle_plan from middle * flat_bundle_plan middle to) ->
+        flat_bundle_plan from to
+
+:~ bool_pair_binding (left : i32) (right : i32) : i32 =
+    ? left < 1i32 ?> 0i32
+    |? 1i32 < left ?> 0i32
+    |? right < 1i32 ?> 0i32
+    |? 1i32 < right ?> 0i32
+    |: 1i32
+
+:~ preflight_binding (root_directory : i32) (output_outside_root : i32) : i32 =
+    bool_pair_binding root_directory output_outside_root
+
+:~ manifest_binding (entries_positive : i32) (canonical_order : i32) : i32 =
+    bool_pair_binding entries_positive canonical_order
+
+:~ size_binding (limit_positive : i32) (within_limit : i32) : i32 =
+    bool_pair_binding limit_positive within_limit
+
+:| flat_compression_method =
+    | FlatStored
+    | FlatDeflated
+
+:= compression_code = \|
+    | FlatStored => 0i32
+    | FlatDeflated => 1i32
+
+:~ compression_binding (deterministic : i32) (method_code : i32) : i32 =
+    ? deterministic < 1i32 ?> 0i32
+    |? 1i32 < deterministic ?> 0i32
+    |? method_code < 1i32 ?> 0i32
+    |? 1i32 < method_code ?> 0i32
+    |: 1i32
+
+:~ complete_binding (manifest_valid : i32) (size_valid : i32) : i32 =
+    bool_pair_binding manifest_valid size_valid
+
+:= full_plan \* owner. () : flat_bundle_plan (flat_root_pending owner) (flat_archive_verified owner) =
+    FlatBundleThen (\? (
+        FlatBundleStep ValidateFlatRoot,
+        FlatBundleThen (\? (
+            FlatBundleStep CollectFlatManifest,
+            FlatBundleThen (\? (
+                FlatBundleStep WriteFlatArchive,
+                FlatBundleStep VerifyFlatArchive
+            ))
+        ))
+    ))
+
+:= policy_plan
+    ()
+    : flat_bundle_plan (flat_root_pending flat_bundle_policy_owner) (flat_archive_verified flat_bundle_policy_owner)
+    =
+    full_plan ()
+:= negative_plan
+    ()
+    : flat_bundle_plan (flat_root_pending flat_bundle_negative_owner) (flat_archive_verified flat_bundle_negative_owner)
+    =
+    full_plan ()

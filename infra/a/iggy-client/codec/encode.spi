@@ -1,0 +1,16 @@
+:< iggy
+
+:= event_bytes (seq : u64) (~machine : string) (body : iggy.event_body) : array u8 = iggy.encode { seq; machine; body }
+
+:= main () : i32 =
+    !!!!Export("iggy_job_started", ((\ (seq, machine, job, label) => event_bytes seq machine (iggy.JobStarted { job; label })) : u64 * string * string * string -> array u8))
+    !!!!Export("iggy_job_step", ((\ (seq, machine, job, step, exit, detail) => event_bytes seq machine (iggy.JobStep { job; step; exit; detail })) : u64 * string * string * string * i32 * string -> array u8))
+    !!!!Export("iggy_job_done", ((\ (seq, machine, job, exit) => event_bytes seq machine (iggy.JobDone { job; exit })) : u64 * string * string * i32 -> array u8))
+    !!!!Export("iggy_job_stop", ((\ (seq, machine, job, reason) => event_bytes seq machine (iggy.JobStop { job; reason })) : u64 * string * string * string -> array u8))
+    !!!!Export("iggy_lease_acquired", ((\ (seq, machine, tree, owner) => event_bytes seq machine (iggy.LeaseAcquired { tree; owner })) : u64 * string * string * string -> array u8))
+    !!!!Export("iggy_lease_released", ((\ (seq, machine, tree, owner) => event_bytes seq machine (iggy.LeaseReleased { tree; owner })) : u64 * string * string * string -> array u8))
+    !!!!Export("iggy_slot_admitted", ((\ (seq, machine, slot, owner) => event_bytes seq machine (iggy.SlotAdmitted { slot; owner })) : u64 * string * i32 * string -> array u8))
+    !!!!Export("iggy_slot_released", ((\ (seq, machine, slot, owner) => event_bytes seq machine (iggy.SlotReleased { slot; owner })) : u64 * string * i32 * string -> array u8))
+    !!!!Export("iggy_health", ((\ (seq, machine, cpu, free_mem_mb, free_disk_gb) => event_bytes seq machine (iggy.Health { cpu; free_mem_mb; free_disk_gb })) : u64 * string * i32 * i32 * i32 -> array u8))
+    !!!!Export("iggy_toolchain", ((\ (seq, machine, tool, version, path, mtime) => event_bytes seq machine (iggy.Toolchain { tool; version; path; mtime })) : u64 * string * string * string * string * string -> array u8))
+    0i32

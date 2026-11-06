@@ -1,0 +1,66 @@
+///- --package .
+:# segments static =
+    :< testing
+    :< workspace_primitives.files
+    :< agile_note_model.model
+
+:< workspace_primitives.files
+:< agile_note_model.model
+
+:~ state_path (~state_dir : string) (~name : string) : string = sm'.concat_list "/" [ state_dir; name ]
+
+:~ text_or_empty (~path : string) : string = ? file_system.file_exists path ?> file_system.read_all_text path |: ""
+
+:~ written (~path : string) (~original : string) (~text : string) : string =
+    ? file_system.file_exists path
+    ?>
+        ?= replace_file_unchanged path original text ?|
+        | Replaced => ""
+        | problem => file_replacement_problem problem
+    |:
+        file_system.write_all_text path text
+        ""
+
+:~ registered (~manifest : string) (~segment : string) : bool =
+    sm'.contains (sm'.concat_list "" [ "\n    "; segment; "\n" ]) (sm'.concat_list "" [ "\n"; manifest ])
+
+:~ note_appended (~state_dir : string) (~row : string) (~stamp : string) : string =
+    := segment = agile_note_model.model.segment_name stamp
+    := manifest_path = state_path state_dir "package.spiproj"
+    := manifest = text_or_empty manifest_path
+    := manifest_problem =
+        ? registered manifest segment ?> ""
+        |: written manifest_path manifest (agile_note_model.model.manifest_with_segment manifest segment)
+    ? manifest_problem <> "" ?> manifest_problem
+    |:
+        := path = state_path state_dir (sm'.concat_list "" [ segment; ".spi" ])
+        := original = text_or_empty path
+        := base = ? original = "" ?> "open agile\n" |: original
+        written path original (sm'.concat_list "" [ base; row; "\n" ])
+
+:~ note_persisted
+    (~state_dir : string) (~state : string) (~raw : string) (~schema_ready : string) (~id : string) (~row : string)
+    (~stamp : string)
+    : string * u64
+    =
+    ? env.get_environment_variable "KIT_AGILE_NOTE_SEGMENTS" = "1"
+    ?> note_appended state_dir row stamp, convert.u64 (sm'.length raw : i32)
+    |:
+        := updated = notes_appended schema_ready id row
+        ?= state_written state raw updated ?|
+        | StateWritten => "", convert.u64 (sm'.length updated : i32)
+        | problem => state_write_problem problem, 0u64
+
+///> rust
+:# a_note_row_lands_in_this_months_registered_segment =
+    := root = sm'.concat_list "/" [ file_system.get_temp_path (); "kit-note-append-test" ]
+    file_system.remove_dir_all root |> ignore
+    file_system.create_dir_all root |> ignore
+    file_system.write_all_text (state_path root "package.spiproj") "modules:\n    agile\n    prompt\n"
+    := first = note_appended root "inl note_of_x_1 () = Note (\"X\", 1u32, \"t\", \"kit\", \"a\")" "2026-10-31T20:00Z"
+    := second = note_appended root "inl note_of_x_2 () = Note (\"X\", 2u32, \"t\", \"kit\", \"b\")" "2026-10-31T20:01Z"
+    := segment = text_or_empty (state_path root "notes_202610.spi")
+    := manifest = text_or_empty (state_path root "package.spiproj")
+    file_system.remove_dir_all root |> ignore
+    (first, second, sm'.starts_with "open agile\n" segment, sm'.contains "note_of_x_2" segment, manifest)
+    |> _assert_eq ("", "", !+, !+, "modules:\n    agile\n    notes_202610\n    prompt\n")

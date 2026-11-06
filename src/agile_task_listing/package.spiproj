@@ -1,0 +1,13 @@
+packages:
+    |core-
+    workspace_primitives
+    rust_std_fs
+    agile_mutation_policy
+    agile_task_text
+    union_reflection
+    spiral-
+    kit_agile_list_args
+link:
+    kit_agile_list_args
+modules:
+    task_listing

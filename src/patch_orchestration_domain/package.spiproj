@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    patch_control_domain
+    patch_driver_domain
+    patch_effect_domain
+modules:
+    main

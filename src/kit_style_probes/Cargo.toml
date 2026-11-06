@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "probes.spi"
+output = "probes.rs"
+
+[package]
+name = "kit-style-probes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_style_probes"
+path = "probes.rs"

@@ -1,0 +1,67 @@
+:< rust_std_string.model
+:< kit_machine_watch_model.model
+
+:! process_rows = $'std::rc::Rc<Vec<(u64, u64, std::rc::Rc<str>, std::rc::Rc<str>, f64, u64, u64, u64, u64)>>'
+
+:~ process_rows_sampled (milliseconds : u64) : process_rows =
+    $'kit_machine_sample::kit_machine_sampled(!milliseconds)' : process_rows
+
+:= row_count (~rows : process_rows) : i32 = $'!rows.len() as i32' : i32
+inl row_of_pid (~rows : process_rows) (pid : u64) : i32 = $'!rows.iter().position(|row| row.0 == !pid).map(|at| at as \
+    i32).unwrap_or(-1)' : i32
+:= row_pid (~rows : process_rows) (at : i32) : u64 = $'!rows[!at as usize].0' : u64
+:= row_parent (~rows : process_rows) (at : i32) : u64 = $'!rows[!at as usize].1' : u64
+:= row_name (~rows : process_rows) (at : i32) : string = $'!rows[!at as usize].2.clone()' : string
+:= row_command (~rows : process_rows) (at : i32) : string = $'!rows[!at as usize].3.clone()' : string
+:= row_cores (~rows : process_rows) (at : i32) : f64 = $'!rows[!at as usize].4' : f64
+:= row_age (~rows : process_rows) (at : i32) : u64 = $'!rows[!at as usize].5' : u64
+:= row_cpu (~rows : process_rows) (at : i32) : u64 = $'!rows[!at as usize].6' : u64
+:= row_megabytes (~rows : process_rows) (at : i32) : u64 = $'!rows[!at as usize].7' : u64
+:= row_commit_megabytes (~rows : process_rows) (at : i32) : u64 =
+    := index : convert.unativeint = convert.convert at
+    $'!rows[!index].8' : u64
+
+:= tool_names () : string =
+    "dotnet|rustc|cargo|erl|beam.smp|pwsh|powershell|node|bun|gcc|cc1|cc1plus|ld|zig|lean|java|swiftc|swift-fronten"
+    ^^ "d|python|kotlinc|gleam|wasmtime|link|clang|mix|escript|make|git"
+inl supervised_job (~command : string) : string = $'std::rc::Rc::<str>::from((!command).split_whitespace().skip_while(\
+    |word| *word \!= "supervise").nth(1).filter(|word| word.starts_with("job-")).unwrap_or(""))' : string
+:~ cells_vm_at (~command : string) : bool = $'kit_machine_sample::kit_machine_cells_vm(&*!command)' : bool
+
+:~ stalled_jobs_listed () : string = $'kit_machine_sample::kit_machine_stalled_jobs()' : string
+
+:~ history_written (~row : string) : string = $'kit_machine_sample::kit_machine_history_appended(&*!row)' : string
+
+:~ job_left_by (parent : u64) (age : u64) : string = $'kit_machine_sample::kit_machine_job_left(!parent, !age)' : string
+
+:~ left_or_orphan (parent : u64) (age : u64) : process_owner =
+    := job = job_left_by parent age
+    ? job = "" ?> Orphan |: JobLeftover job
+
+:~ ^ owner_walk (~rows : process_rows) (at : i32) (hops : i32) : process_owner =
+    ? at < 0i32 || hops >= 40i32 ?> Orphan
+    |:
+        := name = row_name rows at
+        := job = supervised_job (row_command rows at)
+        ? name = "claude" ?> ClaudeSession (row_pid rows at)
+        |? job <> "" ?> KitJob job
+        |:
+            := parent = row_of_pid rows (row_parent rows at)
+            ? parent < 0i32
+            ?>
+                ? name = "erl" && cells_vm_at (row_command rows at) ?> CellsVm (row_pid rows at)
+                |: left_or_orphan (row_parent rows at) (row_age rows at)
+            |: owner_walk rows parent (hops + 1i32)
+
+:~ owner_of (~rows : process_rows) (at : i32) : process_owner =
+    ? pipe_member (tool_names ()) (row_name rows at) ?> owner_walk rows at 0i32 |: NotATool
+
+:~ busy_at (~rows : process_rows) (at : i32) : busy_process =
+    {
+        pid = row_pid rows at
+        name = row_name rows at
+        cores = row_cores rows at
+        age_minutes = row_age rows at
+        cpu_minutes = row_cpu rows at
+        owner = owner_of rows at
+    }

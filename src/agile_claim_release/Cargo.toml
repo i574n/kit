@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "release.spi"
+output = "release.rs"
+
+[package]
+name = "agile-claim-release"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "agile_claim_release"
+path = "release.rs"

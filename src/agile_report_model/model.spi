@@ -1,0 +1,76 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! from_state = ()
+:! from_todo_scan = ()
+
+:== report_item =
+    {
+        id : string
+        title : string
+        status : string
+        progress : i32
+        age_hours : i32
+    }
+
+:== todo_site =
+    {
+        file : string
+        line : i32
+        id : string
+        standing : string
+    }
+
+:| section source =
+    | NextPerTeam :: string * list report_item -> section from_state
+    | ActiveAging :: list report_item -> section from_state
+    | BlockedOn :: string * list report_item -> section from_state
+    | TodoSites :: list todo_site -> section from_todo_scan
+
+:== report_page =
+    {
+        title : string
+        from_state : list (section from_state)
+        from_todos : list (section from_todo_scan)
+    }
+
+:~ escaped (text : string) : string =
+    sm'.replace ">" "&gt;" (sm'.replace "<" "&lt;" (sm'.replace "&" "&amp;" text))
+
+:~ cell (text : string) : string = "<td>" ++# escaped text ++# "</td>"
+
+:~ item_row (i : report_item) : string =
+    "<tr>" ++# cell i.id ++# cell i.title ++# cell i.status ++# cell (sm'.show i.progress ++# "%")
+    ++# cell (sm'.show i.age_hours ++# " h") ++# "</tr>"
+
+:~ site_row (s : todo_site) : string =
+    "<tr>" ++# cell (s.file ++# ":" ++# sm'.show s.line) ++# cell s.id ++# cell s.standing ++# "</tr>"
+
+:~ table (heading : string) (rows : list string) : string =
+    "<h2>" ++# escaped heading ++# "</h2><table>" ++# sm'.concat_list "" rows ++# "</table>"
+
+:~ section_html \* source. (s : section source) : string =
+    ?= s ?|
+    | NextPerTeam (team, items) => table ("Next for " ++# team) (items |> listm.map item_row)
+    | ActiveAging items => table "Active, by age" (items |> listm.map item_row)
+    | BlockedOn (blocker, items) => table ("Blocked on " ++# blocker) (items |> listm.map item_row)
+    | TodoSites sites => table "TODO comments" (sites |> listm.map site_row)
+
+:~ report_html (page : report_page) : string =
+    := body = listm.append (page.from_state |> listm.map section_html) (page.from_todos |> listm.map section_html)
+    "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>" ++# escaped page.title ++# "</title></head><body><h1>"
+    ++# escaped page.title ++# "</h1>" ++# sm'.concat_list "" body ++# "</body></html>"
+
+///> rust
+:# a_report_renders_typed_sections_and_escapes_text =
+    := a = { id = "KIT-A"; title = "fix <b> & co"; status = "Active"; progress = 40i32; age_hours = 3i32 }
+    := site = { file = "src/x.spi"; line = 12i32; id = "KIT-A"; standing = "open" }
+    := page = { title = "kit board"; from_state = [ NextPerTeam ("kit", [ a ]) ]; from_todos = [ TodoSites [ site ] ] }
+    := html = report_html page
+    testing.expect (sm'.contains "<h2>Next for kit</h2>" html) html
+    testing.expect (sm'.contains "<td>fix &lt;b&gt; &amp; co</td>" html) "titles are escaped"
+    testing.expect (sm'.contains "<td>src/x.spi:12</td>" html) "TODO sites carry file and line"
+    testing.expect (sm'.starts_with "<!DOCTYPE html>" html) "a whole page"

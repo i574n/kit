@@ -1,0 +1,101 @@
+///- --package .
+:# args static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| logs_switch =
+    | SwitchQuiet
+
+:| logs_valued =
+    | ValuedGlob
+    | ValuedSince
+    | ValuedOut
+
+:== logs_args_row =
+    {
+        paths : string
+        glob : string
+        since : string
+        out : string
+        quiet : bool
+        rejected : string
+        measure_words : array_base string
+        measure_values : array_base string
+    }
+
+:== logs_words = { row : logs_args_row; words : array string; values : array string }
+
+:= switch_word (flag : logs_switch) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Switch" flag
+
+:= valued_word (flag : logs_valued) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ valued_applied (flag : logs_valued) (~value : string) (row : logs_args_row) : logs_args_row =
+    ?= flag ?|
+    | ValuedGlob => { row ?| glob = value }
+    | ValuedSince => { row ?| since = value }
+    | ValuedOut => { row ?| out = value }
+
+:~ finished (acc : logs_words) : logs_args_row =
+    := row = acc.row
+    { row ?| measure_words = am'.base acc.words; measure_values = am'.base acc.values }
+
+:~ ^ words_read (words : list string) (acc : logs_words) : logs_args_row =
+    ?= words ?|
+    | [] => finished acc
+    | word :: rest =>
+        := row = acc.row
+        := switched =
+            union_reflection.cases.union_case_where (\ (flag : logs_switch) => word = switch_word flag) Some None
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : logs_valued) => word = valued_word flag) Some None
+        ?= switched, valued, rest ?|
+        | Some _, _, _ => words_read rest { acc ?| row = { row ?| quiet = !+ } }
+        | _ ?& sm'.starts_with "--" word |> not =>
+            := paths = ? row.paths = "" ?> word |: row.paths ++# "\n" ++# word
+            words_read rest { acc ?| row = { row ?| paths = paths } }
+        | _, _, [] => finished { acc ?| row = { row ?| rejected = "option " ++# word ++# " has no value" } }
+        | _, Some flag, (value :: after) => words_read after { acc ?| row = valued_applied flag value row }
+        | _, _, (value :: after) =>
+            words_read after { acc ?| words = acc.words ++ ;[ word ]; values = acc.values ++ ;[ value ] }
+
+:~ args_of (words : list string) : logs_args_row =
+    := none = (;[] : array string) |> am'.base
+    := row =
+        {
+            paths = ""
+            glob = ""
+            since = ""
+            out = ""
+            quiet = !-
+            rejected = ""
+            measure_words = none
+            measure_values = none
+        }
+    words_read words { row = row; words = ;[]; values = ;[] }
+
+:~ ^ dropped (count : i32) (words : list string) : list string =
+    ?= words ?|
+    | _ :: rest ?& count > 0i32 => dropped (count - 1i32) rest
+    | _ => words
+
+:~ logs_args_read (skipped : i32) : array_base logs_args_row =
+    (;[ args_of (dropped skipped (env.command_line_arguments ())) ] : array logs_args_row) |> am'.base
+
+///> rust
+:# logs_flags_read_by_reflection =
+    := row = args_of [ "a.log"; "dir"; "--glob"; "*.log"; "--count"; "e=err"; "--quiet"; "--out"; "t.tsv" ]
+    := sums = args_of [ "a.log"; "--count"; "e=err"; "--sum"; "n=x" ]
+    testing.expect (row.paths = "a.log\ndir" && row.glob = "*.log" && row.out = "t.tsv" && row.quiet) row.paths
+    testing.expect (am'.length_base sums.measure_words = 2i32) "measures are kept in order for the logs crate"
+    := second = am'.index_base 1i32 sums.measure_words, am'.index_base 1i32 sums.measure_values
+    testing.expect (second = ("--sum", "n=x")) "word and value stay paired"
+    testing.expect ((args_of [ "a.log"; "--since" ]).rejected = "option --since has no value") "a value is required"
+    := words = union_reflection.cases.union_cases_joined valued_word "|"
+    testing.expect (words = "--glob|--since|--out") words
+///> _
+:= main () : i32 =
+    export "kit_table_logs_args_read" logs_args_read
+    0i32

@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    agile_team_work
+    agile_team_lane
+link:
+    agile_team_work
+    agile_team_lane
+modules:
+    gate

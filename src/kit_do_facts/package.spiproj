@@ -1,0 +1,17 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    kit_receipt
+    kit_do_records
+    kit_do_model
+    kit_do_verbs
+    kit_do_facts_receipt
+link:
+    kit_do_model
+    kit_do_verbs
+    kit_do_facts_receipt
+modules:
+    host
+    grammar
+    run

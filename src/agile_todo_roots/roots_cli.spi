@@ -1,0 +1,90 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= marked (~text : string) : string = cat (cat "// " (cat "TO" "DO")) text
+
+:= harvest_fixture () : fixture_root =
+    := root = fixture_root_create "agile roots"
+    fixture_write root
+        "state/agile.spi"
+        (
+            "union task_note =\n    | Note :: string -> task_note\n\n"
+            ^^ "inl a () = Task (\"A-1\", \"t\", Story, P1, D1, 0u32, Active, \"\", \"\", \"current\", \"current\")\n"
+        )
+    fixture_write root "repo-a/x.spi" (cat (marked ": alpha") "\n")
+    fixture_write root "repo-b/y.spi" (cat (marked ": beta") "\n")
+    root
+
+:= agile_run (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("agile", args))
+
+:= forward (~path : string) : string =
+    sm'.replace "\\" "/" path
+
+///> rust
+:# stored_roots_feed_a_bare_todos_call =
+    := root = harvest_fixture ()
+    := state = fixture_text_of root
+    := repo_a = fixture_path root "repo-a"
+    := repo_b = fixture_path root "repo-b"
+    shows (succeeded (agile_run root (Arg ("roots", Arg (state, NoArgs))))) "kit agile roots ok action=list roots=0"
+    shows (succeeded (agile_run root (Arg ("todos", Arg (state, NoArgs))))) "roots=1"
+    := added = succeeded (agile_run root (Arg ("roots", Arg (state, Arg ("add", Arg (repo_a, Arg (repo_b, NoArgs)))))))
+    shows added (cat "root " (forward repo_a))
+    shows added "kit agile roots ok action=add roots=2 bytes_before="
+    shows
+        (fixture_read root "state/agile.spi")
+        "union harvest_root =\n    | HarvestRoot :: string -> harvest_root\n\ninl harvest_root_"
+    := both = succeeded (agile_run root (Arg ("todos", Arg (state, NoArgs))))
+    shows both "repo-a/x.spi:1"
+    shows both "repo-b/y.spi:1"
+    shows both "roots=2"
+    rejected_with
+        (agile_run root (Arg ("roots", Arg (state, Arg ("add", Arg (cat repo_b "/", NoArgs))))))
+        2i32
+        "is already a harvest root"
+    shows
+        (succeeded (agile_run root (Arg ("roots", Arg (state, Arg ("drop", Arg (repo_a, NoArgs)))))))
+        "action=drop roots=1"
+    := one = succeeded (agile_run root (Arg ("todos", Arg (state, NoArgs))))
+    hides one "repo-a/x.spi"
+    shows one "repo-b/y.spi:1"
+    shows (succeeded (agile_run root (Arg ("todos", Arg (state, Arg (repo_a, NoArgs)))))) "repo-a/x.spi:1"
+    fixture_root_remove root
+
+///> rust
+:# setting_an_item_done_is_refused_while_a_block_names_it =
+    := root = harvest_fixture ()
+    := state = fixture_text_of root
+    fixture_write root "repo-a/z.spi" (cat (marked ": A-1 finish the slice") "\n")
+    := before = fixture_read root "state/agile.spi"
+    := refused = agile_run root (Arg ("set", Arg (state, Arg ("A-1", Arg ("100", Arg ("Done", NoArgs))))))
+    rejected_with refused 2i32 "agile set A-1 rejected: TODO blocks still name it; cut them or keep the item open:"
+    shows refused.stderr "repo-a/z.spi:1  // "
+    hides refused.stderr "x.spi"
+    same (fixture_read root "state/agile.spi") before
+    fixture_root_remove root
+
+///> rust
+:# roots_refuse_unknown_actions_and_missing_paths =
+    := root = harvest_fixture ()
+    := state = fixture_text_of root
+    rejected_with
+        (agile_run root (Arg ("roots", Arg (state, Arg ("list", NoArgs)))))
+        2i32
+        "agile roots rejected: unknown action list (expected add or drop)"
+    rejected_with
+        (agile_run root (Arg ("roots", Arg (state, Arg ("add", NoArgs)))))
+        2i32
+        "add and drop need at least one path"
+    rejected_with
+        (agile_run root (Arg ("roots", Arg (state, Arg ("drop", Arg (fixture_path root "repo-a", NoArgs))))))
+        2i32
+        "is not a harvest root"
+    same
+        (fixture_read root "state/agile.spi")
+        (
+            "union task_note =\n    | Note :: string -> task_note\n\n"
+            ^^ "inl a () = Task (\"A-1\", \"t\", Story, P1, D1, 0u32, Active, \"\", \"\", \"current\", \"current\")\n"
+        )
+    fixture_root_remove root

@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "manifest_walk.spi"
+output = "manifest_walk.rs"
+
+[package]
+name = "kit-proof-scope-manifests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_proof_scope_manifests"
+path = "manifest_walk.rs"

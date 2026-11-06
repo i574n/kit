@@ -1,0 +1,31 @@
+:< rewriter
+
+:= main () : i32 =
+    ? (=.) (host.count ()) 5i32
+    ?>
+        := kind = host.argument 1i32
+        := name = host.argument 2i32
+        := input = host.argument 3i32
+        := output = host.argument 4i32
+        ? sm'.ends_with ".spi" input && sm'.ends_with ".spi" output
+        ?>
+            ?= rewriter.rewrite (host.read input) name kind ?|
+            | Rejected reason =>
+                host.print (predicate_rules.model.append reason "\n")
+                2i32
+            | Candidate source =>
+                := code = host.write_new output source
+                ? (=.) code 0i32
+                ?> host.print "Spiral candidate written; input unchanged. Regenerate and test before publication.\n"
+                |: host.print "Cannot create candidate; output must not exist.\n"
+                code
+        |:
+            host.print "Input and output must be .spi files.\n"
+            2i32
+    |:
+        host.print """
+            kit-lift-predicate <sha256|receipt-text> <function> <input.spi> <new-output.spi>
+            Add typed_predicate to the owning package before regenerating.
+
+            """
+        ? (=.) (host.count ()) 2i32 && predicate_rules.model.equal (host.argument 1i32) "--help" ?> 0i32 |: 2i32

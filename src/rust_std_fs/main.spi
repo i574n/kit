@@ -1,0 +1,28 @@
+:< model
+
+:= target_path () = "/tmp/kit-rust-std-fs-target.txt"
+
+:= cleanup () : bool = model.remove_file (target_path ())
+
+:= stage_promote_restore_discard () : bool =
+    ? model.write_text (target_path ()) "original" ?>
+        := target = model.target (target_path ())
+        := backup = model.backup target (model.original_body "original")
+        := staged = model.stage target (model.patch_body "probe")
+        ? model.promote target staged
+            && model.text_equals "probe" (target_path ()) ?>
+            := restoration =
+                model.execute_restoration (model.grant_restoration ()) RestoreBackup backup
+            ? model.restoration_succeeded restoration
+                && model.text_equals "original" (target_path ()) ?>
+                := pending = model.stage target (model.patch_body "pending")
+                model.discard pending
+                    && model.staged_missing pending
+                    && model.text_equals "original" (target_path ())
+            |: !-
+        |: !-
+    |: !-
+
+:= main () : i32 =
+    := passed = cleanup () && stage_promote_restore_discard ()
+    ? passed && cleanup () ?> 0i32 |: 1i32

@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "affected.spi"
+output = "affected.rs"
+
+[package]
+name = "kit-repo-affected"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_repo_affected"
+path = "affected.rs"

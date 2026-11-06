@@ -1,0 +1,17 @@
+[package.metadata.kit]
+test-requires-cli = true
+
+[package.metadata.spiral]
+entry = "contracts.spi"
+output = "contracts.rs"
+
+[package]
+name = "kit-contracts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_contracts"
+path = "contracts.rs"

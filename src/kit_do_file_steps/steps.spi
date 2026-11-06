@@ -1,0 +1,193 @@
+///- --package .
+:# steps static =
+    :< sm'_operators
+    :< file_system_operators
+    :< kit_receipt.receipt
+    :< kit_do_write_host.host
+    :< kit_do_records.records
+    :< kit_do_verbs.verbs
+
+:< sm'_operators
+:< file_system_operators
+:< kit_receipt.receipt
+:< kit_do_write_host.host
+:< kit_do_records.records
+:< kit_do_verbs.verbs
+
+:== copy_tally =
+    {
+        report : string
+        failed : bool
+        copied : u64
+        skipped : u64
+        bytes : u64
+    }
+
+:~ joined (~left : string) (~right : string) : string =
+    ? right = "" ?> left |? left = "" ?> right |: left ++# "\n" ++# right
+
+:~ counted (~count : u64) (~one : string) (~many : string) : string =
+    (decimal_text count) ++# " " ++# (? count = 1u64 ?> one |: many)
+
+:~ append_step (~root : string) (~path : string) (~line : string) : string * bool * u64 * u64 =
+    := before = file_text root path
+    := newline = ? uses_crlf before ?> crlf () |: "\n"
+    := filled = clock_filled line (local_offset_minutes ())
+    := added = (? ended_with_newline before ?> "" |: newline) ++# filled ++# newline
+    := problem = appended_to root path added
+    ? problem = ""
+    ?>
+        := after = file_text root path
+        := bytes = text_bytes added
+        := lines = line_count filled
+        := totals =
+            "  now "
+            ++# (counted (line_count after) "line" "lines")
+            ++# ", "
+            ++# (counted (text_bytes after) "byte" "bytes")
+        := row =
+            "append "
+            ++# path
+            ++# "  "
+            ++# (counted lines "line" "lines")
+            ++# ("  " ++# (counted bytes "byte" "bytes") ++# totals)
+        row, !-, lines, bytes
+    |: problem, !+, 0u64, 0u64
+
+:~ append_preview (~root : string) (~path : string) (~line : string) : string * u64 =
+    := before = file_text root path
+    := newline = ? uses_crlf before ?> crlf () |: "\n"
+    := filled = clock_filled line (local_offset_minutes ())
+    := added = (? ended_with_newline before ?> "" |: newline) ++# filled ++# newline
+    := parent = optionm'.default_value' "" (file_system.directory_get_parent (root </> path))
+    := creates = ? parent <> "" && not (file_system.directory_exists parent) ?> "  creates " ++# parent |: ""
+    := bytes = text_bytes added
+    := sizes = (counted (line_count filled) "line" "lines") ++# "  " ++# (counted bytes "byte" "bytes")
+    "append " ++# path ++# "  " ++# sizes ++# creates, bytes
+
+:~ append_previewed (~root : string) (~records : record_list) (index : i32) : string * u64 * u64 * bool =
+    := path = body_at records index 2i32
+    ? path = "" || quoted_at records index 2i32 || not (quoted_at records index 3i32)
+    ?> "append: expected a file, then the quoted line", 0u64, 0u64, !+
+    |:
+        := row, added = append_preview root path (body_at records index 3i32)
+        row, 1u64, added, !-
+
+:~ step_previewed (~root : string) (~records : record_list) (index : i32) (step : write_verb)
+    : string * u64 * u64 * bool
+    =
+    ?= step ?|
+    | FileAppend => append_previewed root records index
+    | _ => "dry run previews append only; " ++# write_word step ++# " runs only without --dry-run", 0u64, 0u64, !+
+:~ ^ previews_from
+    (~root : string) (~records : record_list) (index : i32) (~rows : string) (appends : u64) (bytes : u64)
+    (failed : bool)
+    : string * u64 * u64 * bool
+    =
+    ? index < record_count records
+    ?>
+        := next = index + 1i32
+        := kind = field_at records index 0i32
+        ? kind = "" ?> previews_from root records next rows appends bytes failed
+        |:
+            ?= write_named (field_at records index 1i32) ?|
+            | None => previews_from root records next rows appends bytes failed
+            | Some step =>
+                := row, counted, added, refused = step_previewed root records index step
+                := failing = failed || refused
+                previews_from root records next (joined rows row) (appends + counted) (bytes + added) failing
+    |: rows, appends, bytes, failed
+
+:~ writes_preview (~root : string) (~encoded : string) : i32 =
+    := started = now_ms ()
+    := rows, appends, bytes, failed = previews_from root (records_of encoded) 1i32 "" 0u64 0u64 !-
+    ? rows = "" ?> () |: stdout_line rows
+    := counts = "appends " ++# decimal_text appends ++# "  bytes " ++# decimal_text bytes
+    := counts = counts ++# "  dry run, nothing written"
+    ? failed
+    ?>
+        receipt_line Failed counts started
+        2i32
+    |:
+        receipt_line Succeeded counts started
+        0i32
+
+:~ ^ copies_run
+    (~root : string) (~base : string) (~destination : string) (~excluded : string) (~paths : string) (~index : u64)
+    (~state : copy_tally)
+    : copy_tally
+    =
+    ? index < line_count paths ?>
+        := path = line_at paths index
+        := next =
+            ? excluded_by excluded path ?> { state ?| skipped = state.skipped + 1u64 }
+            |:
+                := bytes = copied_bytes root path (destination ++# "/" ++# (relative_under base path))
+                ? bytes < 0i64
+                ?> { state ?| failed = !+; report = joined state.report ("copy " ++# path ++# "  failed") }
+                |: { state ?| copied = state.copied + 1u64; bytes = state.bytes + unsigned bytes }
+        copies_run root base destination excluded paths (index + 1u64) next
+    |: state
+
+:~ copy_base (~source : string) (literal_file : bool) : string =
+    := base = glob_base source
+    ? not literal_file || base <> sm'.replace "\\" "/" source ?> base
+    |:
+        := at = sm'.last_index_of "/" base
+        ? at < 0i32 ?> "" |: sm'.substring 0i32 at base
+
+:~ copy_step
+    (~root : string) (~source : string) (~destination : string) (~excluded : string)
+    : string * bool * u64 * u64 * u64
+    =
+    := base = copy_base source (file_system.file_exists (root </> source))
+    := paths = matching root source
+    := after =
+        copies_run root base destination excluded paths 0u64 {
+            report = ""
+            failed = !-
+            copied = 0u64
+            skipped = 0u64
+            bytes = 0u64
+        }
+    := exclusions =
+        ? excluded = "" ?> ""
+        |: "  " ++# decimal_text after.skipped ++# " skipped (" ++# (sm'.replace "\n" ", " excluded) ++# ")"
+    := row =
+        "copy "
+        ++# (? base = "" ?> "." |: base)
+        ++# " -> "
+        ++# destination
+        ++# (
+            "  "
+            ++# (counted after.copied "file" "files")
+            ++# "  "
+            ++# (counted after.bytes "byte" "bytes")
+            ++# exclusions
+        )
+    := failed = after.failed || paths = ""
+    := report = ? paths = "" ?> "copy: no file matched " ++# source |: row
+    joined after.report report, failed, after.copied, after.skipped, after.bytes
+
+///> rust
+:# a_literal_file_copies_by_its_own_name =
+    := expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+    expect (copy_base "src/a.txt" !+ = "src") "a literal file is relative to its folder"
+    expect (copy_base "a.txt" !+ = "") "a literal file at the root"
+    expect (copy_base "src\\pkg\\a.txt" !+ = "src/pkg") "backslashes"
+    expect (copy_base "src" !- = "src") "a literal folder keeps its contents' paths"
+    expect (copy_base "src/**/*.spi" !- = "src") "a glob keeps its base"
+
+///> _
+:= main () : i32 =
+    export
+        "kit_do_append_step"
+        ((\ (root, path, line) => append_step root path line) : string * string * string -> string * bool * u64 * u64)
+    export "kit_do_writes_preview" ((\ (root, encoded) => writes_preview root encoded) : string * string -> i32)
+    export
+        "kit_do_copy_step"
+        (
+            \ (root, source, destination, excluded) => copy_step root source destination excluded
+            : string * string * string * string -> string * bool * u64 * u64 * u64
+        )
+    0i32

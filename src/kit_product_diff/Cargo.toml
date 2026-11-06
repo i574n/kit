@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "main.spi"
+output = "product_diff.rs"
+
+[package]
+name = "kit-product-diff"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_product_diff"
+path = "product_diff.rs"
+
+[dependencies]
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-source-map = { path = "../kit_source_map" }
+rayon = "1.12.0"

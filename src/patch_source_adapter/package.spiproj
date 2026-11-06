@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    patch_resume_contract
+modules:
+    main

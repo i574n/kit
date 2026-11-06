@@ -1,0 +1,13 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_receipt
+    kit_read_query
+    kit_grep_found
+link:
+    kit_grep_found
+modules:
+    hits
+    search
+    grep

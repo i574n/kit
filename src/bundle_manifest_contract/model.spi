@@ -1,0 +1,56 @@
+:! manifest_idle = ()
+:! manifest_collected = ()
+:! archive_written = ()
+:! manifest_verified = ()
+
+:| manifest_policy =
+    | LexicographicUtf8
+    | RejectUnsafeRelativePath
+    | RejectDuplicateEntry
+    | RejectNestedZip
+    | FixedDosEpoch
+    | PreserveExecutableMode
+
+:| manifest_op from to =
+    | CollectDeterministicManifest :: manifest_op manifest_idle manifest_collected
+    | WriteDeterministicStoreArchive :: manifest_op manifest_collected archive_written
+    | VerifyExactManifestParity :: manifest_op archive_written manifest_verified
+
+:| ^ manifest_plan from to =
+    | ManifestStep :: \* from to. manifest_op from to -> manifest_plan from to
+    | ManifestThen :: \* from to.
+        (\? middle. manifest_plan from middle * manifest_plan middle to) ->
+        manifest_plan from to
+
+:= deterministic_plan () : manifest_plan manifest_idle manifest_verified =
+    ManifestThen (\? (
+        ManifestStep CollectDeterministicManifest,
+        ManifestThen (\? (
+            ManifestStep WriteDeterministicStoreArchive,
+            ManifestStep VerifyExactManifestParity
+        ))
+    ))
+
+:~ manifest_parity_binding (entry_count_equal : i32) (fingerprint_equal : i32) : i32 =
+    ? entry_count_equal < 1i32 ?> 0i32
+    |? 1i32 < entry_count_equal ?> 0i32
+    |? fingerprint_equal < 1i32 ?> 0i32
+    |? 1i32 < fingerprint_equal ?> 0i32
+    |: 1i32
+
+:~ manifest_executable_mode_binding (root_kit_seen : i32) (root_kit_executable : i32) : i32 =
+    ? root_kit_seen < 1i32 ?> 1i32
+    |? 1i32 < root_kit_seen ?> 0i32
+    |? root_kit_executable < 1i32 ?> 0i32
+    |? 1i32 < root_kit_executable ?> 0i32
+    |: 1i32
+
+:= executable_mode_passed (value : i32) : bool =
+    ? value < 1i32 ?> !-
+    |? 1i32 < value ?> !-
+    |: !+
+
+:= parity_passed (value : i32) : bool =
+    ? value < 1i32 ?> !-
+    |? 1i32 < value ?> !-
+    |: !+

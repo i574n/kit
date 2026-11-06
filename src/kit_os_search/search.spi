@@ -1,0 +1,6 @@
+:= regex_matches (found : sm'.regex) (~line : string) : bool = $'!found.is_match(&*!line)' : bool
+
+:= regex_problem (problem : sm'.regex_error) : string = $'std::rc::Rc::<str>::from(!problem.to_string().as_str())' : string
+
+:= text_lossy (~path : string) : string =
+    $'std::rc::Rc::<str>::from(String::from_utf8_lossy(&std::fs::read(&*!path).unwrap_or_default()).as_ref())' : string

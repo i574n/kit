@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    kit_os_files
+    kit_os_search
+modules:
+    found

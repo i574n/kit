@@ -1,0 +1,10 @@
+:| semantic_closeout_state =
+    | SemanticCloseoutCurrent
+    | SemanticCloseoutBlocked
+
+:~ semantic_closeout_verdict_binding (gate_mask : i32) (flags : i32) : i32 =
+    ? gate_mask < 63i32 ?> 0i32
+    |? 63i32 < gate_mask ?> 0i32
+    |? flags < 7i32 ?> 0i32
+    |? 7i32 < flags ?> 0i32
+    |: 1i32

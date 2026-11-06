@@ -1,0 +1,83 @@
+:< rust_std_fs.model
+
+:! policy_owner = string
+:! agile_owner = string
+:! move_pending owner = owner
+:! move_absent owner = owner
+:! move_source_ready owner = owner
+:! move_verified owner = owner
+:! move_cleaned owner = owner
+
+:| file_move_transition from to =
+    | EnsureMoveAbsent :: \* owner. string -> file_move_transition (move_pending owner) (move_absent owner)
+    | WriteMoveSource :: \* owner. string -> file_move_transition (move_absent owner) (move_source_ready owner)
+    | MoveAndVerify :: \* owner. string -> file_move_transition (move_source_ready owner) (move_verified owner)
+    | CleanupMove :: \* owner. string -> file_move_transition (move_verified owner) (move_cleaned owner)
+
+:| ^ file_move_plan from to =
+    | FileMoveStep :: \* from to. file_move_transition from to -> file_move_plan from to
+    | FileMoveThen :: \* from to.
+        (\? middle. file_move_plan from middle * file_move_plan middle to) ->
+        file_move_plan from to
+
+:| move_outcome =
+    | MoveAccepted : string
+    | MoveRejected : string
+    | MoveFailed : string
+
+:= ensure_absent_step \* owner. () : file_move_plan (move_pending owner) (move_absent owner) =
+    FileMoveStep (EnsureMoveAbsent "ensure-move-absent")
+
+:= write_source_step \* owner. () : file_move_plan (move_absent owner) (move_source_ready owner) =
+    FileMoveStep (WriteMoveSource "write-move-source")
+
+:= move_verify_step \* owner. () : file_move_plan (move_source_ready owner) (move_verified owner) =
+    FileMoveStep (MoveAndVerify "move-and-verify")
+
+:= cleanup_move_step \* owner. () : file_move_plan (move_verified owner) (move_cleaned owner) =
+    FileMoveStep (CleanupMove "cleanup-move")
+
+:= full_plan \* owner. () : file_move_plan (move_pending owner) (move_cleaned owner) =
+    FileMoveThen (
+        \? (
+            ensure_absent_step (),
+            FileMoveThen (
+                \? (
+                    write_source_step (),
+                    FileMoveThen (
+                        \? (
+                            move_verify_step (),
+                            cleanup_move_step ()))))))
+
+:= policy_plan () : file_move_plan (move_pending policy_owner) (move_cleaned policy_owner) = full_plan ()
+:= agile_plan () : file_move_plan (move_pending agile_owner) (move_cleaned agile_owner) = full_plan ()
+
+:= cleanup (source : string) (target : string) : bool =
+    remove_file source && remove_file target && file_missing source && file_missing target
+
+:= run (source : string) (target : string) (expected : string) (actual : string) : move_outcome =
+    ? cleanup source target ?>
+        ? write_text source actual ?>
+            ? rename target source ?>
+                ? file_missing source && file_exists target && text_equals expected target ?>
+                    ? cleanup source target
+                    ?> MoveAccepted "exact-move-accepted"
+                    |: MoveFailed "accepted-move-cleanup-failed"
+                |:
+                    ? cleanup source target
+                    ?> MoveRejected "exact-move-readback-mismatch"
+                    |: MoveFailed "rejected-move-cleanup-failed"
+            |:
+                ? cleanup source target
+                ?> MoveFailed "exact-move-commit-failed"
+                |: MoveFailed "exact-move-failure-cleanup-failed"
+        |: MoveFailed "move-source-write-failed"
+    |: MoveFailed "move-ensure-absent-failed"
+
+:= policy_move (source : string) (target : string) (text : string) : move_outcome =
+    := _ = policy_plan ()
+    run source target text text
+
+:= agile_rejection (source : string) (target : string) (expected : string) (actual : string) : move_outcome =
+    := _ = agile_plan ()
+    run source target expected actual

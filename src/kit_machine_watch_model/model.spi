@@ -1,0 +1,333 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+    :< rust_std_string.model
+
+:< sm'_operators
+:< rust_std_string.model
+
+:| process_owner =
+    | ClaudeSession : u64
+    | KitJob : string
+    | CellsVm : u64
+    | JobLeftover : string
+    | Orphan
+    | NotATool
+
+:~ owner_text (owner : process_owner) : string =
+    ?= owner ?|
+    | ClaudeSession pid => "claude:" ++# sm'.decimal_text pid
+    | KitJob id => "kit:" ++# id
+    | CellsVm pid => "cells-vm:" ++# sm'.decimal_text pid
+    | JobLeftover id => "left-by:" ++# id
+    | Orphan => "orphan"
+    | NotATool => "-"
+
+:! working_set = ()
+:! commit = ()
+
+:| ^ mem k =
+    | WorkingSetBytes :: u64 -> mem working_set
+    | CommitBytes :: u64 -> mem commit
+
+:= mem_bytes \* k. (m : mem k) : u64 =
+    ?= m ?|
+    | WorkingSetBytes b => b
+    | CommitBytes b => b
+
+///> rust
+:# mem_carries_its_bytes_by_kind =
+    ? mem_bytes (CommitBytes 51u64) = 51u64 ?> () |: failwith "commit bytes round-trip"
+    ? mem_bytes (WorkingSetBytes 3u64) = 3u64 ?> () |: failwith "working-set bytes round-trip"
+
+:== over_commit_hit =
+    {
+        pid : u64
+        commit : mem commit
+        limit : mem commit
+    }
+
+:| guard_verdict =
+    | Under
+    | Over : over_commit_hit
+
+:= over_by (pid : u64) (commit : mem commit) (limit : mem commit) : guard_verdict =
+    ? mem_bytes commit > mem_bytes limit
+    ?> Over { pid = pid; commit = commit; limit = limit }
+    |: Under
+
+///> rust
+:# over_commit_flags_only_above_the_limit =
+    ?= over_by 100u64 (CommitBytes 9000u64) (CommitBytes 8000u64) ?|
+    | Over hit => ? hit.pid = 100u64 ?> () |: failwith "an Over verdict keeps the pid"
+    | Under => failwith "9000 commit over an 8000 limit must be Over"
+    ?= over_by 101u64 (CommitBytes 3000u64) (CommitBytes 8000u64) ?|
+    | Over _ => failwith "3000 commit under an 8000 limit must be Under"
+    | Under => ()
+
+:== watch_limits =
+    {
+        silent_minutes : u64
+        rogue_minutes : u64
+        rogue_cores : f64
+        hog_megabytes : u64
+    }
+
+:= default_limits () : watch_limits =
+    { silent_minutes = 60u64; rogue_minutes = 30u64; rogue_cores = 0.8f64; hog_megabytes = 8192u64 }
+
+:== busy_process =
+    {
+        pid : u64
+        name : string
+        cores : f64
+        age_minutes : u64
+        cpu_minutes : u64
+        owner : process_owner
+    }
+
+:= orphaned (owner : process_owner) : bool =
+    ?= owner ?|
+    | Orphan => !+
+    | _ => !-
+
+:= left_behind (owner : process_owner) : bool =
+    ?= owner ?|
+    | JobLeftover _ => !+
+    | _ => !-
+
+:= left_by
+    (parent : u64) (born_seconds : u64) (job_pid : u64) (job_supervisor : u64) (started_ms : u64) (settled : bool)
+    : bool
+    =
+    settled && parent > 4u64 && (parent = job_pid || parent = job_supervisor) && born_seconds >= started_ms / 1000u64
+
+:= tool_owned (owner : process_owner) : bool =
+    ?= owner ?|
+    | NotATool => !-
+    | _ => !+
+
+:| health_verdict =
+    | Healthy
+    | Unowned
+    | Dangling
+    | Leftover
+    | Hog
+
+:= health_of
+    (limits : watch_limits) (owner : process_owner) (megabytes : u64) (cores : f64) (age : u64)
+    : health_verdict
+    =
+    ?= owner ?|
+    | JobLeftover _ => Leftover
+    | Orphan => ? cores >= limits.rogue_cores && age >= limits.rogue_minutes ?> Dangling |: Unowned
+    | _ => ? megabytes >= limits.hog_megabytes ?> Hog |: Healthy
+
+:= health_text = \|
+    | Healthy => "ok"
+    | Unowned => "unowned"
+    | Dangling => "dangling"
+    | Leftover => "leftover"
+    | Hog => "hog"
+
+:~ ^ sorted_in (value : u64) (sorted : list u64) : list u64 =
+    ?= sorted ?|
+    | [] => [ value ]
+    | head :: rest => ? value <= head ?> value :: sorted |: head :: sorted_in value rest
+
+:~ ^ nth_of (sorted : list u64) (index : i32) : u64 =
+    ?= sorted ?|
+    | [] => 0u64
+    | head :: rest => ? index <= 0i32 ?> head |: nth_of rest (index - 1i32)
+
+:~ usual_ms (finished : list u64) : u64 =
+    := sorted = listm.fold (\ acc (value : u64) => sorted_in value acc) [] finished
+    nth_of sorted ((listm.length finished : i32) / 2i32)
+
+:~ stalled_by (elapsed_ms : u64) (finished : list u64) : bool =
+    (listm.length finished : i32) >= 3i32 && elapsed_ms > 2u64 * usual_ms finished
+
+:= health_failing = \|
+    | Dangling => !+
+    | Leftover => !+
+    | _ => !-
+
+:~ rogue (limits : watch_limits) (busy : busy_process) : bool =
+    := cpu_minutes : f64 = conv busy.cpu_minutes
+    := age_minutes : f64 = conv busy.age_minutes
+    := long_busy = busy.age_minutes >= 180u64 && cpu_minutes >= 0.8f64 * age_minutes
+    tool_owned busy.owner
+    && busy.cores >= limits.rogue_cores
+    && ((orphaned busy.owner && busy.age_minutes >= limits.rogue_minutes) || left_behind busy.owner || long_busy)
+
+:| quiet_verdict =
+    | Talking
+    | Buffered : f64
+    | QuietInLiveBlock
+    | WaitingByDesign : string
+    | CellsBusy : f64
+    | Silent : u64
+
+:== quiet_job =
+    {
+        quiet_minutes : u64
+        tree_cores : f64
+        live_block : bool
+        last_line : string
+        cells_cores : f64
+    }
+
+:= lowercase (~text : string) : string = $'std::rc::Rc::<str>::from((&*!text).to_lowercase())' : string
+
+:~ quiet_verdict_of (limits : watch_limits) (job : quiet_job) : quiet_verdict =
+    ? job.quiet_minutes < limits.silent_minutes ?> Talking
+    |? job.tree_cores >= 0.1f64 ?> Buffered job.tree_cores
+    |? job.live_block ?> QuietInLiveBlock
+    |? contains (lowercase job.last_line) "waiting for" ?> WaitingByDesign job.last_line
+    |? job.cells_cores >= 0.5f64 ?> CellsBusy job.cells_cores
+    |: Silent job.quiet_minutes
+
+:= cores_text (cores : f64) : string = $'std::rc::Rc::<str>::from(format\!("{:.2}", !cores))' : string
+:= minutes_text (minutes : u64) : string = sm'.decimal_text minutes
+
+:~ verdict_text (verdict : quiet_verdict) : string =
+    ?= verdict ?|
+    | Talking => ""
+    | Buffered cores => concat5 "  (quiet output, tree busy " (cores_text cores) " cores: buffered)" "" ""
+    | QuietInLiveBlock => "  (quiet during a live block: waiting for a window is expected)"
+    | WaitingByDesign line => concat5 "  (waiting by design, last line: " line ")" "" ""
+    | CellsBusy cores =>
+        concat5
+            "  (quiet, tree idle, detached Cells VMs use "
+            (cores_text cores)
+            " cores: likely this job's compiler work)"
+            ""
+            ""
+    | Silent minutes =>
+        concat5 "  <- SILENT " (minutes_text minutes) " min, tree idle: check the job's own progress files" "" ""
+
+:| window_health =
+    | WindowFine
+    | WindowStale : string
+
+:~ window_health_of (~held : bool) (~job_state : string) : window_health =
+    ? held && job_state <> "" && job_state <> "running" && job_state <> "queued" ?> WindowStale job_state
+    |: WindowFine
+
+:= window_text = \|
+    | WindowFine => ""
+    | WindowStale state => concat5 "  <- STALE: job is " state "" "" ""
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:~ cells_vm_command (~command : string) : bool =
+    := lower = lowercase command
+    contains lower "spiral.notebook" || contains lower "spiral-cells" || contains lower "cells-build"
+    || contains lower "spiral.cells.compilerdaemon"
+
+///> rust
+:# cells_compiler_daemons_count_as_cells_vms_not_orphans =
+    := daemon = "erl -noshell -s Elixir.Spiral.Cells.CompilerDaemon serve_app -extra 13905"
+    expect (cells_vm_command daemon) "the detached compiler daemon"
+    expect (cells_vm_command "erl -run Spiral.Notebook main") "a notebook VM, as before"
+    expect (cells_vm_command "erl -s some_other_app" |> not) "another erl stays a plain tool"
+
+///> rust
+:# a_tool_whose_dead_parent_was_a_settled_job_is_that_jobs_leftover =
+    expect (left_by 700u64 2000u64 700u64 690u64 1999000u64 !+) "the job's root process was the parent"
+    expect (left_by 690u64 2000u64 700u64 690u64 1999000u64 !+) "the job's supervisor was the parent"
+    expect (left_by 700u64 2000u64 700u64 690u64 1999000u64 !- |> not) "a running job owns its tree"
+    expect (left_by 700u64 1990u64 700u64 690u64 1999000u64 !+ |> not) "born before the job started: a reused pid"
+    expect (left_by 4u64 2000u64 4u64 4u64 1999000u64 !+ |> not) "the kernel is never a job"
+    expect (left_by 701u64 2000u64 700u64 690u64 1999000u64 !+ |> not) "another parent"
+    expect (owner_text (JobLeftover "job-1-x") = "left-by:job-1-x") "label"
+    expect (owner_text (ClaudeSession 42u64) = "claude:42") "session label"
+    := limits = default_limits ()
+    := busy = { pid = 9u64; name = "rustc"; cores = 1.0f64; age_minutes = 2u64; cpu_minutes = 1u64; owner = Orphan }
+    expect (rogue limits busy |> not) "a young orphan is not yet a rogue"
+    expect (rogue limits { busy ?| owner = JobLeftover "job-1-x" }) "a busy leftover of a settled job is one at once"
+    expect (rogue limits { busy ?| owner = JobLeftover "job-1-x"; cores = 0.1f64 } |> not) "an idle leftover is not"
+
+///> rust
+:# health_names_leftovers_and_dangling_tools_before_hogs =
+    := limits = default_limits ()
+    := leftover = health_of limits (JobLeftover "job-1-x") 9000u64 0.0f64 1u64
+    expect (health_text leftover = "leftover" && health_failing leftover) "a leftover fails, even when idle"
+    := runaway = health_of limits Orphan 10u64 1.0f64 45u64
+    expect (health_text runaway = "dangling" && health_failing runaway) "a busy orphan past the rogue age"
+    := idle = health_of limits Orphan 10u64 0.0f64 750u64
+    expect (health_text idle = "unowned" && (health_failing idle |> not)) "an idle orphan is reported, not failed"
+    expect (health_text (health_of limits Orphan 10u64 1.0f64 1u64) = "unowned") "young and busy is not yet dangling"
+    := hog = health_of limits (KitJob "job-2-y") 9000u64 0.0f64 1u64
+    expect (health_text hog = "hog" && (health_failing hog |> not)) "a hog is reported, not failed"
+    expect (health_text (health_of limits (CellsVm 7u64) 100u64 2.0f64 90u64) = "ok") "a Cells VM is detached by design"
+
+///> rust
+:# a_running_job_past_twice_its_labels_usual_time_is_stalled =
+    expect (usual_ms [ 300u64; 100u64; 200u64 ] = 200u64) "the median of three runs"
+    expect (stalled_by 401u64 [ 300u64; 100u64; 200u64 ]) "over twice the median"
+    expect (stalled_by 400u64 [ 300u64; 100u64; 200u64 ] |> not) "exactly twice is not yet stalled"
+    expect (stalled_by 9000u64 [ 100u64; 200u64 ] |> not) "two runs are too few to judge"
+
+:= quiet (minutes : u64) (tree : f64) (live : bool) (~line : string) (cells : f64) : quiet_job =
+    { quiet_minutes = minutes; tree_cores = tree; live_block = live; last_line = line; cells_cores = cells }
+
+///> rust
+:# quiet_jobs_get_the_first_explanation_that_fits =
+    := limits = default_limits ()
+    expect (verdict_text (quiet_verdict_of limits (quiet 10u64 0.0f64 !- "" 0.0f64)) = "") "under the silence limit"
+    expect
+        (
+            sm'.contains
+                "buffered"
+                (verdict_text (quiet_verdict_of limits (quiet 90u64 1.5f64 !+ "" 0.0f64)))
+        )
+        "a busy tree is buffered even in a live block"
+    expect
+        (
+            sm'.contains
+                "live block"
+                (verdict_text (quiet_verdict_of limits (quiet 90u64 0.0f64 !+ "" 0.0f64)))
+        )
+        "live block"
+    expect
+        (
+            sm'.contains
+                "waiting by design"
+                (verdict_text (quiet_verdict_of limits (quiet 90u64 0.0f64 !- "Waiting for r29 to install" 0.0f64)))
+        )
+        "waiting by design"
+    expect
+        (
+            sm'.contains
+                "Cells VMs"
+                (verdict_text (quiet_verdict_of limits (quiet 90u64 0.0f64 !- "" 2.0f64)))
+        )
+        "cells work"
+    expect
+        (
+            sm'.contains
+                "SILENT 90 min"
+                (verdict_text (quiet_verdict_of limits (quiet 90u64 0.0f64 !- "" 0.0f64)))
+        )
+        "silent"
+
+///> rust
+:# rogues_are_orphaned_or_long_busy_tools =
+    := limits = default_limits ()
+    := orphan =
+        { pid = 1u64; name = "dotnet"; cores = 1.0f64; age_minutes = 45u64; cpu_minutes = 20u64; owner = Orphan }
+    expect (rogue limits orphan) "an orphan tool over its age"
+    expect (rogue limits { orphan ?| owner = ClaudeSession 9u64 } = !-) "an owned young tool"
+    expect
+        (rogue limits { orphan ?| owner = ClaudeSession 9u64; age_minutes = 200u64; cpu_minutes = 190u64 })
+        "busy 95% of 3 h"
+    expect (rogue limits { orphan ?| owner = NotATool } = !-) "not a tool"
+    expect (rogue limits { orphan ?| cores = 0.5f64 } = !-) "below the core threshold"
+
+///> rust
+:# held_windows_of_ended_jobs_are_stale =
+    expect (window_text (window_health_of !+ "stopped") = "  <- STALE: job is stopped") "stopped job"
+    expect (window_text (window_health_of !+ "running") = "") "running job"
+    expect (window_text (window_health_of !- "finished") = "") "waiting window"
+    expect (window_text (window_health_of !+ "") = "") "window without a job"

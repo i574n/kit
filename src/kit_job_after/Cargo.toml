@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "after.spi"
+output = "after.rs"
+
+[package]
+name = "kit-job-after"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_job_after"
+path = "after.rs"
+
+[dependencies]
+kit-process-alive = { path = "../kit_process_alive" }

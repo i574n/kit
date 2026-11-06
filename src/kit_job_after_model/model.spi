@@ -1,0 +1,273 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| after_mode =
+    | AfterAny
+    | AfterOk
+
+:| rechain_refusal =
+    | UnknownJob
+    | UnknownPredecessor
+    | SelfAfter
+    | NotChained
+    | NotWaiting : string
+    | WouldCycle
+
+:| rechain_outcome =
+    | Repointed : string
+    | Refused : rechain_refusal
+
+:== rechain_facts =
+    {
+        job_known : bool
+        predecessor_known : bool
+        same_job : bool
+        chained : bool
+        waiting : bool
+        state : string
+        previous : string
+        cycle : bool
+    }
+
+:= mode_word (mode : after_mode) : string =
+    ?= mode ?|
+    | AfterAny => "any"
+    | AfterOk => "ok"
+
+:= mode_of_flag (~flag : string) : option after_mode =
+    ? flag = "" ?> Some AfterAny |? flag = "--ok" ?> Some AfterOk |: None
+
+:= after_file_text (~predecessor : string) (mode : after_mode) : string = predecessor ++# "\t" ++# mode_word mode
+
+:= after_file_predecessor (~text : string) : string = sm'.split "\t" text |> array |> am'.index 0i32 |> sm'.trim
+
+:= rechain_of (facts : rechain_facts) : rechain_outcome =
+    ? facts.job_known |> not ?> Refused UnknownJob
+    |? facts.predecessor_known |> not ?> Refused UnknownPredecessor
+    |? facts.same_job ?> Refused SelfAfter
+    |? facts.chained |> not ?> Refused NotChained
+    |? facts.waiting |> not ?> Refused (NotWaiting facts.state)
+    |? facts.cycle ?> Refused WouldCycle
+    |: Repointed facts.previous
+
+:= refusal_text (refusal : rechain_refusal) (~id : string) (~predecessor : string) : string =
+    ?= refusal ?|
+    | UnknownJob => "unknown job id " ++# id
+    | UnknownPredecessor => "unknown predecessor id " ++# predecessor
+    | SelfAfter => "a job cannot wait for itself"
+    | NotChained => id ++# " was not started with --after or --after-ok; stop it and start it again with --after"
+    | NotWaiting state => id ++# " is " ++# state ++# ", no longer waiting for its predecessor; nothing changed"
+    | WouldCycle => predecessor ++# " already waits, directly or down its chain, for " ++# id ++# "; nothing changed"
+
+:= usage () : string =
+    "job after <queued-id> <predecessor-id> [--ok] (re-points a job still waiting on --after/--after-ok; label, "
+    ^^ "timeout, gate and command are kept)"
+
+:== chain_head =
+    {
+        mode : after_mode
+        first : string
+        serial : bool
+        runner : bool
+    }
+
+:== chain_plan =
+    {
+        head : chain_head
+        links : list (list string)
+    }
+
+:| chain_parse =
+    | ChainPlanned : chain_plan
+    | ChainRefused : string
+
+:= chain_usage () : string =
+    "job chain [--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each "
+    ^^ "job after the previous one, --after-ok with --ok, and prints every id; --serial runs the links in order inside "
+    ^^ "one job, so a waiting link holds no process)"
+
+:~ ^ segments (args : list string) (current : list string) (found : list (list string)) : list (list string) =
+    ?= args ?|
+    | [] => listm.rev (listm.rev current :: found)
+    | arg :: rest =>
+        ? arg = "--" ?> segments rest [] (listm.rev current :: found) |: segments rest (arg :: current) found
+
+:~ ^ head_from (words : list string) (head : chain_head) : option chain_head =
+    ?= words ?|
+    | [] => Some head
+    | word :: rest =>
+        ? word = "--ok" ?> head_from rest { head ?| mode = AfterOk }
+        |? word = "--serial" ?> head_from rest { head ?| serial = !+ }
+        |? word = "--run-serial" ?> head_from rest { head ?| runner = !+ }
+        |? head.first = "" && sm'.starts_with "job-" word ?> head_from rest { head ?| first = word }
+        |: None
+
+:= head_of (words : list string) : option chain_head =
+    head_from words { mode = AfterAny; first = ""; serial = !-; runner = !- }
+
+:~ ^ short_link (links : list (list string)) (index : i32) : i32 =
+    ?= links ?|
+    | [] => 0i32
+    | link :: rest => ? (listm.length link : i32) < 3i32 ?> index |: short_link rest (index + 1i32)
+
+:= chain_of (args : list string) : chain_parse =
+    ?= segments args [] [] ?|
+    | [] => ChainRefused (chain_usage ())
+    | head :: links =>
+        ?= head_of head ?|
+        | None => ChainRefused (chain_usage ())
+        | Some parsed =>
+            := short = short_link links 1i32
+            ? (listm.length links : i32) = 0i32 ?> ChainRefused ("no job to start; " ++# chain_usage ())
+            |? short > 0i32
+            ?> ChainRefused ("link " ++# sm'.format short ++# " needs <label> <timeout-ms> <program> [args...]")
+            |? parsed.serial && parsed.runner ?> ChainRefused "--serial and --run-serial exclude each other"
+            |: ChainPlanned { head = parsed; links = links }
+
+:= after_flag (mode : after_mode) : string =
+    ?= mode ?|
+    | AfterAny => "--after"
+    | AfterOk => "--after-ok"
+
+:= start_arguments (mode : after_mode) (~previous : string) (link : list string) : list string =
+    "job" :: "start" :: (? previous = "" ?> link |: after_flag mode :: previous :: link)
+
+:= started_id (~output : string) : string =
+    := at = sm'.index_of "id=job-" output
+    ? at < 0i32 ?> ""
+    |:
+        := rest = sm'.substring (at + 3i32) ((sm'.length output : i32) - at - 3i32) output
+        sm'.split " " rest |> array |> am'.index 0i32 |> sm'.trim
+
+:~ ^ links_timeout (links : list (list string)) (total : u64) : option u64 =
+    ?= links ?|
+    | [] => Some total
+    | (_ :: timeout :: _) :: rest =>
+        ?= sm'.decimal_i32 timeout ?|
+        | Some ms => ? ms > 0i32 ?> links_timeout rest (total + convert.u64 ms) |: None
+        | None => None
+    | _ :: _ => None
+
+:~ ^ list_joined (front : list string) (back : list string) : list string =
+    ?= front ?|
+    | [] => back
+    | word :: rest => word :: list_joined rest back
+
+:~ ^ links_flattened (links : list (list string)) : list string =
+    ?= links ?|
+    | [] => []
+    | link :: rest => "--" :: list_joined link (links_flattened rest)
+
+:= serial_label (links : list (list string)) : string =
+    ?= links ?|
+    | (label :: _) :: _ => label ++# "-serial"
+    | _ => "chain-serial"
+
+:= ok_flags (mode : after_mode) : list string =
+    ?= mode ?|
+    | AfterOk => [ "--ok" ]
+    | AfterAny => []
+
+:= serial_start_arguments (head : chain_head) (~program : string) (total : u64) links : list string =
+    := runner = "job" :: "chain" :: "--run-serial" :: ok_flags head.mode
+    := link = serial_label links :: sm'.format total :: program :: list_joined runner (links_flattened links)
+    start_arguments head.mode head.first link
+
+:= run_arguments (link : list string) : list string = "job" :: "run" :: link
+
+:= continues_after (mode : after_mode) (succeeded : bool) : bool =
+    ?= mode ?|
+    | AfterAny => !+
+    | AfterOk => succeeded
+
+:~ ^ arguments_from (index : i32) (count : i32) (found : list string) : list string =
+    ? count <= index ?> listm.rev found
+    |: arguments_from (index + 1i32) count (optionm'.default_value "" (env.try_command_line_argument index) :: found)
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+:= waiting_facts () : rechain_facts =
+    {
+        job_known = !+
+        predecessor_known = !+
+        same_job = !-
+        chained = !+
+        waiting = !+
+        state = "queued"
+        previous = "job-1-old"
+        cycle = !-
+    }
+
+///> rust
+:# a_waiting_chained_job_is_repointed =
+    expect (rechain_of (waiting_facts ()) = Repointed "job-1-old") "repointed, previous predecessor reported"
+    expect (after_file_text "job-2-new" AfterOk = "job-2-new\tok") "the after file keeps the launch format"
+    expect (after_file_predecessor "job-2-new\tany\n" = "job-2-new") "predecessor read back"
+    expect (mode_of_flag "" = Some AfterAny && mode_of_flag "--ok" = Some AfterOk && mode_of_flag "-x" = None) "flags"
+
+///> rust
+:# refusals_come_in_a_fixed_order =
+    := facts = waiting_facts ()
+    expect (rechain_of { facts ?| job_known = !-; waiting = !- } = Refused UnknownJob) "unknown job first"
+    expect (rechain_of { facts ?| same_job = !+ } = Refused SelfAfter) "self"
+    expect (rechain_of { facts ?| chained = !- } = Refused NotChained) "not chained"
+    expect (rechain_of { facts ?| waiting = !-; state = "running" } = Refused (NotWaiting "running")) "running"
+    expect (rechain_of { facts ?| cycle = !+ } = Refused WouldCycle) "cycle"
+    := text = refusal_text WouldCycle "job-a" "job-b"
+    expect (text = "job-b already waits, directly or down its chain, for job-a; nothing changed") "cycle text"
+
+///> rust
+:# a_chain_reads_its_head_and_links =
+    := planned = chain_of [ "--ok"; "job-1-a"; "--"; "b"; "60000"; "pwsh"; "-c"; "1"; "--"; "c"; "60000"; "cmd" ]
+    ?= planned ?|
+    | ChainPlanned plan =>
+        expect (plan.head.mode = AfterOk && plan.head.first = "job-1-a" && plan.head.serial = !-) "head"
+        expect ((listm.length plan.links : i32) = 2i32) "two links"
+        ?= plan.links ?|
+        | first_link :: _ =>
+            expect
+                (
+                    start_arguments plan.head.mode plan.head.first first_link
+                    = [ "job"; "start"; "--after-ok"; "job-1-a"; "b"; "60000"; "pwsh"; "-c"; "1" ]
+                )
+                "first start"
+        | [] => failwith "no link"
+    | ChainRefused reason => failwith reason
+    expect
+        (chain_of [ "--"; "b"; "60000" ] = ChainRefused "link 1 needs <label> <timeout-ms> <program> [args...]")
+        "short link"
+    expect (chain_of [ "x" ] = ChainRefused (chain_usage ())) "a head that is neither --ok nor a job id"
+    expect (chain_of [ "--ok" ] = ChainRefused ("no job to start; " ++# chain_usage ())) "no link"
+    expect
+        (started_id "kit job start ok id=job-17-b supervisor_pid=9 timeout_ms=60000\n" = "job-17-b")
+        "id from the start receipt"
+    expect (started_id "kit error: job --after names no job" = "") "no id"
+
+:= two_links () : list (list string) = [ [ "gate"; "60000"; "pwsh"; "-c"; "1" ]; [ "land"; "30000"; "cmd" ] ]
+
+///> rust
+:# a_serial_chain_is_one_job_whose_links_run_in_order =
+    := words = [ "--serial"; "--ok"; "--"; "gate"; "60000"; "pwsh"; "-c"; "1"; "--"; "land"; "30000"; "cmd" ]
+    ?= chain_of words ?|
+    | ChainPlanned plan =>
+        expect (plan.head.serial && plan.head.mode = AfterOk && plan.head.first = "") "serial head"
+        expect (links_timeout plan.links 0u64 = Some 90000u64) "the one job's limit is the sum of its links"
+        := started = serial_start_arguments plan.head "kit" 90000u64 plan.links
+        := runner = [ "job"; "start"; "gate-serial"; "90000"; "kit"; "job"; "chain"; "--run-serial"; "--ok"; "--" ]
+        := flattened = [ "gate"; "60000"; "pwsh"; "-c"; "1"; "--"; "land"; "30000"; "cmd" ]
+        expect (started = list_joined runner flattened) "start"
+    | ChainRefused reason => failwith reason
+    expect (links_timeout [ [ "gate"; "soon"; "cmd" ] ] 0u64 = None) "a link limit must be a number"
+    := land = [ "land"; "30000"; "cmd" ]
+    expect (run_arguments land = "job" :: "run" :: land) "each link is a job run"
+    expect (continues_after AfterOk !- = !- && continues_after AfterAny !-) "--ok stops at the first failure"
+    := both = chain_of [ "--serial"; "--run-serial"; "--"; "a"; "1"; "b" ]
+    expect (both = ChainRefused "--serial and --run-serial exclude each other") "modes"
+    expect (serial_label (two_links ()) = "gate-serial") "the job is named after its first link"
+
+///> rust
+:# an_empty_argument_range_reads_as_no_arguments =
+    expect ((listm.length (arguments_from 99i32 0i32 []) : i32) = 0i32) "no arguments past the count"

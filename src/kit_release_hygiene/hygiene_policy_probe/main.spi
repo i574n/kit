@@ -1,0 +1,70 @@
+:< rust_std_env.model
+
+:= primary (~a : i32) (~b : i32) : i32 =
+    $'kit_release_hygiene::kit_hygiene_primary_binding(!a, !b)' : i32
+
+:= secondary (~a : i32) (~b : i32) : i32 =
+    $'kit_release_hygiene::kit_hygiene_secondary_binding(!a, !b)' : i32
+
+:= root_file (~a : i32) (~b : i32) : i32 =
+    $'kit_release_hygiene::kit_hygiene_root_file_binding(!a, !b)' : i32
+
+:= root_aux (~a : i32) (~b : i32) : i32 =
+    $'kit_release_hygiene::kit_hygiene_root_aux_binding(!a, !b)' : i32
+
+:= root_directory (~a : i32) (~b : i32) : i32 =
+    $'kit_release_hygiene::kit_hygiene_root_directory_binding(!a, !b)' : i32
+
+:= classify (~name : string) : u64 =
+    $'kit_release_hygiene::kit_hygiene_name_classification(&!name)' : u64
+
+:= main () : i32 =
+    := spiral_entry = primary 1i32 0i32
+    := typecheck_rs = primary 0i32 1i32
+    := primary_keep = primary 0i32 0i32
+    := typecheck_tmp = secondary 1i32 0i32
+    := c_sidecar = secondary 0i32 1i32
+    := secondary_keep = secondary 0i32 0i32
+    := root_receipt = root_file 1i32 0i32
+    := root_candidate = root_file 0i32 1i32
+    := root_file_keep = root_file 0i32 0i32
+    := root_probe = root_aux 1i32 0i32
+    := root_cold = root_aux 0i32 1i32
+    := root_aux_keep = root_aux 0i32 0i32
+    := root_directory_cold = root_directory 1i32 0i32
+    := root_directory_cargo = root_directory 0i32 1i32
+    := root_directory_keep = root_directory 0i32 0i32
+    := class_spiral_entry = classify ".spiral-entry"
+    := class_typecheck = classify ".kit-typecheck-9.rs"
+    := class_typecheck_tmp = classify ".kit-typecheck-9.rs.kit-1.tmp"
+    := class_receipt = classify "x.receipt"
+    := class_candidate = classify ".release-kit-candidate-1"
+    := class_probe = classify "probe42.rs"
+    := class_cold = classify ".cold-rebuild-a"
+    := class_cargo = classify ".cargo"
+    := class_keep = classify "keep.txt"
+    ? spiral_entry < 1i32 ?> 1i32
+    |? typecheck_rs < 1i32 ?> 1i32
+    |? 0i32 < primary_keep ?> 1i32
+    |? typecheck_tmp < 1i32 ?> 1i32
+    |? c_sidecar < 1i32 ?> 1i32
+    |? 0i32 < secondary_keep ?> 1i32
+    |? root_receipt < 1i32 ?> 1i32
+    |? root_candidate < 1i32 ?> 1i32
+    |? 0i32 < root_file_keep ?> 1i32
+    |? root_probe < 1i32 ?> 1i32
+    |? root_cold < 1i32 ?> 1i32
+    |? 0i32 < root_aux_keep ?> 1i32
+    |? root_directory_cold < 1i32 ?> 1i32
+    |? root_directory_cargo < 1i32 ?> 1i32
+    |? 0i32 < root_directory_keep ?> 1i32
+    |? class_spiral_entry <> 1u64 ?> 1i32
+    |? class_typecheck <> 1u64 ?> 1i32
+    |? class_typecheck_tmp <> 1u64 ?> 1i32
+    |? class_receipt <> 2u64 ?> 1i32
+    |? class_candidate <> 2u64 ?> 1i32
+    |? class_probe <> 2u64 ?> 1i32
+    |? class_cold <> 3u64 ?> 1i32
+    |? class_cargo <> 3u64 ?> 1i32
+    |? class_keep <> 0u64 ?> 1i32
+    |: 0i32

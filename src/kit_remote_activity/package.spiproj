@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+modules:
+    activity

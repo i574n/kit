@@ -1,0 +1,23 @@
+
+inl emit_runtime () : () = global """
+    use kit_patch_compat_driver::{patch_apply_context_owned, patch_check_context_owned, patch_plan_error, patch_prepare_source_owned};
+
+    #[must_use]
+    fn patch_mutation_error(message: &str) -> i32 {
+        eprintln!("kit error: {message}");
+        2
+    }
+
+    #[must_use]
+    fn patch_check_success(count: i32) -> i32 {
+        println!("kit patch check ok operations={count} mutation=false");
+        0
+    }
+
+    #[must_use]
+    fn patch_preflight_error() -> i32 {
+        eprintln!("kit error: patch preflight contract rejected the validated plan");
+        2
+    }
+
+    """

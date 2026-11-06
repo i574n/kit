@@ -1,0 +1,196 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| task_status =
+    | Planned
+    | Active
+    | Blocked
+    | Paused
+    | Done
+
+:| move =
+    | Start
+    | Shelve
+    | Pause
+    | Block
+    | Finish
+    | Resume
+    | Unblock
+    | Reopen
+
+:= ends (m : move) : task_status * task_status =
+    ?= m ?|
+    | Start => Planned, Active
+    | Shelve => Planned, Paused
+    | Pause => Active, Paused
+    | Block => Active, Blocked
+    | Finish => Active, Done
+    | Resume => Paused, Active
+    | Unblock => Blocked, Planned
+    | Reopen => Done, Active
+
+:= move_of (from : task_status) (to : task_status) : option move =
+    [ Start; Shelve; Pause; Block; Finish; Resume; Unblock; Reopen ]
+    |> listm.fold (\ found m => ? ends m = (from, to) ?> Some m |: found) None
+:| reason =
+    | Reason : string
+
+:= reason_of (text : string) : option reason = ? sm'.trim text = "" ?> None |: Some (Reason (sm'.trim text))
+
+:= reason_text (r : reason) : string =
+    ?= r ?|
+    | Reason text => text
+
+:== state_change =
+    {
+        item : string
+        change : move
+        at : string
+        author : string
+        why : reason
+    }
+
+:| change_refusal =
+    | NoReason
+    | IllegalMove : task_status * task_status
+
+:| change_outcome =
+    | Changed : state_change
+    | Refused : change_refusal
+
+:= changed (item : string) (from : task_status) (to : task_status) (at : string) (author : string) (text : string)
+    : change_outcome
+    =
+    ?= move_of from to ?|
+    | None => Refused (IllegalMove (from, to))
+    | Some m =>
+        ?= reason_of text ?|
+        | None => Refused NoReason
+        | Some why => Changed { item = item; change = m; at = at; author = author; why = why }
+
+:= refusal_of (outcome : change_outcome) : option change_refusal =
+    ?= outcome ?|
+    | Changed _ => None
+    | Refused why => Some why
+
+:== actual_minutes =
+    {
+        item : string
+        lane : string
+        minutes : i32
+        at : string
+    }
+
+:= minutes_between (started_ms : i64) (ended_ms : i64) : i32 =
+    ? ended_ms <= started_ms ?> 0i32 |: convert.convert ((ended_ms - started_ms + 59999i64) / 60000i64)
+
+:= actual_of (item : string) (lane : string) (started_ms : i64) (ended_ms : i64) (at : string) : actual_minutes =
+    { item = item; lane = lane; minutes = minutes_between started_ms ended_ms; at = at }
+
+:= actual_total (rows : list actual_minutes) (item : string) : i32 =
+    rows |> listm.fold (\ total (row : actual_minutes) => ? row.item = item ?> total + row.minutes |: total) 0i32
+
+:| estimate_verdict =
+    | WithinEstimate
+    | EstimateExceeded : i32 * i32
+    | AlreadyNoted
+
+:= estimate_verdict_of (estimate : i32) (actual : i32) (noted : bool) : estimate_verdict =
+    ? estimate <= 0i32 || actual * 2i32 <= estimate * 3i32 ?> WithinEstimate
+    |? noted ?> AlreadyNoted
+    |: EstimateExceeded (estimate, actual)
+
+:== board_item =
+    {
+        id : string
+        status : task_status
+        estimate : i32
+        actual : i32
+    }
+
+:== column_total =
+    {
+        column : task_status
+        items : i32
+        estimate : i32
+        actual : i32
+    }
+
+:= column_of (items : list board_item) (column : task_status) : column_total =
+    := add (t : column_total) (i : board_item) =
+        ? i.status <> column ?> t
+        |: { t ?| items = t.items + 1i32; estimate = t.estimate + i.estimate; actual = t.actual + i.actual }
+    items |> listm.fold add { column = column; items = 0i32; estimate = 0i32; actual = 0i32 }
+
+:= column_totals (items : list board_item) : list column_total =
+    [ Planned; Active; Blocked; Paused; Done ] |> listm.map (column_of items)
+
+:| standup_line =
+    | Finished : string * reason
+    | Started : string
+    | Stuck : string * reason
+
+:= standup_of (changes : list state_change) (recent : string -> bool) : list standup_line =
+    := line (c : state_change) : option standup_line =
+        ?= c.change ?|
+        | Finish => Some (Finished (c.item, c.why))
+        | Start => Some (Started c.item)
+        | Resume => Some (Started c.item)
+        | Block => Some (Stuck (c.item, c.why))
+        | _ => None
+    changes
+    |> listm'.filter (\ (c : state_change) => recent c.at)
+    |> listm.fold (\ acc c => ?= line c ?| | Some l => l :: acc | None => acc) []
+    |> listm.rev
+
+///> rust
+:# columns_total_their_items_and_standup_reads_typed_changes =
+    := items = [
+        { id = "A"; status = Active; estimate = 60i32; actual = 30i32 };
+        { id = "B"; status = Active; estimate = 30i32; actual = 45i32 };
+        { id = "C"; status = Done; estimate = 120i32; actual = 100i32 }
+    ]
+    := totals = column_totals items
+    := active = totals |> listm'.filter (\ (t : column_total) => t.column = Active)
+    := expected = { column = Active; items = 2i32; estimate = 90i32; actual = 75i32 }
+    testing.expect (active = [ expected ]) "Active sums two items"
+    testing.expect ((listm.length totals : i32) = 5i32) "every column is present, empty ones as zeros"
+    := changes =
+        [
+            changed "A" Planned Active "2026-11-01T09:00Z" "kit" "picked";
+            changed "C" Active Done "2026-11-01T10:00Z" "kit" "shipped"
+        ]
+        |> listm.fold (\ acc o => ?= o ?| | Changed c => c :: acc | Refused _ => acc) []
+        |> listm.rev
+    := lines = standup_of changes (\ at => at = "2026-11-01T10:00Z")
+    testing.expect ((listm.length lines : i32) = 1i32) "only changes since the cut"
+
+///> rust
+:# an_overrun_past_one_and_a_half_estimates_is_noted_once =
+    testing.expect (estimate_verdict_of 60i32 90i32 !- = WithinEstimate) "exactly 1.5x is still within"
+    testing.expect (estimate_verdict_of 60i32 91i32 !- = EstimateExceeded (60i32, 91i32)) "past 1.5x is exceeded"
+    testing.expect (estimate_verdict_of 60i32 200i32 !+ = AlreadyNoted) "noted once per item"
+    testing.expect (estimate_verdict_of 0i32 500i32 !- = WithinEstimate) "no estimate, no warning"
+
+///> rust
+:# a_state_change_needs_a_legal_move_and_a_reason =
+    := ok = changed "KIT-A" Active Done "2026-11-01T15:00Z" "kit" "acceptance passed"
+    testing.expect (
+        ?= ok ?|
+        | Changed c => ends c.change = (Active, Done) && c.change = Finish && reason_text c.why = "acceptance passed"
+        | Refused _ => !-
+    ) "Active -> Done with a reason is recorded"
+    testing.expect (refusal_of (changed "KIT-A" Active Done "t" "kit" "  ") = Some NoReason) "a blank reason is refused"
+    := illegal = refusal_of (changed "KIT-A" Planned Done "t" "kit" "skip")
+    testing.expect (illegal = Some (IllegalMove (Planned, Done))) "Planned -> Done is not a move"
+
+///> rust
+:# a_lease_becomes_actual_minutes_rounded_up =
+    := a = actual_of "KIT-A" "kit" 0i64 90000i64 "t1"
+    := b = actual_of "KIT-A" "kit" 100000i64 100000i64 "t2"
+    := c = actual_of "KIT-B" "main" 0i64 3600000i64 "t3"
+    testing.expect (a.minutes = 2i32 && b.minutes = 0i32 && c.minutes = 60i32) "90 s rounds up to 2; empty is 0"
+    testing.expect (actual_total [ a; b; c ] "KIT-A" = 2i32) "totals are per item"

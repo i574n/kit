@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "shadows.spi"
+output = "shadows_core.rs"
+
+[package]
+name = "kit-lint-shadows-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_shadows_core"
+path = "shadows_core.rs"

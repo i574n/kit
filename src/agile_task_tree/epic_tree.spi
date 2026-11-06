@@ -1,0 +1,79 @@
+///- --package .
+:# epic_tree static =
+    :< sm'_operators
+    :< agile_task_parents.parents
+
+:< sm'_operators
+:< agile_task_parents.parents
+
+:~ file_text (~path : string) : string = ? file_system.file_exists path ?> file_system.read_all_text path |: ""
+
+:~ tree_wanted () : bool = listm'.contains "--tree" (env.command_line_arguments ())
+
+:~ epics_of (links : list parent_link) : list string =
+    := added = \ (epics : list string) (link : parent_link) =>
+        ? listm'.contains link.parent epics ?> epics |: listm.append epics [ link.parent ]
+    links |> listm.fold added []
+
+:~ fact_for (facts : list agile_quality_lint.lint.fact_row) (~id : string) : option agile_quality_lint.lint.fact_row =
+    facts |> listm.fold (\ found (fact : agile_quality_lint.lint.fact_row) => ? fact.id = id ?> Some fact |: found) None
+
+:~ child_line (facts : list agile_quality_lint.lint.fact_row) (~id : string) : string =
+    ?= fact_for facts id ?|
+    | Some fact => "  " ++# id ++# "  " ++# fact.status ++# " " ++# sm'.format fact.estimate_minutes ++# "m"
+    | None => "  " ++# id ++# "  unknown"
+
+:~ epic_line (facts : list agile_quality_lint.lint.fact_row) (links : list parent_link) (~epic : string) : string =
+    := sum = \ (done_only : bool) =>
+        children_of links epic
+        |> listm.fold (\ (count, minutes) (child : string) =>
+            ?= fact_for facts child ?|
+            | Some fact ?& done_only = !- || fact.status = "Done" => count + 1i32, minutes + fact.estimate_minutes
+            | _ => count, minutes) (0i32, 0i32)
+    := done, done_minutes = sum !+
+    := all, minutes = sum !-
+    := counts = "  done=" ++# sm'.format done ++# "/" ++# sm'.format all
+    epic ++# counts ++# " minutes=" ++# sm'.format done_minutes ++# "/" ++# sm'.format minutes
+
+:~ tree_text_of (facts : list agile_quality_lint.lint.fact_row) (links : list parent_link) : list string =
+    := child_lines = \ (epic : string) =>
+        children_of links epic |> listm.map (\ (child : string) => child_line facts child)
+    := block = \ (epic : string) => epic_line facts links epic :: child_lines epic
+    epics_of links |> listm.map block |> listm.fold listm.append []
+
+:~ tree_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: root :: _ =>
+        := state = sm'.replace "\\" "/" root ++# "/state"
+        := links = links_of_text (file_text (state ++# "/parents.spi"))
+        := rows = agile_quality_facts.facts.fact_rows_of (file_text (state ++# "/agile.spi"))
+        := facts = rows |> am'.to_list_base' |> listm'.unbox
+        tree_text_of facts links |> listm.iter (\ (line : string) => console.write_line line)
+        := epics = sm'.format (listm.length (epics_of links) : i32)
+        := count = sm'.format (listm.length links : i32)
+        console.write_line ("kit agile list ok tree epics=" ++# epics ++# " links=" ++# count)
+        0i32
+    | _ =>
+        console.write_error_line "kit error: usage: agile list <root> --tree"
+        2i32
+
+:~ list_routed () : i32 = ? tree_wanted () ?> tree_run () |: agile_task_listing.task_listing.agile_list_entry ()
+
+///> rust
+:# epics_list_their_children_once_each =
+    := link = \ (child : string) (parent : string) => ({ child = child; parent = parent } : parent_link)
+    := links = [ link "A" "E1"; link "B" "E2"; link "C" "E1" ]
+    testing.expect (epics_of links = [ "E1"; "E2" ]) "each epic once, in first-seen order"
+    := fact = \ (id : string) (status : string) (minutes : i32) =>
+        ({ id = id; status = status; tags = ""; estimate_minutes = minutes; load = ""; assignee = ""; notes = "" }
+            : agile_quality_lint.lint.fact_row)
+    := facts = [ fact "A" "Done" 60i32; fact "C" "Planned" 180i32; fact "B" "Active" 30i32 ]
+    testing.expect (epic_line facts links "E1" = "E1  done=1/2 minutes=60/240") "minutes-weighted progress"
+    testing.expect (child_line facts "C" = "  C  Planned 180m" && child_line facts "Z" = "  Z  unknown") "child lines"
+    := e1 = [ "E1  done=1/2 minutes=60/240"; "  A  Done 60m"; "  C  Planned 180m" ]
+    := e2 = [ "E2  done=0/1 minutes=0/30"; "  B  Active 30m" ]
+    testing.expect (tree_text_of facts links = listm.append e1 e2) "each epic, then its children"
+///> _
+:= main () : i32 =
+    export "kit_agile_list_routed" list_routed
+    0i32

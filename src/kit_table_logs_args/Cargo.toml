@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "args.spi"
+output = "args.rs"
+
+[package]
+name = "kit-table-logs-args"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_table_logs_args"
+path = "args.rs"

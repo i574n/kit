@@ -1,0 +1,21 @@
+[package.metadata.spiral]
+entry = "rank.spi"
+output = "rank.rs"
+
+[package]
+name = "agile-claim-rank"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "agile_claim_rank"
+path = "rank.rs"
+
+[dependencies]
+kit-agile-records = { path = "../kit_agile_records" }
+agile-planning-fields = { path = "../agile_planning_fields" }
+agile-planning-filters = { path = "../agile_planning_filters" }
+kit-process-alive = { path = "../kit_process_alive" }
+kit-job-names = { path = "../kit_job_names" }

@@ -1,0 +1,238 @@
+///- --package .
+:# grammar static =
+    :< sm'_operators
+    :< kit_do_model.model
+    :< host
+    :< kit_do_records.records
+
+:< sm'_operators
+:< kit_do_model.model
+:< host
+:< kit_do_records.records
+
+:| query_item =
+    | Bare : string
+    | Text : string
+    | Finished
+
+:| query_parse =
+    | QueryParsed : query
+    | QueryRejected : string
+
+:~ item_at (~records : record_list) (~record : i32) (~field : i32) : query_item =
+    := raw = field_at records record field
+    ? raw = "" ?> Finished
+    |:
+        := kind = $'std::rc::Rc::<str>::from(&(&*!raw)[..1])' : string
+        := body = $'std::rc::Rc::<str>::from(&(&*!raw)[1..])' : string
+        ? kind = "q" ?> Text body |: Bare body
+
+:~ value_at (~records : record_list) (~record : i32) (~field : i32) : string =
+    ?= item_at records record field ?|
+    | Bare text => text
+    | Text text => text
+    | Finished => ""
+
+:= first_number (~text : string) : u64 = $'!text.split(char::from(44u8)).next().and_then(|value| \
+    value.trim().parse::<u64>().ok()).unwrap_or(0)' : u64
+:= last_number (~text : string) : u64 = $'!text.rsplit(char::from(44u8)).next().and_then(|value| \
+    value.trim().parse::<u64>().ok()).unwrap_or(0)' : u64
+:= duration_ms (~text : string) : u64 = $'{ let text = (&*!text).trim(); let (digits, \
+    scale) = if let Some(value) = text.strip_suffix("ms") { (value, \
+    1) } else if let Some(value) = text.strip_suffix(char::from(115u8)) { (value, \
+    1000) } else if let Some(value) = text.strip_suffix(char::from(109u8)) { (value, 60000) } else { (text, 1000) }; \
+    digits.trim().parse::<u64>().map(|value| value * scale).unwrap_or(0) }' : u64
+:= all_digits (~text : string) : bool = sm'.all_digits text
+
+:~ verb_of (~word : string) : query_verb =
+    ?= query_verb_named word ?|
+    | Some verb => verb
+    | None => Tail
+
+:| query_option =
+    | ValuedIn
+    | ValuedContext
+    | ValuedFirst
+    | ValuedInclude
+    | ValuedExclude
+    | ValuedTimeout
+
+:= query_option_word (choice : query_option) : string =
+    union_reflection.cases.union_case_kebab "Valued" choice
+
+:= query_option_applied (choice : query_option) (~value : string) (~q : query) : query =
+    ?= choice ?|
+    | ValuedIn => { q ?| target = value }
+    | ValuedContext => { q ?| before = first_number value; after = last_number value }
+    | ValuedFirst => { q ?| first = decimal_of value }
+    | ValuedInclude => { q ?| include = value }
+    | ValuedExclude => { q ?| exclude = value }
+    | ValuedTimeout => { q ?| timeout_ms = duration_ms value }
+
+:| query_flag =
+    | FlagLiteral
+    | FlagPaths
+
+:= query_flag_word (flag : query_flag) : string = union_reflection.cases.union_case_kebab "Flag" flag
+
+:= query_flag_applied (flag : query_flag) (~q : query) : query =
+    ?= flag ?|
+    | FlagLiteral => { q ?| literal = !+ }
+    | FlagPaths => { q ?| paths_only = !+ }
+
+:| query_filler =
+    | FillerAround
+    | FillerPer
+    | FillerFile
+    | FillerWith
+    | FillerGit
+    | FillerStatus
+
+:= query_filler_word (filler : query_filler) : string =
+    union_reflection.cases.union_case_kebab "Filler" filler
+
+:= tilde () : string = "~"
+
+:= query_option_named (~word : string) : option query_option =
+    union_reflection.cases.union_case_where
+        \ (choice : query_option) => word = query_option_word choice
+        \ choice => Some choice
+        None
+
+:= query_flag_named (~word : string) : option query_flag =
+    union_reflection.cases.union_case_where (\ (flag : query_flag) => word = query_flag_word flag) Some None
+
+:= query_filler_named (~word : string) : bool =
+    := reflected =
+        union_reflection.cases.union_case_where
+            \ (filler : query_filler) => word = query_filler_word filler
+            \ _ => !+
+            !-
+    word = tilde () || reflected
+:~ opened_query (~verb : query_verb) : query =
+    {
+        verb = verb
+        needle = ""
+        literal = !-
+        target = ""
+        before = 0u64
+        after = 0u64
+        first = 0u64
+        include = ""
+        exclude = ""
+        paths_only = !-
+        count = 0u64
+        timeout_ms = 0u64
+    }
+
+:~ ^ query_options (~records : record_list) (~record : i32) (~field : i32) (~q : query) : query_parse =
+    ?= item_at records record field ?|
+    | Finished => QueryParsed q
+    | Text text => query_options records record (field + 1i32) { q ?| needle = text }
+    | Bare word =>
+        := value = value_at records record (field + 1i32)
+        ?= query_flag_named word ?|
+        | Some flag => query_options records record (field + 1i32) (query_flag_applied flag q)
+        | None =>
+            ? query_filler_named word ?> query_options records record (field + 1i32) q
+            |:
+                ?= query_option_named word ?|
+                | Some valued =>
+                    ? value = "" ?> QueryRejected (word ++# ": expected a value after it")
+                    |: query_options records record (field + 2i32) (query_option_applied valued value q)
+                | None =>
+                    := next = field + 1i32
+                    ? all_digits word ?> query_options records record next { q ?| count = decimal_of word }
+                    |? q.target = "" ?> query_options records record next { q ?| target = word }
+                    |: QueryRejected ("unexpected word: " ++# word)
+
+:~ query_problem (~q : query) : string =
+    := target = q.target
+    := needle = q.needle
+    ?= q.verb ?|
+    | Search =>
+        ? needle = "" ?> "search: expected a quoted pattern" |? target = "" ?> "search: expected in <path|glob>" |: ""
+    | Read => ? target = "" ?> "read: expected a path" |? needle = "" ?> "read: expected around \"<text>\"" |: ""
+    | Files => ? target = "" ?> "files: expected a path or glob" |: ""
+    | Head => ? target = "" ?> "head: expected a path or glob" |: ""
+    | Tail => ? target = "" ?> "tail: expected a path or glob" |: ""
+    | Wait => ? target = "" ?> "wait: expected a file" |? needle = "" ?> "wait: expected ~ \"<regex>\"" |: ""
+
+:~ query_parsed (~records : record_list) (~record : i32) : query_parse =
+    ?= query_options records record 2i32 (opened_query (verb_of (field_at records record 1i32))) ?|
+    | QueryRejected message => QueryRejected message
+    | QueryParsed q =>
+        := problem = query_problem q
+        := counted = ? q.count = 0u64 ?> { q ?| count = 10u64 } |: q
+        ? problem = ""
+        ?> QueryParsed (? counted.timeout_ms = 0u64 ?> { counted ?| timeout_ms = 60000u64 } |: counted)
+        |: QueryRejected problem
+
+
+:= rejection_at (~records : record_list) (~record : i32) : string =
+    ?= query_parsed records record ?|
+    | QueryRejected message => message
+    | QueryParsed _ => ""
+
+///> rust
+:# query_statements_share_one_option_grammar =
+    := records =
+        records_from_bars (
+            "ok\nquery|search|wliteral|qshow <root>|win|wsrc/**|winclude|w*.rs,*.spi|wexclude|wsrc/target/**|wconte"
+            ^^ "xt|w1,2|wfirst|w12|wper|wfile|wpaths\nquery|head|wlogs/*.log|w2\n"
+            ^^ "query|read|wsrc/lib.fs|waround|qsection: parse|wcontext|w1\nquery|tail|wtasks/*.output"
+        )
+    ?= query_parsed records 1i32 ?|
+    | QueryRejected message => testing.expect !- message
+    | QueryParsed search =>
+        testing.expect
+            (
+                search.literal
+                && search.needle = "show <root>"
+                && search.target = "src/**"
+                && search.include = "*.rs,*.spi"
+                && search.exclude = "src/target/**"
+            )
+            "search words"
+        testing.expect
+            (search.before = 1u64 && search.after = 2u64 && search.first = 12u64 && search.paths_only)
+            "search numbers"
+    ?= query_parsed records 2i32 ?|
+    | QueryRejected message => testing.expect !- message
+    | QueryParsed head => testing.expect (head.target = "logs/*.log" && head.count = 2u64) "head count"
+    ?= query_parsed records 3i32 ?|
+    | QueryRejected message => testing.expect !- message
+    | QueryParsed around =>
+        testing.expect
+            (
+                around.target = "src/lib.fs"
+                && around.needle = "section: parse"
+                && around.before = 1u64
+                && around.after = 1u64
+            )
+            "read around"
+    ?= query_parsed records 4i32 ?|
+    | QueryRejected message => testing.expect !- message
+    | QueryParsed tail => testing.expect (tail.count = 10u64) "tail defaults to ten lines"
+    ?= query_parsed (records_from_bars "ok\nquery|wait|wout.log|w~|qSUITE-EXIT|wtimeout|w5s") 1i32 ?|
+    | QueryRejected message => testing.expect !- message
+    | QueryParsed wait =>
+        testing.expect (wait.target = "out.log" && wait.needle = "SUITE-EXIT" && wait.timeout_ms = 5000u64) "wait with timeout"
+
+///> rust
+:# incomplete_queries_are_rejected_with_a_reason =
+    := records = records_from_bars "ok\nquery|search|win|wsrc\nquery|read|wsrc/lib.fs\nquery|files\nquery|search|qx|win"
+    testing.expect (rejection_at records 1i32 = "search: expected a quoted pattern") "search without pattern"
+    testing.expect (rejection_at records 2i32 = "read: expected around \"<text>\"") "read without around"
+    testing.expect (rejection_at records 3i32 = "files: expected a path or glob") "files without target"
+    testing.expect (rejection_at records 4i32 = "in: expected a value after it") "dangling in"
+
+///> rust
+:# query_words_read_by_reflection =
+    := options = union_reflection.cases.union_cases_joined query_option_word "|"
+    testing.expect (options = "in|context|first|include|exclude|timeout") options
+    := flags = union_reflection.cases.union_cases_joined query_flag_word "|"
+    testing.expect (flags = "literal|paths") flags
+    := fillers = union_reflection.cases.union_cases_joined query_filler_word "|"
+    testing.expect (fillers = "around|per|file|with|git|status") fillers
+    testing.expect (query_filler_named "~" && query_filler_named "git" && (query_filler_named "gits" |> not)) "fillers"

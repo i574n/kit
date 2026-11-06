@@ -1,0 +1,14 @@
+:< walk
+:< kit_lint_model.model
+
+:~ known_in (~baseline : string) (~file : string) (~name : string) (class : i32) : bool =
+    ?= class_of_code class ?|
+    | Some value => known_text baseline { file = file; line = 0i32; name = name; class = value; text = "" }
+    | None => !-
+
+:= main () : i32 =
+    export "kit_lint_walk_files" ((\ start => files_under start) : string -> path_list)
+    export "kit_lint_known" (
+        (\ (baseline, file, name, class) => known_in baseline file name class) : string * string * string * i32 -> bool
+    )
+    0i32

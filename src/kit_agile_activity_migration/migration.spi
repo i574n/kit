@@ -1,0 +1,77 @@
+///- --package .
+:# migration static =
+    :< sm'_operators
+    :< agile_activity_rows.rows
+
+:< sm'_operators
+:< agile_activity_rows.rows
+
+:| migrate_mode =
+    | MigratePreview
+    | MigrateApply
+
+:~ mode_named (~word : string) : option migrate_mode =
+    union_reflection.cases.union_case_where
+        (\ (mode : migrate_mode) => word = union_reflection.cases.union_case_kebab "Migrate" mode)
+        (\ mode => Some mode)
+        None
+
+:~ schema_module () : string = "activity_schema"
+
+:~ modules_with_schema (~text : string) : string =
+    := line = "    " ++# schema_module () ++# "\n"
+    ? sm'.contains ("\n" ++# line) ("\n" ++# text) ?> text
+    |? sm'.contains "modules:\n" text ?> sm'.replace "modules:\n" ("modules:\n" ++# line) text
+    |: text ++# "modules:\n" ++# line
+
+:~ step_word (apply : bool) (changed : bool) (~done : string) (~pending : string) : string =
+    ? changed |> not ?> "kept" |? apply ?> done |: pending
+
+:~ migrated (mode : migrate_mode) (~root : string) : i32 =
+    := state = sm'.replace "\\" "/" root ++# "/state"
+    := project_path = state ++# "/package.spiproj"
+    := schema_path = state ++# "/activity_schema.spi"
+    ? file_system.file_exists project_path |> not
+    ?>
+        console.write_error_line ("kit error: agile migrate-activity: no state/package.spiproj under " ++# root)
+        2i32
+    |:
+        := apply = mode = MigrateApply
+        := missing = file_system.file_exists schema_path |> not
+        := project = file_system.read_all_text project_path
+        := updated = modules_with_schema project
+        := _ = ? apply && missing ?> file_system.write_all_text schema_path (activity_schema_text ()) |: ()
+        := _ = ? apply && updated <> project ?> file_system.write_all_text project_path updated |: ()
+        := schema = step_word apply missing "written" "would-write"
+        := module = step_word apply (updated <> project) "added" "would-add"
+        := word = union_reflection.cases.union_case_kebab "Migrate" mode
+        := tail = " schema=" ++# schema ++# " module=" ++# module
+        console.write_line ("kit agile migrate-activity ok mode=" ++# word ++# tail)
+        0i32
+
+:~ migrate_usage () : i32 =
+    console.write_error_line "kit error: agile usage: migrate-activity preview|apply <root>"
+    2i32
+
+:~ migrate_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: word :: root :: _ =>
+        ?= mode_named word ?|
+        | Some mode => migrated mode root
+        | None => migrate_usage ()
+    | _ => migrate_usage ()
+
+///> rust
+:# the_schema_module_is_added_once_and_modes_read_back =
+    := project = "modules:\n    claims\n    agile\n"
+    := once = modules_with_schema project
+    testing.expect (once = "modules:\n    activity_schema\n    claims\n    agile\n") once
+    testing.expect (modules_with_schema once = once) "a second migration changes nothing"
+    testing.expect (modules_with_schema "" = "modules:\n    activity_schema\n") "a bare project gains the section"
+    testing.expect (mode_named "apply" = Some MigrateApply && mode_named "preview" = Some MigratePreview) "modes"
+    testing.expect (mode_named "go" = None) "an unknown mode"
+    testing.expect (step_word !- !+ "written" "would-write" = "would-write") "a preview only reports"
+///> _
+:= main () : i32 =
+    export "kit_agile_migrate_activity" migrate_run
+    0i32

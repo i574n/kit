@@ -1,0 +1,236 @@
+///- --package .
+:# merge static =
+    :< sm'_operators
+
+:< sm'_operators
+:< agile_task_text.model
+:< agile_note_model.model
+:< agile_todo_model.model
+:< workspace_primitives.bytes
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+:< workspace_primitives.numbers
+
+:== walk =
+    {
+        rows : list string
+        ids : list string
+        untracked : i32
+        scanned : i32
+        hits : i32
+        cursor : i32
+        cache : string
+        backlog : string
+        trusted : bool
+        changed : string
+    }
+
+:| row_lookup =
+    | RowMiss
+    | RowSkip : i32
+    | RowHit : u64 * u64 * string * i32 * i32
+
+:= nul_text () : string = unicode.char_of 0i32
+
+:~ ^ occurrences (~text : string) (~word : string) (offset : i32) (count : i32) : i32 =
+    := at = byte_find_from text word offset
+    ? at < 0i32 ?> count |: occurrences text word (at + byte_len word) (count + 1i32)
+
+:~ words_in (~text : string) : i32 = ? text = "" ?> 0i32 |: occurrences text " " 0i32 0i32 + 1i32
+
+:~ ids_in (~rendered : string) : string = $'agile_todo_cache::kit_agile_todo_ids_in(&*!rendered)' : string
+
+:~ cache_row (~path : string) (size : u64) (mtime : u64) (~ids : string) (untracked : i32) : string =
+    $'agile_todo_cache::kit_agile_todo_cache_row(&*!path, !size, !mtime, &*!ids, !untracked)' : string
+
+:~ skipped_row (~path : string) : string = $'agile_todo_cache::kit_agile_todo_skipped_row(&*!path)' : string
+
+:~ head_row (~root : string) (~head : string) (~dirty : string) : string =
+    $'agile_todo_cache::kit_agile_todo_head_row(&*!root, &*!head, &*!dirty)' : string
+
+:~ cached_head_of (~cache : string) (~root : string) : string * string =
+    $'agile_todo_cache::kit_agile_todo_head_of(&*!cache, &*!root)' : string * string
+
+:~ cached_row_of (~cache : string) (cursor : i32) (~path : string) : row_lookup =
+    := kind, size, mtime, ids, untracked, tail =
+        $'agile_todo_cache::kit_agile_todo_row_of(&*!cache, !cursor, &*!path)' : i32 * u64 * u64 * string * i32 * i32
+    ? kind = 2i32 ?> RowHit (size, mtime, ids, untracked, tail) |? kind = 1i32 ?> RowSkip tail |: RowMiss
+
+:~ ^ last_byte_of (~text : string) (~byte : string) (offset : i32) (found : i32) : i32 =
+    := at = byte_find_from text byte offset
+    ? at < 0i32 ?> found |: last_byte_of text byte (at + 1i32) at
+
+:~ spiral_sibling_relative (~relative : string) : string =
+    := slash = last_byte_of relative "/" 0i32 -1i32
+    := dot = last_byte_of relative "." (slash + 1i32) -1i32
+    (? dot > slash + 1i32 ?> byte_slice relative 0i32 dot |: relative) ++# ".spi"
+
+:~ changed_in (~changed : string) (~relative : string) : bool =
+    sm'.contains (nul_text () ++# relative ++# nul_text ()) changed
+
+:~ unchanged (state : walk) (~relative : string) : bool =
+    state.trusted
+    && changed_in state.changed relative = !-
+    && changed_in state.changed (spiral_sibling_relative relative) = !-
+
+:~ skipped (state : walk) (~path : string) : walk = { state ?| rows = skipped_row path :: state.rows }
+
+:~ recorded (state : walk) (~path : string) (size : u64) (mtime : u64) (~ids : string) (untracked : i32) : walk =
+    { state ?|
+        rows = cache_row path size mtime ids untracked :: state.rows
+        ids = ids :: state.ids
+        untracked = state.untracked + untracked
+    }
+
+:~ hit_recorded
+    (state : walk) (~path : string) (size : u64) (mtime : u64) (~ids : string) (untracked : i32) (tail : i32)
+    : walk
+    =
+    := hit = recorded state path size mtime ids untracked
+    { hit ?| hits = (state.hits + 1i32); cursor = tail }
+
+:~ findings_of (syntax : comment_syntax) (~backlog : string) (~text : string) (~display : string) : string * i32 =
+    := code = case_index syntax
+    := rendered, count, _ =
+        $'agile_todo_lines::kit_agile_todo_findings(!code, "", &*!backlog, &*!text, &*!display, true)' : string * i32 * string
+    rendered, count
+
+:~ file_read (state : walk) (syntax : comment_syntax) (~absolute : string) (size : u64) (mtime : u64) : walk =
+    := has_nul, text = rust_std_fs.model.scan_text_of absolute
+    ? has_nul
+    ?>
+        := binary = recorded state absolute size mtime "" 0i32
+        { binary ?| scanned = (state.scanned + 1i32) }
+    |:
+        := rendered, count = findings_of syntax state.backlog text absolute
+        := ids = ids_in rendered
+        := read = recorded state absolute size mtime ids (count - words_in ids)
+        { read ?| scanned = (state.scanned + 1i32) }
+
+:~ file_scanned (state : walk) (~absolute : string) (~relative : string) : walk =
+    := sibling = rust_std_fs.model.spiral_sibling_of absolute
+    ?= path_verdict_of_code ($'agile_todo_paths::kit_agile_todo_path_verdict(&*!relative, !sibling)' : i32) ?|
+    | ScanPath syntax =>
+        := size = rust_std_fs.model.file_byte_size absolute
+        ?= byte_count_verdict size ?|
+        | ContentLarge => skipped state absolute
+        | _ =>
+            := mtime = rust_std_fs.model.file_modified_ms absolute
+            ?= cached_row_of state.cache state.cursor absolute ?|
+            | RowHit (old_size, old_mtime, ids, untracked, tail) =>
+                ? old_size = size && old_mtime = mtime
+                ?> hit_recorded state absolute size mtime ids untracked tail
+                |: file_read state syntax absolute size mtime
+            | _ => file_read state syntax absolute size mtime
+    | _ => skipped state absolute
+
+:~ file_walked (state : walk) (~root : string) (~relative : string) : walk =
+    := absolute = root ++# "/" ++# relative
+    ?= (? unchanged state relative ?> cached_row_of state.cache state.cursor absolute |: RowMiss) ?|
+    | RowHit (size, mtime, ids, untracked, tail) => hit_recorded state absolute size mtime ids untracked tail
+    | RowSkip tail =>
+        := kept = skipped state absolute
+        { kept ?| cursor = tail }
+    | RowMiss => file_scanned state absolute relative
+
+:~ ^ listed (state : walk) (~root : string) (~listing : string) (offset : i32) : walk =
+    ? byte_len listing <= offset
+    ?> state
+    |:
+        := nul = byte_find_from listing (nul_text ()) offset
+        := stop = ? nul < 0i32 ?> byte_len listing |: nul
+        := relative = byte_slice listing offset stop
+        := next = ? relative = "" ?> state |: file_walked state root relative
+        listed next root listing (stop + 1i32)
+
+:~ root_walked (state : walk) (~root : string) : walk =
+    := listed_ok, listing = $'agile_todo_sources::kit_agile_todo_sources(&*!root)' : bool * string
+    := head = $'agile_todo_sources::kit_agile_todo_git_head(&*!root)' : string
+    := since, was_dirty = cached_head_of state.cache root
+    := dirty = ? head = "" ?> "" |: $'agile_todo_sources::kit_agile_todo_git_changed(&*!root, &*!head)' : string
+    := moved =
+        ? head = "" || since = "" ?> ""
+        |? since = head ?> dirty
+        |: $'agile_todo_sources::kit_agile_todo_git_changed(&*!root, &*!since)' : string
+    := changed = ? moved = "" || dirty = "" ?> "" |: moved ++# dirty ++# nul_text () ++# was_dirty ++# nul_text ()
+    := scoped = { state ?| trusted = (changed <> ""); changed = changed }
+    := walked = ? listed_ok ?> listed scoped root listing 0i32 |: scoped
+    := marked = ? head = "" || dirty = "" ?> walked.rows |: head_row root head dirty :: walked.rows
+    { walked ?| rows = marked; trusted = !-; changed = "" }
+
+:~ ^ roots_walked (state : walk) (~roots : string) (offset : i32) : walk =
+    ? byte_len roots <= offset
+    ?> state
+    |:
+        := newline = byte_find_from roots "\n" offset
+        := stop = ? newline < 0i32 ?> byte_len roots |: newline
+        := root = byte_slice roots offset stop
+        roots_walked (? root = "" ?> state |: root_walked state root) roots (stop + 1i32)
+
+:~ cache_path (~backlog_root : string) : string =
+    := name = sm'.replace ":" "_" (sm'.replace "/" "_" (sm'.replace "\\" "_" backlog_root))
+    env.get_environment_variable "LOCALAPPDATA" ++# "/kit/todo-cache/" ++# name ++# ".spi"
+
+:~ ^ item_lines (~unsettled : string) (~all : string) (offset : i32) (items : i32) (markers : i32) : i32 * i32 =
+    ? byte_len unsettled <= offset
+    ?> items, markers
+    |:
+        := newline = byte_find_from unsettled "\n" offset
+        := stop = ? newline < 0i32 ?> byte_len unsettled |: newline
+        := id = byte_slice unsettled offset stop
+        := count = ? id = "" ?> 0i32 |: occurrences all (" " ++# id ++# " ") 0i32 0i32
+        := _ = ? count > 0i32 ?> stdout_line (id ++# "  wip=" ++# sm'.show count) |: 0i32
+        item_lines unsettled all (stop + 1i32) (? count > 0i32 ?> items + 1i32 |: items) (markers + count)
+
+:~ wip_run (~root : string) : i32 =
+    := started = unix_ms ()
+    := state_path = backlog_state_path root
+    ? file_system.file_exists state_path |> not
+    ?> stderr_failure ("agile wip rejected: no backlog state at " ++# state_path)
+    |:
+        := backlog = file_system.read_all_text state_path
+        := path = cache_path root
+        := cache = ? file_system.file_exists path ?> file_system.read_all_text path |: ""
+        := start =
+            {
+                rows = []
+                ids = []
+                untracked = 0i32
+                scanned = 0i32
+                hits = 0i32
+                cursor = 0i32
+                cache = cache
+                backlog = backlog
+                trusted = !-
+                changed = ""
+            }
+        := done = roots_walked start (agile_todo_model.roots.harvest_roots backlog) 0i32
+        := _ = file_system.create_dir_all (env.get_environment_variable "LOCALAPPDATA" ++# "/kit/todo-cache")
+        := _ = replace_file_checked path (sm'.concat_list "\n" (listm.rev done.rows))
+        := all = " " ++# sm'.concat_list " " done.ids ++# " "
+        := unsettled = $'agile_task_census::kit_agile_unsettled_ids(&*!backlog)' : string
+        := items, markers = item_lines unsettled all 0i32 0i32 0i32
+        := tagged = listm.fold (\ total (chunk : string) => total + words_in chunk) 0i32 done.ids
+        := _ = stdout_line ("stale wip: " ++# sm'.show (tagged - markers) ++# " markers naming a Done or unknown item")
+        := _ = stdout_line ("untracked wip: " ++# sm'.show done.untracked ++# " markers without an ID")
+        stdout_line (
+            "kit agile wip ok items=" ++# sm'.show items ++# " markers=" ++# sm'.show markers ++# " untracked="
+            ++# sm'.show done.untracked ++# " scanned=" ++# sm'.show done.scanned ++# " cached=" ++# sm'.show done.hits
+            ++# " elapsed_ms=" ++# sm'.show (ms_since started)
+        )
+
+///> rust
+:# words_siblings_and_changed_paths =
+    ? words_in "KIT-X KIT-Y" = 2i32 && words_in "" = 0i32 ?> () |: failwith "words"
+    ? spiral_sibling_relative "a/b.rs" = "a/b.spi" && spiral_sibling_relative "a.b/c" = "a.b/c.spi" ?> ()
+    |: failwith "sibling of a path with and without an extension"
+    ? spiral_sibling_relative ".gitignore" = ".gitignore.spi" && spiral_sibling_relative "x.tar.gz" = "x.tar.spi" ?> ()
+    |: failwith "sibling of a dotfile and a double extension"
+    := dirty = nul_text () ++# "a.spi" ++# nul_text () ++# "b/c.spi" ++# nul_text ()
+    ? changed_in dirty "b/c.spi" && changed_in dirty "c.spi" = !- ?> () |: failwith "changed set matches whole paths"
+
+///> _
+:= main () : i32 =
+    export "kit_agile_wip_run" ((\ () => wip_run (rust_std_env.model.argument_owned 1i32)) : () -> i32)
+    0i32

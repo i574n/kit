@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    agile_task_text
+    workspace_primitives
+modules:
+    cache

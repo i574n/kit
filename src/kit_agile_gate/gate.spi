@@ -1,0 +1,78 @@
+///- --package .
+:# gate static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== gate_terms = { root : string; team : string; lane : string }
+
+:~ ^ flag_value (words : list string) (~flag : string) : string =
+    ?= words ?|
+    | name :: value :: _ ?& name = flag => value
+    | _ :: rest => flag_value rest flag
+    | [] => ""
+
+:~ terms_of (~root : string) (words : list string) : gate_terms =
+    { root = root; team = flag_value words "--team"; lane = flag_value words "--as" }
+
+:~ ready_line (t : gate_terms) (ready : list string) : string =
+    ? ready = [] ?> ""
+    |:
+        := claim = "kit agile claim " ++# t.root ++# " <ID> --as " ++# t.lane
+        "Your team's top ready light items: " ++# sm'.concat_list ", " ready
+        ++# ". Claim one explicitly (" ++# claim
+        ++# ") and start it now; while a run or train you started is pending, work another of these"
+        ++# " instead of stopping."
+
+:~ parked_line (t : gate_terms) (parked : list string) : string =
+    ? parked = [] ?> ""
+    |:
+        "Paused P0/P1 items for team " ++# t.team
+        ++# " (re-decide each: resume as Planned, or keep Paused only with a reason AND a resume condition): "
+        ++# sm'.concat_list ", " parked ++# "."
+
+:~ ^ ids_where (rows : array_base agile_team_work.work.gate_row) (parked : bool) (at : i32) : list string =
+    ? at < 0i32 ?> []
+    |:
+        := row = am'.index_base at rows
+        := earlier = ids_where rows parked (at - 1i32)
+        ? row.parked = parked ?> listm.append earlier [ row.id ] |: earlier
+
+:~ gate_lines (t : gate_terms) (ready : list string) (parked : list string) : list string =
+    := receipt =
+        "kit agile gate ok team=" ++# t.team ++# " ready=" ++# sm'.show (listm.length ready : i32)
+        ++# " paused=" ++# sm'.show (listm.length parked : i32)
+    [ ready_line t ready; parked_line t parked; receipt ] |> listm'.filter (\ (line : string) => line <> "")
+
+:~ gate_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: root :: words ?& sm'.starts_with "-" root |> not =>
+        := t = terms_of root words
+        ? t.team = "" || t.lane = ""
+        ?>
+            console.write_error_line "usage: kit agile gate <root> --team <team> --as <lane>"
+            2i32
+        |:
+            := rows = agile_team_work.work.gate_rows (root, t.team)
+            := last = am'.length_base rows - 1i32
+            := parked = agile_team_lane.lane.paused_of (root, t.team) |> am'.to_list_base' |> listm'.unbox
+            := parked_ids = parked |> listm.map (\ (p : agile_team_lane.lane.paused_row) => p.id)
+            gate_lines t (ids_where rows !- last) parked_ids |> listm.iter console.write_line
+            0i32
+    | _ =>
+        console.write_error_line "usage: kit agile gate <root> --team <team> --as <lane>"
+        2i32
+
+///> rust
+:# the_gate_names_ready_work_and_parked_items_then_a_receipt =
+    := t = terms_of "B" [ "--team"; "kit"; "--as"; "kit-1" ]
+    testing.expect (t = { root = "B"; team = "kit"; lane = "kit-1" }) "flags"
+    := lines = gate_lines t [ "A-1"; "A-2" ] [ "P-9" ]
+    testing.expect (listm.length lines = 3i32) "ready, parked, receipt"
+    := expected = "items: A-1, A-2. Claim one explicitly (kit agile claim B <ID> --as kit-1)"
+    testing.expect (listm'.exists' (sm'.contains expected) lines) "ready"
+    testing.expect (gate_lines t [] [] = [ "kit agile gate ok team=kit ready=0 paused=0" ]) "receipt only"
+///> _
+:= main () : i32 =
+    export "kit_agile_gate_run" gate_run
+    0i32

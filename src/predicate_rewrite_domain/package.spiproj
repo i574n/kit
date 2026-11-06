@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    predicate_rewrite_model-
+modules:
+    main

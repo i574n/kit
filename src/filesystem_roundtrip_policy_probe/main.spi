@@ -1,0 +1,7 @@
+:= main () : i32 =
+    := outcome =
+        filesystem_roundtrip_contract.model.policy_roundtrip
+            "/tmp/kit-roundtrip-policy.txt"
+            "policy-roundtrip"
+    ? filesystem_roundtrip_contract.model.accepted outcome
+    ?> 0i32 |: 1i32

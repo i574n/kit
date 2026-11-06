@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "process.spi"
+output = "process.rs"
+
+[package]
+name = "kit-process"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_process"
+path = "process.rs"
+
+[dependencies]
+kit-compiler-discovery = { path = "../kit_compiler_discovery" }
+kit-process-streaming = { path = "../kit_process_streaming" }

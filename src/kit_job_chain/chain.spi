@@ -1,0 +1,66 @@
+///- --package .
+:# chain static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_job_after_model.model
+
+:~ captured (~program : string) (arguments : list string) : option string =
+    process.try_capture_combined_list program arguments
+
+:~ printed_trimmed (output : string) : () = console.write_line (sm'.trim output)
+
+:~ ^ chain_started
+    (~program : string) (mode : after_mode) (~previous : string) (links : list (list string)) (ids : list string)
+    : i32
+    =
+    ?= links ?|
+    | [] =>
+        console.write_line (
+            "kit job chain ok jobs="
+            ++# sm'.format (listm.length ids : i32)
+            ++# " ids="
+            ++# sm'.concat_list "," (listm.rev ids)
+        )
+        0i32
+    | link :: rest =>
+        := output = optionm'.default_value "" (captured program (start_arguments mode previous link))
+        := id = started_id output
+        ? id = "" ?>
+            console.write_error_line (
+                "kit error: job chain stopped: link "
+                ++# sm'.format ((listm.length ids : i32) + 1i32)
+                ++# " did not start ("
+                ++# sm'.trim output
+                ++# "); started before it: "
+                ++# sm'.concat_list "," (listm.rev ids)
+            )
+            2i32
+        |:
+            printed_trimmed output
+            chain_started program mode id rest (id :: ids)
+
+:~ serial_started (~program : string) (plan : chain_plan) : i32 =
+    ?= links_timeout plan.links 0u64 ?|
+    | None =>
+        console.write_error_line "kit error: job chain refused: every --serial link needs a positive <timeout-ms>"
+        2i32
+    | Some total =>
+        := arguments = serial_start_arguments plan.head program total plan.links
+        ?= captured program arguments ?|
+        | Some output =>
+            printed_trimmed output
+            0i32
+        | None =>
+            console.write_error_line "kit error: job chain could not start its serial job"
+            2i32
+
+:~ chain_run () : i32 =
+    ?= chain_of (arguments_from 2i32 (env.command_line_argument_count ()) []) ?|
+    | ChainRefused reason =>
+        console.write_error_line ("kit error: job chain refused: " ++# reason)
+        2i32
+    | ChainPlanned plan =>
+        := program = env.current_executable ()
+        ? plan.head.serial ?> serial_started program plan
+        |: chain_started program plan.head.mode plan.head.first plan.links []

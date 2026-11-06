@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    bundle_manifest_contract
+modules:
+    bundle_manifest

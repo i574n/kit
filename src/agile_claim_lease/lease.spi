@@ -1,0 +1,81 @@
+///- --package .
+:# lease static =
+    :< sm'_operators
+    :< agile_claim_model.claim
+
+:< sm'_operators
+:< agile_claim_model.claim
+
+:~ position_of (~id : string) (ids : list string) : i32 = optionm'.default_value -1i32 (listm'.try_index_of_ id ids) + 1i32
+
+:~ words (~text : string) (~separator : string) : list string =
+    sm'.split_list separator text |> listm'.filter (\ (w : string) => w <> "")
+
+:~ held_paths (claims : list claim) (~item : string) : list string =
+    claims |> listm.fold (\ found (c : claim) => ? c.item = item ?> c.paths |: found) []
+
+:= claim_taken
+    (~item : string) (~lane : string) (ttl_min : i32) (asked : list string) (~wsjf : string) (claims : list claim)
+    (live : liveness) (now_ms : u64)
+    : string * string * string * u64 * i32 * i32 * string * string
+    =
+    ?= refusal_of claims live item lane asked now_ms ?|
+    | Some refused =>
+        outcome_word OutcomeRefused, item, lane, 0u64, 0i32, live_count claims now_ms, refusal_reason refused, change_word ChangeNone
+    | None =>
+        := paths = ? asked = [] ?> held_paths claims item |: asked
+        := lease = { item = item; owner = lane; expires_ms = now_ms + (conv ttl_min : u64) * 60000u64; paths = paths }
+        := wip = live_count (upserted claims lease) now_ms
+        := rank = position_of item (words wsjf " ")
+        outcome_word OutcomeGranted, item, lane, lease.expires_ms, rank, wip, sm'.concat_list ";" paths, change_word ChangeUpsert
+
+:~ lease_claimed
+    (~item : string) (~lane : string) (ttl_min : i32) (~paths : string) (~wsjf : string) (~known : string) (~live : string)
+    (~rows : string) (now_ms : u64)
+    : string * string * string * u64 * i32 * i32 * string * string
+    =
+    ? listm'.contains item (words known " ")
+    ?>
+        := running = ? listm'.contains item (words live " ") ?> LiveJob item |: Idle
+        claim_taken item lane ttl_min (words paths ",") wsjf (claims_of_text rows) running now_ms
+    |: outcome_word OutcomeUnknown, item, lane, 0u64, 0i32, 0i32, "", change_word ChangeNone
+
+:= lease_of (~item : string) (~owner : string) (expires_ms : u64) (paths : list string) : claim =
+    { item = item; owner = owner; expires_ms = expires_ms; paths = paths }
+
+:= known () : string = "GATE SMALL-P2 KIT-SIDE BIG-P0"
+
+///> rust
+:# claims_refuse_held_and_overlapping_work =
+    := held = claims_text [ lease_of "GATE" "a" 9000u64 [ "src/agile/**" ] ]
+    := kind, _, _, _, _, _, reason, change = lease_claimed "KIT-SIDE" "b" 90i32 "src/agile/x.spi" (known ()) (known ()) "" held 1000u64
+    testing.expect (kind = "refused" && reason = "path-overlap:GATE:src/agile/x.spi" && change = "none") reason
+    := kind, _, _, _, _, _, reason, _ = lease_claimed "GATE" "b" 90i32 "" (known ()) (known ()) "" held 1000u64
+    testing.expect (kind = "refused" && reason = "leased-by:a:9000") reason
+    := kind, item, owner, expires, rank, wip, paths, change = lease_claimed "KIT-SIDE" "b" 30i32 "src/kit/**" (known ()) (known ()) "" held 1000u64
+    testing.expect (kind = "granted" && item = "KIT-SIDE" && owner = "b" && expires = 1801000u64 && rank = 3i32 && wip = 2i32) item
+    testing.expect (paths = "src/kit/**" && change = "upsert") paths
+    := kind, _, _, _, _, _, _, _ = lease_claimed "NOPE" "b" 90i32 "" (known ()) (known ()) "" held 1000u64
+    testing.expect (kind = "unknown") kind
+
+///> rust
+:# a_decline_refuses_only_the_lane_that_declined =
+    := declined = claims_text [ lease_of "GATE" "~a" 9000u64 [] ]
+    := kind, _, _, _, _, _, reason, _ = lease_claimed "GATE" "a" 90i32 "" (known ()) (known ()) "" declined 1000u64
+    testing.expect (kind = "refused" && reason = "declined-by-you-until:9000") reason
+    := kind, _, _, _, _, _, _, _ = lease_claimed "GATE" "b" 90i32 "" (known ()) (known ()) "" declined 1000u64
+    testing.expect (kind = "granted") "another lane may take a declined item"
+
+///> rust
+:# a_running_job_refuses_a_claim_on_its_item =
+    := held = claims_text []
+    := kind, _, _, _, _, _, reason, _ = lease_claimed "KIT-SIDE" "b" 90i32 "" (known ()) (known ()) "KIT-SIDE" held 1000u64
+    testing.expect (kind = "refused" && reason = "job-running:KIT-SIDE") reason
+///> _
+:= main () : i32 =
+    export "kit_claim_lease" (
+        (\ (item, lane, ttl, paths, wsjf, known, live, rows, now) => lease_claimed item lane ttl paths wsjf known live rows now)
+        : string * string * i32 * string * string * string * string * string * u64
+            -> string * string * string * u64 * i32 * i32 * string * string
+    )
+    0i32

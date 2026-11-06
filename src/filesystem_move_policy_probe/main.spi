@@ -1,0 +1,7 @@
+:< filesystem_move_contract.model
+
+:= main () : i32 =
+    ?= policy_move "/tmp/kit-move-source.txt" "/tmp/kit-move-target.txt" "move-exact" ?|
+    | MoveAccepted _ => 0i32
+    | MoveRejected _ => 1i32
+    | MoveFailed _ => 2i32

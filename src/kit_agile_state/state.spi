@@ -1,0 +1,51 @@
+:! agile_state_idle = ()
+:! agile_state_loaded = ()
+:! agile_state_validated = ()
+:! agile_state_receipts_committed = ()
+:! agile_state_sessions_closed = ()
+
+:! agile_module_unchecked = ()
+:! agile_module_committed = ()
+
+:| agile_state_op from to =
+    | LoadAgileState :: agile_state_op agile_state_idle agile_state_loaded
+    | ValidateAgileModules :: agile_state_op agile_state_loaded agile_state_validated
+    | CommitModuleReceipts :: agile_state_op agile_state_validated agile_state_receipts_committed
+    | CloseAgileSessions :: agile_state_op agile_state_receipts_committed agile_state_sessions_closed
+
+:| module_receipt_op from to =
+    | CommitModuleReceipt :: string * u64 * u64 -> module_receipt_op agile_module_unchecked agile_module_committed
+
+:| ^ agile_state_plan from to =
+    | AgileStateStep :: \* from to. agile_state_op from to -> agile_state_plan from to
+    | AgileStateThen :: \* from to.
+        (\? middle. agile_state_plan from middle * agile_state_plan middle to) ->
+        agile_state_plan from to
+
+:| ^ module_receipt_plan from to =
+    | ModuleReceiptStep :: \* from to. module_receipt_op from to -> module_receipt_plan from to
+
+:= module_receipt path bytes fingerprint : module_receipt_plan agile_module_unchecked agile_module_committed =
+    ModuleReceiptStep (CommitModuleReceipt (path, bytes, fingerprint))
+
+:= validation_plan () : agile_state_plan agile_state_idle agile_state_receipts_committed =
+    AgileStateThen (\? (
+        AgileStateThen (\? (AgileStateStep LoadAgileState, AgileStateStep ValidateAgileModules)),
+        AgileStateStep CommitModuleReceipts
+    ))
+
+:= shutdown_plan () : agile_state_plan agile_state_receipts_committed agile_state_sessions_closed =
+    AgileStateStep CloseAgileSessions
+
+:= full_state_plan () : agile_state_plan agile_state_idle agile_state_sessions_closed =
+    AgileStateThen (\? (validation_plan (), shutdown_plan ()))
+
+:= main () : i32 =
+    agile_state_runtime.state_terminal.emit_runtime ()
+    agile_state_runtime.check_runtime.emit_runtime ()
+    agile_state_runtime.series_terminal.emit_runtime ()
+    agile_state_runtime.owned_runtime.emit_runtime ()
+    := _ = module_receipt "state/example.spi" 1u64 1u64
+    := _ = validation_plan ()
+    := _ = full_state_plan ()
+    0i32

@@ -1,0 +1,66 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= task_row (~id : string) (~status : string) : string =
+    $'std::rc::Rc::<str>::from(format\!("inl task_{0} () = Task ({1}{0}{1}, {1}t{1}, Story, P1, D1, 0u32, {2}, \
+        {1}{1}, {1}{1}, {1}current{1}, {1}current{1})\n", &*!id, char::from(34u8), &*!status).as_str())' : string
+
+:= memory_text (~name : string) (~kind : string) (~body : string) : string =
+    cat (cat (cat (cat (cat "---\nname: " name) "\ndescription: d\nmetadata:\n  type: ") kind) "\n---\n\n") body
+
+:= links_fixture () : fixture_root =
+    := root = fixture_root_create "agile links"
+    fixture_write root
+        "backlog/state/agile.spi"
+        (
+            cat
+                (cat (task_row "KIT-OPEN" "Active") (task_row "KIT-DONE" "Done"))
+                (
+                    "inl note_of_kit_open_1 () = Note (\"KIT-OPEN\", 1u32, \"2026-10-21T00:00Z\", \"kit-lane\", "
+                    ^^ "\"see memory gone-old-rule, memory pointer and the memory re-measure next\")\n"
+                )
+        )
+    fixture_write root
+        "memory/rule.md"
+        (memory_text "rule" "feedback" "Follow KIT-OPEN and KIT-DONE, see [[pointer]] and [[later-note]].\n")
+    fixture_write root
+        "memory/pointer.md"
+        (memory_text "pointer" "reference" "History: KIT-DONE, and UTF-8 or Spiral-s-KIT-Library are not ids.\n")
+    fixture_write root "memory/MEMORY.md" "- [Rule](rule.md)\n"
+    root
+
+:= links_run (root : fixture_root) (extra : cli_args) : cli_run =
+    kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("agile", Arg ("links", Arg (fixture_path root "backlog",
+        Arg ("--memory", Arg (fixture_path root "memory", extra))))))
+
+///> rust
+:# links_report_done_items_in_rules_and_unwritten_links =
+    := root = links_fixture ()
+    := run = links_run root NoArgs
+    testing.expect (run.code = 0i32) (run_text run)
+    shows run.stdout "done  rule  KIT-DONE  the item is Done; check that the rule still holds"
+    shows run.stdout "unwritten-link  rule  [[later-note]]  no memory with this name yet"
+    hides run.stdout "pointer  KIT-DONE"
+    hides run.stdout "UTF-8"
+    hides run.stdout "KIT-L"
+    shows run.stdout "unknown-memory  KIT-OPEN  gone-old-rule  a backlog note cites this memory, which does not exist"
+    hides run.stdout "re-measure"
+    shows run.stdout "kit agile links ok memories=2 cited=3 dangling=0 done=1 unwritten_links=1 unknown_memories=1"
+    fixture_root_remove root
+
+///> rust
+:# a_dangling_id_fails_the_check =
+    := root = links_fixture ()
+    fixture_write root "memory/lost.md" (memory_text "lost" "project" "Tracks KIT-GONE.\n")
+    := run = links_run root (Arg ("--json", NoArgs))
+    testing.expect (run.code = 1i32) (run_text run)
+    shows run.stdout "{\"kind\":\"dangling\",\"memory\":\"lost\",\"target\":\"KIT-GONE\"}"
+    shows run.stdout "\"dangling\":1}"
+    rejected_with
+        (
+            kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("agile", Arg ("links", Arg (fixture_path root "backlog",
+                NoArgs))))
+        )
+        2i32
+        "--memory <dir> must name a memory directory"
+    fixture_root_remove root

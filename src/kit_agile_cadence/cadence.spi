@@ -1,0 +1,67 @@
+///- --package .
+:# cadence static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:~ ^ text_after (words : list string) (~flag : string) : string =
+    ?= words ?|
+    | name :: value :: _ ?& name = flag => value
+    | _ :: rest => text_after rest flag
+    | [] => ""
+
+:~ number_after (words : list string) (~flag : string) (fallback : i64) : i64 =
+    optionm'.default_value fallback (convert.try_convert (text_after words flag))
+
+:~ day_of_date (~date : string) : option i64 =
+    := hour = agile_quality_state.state_rows.stamp_hour (sm'.trim date ++# "T00:00Z")
+    ? hour > 0i64 ?> Some (hour / 24i64) |: None
+
+:~ listed (rows : array_base string) : list string = am'.to_list_base' rows |> listm'.unbox
+
+:~ summary_of (done : list string) (activity : list string) (~hours : i64) : string =
+    := count = \ (prefix : string) => (done |> listm'.filter (sm'.starts_with prefix) |> listm.length : i32)
+    := activity_rows : i32 = listm.length activity
+    "kit agile cadence ok done_rows=" ++# sm'.show (count "kit agile cadence done ") ++# " activity_rows="
+    ++# sm'.show activity_rows ++# " silent_active=" ++# sm'.show (count "kit agile cadence silent ")
+    ++# " window_hours=" ++# sm'.show hours ++# " (done dated by last note)"
+
+:~ cadence_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: root :: words ?& sm'.starts_with "-" root |> not =>
+        := text = file_system.read_text_or_empty (sm'.replace "\\" "/" root ++# "/state/agile.spi")
+        := now_hour = (conv (workspace_primitives.clock.unix_ms ()) : i64) / 3600000i64
+        := hours = number_after words "--hours" 48i64
+        := days =
+            ?= day_of_date (text_after words "--since") ?|
+            | Some since => now_hour / 24i64 - since
+            | None => number_after words "--days" 7i64
+        := round = number_after words "--round" 0i64
+        := team = text_after words "--team"
+        := lines =
+            ? round > 0i64 ?> listed (kit_cadence_activity.activity.round_report (text, now_hour, round))
+            |:
+                := done = listed (kit_cadence_done.done.done_report (text, now_hour, hours, days, team))
+                := now_day = now_hour / 24i64
+                := activity = listed (kit_cadence_activity.activity.activity_report (text, now_day, days, team))
+                listm.append done (listm.append activity [ summary_of done activity hours ])
+        lines |> listm.iter console.write_line
+        0i32
+    | _ =>
+        := flags = "[--hours n] [--days n | --since yyyy-mm-dd] [--team t] [--round h]"
+        console.write_error_line ("usage: kit agile cadence <root> " ++# flags)
+        2i32
+
+///> rust
+:# cadence_flags_dates_and_the_summary_line =
+    testing.expect (number_after [ "--hours"; "12" ] "--hours" 48i64 = 12i64) "a flag value"
+    testing.expect (number_after [] "--days" 7i64 = 7i64) "the fallback"
+    testing.expect (day_of_date "2026-11-04" = Some 20761i64 && day_of_date "nov 4" = None) "--since dates"
+    := silent = "kit agile cadence silent id=A teams=kit hours=50"
+    := done = [ "kit agile cadence done team=kit days_ago=0 done=1"; silent ]
+    := line = summary_of done [ "a" ] 48i64
+    testing.expect (sm'.starts_with "kit agile cadence ok done_rows=1 activity_rows=1 silent_active=1" line) line
+///> _
+:= main () : i32 =
+    export "kit_agile_cadence_run" cadence_run
+    0i32

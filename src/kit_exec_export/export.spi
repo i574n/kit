@@ -1,0 +1,52 @@
+///- --package .
+:# export static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:~ ^ flag_value (words : list string) (~flag : string) : string =
+    ?= words ?|
+    | name :: value :: _ ?& name = flag => value
+    | _ :: rest => flag_value rest flag
+    | [] => ""
+
+:~ notebooks_in (~directory : string) : list string =
+    ? file_system.directory_exists directory |> not ?> []
+    |:
+        file_system.read_dir_names directory
+        |> resultm.unwrap'
+        |> am'.vec_fold' (\ names name => sm'.from_std_string name :: names) []
+        |> listm'.filter (sm'.ends_with ".ipynb")
+
+:~ directory_prom (~machine : string) (~directory : string) : list string =
+    := read = \ (name : string) => file_system.read_all_text (directory ++# "/" ++# name)
+    notebooks_in directory |> listm.map (\ (name : string) => kit_exec_cells.cells.notebook_prom (machine, read name))
+
+:= export_usage () : string =
+    "usage: kit metrics export [--notebooks <dir>] [--jobs [--since <unix ms>]] [--machine box|node]"
+
+:~ export_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: sub :: words ?& sub = "export" && (flag_value words "--notebooks" <> "" || listm'.contains "--jobs" words) =>
+        := machine = ? flag_value words "--machine" = "node" ?> "node" |: "box"
+        := directory, jobs = flag_value words "--notebooks", listm'.contains "--jobs" words
+        := since = optionm'.default_value 0u64 (convert.try_convert (flag_value words "--since"))
+        := cells = ? directory = "" ?> [] |: directory_prom machine directory
+        := texts = listm.append cells (? jobs ?> [ kit_exec_jobs.jobs.jobs_prom (machine, since) ] |: [])
+        := lines = texts |> listm'.filter (\ (text : string) => text <> "")
+        lines |> listm.iter console.write_line
+        console.write_error_line ("kit metrics export ok parts=" ++# sm'.show (listm.length lines : i32))
+        0i32
+    | _ =>
+        console.write_error_line (export_usage ())
+        2i32
+
+///> rust
+:# export_flags_read_from_the_argument_list =
+    := words = [ "--machine"; "node"; "--notebooks"; "out" ]
+    testing.expect (flag_value words "--notebooks" = "out" && flag_value words "--since" = "") "flags"
+    testing.expect (notebooks_in "no/such/directory/here" = []) "a missing directory has no notebooks"
+///> _
+:= main () : i32 =
+    export "kit_exec_export_run" export_run
+    0i32

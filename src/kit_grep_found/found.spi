@@ -1,0 +1,148 @@
+///- --package .
+:# found static =
+    :< sm'_operators
+    :< kit_os_search.search
+
+:< sm'_operators
+:< kit_os_search.search
+
+:== line_matcher = string -> bool
+
+:== file_hits =
+    {
+        path : string
+        found : array_base i32
+        lines : array_base string
+    }
+
+:= skipped_folders () : list string = [ "target"; "node_modules"; ".git"; "_build"; "deps"; "dist"; ".cache"; "obj" ]
+
+:= slashed (~path : string) : string = sm'.replace "\\" "/" path
+
+:~ root_form (~root : string) : string =
+    := path = slashed root
+    := size : i32 = sm'.length path
+    ? size > 1i32 && sm'.ends_with "/" path ?> sm'.substring 0i32 (size - 1i32) path |: path
+
+:~ entry_step (~folder : string) (seen : list string * list string) (~name : string) : list string * list string =
+    := folders, files = seen
+    := child = folder ++# "/" ++# name
+    ? file_system.rust_is_symlink child ?> folders, files
+    |? file_system.directory_exists child
+    ?> (? listm'.contains name (skipped_folders ()) ?> folders |: child :: folders), files
+    |? file_system.file_exists child ?> folders, child :: files
+    |: folders, files
+
+:~ ^ files_walked (todo : list string) (found : list string) : list string =
+    ?= todo ?|
+    | [] => found
+    | folder :: rest =>
+        := step = \ (seen : list string * list string) (name : string) => entry_step folder seen name
+        := folders, files = kit_os_files.files.entry_names folder |> listm.fold step (rest, found)
+        files_walked folders files
+
+:~ base_name (~path : string) : string =
+    := plain = slashed path
+    := at : i32 = sm'.last_index_of "/" plain
+    ? at < 0i32 ?> plain |: sm'.substring (at + 1i32) ((sm'.length plain : i32) - at - 1i32) plain
+
+:~ glob_wanted (~glob : string) (~name : string) : bool =
+    := star : i32 = sm'.index_of "*" glob
+    := size : i32 = sm'.length glob
+    ? glob = "" ?> !+
+    |? star < 0i32 ?> name = glob
+    |:
+        := head = sm'.substring 0i32 star glob
+        := tail = sm'.substring (star + 1i32) (size - star - 1i32) glob
+        sm'.starts_with head name && sm'.ends_with tail name
+
+:~ found_files ((root, glob) : string * string) : array_base string =
+    := walked = ? file_system.directory_exists root ?> files_walked [ root_form root ] [] |: [ root ]
+    := keep = \ (kept : array string) (path : string) =>
+        ? glob_wanted glob (base_name path) ?> kept ++ ;[ path ] |: kept
+    walked |> listm.rev |> listm.fold keep ;[] |> am'.base
+
+:= literal_matcher (~needle : string) : line_matcher = \ (line : string) => sm'.contains needle line
+
+:~ caseless_matcher (~needle : string) : line_matcher =
+    := lowered = sm'.to_lower needle
+    \ (line : string) => sm'.contains lowered (sm'.to_lower line)
+
+:~ pattern_matcher (~pattern : string) (caseless : bool) : line_matcher =
+    ?= resultm.unbox' (sm'.new_regex (? caseless ?> "(?i)" ++# pattern |: pattern)) ?|
+    | Ok found => \ (line : string) => regex_matches found line
+    | Error _ => \ (_ : string) => !-
+
+:~ matcher_of (~needle : string) (caseless : bool) (pattern : bool) : line_matcher =
+    ? pattern ?> pattern_matcher needle caseless
+    |? caseless ?> caseless_matcher needle
+    |: literal_matcher needle
+
+:~ found_problem (pattern : string) : string =
+    ?= resultm.unbox' (sm'.new_regex pattern) ?|
+    | Ok _ => ""
+    | Error problem => regex_problem problem
+
+:~ lines_of (~text : string) : array string =
+    := unix = sm'.replace "\r\n" "\n" text
+    := size : i32 = sm'.length unix
+    := body = ? sm'.ends_with "\n" unix ?> sm'.substring 0i32 (size - 1i32) unix |: unix
+    ? unix = "" ?> (;[] : array string) |: sm'.split "\n" body |> array
+
+:~ ^ found_in (lines : array string) (matches : line_matcher) (at : i32) (found : list i32) : list i32 =
+    ? at < 0i32 ?> found
+    |: found_in lines matches (at - 1i32) (? matches (am'.index at lines) ?> at :: found |: found)
+
+:~ shown_path (~base : string) (~path : string) : string =
+    := plain = slashed path
+    := prefix = base ++# "/"
+    := cut : i32 = sm'.length prefix
+    ? sm'.starts_with prefix plain ?> sm'.substring cut ((sm'.length plain : i32) - cut) plain |: plain
+
+:= sort_key (~path : string) : string = sm'.replace "/" " " path
+
+:~ file_hits_of (~base : string) (matches : line_matcher) (~path : string) : option file_hits =
+    := lines = lines_of (text_lossy path)
+    := found = found_in lines matches (am'.length lines - 1i32) []
+    ? found = [] ?> None
+    |:
+        := indices = found |> listm.fold (\ (kept : array i32) (at : i32) => kept ++ ;[ at ]) ;[]
+        Some { path = shown_path base path; found = am'.base indices; lines = am'.base lines }
+
+:~ ^ hits_from (~base : string) (matches : line_matcher) (files : array_base string) (at : i32) (kept : array file_hits)
+    : array file_hits
+    =
+    ? at >= am'.length_base files ?> kept
+    |:
+        := next =
+            ?= file_hits_of base matches (am'.index_base at files) ?|
+            | Some hit => kept ++ ;[ hit ]
+            | None => kept
+        hits_from base matches files (at + 1i32) next
+
+:~ found_hits ((root, files, needle, caseless, pattern) : string * array_base string * string * bool * bool)
+    : array_base file_hits
+    =
+    := hits = hits_from (root_form root) (matcher_of needle caseless pattern) files 0i32 ;[]
+    am'.sort_by (\ (hit : file_hits) => sort_key hit.path) hits |> am'.base
+
+///> rust -d regex
+:# grep_lines_paths_and_globs_follow_the_old_host_rules =
+    := two = lines_of "a\r\nb\n"
+    testing.expect (am'.length two = 2i32 && am'.index 0i32 two = "a" && am'.index 1i32 two = "b") "str::lines"
+    testing.expect (am'.length (lines_of "") = 0i32) "no text, no lines"
+    testing.expect (am'.length (lines_of "\n") = 1i32) "one empty line"
+    testing.expect (glob_wanted "*.spi" "grep.spi" && glob_wanted "" "x" && glob_wanted "grep*" "grep.rs") "globs"
+    testing.expect (glob_wanted "*.spi" "grep.rs" |> not && glob_wanted "a.spi" "b.spi" |> not) "globs refuse"
+    testing.expect (shown_path "C:/home/kit" "C:\\home\\kit\\src\\a.spi" = "src/a.spi") "relative paths"
+    := sorted = am'.sort_by sort_key (;[ "a-b/x"; "a/b" ] : array string)
+    testing.expect (am'.index 0i32 sorted = "a/b") "path order is by component, as PathBuf sorts"
+    testing.expect (caseless_matcher "Kit" "a KIT b" && literal_matcher "Kit" "a KIT b" |> not) "caseless and literal"
+    testing.expect (pattern_matcher "^k[aeiou]t" !- "kit") "a pattern matches"
+    testing.expect (found_problem "(" <> "" && found_problem "a+" = "") "a broken pattern is named"
+///> _
+:= main () : i32 =
+    export "kit_grep_found_files" found_files
+    export "kit_grep_found_hits" found_hits
+    export "kit_grep_found_problem" found_problem
+    0i32

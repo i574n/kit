@@ -1,0 +1,12 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+    kit_job_host
+    kit_job_slot
+    kit_job_gate
+link:
+    kit_job_slot
+    kit_job_gate
+modules:
+    decide

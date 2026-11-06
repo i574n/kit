@@ -1,0 +1,58 @@
+///- --package .
+:# review static =
+    :< sm'_operators
+    :< agile_sprint.model
+    :< agile_sprint_rows.rows
+
+:< sm'_operators
+:< agile_sprint.model
+:< agile_sprint_rows.rows
+
+:~ sprints_read (~text : string) : list sprint = sprints_from (kit_agile_sprint_read.read.flat_rows_of text)
+
+:~ chosen (sprints : list sprint) (~id : string) : option sprint =
+    ? id = "" ?> first_open sprints
+    |: listm'.try_find_ (\ (s : sprint) => s.terms.id = id) sprints
+
+:== task_row = { task : string }
+
+:== review_row = { done : i32; carried : i32; dropped : i32 }
+
+:~ ^ task_listed (rows : array_base task_row) (~task : string) (at : i32) : bool =
+    ? at >= am'.length_base rows ?> !-
+    |? (am'.index_base at rows).task = task ?> !+
+    |: task_listed rows task (at + 1i32)
+
+:~ closing ((text, id, finished) : string * string * array_base task_row) : option (sprint * sprint_review) =
+    ?= chosen (sprints_read text) id ?|
+    | Some s => Some (reviewed s (\ (task : string) => task_listed finished task 0i32))
+    | None => None
+
+:~ sprint_review_of (args : string * string * array_base task_row) : array_base review_row =
+    ?= closing args ?|
+    | Some (_, r) =>
+        ;[ { done = r.done_minutes; carried = r.carried_minutes; dropped = r.dropped_minutes } ] |> am'.base
+    | None => (;[] : array review_row) |> am'.base
+
+:~ sprint_closed_text ((text, id, finished) : string * string * array_base task_row) : string =
+    ?= closing (text, id, finished) ?|
+    | Some (closed, review) =>
+        := base = ? text = "" || sm'.ends_with "\n" text ?> text |: text ++# "\n"
+        base ++# sprint_row closed ++# "\n" ++# sprint_review_row id review ++# "\n"
+    | None => text
+
+
+///> rust
+:# closing_a_sprint_appends_its_review_and_feeds_velocity =
+    := item = { task = "KIT-A"; minutes = 60i32; fate = Committed }
+    := first = sprints_appended "" { terms = fixture_terms "S-1"; status = SprintOpen; items = [ item ] }
+    := finished = ;[ { task = "KIT-A" } ] |> am'.base
+    := closed = sprint_closed_text (first, "S-1", finished)
+    testing.expect (first_open (sprints_of closed) = None) "a closed sprint is no longer open"
+    := review = sprint_review_of (first, "S-1", finished)
+    testing.expect (am'.length_base review = 1i32 && (am'.index_base 0i32 review).done = 60i32) "done minutes"
+///> _
+:= main () : i32 =
+    export "kit_agile_sprint_review" sprint_review_of
+    export "kit_agile_sprint_closed" sprint_closed_text
+    0i32

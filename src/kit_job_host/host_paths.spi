@@ -1,0 +1,16 @@
+:< sm'_operators
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:~ host_home_directory (~home : string) : string =
+    ? home = "" ?> joined (jobs_root ()) "shell-host" |: joined (joined (jobs_root ()) "hosts") home
+
+:~ requests_directory (~home : string) : string = joined (host_home_directory home) "requests"
+
+:~ machine_slots_file () : string = joined (jobs_root ()) "slots"
+
+:~ host_live_file (~home : string) : string = joined (host_home_directory home) "live"
+
+:~ host_pid_file (~home : string) : string = joined (host_home_directory home) "pid"
+
+:~ request_removed (~path : string) : bool = $'std::fs::remove_file(&*!path).is_ok()' : bool

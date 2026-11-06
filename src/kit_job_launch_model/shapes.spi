@@ -1,0 +1,28 @@
+///- --package .
+:# shapes static =
+    :< sm'_operators
+
+:| start_shape =
+    | StartPlain
+    | StartHeavy
+    | StartCompile
+
+:= shape_word (shape : start_shape) : string = union_reflection.cases.union_case_kebab "Start" shape
+
+:~ shape_of_word (~word : string) : start_shape =
+    := named = \ (shape : start_shape) => shape_word shape = word
+    union_reflection.cases.union_case_where named (\ shape => shape) StartPlain
+
+:= start_shape_of (~flag : string) : start_shape =
+    ? sm'.starts_with "--" flag ?> shape_of_word (sm'.substring 2i32 (sm'.length flag - 2i32) flag) |: StartPlain
+
+:= shape_offset = \|
+    | StartPlain => 0i32
+    | StartHeavy => 1i32
+    | StartCompile => 1i32
+
+///> rust
+:# shape_words_come_from_the_case_names =
+    testing.expect (shape_word StartHeavy = "heavy" && shape_word StartCompile = "compile") "kebab of the case"
+    testing.expect (shape_of_word "compile" = StartCompile && shape_of_word "bogus" = StartPlain) "plain by default"
+    testing.expect (start_shape_of "--heavy" = StartHeavy && start_shape_of "heavy" = StartPlain) "flags need --"

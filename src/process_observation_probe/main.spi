@@ -1,0 +1,26 @@
+:< kit_process_observation.process_observation
+
+:= main () : i32 =
+    := plan = smoke_plan ()
+    := observation = smoke_observation ()
+    ?= plan, observation ?|
+    | ProcessLaunch (label, budget),
+        ProcessObservation (
+            ProcessStatusPassed status,
+            ProcessExited exit_code,
+            ElapsedMilliseconds elapsed,
+            ProcessStdout stdout_text,
+            ProcessStderr stderr_text
+        )
+        =>
+            ?
+                label = "process-observation-smoke"
+                && budget = 1u64
+                && status = 0i32
+                && exit_code = 0i32
+                && elapsed = 1u64
+                && stdout_text = ""
+                && stderr_text = ""
+            ?> 0i32
+            |: 1i32
+    | _ => 1i32

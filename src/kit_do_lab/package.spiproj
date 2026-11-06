@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+    kit_do_records
+modules:
+    host
+    grammar
+    run

@@ -1,0 +1,7 @@
+:< bundle_output_contract.model
+
+:= main () : i32 =
+    ?= agile_rejection "/tmp/kit-bundle-output-root-negative" "/tmp/kit-bundle-output-root-negative/inside.zip" ?|
+    | BundleOutputRejected _ => 0i32
+    | BundleOutputAccepted _ => 1i32
+    | BundleOutputFailed _ => 2i32

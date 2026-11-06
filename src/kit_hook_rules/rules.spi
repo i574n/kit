@@ -1,0 +1,125 @@
+///- --package .
+:# rules static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| hook_tool =
+    | ToolEdit
+    | ToolWrite
+    | ToolMultiEdit
+    | ToolNotebookEdit
+    | ToolShell
+    | ToolOther
+
+:| verdict =
+    | Allow
+    | Deny : string
+    | Advise : string
+
+:== hook_policy =
+    {
+        repos_root : string
+        closed_roots : list string
+        refused_extensions : list string
+        advised_extensions : list string
+    }
+
+:~ tool_of (~name : string) : hook_tool =
+    ? name = "Edit" ?> ToolEdit
+    |? name = "Write" ?> ToolWrite
+    |? name = "MultiEdit" ?> ToolMultiEdit
+    |? name = "NotebookEdit" ?> ToolNotebookEdit
+    |? name = "Bash" || name = "PowerShell" ?> ToolShell
+    |: ToolOther
+
+:~ edits_files (tool : hook_tool) : bool =
+    ?= tool ?|
+    | ToolEdit | ToolWrite | ToolMultiEdit => !+
+    | _ => !-
+
+:~ normal_path (~path : string) : string = sm'.to_lower (sm'.replace "\\" "/" path)
+
+:~ under (~root : string) (~path : string) : bool =
+    := base = normal_path root
+    := folder = ? sm'.ends_with "/" base ?> base |: base ++# "/"
+    sm'.starts_with folder (normal_path path) || normal_path path = sm'.trim_end_suffix "/" base
+
+:~ extension_of (~path : string) : string =
+    := name = listm.fold (\ _ (part : string) => part) "" (sm'.split_list "/" (normal_path path))
+    := at = sm'.last_index_of "." name
+    ? at < 0i32 ?> "" |: sm'.substring at ((sm'.length name : i32) - at) name
+
+:~ state_file (~path : string) : bool =
+    := p = normal_path path
+    := at = sm'.index_of "/docs/backlog/state/" p
+    := rest = ? at < 0i32 ?> "" |: sm'.substring (at + 20i32) ((sm'.length p : i32) - at - 20i32) p
+    at >= 0i32 && sm'.ends_with ".spi" rest && sm'.contains "/" rest |> not
+
+:~ state_verdict (tool : hook_tool) (~path : string) : verdict =
+    ? edits_files tool && state_file path
+    ?> Deny "backlog state changes only through kit agile verbs (note, set, edit, add, claim), which order writes"
+    |: Allow
+
+:~ new_file_verdict (policy : hook_policy) (tool : hook_tool) (~path : string) (present : bool) : verdict =
+    := ext = extension_of path
+    ? tool <> ToolWrite || present ?> Allow
+    |? listm'.exists' (\ (root : string) => under root path) policy.closed_roots
+    ?> Deny ("new files are not written under " ++# path ++# "'s folder; put them in the repo that owns the work")
+    |? under policy.repos_root path |> not ?> Allow
+    |? listm'.contains ext policy.refused_extensions
+    ?> Deny ("no new " ++# ext ++# " files in repos; write the tool in Spiral")
+    |? listm'.contains ext policy.advised_extensions
+    ?> Advise ("new " ++# ext ++# " table in a repo: data a repo keeps is typed Spiral rows")
+    |: Allow
+
+:~ combined (verdicts : list verdict) : verdict =
+    := step = \ (acc : verdict) (v : verdict) =>
+        ?= acc, v ?|
+        | Deny _, _ => acc
+        | _, Deny _ => v
+        | Advise a, Advise b => Advise (a ++# " " ++# b)
+        | Allow, _ => v
+        | _, Allow => acc
+    verdicts |> listm.fold step Allow
+
+:~ pre_verdict (policy : hook_policy) (~tool_name : string) (~path : string) (present : bool) : verdict =
+    := tool = tool_of tool_name
+    combined [ state_verdict tool path; new_file_verdict policy tool path present ]
+
+:= policy_fixture () : hook_policy =
+    {
+        repos_root = "D:/work/repos"
+        closed_roots = [ "D:/work/scratch" ]
+        refused_extensions = [ ".py" ]
+        advised_extensions = [ ".tsv"; ".rows"; ".csv" ]
+    }
+
+///> rust
+:# backlog_state_files_change_only_through_kit =
+    := state = "D:/work/repos/site/docs/backlog/state/agile.spi"
+    testing.expect (state_verdict ToolEdit state <> Allow && state_verdict ToolWrite state <> Allow) "edit and write"
+    testing.expect (state_verdict ToolShell state = Allow) "shell commands are another guard's job"
+    := nested = "D:/work/repos/site/docs/backlog/state/nested/x.spi"
+    testing.expect (state_verdict ToolEdit nested = Allow) "only direct files"
+    testing.expect (state_verdict ToolEdit "D:/work/repos/site/docs/backlog/agile.md" = Allow) "other backlog files"
+
+///> rust
+:# new_files_follow_the_policy_and_existing_files_pass =
+    := p = policy_fixture ()
+    := py = "D:/work/repos/kit/tool.py"
+    testing.expect (new_file_verdict p ToolWrite py !- <> Allow && new_file_verdict p ToolWrite py !+ = Allow) "py"
+    testing.expect (new_file_verdict p ToolWrite "D:/work/scratch/a.spi" !- <> Allow) "a closed root"
+    testing.expect (new_file_verdict p ToolWrite "D:/elsewhere/tool.py" !- = Allow) "outside the repos root"
+    ?= new_file_verdict p ToolWrite "D:/work/repos/kit/rows.tsv" !- ?|
+    | Advise _ => ()
+    | _ => testing.expect !- "a new table is advised, not refused"
+    testing.expect (new_file_verdict p ToolEdit py !- = Allow) "only Write creates files"
+
+///> rust
+:# a_deny_beats_advice_and_advice_accumulates =
+    testing.expect (combined [ Advise "a"; Deny "d"; Advise "b" ] = Deny "d") "deny wins"
+    testing.expect (combined [ Advise "a"; Allow; Advise "b" ] = Advise "a b") "advice joins"
+    testing.expect (combined [] = Allow && tool_of "PowerShell" = ToolShell) "empty allows"
+///> _
+:= main () : i32 = 0i32

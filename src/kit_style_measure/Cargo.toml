@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "measure.spi"
+output = "measure.rs"
+
+[package]
+name = "kit-style-measure"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_style_measure"
+path = "measure.rs"
+
+[dependencies]
+regex = "1.13.1"
+kit-style-probes = { path = "../kit_style_probes" }

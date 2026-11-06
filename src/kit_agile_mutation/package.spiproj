@@ -1,0 +1,28 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    rust_std_env
+    agile_mutation_policy
+    agile_planning_model
+    agile_subcommand_domain
+    union_reflection
+    kit_agile_lock
+    kit_agile_activity_migration
+    agile_state_access
+    kit_agile_sprint
+    kit_agile_lint
+    kit_agile_gate
+    kit_agile_cadence
+    agile_task_tree
+link:
+    agile_task_tree
+    kit_agile_lock
+    kit_agile_activity_migration
+    agile_state_access
+    kit_agile_sprint
+    kit_agile_lint
+    kit_agile_gate
+    kit_agile_cadence
+modules:
+    agile_mutation

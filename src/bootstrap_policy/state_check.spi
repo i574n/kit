@@ -1,0 +1,88 @@
+:< outcome
+
+:! check_not_started = ()
+:! check_after_open = ()
+:! check_after_shard_0 = ()
+:! check_after_shard_1 = ()
+:! check_after_shard_2 = ()
+:! check_after_shard_3 = ()
+:! check_closed = ()
+
+:| check_op from to result =
+    | OpenCheck :: i32 -> check_op check_not_started check_after_open i32
+    | CompleteShard0 :: i32 -> check_op check_after_open check_after_shard_0 i32
+    | CompleteShard1 :: i32 -> check_op check_after_shard_0 check_after_shard_1 i32
+    | CompleteShard2 :: i32 -> check_op check_after_shard_1 check_after_shard_2 i32
+    | CompleteShard3 :: i32 -> check_op check_after_shard_2 check_after_shard_3 i32
+    | CloseCheck :: i32 -> check_op check_after_shard_3 check_closed i32
+
+:| ^ check_plan from to =
+    | CheckStep :: \* from to. (\? result. check_op from to result * result) -> check_plan from to
+    | CheckThen :: \* from to. (\? middle. check_plan from middle * check_plan middle to) -> check_plan from to
+
+:= open_step () : check_plan check_not_started check_after_open =
+    CheckStep (\? (OpenCheck 4i32, 4i32))
+
+:= shard0_step () : check_plan check_after_open check_after_shard_0 =
+    CheckStep (\? (CompleteShard0 0i32, 0i32))
+
+:= shard1_step () : check_plan check_after_shard_0 check_after_shard_1 =
+    CheckStep (\? (CompleteShard1 1i32, 1i32))
+
+:= shard2_step () : check_plan check_after_shard_1 check_after_shard_2 =
+    CheckStep (\? (CompleteShard2 2i32, 2i32))
+
+:= shard3_step () : check_plan check_after_shard_2 check_after_shard_3 =
+    CheckStep (\? (CompleteShard3 3i32, 3i32))
+
+:= close_step () : check_plan check_after_shard_3 check_closed =
+    CheckStep (\? (CloseCheck 4i32, 0i32))
+
+:= full_plan () : check_plan check_not_started check_closed =
+    CheckThen (
+        \? (
+            open_step (),
+            CheckThen (
+                \? (
+                    shard0_step (),
+                    CheckThen (
+                        \? (
+                            shard1_step (),
+                            CheckThen (
+                                \? (
+                                    shard2_step (),
+                                    CheckThen (\? (shard3_step (), close_step ()))
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+
+:= resumed_plan () : check_plan check_after_shard_1 check_closed =
+    CheckThen (
+        \? (
+            shard2_step (),
+            CheckThen (\? (shard3_step (), close_step ()))
+        )
+    )
+
+:= ^ terminal \* from to. (plan : check_plan from to) : i32 =
+    ?= plan ?|
+    | CheckStep payload =>
+        := \? result. op, value = payload
+        ?= op ?|
+        | OpenCheck _ => value
+        | CompleteShard0 _ => value
+        | CompleteShard1 _ => value
+        | CompleteShard2 _ => value
+        | CompleteShard3 _ => value
+        | CloseCheck _ => value
+    | CheckThen payload =>
+        := \? middle. _, right = payload
+        terminal right
+
+:= full_probe_ok () : bool = terminal (full_plan ()) = 0i32
+:= resume_probe_ok () : bool = terminal (resumed_plan ()) = 0i32

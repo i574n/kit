@@ -1,0 +1,71 @@
+:< rust_std_string.model
+:< query
+:< cells
+:< stats
+:< wheres
+:< tospi
+
+:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
+:~ argument_count () : i32 = env.command_line_argument_count () + 1i32
+
+:~ ^ options_from (index : i32) (count : i32) (request : table_request) : option_step =
+    ? index < count ?>
+        ? argument index = "--quiet" ?> options_from (index + 1i32) count { request ?| quiet = !+ }
+        |? index + 1i32 < count ?>
+            ?= option_applied request (argument index) (argument (index + 1i32)) ?|
+            | StepTaken next => options_from (index + 2i32) count next
+            | StepRejected reason => StepRejected reason
+        |: StepRejected (concat5 "option " (argument index) " has no value" "" "")
+    |: StepTaken request
+
+:~ plain_query (~file : string) (request : table_request) : i32 =
+    := wheres, cols, group, limit, quiet = request.wheres, request.cols, request.group, request.limit, request.quiet
+    $'kit_table_plain::kit_table_plain(&*!file, &*!wheres, &*!cols, &*!group, !limit, !quiet)' : i32
+
+:= measured (request : table_request) : bool = request.measured <> ""
+
+:~ rows_kept (~path : string) (~wheres : string) : bool * string =
+    $'kit_table_filter::kit_table_filter_kept(&*!path, &*!wheres)' : bool * string
+
+:~ measured_query (~file : string) (request : table_request) : i32 =
+    := wheres, group, measures, limit, quiet =
+        request.wheres, request.group, request.measured, request.limit, request.quiet
+    := kept, detail = rows_kept file wheres
+    $'kit_table_measures::kit_table_measured(&*!file, &*!group, &*!measures, !limit, !quiet, !kept, &*!detail)' : i32
+
+:~ table_run () : i32 =
+    ?= table_command_of (argument 2i32) ?|
+    | TableQuery =>
+        ? argument_count () < 4i32 ?> rejected (table_usage ())
+        |:
+            ?= options_from 4i32 (argument_count ()) (no_request ()) ?|
+            | StepTaken request =>
+                ? measured request ?> measured_query (argument 3i32) request
+                |: plain_query (argument 3i32) request
+            | StepRejected reason => rejected reason
+    | TableToSpi =>
+        := opened = ? argument 5i32 = "--open" ?> argument 6i32 |? argument 6i32 = "--open" ?> argument 7i32 |: ""
+        := whole = argument 5i32 = "--whole" || argument 7i32 = "--whole"
+        := layout = ? whole ?> kit_table_rows.rows.WholeTable |: kit_table_rows.rows.PerRow
+        ? argument_count () < 5i32 ?> rejected (table_usage ())
+        |: to_spi_run (argument 3i32) (argument 4i32) opened layout
+    | TableDiff =>
+        ? argument_count () < 5i32 ?> rejected (table_usage ())
+        |:
+            ?= options_from 5i32 (argument_count ()) (no_request ()) ?|
+            | StepTaken request =>
+                := left = argument 3i32
+                := right = argument 4i32
+                := key = request.key
+                := cols = request.cols
+                := latest = request.latest
+                := limit = request.limit
+                $'kit_table_diff::kit_table_diff_run(&*!left, &*!right, &*!key, &*!cols, &*!latest, !limit)' : i32
+            | StepRejected reason => rejected reason
+    | TableAppend => $'kit_table_append::kit_table_append_run()' : i32
+    | TableUnknown => rejected (table_usage ())
+
+:= main () : i32 =
+    export "kit_table_run" table_run
+    export "kit_table_rows_kept" ((\ (path, wheres) => rows_kept path wheres) : string * string -> bool * string)
+    0i32

@@ -1,0 +1,81 @@
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_task_text.model
+:< workspace_primitives.numbers
+:< workspace_primitives.clock
+:< workspace_primitives.console
+:< workspace_primitives.files
+
+:= argument_owned index : string = rust_std_env.model.argument_owned index
+
+:| planning_step =
+    | StepText : string
+    | StepRejected : string
+
+:= step_from (code, detail) : planning_step = ? code = 0i32 ?> StepText detail |: StepRejected detail
+
+:~ value_token (~field_name : string) (~value : string) : planning_step =
+    step_from ($'agile_planning_values::kit_agile_planning_value_token(&*!field_name, &*!value)' : i32 * string)
+
+:~ rewritten (~text : string) (~id : string) (~field_name : string) (~token : string) : planning_step =
+    step_from (
+        $'agile_planning_rewrite::kit_agile_planning_rewrite(&*!text, &*!id, &*!field_name, &*!token)' : i32 * string
+    )
+
+:= planning_summary (~text : string) (~id : string) : string =
+    $'agile_planning_fields::kit_agile_planning_summary(&*!text, &*!id)' : string
+
+:~ planning_edit_failure (~reason : string) (~id : string) : i32 =
+    stderr_failure ("agile edit " ++# id ++# " rejected: " ++# reason)
+
+:~ planning_written
+    (~state : string) (~id : string) (~field_name : string) (~original : string) (~updated : string) (started : u64)
+    : i32
+    =
+    ?= replace_records_unchanged state original updated ?|
+    | Replaced =>
+        := head = "kit agile edit ok id=" ++# id ++# " field=" ++# field_name ++# " "
+        stdout_line (head ++# (planning_summary updated id) ++# (
+            measured_sizes (text_bytes original) (text_bytes updated) (ms_since started)))
+    | problem => planning_edit_failure (file_replacement_problem problem) id
+
+:| revision =
+    | PlanningUnchanged
+    | PlanningRewritten : string
+    | PlanningRefused : string
+
+:= revision_of (~original : string) (step : planning_step) : revision =
+    ?= step ?|
+    | StepRejected reason => PlanningRefused reason
+    | StepText updated => ? updated = original ?> PlanningUnchanged |: PlanningRewritten updated
+
+:~ planning_revised
+    (~state : string) (~id : string) (~field_name : string) (~token : string) (~original : string) (started : u64)
+    : i32
+    =
+    ?= revision_of original (rewritten original id field_name token) ?|
+    | PlanningRefused reason => planning_edit_failure reason id
+    | PlanningUnchanged =>
+        := head = "kit agile edit ok id=" ++# id ++# " field=" ++# field_name ++# " unchanged "
+        := sizes = measured_sizes (text_bytes original) (text_bytes original) (ms_since started)
+        stdout_line (head ++# planning_summary original id ++# sizes)
+    | PlanningRewritten updated => planning_written state id field_name original updated started
+
+:~ planning_edit (~root : string) (~id : string) (~field_name : string) (~value : string) : i32 =
+    := started = unix_ms ()
+    := state = backlog_state_path root
+    ?= probe (unchecked state) ?|
+    | FileMissing _ => planning_edit_failure "state/agile.spi is missing" id
+    | FileReadable file =>
+        ?= value_token field_name value ?|
+        | StepRejected reason => planning_edit_failure reason id
+        | StepText token =>
+            planning_revised state id field_name token (records_text (loaded_string (read_text file))) started
+
+:~ planning_edit_entry () : i32 =
+    planning_edit (argument_owned 1i32) (argument_owned 2i32) (argument_owned 3i32) (argument_owned 4i32)
+
+:= main () : i32 =
+    export "kit_agile_planning_edit_run" ((\ () => planning_edit_entry ()) : () -> i32)
+    := _ = planning_edit_entry ()
+    0i32

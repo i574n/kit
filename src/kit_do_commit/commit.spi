@@ -1,0 +1,141 @@
+///- --package .
+:# commit static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_do_store.store
+:< workspace_primitives.files
+
+:| commit_outcome =
+    | Committed
+    | WriteFailed : string * string
+    | ChangedSinceRead : string
+    | PromoteFailed : string * bool
+
+:~ target_at (~pending : pending_writes) (~root : string) (index : i32) : string =
+    rust_std_fs.model.joined_path root (entry_path pending index)
+
+:~ temporary_at (~pending : pending_writes) (~root : string) (index : i32) : string =
+    rust_std_fs.model.hidden_sibling (target_at pending root index) ".kit-do.tmp"
+
+:~ ^ discarded (~pending : pending_writes) (~root : string) (index : i32) (until : i32) : () =
+    ? index >= until ?> ()
+    |:
+        := _ = rust_std_fs.model.remove_file (temporary_at pending root index)
+        discarded pending root (index + 1i32) until
+
+:~ ^ written (~pending : pending_writes) (~root : string) (index : i32) : commit_outcome =
+    ? index >= entry_count pending ?> Committed
+    |:
+        := problem = rust_std_fs.model.write_problem (temporary_at pending root index) (entry_text pending index)
+        ? problem = "" ?> written pending root (index + 1i32)
+        |:
+            discarded pending root 0i32 index
+            WriteFailed (entry_path pending index, problem)
+
+:~ ^ unread_changes (~pending : pending_writes) (~root : string) (index : i32) : commit_outcome =
+    ? index >= entry_count pending ?> Committed
+    |? rust_std_fs.model.text_equals (entry_base pending index) (target_at pending root index)
+    ?> unread_changes pending root (index + 1i32)
+    |: ChangedSinceRead (entry_path pending index)
+
+:~ ^ restored (~pending : pending_writes) (~root : string) (index : i32) (until : i32) (whole : bool) : bool =
+    ? index >= until ?> whole
+    |:
+        := temporary = temporary_at pending root index
+        := written = rust_std_fs.model.write_problem temporary (entry_base pending index) = ""
+        := back = written && renamed_within (target_at pending root index) temporary 40i32
+        := _ = ? back ?> !+ |: rust_std_fs.model.remove_file temporary
+        restored pending root (index + 1i32) until (whole && back)
+
+:~ ^ promoted (~pending : pending_writes) (~root : string) (index : i32) : commit_outcome =
+    ? index >= entry_count pending ?> Committed
+    |? renamed_within (target_at pending root index) (temporary_at pending root index) 40i32
+    ?> promoted pending root (index + 1i32)
+    |:
+        discarded pending root index (entry_count pending)
+        PromoteFailed (target_at pending root index, restored pending root 0i32 index !+)
+
+:~ committed (~pending : pending_writes) (~root : string) : commit_outcome =
+    ?= written pending root 0i32 ?|
+    | Committed =>
+        ?= unread_changes pending root 0i32 ?|
+        | Committed => promoted pending root 0i32
+        | conflict =>
+            discarded pending root 0i32 (entry_count pending)
+            conflict
+    | failure => failure
+
+:~ commit_problem (outcome : commit_outcome) : string =
+    ?= outcome ?|
+    | Committed => ""
+    | WriteFailed (path, problem) => "write " ++# path ++# ": " ++# problem
+    | ChangedSinceRead path => path ++# " changed since it was read; run the program again"
+    | PromoteFailed (target, whole) =>
+        := rollback = ? whole ?> "every earlier file was restored" |: "some earlier files could not be restored"
+        "rename " ++# target ++# " still failed after 40 tries; " ++# rollback
+
+:~ committed_problem (~pending : pending_writes) (~root : string) : string = commit_problem (committed pending root)
+
+:~ scratch_root (~name : string) : string =
+    := base = env.get_environment_variable "TEMP"
+    ? base = "" ?> failwith "kit_do_commit tests need TEMP: refusing to place fixtures anywhere else" |: ()
+    := root = base ++# "/" ++# name
+    := _ = file_system.create_dir_all root
+    root
+
+:~ seeded (~root : string) (~name : string) (~text : string) : string =
+    := path = rust_std_fs.model.joined_path root name
+    := _ = rust_std_fs.model.write_text path text
+    path
+
+///> rust
+:# a_clean_commit_writes_every_staged_file =
+    := root = scratch_root "kit-do-commit-clean"
+    := a = seeded root "a.txt" "one"
+    := b = seeded root "b.txt" "two"
+    := pending = pending_new ()
+    staged pending "a.txt" "ONE" "one"
+    staged pending "b.txt" "TWO" "two"
+    ?= committed pending root ?| | Committed => () | outcome => failwith (commit_problem outcome)
+    ? rust_std_fs.model.text_equals "ONE" a && rust_std_fs.model.text_equals "TWO" b ?> () |: failwith "both written"
+    ? rust_std_fs.model.file_missing (rust_std_fs.model.hidden_sibling a ".kit-do.tmp") ?> () |: failwith "no temporary"
+
+///> rust
+:# a_target_changed_since_read_stops_every_write =
+    := root = scratch_root "kit-do-commit-conflict"
+    := a = seeded root "a.txt" "one"
+    := b = seeded root "b.txt" "two"
+    := pending = pending_new ()
+    staged pending "a.txt" "ONE" "one"
+    staged pending "b.txt" "TWO" "two"
+    := _ = seeded root "b.txt" "two, edited elsewhere"
+    ?= committed pending root ?|
+    | ChangedSinceRead path => ? path = "b.txt" ?> () |: failwith path
+    | outcome => failwith ("a conflict, not: " ++# commit_problem outcome)
+    ? rust_std_fs.model.text_equals "one" a ?> () |: failwith "the unconflicted file is not written either"
+    ? rust_std_fs.model.text_equals "two, edited elsewhere" b ?> () |: failwith "the other session's edit is kept"
+    := a_clean = rust_std_fs.model.file_missing (rust_std_fs.model.hidden_sibling a ".kit-do.tmp")
+    := b_clean = rust_std_fs.model.file_missing (rust_std_fs.model.hidden_sibling b ".kit-do.tmp")
+    ? a_clean && b_clean ?> () |: failwith "every temporary is removed"
+
+///> rust
+:# restaging_a_path_keeps_its_first_base =
+    := root = scratch_root "kit-do-commit-restage"
+    := a = seeded root "a.txt" "one"
+    := pending = pending_new ()
+    staged pending "a.txt" "two" "one"
+    staged pending "a.txt" "three" "two"
+    ? entry_count pending = 1i32 && entry_base pending 0i32 = "one" ?> () |: failwith "one entry, first base"
+    ?= committed pending root ?| | Committed => () | outcome => failwith (commit_problem outcome)
+    ? rust_std_fs.model.text_equals "three" a ?> () |: failwith "the last staged text is written"
+
+///> rust
+:# a_failed_promotion_restores_the_files_already_renamed =
+    := root = scratch_root "kit-do-commit-restore"
+    := a = seeded root "a.txt" "promoted"
+    := pending = pending_new ()
+    staged pending "a.txt" "promoted" "original"
+    ? restored pending root 0i32 1i32 !+ ?> () |: failwith "the restore reports success"
+    ? rust_std_fs.model.text_equals "original" a ?> () |: failwith "the pre-image is back"
+    ? rust_std_fs.model.file_missing (rust_std_fs.model.hidden_sibling a ".kit-do.tmp") ?> () |: failwith "no temporary"

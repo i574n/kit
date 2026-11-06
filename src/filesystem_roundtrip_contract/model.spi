@@ -1,0 +1,89 @@
+:< rust_std_fs.model
+
+:! policy_owner = string
+:! agile_owner = string
+:! roundtrip_pending owner = owner * string * string * string
+:! roundtrip_absent owner = owner * string * string * string
+:! roundtrip_written owner = owner * string * string * string
+:! roundtrip_verified owner = owner * string * string
+:! roundtrip_cleaned owner = owner * string
+
+:| file_roundtrip_transition from to =
+    | EnsureAbsent :: \* owner. string -> file_roundtrip_transition (roundtrip_pending owner) (roundtrip_absent owner)
+    | WriteActual :: \* owner. string -> file_roundtrip_transition (roundtrip_absent owner) (roundtrip_written owner)
+    | VerifyExpected :: \* owner.
+        string ->
+        file_roundtrip_transition (roundtrip_written owner) (roundtrip_verified owner)
+    | CleanupExact :: \* owner. string -> file_roundtrip_transition (roundtrip_verified owner) (roundtrip_cleaned owner)
+
+:| ^ file_roundtrip_plan from to =
+    | FileRoundtripStep :: \* from to. file_roundtrip_transition from to -> file_roundtrip_plan from to
+    | FileRoundtripThen :: \* from to.
+        (\? middle. file_roundtrip_plan from middle * file_roundtrip_plan middle to) ->
+        file_roundtrip_plan from to
+
+:| roundtrip_outcome =
+    | RoundtripAccepted : string
+    | RoundtripRejected : string
+    | RoundtripCleanupFailed : string
+
+:= ensure_absent_step \* owner. () : file_roundtrip_plan (roundtrip_pending owner) (roundtrip_absent owner) =
+    FileRoundtripStep (EnsureAbsent "ensure-absent")
+
+:= write_actual_step \* owner. () : file_roundtrip_plan (roundtrip_absent owner) (roundtrip_written owner) =
+    FileRoundtripStep (WriteActual "write-actual")
+
+:= verify_expected_step \* owner. () : file_roundtrip_plan (roundtrip_written owner) (roundtrip_verified owner) =
+    FileRoundtripStep (VerifyExpected "verify-expected")
+
+:= cleanup_exact_step \* owner. () : file_roundtrip_plan (roundtrip_verified owner) (roundtrip_cleaned owner) =
+    FileRoundtripStep (CleanupExact "cleanup-exact")
+
+:= full_plan \* owner. () : file_roundtrip_plan (roundtrip_pending owner) (roundtrip_cleaned owner) =
+    FileRoundtripThen (
+        \? (
+            ensure_absent_step (),
+            FileRoundtripThen (
+                \? (
+                    write_actual_step (),
+                    FileRoundtripThen (
+                        \? (
+                            verify_expected_step (),
+                            cleanup_exact_step ()))))))
+
+:= policy_plan () : file_roundtrip_plan (roundtrip_pending policy_owner) (roundtrip_cleaned policy_owner) = full_plan ()
+:= agile_plan () : file_roundtrip_plan (roundtrip_pending agile_owner) (roundtrip_cleaned agile_owner) = full_plan ()
+
+:= run (path : string) (expected : string) (actual : string) : roundtrip_outcome =
+    ? remove_file path && file_missing path ?>
+        ? write_text path actual ?>
+            ? file_exists path && text_equals expected path ?>
+                ? remove_file path && file_missing path
+                ?> RoundtripAccepted "exact-roundtrip-accepted"
+                |: RoundtripCleanupFailed "accepted-cleanup-failed"
+            |:
+                ? remove_file path && file_missing path
+                ?> RoundtripRejected "exact-readback-mismatch"
+                |: RoundtripCleanupFailed "rejection-cleanup-failed"
+        |: RoundtripCleanupFailed "write-actual-failed"
+    |: RoundtripCleanupFailed "ensure-absent-failed"
+
+:= policy_roundtrip (path : string) (text : string) : roundtrip_outcome =
+    := _ = policy_plan ()
+    run path text text
+
+:= agile_rejection (path : string) (expected : string) (actual : string) : roundtrip_outcome =
+    := _ = agile_plan ()
+    run path expected actual
+
+:= accepted (outcome : roundtrip_outcome) : bool =
+    ?= outcome ?|
+    | RoundtripAccepted _ => !+
+    | RoundtripRejected _ => !-
+    | RoundtripCleanupFailed _ => !-
+
+:= rejected (outcome : roundtrip_outcome) : bool =
+    ?= outcome ?|
+    | RoundtripAccepted _ => !-
+    | RoundtripRejected _ => !+
+    | RoundtripCleanupFailed _ => !-

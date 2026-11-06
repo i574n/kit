@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+modules:
+    section_model
+    section_scan
+    entry

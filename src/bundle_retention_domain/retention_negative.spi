@@ -1,0 +1,23 @@
+
+:| retention_negative_fixture =
+    | WrongKeepWindow
+    | CurrentIsNotLatest
+    | DryRunMismatch
+    | ApplyWithoutDryRun
+    | RemainingCountMismatch
+
+:= main () : i32 =
+    global "#![allow(clippy::needless_return, clippy::needless_late_init)]"
+    := _ = current_plus_two_plan ()
+    := wrong_window = retention_window_binding 5i32 2i32
+    := stale_current = retention_current_binding 0i32 1i32
+    := dry_run_mismatch = retention_dry_run_binding 2i32 1i32
+    := unverified_apply = retention_apply_binding 0i32 1i32
+    := remaining_mismatch = retention_complete_binding 3i32 2i32
+    ? wrong_window < 0i32 ?>
+        ? 0i32 < stale_current ?> 1i32
+        |? 0i32 < dry_run_mismatch ?> 1i32
+        |? 0i32 < unverified_apply ?> 1i32
+        |? 0i32 < remaining_mismatch ?> 1i32
+        |: 0i32
+    |: 1i32

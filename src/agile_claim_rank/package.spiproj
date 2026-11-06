@@ -1,0 +1,21 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    rust_std_env
+    rust_std_string
+    rust_std_fs
+    agile_mutation_policy
+    agile_task_text
+    union_reflection
+    agile_task_next
+    agile_claim_api
+    kit_jobs
+    kit_os_files
+    kit_process_alive
+    kit_job_names
+link:
+    kit_process_alive
+    kit_job_names
+modules:
+    rank

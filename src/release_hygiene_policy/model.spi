@@ -1,0 +1,82 @@
+:| hygiene_candidate =
+    | KeepReleaseFile
+    | RemoveCompilerSidecar
+
+:~ hygiene_primary_binding (spiral_entry : i32) (typecheck_rs : i32) : i32 =
+    ? 0i32 < spiral_entry ?> 1i32
+    |? 0i32 < typecheck_rs ?> 1i32
+    |: 0i32
+
+:~ hygiene_secondary_binding (typecheck_tmp : i32) (c_with_spi : i32) : i32 =
+    ? 0i32 < typecheck_tmp ?> 1i32
+    |? 0i32 < c_with_spi ?> 1i32
+    |: 0i32
+
+:| hygiene_root_transient =
+    | RootReceiptFile
+    | RootReleaseCandidateFile
+    | RootProbeSourceFile
+    | RootColdRebuildDirectory
+    | RootCargoDirectory
+
+:= hygiene_root_transient_label = \|
+    | RootReceiptFile => ".receipt"
+    | RootReleaseCandidateFile => ".release-kit-candidate"
+    | RootProbeSourceFile => "probe"
+    | RootColdRebuildDirectory => ".cold-rebuild"
+    | RootCargoDirectory => ".cargo"
+
+:~ hygiene_root_file_binding (receipt : i32) (release_candidate : i32) : i32 =
+    ? 0i32 < receipt ?> 1i32
+    |? 0i32 < release_candidate ?> 1i32
+    |: 0i32
+
+:~ hygiene_root_aux_binding (probe_source : i32) (cold_rebuild : i32) : i32 =
+    ? 0i32 < probe_source ?> 1i32
+    |? 0i32 < cold_rebuild ?> 1i32
+    |: 0i32
+
+:~ hygiene_root_directory_binding (cold_rebuild : i32) (toolchain_config : i32) : i32 =
+    ? 0i32 < cold_rebuild ?> 1i32
+    |? 0i32 < toolchain_config ?> 1i32
+    |: 0i32
+
+
+:| hygiene_name_class =
+    | HygieneKeep
+    | HygieneCompilerSidecar
+    | HygieneRootTransientFile
+    | HygieneRootTransientDirectory
+
+:= hygiene_name_classify (name : string) : hygiene_name_class =
+    ? sm'.ends_with ".spiral-entry" name
+    ?> HygieneCompilerSidecar
+    |? sm'.contains ".kit-typecheck-" name && sm'.ends_with ".rs" name
+    ?> HygieneCompilerSidecar
+    |? sm'.contains ".kit-typecheck-" name && sm'.contains ".rs.kit-" name && sm'.ends_with ".tmp" name
+    ?> HygieneCompilerSidecar
+    |? sm'.ends_with ".receipt" name
+    ?> HygieneRootTransientFile
+    |? sm'.starts_with ".release-kit-candidate" name
+    ?> HygieneRootTransientFile
+    |? sm'.starts_with "probe" name && sm'.ends_with ".rs" name
+    ?> HygieneRootTransientFile
+    |? sm'.starts_with ".cold-rebuild" name
+    ?> HygieneRootTransientDirectory
+    |? (name = ".cargo")
+    ?> HygieneRootTransientDirectory
+    |: HygieneKeep
+
+:~ hygiene_name_classification (~name : string) : u64 =
+    ?= hygiene_name_classify name ?|
+    | HygieneKeep => 0u64
+    | HygieneCompilerSidecar => 1u64
+    | HygieneRootTransientFile => 2u64
+    | HygieneRootTransientDirectory => 3u64
+
+:~ hygiene_directory_ignored (~name : string) : u64 =
+    ? (name = "target") ?> 1u64
+    |? (name = "vendor") ?> 1u64
+    |? (name = ".git") ?> 1u64
+    |? (name = ".cache") ?> 1u64
+    |: 0u64

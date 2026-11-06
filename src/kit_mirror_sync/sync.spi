@@ -1,0 +1,80 @@
+///- --package .
+:# sync static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:~ refused (~reason : string) : i32 =
+    console.write_error_line ("kit error: mirror " ++# reason)
+    2i32
+
+:~ listing_at (~root : string) (~listed : string) : kit_mirror_local.local.listing =
+    am'.index_base 0i32 (kit_mirror_local.local.listing_of (root, listed))
+
+:~ plan_at (~alias : string) (~remote : string) (~listed : string) (~text : string) : kit_mirror_plan.plan.shipment =
+    am'.index_base 0i32 (kit_mirror_plan.plan.plan_of (alias, remote, listed, text))
+
+:~ listed_of (items : array_base string) : list string = items |> am'.to_list_base' |> listm'.unbox
+
+:~ tar_program () : string =
+    := system_root = env.get_environment_variable "SystemRoot"
+    ? system_root = "" ?> "tar" |: system_root ++# "/System32/tar.exe"
+
+:~ temp_named (~stem : string) : string =
+    file_system.get_temp_path () ++# "/" ++# stem ++# "-" ++# sm'.format (kit_os_process.process.own_pid ())
+
+:~ ship_list () : string = temp_named "kit-mirror-ship" ++# ".list"
+
+:~ removal_name () : string = "kit-mirror-removed-" ++# sm'.format (kit_os_process.process.own_pid ()) ++# ".list"
+
+:~ tar_path () : string = temp_named "kit-mirror" ++# ".tar"
+
+:~ lines_text (items : list string) : string = items |> listm.map (\ (item : string) => item ++# "\n") |> sm'.concat_list ""
+
+:~ packed (~local : string) (ship : list string) (drop : list string) : bool =
+    lines_text ship |> file_system.write_all_text (ship_list ())
+    lines_text drop |> file_system.write_all_text (file_system.get_temp_path () ++# "/" ++# removal_name ())
+    := args = [ "-cf"; tar_path (); "-C"; local; "-T"; ship_list (); "-C"; file_system.get_temp_path (); removal_name () ]
+    process.succeeded (process.captured_by (tar_program ()) args !+)
+
+:~ cleaned () : () =
+    [ ship_list (); tar_path (); file_system.get_temp_path () ++# "/" ++# removal_name () ]
+    |> listm.iter (\ (path : string) => rust_std_fs.model.remove_file path |> ignore)
+:~ ssh_options () : list string = [ "-o"; "BatchMode=yes"; "-o"; "ConnectTimeout=12" ]
+
+:~ shipped (~alias : string) (~remote : string) : bool =
+    := target = alias ++# ":" ++# remote ++# "/.kit-mirror-incoming.tar"
+    process.succeeded (process.captured_by "scp" (listm.append (ssh_options ()) [ tar_path (); target ]) !+)
+
+:~ unpacked (~alias : string) (~remote : string) : bool =
+    process.succeeded (process.captured_by "ssh" (listm.append (ssh_options ()) [ alias; "kit mirror unpack " ++# remote ++# " " ++# removal_name () ]) !+)
+
+:~ sync_printed ((alias, local, remote, listed) : string * string * string * string) : i32 =
+    := ours = listing_at local listed
+    := planned = plan_at alias remote listed ours.text
+    := ship = listm.append (listed_of planned.added) (listed_of planned.changed)
+    := drop = listed_of planned.removed
+    := counts = " shipped=" ++# sm'.format (listm.length ship : i32) ++# " removed=" ++# sm'.format (listm.length drop : i32)
+    ? planned.refused <> "" ?> refused ("sync " ++# alias ++# ": " ++# planned.refused)
+    |? planned.found = ours.fingerprint ?>
+        console.write_error_line ("kit mirror sync in-step machine=" ++# alias ++# " fingerprint=" ++# ours.fingerprint)
+        0i32
+    |:
+        := moved = packed local ship drop && shipped alias remote && unpacked alias remote
+        cleaned ()
+        := after = ? moved ?> (plan_at alias remote listed ours.text).found |: ""
+        ? after = ours.fingerprint ?>
+            console.write_error_line ("kit mirror sync ok machine=" ++# alias ++# counts ++# " fingerprint=" ++# ours.fingerprint)
+            0i32
+        |:
+            := stage = ? moved ?> "the remote fingerprint still differs" |: "pack, copy or unpack failed"
+            console.write_error_line ("kit error: mirror sync " ++# alias ++# ": " ++# stage ++# counts)
+            1i32
+
+///> rust
+:# one_path_per_line_in_the_ship_and_removal_lists =
+    testing.expect (lines_text [ "a"; "b" ] = "a\nb\n" && lines_text [] = "") "one path per line"
+///> _
+:= main () : i32 =
+    export "kit_mirror_sync_printed" sync_printed
+    0i32

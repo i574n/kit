@@ -1,0 +1,41 @@
+///- --package .
+:# listing static =
+    :< sm'_operators
+    :< agile_claim_model.claim
+
+:< sm'_operators
+:< agile_claim_model.claim
+
+:~ lane_order ((wsjf, active, mine) : string * string * string) : string * string =
+    := split = \ (text : string) => sm'.split_list " " text |> listm'.filter (\ (w : string) => w <> "")
+    := own = split mine
+    := is_own = \ (id : string) => listm'.contains id own
+    := started = split active
+    := theirs_started = started |> listm'.filter (\ (id : string) => is_own id |> not)
+    := ranked = split wsjf
+    := own_ranked = ranked |> listm'.filter is_own
+    := free = ranked |> listm'.filter (\ (id : string) => is_own id |> not && listm'.contains id theirs_started |> not)
+    sm'.concat_list " " (listm.append own_ranked free), sm'.concat_list " " (started |> listm'.filter is_own)
+
+:~ listed_ids ((rows, lane, wsjf, active, now_ms) : string * string * string * string * u64) : array_base string =
+    := split = \ (text : string) => sm'.split_list " " text |> listm'.filter (\ (w : string) => w <> "")
+    := resumed = split active
+    := fresh = split wsjf |> listm'.filter (\ (id : string) => listm'.contains id resumed |> not)
+    candidates (listm.append resumed fresh) (claims_of_text rows) lane now_ms 5i32 |> listm'.box |> listm'.to_array'
+
+///> rust
+:# the_listing_orders_own_active_first_and_hides_foreign_leases =
+    := held = claims_text [ { item = "B"; owner = "other"; expires_ms = 9000u64; paths = [] } ]
+    := ids = listed_ids (held, "me", "A B C", "D", 1000u64) |> am'.to_list_base' |> listm'.unbox
+    testing.expect (ids = [ "D"; "A"; "C" ]) "own Active first, then the ranked list without the foreign lease"
+///> rust
+:# next_offers_own_team_work_first_and_never_another_teams_active_item =
+    := wsjf, active = lane_order ("THEIRS-P0 MINE-B THEIRS-READY MINE-A", "THEIRS-P0 MINE-A", "MINE-A MINE-B")
+    testing.expect (active = "MINE-A") "only the lane's own Active item is resumed"
+    testing.expect (wsjf = "MINE-B MINE-A THEIRS-READY") "own items first, then others' ready work, never their Active"
+    testing.expect (lane_order ("A B", "A", "") = ("B", "")) "a lane with no team never takes an Active item"
+///> _
+:= main () : i32 =
+    export "kit_claim_listed_ids" listed_ids
+    export "kit_claim_lane_order" lane_order
+    0i32

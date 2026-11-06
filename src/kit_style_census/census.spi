@@ -1,0 +1,254 @@
+///- --package .
+:# census static =
+    :< sm'_operators
+    :< kit_style_probes.probes
+    :< kit_style_measure.measure
+    :< kit_style_baseline.baseline
+
+:< sm'_operators
+:< kit_style_probes.probes
+:< kit_style_measure.measure
+:< kit_style_baseline.baseline
+
+:~ stdout_line (~text : string) : () = console.write_line text
+:~ stderr_line (~text : string) : () = console.write_error_line text
+:~ count_text (value : i32) : string = sm'.show value
+:~ appended (~lines : string) (~line : string) : string = ? lines = "" ?> line |: lines ++# "\n" ++# line
+
+:== probe_reading =
+    {
+        word : string
+        falls : bool
+        count : i32
+    }
+
+:== package_census =
+    {
+        name : string
+        lines : i32
+        counts : list probe_reading
+    }
+
+:~ ^ counts_from (rows : array_base probe_row) (at : i32) (counts : list probe_reading) : list probe_reading =
+    ? at >= am'.length_base rows ?> counts
+    |:
+        := row = am'.index_base at rows
+        := reading = { word = row.word; falls = probe_falls row.word; count = row.count }
+        counts_from rows (at + 1i32) (reading :: counts)
+
+:~ census_of (dir : string) : package_census =
+    := rows = measured dir
+    := first = am'.index_base 0i32 rows
+    { name = first.package; lines = first.lines; counts = counts_from rows 0i32 [] }
+
+:~ counts_text (counts : list probe_reading) : string =
+    := shown = \ (text : string) (reading : probe_reading) =>
+        " " ++# reading.word ++# "=" ++# count_text reading.count ++# text
+    counts |> listm.fold shown ""
+
+:~ count_of (counts : list probe_reading) (~word : string) : i32 =
+    := found = \ (found : i32) (reading : probe_reading) => ? reading.word = word ?> reading.count |: found
+    counts |> listm.fold found 0i32
+
+:~ feature_total (counts : list probe_reading) : i32 =
+    := added = \ (total : i32) (reading : probe_reading) => ? reading.falls ?> total + reading.count |: total
+    counts |> listm.fold added 0i32
+
+:~ ^ entry_from (baseline : array_base baseline_entry) (~name : string) (~word : string) (at : i32) : baseline_entry =
+    ? at >= am'.length_base baseline ?> { name = name; word = word; count = -1i32; lines = 0i32 }
+    |:
+        := entry = am'.index_base at baseline
+        ? entry.name = name && entry.word = word ?> entry |: entry_from baseline name word (at + 1i32)
+
+:~ readings_of (counts : list probe_reading) : array_base reading_row =
+    := kept = \ (rows : array reading_row) (reading : probe_reading) =>
+        rows ++ ;[ { word = reading.word; count = reading.count } ]
+    counts |> listm.fold kept ;[] |> am'.base
+
+:~ rows_after (census : package_census) (~rows : string) : string =
+    baseline_rendered (census.name, census.lines, readings_of census.counts, rows)
+
+:| verdict =
+    | Held
+    | Regressed : string
+
+:~ probes_compared
+    (counts : list probe_reading) (baseline : array_base baseline_entry) (~name : string) (lines : i32) : string
+    =
+    := compared = \ (found : string) (reading : probe_reading) =>
+        := before = entry_from baseline name reading.word 0i32
+        := moved = count_text before.count ++# "/" ++# count_text before.lines ++# " -> "
+        := now = count_text reading.count ++# "/" ++# count_text lines
+        := line = name ++# "  " ++# reading.word ++# "  " ++# moved ++# now
+        := moved_by = reading.word, before.count, before.lines, reading.count, lines
+        := worse = before.count >= 0i32 && probe_regressed moved_by
+        ? worse ?> appended found line |: found
+    counts |> listm.fold compared ""
+
+:~ new_package_problem (counts : list probe_reading) : string =
+    ? count_of counts "rust-global" > 0i32
+    ?> "a new package carries rust_global"
+    |? count_of counts "wide-host-macro" + count_of counts "host-statement" > 0i32
+    ?>
+        "a new package has host strings over 200 characters, multi-line or with statements; name one-expression "
+        ^^ "primitives in a boundary package"
+    |? count_of counts "encoded-row" > 0i32
+    ?> "a new package encodes rows with tab or record separators"
+    |? count_of counts "type-decl" >= 2i32 && feature_total counts = 0i32
+    ?>
+        "a new package declares types but uses none of the typefeatureset (GADT cases, existentials, foralls, "
+        ^^ "indexed unions, prototypes)"
+    |: ""
+
+:~ census_verdict (census : package_census) (baseline : array_base baseline_entry) : verdict =
+    := known = entry_from baseline census.name "type-decl" 0i32
+    ? known.count < 0i32 ?>
+        := problem = new_package_problem census.counts
+        ? problem = "" ?> Held |: Regressed (census.name ++# "  new  " ++# problem)
+    |:
+        := found = probes_compared census.counts baseline census.name census.lines
+        ? found = "" ?> Held |: Regressed found
+
+:| census_mode =
+    | PrintCensus
+    | WriteBaseline : string
+    | MergeBaseline : string
+    | CheckRatchet : string
+
+:== census_tally =
+    {
+        packages : i32
+        regressions : i32
+        rows : string
+        walked : list string
+    }
+
+:~ ^ census_walk (mode : census_mode) (baseline : array_base baseline_entry) (dirs : list string) (tally : census_tally)
+    : census_tally
+    =
+    ?= dirs ?|
+    | [] => tally
+    | dir :: rest =>
+        := census = census_of dir
+        := counted = { tally ?| packages = tally.packages + 1i32 }
+        ?= mode ?|
+        | PrintCensus =>
+            stdout_line (census.name ++# "  lines=" ++# count_text census.lines ++# counts_text census.counts)
+            census_walk mode baseline rest counted
+        | WriteBaseline _ =>
+            := rows = rows_after census counted.rows
+            census_walk mode baseline rest { counted ?| rows = rows }
+        | MergeBaseline _ ?& (entry_from baseline census.name "type-decl" 0i32).count < 0i32 =>
+            stdout_line (census.name ++# "  new  a merge never adds a package that is not in the baseline")
+            census_walk mode baseline rest { counted ?| regressions = counted.regressions + 1i32 }
+        | MergeBaseline _ =>
+            ?= census_verdict census baseline ?|
+            | Held =>
+                := rows = rows_after census counted.rows
+                census_walk mode baseline rest { counted ?| rows = rows; walked = census.name :: counted.walked }
+            | Regressed lines =>
+                stdout_line lines
+                census_walk mode baseline rest { counted ?| regressions = counted.regressions + 1i32 }
+        | CheckRatchet _ =>
+            ?= census_verdict census baseline ?|
+            | Held => census_walk mode baseline rest counted
+            | Regressed lines =>
+                stdout_line lines
+                census_walk mode baseline rest { counted ?| regressions = counted.regressions + 1i32 }
+
+:= census_usage () : string =
+    "usage: standards --census <dir>... | standards --baseline <file.spi> <dir>... | standards --baseline-merge "
+    ^^ "<file.spi> <dir>... (replaces only the walked packages' rows) | standards --ratchet <file.spi> <dir>... | "
+    ^^ "standards --scoreboard <root>... (one line per root: lines, then each probe's count and count per 1000 "
+    ^^ "lines) (a directory without .spi files stands for its package subdirectories)"
+
+
+:~ baseline_saved (~path : string) (~rows : string) (~packages : string) : i32 =
+    := header = "union census_row = CensusCount : string * string * i32 * i32\n\n"
+    file_system.write_all_text path (header ++# rows ++# "\n")
+    stdout_line ("kit standards baseline ok packages=" ++# packages ++# " path=" ++# path)
+    0i32
+
+:~ census_report (mode : census_mode) (tally : census_tally) : i32 =
+    := packages = count_text tally.packages
+    ?= mode ?|
+    | PrintCensus =>
+        stdout_line ("kit standards census ok packages=" ++# packages)
+        0i32
+    | WriteBaseline path => baseline_saved path tally.rows packages
+    | MergeBaseline path ?& tally.regressions > 0i32 =>
+        := counts = " packages=" ++# packages ++# " regressions=" ++# count_text tally.regressions
+        stderr_line ("kit error: standards merge refused; a baseline only shrinks" ++# counts ++# " baseline=" ++# path)
+        1i32
+    | MergeBaseline path =>
+        := gather = \ (kept : array string) (name : string) => kept ++ ;[ name ]
+        := walked = tally.walked |> listm.fold gather ;[] |> am'.base
+        baseline_saved path (baseline_merged (file_system.read_text_or_empty path, walked, tally.rows)) packages
+    | CheckRatchet path =>
+        := word = ? tally.regressions = 0i32 ?> "ok" |: "failed"
+        := counts = " packages=" ++# packages ++# " regressions=" ++# count_text tally.regressions
+        stdout_line ("kit standards ratchet " ++# word ++# counts ++# " baseline=" ++# path)
+        ? tally.regressions = 0i32 ?> 0i32 |: 1i32
+
+:~ census_started (mode : census_mode) (paths : list string) : i32 =
+    := wrap = \ (kept : array string) (path : string) => kept ++ ;[ path ]
+    := found = packages_under (paths |> listm.fold wrap ;[] |> am'.base)
+    := dirs = list_of_base found (am'.length_base found - 1i32) []
+    := none = (;[] : array baseline_entry) |> am'.base
+    := baseline =
+        ?= mode ?|
+        | CheckRatchet path => baseline_entries (file_system.read_text_or_empty path)
+        | MergeBaseline path => baseline_entries (file_system.read_text_or_empty path)
+        | _ => none
+    ? dirs = [] ?>
+        stderr_line ("kit error: standards found no Spiral packages; " ++# census_usage ())
+        2i32
+    |:
+        := start = { packages = 0i32; regressions = 0i32; rows = ""; walked = [] }
+        census_report mode (census_walk mode baseline dirs start)
+
+:| standards_flag =
+    | FlagCensus
+    | FlagBaseline
+    | FlagBaselineMerge
+    | FlagRatchet
+    | FlagScoreboard
+
+:~ flag_named (~word : string) : option standards_flag =
+    union_reflection.cases.union_case_where
+        (\ (flag : standards_flag) =>
+            word = kit_flag_words.words.flag_word (union_reflection.cases.union_case_suffix "Flag" flag)
+        )
+        (\ flag => Some flag)
+        None
+
+:~ with_path (mode : string -> census_mode) (rest : list string) : i32 =
+    ?= rest ?|
+    | path :: dirs => census_started (mode path) dirs
+    | [] => census_started PrintCensus []
+
+:~ flag_ran (flag : standards_flag) (rest : list string) : i32 =
+    ?= flag ?|
+    | FlagCensus => census_started PrintCensus rest
+    | FlagScoreboard => kit_style_scoreboard.scoreboard.scoreboard_run ()
+    | FlagBaseline => with_path (\ path => WriteBaseline path) rest
+    | FlagBaselineMerge => with_path (\ path => MergeBaseline path) rest
+    | FlagRatchet => with_path (\ path => CheckRatchet path) rest
+
+:~ census_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: rest =>
+        ?= flag_named word ?|
+        | Some flag => flag_ran flag rest
+        | None => census_started PrintCensus (word :: rest)
+    | _ => census_started PrintCensus []
+
+///> rust
+:# standards_flags_and_densities_read_back =
+    testing.expect (flag_named "--baseline-merge" = Some FlagBaselineMerge) "two-word flags are kebab"
+    testing.expect (flag_named "--scoreboard" = Some FlagScoreboard) "the scoreboard flag"
+    testing.expect (flag_named "pkgs" = None) "a directory is not a flag"
+///> _
+:= main () : i32 =
+    export "kit_census_run" census_run
+    0i32

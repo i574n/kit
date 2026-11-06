@@ -1,0 +1,7 @@
+:| outcome =
+    | Rejected : string
+    | Candidate : string
+
+:~ rewrite (source : string) (name : string) (kind : string) : outcome =
+    := ok, text = $'predicate_rewrite_domain::kit_predicate_rewrite(&*!source,&*!name,&*!kind)' : bool * string
+    ? ok ?> Candidate text |: Rejected text

@@ -1,0 +1,106 @@
+///- --package .
+:# table static =
+    :< sm'_operators
+    :< kit_coordinator_model.model
+
+:< sm'_operators
+:< kit_coordinator_model.model
+
+:== coord_table = { slots : list slot; jobs : list (job_id * job_status) }
+
+:| table_input =
+    | Arrived : job_id
+    | Moved : job_id * job_event
+
+:~ ^ free_slots (count : i32) : list slot = ? count <= 0i32 ?> [] |: Free :: free_slots (count - 1i32)
+
+:= empty_table (count : i32) : coord_table = { slots = free_slots count; jobs = [] }
+
+:~ status_in (t : coord_table) (job : job_id) : option job_status =
+    t.jobs |> listm.fold (\ found (id, status) => ? id = job ?> Some status |: found) None
+
+:~ with_status (t : coord_table) (job : job_id) (status : job_status) : coord_table =
+    { t ?| jobs = t.jobs |> listm.map (\ (id, old) => ? id = job ?> id, status |: id, old) }
+
+:~ ^ slot_taken (slots : list slot) (job : job_id) : option (list slot) =
+    ?= slots ?|
+    | [] => None
+    | s :: rest =>
+        ?= leased s job ?|
+        | Leased held => Some (held :: rest)
+        | SlotBusy _ =>
+            ?= slot_taken rest job ?|
+            | Some taken => Some (s :: taken)
+            | None => None
+
+:~ slot_freed (t : coord_table) (job : job_id) : coord_table =
+    { t ?| slots = t.slots |> listm.map (\ (s : slot) => released s job) }
+
+:~ admitted (t : coord_table) : coord_table =
+    := admit = \ (acc : coord_table) (id, status) =>
+        ?= status ?|
+        | Queued =>
+            ?= slot_taken acc.slots id ?|
+            | Some slots =>
+                := moved = with_status acc id (LeasedOn id)
+                { moved ?| slots = slots }
+            | None => acc
+        | _ => acc
+    t.jobs |> listm.fold admit t
+
+:~ table_after (t : coord_table) (input : table_input) : coord_table =
+    ?= input ?|
+    | Arrived job => admitted { t ?| jobs = listm.append t.jobs [ job, Queued ] }
+    | Moved (job, event) =>
+        ?= status_in t job ?|
+        | None => t
+        | Some status =>
+            ?= status_after status event job ?|
+            | None => t
+            | Some next =>
+                := moved = with_status t job next
+                ? next = Settled || next = Queued ?> admitted (slot_freed moved job) |: moved
+
+:~ table_of (count : i32) (inputs : list table_input) : coord_table =
+    inputs |> listm.fold table_after (empty_table count)
+
+:~ newly_leased (before : coord_table) (after : coord_table) : list job_id =
+    := leased_in = \ (t : coord_table) (job : job_id) => status_in t job = Some (LeasedOn job)
+    after.jobs
+    |> listm'.filter (\ (id, _) => leased_in after id && leased_in before id |> not)
+    |> listm.map (\ (id, _) => id)
+
+:~ granted_by (before : coord_table) (input : table_input) (after : coord_table) : list job_id =
+    := again =
+        ?= input ?|
+        | Moved (job, event) ?& event = Expiring && status_in after job = Some (LeasedOn job) => [ job ]
+        | _ => []
+    listm.append (newly_leased before after) again
+
+:= one_slot_story () : list table_input =
+    := a, b = JobId "job-a", JobId "job-b"
+    [ Arrived a; Arrived b; Moved (a, Starting); Moved (a, Settling) ]
+
+///> rust
+:# a_freed_slot_admits_the_next_queued_job_in_order =
+    := a, b = JobId "job-a", JobId "job-b"
+    := two = table_of 1i32 [ Arrived a; Arrived b ]
+    testing.expect (status_in two a = Some (LeasedOn a) && status_in two b = Some Queued) "one slot: a leases, b waits"
+    := done = table_of 1i32 (one_slot_story ())
+    testing.expect (status_in done a = Some Settled && status_in done b = Some (LeasedOn b)) "a settles, b leases"
+    testing.expect (done.slots = [ Held b ]) "the slot now holds b"
+    testing.expect (table_after done (Moved (a, Starting)) = done) "an illegal move changes nothing"
+    := settling = table_of 1i32 [ Arrived a; Arrived b; Moved (a, Starting) ]
+    testing.expect (newly_leased settling done = [ b ]) "settling a dispatches exactly b"
+    testing.expect (newly_leased done done = []) "no change dispatches nothing"
+    := held = table_of 1i32 [ Arrived a ]
+    := expired = Moved (a, Expiring)
+    := relet = table_after held expired
+    testing.expect (newly_leased held relet = []) "the diff alone misses a re-lease in the same input"
+    testing.expect (granted_by held expired relet = [ a ]) "a re-lease after Expiring is granted again"
+
+///> gleam
+:# the_table_rules_hold_on_the_gleam_target_too =
+    := a, b = JobId "job-a", JobId "job-b"
+    := done = table_of 1i32 (one_slot_story ())
+    testing.expect (status_in done b = Some (LeasedOn b) && done.slots = [ Held b ]) "gleam: b takes the freed slot"

@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    agile_claim_model
+modules:
+    queue

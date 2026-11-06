@@ -1,0 +1,53 @@
+:< rust_std_env.model
+:< rust_std_process.model
+:< rust_std_fs.model
+:< rust_std_fs.rooted_effects
+
+:! probe_start = ()
+:! probe_source_ready = ()
+:! probe_archive_ready = ()
+:! probe_extracted = ()
+:! probe_verified = ()
+
+:| archive_long_name_probe from to =
+    | PrepareSource :: archive_long_name_probe probe_start probe_source_ready
+    | BuildGnuTar :: archive_long_name_probe probe_source_ready probe_archive_ready
+    | ExtractWithKit :: archive_long_name_probe probe_archive_ready probe_extracted
+    | VerifyPayload :: archive_long_name_probe probe_extracted probe_verified
+
+:= main () : i32 =
+    := kit = argument_owned 0i32
+    := base = "/mnt/data/kit-archive-long-name-probe"
+    := source = "/mnt/data/kit-archive-long-name-probe/source"
+    := archive = "/mnt/data/kit-archive-long-name-probe/fixture.tar"
+    := extracted = "/mnt/data/kit-archive-long-name-probe/extracted"
+    := long_path =
+        "/mnt/data/kit-archive-long-name-probe/source/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ^^ "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt"
+    := extracted_long_path =
+        "/mnt/data/kit-archive-long-name-probe/extracted/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ^^ "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt"
+    := _ = cleanup_tree base
+    := _ : archive_long_name_probe probe_start probe_source_ready = PrepareSource
+    ? create_dir source && write_text long_path "ok"
+    ?>
+        := _ : archive_long_name_probe probe_source_ready probe_archive_ready = BuildGnuTar
+        := tar_code =
+            status_code5
+                "/bin/tar"
+                "--format=gnu"
+                "-cf"
+                archive
+                "--directory=/mnt/data/kit-archive-long-name-probe/source"
+                "."
+        ? tar_code = 0i32 ?>
+            := _ : archive_long_name_probe probe_archive_ready probe_extracted = ExtractWithKit
+            := extract_code = status_code4 kit "proxy" "archive-extract" archive extracted
+            ? extract_code = 0i32 ?>
+                := _ : archive_long_name_probe probe_extracted probe_verified = VerifyPayload
+                := verified = text_equals "ok" extracted_long_path
+                := _ = cleanup_tree base
+                ? verified ?> 0i32 |: 31i32
+            |: 21i32
+        |: 11i32
+    |: 1i32

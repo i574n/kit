@@ -1,0 +1,130 @@
+///- --package .
+:# rec_cycle static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== definition = { name : string; line : i32; words : list string; opens_group : bool }
+
+:| site =
+    | RecSite : definition
+    | PlainSite : definition
+
+:| cycle_verdict =
+    | InCycle
+    | NoCycle
+
+:~ site_definition (s : site) : definition =
+    ?= s ?|
+    | RecSite d => d
+    | PlainSite d => d
+
+:~ words_of (~text : string) : list string =
+    := separators = [ "("; ")"; "["; "]"; "{"; "}"; ","; ";"; ":"; "."; "!"; "\"" ]
+    := spaced = separators |> listm.fold (\ acc separator => sm'.replace separator " " acc) text
+    sm'.split_list " " spaced |> listm'.filter (\ (w : string) => w <> "")
+
+:~ header_rest (~line : string) : string =
+    := pending = ? sm'.starts_with ":& " line ?> sm'.substring 3i32 ((sm'.length line : i32) - 3i32) line |: line
+    := defines = sm'.starts_with ":= " pending || sm'.starts_with ":~ " pending
+    ? defines ?> sm'.substring 3i32 ((sm'.length pending : i32) - 3i32) pending |: ""
+
+:~ site_of (~rest : string) (number : i32) (~body : string) (opens : bool) : site =
+    := marked = sm'.starts_with "^ " rest
+    := named = ? marked ?> sm'.substring 2i32 ((sm'.length rest : i32) - 2i32) rest |: rest
+    := name, after =
+        ?= sm'.split_list " " named ?|
+        | first :: others => first, sm'.concat_list " " others
+        | [] => "", ""
+    := d = { name = name; line = number; words = words_of (after ++# " " ++# body); opens_group = opens }
+    ? marked ?> RecSite d |: PlainSite d
+
+:== open_site = { rest : string; line : i32; body : string; opens : bool }
+
+:~ closed (pending : option open_site) (done : list site) : list site =
+    ?= pending ?|
+    | Some o => site_of o.rest o.line o.body o.opens :: done
+    | None => done
+
+:~ ^ sites_from
+    (lines : list string) (number : i32) (pending : option open_site) (done : list site)
+    : list site
+    =
+    ?= lines ?|
+    | [] => listm.rev (closed pending done)
+    | line :: rest =>
+        := head = header_rest line
+        := started = Some { rest = head; line = number; body = ""; opens = !- }
+        := grouped = ? sm'.starts_with ":& " line ?> (?= pending ?| | Some o => Some { o ?| opens = !+ } | None => None) |: pending
+        ? head <> "" ?> sites_from rest (number + 1i32) started (closed grouped done)
+        |? line <> "" && sm'.starts_with " " line = !- ?> sites_from rest (number + 1i32) None (closed pending done)
+        |:
+            := grown = ?= pending ?| | Some o => Some { o ?| body = o.body ++# " " ++# line } | None => None
+            sites_from rest (number + 1i32) grown done
+
+:~ ^ edges_of (~name : string) (defs : list definition) : list string =
+    ?= defs ?|
+    | [] => []
+    | d :: rest => ? d.name = name ?> d.words |: edges_of name rest
+
+:~ ^ reaches (~target : string) (frontier : list string) (seen : list string) (defs : list definition) : bool =
+    ?= frontier ?|
+    | [] => !-
+    | next :: rest =>
+        ? next = target ?> !+
+        |? listm'.contains next seen ?> reaches target rest seen defs
+        |: reaches target (listm.append (edges_of next defs) rest) (next :: seen) defs
+
+:~ cycle_of (d : definition) (defs : list definition) : cycle_verdict =
+    := names = defs |> listm.map (\ (x : definition) => x.name)
+    := starts = d.words |> listm'.filter (\ (w : string) => listm'.contains w names && w <> d.name)
+    ? listm'.contains d.name d.words || reaches d.name starts [] defs ?> InCycle |: NoCycle
+
+:~ finding_of (~path : string) (defs : list definition) (s : site) : string =
+    ?= s ?|
+    | RecSite d =>
+        ? d.opens_group ?> ""
+        |:
+            ?= cycle_of d defs ?|
+            | InCycle => ""
+            | NoCycle =>
+                path ++# ":" ++# sm'.show d.line ++# "  rec-outside-cycle  ^ on " ++# d.name
+                ++# " but it is in no recursion cycle; drop the ^ (it means rec, not join point)\n"
+    | PlainSite _ => ""
+
+:~ rec_findings (~path : string) (~text : string) : string =
+    := sites = sites_from (sm'.split_list "\n" (sm'.replace "\r" "" text)) 1i32 None []
+    := defs = sites |> listm.map site_definition
+    sites |> listm.map (finding_of path defs) |> sm'.concat_list ""
+
+///> rust
+:# a_self_call_is_a_cycle_and_a_stray_rec_mark_is_found =
+    := text =
+        sm'.concat_list "\n" [
+            ":~ ^ down (n : i32) : i32 ="
+            "    ? n = 0i32 ?> 0i32 |: down (n - 1i32)"
+            ":~ ^ twice (n : i32) : i32 = n + n"
+        ]
+    := found = rec_findings "a.spi" text
+    testing.expect (sm'.starts_with "a.spi:3  rec-outside-cycle  ^ on twice " found) found
+    testing.expect ((listm.length (sm'.split_list "\n" found) : i32) = 2i32) "only twice is reported"
+
+///> rust
+:# mutual_recursion_and_group_members_are_cycles =
+    := text =
+        sm'.concat_list "\n" [
+            ":~ ^ even (n : i32) : bool = ? n = 0i32 ?> !+ |: odd (n - 1i32)"
+            ":& :~ ^ odd (n : i32) : bool = ? n = 0i32 ?> !- |: even (n - 1i32)"
+            ":= plain (n : i32) : i32 = n"
+        ]
+    testing.expect (rec_findings "b.spi" text = "") (rec_findings "b.spi" text)
+
+///> rust
+:# a_rec_mark_that_opens_a_group_stays_even_without_a_cycle =
+    := text = sm'.concat_list "\n" [ ":~ ^ lone (n : i32) : i32 = n"; ":& :~ other (n : i32) : i32 = n" ]
+    testing.expect (rec_findings "c.spi" text = "") (rec_findings "c.spi" text)
+
+///> _
+:= main () : i32 =
+    export "kit_rec_cycle_findings" ((\ (path, text) => rec_findings path text) : string * string -> string)
+    0i32

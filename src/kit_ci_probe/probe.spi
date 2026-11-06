@@ -1,0 +1,149 @@
+///- --package .
+:# probe static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_ci_model.tools
+
+:== version_probe =
+    {
+        program : string
+        args : list string
+        override_variable : option string
+    }
+
+:= otp_version_expression () : string =
+    "io:format(\"~s\",[element(2,file:read_file(filename:join([code:root_dir(),\"releases\","
+    ++# "erlang:system_info(otp_release),\"OTP_VERSION\"])))]),halt()."
+
+:~ probe_of (tool : ci_tool) : version_probe =
+    ?= tool ?|
+    | ToolRust => { program = "rustup"; args = [ "show"; "active-toolchain" ]; override_variable = None }
+    | ToolZig => { program = "zig"; args = [ "version" ]; override_variable = Some "SPIRAL_ZIG" }
+    | ToolOtp =>
+        { program = "erl"; args = [ "-noshell"; "-eval"; otp_version_expression () ]; override_variable = None }
+    | ToolElixir => { program = "elixir"; args = [ "--short-version" ]; override_variable = None }
+    | ToolGleam => { program = "gleam"; args = [ "--version" ]; override_variable = None }
+    | ToolRebar => { program = "rebar3"; args = [ "version" ]; override_variable = None }
+    | ToolPython => { program = "python"; args = [ "--version" ]; override_variable = None }
+
+:= program_candidates (~program : string) : list string = [ program; program ++# ".cmd"; program ++# ".bat" ]
+
+:~ first_line (~output : string) : string =
+    sm'.replace "\r" "" output |> sm'.trim |> sm'.split "\n" |> array |> am'.index 0i32 |> sm'.trim
+
+:~ word_at (index : i32) (~line : string) : string =
+    := words = sm'.split " " line |> array
+    ? index < (am'.length words : i32) ?> am'.index index words |: ""
+
+:~ without_host_triple (~toolchain : string) : string =
+    := cut =
+        [ "-x86_64-"; "-aarch64-"; "-i686-"; "-arm" ]
+        |> listm.fold
+            \ (at : i32) (marker : string) =>
+                := found = sm'.index_of marker toolchain
+                ? found > 0i32 && (at < 0i32 || found < at) ?> found |: at
+            -1i32
+    ? cut < 0i32 ?> toolchain |: sm'.substring 0i32 cut toolchain
+
+:~ version_from_output (tool : ci_tool) (~output : string) : option string =
+    := line = first_line output
+    := version =
+        ?= tool ?|
+        | ToolRust => without_host_triple (word_at 0i32 line)
+        | ToolGleam | ToolRebar | ToolPython => word_at 1i32 line
+        | ToolZig | ToolOtp | ToolElixir => line
+    ? version = "" ?> None |: Some version
+
+:~ ^ channels_from (lines : array string) (at : i32) (found : list string) : list string =
+    ? at >= (am'.length lines : i32) ?> listm.rev found
+    |:
+        := channel = without_host_triple (word_at 0i32 (sm'.trim (am'.index at lines)))
+        channels_from lines (at + 1i32) (? channel = "" ?> found |: channel :: found)
+
+:~ installed_channels (~output : string) : list string =
+    channels_from (sm'.replace "\r" "" output |> sm'.split "\n" |> array) 0i32 []
+
+:~ rust_local (file_channel : option string) (installed : list string) (active : option string) : option string =
+    ?= file_channel ?|
+    | Some channel =>
+        ? listm'.try_find_ (\ (known : string) => known = channel) installed <> None ?> Some channel |: None
+    | None => active
+
+:~ probe_program (probe : version_probe) : string =
+    := given =
+        ?= probe.override_variable ?|
+        | Some variable => optionm'.default_value "" (env.try_get_environment_variable variable)
+        | None => ""
+    ? sm'.trim given = "" ?> probe.program |: given
+
+:~ captured (program : string) (args : list string) : option string =
+    program_candidates program
+    |> listm.fold
+        \ found (candidate : string) =>
+            ?= found ?|
+            | Some _ => found
+            | None => process.try_capture_combined_list candidate args
+        None
+
+:~ probed_version (tool : ci_tool) : option string =
+    := probe = probe_of tool
+    ?= captured (probe_program probe) probe.args ?|
+    | Some output => version_from_output tool output
+    | None => None
+
+:~ rust_installed () : list string =
+    ?= captured "rustup" [ "toolchain"; "list" ] ?|
+    | Some output => installed_channels output
+    | None => []
+
+:~ local_version (~name : string) (~repo : string) : bool * string =
+    := found =
+        ?= tool_of_name name ?|
+        | Some tool =>
+            ?= tool ?|
+            | ToolRust => rust_local (repo_toolchain repo) (rust_installed ()) (probed_version ToolRust)
+            | _ => probed_version tool
+        | None => None
+    ?= found ?|
+    | Some version => !+, version
+    | None => !-, ""
+
+:~ rust_channel_installed (~channel : string) : bool =
+    listm'.try_find_ (\ (known : string) => known = channel) (rust_installed ()) <> None
+
+
+///> rust
+:# tool_outputs_read_as_versions =
+    := rust = version_from_output ToolRust "nightly-2025-05-09-x86_64-pc-windows-msvc (default)\r\n"
+    testing.expect (rust = Some "nightly-2025-05-09") "rustup active toolchain without the host triple"
+    testing.expect (version_from_output ToolRust "stable-aarch64-apple-darwin" = Some "stable") "named channel"
+    testing.expect (version_from_output ToolGleam "gleam 1.19.2\n" = Some "1.19.2") "gleam --version"
+    testing.expect
+        (version_from_output ToolRebar "rebar 3.28.0 on Erlang/OTP 29 Erts 17.1.1\n" = Some "3.28.0")
+        "rebar3 version"
+    testing.expect (version_from_output ToolZig "0.18.0-dev.146+35accc06e\n" = Some "0.18.0-dev.146+35accc06e") "zig version"
+    testing.expect (version_from_output ToolOtp "" = None) "no output reads as missing"
+    testing.expect (version_from_output ToolPython "Python 3.15.0\n" = Some "3.15.0") "python --version"
+
+///> rust
+:# rust_follows_the_toolchain_file_when_it_is_installed =
+    := listed =
+        installed_channels (
+            "stable-x86_64-pc-windows-msvc\nnightly-2025-05-09-x86_64-pc-windows-msvc (default)\n"
+            ^^ "nightly-2026-10-18-x86_64-pc-windows-msvc\n"
+        )
+    testing.expect ((listm.length listed : i32) = 3i32) "three installed toolchains"
+    testing.expect
+        (rust_local (Some "nightly-2026-10-18") listed (Some "nightly-2025-05-09") = Some "nightly-2026-10-18")
+        "the file wins when installed"
+    testing.expect
+        (rust_local (Some "nightly-2027-01-01") listed (Some "nightly-2025-05-09") = None)
+        "a file channel that is not installed is missing"
+    testing.expect (rust_local None listed (Some "nightly-2025-05-09") = Some "nightly-2025-05-09") "no file: rustup's default"
+
+///> rust
+:# an_unset_override_keeps_the_program =
+    := probe = { program = "zig"; args = [ "version" ]; override_variable = Some "KIT_CI_PARITY_TEST_UNSET" }
+    testing.expect (probe_program probe = "zig") "an unset override keeps the program"
+    testing.expect (local_version "cobol" "C:/kit-ci-parity-no-such-repo" = (!-, "")) "an unknown tool is not probed"

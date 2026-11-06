@@ -1,0 +1,112 @@
+///- --package .
+:# verb static =
+    :< sm'_operators
+    :< parents
+
+:< sm'_operators
+:< parents
+
+:| parent_change =
+    | ParentSet : string * string
+    | ParentCleared : string
+
+:| parents_write =
+    | ParentsWritten : i32
+    | ParentsRefused : string
+
+:= parents_schema () : string =
+    "///- --no-respell\nunion task_parent =\n" ^^ "    | Parent :: string * string -> task_parent\n"
+
+:= change_child = \|
+    | ParentSet (child, _) => child
+    | ParentCleared child => child
+
+:~ links_changed (links : list parent_link) (change : parent_change) : list parent_link =
+    := kept = links |> listm'.filter (\ (link : parent_link) => link.child <> change_child change)
+    ?= change ?|
+    | ParentSet (child, parent) => listm.append kept [ { child = child; parent = parent } ]
+    | ParentCleared _ => kept
+
+:~ parents_text (links : list parent_link) : string =
+    := rows = links |> listm.map (\ (link : parent_link) => row_of_link link ++# "\n") |> sm'.concat_list ""
+    parents_schema () ++# rows
+
+:| module_listing =
+    | ModuleListed
+    | ModuleAdded : string
+    | NoModulesSection
+
+:~ module_listed (~package_text : string) : module_listing =
+    ? sm'.contains "\n    parents\n" package_text || sm'.ends_with "\n    parents" package_text ?> ModuleListed
+    |? sm'.contains "modules:\n" package_text
+    ?> ModuleAdded (sm'.replace "modules:\n" "modules:\n    parents\n" package_text)
+    |: NoModulesSection
+
+:~ task_known (~agile_text : string) (~id : string) : bool = sm'.contains ("Task (\"" ++# id ++# "\"") agile_text
+
+:~ text_of (~path : string) : string = ? file_system.file_exists path ?> file_system.read_all_text path |: ""
+
+:~ replaced (~path : string) (~text : string) : bool =
+    ?= workspace_primitives.files.replace_file_checked path text ?|
+    | workspace_primitives.files.Replaced => !+
+    | _ => !-
+
+:~ parents_changed (~root : string) (change : parent_change) : parents_write =
+    := state = sm'.replace "\\" "/" root ++# "/state"
+    := agile_text = text_of (state ++# "/agile.spi")
+    := path = state ++# "/parents.spi"
+    := before = text_of path
+    := unknown = \ (id : string) => ? task_known agile_text id ?> "" |: id
+    := missing =
+        ?= change ?|
+        | ParentSet (child, parent) => ? unknown child <> "" ?> child |: unknown parent
+        | ParentCleared child => unknown child
+    := links = links_changed (links_of_text before) change
+    ? agile_text = "" ?> ParentsRefused ("no backlog state at " ++# state)
+    |? missing <> "" ?> ParentsRefused ("no task " ++# missing ++# " in state/agile.spi")
+    |? text_of path <> before ?> ParentsRefused "state/parents.spi changed since it was read; run again"
+    |? replaced path (parents_text links) = !- ?> ParentsRefused "state/parents.spi could not be written"
+    |:
+        := package = state ++# "/package.spiproj"
+        := count = listm.length links
+        ?= module_listed (text_of package) ?|
+        | ModuleListed => ParentsWritten count
+        | NoModulesSection => ParentsRefused "state/package.spiproj has no modules section to list parents in"
+        | ModuleAdded listed =>
+            ? replaced package listed ?> ParentsWritten count |: ParentsRefused "state/package.spiproj not updated"
+
+:~ parent_edit_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: root :: child :: flag :: target :: [] ?& flag = "--parent" =>
+        := change = ? target = "--clear" ?> ParentCleared child |: ParentSet (child, target)
+        ?= parents_changed root change ?|
+        | ParentsWritten count =>
+            := parent = ? target = "--clear" ?> "none" |: target
+            := counts = " parent=" ++# parent ++# " links=" ++# sm'.format count
+            console.write_line ("kit agile edit ok child=" ++# child ++# counts)
+            0i32
+        | ParentsRefused reason =>
+            console.write_error_line ("kit error: agile edit --parent: " ++# reason)
+            2i32
+    | _ =>
+        console.write_error_line "kit error: usage: agile edit <root> <child-id> --parent <epic-id|--clear>"
+        2i32
+
+///> rust
+:# a_child_has_one_parent_row_and_clear_drops_it =
+    := one = links_changed [] (ParentSet ("S7", "EPIC"))
+    := moved = links_changed one (ParentSet ("S7", "OTHER"))
+    testing.expect (moved = [ { child = "S7"; parent = "OTHER" } ]) "setting again replaces the row"
+    testing.expect (links_changed moved (ParentCleared "S7") = []) "clear drops it"
+    := row = "inl parent_of_s7 () = Parent (\"S7\", \"EPIC\")\n"
+    testing.expect (parents_text one = parents_schema () ++# row) "file text"
+    := registered = module_listed "modules:\n    claims\n    agile\n"
+    testing.expect (registered = ModuleAdded "modules:\n    parents\n    claims\n    agile\n") "register"
+    testing.expect (module_listed "modules:\n    parents\n    agile\n" = ModuleListed) "already listed"
+    testing.expect (module_listed "packages:\n" = NoModulesSection) "no modules section"
+    testing.expect (task_known "x Task (\"S7\", \"t\")" "S7" && task_known "Task (\"S70\"" "S7" = !-) "ids match whole"
+///> _
+:= main () : i32 =
+    export "kit_agile_parent_links" links_of
+    export "kit_agile_parent_edit_run" parent_edit_run
+    0i32

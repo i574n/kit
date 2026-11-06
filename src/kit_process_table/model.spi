@@ -1,0 +1,140 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| process_command =
+    | ProcessPs
+    | ProcessKill
+    | ProcessUnknown
+
+:| stop_scope =
+    | JustProcess
+    | WithDescendants
+
+:| stop_refusal =
+    | Allowed : u64
+    | OwnProcess
+    | OwnAncestor
+    | NotAProcessId
+    | NotYours : string
+
+:= process_usage () : string = "ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"
+
+:= process_word (command : process_command) : string = union_reflection.cases.union_case_kebab "Process" command
+
+:= process_command_of (~word : string) : process_command =
+    := named = \ (command : process_command) => process_word command = word
+    union_reflection.cases.union_case_where named (\ c => c) ProcessUnknown
+
+:| ps_switch =
+    | PsTree
+    | PsMine
+
+:== ps_args = { pattern : string; tree : bool; mine : bool; rejected : string }
+
+:= ps_word (switch : ps_switch) : string = "--" ++# union_reflection.cases.union_case_kebab "Ps" switch
+
+:~ ps_switched (switch : ps_switch) (args : ps_args) : ps_args =
+    ?= switch ?|
+    | PsTree => { args ?| tree = !+ }
+    | PsMine => { args ?| mine = !+ }
+
+:~ ^ ps_read (words : list string) (args : ps_args) : ps_args =
+    ?= words ?|
+    | [] => args
+    | word :: rest =>
+        ?= union_reflection.cases.union_case_where (\ (switch : ps_switch) => ps_word switch = word) Some None ?|
+        | Some switch => ps_read rest (ps_switched switch args)
+        | None ?& sm'.starts_with "--" word => { args ?| rejected = "unknown option " ++# word }
+        | None ?& args.pattern = "" => ps_read rest { args ?| pattern = word }
+        | None => { args ?| rejected = "one pattern only, received " ++# word }
+
+:~ ps_of (words : list string) : ps_args = ps_read words { pattern = ""; tree = !-; mine = !-; rejected = "" }
+
+:= all_digits (~text : string) : bool = sm'.all_digits text
+:~ decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+
+:~ stop_refusal_of (~pid_text : string) (~own : u64) (~ancestors : string) : stop_refusal =
+    ? all_digits pid_text ?>
+        := pid = decimal_of pid_text
+        ? pid = own ?> OwnProcess
+        |? sm'.contains ("," ++# pid_text ++# ",") ("," ++# ancestors ++# ",") ?> OwnAncestor
+        |: Allowed pid
+    |: NotAProcessId
+
+:= refusal_text (~pid_text : string) (refusal : stop_refusal) : string =
+    ?= refusal ?|
+    | Allowed _ => ""
+    | OwnProcess => "stop " ++# pid_text ++# "  refused: that is this kit process"
+    | OwnAncestor => "stop " ++# pid_text ++# "  refused: that is a parent of this kit (the calling shell)"
+    | NotAProcessId => "stop " ++# pid_text ++# "  refused: not a process id"
+    | NotYours reason => "stop " ++# pid_text ++# "  refused: " ++# reason
+
+:| stop_result =
+    | NoSuchProcess
+    | StoppedOf : u64 * u64
+
+:= stop_result_of (~stopped : u64) (~total : u64) : stop_result =
+    ? total = 0u64 ?> NoSuchProcess |: StoppedOf (stopped, total)
+
+:= stop_complete = \|
+    | NoSuchProcess => !-
+    | StoppedOf (stopped, total) => stopped = total
+
+:= count_text (~count : u64) : string = (sm'.show count)
+
+:= stop_text (~pid_text : string) (result : stop_result) : string =
+    ?= result ?|
+    | NoSuchProcess => "stop " ++# pid_text ++# "  not found"
+    | StoppedOf (stopped, total) =>
+        ? stopped <> total ?>
+            "stop "
+            ++# pid_text
+            ++# ("  stopped " ++# (count_text stopped) ++# " of " ++# (count_text total) ++# " processes")
+        |? total = 1u64 ?> "stop " ++# pid_text ++# "  stopped"
+        |: "stop " ++# pid_text ++# "  stopped (tree: " ++# (count_text total) ++# " processes)"
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust
+:# stopping_never_reaches_this_process_or_its_callers =
+    ?= stop_refusal_of "4120" 77u64 "12,300,4" ?|
+    | Allowed pid => expect (pid = 4120u64) "a foreign pid is allowed"
+    | _ => expect !- "4120 should be allowed"
+    ?= stop_refusal_of "77" 77u64 "12,300,4" ?|
+    | OwnProcess => ()
+    | _ => expect !- "own pid"
+    ?= stop_refusal_of "300" 77u64 "12,300,4" ?|
+    | OwnAncestor => ()
+    | _ => expect !- "ancestor"
+    ?= stop_refusal_of "30" 77u64 "12,300,4" ?|
+    | Allowed _ => ()
+    | _ => expect !- "30 is not 300"
+    ?= stop_refusal_of "j1" 77u64 "" ?|
+    | NotAProcessId => expect (refusal_text "j1" NotAProcessId = "stop j1  refused: not a process id") "refusal text"
+    | _ => expect !- "not a number"
+
+///> rust
+:# a_missing_or_partial_stop_is_not_a_success =
+    expect (stop_complete (stop_result_of 0u64 0u64) = !-) "missing pid fails"
+    expect (stop_text "9" (stop_result_of 0u64 0u64) = "stop 9  not found") "missing text"
+    expect (stop_text "9" (stop_result_of 1u64 1u64) = "stop 9  stopped") "single"
+    expect (stop_text "9" (stop_result_of 3u64 3u64) = "stop 9  stopped (tree: 3 processes)") "tree"
+    expect (stop_complete (stop_result_of 2u64 3u64) = !-) "partial fails"
+    expect (stop_text "9" (stop_result_of 2u64 3u64) = "stop 9  stopped 2 of 3 processes") "partial text"
+
+///> rust
+:# process_verbs_are_their_case_names =
+    expect (process_command_of "ps" = ProcessPs && process_command_of "kill" = ProcessKill) "ps and kill"
+    expect (process_command_of "top" = ProcessUnknown && process_command_of "" = ProcessUnknown) "anything else"
+    expect (process_word ProcessKill = "kill") "kebab of the case"
+
+///> rust
+:# ps_words_read_the_pattern_and_the_reflected_switches =
+    := args = ps_of [ "--tree"; "kit"; "--mine" ]
+    expect (args.pattern = "kit" && args.tree && args.mine && args.rejected = "") args.pattern
+    expect ((ps_of [ "--all" ]).rejected = "unknown option --all") "an unknown switch is refused"
+    expect ((ps_of [ "a"; "b" ]).rejected = "one pattern only, received b") "one pattern"
+    expect ((ps_of []).pattern = "") "no pattern lists everything"

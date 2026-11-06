@@ -1,0 +1,20 @@
+[package.metadata.spiral]
+entry = "run.spi"
+output = "do_read.rs"
+
+[package]
+name = "kit-do-read"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_do_read"
+path = "do_read.rs"
+
+[dependencies]
+kit-do-walk = { path = "../kit_do_walk" }
+rayon = "1.12.0"
+regex = "1.13.1"
+kit-do-model = { path = "../kit_do_model" }

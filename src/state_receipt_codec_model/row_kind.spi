@@ -1,0 +1,24 @@
+:| receipt_row_kind =
+    | UnknownReceiptRow
+    | SnapshotReceiptRow
+    | ModuleReceiptRow
+
+:= receipt_row_kind_code_value = \|
+    | UnknownReceiptRow => 0u64
+    | SnapshotReceiptRow => 1u64
+    | ModuleReceiptRow => 2u64
+
+:= receipt_row_kind_text_value = \|
+    | UnknownReceiptRow => ""
+    | SnapshotReceiptRow => "snapshot"
+    | ModuleReceiptRow => "module"
+
+:~ receipt_row_kind_code (kind : string) : u64 =
+    ? (=.) kind "snapshot" ?> receipt_row_kind_code_value SnapshotReceiptRow
+    |? (=.) kind "module" ?> receipt_row_kind_code_value ModuleReceiptRow
+    |: receipt_row_kind_code_value UnknownReceiptRow
+
+:~ receipt_row_kind_text (code : string) : string =
+    ? (=.) code "1" ?> receipt_row_kind_text_value SnapshotReceiptRow
+    |? (=.) code "2" ?> receipt_row_kind_text_value ModuleReceiptRow
+    |: receipt_row_kind_text_value UnknownReceiptRow

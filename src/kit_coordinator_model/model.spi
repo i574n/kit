@@ -1,0 +1,110 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! job_queued = ()
+:! job_leased = ()
+:! job_running = ()
+:! job_settled = ()
+
+:| job_op from to =
+    | Lease :: job_op job_queued job_leased
+    | Expire :: job_op job_leased job_queued
+    | Start :: job_op job_leased job_running
+    | Settle :: job_op job_running job_settled
+
+:| ^ job_plan from to =
+    | JobStep :: \* from to. job_op from to -> job_plan from to
+    | JobThen :: \* from to.
+        (\? middle. job_plan from middle * job_plan middle to) ->
+        job_plan from to
+
+:= job_lifecycle () : job_plan job_queued job_settled =
+    JobThen (\? (
+        JobStep Lease,
+        JobThen (\? (
+            JobStep Start,
+            JobStep Settle
+        ))
+    ))
+
+:= retried_lifecycle () : job_plan job_queued job_settled =
+    JobThen (\? (
+        JobStep Lease,
+        JobThen (\? (
+            JobStep Expire,
+            job_lifecycle ()
+        ))
+    ))
+
+:| job_id =
+    | JobId : string
+
+:| slot =
+    | Free
+    | Held : job_id
+
+:| lease_outcome =
+    | Leased : slot
+    | SlotBusy : job_id
+
+:= leased (s : slot) (job : job_id) : lease_outcome =
+    ?= s ?|
+    | Free => Leased (Held job)
+    | Held holder => SlotBusy holder
+
+:= released (s : slot) (job : job_id) : slot =
+    ?= s ?|
+    | Held holder => ? holder = job ?> Free |: s
+    | Free => Free
+
+:| job_status =
+    | Queued
+    | LeasedOn : job_id
+    | Running
+    | Settled
+
+:| job_event =
+    | Leasing
+    | Starting
+    | Expiring
+    | Settling
+
+:= status_after (status : job_status) (event : job_event) (job : job_id) : option job_status =
+    ?= status, event ?|
+    | Queued, Leasing => Some (LeasedOn job)
+    | LeasedOn _, Starting => Some Running
+    | LeasedOn _, Expiring => Some Queued
+    | Running, Settling => Some Settled
+    | _ => None
+
+:= id_text (job : job_id) : string =
+    ?= job ?|
+    | JobId text => text
+
+///> rust
+:# one_slot_holds_one_lease_and_only_legal_steps_move_a_job =
+    := a = JobId "job-a"
+    := b = JobId "job-b"
+    := first = leased Free a
+    := second = ?= first ?| | Leased s => leased s b | SlotBusy h => SlotBusy h
+    testing.expect (second = SlotBusy a) "a held slot refuses a second lease and names its holder"
+    testing.expect (released (Held a) b = Held a) "only the holder releases"
+    testing.expect (released (Held a) a = Free) "the holder frees the slot"
+    testing.expect (status_after Queued Starting a = None) "a queued job cannot start without a lease"
+    := step s w = ?= s ?| | Some st => status_after st w a | None => None
+    := walked = [ Leasing; Starting; Settling ] |> listm.fold step (Some Queued)
+    testing.expect (walked = Some Settled) "lease, start, settle reaches Settled"
+    testing.expect (status_after Settled Leasing a = None) "a settled job never moves again"
+
+///> rust
+:# a_plan_that_skips_start_does_not_typecheck fails "Unification failure" =
+    (JobThen (\? (JobStep Lease, JobStep Settle)) : job_plan job_queued job_settled)
+
+///> gleam
+:# the_slot_rules_hold_on_the_gleam_target_too =
+    := a = JobId "job-a"
+    testing.expect (leased (Held a) (JobId "job-b") = SlotBusy a) "gleam: a held slot refuses"
+    testing.expect (status_after (LeasedOn a) Expiring a = Some Queued) "gleam: an expired lease requeues"

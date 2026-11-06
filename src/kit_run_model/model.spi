@@ -1,0 +1,77 @@
+///- --package .
+:# model static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== run_key =
+    {
+        file_hash : string
+        closure_hashes : list string
+        compiler_hash : string
+    }
+
+:| test_selection =
+    | AllTests
+    | NamedTests : list string
+    | ListTests
+
+:| run_request =
+    | RunProgram : string * list string
+    | RunTests : string * test_selection
+    | RunRefused : string
+
+:~ ^ fnv_bytes (bytes : array u8) (i : i32) (h : u64) : u64 =
+    ? i >= am'.length bytes ?> h
+    |: fnv_bytes bytes (i + 1i32) (((h ^^^ (conv (am'.index i bytes) : u64)) * 16777619u64) &&& 4294967295u64)
+
+:= fnv (text : string) : u64 = fnv_bytes (sm'.utf8_get_bytes text) 0i32 2166136261u64
+
+:= closure_digest (hashes : list string) : u64 = hashes |> listm.fold (\ total h => total + fnv h) 0u64
+
+:= cache_name (key : run_key) : string =
+    sm'.concat_list "-" [ key.compiler_hash; key.file_hash; sm'.show (closure_digest key.closure_hashes) ]
+
+:= test_names (text : string) : list string =
+    sm'.split_list "," text |> listm'.filter (\ (name : string) => name <> "")
+
+:= request_of (args : list string) : run_request =
+    ?= args ?|
+    | [] => RunRefused "usage: kit run <file.spi> [--test a,b | --list] [-- args]"
+    | file :: rest =>
+        ? sm'.ends_with ".spi" file |> not ?> RunRefused "kit run takes a .spi file first"
+        |:
+            ?= rest ?|
+            | [] => RunProgram (file, [])
+            | "--" :: program_args => RunProgram (file, program_args)
+            | "--list" :: [] => RunTests (file, ListTests)
+            | "--test" :: names :: [] =>
+                ?= test_names names ?|
+                | [] => RunRefused "--test needs at least one name"
+                | picked => RunTests (file, NamedTests picked)
+            | "--test" :: [] => RunTests (file, AllTests)
+            | _ => RunRefused "unknown kit run arguments; use --test a,b, --list or -- args"
+
+:= selected (selection : test_selection) (name : string) : bool =
+    ?= selection ?|
+    | AllTests => !+
+    | NamedTests names => listm'.contains name names
+    | ListTests => !-
+
+///> rust
+:# the_cache_name_ignores_closure_order_and_follows_the_compiler =
+    := key = { file_hash = "f1"; closure_hashes = [ "b2"; "a1" ]; compiler_hash = "c9" }
+    testing.expect (sm'.starts_with "c9-f1-" (cache_name key)) "compiler and file hash lead the name"
+    testing.expect (cache_name { key ?| closure_hashes = [ "a1" ] } <> cache_name key) "a closure change is a new build"
+    testing.expect (cache_name { key ?| closure_hashes = [ "a1"; "b2" ] } = cache_name key) "order does not matter"
+    testing.expect (cache_name { key ?| compiler_hash = "d0" } <> cache_name key) "a new compiler means a new build"
+
+///> rust
+:# arguments_become_a_typed_run_request =
+    testing.expect (request_of [ "a.spi" ] = RunProgram ("a.spi", [])) "a bare file runs its top-level code"
+    testing.expect (request_of [ "a.spi"; "--"; "x"; "y" ] = RunProgram ("a.spi", [ "x"; "y" ])) "args after --"
+    testing.expect (request_of [ "a.spi"; "--test"; "t1,t2" ] = RunTests ("a.spi", NamedTests [ "t1"; "t2" ])) "named"
+    testing.expect (request_of [ "a.spi"; "--list" ] = RunTests ("a.spi", ListTests)) "list the tests"
+    testing.expect (request_of [ "a.spi"; "--test" ] = RunTests ("a.spi", AllTests)) "--test alone runs them all"
+    testing.expect (request_of [ "a.ps1" ] = RunRefused "kit run takes a .spi file first") "only Spiral files run"
+    testing.expect (selected (NamedTests [ "t1" ]) "t1" && not (selected (NamedTests [ "t1" ]) "t2")) "selection"

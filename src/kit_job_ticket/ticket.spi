@@ -1,0 +1,124 @@
+///- --package .
+:# ticket static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_jobs.host
+
+:~ heavy_queue () : string =
+    := named = env.get_environment_variable "KIT_HEAVY_QUEUE"
+    := local = env.get_environment_variable "LOCALAPPDATA"
+    := base = ? local <> "" ?> local |: env.get_environment_variable "HOME"
+    ? named <> "" ?> named |? base = "" ?> "" |: joined (joined base "spiral-bin") "heavy-queue"
+
+:= ticket_parts (~name : string) : list string = sm'.split_list "-" (sm'.trim_end_suffix ".t" name)
+
+:= number_of (part : string) : u64 = optionm'.default_value 0u64 (convert.try_convert part)
+
+:= ticket_pid (~name : string) : u64 =
+    ?= ticket_parts name ?|
+    | _ :: pid :: _ => number_of pid
+    | _ => 0u64
+
+:= ticket_ticks (~name : string) : u64 =
+    ?= ticket_parts name ?|
+    | ticks :: _ => number_of ticks
+    | [] => 0u64
+
+:= own_pid () : u64 = conv (kit_os_process.process.own_pid ())
+
+:= ticket_name (ticks : u64) (pid : u64) : string =
+    sm'.pad_left 20i32 '0' (sm'.show ticks) ++# "-" ++# sm'.show pid ++# ".t"
+
+:~ ticket_written (~queue : string) (~name : string) : bool =
+    directory_created queue = "" && text_written (joined queue name) "" = ""
+
+:~ ticket_created (queue : string) : string =
+    := name = ticket_name (workspace_primitives.clock.dotnet_ticks ()) (own_pid ())
+    ? ticket_written queue name ?> name |: ""
+
+:~ tickets_sorted (~queue : string) : list string =
+    kit_os_files.files.entry_names queue
+    |> listm'.filter (\ (name : string) => sm'.ends_with ".t" name)
+    |> listm'.box
+    |> listm'.to_array'
+    |> array
+    |> am'.sort
+    |> am'.to_list'
+    |> listm'.unbox
+
+:~ ^ first_live (names : list string) : string =
+    ?= names ?|
+    | [] => ""
+    | name :: rest => ? process_alive (ticket_pid name) ?> name |: first_live rest
+
+:~ first_live_ticket (queue : string) : string = first_live (tickets_sorted queue)
+
+:~ ^ live_rank (names : list string) (~ticket : string) (rank : i32) : i32 =
+    ?= names ?|
+    | [] => -1i32
+    | name :: _ ?& name = ticket => rank
+    | name :: rest => live_rank rest ticket (? process_alive (ticket_pid name) ?> rank + 1i32 |: rank)
+
+:~ ticket_rank ((queue, ticket) : string * string) : i32 = live_rank (tickets_sorted queue) ticket 0i32
+
+:~ heavy_slots () : i32 =
+    := written = sm'.trim (text_or_empty (joined (jobs_root ()) "heavy-slots"))
+    := asked = optionm'.default_value 1i32 (convert.try_convert written)
+    ? asked < 1i32 ?> 1i32 |: asked
+
+:= front_name (head_ticks : u64) (pid : u64) : string = ticket_name (head_ticks - 1u64) pid
+
+:~ front_ticket (queue : string) : string =
+    := head = first_live_ticket queue
+    ? head = "" || ticket_ticks head = 0u64
+    ?> ticket_created queue
+    |:
+        := name = front_name (ticket_ticks head) (own_pid ())
+        ? ticket_written queue name ?> name |: ""
+
+:~ renamed (~from : string) (~to : string) : bool =
+    ?= resultm.unbox' (file_system.rename to from) ?|
+    | Ok _ => !+
+    | Error _ => !-
+
+:~ handed_ticket_owned ((queue, handed) : string * string) : string =
+    := owned = ticket_name (ticket_ticks handed) (own_pid ())
+    ? handed <> "" && renamed (joined queue handed) (joined queue owned) ?> owned |: ""
+
+:~ ticket_mine (name : string) : bool = ticket_pid name = own_pid ()
+
+///> rust
+:# a_front_ticket_sorts_one_tick_before_the_head =
+    ? front_name 639286833110079226u64 42u64 = "00639286833110079225-42.t" ?> () |: failwith "front ticket sorts first"
+
+///> rust
+:# a_handed_ticket_keeps_its_place_under_the_new_owner =
+    := handed = "00639286833110079225-7.t"
+    ? ticket_name (ticket_ticks handed) 42u64 = "00639286833110079225-42.t" ?> () |: failwith "same ticks, new pid"
+
+///> rust --deps sysinfo="0.38.4"
+:# a_ticket_ranks_among_the_live_tickets_ahead_of_it =
+    := mine, gone = ticket_name 3u64 (own_pid ()), ticket_name 2u64 4294967290u64
+    := names = [ ticket_name 1u64 (own_pid ()); gone; mine ]
+    testing.expect (live_rank names mine 0i32 = 1i32) "a dead ticket ahead is not counted"
+    testing.expect (live_rank names (ticket_name 9u64 1u64) 0i32 = -1i32) "a missing ticket has no rank"
+
+///> rust
+:# a_ticket_name_reads_back_its_ticks_and_pid =
+    := name = ticket_name 639286833110079226u64 4242u64
+    testing.expect (ticket_ticks name = 639286833110079226u64 && ticket_pid name = 4242u64) name
+    testing.expect (ticket_pid "garbage" = 0u64 && ticket_ticks "" = 0u64) "unparsable names read as 0"
+    testing.expect (workspace_primitives.clock.dotnet_ticks () > 638000000000000000u64) "ticks count from year 1"
+
+///> _
+:= main () : i32 =
+    export "kit_job_ticket_queue" heavy_queue
+    export "kit_job_ticket_created" ticket_created
+    export "kit_job_ticket_front" front_ticket
+    export "kit_job_ticket_first_live" first_live_ticket
+    export "kit_job_ticket_rank" ticket_rank
+    export "kit_job_ticket_slots" heavy_slots
+    export "kit_job_ticket_handed" handed_ticket_owned
+    export "kit_job_ticket_mine" ticket_mine
+    0i32

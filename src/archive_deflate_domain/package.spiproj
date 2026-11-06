@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+modules:
+    model-
+    archive_terminal
+    main

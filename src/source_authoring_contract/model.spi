@@ -1,0 +1,38 @@
+:! source_authoring_raw = ()
+:! source_authoring_loaded = ()
+:! source_authoring_rendered = ()
+:! source_authoring_authorized = ()
+:! source_authoring_committed = ()
+
+:| source_authoring_policy =
+    | RejectUnsafePath
+    | RejectStaleTemplate
+    | RejectStaleTarget
+    | RejectUnresolvedToken
+    | RejectMutationDuringPreview
+    | AuthorizeMaterialization
+    | RollbackFailedVerification
+
+:| source_authoring_op from to =
+    | LoadAuthoringInputs :: source_authoring_op source_authoring_raw source_authoring_loaded
+    | RenderAuthoringTemplate :: source_authoring_op source_authoring_loaded source_authoring_rendered
+    | AuthorizeAuthoringMode :: source_authoring_op source_authoring_rendered source_authoring_authorized
+    | CommitAuthoringOutput :: source_authoring_op source_authoring_authorized source_authoring_committed
+
+:| ^ source_authoring_plan from to =
+    | SourceAuthoringStep :: \* from to. source_authoring_op from to -> source_authoring_plan from to
+    | SourceAuthoringThen :: \* from to.
+        (\? middle. source_authoring_plan from middle * source_authoring_plan middle to) ->
+        source_authoring_plan from to
+
+:= source_authoring_public_plan () : source_authoring_plan source_authoring_raw source_authoring_committed =
+    SourceAuthoringThen (\? (
+        SourceAuthoringStep LoadAuthoringInputs,
+        SourceAuthoringThen (\? (
+            SourceAuthoringStep RenderAuthoringTemplate,
+            SourceAuthoringThen (\? (
+                SourceAuthoringStep AuthorizeAuthoringMode,
+                SourceAuthoringStep CommitAuthoringOutput
+            ))
+        ))
+    ))

@@ -1,0 +1,137 @@
+///- --package .
+:# lint static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| lint_check =
+    | PlanningFields
+    | DoneDefinition
+    | NextStep
+    | TypeFeatures
+    | DoneEvidence
+    | BlockerNamed
+    | PauseResume
+
+:== item_facts =
+    {
+        status : string
+        tags : string
+        estimate_minutes : i32
+        load : string
+        assignee : string
+        notes : string
+    }
+
+:= tag_words (~tags : string) : list string = sm'.split_list "," tags |> listm.map sm'.trim
+
+:= tagged (~tags : string) (accepted : string -> bool) : bool = listm'.exists' accepted (tag_words tags)
+
+:= code_tagged (~tags : string) : bool = tagged tags (\ (w : string) => w = "kit" || w = "lib" || w = "compiler")
+
+:= team_tagged (~tags : string) : bool = tagged tags (\ (w : string) => sm'.starts_with "team:" w)
+
+:~ says (markers : list string) (~notes : string) : bool =
+    := lower = sm'.to_lower notes
+    listm'.exists' (\ (marker : string) => sm'.contains marker lower) markers
+
+:~ markers_of (check : lint_check) : list string =
+    ?= check ?|
+    | DoneDefinition => [ "dod:"; "definition of done" ]
+    | NextStep => [ "next:"; "next step" ]
+    | TypeFeatures => [ "typefeatures:"; "typefeatureset plan" ]
+    | DoneEvidence => [ "exit 0"; " pass"; "green"; "proof:"; "proven" ]
+    | BlockerNamed => [ "blocked on"; "blocker:"; "waits on" ]
+    | PauseResume => [ "resume when"; "resume:"; "resumes on"; "resume from" ]
+    | PlanningFields => []
+
+:~ checks_for (~status : string) (~tags : string) : list lint_check =
+    ? status = "Done" ?> [ DoneEvidence ]
+    |? status = "Blocked" ?> [ BlockerNamed ]
+    |? status = "Paused" ?> [ PauseResume ]
+    |? code_tagged tags ?> [ PlanningFields; DoneDefinition; NextStep; TypeFeatures ]
+    |: [ PlanningFields; DoneDefinition; NextStep ]
+
+:~ passes (f : item_facts) (check : lint_check) : bool =
+    ?= check ?|
+    | PlanningFields => f.estimate_minutes > 0i32 && f.load <> "" && f.assignee <> "" && team_tagged f.tags
+    | _ => says (markers_of check) f.notes
+
+:~ failing (f : item_facts) : list lint_check =
+    checks_for f.status f.tags |> listm'.filter (\ (check : lint_check) => passes f check |> not)
+
+:= check_word (check : lint_check) : string = reflection.union_to_string check
+
+:== fact_row =
+    {
+        id : string
+        status : string
+        tags : string
+        estimate_minutes : i32
+        load : string
+        assignee : string
+        notes : string
+    }
+
+:== failure_row = { id : string; status : string; check : string }
+
+:~ ^ rows_from (facts : array_base fact_row) (at : i32) (rows : list failure_row) : list failure_row =
+    ? at < 0i32 ?> rows
+    |:
+        := r = am'.index_base at facts
+        := f =
+            {
+                status = r.status
+                tags = r.tags
+                estimate_minutes = r.estimate_minutes
+                load = r.load
+                assignee = r.assignee
+                notes = r.notes
+            }
+        := own = failing f |> listm.map (\ (c : lint_check) => { id = r.id; status = r.status; check = check_word c })
+        rows_from facts (at - 1i32) (listm.append own rows)
+
+:~ failing_rows (facts : array_base fact_row) : array_base failure_row =
+    rows_from facts (am'.length_base facts - 1i32) [] |> listm'.box |> listm'.to_array'
+
+:~ failing_words (f : item_facts) : string = failing f |> listm.map check_word |> sm'.concat_list ","
+
+///> rust
+:# a_planned_code_item_needs_fields_dod_next_and_a_type_plan =
+    := bare = { status = "Planned"; tags = "kit,agile"; estimate_minutes = 0i32; load = ""; assignee = ""; notes = "" }
+    testing.expect (failing bare = [ PlanningFields; DoneDefinition; NextStep; TypeFeatures ]) (failing_words bare)
+    := notes = "DoD: 3 CLI tests pass. NEXT: kit_agile_mutation route. TYPEFEATURES: lint_check union."
+    := full =
+        { bare ?| tags = "kit,team:kit"; estimate_minutes = 60i32; load = "light"; assignee = "agent"; notes = notes }
+    testing.expect (failing full = []) (failing_words full)
+    testing.expect (failing { full ?| tags = "docs,team:x" } = []) "a non-code item skips the type plan"
+
+///> rust
+:# phrase_style_notes_count_like_marker_lines =
+    := notes = "the definition of done is green CI; next step: wire it; typefeatureset plan below"
+    := f =
+        {
+            status = "Active"
+            tags = "lib,team:lib"
+            estimate_minutes = 30i32
+            load = "light"
+            assignee = "agent"
+            notes = notes
+        }
+    testing.expect (failing f = []) (failing_words f)
+
+///> rust
+:# each_status_arm_checks_only_its_own_rule =
+    := f =
+        { status = "Done"; tags = "kit"; estimate_minutes = 0i32; load = ""; assignee = ""; notes = "landed" }
+    testing.expect (failing f = [ DoneEvidence ]) (failing_words f)
+    testing.expect (failing { f ?| notes = "notebook 8/8 pass" } = []) "a passing run is evidence"
+    testing.expect (failing { f ?| status = "Blocked" } = [ BlockerNamed ]) "blocked names its blocker"
+    testing.expect (failing { f ?| status = "Blocked"; notes = "blocked on KIT-X" } = []) "named"
+    := paused = { f ?| status = "Paused"; notes = "resume when TRAIN22 installs" }
+    testing.expect (failing paused = []) "paused with a resume"
+    testing.expect (check_word PauseResume = "PauseResume") "check words come from the union"
+///> _
+:= main () : i32 =
+    export "kit_agile_lint_failing_rows" failing_rows
+    0i32

@@ -1,0 +1,5 @@
+:< rechain
+
+:= main () : i32 =
+    export "kit_job_rechain_run" rechain_run
+    0i32

@@ -1,0 +1,56 @@
+///- --package .
+:# check static =
+    :< sm'_operators
+    :< kit_machine_windows.window_model
+    :< kit_window_announce.announce
+    :< kit_window_announce_rows.rows
+
+:< sm'_operators
+:< kit_machine_windows.window_model
+:< kit_window_announce.announce
+:< kit_window_announce_rows.rows
+
+:~ refusal_of_blocks (wanted : window_class) (minutes : u64) (blocks : list announced) (now_ms : u64) : string =
+    ?= start_verdict_of wanted now_ms minutes blocks ?|
+    | StartNow => ""
+    | WouldOverlap (holder, starts_in) =>
+        "would overlap a block announced by " ++# holder ++# " that starts in " ++# sm'.show starts_in ++# " min"
+
+:~ upcoming_lines (blocks : list announced) (now_ms : u64) : string =
+    := line = \ (b : announced) =>
+        sm'.concat_list "  " [
+            "announced"; class_word b.kind; b.holder; "starts_in=" ++# sm'.show (minutes_left b.from_ms now_ms) ++# "m"
+            "minutes=" ++# sm'.show ((b.until_ms - b.from_ms) / 60000u64); "work=" ++# sm'.show b.work_minutes ++# "m"
+        ]
+    blocks |> listm'.filter (\ (b : announced) => b.until_ms > now_ms) |> listm.map line |> sm'.concat_list "\n"
+
+:~ blocks_at (~root : string) : list announced =
+    := path = sm'.replace "\\" "/" root ++# "/announced.spi"
+    ? file_system.file_exists path ?> announced_of (file_system.read_all_text path) |: []
+
+:~ announced_refusal (~root : string) (~class_text : string) (minutes : u64) : string =
+    ?= class_of class_text ?|
+    | ClassUnknown => ""
+    | ClassKnown wanted => refusal_of_blocks wanted minutes (blocks_at root) (workspace_primitives.clock.unix_ms ())
+
+:~ announced_lines (~root : string) : string = upcoming_lines (blocks_at root) (workspace_primitives.clock.unix_ms ())
+
+:= install () : announced =
+    { holder = "compiler"; kind = CompilerInstall; from_ms = 2000000u64; until_ms = 2600000u64; work_minutes = 10u64 }
+
+///> rust
+:# an_announced_block_refuses_an_overlapping_request_and_admits_after =
+    testing.expect (refusal_of_blocks HeavyBuild 30u64 [ install () ] 1000000u64 = "would overlap a block announced by compiler that starts in 17 min") "overlap"
+    testing.expect (refusal_of_blocks HeavyBuild 30u64 [ install () ] 2700000u64 = "") "after the block ends"
+    testing.expect (refusal_of_blocks HeavyBuild 5u64 [ install () ] 1000000u64 = "") "short work that ends before the block"
+
+///> rust
+:# window_list_shows_blocks_until_they_end =
+    testing.expect (upcoming_lines [ install () ] 1000000u64 = "announced  compiler-install  compiler  starts_in=17m  minutes=10  work=10m") (upcoming_lines [ install () ] 1000000u64)
+    testing.expect (upcoming_lines [ install () ] 2600000u64 = "") "an ended block is not listed"
+
+///> _
+:= main () : i32 =
+    export "kit_window_announced_refusal" ((\ (root, class_text, minutes) => announced_refusal root class_text minutes) : string * string * u64 -> string)
+    export "kit_window_announced_lines" ((\ root => announced_lines root) : string -> string)
+    0i32

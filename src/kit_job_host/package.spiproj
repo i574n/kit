@@ -1,0 +1,18 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+    kit_os_launch
+    kit_job_peers
+    kit_process_alive
+    kit_os_process
+    kit_job_names
+link:
+    kit_job_names
+    kit_process_alive
+    kit_job_peers
+modules:
+    host_model
+    host_paths
+    queue
+    host_run

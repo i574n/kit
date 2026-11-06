@@ -1,0 +1,82 @@
+:! restart_baton_empty = ()
+:! restart_baton_validated = ()
+:! restart_baton_written = ()
+:! restart_baton_verified = ()
+:| restart_baton_fault =
+    | NoRestartBatonFault
+    | FailBeforeBatonCommit
+    | FailAfterBatonCommit
+:| restart_baton_receipt_schema =
+    | RestartBatonReceiptV2
+:| restart_baton_receipt_status =
+    | RestartBatonReady
+:| restart_baton_receipt =
+    | RestartBatonReceipt :
+        restart_baton_receipt_schema *
+        restart_baton_receipt_status *
+        u32 *
+        string *
+        u64 *
+        string *
+        string *
+        string *
+        string *
+        string
+:= restart_baton_receipt_shape () : restart_baton_receipt =
+    RestartBatonReceipt (
+        RestartBatonReceiptV2,
+        RestartBatonReady,
+        987u32,
+        "bundle.zip",
+        1u64,
+        "bundle-sha256",
+        "lease-sha256",
+        "workstream",
+        "touched-sources",
+        "next-gate"
+    )
+:| restart_baton_op from to =
+    | ValidateRestartBaton :: restart_baton_op restart_baton_empty restart_baton_validated
+    | WriteRestartBaton :: restart_baton_op restart_baton_validated restart_baton_written
+    | VerifyRestartBaton :: restart_baton_op restart_baton_written restart_baton_verified
+:| ^ restart_baton_plan from to =
+    | RestartBatonStep :: \* from to. restart_baton_op from to -> restart_baton_plan from to
+    | RestartBatonThen :: \* from to.
+        (\? middle. restart_baton_plan from middle * restart_baton_plan middle to) ->
+        restart_baton_plan from to
+:= restart_baton_complete_plan () : restart_baton_plan restart_baton_empty restart_baton_verified =
+    RestartBatonThen (\? (
+        RestartBatonStep ValidateRestartBaton,
+        RestartBatonThen (\? (
+            RestartBatonStep WriteRestartBaton,
+            RestartBatonStep VerifyRestartBaton
+        ))
+    ))
+:= restart_baton_fault_code = \|
+    | NoRestartBatonFault => 0i32
+    | FailBeforeBatonCommit => 1i32
+    | FailAfterBatonCommit => 2i32
+:~ restart_baton_preflight_binding (root_safe : i32) (bundle_safe : i32) : i32 =
+    ? root_safe < 1i32 ?> 0i32
+    |? 1i32 < root_safe ?> 0i32
+    |? bundle_safe < 1i32 ?> 0i32
+    |? 1i32 < bundle_safe ?> 0i32
+    |: 1i32
+:~ restart_baton_migration_binding (expected : i32) (observed : i32) : i32 =
+    ? expected < 1i32 ?> 0i32
+    |? 1000i32 < expected ?> 0i32
+    |? expected < observed ?> 0i32
+    |? observed < expected ?> 0i32
+    |: 1i32
+:~ restart_baton_fault_binding (configured : i32) (observed : i32) : i32 =
+    ? configured < 1i32 ?> 0i32
+    |? 2i32 < configured ?> 0i32
+    |? configured < observed ?> 0i32
+    |? observed < configured ?> 0i32
+    |: 1i32
+:~ restart_baton_complete_binding (regular_receipt : i32) (bytes_match : i32) : i32 =
+    ? regular_receipt < 1i32 ?> 0i32
+    |? 1i32 < regular_receipt ?> 0i32
+    |? bytes_match < 1i32 ?> 0i32
+    |? 1i32 < bytes_match ?> 0i32
+    |: 1i32

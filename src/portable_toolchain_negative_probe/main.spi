@@ -1,0 +1,27 @@
+:< portable_toolchain_contract.model
+
+:= main () : i32 =
+    := _ = portable_toolchain_public_plan ()
+    := missing = portable_toolchain_resolution_binding 0i32 0i32 0i32
+    := mismatch_payload = portable_toolchain_resolution_binding 1i32 0i32 1i32
+    := mismatch_tools = portable_toolchain_resolution_binding 1i32 1i32 0i32
+    := ready = portable_toolchain_resolution_binding 1i32 1i32 1i32
+    := good_shape = portable_toolchain_shape_binding 3i32 7i32 2i32
+    := bad_payload_shape = portable_toolchain_shape_binding 2i32 7i32 2i32
+    := bad_tool_shape = portable_toolchain_shape_binding 3i32 6i32 2i32
+    := bad_root_shape = portable_toolchain_shape_binding 3i32 7i32 1i32
+    ? missing = 0i32 ?>
+        ? mismatch_payload = 1i32 ?>
+            ? mismatch_tools = 1i32 ?>
+                ? ready = 2i32 ?>
+                    ? good_shape = 1i32 ?>
+                        ? bad_payload_shape = 0i32 ?>
+                            ? bad_tool_shape = 0i32 ?>
+                                ? bad_root_shape = 0i32 ?> 0i32 |: 1i32
+                            |: 1i32
+                        |: 1i32
+                    |: 1i32
+                |: 1i32
+            |: 1i32
+        |: 1i32
+    |: 1i32

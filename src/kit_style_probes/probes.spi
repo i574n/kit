@@ -1,0 +1,231 @@
+///- --package .
+:# probes static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! feature = ()
+:! drift = ()
+:! neutral = ()
+
+:| probe side =
+    | GadtCase :: probe feature
+    | Existential :: probe feature
+    | Forall :: probe feature
+    | IndexedUnion :: probe feature
+    | Prototype :: probe feature
+    | Nominal :: probe feature
+    | VerdictUnion :: probe feature
+    | Reflection :: probe feature
+    | PhantomType :: probe feature
+    | HigherKinded :: probe feature
+    | TypeDecl :: probe neutral
+    | HostMacro :: probe drift
+    | WideHostMacro :: probe drift
+    | RustGlobal :: probe drift
+    | EncodedRow :: probe drift
+    | PipeTable :: probe drift
+    | NumberArm :: probe drift
+    | StringConcat :: probe drift
+    | TopLevelMacro :: probe drift
+    | RcWrap :: probe drift
+    | StdStringUse :: probe drift
+    | BangExport :: probe drift
+    | HostBlock :: probe drift
+    | HostStatement :: probe drift
+    | BannedNameToken :: probe drift
+
+:! any_probe = \? side. probe side
+
+:| direction =
+    | MayNotFall
+    | MayNotRise
+    | NeverRises
+    | Unranked
+
+:= direction_of \* side. (which : probe side) : direction =
+    ?= which ?|
+    | GadtCase => MayNotFall
+    | Existential => MayNotFall
+    | Forall => MayNotFall
+    | IndexedUnion => MayNotFall
+    | Prototype => MayNotFall
+    | Nominal => MayNotFall
+    | VerdictUnion => MayNotFall
+    | Reflection => MayNotFall
+    | PhantomType => MayNotFall
+    | HigherKinded => MayNotFall
+    | TypeDecl => Unranked
+    | HostMacro => MayNotRise
+    | WideHostMacro => MayNotRise
+    | RustGlobal => MayNotRise
+    | EncodedRow => MayNotRise
+    | PipeTable => MayNotRise
+    | NumberArm => MayNotRise
+    | StringConcat => MayNotRise
+    | TopLevelMacro => MayNotRise
+    | RcWrap => MayNotRise
+    | StdStringUse => MayNotRise
+    | BangExport => MayNotRise
+    | HostBlock => NeverRises
+    | HostStatement => NeverRises
+    | BannedNameToken => NeverRises
+
+:= probe_word \* side. (which : probe side) : string = union_reflection.cases.union_case_kebab "" which
+
+:= probe_pattern \* side. (which : probe side) : string =
+    ?= which ?|
+    | GadtCase => "^\\s*\\|\\s*[A-Z]\\w*\\s*::[^=]*$"
+    | Existential => "\\\\\\?(\\s*(\\w+|\\([^)]*\\)|\\{[^}]*\\}))+\\s*\\.|\\\\\\?\\s*\\(|\\bexists\\s+\\w+\\."
+    | Forall => "\\\\\\*(\\s*(\\w+|\\([^)]*\\)|\\{[^}]*\\}))+\\s*\\.|\\bforall\\s+\\w+"
+    | IndexedUnion => "^\\s*union\\s+(rec\\s+)?(private\\s+)?\\w+\\s+\\w+\\s*=|^\\s*:\\|\\s+(\\^\\s*)?\\w+(\\s+\\w+)+\\s*="
+    | Prototype => "^\\s*(prototype|instance)\\b|^\\s*:[?+]\\s"
+    | Nominal => "^\\s*(:!|nominal)\\s+\\w+"
+    | VerdictUnion => "^:\\|\\s+(\\^\\s*)?\\w*(verdict|outcome|refusal|fault|violation|check|change)\\w*\\s"
+    | Reflection => "\\bunion_reflection\\.|\\bunion_case_\\w+|\\bnameof\\b|\\breflection(::|\\.)"
+    | PhantomType => "^\\s*(:!|nominal)\\s+\\w+(\\s+\\w+)*\\s*=\\s*\\(\\s*\\)\\s*$"
+    | HigherKinded => "\\(\\s*\\w+\\s*:\\s*\\*\\s*->"
+    | TypeDecl => "^\\s*(union|type|nominal)\\b|^\\s*:(\\||==|!)\\s"
+    | HostMacro => "^\\s+.*(\\$'|\\$\\x22)"
+    | WideHostMacro => "\\$'[^']{200,}'"
+    | RustGlobal => "(^|[^\\w.])(rust_global\\b|global\\s*(\\(|\\x22))"
+    | EncodedRow => "char::from\\((9|30|31)u8\\)|\\x22\\\\t\\x22"
+    | PipeTable => "pipe_(index|member|lookup)"
+    | NumberArm => "^\\s*\\|\\s*\\d+(u64|i32|u32)?\\s*=>"
+    | StringConcat => "\\bconcat5\\b"
+    | TopLevelMacro => "^\\S.*(\\$'|\\$\\x22)"
+    | RcWrap => "Rc::<str>::from"
+    | StdStringUse => "rust_std_string\\."
+    | BangExport => "!!!!Export\\("
+    | HostBlock => "\\$'[^']*$"
+    | HostStatement => "\\x24'[^']*(;|$)"
+    | BannedNameToken => "^(:~|:=|inl|let)\\s+(\\^\\s*)?([a-z0-9]+_)*(length|len|size|dir|ctx)(_[a-z0-9]+)*'*([\\s(]|$)"
+
+:= each_probe \* state. (step : state -> any_probe -> state) (initial : state) : state =
+    := s = step initial (any_probe (\? GadtCase))
+    := s = step s (any_probe (\? Existential))
+    := s = step s (any_probe (\? Forall))
+    := s = step s (any_probe (\? IndexedUnion))
+    := s = step s (any_probe (\? Prototype))
+    := s = step s (any_probe (\? Nominal))
+    := s = step s (any_probe (\? VerdictUnion))
+    := s = step s (any_probe (\? Reflection))
+    := s = step s (any_probe (\? PhantomType))
+    := s = step s (any_probe (\? HigherKinded))
+    := s = step s (any_probe (\? TypeDecl))
+    := s = step s (any_probe (\? HostMacro))
+    := s = step s (any_probe (\? WideHostMacro))
+    := s = step s (any_probe (\? RustGlobal))
+    := s = step s (any_probe (\? EncodedRow))
+    := s = step s (any_probe (\? PipeTable))
+    := s = step s (any_probe (\? NumberArm))
+    := s = step s (any_probe (\? StringConcat))
+    := s = step s (any_probe (\? TopLevelMacro))
+    := s = step s (any_probe (\? RcWrap))
+    := s = step s (any_probe (\? StdStringUse))
+    := s = step s (any_probe (\? BangExport))
+    := s = step s (any_probe (\? HostBlock))
+    := s = step s (any_probe (\? HostStatement))
+    step s (any_probe (\? BannedNameToken))
+
+:= any_word (any_probe p : any_probe) : string =
+    := \? side. which = p
+    probe_word which
+
+:= any_direction (any_probe p : any_probe) : direction =
+    := \? side. which = p
+    direction_of which
+
+:= any_pattern (any_probe p : any_probe) : string =
+    := \? side. which = p
+    probe_pattern which
+
+:~ regressed (way : direction) (before : i32) (before_lines : i32) (now : i32) (now_lines : i32) : bool =
+    := base = (conv before : f64) * 1000f64 / (conv (? before_lines > 1i32 ?> before_lines |: 1i32) : f64)
+    := rate = (conv now : f64) * 1000f64 / (conv (? now_lines > 1i32 ?> now_lines |: 1i32) : f64)
+    ?= way ?|
+    | MayNotRise => rate > base * 1.05f64 + 0.5f64 && now > before
+    | MayNotFall => now < before && rate < base * 0.95f64 - 0.5f64 && before - now > before_lines - now_lines
+    | NeverRises => now > before
+    | Unranked => !-
+
+:== probe_spec = { word : string; pattern : string; way : direction }
+
+:~ probe_table () : list probe_spec =
+    := spec = \ (kept : list probe_spec) probe =>
+        { word = any_word probe; pattern = any_pattern probe; way = any_direction probe } :: kept
+    each_probe spec [] |> listm.rev
+
+:~ direction_of_word (~word : string) : direction =
+    ?= listm'.try_find_ (\ (spec : probe_spec) => spec.word = word) (probe_table ()) ?|
+    | Some spec => spec.way
+    | None => Unranked
+
+:= guards_falls (way : direction) : bool =
+    ?= way ?|
+    | MayNotFall => !+
+    | _ => !-
+
+
+:== probe_pair = { word : string; pattern : string }
+
+:~ probe_specs () : array_base probe_pair =
+    := pair = \ (kept : array probe_pair) (spec : probe_spec) =>
+        kept ++ ;[ { word = spec.word; pattern = spec.pattern } ]
+    probe_table () |> listm.fold pair ;[] |> am'.base
+
+:~ probe_regressed ((word, before, before_lines, now, now_lines) : string * i32 * i32 * i32 * i32) : bool =
+    regressed (direction_of_word word) before before_lines now now_lines
+
+:~ probe_falls (word : string) : bool = direction_of_word word = MayNotFall
+///> rust
+:# every_probe_has_one_word_and_a_direction_from_its_side =
+    := words = each_probe (\ acc probe => ? acc = "" ?> any_word probe |: acc ++# " " ++# any_word probe) ""
+    testing.expect
+        (
+            words
+            = (
+                "gadt-case existential forall indexed-union prototype nominal verdict-union reflection phantom-type "
+                ^^ "higher-kinded type-decl "
+                ^^ "host-macro wide-host-macro "
+                ^^ "rust-global encoded-row pipe-table number-arm string-concat top-level-macro rc-wrap "
+                ^^ "std-string-use bang-export host-block host-statement banned-name-token"
+            )
+        )
+        words
+    testing.expect (guards_falls (direction_of GadtCase)) "features may not fall"
+    testing.expect (guards_falls (direction_of StringConcat) = !-) "drift may not rise"
+    testing.expect (direction_of_word "forall" = MayNotFall) "a word names its direction"
+    testing.expect (direction_of_word "nope" = Unranked) "an unknown word is unranked"
+
+///> rust
+:# the_ratchet_tolerates_noise_and_catches_real_moves =
+    testing.expect (regressed MayNotRise 30i32 1000i32 31i32 1000i32 = !-) "one more macro per thousand lines is noise"
+    testing.expect (regressed MayNotRise 30i32 1000i32 40i32 1000i32) "ten more per thousand lines is a regression"
+    testing.expect (regressed MayNotFall 16i32 1000i32 8i32 1000i32) "halving the GADT cases is a regression"
+    testing.expect (regressed MayNotFall 11i32 179i32 0i32 129i32 = !-) "deleting dead code with its lines is a prune"
+    testing.expect
+        (regressed MayNotFall 11i32 179i32 0i32 175i32)
+        "rewriting features into plain code at the same size is a regression"
+    testing.expect (regressed Unranked 1i32 1000i32 99i32 1000i32 = !-) "type declarations are only counted"
+    testing.expect (regressed NeverRises 550i32 90000i32 551i32 99000i32) "one more host block fails in a grown package"
+    testing.expect (regressed NeverRises 550i32 90000i32 549i32 80000i32 = !-) "healing one is never a regression"
+    testing.expect (direction_of HostStatement = NeverRises) "host statements never rise"
+    testing.expect (direction_of HostBlock = NeverRises) "host blocks never rise"
+    testing.expect (regressed MayNotRise 7i32 269i32 7i32 247i32 = !-) "fewer lines, same count: no regression"
+    testing.expect (regressed MayNotFall 2i32 105i32 2i32 116i32 = !-) "added lines with the count kept are no loss"
+    testing.expect
+        (sm'.starts_with "^\\S" (any_pattern (any_probe (\? TopLevelMacro))))
+        "a one-line primitive at column 0 is counted as top-level-macro"
+    testing.expect
+        (sm'.starts_with "\\\\\\?" (any_pattern (any_probe (\? Existential))))
+        "Spiral's own existential binder is counted, not only the exists keyword"
+    testing.expect
+        (sm'.starts_with "\\\\\\*" (any_pattern (any_probe (\? Forall))))
+        "Spiral's own forall binder is counted, not only the forall keyword"
+///> _
+:= main () : i32 =
+    export "kit_style_probe_specs" probe_specs
+    export "kit_style_probe_regressed" probe_regressed
+    export "kit_style_probe_falls" probe_falls
+    0i32

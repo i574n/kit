@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "servers.rs"
+
+[package]
+name = "kit-jobs-doctor-servers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_jobs_doctor_servers"
+path = "servers.rs"
+
+[dependencies]
+kit-machine-sample = { path = "../kit_machine_sample" }

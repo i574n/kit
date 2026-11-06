@@ -1,0 +1,27 @@
+///- --package .
+:# local static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:= default_skipped () : list string = [ ".git"; "target"; "node_modules"; "_build"; ".cache"; "deps" ]
+
+:~ skipped_of (listed : string) : list string =
+    ? listed = "" ?> default_skipped ()
+    |: sm'.split_list "," listed |> listm.map sm'.trim |> listm'.filter (\ (name : string) => name <> "")
+
+:== listing = { text : string; fingerprint : string; files : i32 }
+
+:~ listing_of ((root, listed) : string * string) : array_base listing =
+    := entries = file_manifest.file_manifest (sm'.replace "\\" "/" root) (skipped_of listed)
+    := found = { text = file_manifest.manifest_text entries; fingerprint = file_manifest.manifest_fingerprint entries; files = listm.length entries }
+    (;[ found ] : array listing) |> am'.base
+
+///> rust
+:# skip_names_default_to_build_output_and_read_a_comma_list =
+    testing.expect (skipped_of "" = default_skipped ()) "an empty list keeps the defaults"
+    testing.expect (skipped_of "target, .git,," = [ "target"; ".git" ]) "names are trimmed and empties dropped"
+///> _
+:= main () : i32 =
+    export "kit_mirror_listing_of" listing_of
+    0i32

@@ -1,0 +1,2 @@
+:= kit_rec_cycle_findings (~path : string) (~text : string) : string =
+    $'kit_rec_cycle::kit_rec_cycle_findings(&*!path, &*!text)' : string

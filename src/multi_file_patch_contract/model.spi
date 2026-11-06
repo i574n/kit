@@ -1,0 +1,88 @@
+:! multi_patch_raw = ()
+:! multi_patch_indexed = ()
+:! multi_patch_ordered = ()
+:! multi_patch_fresh = ()
+:! multi_patch_authorized = ()
+:! multi_patch_committed = ()
+
+:| multi_patch_policy =
+    | RejectEmptyBatch
+    | RejectSingleFileBatch
+    | RejectDuplicateTarget
+    | RejectOrderInversion
+    | RejectStaleWitness
+    | RejectAmbiguousMode
+    | RejectPartialRollback
+    | AuthorizeMultiFileApply
+    | AuthorizeMultiFileCheck
+
+:| multi_patch_op from to =
+    | IndexPatchBatch :: multi_patch_op multi_patch_raw multi_patch_indexed
+    | OrderPatchBatch :: multi_patch_op multi_patch_indexed multi_patch_ordered
+    | VerifyPatchFreshness :: multi_patch_op multi_patch_ordered multi_patch_fresh
+    | AuthorizePatchBatch :: multi_patch_op multi_patch_fresh multi_patch_authorized
+    | CommitPatchBatch :: multi_patch_op multi_patch_authorized multi_patch_committed
+
+:| ^ multi_patch_plan from to =
+    | MultiPatchStep :: \* from to. multi_patch_op from to -> multi_patch_plan from to
+    | MultiPatchThen :: \* from to.
+        (\? middle. multi_patch_plan from middle * multi_patch_plan middle to) ->
+        multi_patch_plan from to
+
+:= multi_patch_public_plan () : multi_patch_plan multi_patch_raw multi_patch_committed =
+    MultiPatchThen (\? (
+        MultiPatchStep IndexPatchBatch,
+        MultiPatchThen (\? (
+            MultiPatchStep OrderPatchBatch,
+            MultiPatchThen (\? (
+                MultiPatchStep VerifyPatchFreshness,
+                MultiPatchThen (\? (
+                    MultiPatchStep AuthorizePatchBatch,
+                    MultiPatchStep CommitPatchBatch
+                ))
+            ))
+        ))
+    ))
+
+:~ multi_patch_shape_binding (files : i32) (places : i32) (operations : i32) : i32 =
+    ? files < 2i32 ?> 0i32
+    |? places < files ?> 0i32
+    |? operations < places ?> 0i32
+    |: 1i32
+
+:~ multi_patch_topology_binding (collisions : i32) (inversions : i32) : i32 =
+    ? collisions < 0i32 ?> 0i32
+    |? inversions < 0i32 ?> 0i32
+    |? 0i32 < collisions ?> 0i32
+    |? 0i32 < inversions ?> 0i32
+    |: 1i32
+
+:~ multi_patch_freshness_binding (expected : i32) (observed : i32) : i32 =
+    ? expected < 1i32 ?> 0i32
+    |? observed < 1i32 ?> 0i32
+    |? expected < observed ?> 0i32
+    |? observed < expected ?> 0i32
+    |: 1i32
+
+:~ multi_patch_mode_binding (apply_mode : i32) (check_mode : i32) : i32 =
+    ? apply_mode < 0i32 ?> 0i32
+    |? check_mode < 0i32 ?> 0i32
+    |? 1i32 < apply_mode ?> 0i32
+    |? 1i32 < check_mode ?> 0i32
+    |? apply_mode < 1i32 ?>
+        ? check_mode < 1i32 ?> 0i32 |: 1i32
+    |:
+        ? check_mode < 1i32 ?> 1i32 |: 0i32
+
+:~ multi_patch_rollback_binding (touched : i32) (restored : i32) : i32 =
+    ? touched < 2i32 ?> 0i32
+    |? restored < 2i32 ?> 0i32
+    |? touched < restored ?> 0i32
+    |? restored < touched ?> 0i32
+    |: 1i32
+
+:~ multi_patch_commit_binding (authorized : i32) (operations : i32) : i32 =
+    ? authorized < 1i32 ?> 0i32
+    |? 1i32 < authorized ?> 0i32
+    |? operations < 2i32 ?> 0i32
+    |: operations

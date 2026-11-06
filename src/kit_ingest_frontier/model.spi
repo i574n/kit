@@ -1,0 +1,4 @@
+:~ ingest_authority_binding (left : i32) (right : i32) : i32 =
+    ? left < 0i32 ?> 0i32
+    |? right < 0i32 ?> 0i32
+    |: ingest_frontier_contract.model.authority_status ()

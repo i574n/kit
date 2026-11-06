@@ -1,0 +1,6 @@
+:= main () : i32 =
+    export
+        "kit_predicate_literal"
+        ((\ (text, cursor) => model.literal text cursor) : string * i32 -> string * i32 * bool)
+    export "kit_predicate_encode" ((\ text => model.encode text) : string -> string)
+    0i32

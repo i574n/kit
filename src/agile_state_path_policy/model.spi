@@ -1,0 +1,10 @@
+:~ state_path_candidate_code (~name : string) : u64 =
+    ? (name = "typecheck_receipts.spi") ?> 0u64
+    |? sm'.ends_with ".spi" name ?> 1u64
+    |: 0u64
+
+:= main () : i32 =
+    := _ = state_path_candidate_code "ratings.spi"
+    := _ = state_path_candidate_code "typecheck_receipts.spi"
+    := _ = state_path_candidate_code "notes.txt"
+    0i32

@@ -1,0 +1,138 @@
+///- --package .
+:# measure static =
+    :< sm'_operators
+    :< kit_os_search.search
+    :< kit_style_probes.probes
+
+:< sm'_operators
+:< kit_os_search.search
+:< kit_style_probes.probes
+
+:== probe_row = { package : string; word : string; count : i32; lines : i32 }
+
+
+:~ ^ paths_from (~dir : string) (names : array string) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found |: paths_from dir names (at - 1i32) ((dir ++# "/" ++# am'.index at names) :: found)
+
+:~ child_paths (~dir : string) : list string =
+    := gather = \ (kept : array string) (name : string) => kept ++ ;[ name ]
+    := names = kit_os_files.files.entry_names dir |> listm.fold gather ;[]
+    := sorted = am'.sort names
+    paths_from dir sorted (am'.length sorted - 1i32) []
+
+:~ spi_paths (~dir : string) : list string =
+    := keep = \ (kept : list string) (path : string) => ? sm'.ends_with ".spi" path ?> path :: kept |: kept
+    child_paths dir |> listm.fold keep [] |> listm.rev
+
+:~ package_children (~dir : string) : list string =
+    := keep = \ (kept : list string) (path : string) =>
+        ? file_system.directory_exists path && spi_paths path <> [] ?> path :: kept |: kept
+    child_paths dir |> listm.fold keep [] |> listm.rev
+
+:~ ^ packages_from (paths : list string) (found : list string) : list string =
+    ?= paths ?|
+    | [] => listm.rev found
+    | path :: rest =>
+        := more = ? spi_paths path <> [] ?> [ path ] |: package_children path
+        packages_from rest (more |> listm.fold (\ (kept : list string) (item : string) => item :: kept) found)
+
+:~ ^ list_of_base (items : array_base string) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found |: list_of_base items (at - 1i32) (am'.index_base at items :: found)
+
+:~ packages_under (paths : array_base string) : array_base string =
+    := found = packages_from (list_of_base paths (am'.length_base paths - 1i32) []) []
+    found |> listm.fold (\ (kept : array string) (path : string) => kept ++ ;[ path ]) ;[] |> am'.base
+
+:~ package_text (~dir : string) : string =
+    := gather = \ (text : string) (path : string) =>
+        := body = file_system.read_text_or_empty path
+        text ++# body ++# (? body = "" || sm'.ends_with "\n" body ?> "" |: "\n")
+    spi_paths dir |> listm.fold gather ""
+
+:~ lines_of (~text : string) : array string =
+    := unix = sm'.replace "\r\n" "\n" text
+    := size : i32 = sm'.length unix
+    := body = ? sm'.ends_with "\n" unix ?> sm'.substring 0i32 (size - 1i32) unix |: unix
+    ? unix = "" ?> (;[] : array string) |: sm'.split "\n" body |> array
+
+:~ ^ matches_from (found : sm'.regex) (lines : array string) (at : i32) (count : i32) : i32 =
+    ? at < 0i32 ?> count
+    |: matches_from found lines (at - 1i32) (? regex_matches found (am'.index at lines) ?> count + 1i32 |: count)
+
+:~ matching_lines (lines : array string) (~pattern : string) : i32 =
+    ?= resultm.unbox' (sm'.new_regex pattern) ?|
+    | Ok found => matches_from found lines (am'.length lines - 1i32) 0i32
+    | Error _ => 0i32
+
+:~ package_name (~dir : string) : string =
+    := plain = sm'.replace "\\" "/" dir
+    := trimmed = ? sm'.ends_with "/" plain ?> sm'.substring 0i32 ((sm'.length plain : i32) - 1i32) plain |: plain
+    := at : i32 = sm'.last_index_of "/" trimmed
+    ? at < 0i32 ?> trimmed |: sm'.substring (at + 1i32) ((sm'.length trimmed : i32) - at - 1i32) trimmed
+
+:~ ^ tests_from (lines : array string) (at : i32) (inside : bool) (count : i32) : i32 =
+    ? at >= am'.length lines ?> count
+    |:
+        := line = am'.index at lines
+        := marker = sm'.starts_with "///> " line
+        := target = ? marker ?> sm'.trim (sm'.substring 5i32 ((sm'.length line : i32) - 5i32) line) |: ""
+        := now_inside = ? marker ?> target <> "_" |: inside
+        tests_from lines (at + 1i32) now_inside (? now_inside ?> count + 1i32 |: count)
+:~ ^ rows_from
+    (specs : array_base probe_pair) (~name : string) (lines : array string) (total : i32) (at : i32)
+    (kept : array probe_row)
+    : array probe_row
+    =
+    ? at >= am'.length_base specs ?> kept
+    |:
+        := spec = am'.index_base at specs
+        := count = matching_lines lines spec.pattern
+        := row = { package = name; word = spec.word; count = count; lines = total }
+        rows_from specs name lines total (at + 1i32) (kept ++ ;[ row ])
+:~ measured (dir : string) : array_base probe_row =
+    := lines = lines_of (package_text dir)
+    := name = package_name dir
+    := total = am'.length lines - tests_from lines 0i32 !- 0i32
+    rows_from (probe_specs ()) name lines total 0i32 ;[] |> am'.base
+
+///> rust -d regex
+:# measuring_counts_lines_like_str_lines_and_probes_by_regex =
+    := lines = lines_of "union x =\r\n    | A :: x\n"
+    testing.expect (am'.length lines = 2i32 && am'.length (lines_of "") = 0i32) "str::lines"
+    testing.expect (matching_lines lines "^\\s*\\|\\s*[A-Z]\\w*\\s*::[^=]*$" = 1i32) "one gadt case"
+    testing.expect (matching_lines lines "(" = 0i32) "a broken pattern counts nothing"
+    testing.expect (package_name "C:\\home\\kit\\src\\kit_x\\" = "kit_x" && package_name "src/kit_y" = "kit_y") "names"
+    := mixed = lines_of ":= f () = 1i32\n///> rust\n:# t =\n    ()\n///> _\n:= g () = 2i32\n"
+    testing.expect (tests_from mixed 0i32 !- 0i32 = 3i32) "a test region is its marker and body, up to ///> _"
+
+///> rust -d regex
+:# edition_three_shapes_are_counted =
+    := sample =
+        lines_of (
+            ":? same_as t =\n:+ same_as i32 =\n:= f \\* t {same_as}. (x : t) : t = x\n"
+            ^^ ":= g \\* (m : * -> *). (x : m i32) : m i32 = x\n    :! cents = u64\n:= p = Then (\\? (Step, Here))\n"
+            ^^ ":| shape side =\n:| plain =\n"
+        )
+    testing.expect (matching_lines sample (probe_pattern IndexedUnion) = 1i32) "a union with a type index"
+    testing.expect (matching_lines sample (probe_pattern TypeDecl) = 3i32) "two unions and a nominal declare types"
+    testing.expect (matching_lines sample (probe_pattern Existential) = 1i32) "an existential pack"
+    testing.expect (matching_lines sample (probe_pattern Prototype) = 2i32) "a :? prototype and a :+ instance"
+    testing.expect (matching_lines sample (probe_pattern Forall) = 2i32) "constrained and higher-kinded foralls"
+    testing.expect (matching_lines sample (probe_pattern Nominal) = 1i32) "an indented nominal"
+
+///> rust -d regex
+:# reflection_phantom_and_kinded_binders_are_counted =
+    := sample =
+        lines_of (
+            ":! feature = ()\n:! cents = u64\n:= w (x : k) = union_reflection.cases.union_case_kebab \"\" x\n"
+            ^^ ":= g \\* (m : * -> *). (x : m i32) : m i32 = x\n:= n = nameof Gadt\nnominal sizeof t = {value : int}\n"
+        )
+    testing.expect (matching_lines sample (probe_pattern Nominal) = 3i32) "both editions declare nominals"
+    testing.expect (matching_lines sample (probe_pattern PhantomType) = 1i32) "a unit nominal is a phantom marker"
+    testing.expect (matching_lines sample (probe_pattern Reflection) = 2i32) "reflection calls and nameof"
+    testing.expect (matching_lines sample (probe_pattern HigherKinded) = 1i32) "a kind-annotated binder"
+///> _
+:= main () : i32 =
+    export "kit_style_measured" measured
+    export "kit_style_packages_under" packages_under
+    0i32

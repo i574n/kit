@@ -1,0 +1,13 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_table_query
+    agile_note_model
+    kit_experiments
+    kit_experiment_analysis
+    kit_experiment_args
+link:
+    kit_experiment_args
+modules:
+    table_test

@@ -1,0 +1,55 @@
+///- --package .
+:# placement static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| machine =
+    | Machine : string
+
+:| placement =
+    | Local
+    | OnMachine : machine
+
+:= machine_of (alias : string) : option machine =
+    := name = sm'.trim alias
+    ? name = "" || sm'.contains " " name ?> None |: Some (Machine name)
+
+:= machine_name (m : machine) : string =
+    ?= m ?|
+    | Machine name => name
+
+:= placement_text (p : placement) : string =
+    ?= p ?|
+    | Local => "local"
+    | OnMachine m => "on " ++# machine_name m
+
+:= placement_of_text (text : string) : option placement =
+    := t = sm'.trim text
+    ? t = "" || t = "local" ?> Some Local
+    |? sm'.starts_with "on " t ?>
+        ?= machine_of (sm'.substring 3i32 ((sm'.length t : i32) - 3i32) t) ?|
+        | Some m => Some (OnMachine m)
+        | None => None
+    |: None
+
+:= shown_suffix (p : placement) : string =
+    ?= p ?|
+    | Local => ""
+    | OnMachine m => " placement=" ++# machine_name m
+
+:= is_remote (p : placement) : bool =
+    ?= p ?|
+    | Local => !-
+    | OnMachine _ => !+
+
+///> rust
+:# a_placement_round_trips_and_local_stays_invisible =
+    := node = ?= machine_of "laptop" ?| | Some m => OnMachine m | None => Local
+    testing.expect (placement_of_text (placement_text Local) = Some Local) "local round-trips"
+    testing.expect (placement_of_text (placement_text node) = Some node) "a machine placement round-trips"
+    testing.expect (placement_of_text "" = Some Local) "a job record without the field is local (old records)"
+    testing.expect (placement_of_text "on " = None && placement_of_text "on two words" = None) "no empty alias"
+    testing.expect (machine_of "  " = None) "an empty alias is not a machine"
+    testing.expect (shown_suffix Local = "" && shown_suffix node = " placement=laptop") "local lines unchanged"
+    testing.expect (is_remote node && is_remote Local = !-) "only machine placements are remote"

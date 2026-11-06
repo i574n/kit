@@ -1,0 +1,41 @@
+:< public_contract_types.types
+
+:| contract_op from to result =
+    | IdentifySurface :: contract_subject -> contract_op contract_cold contract_identified string
+    | MutateTransactionally :: contract_subject -> contract_op contract_identified contract_mutated string
+    | CloseFlatBundle :: contract_subject -> contract_op contract_mutated contract_bundled string
+    | ProveCoveragePrune :: contract_subject -> contract_op contract_bundled contract_evidenced string
+    | CloseContracts :: contract_subject -> contract_op contract_evidenced contract_closed string
+
+:! process_contract from to result = contract_op from to result
+:? interpret interpreter from to result : interpreter from to result -> string
+
+:+ interpret process_contract = \ (process_contract op) =>
+    ?= op ?|
+    | IdentifySurface _ => "contract-public-surface"
+    | MutateTransactionally _ => "contract-typed-mutation"
+    | CloseFlatBundle _ => "contract-flat-bundle"
+    | ProveCoveragePrune _ => "contract-coverage-prune"
+    | CloseContracts _ => "contract-closed"
+
+:| ^ contract_plan from to =
+    | ContractStep :: \* from to. (\? result. contract_op from to result * result) -> contract_plan from to
+    | ContractThen :: \* from to.
+        (\? middle. contract_plan from middle * contract_plan middle to) ->
+        contract_plan from to
+
+:= release_contract () : contract_plan contract_cold contract_closed =
+    ContractThen (\? (
+        ContractStep (\? (IdentifySurface PublicSurface, "identified")),
+        ContractThen (\? (
+            ContractStep (\? (MutateTransactionally TypedMutation, "mutated")),
+            ContractThen (\? (
+                ContractStep (\? (CloseFlatBundle FlatBundle, "bundled")),
+                ContractThen (\? (
+                    ContractStep (\? (ProveCoveragePrune CoveragePruning, "evidenced")),
+                    ContractStep (\? (CloseContracts RootedFilesystem, "closed"))))))))))
+
+:= emit_main () : i32 =
+    emit_contract_cli_driver ()
+    global """include!(concat!(env!("CARGO_MANIFEST_DIR"), "/native_tools.rs"));"""
+    0i32

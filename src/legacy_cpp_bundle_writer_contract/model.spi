@@ -1,0 +1,130 @@
+:! legacy_cpp_bundle_writer_policy_owner = string
+:! legacy_cpp_bundle_writer_negative_owner = string
+
+:! legacy_bundle_pending owner = owner
+:! legacy_source_compared owner = owner
+:! legacy_order_verified owner = owner
+:! legacy_count_verified owner = owner
+:! legacy_nested_guard_verified owner = owner
+:! legacy_epoch_verified owner = owner
+:! legacy_determinism_verified owner = owner
+:! legacy_bundle_settled owner = owner
+
+:| legacy_bundle_writer_transition from to =
+    | CompareLegacySource :: \* owner.
+        legacy_bundle_writer_transition (legacy_bundle_pending owner) (legacy_source_compared owner)
+    | VerifyCanonicalOrder :: \* owner.
+        legacy_bundle_writer_transition (legacy_source_compared owner) (legacy_order_verified owner)
+    | VerifyExactCount :: \* owner.
+        legacy_bundle_writer_transition (legacy_order_verified owner) (legacy_count_verified owner)
+    | VerifyNestedZipGuard :: \* owner.
+        legacy_bundle_writer_transition (legacy_count_verified owner) (legacy_nested_guard_verified owner)
+    | VerifyFixedEpoch :: \* owner.
+        legacy_bundle_writer_transition (legacy_nested_guard_verified owner) (legacy_epoch_verified owner)
+    | VerifyRepeatDeterminism :: \* owner.
+        legacy_bundle_writer_transition (legacy_epoch_verified owner) (legacy_determinism_verified owner)
+    | SettleLegacyBundleWriter :: \* owner.
+        legacy_bundle_writer_transition (legacy_determinism_verified owner) (legacy_bundle_settled owner)
+
+:| ^ legacy_bundle_writer_plan from to =
+    | LegacyBundleWriterStep :: \* from to. legacy_bundle_writer_transition from to -> legacy_bundle_writer_plan from to
+    | LegacyBundleWriterThen :: \* from to.
+        (\? middle. legacy_bundle_writer_plan from middle * legacy_bundle_writer_plan middle to) ->
+        legacy_bundle_writer_plan from to
+
+:| nested_zip_policy =
+    | LegacyExcludeNested
+    | CurrentRejectNested
+
+:= nested_zip_policy_code = \|
+    | LegacyExcludeNested => 1i32
+    | CurrentRejectNested => 2i32
+
+:~ bool_pair_binding (left : i32) (right : i32) : i32 =
+    ? left < 1i32 ?> 0i32
+    |? 1i32 < left ?> 0i32
+    |? right < 1i32 ?> 0i32
+    |? 1i32 < right ?> 0i32
+    |: 1i32
+
+:~ source_comparison_binding (legacy_source_found : i32) (current_source_found : i32) : i32 =
+    bool_pair_binding legacy_source_found current_source_found
+
+:~ ordering_binding (legacy_sorted : i32) (current_canonical : i32) : i32 =
+    bool_pair_binding legacy_sorted current_canonical
+
+:~ count_binding (legacy_exact_count : i32) (current_exact_count : i32) : i32 =
+    bool_pair_binding legacy_exact_count current_exact_count
+
+:~ nested_policy_binding (legacy_mode : i32) (current_mode : i32) : i32 =
+    ? legacy_mode < 1i32 ?> 0i32
+    |? 1i32 < legacy_mode ?> 0i32
+    |? current_mode < 2i32 ?> 0i32
+    |? 2i32 < current_mode ?> 0i32
+    |: 1i32
+
+:~ epoch_binding (legacy_fixed_epoch : i32) (current_fixed_epoch : i32) : i32 =
+    bool_pair_binding legacy_fixed_epoch current_fixed_epoch
+
+:~ determinism_binding (legacy_repeat_equal : i32) (current_repeat_equal : i32) : i32 =
+    bool_pair_binding legacy_repeat_equal current_repeat_equal
+
+:~ complete_binding
+    (source_ok : i32) (order_ok : i32) (count_ok : i32) (nested_ok : i32) (epoch_ok : i32) (determinism_ok : i32)
+    : i32
+    =
+    ? source_ok < 1i32 ?> 0i32
+    |? order_ok < 1i32 ?> 0i32
+    |? count_ok < 1i32 ?> 0i32
+    |? nested_ok < 1i32 ?> 0i32
+    |? epoch_ok < 1i32 ?> 0i32
+    |? determinism_ok < 1i32 ?> 0i32
+    |: 1i32
+
+:= full_plan \* owner. () : legacy_bundle_writer_plan (legacy_bundle_pending owner) (legacy_bundle_settled owner) =
+    LegacyBundleWriterThen (\? (
+        LegacyBundleWriterStep CompareLegacySource,
+        LegacyBundleWriterThen (\? (
+            LegacyBundleWriterStep VerifyCanonicalOrder,
+            LegacyBundleWriterThen (\? (
+                LegacyBundleWriterStep VerifyExactCount,
+                LegacyBundleWriterThen (\? (
+                    LegacyBundleWriterStep VerifyNestedZipGuard,
+                    LegacyBundleWriterThen (\? (
+                        LegacyBundleWriterStep VerifyFixedEpoch,
+                        LegacyBundleWriterThen (\? (
+                            LegacyBundleWriterStep VerifyRepeatDeterminism,
+                            LegacyBundleWriterStep SettleLegacyBundleWriter
+                        ))
+                    ))
+                ))
+            ))
+        ))
+    ))
+
+:= policy_plan
+    ()
+    : legacy_bundle_writer_plan (legacy_bundle_pending legacy_cpp_bundle_writer_policy_owner)
+        (legacy_bundle_settled legacy_cpp_bundle_writer_policy_owner)
+    =
+    full_plan ()
+:= negative_plan
+    ()
+    : legacy_bundle_writer_plan (legacy_bundle_pending legacy_cpp_bundle_writer_negative_owner)
+        (legacy_bundle_settled legacy_cpp_bundle_writer_negative_owner)
+    =
+    full_plan ()
+
+:= authority_status () : i32 =
+    := _ = policy_plan ()
+    complete_binding
+        (source_comparison_binding 1i32 1i32)
+        (ordering_binding 1i32 1i32)
+        (count_binding 1i32 1i32)
+        (
+            nested_policy_binding
+                (nested_zip_policy_code LegacyExcludeNested)
+                (nested_zip_policy_code CurrentRejectNested)
+        )
+        (epoch_binding 1i32 1i32)
+        (determinism_binding 1i32 1i32)

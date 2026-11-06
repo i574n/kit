@@ -1,0 +1,45 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= tool_name () : string = cat "tool" (exe_suffix ())
+
+:= pins_fixture () : fixture_root =
+    := root = fixture_root_create "env check"
+    fixture_write root (cat "a/" (tool_name ())) "first copy"
+    fixture_write root (cat "b/" (tool_name ())) "pinned copy"
+    root
+
+:= path_of (root : fixture_root) : string =
+    cat (fixture_path root "a") (cat (? on_windows () ?> ";" |: ":") (fixture_path root "b"))
+
+:= env_call (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run (fixture_text_of root) (Arg (cat "PATH=" (path_of root), NoArgs)) NoArgs (Arg ("env", Arg ("check", args)))
+
+:= pin (root : fixture_root) (~tool : string) (~folder : string) : string =
+    cat (cat tool "=") (fixture_path root (cat (cat folder "/") (tool_name ())))
+
+///> rust
+:# the_first_copy_on_path_must_be_the_pinned_one =
+    := root = pins_fixture ()
+    := shadowed = env_call root (Arg (pin root "tool" "b", NoArgs))
+    testing.expect (shadowed.code = 1i32) (run_text shadowed)
+    shows shadowed.stdout "tool shadowed: "
+    shows shadowed.stdout "comes first on PATH"
+    shows shadowed.stderr "kit env check drift pins=1 drifted=1"
+    := held = env_call root (Arg (pin root "tool" "a", NoArgs))
+    testing.expect (held.code = 0i32) (run_text held)
+    shows held.stdout "tool ok "
+    shows held.stderr "kit env check ok pins=1 drifted=0"
+    := elsewhere = env_call root (Arg (pin root "tool" "c", NoArgs))
+    shows elsewhere.stdout "tool unpinned: PATH finds "
+    := missing = env_call root (Arg (pin root "nosuch" "a", Arg (pin root "tool" "a", NoArgs)))
+    shows missing.stdout "nosuch missing: no nosuch on PATH"
+    shows missing.stderr "kit env check drift pins=2 drifted=1"
+    fixture_root_remove root
+
+///> rust
+:# a_pin_without_a_path_is_refused =
+    := root = pins_fixture ()
+    rejected_with (env_call root (Arg ("tool", NoArgs))) 2i32 "expects tool=pinned-path, received tool"
+    rejected_with (env_call root NoArgs) 2i32 "usage: env check"
+    fixture_root_remove root

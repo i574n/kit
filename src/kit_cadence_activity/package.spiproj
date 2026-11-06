@@ -1,0 +1,12 @@
+packages:
+    |core-
+    spiral-
+    agile_cadence
+    agile_quality_lint
+    agile_quality_state
+    agile_note_events
+link:
+    agile_quality_state
+    agile_note_events
+modules:
+    activity

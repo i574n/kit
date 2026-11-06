@@ -1,0 +1,15 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_mirror_local
+    kit_mirror_plan
+    kit_mirror_unpack
+    kit_mirror_sync
+link:
+    kit_mirror_local
+    kit_mirror_plan
+    kit_mirror_unpack
+    kit_mirror_sync
+modules:
+    remote_run

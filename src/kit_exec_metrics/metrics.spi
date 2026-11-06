@@ -1,0 +1,114 @@
+///- --package .
+:# metrics static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:! unit_ms = ()
+:! unit_bytes = ()
+:! unit_count = ()
+
+:| backend =
+    | Rust
+    | Gleam
+    | Zig
+    | CBackend
+    | Lua
+    | Wasm
+    | Fsharp
+
+:| phase =
+    | Compile
+    | Rustc
+    | Run
+    | SlotWait
+    | DotnetStartup
+    | Mount
+    | LockWait
+
+:| metric unit =
+    | Duration :: backend * phase * u64 -> metric unit_ms
+    | PeakBytes :: string * u64 -> metric unit_bytes
+    | Count :: string * u64 -> metric unit_count
+    | JobDuration :: string * u64 -> metric unit_ms
+
+:| machine =
+    | Box
+    | Node
+
+:| exec_sample =
+    | TimedSample : machine * metric unit_ms
+    | SizedSample : machine * metric unit_bytes
+    | CountedSample : machine * metric unit_count
+
+:= backend_word (b : backend) : string =
+    ?= b ?|
+    | Rust => "rust"
+    | Gleam => "gleam"
+    | Zig => "zig"
+    | CBackend => "c"
+    | Lua => "lua"
+    | Wasm => "wasm"
+    | Fsharp => "fsharp"
+
+:= phase_word (p : phase) : string =
+    ?= p ?|
+    | Compile => "compile"
+    | Rustc => "rustc"
+    | Run => "run"
+    | SlotWait => "slot_wait"
+    | DotnetStartup => "dotnet_startup"
+    | Mount => "mount"
+    | LockWait => "lock_wait"
+
+:= machine_word (m : machine) : string =
+    ?= m ?|
+    | Box => "box"
+    | Node => "node"
+
+:= label (key : string) (value : string) : string = key ++# "=\"" ++# value ++# "\""
+
+:= prom_line \* unit. (m : machine) (value : metric unit) : string =
+    := where_ = label "machine" (machine_word m)
+    ?= value ?|
+    | Duration (b, p, ms) =>
+        := labels = sm'.concat_list "," [ where_; label "backend" (backend_word b); label "phase" (phase_word p) ]
+        sm'.concat_list "" [ "kit_exec_duration_ms{"; labels; "} "; sm'.show ms ]
+    | PeakBytes (what, bytes) =>
+        sm'.concat_list "" [ "kit_exec_peak_bytes{"; where_; ","; label "what" what; "} "; sm'.show bytes ]
+    | Count (what, n) => sm'.concat_list "" [ "kit_exec_count{"; where_; ","; label "what" what; "} "; sm'.show n ]
+    | JobDuration (lane, ms) =>
+        sm'.concat_list "" [ "kit_job_duration_ms{"; where_; ","; label "lane" lane; "} "; sm'.show ms ]
+
+:= line_of (s : exec_sample) : string =
+    ?= s ?|
+    | TimedSample (m, value) => prom_line m value
+    | SizedSample (m, value) => prom_line m value
+    | CountedSample (m, value) => prom_line m value
+
+:= exported (samples : list exec_sample) : string = samples |> listm.map line_of |> sm'.concat_list "\n"
+
+:= duration_ms (samples : list exec_sample) (wanted : backend) (wanted_phase : phase) : u64 =
+    samples
+    |> listm.fold
+        \ total (s : exec_sample) =>
+            ?= s ?|
+            | TimedSample (_, Duration (b, p, ms)) => ? b = wanted && p = wanted_phase ?> total + ms |: total
+            | _ => total
+        0u64
+
+///> rust
+:# samples_export_as_prometheus_text_and_group_by_backend =
+    := samples =
+        [
+            TimedSample (Node, Duration (Rust, Rustc, 1200u64));
+            TimedSample (Node, Duration (Gleam, Compile, 300u64));
+            TimedSample (Box, Duration (Rust, Rustc, 800u64));
+            SizedSample (Node, PeakBytes ("cell", 3132000000u64))
+        ]
+    := text = exported samples
+    := first = "kit_exec_duration_ms{machine=\"node\",backend=\"rust\",phase=\"rustc\"} 1200"
+    testing.expect (sm'.starts_with first text) text
+    testing.expect (sm'.contains "kit_exec_peak_bytes{machine=\"node\",what=\"cell\"} 3132000000" text) text
+    testing.expect (duration_ms samples Rust Rustc = 2000u64) "rust rustc time sums across machines"
+    testing.expect (duration_ms samples Gleam Rustc = 0u64) "a backend's other phases do not count"

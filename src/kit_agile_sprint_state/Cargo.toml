@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "state.spi"
+output = "state.rs"
+
+[package]
+name = "kit-agile-sprint-state"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_sprint_state"
+path = "state.rs"
+
+[dependencies]
+kit-agile-sprint-read = { path = "../kit_agile_sprint_read" }

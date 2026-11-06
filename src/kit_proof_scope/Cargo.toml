@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "scope_run.spi"
+output = "scope_run.rs"
+
+[package]
+name = "kit-proof-scope"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_proof_scope"
+path = "scope_run.rs"
+
+[dependencies]
+kit-proof-scope-manifests = { path = "../kit_proof_scope_manifests" }

@@ -1,0 +1,87 @@
+///- --package .
+:# sprint static =
+    :< sm'_operators
+    :< agile_sprint.model
+
+:< sm'_operators
+:< agile_sprint.model
+
+:| sprint_verb =
+    | SprintStart
+    | SprintShow
+    | SprintRetro
+    | SprintAdd
+    | SprintDrop
+    | SprintClose
+    | SprintVelocity
+
+:~ verb_named (~word : string) : option sprint_verb =
+    union_reflection.cases.union_case_where
+        (\ (verb : sprint_verb) => word = union_reflection.cases.union_case_kebab "Sprint" verb)
+        (\ verb => Some verb)
+        None
+
+:~ sprint_usage () : i32 =
+    console.write_error_line (
+        "kit error: agile usage: sprint start <root> <id> <days> <goal> [--items A,B] | "
+        ^^ "sprint show|retro <root> [<id>] | "
+        ^^ "sprint add|drop <root> <id> <item> | sprint close <root> <id> | sprint velocity <root> [--last n]"
+    )
+    2i32
+
+:~ sprint_ran (verb : sprint_verb) (args : list string) : i32 =
+    ?= verb ?|
+    | SprintStart =>
+        ?= args ?|
+        | root :: id :: days :: goal :: rest =>
+            kit_agile_sprint_start.start.started (root, id, days, goal, rest |> listm'.box |> listm'.to_array')
+        | _ => sprint_usage ()
+    | SprintShow =>
+        ?= args ?|
+        | root :: id :: _ => kit_agile_sprint_show.show.shown (root, id)
+        | root :: [] => kit_agile_sprint_show.show.shown (root, "")
+        | [] => sprint_usage ()
+    | SprintAdd =>
+        ?= args ?|
+        | root :: id :: task :: _ => kit_agile_sprint_change.change.changed (root, id, task, !-)
+        | _ => sprint_usage ()
+    | SprintDrop =>
+        ?= args ?|
+        | root :: id :: task :: _ => kit_agile_sprint_change.change.changed (root, id, task, !+)
+        | _ => sprint_usage ()
+    | SprintClose =>
+        ?= args ?|
+        | root :: id :: _ => kit_agile_sprint_change.change.closed (root, id)
+        | _ => sprint_usage ()
+    | SprintRetro =>
+        ?= args ?|
+        | root :: id :: _ => kit_agile_sprint_show.show.retro (root, id)
+        | root :: [] => kit_agile_sprint_show.show.retro (root, "")
+        | [] => sprint_usage ()
+    | SprintVelocity =>
+        ?= args ?|
+        | root :: flag :: count :: _ ?& flag = "--last" =>
+            := last = optionm'.default_value 3i32 (convert.try_convert count)
+            kit_agile_sprint_change.change.velocity_shown (root, last)
+        | root :: _ => kit_agile_sprint_change.change.velocity_shown (root, 3i32)
+        | [] => sprint_usage ()
+
+:~ sprint_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: word :: args =>
+        ?= verb_named word ?|
+        | Some verb => sprint_ran verb args
+        | None => sprint_usage ()
+    | _ => sprint_usage ()
+
+///> rust
+:# sprint_start_reads_dates_items_and_manifest_lines =
+    testing.expect (verb_named "start" = Some SprintStart && verb_named "show" = Some SprintShow) "verbs"
+    testing.expect (verb_named "retro" = Some SprintRetro) "retro"
+    testing.expect (verb_named "add" = Some SprintAdd && verb_named "drop" = Some SprintDrop) "add and drop"
+    testing.expect (verb_named "close" = Some SprintClose && verb_named "velocity" = Some SprintVelocity) "close"
+    testing.expect (verb_named "burn" = None) "an unknown verb"
+///> _
+:= main () : i32 =
+    export "kit_agile_sprint_run" sprint_run
+    0i32

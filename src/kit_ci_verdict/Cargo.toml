@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "entry.spi"
+output = "ci_verdict.rs"
+
+[package]
+name = "kit-ci-verdict"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_ci_verdict"
+path = "ci_verdict.rs"
+
+[dependencies]
+kit-ci-probe = { path = "../kit_ci_probe" }

@@ -1,0 +1,20 @@
+[package.metadata.spiral]
+entry = "remote_run.spi"
+output = "remote_run.rs"
+
+[package]
+name = "kit-mirror-remote"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_mirror_remote"
+path = "remote_run.rs"
+
+[dependencies]
+kit-mirror-local = { path = "../kit_mirror_local" }
+kit-mirror-plan = { path = "../kit_mirror_plan" }
+kit-mirror-unpack = { path = "../kit_mirror_unpack" }
+kit-mirror-sync = { path = "../kit_mirror_sync" }

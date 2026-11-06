@@ -1,0 +1,127 @@
+:! legacy_idle = ()
+:! legacy_cataloged = ()
+:! legacy_prioritized = ()
+:! legacy_absorbing = ()
+:! legacy_proven = ()
+
+:| legacy_origin =
+    | Kit834
+    | Kit9252
+
+:| legacy_family =
+    | PatchBatching
+    | FilesystemMutation
+    | ProcessExecution
+    | ArchiveBundling
+    | AgileState
+    | ReleaseVerification
+    | Rehydration
+    | Toolchain
+    | CoveragePruning
+    | PlanningGovernance
+
+:| absorption_disposition =
+    | Native
+    | Equivalent
+    | Pending
+    | Quarantined
+
+:| legacy_capability =
+    | FindSliceReplace
+    | PatchMatrix
+    | CommandCapture
+    | CopyTree
+    | SliceText
+    | SearchText
+    | NativeSha256
+    | CopyFilePreserveMode
+    | ArchiveExtract
+    | ArchiveExtractDeflate
+    | TarExtract
+    | CargoGates
+    | BatchPlan
+    | BundleTree
+    | BundleVerify
+    | Rehydrate
+    | ChmodFile
+    | SymlinkSet
+    | SnapshotPrune
+    | CoverageGate
+    | WorkspaceState
+    | ReleaseCloseout
+
+:| legacy_absorption_op from to result =
+    | CatalogLegacy :: legacy_origin -> legacy_absorption_op legacy_idle legacy_cataloged i32
+    | PrioritizeFamily :: legacy_family -> legacy_absorption_op legacy_cataloged legacy_prioritized i32
+    | AbsorbCapability ::
+        legacy_capability * absorption_disposition ->
+        legacy_absorption_op legacy_prioritized legacy_absorbing i32
+    | ProveCapability :: legacy_capability -> legacy_absorption_op legacy_absorbing legacy_proven i32
+
+:| ^ legacy_absorption_plan from to =
+    | LegacyStep :: \* from to.
+        (\? result. legacy_absorption_op from to result * result) ->
+        legacy_absorption_plan from to
+    | LegacyThen :: \* from to.
+        (\? middle. legacy_absorption_plan from middle * legacy_absorption_plan middle to) ->
+        legacy_absorption_plan from to
+
+:= foundation_plan () : legacy_absorption_plan legacy_idle legacy_proven =
+    LegacyThen (\? (
+        LegacyStep (\? (CatalogLegacy Kit834, 1i32)),
+        LegacyThen (\? (
+            LegacyStep (\? (PrioritizeFamily FilesystemMutation, 2i32)),
+            LegacyThen (\? (
+                LegacyStep (\? (AbsorbCapability (CopyTree, Native), 3i32)),
+                LegacyStep (\? (ProveCapability CopyTree, 4i32))
+            ))
+        ))
+    ))
+
+:= legacy_origin_code = \|
+    | Kit834 => 834i32
+    | Kit9252 => 9252i32
+
+:= legacy_family_code = \|
+    | PatchBatching => 0i32
+    | FilesystemMutation => 1i32
+    | ProcessExecution => 2i32
+    | ArchiveBundling => 3i32
+    | AgileState => 4i32
+    | ReleaseVerification => 5i32
+    | Rehydration => 6i32
+    | Toolchain => 7i32
+    | CoveragePruning => 8i32
+    | PlanningGovernance => 9i32
+
+:= legacy_disposition_code = \|
+    | Native => 3i32
+    | Equivalent => 2i32
+    | Pending => 1i32
+    | Quarantined => 0i32
+
+:~ legacy_surface_status_binding (family_code : i32) (status_code : i32) : i32 =
+    ? family_code < 0i32 ?> 0i32
+    |? 9i32 < family_code ?> 0i32
+    |? family_code = 9i32 ?>
+        ? status_code = 0i32 ?> 1i32 |: 0i32
+    |:
+        ? status_code = 2i32 ?> 1i32 |: 0i32
+
+:~ legacy_surface_summary_binding (equivalent_families : i32) (fallback_required : i32) : i32 =
+    ? equivalent_families = 9i32 ?>
+        ? fallback_required = 0i32 ?> 1i32 |: 0i32
+    |: 0i32
+
+:= legacy_surface_model_witness () : i32 =
+    := _ = legacy_surface_status_binding (legacy_family_code PatchBatching) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code FilesystemMutation) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code ProcessExecution) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code ArchiveBundling) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code AgileState) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code ReleaseVerification) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code Rehydration) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code Toolchain) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code CoveragePruning) (legacy_disposition_code Equivalent)
+    := _ = legacy_surface_status_binding (legacy_family_code PlanningGovernance) (legacy_disposition_code Quarantined)
+    legacy_surface_summary_binding 9i32 0i32

@@ -1,0 +1,57 @@
+:! patch_preflight_raw = ()
+:! patch_preflight_parsed = ()
+:! patch_preflight_validated = ()
+:! patch_preflight_authorized = ()
+
+:| patch_preflight_policy =
+    | RejectEmptyPlan
+    | RejectWitnessMismatch
+    | RejectAmbiguousMode
+    | RejectUnsafePath
+    | RejectMutationDuringCheck
+    | AuthorizeValidatedApply
+    | AuthorizeReadOnlyCheck
+
+:| patch_preflight_op from to =
+    | ParsePatchPlan :: patch_preflight_op patch_preflight_raw patch_preflight_parsed
+    | ValidatePatchWitnesses :: patch_preflight_op patch_preflight_parsed patch_preflight_validated
+    | AuthorizePatchMode :: patch_preflight_op patch_preflight_validated patch_preflight_authorized
+
+:| ^ patch_preflight_plan from to =
+    | PatchPreflightStep :: \* from to. patch_preflight_op from to -> patch_preflight_plan from to
+    | PatchPreflightThen :: \* from to.
+        (\? middle. patch_preflight_plan from middle * patch_preflight_plan middle to) ->
+        patch_preflight_plan from to
+
+:= patch_preflight_public_plan () : patch_preflight_plan patch_preflight_raw patch_preflight_authorized =
+    PatchPreflightThen (\? (
+        PatchPreflightStep ParsePatchPlan,
+        PatchPreflightThen (\? (
+            PatchPreflightStep ValidatePatchWitnesses,
+            PatchPreflightStep AuthorizePatchMode
+        ))
+    ))
+
+:~ patch_preflight_witness_binding (expected : i32) (observed : i32) : i32 =
+    ? expected < 1i32 ?> 0i32
+    |? observed < 1i32 ?> 0i32
+    |? expected < observed ?> 0i32
+    |? observed < expected ?> 0i32
+    |: 1i32
+
+:~ patch_preflight_mode_binding (apply_mode : i32) (check_mode : i32) : i32 =
+    ? apply_mode < 0i32 ?> 0i32
+    |? check_mode < 0i32 ?> 0i32
+    |? 1i32 < apply_mode ?> 0i32
+    |? 1i32 < check_mode ?> 0i32
+    |? apply_mode < 1i32 ?>
+        ? check_mode < 1i32 ?> 0i32 |: 1i32
+    |:
+        ? check_mode < 1i32 ?> 1i32 |: 0i32
+
+:~ patch_preflight_check_binding (unsafe_paths : i32) (mutations : i32) : i32 =
+    ? unsafe_paths < 0i32 ?> 0i32
+    |? mutations < 0i32 ?> 0i32
+    |? 0i32 < unsafe_paths ?> 0i32
+    |? 0i32 < mutations ?> 0i32
+    |: 1i32

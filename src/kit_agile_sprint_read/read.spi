@@ -1,0 +1,39 @@
+///- --package .
+:# read static =
+    :< sm'_operators
+    :< agile_sprint.model
+    :< agile_sprint_rows.rows
+
+:< sm'_operators
+:< agile_sprint.model
+:< agile_sprint_rows.rows
+
+:~ flat_rows_of (~text : string) : array_base sprint_flat =
+    sprints_of text
+    |> listm.fold (\ (acc : list sprint_flat) (s : sprint) => listm.append acc (flat_of s)) []
+    |> listm'.box
+    |> listm'.to_array'
+
+:~ review_rows_of (~text : string) : array_base review_flat =
+    reviews_of text
+    |> listm.map (\ (r : sprint_review) =>
+        { done = r.done_minutes; carried = r.carried_minutes; dropped = r.dropped_minutes }
+    )
+    |> listm'.box
+    |> listm'.to_array'
+
+///> rust
+:# flat_rows_rebuild_the_same_sprints_and_reviews =
+    := a = { task = "KIT-A"; minutes = 60i32; fate = Committed }
+    := b = { task = "KIT-B"; minutes = 45i32; fate = Dropped }
+    := s1 = { terms = fixture_terms "S-1"; status = SprintClosed; items = [ a; b ] }
+    := s2 = { terms = fixture_terms "S-2"; status = SprintOpen; items = [] }
+    := review = { done_minutes = 60i32; carried_minutes = 0i32; dropped_minutes = 45i32; goal_met = !+ }
+    := text = sprints_appended (sprints_appended "" s1) s2 ++# sprint_review_row "S-1" review ++# "\n"
+    testing.expect (sprints_from (flat_rows_of text) = [ s1; s2 ]) "items, drops and an empty sprint survive"
+    testing.expect (reviews_from (review_rows_of text) = [ review ]) "reviews survive"
+///> _
+:= main () : i32 =
+    export "kit_agile_sprint_flat_rows" flat_rows_of
+    export "kit_agile_sprint_review_rows" review_rows_of
+    0i32

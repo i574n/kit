@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+modules:
+    model
+    bridge
+    matrix
+    terminal
+    main

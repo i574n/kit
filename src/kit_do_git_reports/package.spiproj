@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    kit_receipt
+    kit_do_records
+    kit_do_git_host
+modules:
+    reports

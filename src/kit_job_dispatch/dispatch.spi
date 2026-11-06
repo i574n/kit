@@ -1,0 +1,182 @@
+///- --package .
+:# dispatch static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== remote_job = { machine : string; id : string }
+
+:| dispatch_outcome =
+    | Dispatched : remote_job
+    | RemoteUnreachable : string
+    | RemoteRefused : string
+
+:== dispatch_request = { machine : string; binary : string; forwarded : list string }
+
+:| request_read =
+    | RequestRead : dispatch_request
+    | RequestRefused : string
+
+:~ plain_argument (~text : string) : bool = sm'.contains "\"" text = !- && sm'.contains "'" text = !-
+
+:~ request_of (words : list string) : request_read =
+    ?= words ?|
+    | machine :: rest =>
+        := binary, forwarded =
+            ?= rest ?|
+            | flag :: path :: more => ? flag = "--bin" ?> path, more |: "kit", rest
+            | _ => "kit", rest
+        ? machine = "" || sm'.starts_with "-" machine ?> RequestRefused "--on needs a machine (an ssh alias)"
+        |? forwarded = [] ?> RequestRefused "--on <machine> needs the job: [options] <label> <timeout-ms> <program> [args...]"
+        |? listm.fold (\ ok (w : string) => ok && plain_argument w) !+ forwarded = !-
+        ?> RequestRefused "--on forwards arguments without quote characters (they would be re-split by the remote shell)"
+        |: RequestRead { machine = machine; binary = binary; forwarded = forwarded }
+    | [] => RequestRefused "--on needs a machine (an ssh alias)"
+
+:~ remote_line (r : dispatch_request) : string =
+    r.binary ++# " job start " ++# sm'.concat_list " " (r.forwarded |> listm.map (\ (w : string) => "\"" ++# w ++# "\""))
+
+:~ ssh_to (~machine : string) (~line : string) : list string =
+    [ "-o"; "BatchMode=yes"; "-o"; "ConnectTimeout=10"; "-o"; "ServerAliveInterval=15"; machine; line ]
+
+:~ ssh_arguments (r : dispatch_request) : list string = ssh_to r.machine (remote_line r)
+
+:~ receipt_id (~output : string) : string =
+    := marker = "kit job start ok id="
+    := at = sm'.index_of marker output
+    ? at < 0i32 ?> ""
+    |:
+        := rest = sm'.substring (at + (sm'.length marker : i32)) ((sm'.length output : i32) - at - (sm'.length marker : i32)) output
+        ?= sm'.split_list " " (sm'.replace "\r" "" (sm'.replace "\n" " " rest)) ?|
+        | id :: _ => id
+        | [] => ""
+
+:~ outcome_of (~machine : string) (ran : bool) (code : i32) (~output : string) : dispatch_outcome =
+    := said = sm'.trim (sm'.replace "\r" "" output)
+    := id = receipt_id output
+    ? ran = !- ?> RemoteUnreachable "ssh did not run"
+    |? id <> "" ?> Dispatched { machine = machine; id = id }
+    |? code = 255i32 || said = "" ?> RemoteUnreachable (? said = "" ?> "ssh exit " ++# sm'.show code |: said)
+    |: RemoteRefused said
+
+:~ outcome_line (o : dispatch_outcome) (~machine : string) : string =
+    ?= o ?|
+    | Dispatched job => "kit job start ok id=" ++# job.id ++# " machine=" ++# job.machine ++# " placement=remote"
+    | RemoteUnreachable reason => "kit job start unreachable machine=" ++# machine ++# " reason=" ++# sm'.replace "\n" " " reason
+    | RemoteRefused reason => "kit job start refused machine=" ++# machine ++# " reason=" ++# sm'.replace "\n" " " reason
+
+:~ outcome_code (o : dispatch_outcome) : i32 =
+    ?= o ?|
+    | Dispatched _ => 0i32
+    | RemoteUnreachable _ => 4i32
+    | RemoteRefused _ => 2i32
+
+:~ ^ words_from (index : i32) (count : i32) : list string =
+    ? count <= index ?> [] |: rust_std_env.model.argument_at index :: words_from (index + 1i32) count
+
+:~ joined (~a : string) (~b : string) : string = sm'.replace "\\" "/" a ++# "/" ++# b
+
+:~ label_of_id (~id : string) : string =
+    ?= sm'.split_list "-" id ?|
+    | _ :: _ :: rest => sm'.concat_list "-" rest
+    | _ => id
+
+:~ machine_binary (~jobs_root : string) (~machine : string) (~given : string) : string =
+    kit_job_bin.bin.machine_binary (jobs_root, machine, given)
+
+:~ recorded (~jobs_root : string) (job : remote_job) (~binary : string) (now_ms : u64) : () =
+    := folder = joined jobs_root job.id
+    := _ = file_system.create_dir_all folder
+    file_system.write_all_text (joined folder "placement") ("on " ++# job.machine)
+    file_system.write_all_text (joined folder "label") (label_of_id job.id)
+    file_system.write_all_text (joined folder "started_ms") (sm'.show now_ms)
+    file_system.write_all_text (joined folder "remote-bin") binary
+
+:~ dispatch_run (~jobs_root : string) : i32 =
+    ?= request_of (words_from 4i32 (env.command_line_argument_count () + 1i32)) ?|
+    | RequestRefused reason =>
+        console.write_error_line ("kit error: job start " ++# reason)
+        2i32
+    | RequestRead given =>
+        := r = { given ?| binary = machine_binary jobs_root given.machine given.binary }
+        := c = process.captured_by "ssh" (ssh_arguments r) !+
+        := o = outcome_of r.machine c.ran c.code c.stdout
+        ?= o ?|
+        | Dispatched job => recorded jobs_root job r.binary (workspace_primitives.clock.unix_ms ())
+        | _ => ()
+        console.write_line (outcome_line o r.machine)
+        outcome_code o
+
+:~ forward_line (~binary : string) (words : list string) : string =
+    binary ++# " job " ++# sm'.concat_list " " (words |> listm.map (\ (w : string) => "\"" ++# w ++# "\""))
+
+:~ forward_code (ran : bool) (code : i32) : i32 = ? ran = !- || code = 255i32 ?> 4i32 |: code
+
+:~ forward_run ((jobs_root, machine) : string * string) : i32 =
+    := folder = joined jobs_root (rust_std_env.model.argument_at 3i32)
+    := bin_file = joined folder "remote-bin"
+    := binary = ? file_system.file_exists bin_file ?> sm'.trim (file_system.read_all_text bin_file) |: "kit"
+    := words = words_from 2i32 (env.command_line_argument_count () + 1i32)
+    ? listm.fold (\ ok (w : string) => ok && plain_argument w) !+ words = !-
+    ?>
+        console.write_error_line "kit error: job forwarding refuses quote characters in arguments"
+        2i32
+    |:
+        := c = process.captured_by "ssh" (ssh_to machine (forward_line binary words)) !+
+        := code = forward_code c.ran c.code
+        console.write_line (? code = 4i32 && sm'.trim c.stdout = "" ?> "kit job unreachable machine=" ++# machine |: sm'.trim c.stdout)
+        code
+
+:~ listed_on (~machine : string) (~binary : string) (words : list string) : i32 =
+    := c = process.captured_by "ssh" (ssh_to machine (forward_line binary ("list" :: words))) !+
+    := code = forward_code c.ran c.code
+    := silent = code = 4i32 && sm'.trim c.stdout = ""
+    console.write_line (? silent ?> "kit job unreachable machine=" ++# machine |: sm'.trim c.stdout)
+    code
+
+:~ list_on_run (~jobs_root : string) : i32 =
+    ?= words_from 4i32 (env.command_line_argument_count () + 1i32) ?|
+    | machine :: flag :: binary :: rest ?& flag = "--bin" =>
+        listed_on machine (machine_binary jobs_root machine binary) rest
+    | machine :: rest => listed_on machine (machine_binary jobs_root machine "kit") rest
+    | [] =>
+        console.write_error_line "kit error: job list --on needs a machine (an ssh alias)"
+        2i32
+
+///> rust
+:# a_dispatch_forwards_the_job_and_reads_the_remote_receipt =
+    ?= request_of [ "node"; "--heavy"; "kit-x"; "60000"; "cmd"; "/c"; "echo hi" ] ?|
+    | RequestRead r =>
+        testing.expect (remote_line r = "kit job start \"--heavy\" \"kit-x\" \"60000\" \"cmd\" \"/c\" \"echo hi\"") (remote_line r)
+        testing.expect (listm.length (ssh_arguments r) = 8i32) "ssh options, alias, remote line"
+    | RequestRefused reason => testing.expect !- reason
+    ?= request_of [ "laptop-ts"; "--bin"; "C:/home/bin/kit.exe"; "x"; "1000"; "cmd" ] ?|
+    | RequestRead r => testing.expect (r.binary = "C:/home/bin/kit.exe" && r.machine = "laptop-ts") r.binary
+    | RequestRefused reason => testing.expect !- reason
+    testing.expect (request_of [ "node" ] = RequestRefused "--on <machine> needs the job: [options] <label> <timeout-ms> <program> [args...]") "no job"
+    testing.expect (request_of [ "--heavy" ] = RequestRefused "--on needs a machine (an ssh alias)") "no machine"
+    testing.expect (request_of [ "node"; "x"; "1"; "echo \"q\"" ] = RequestRefused "--on forwards arguments without quote characters (they would be re-split by the remote shell)") "quotes"
+
+///> rust
+:# remote_outcomes_are_typed =
+    := ok = outcome_of "node" !+ 0i32 "kit job start ok id=job-17-kit-x supervisor_pid=9 timeout_ms=60000 gate=plain label=kit-x\r\n"
+    testing.expect (ok = Dispatched { machine = "node"; id = "job-17-kit-x" }) (outcome_line ok "node")
+    testing.expect (outcome_line ok "node" = "kit job start ok id=job-17-kit-x machine=node placement=remote") (outcome_line ok "node")
+    := dead = outcome_of "node" !+ 255i32 "ssh: connect to host node port 22: Connection timed out\r\n"
+    testing.expect (dead = RemoteUnreachable "ssh: connect to host node port 22: Connection timed out" && outcome_code dead = 4i32) (outcome_line dead "node")
+    := refused = outcome_of "node" !+ 2i32 "kit error: timeout-ms must be a positive integer\n"
+    testing.expect (refused = RemoteRefused "kit error: timeout-ms must be a positive integer" && outcome_code refused = 2i32) (outcome_line refused "node")
+    testing.expect (outcome_of "node" !- -1i32 "" = RemoteUnreachable "ssh did not run") "no ssh"
+
+///> rust
+:# a_remote_job_is_recorded_and_its_verbs_forward =
+    testing.expect (label_of_id "job-1793663094947-smoke-plain" = "smoke-plain" && label_of_id "x" = "x") "label from id"
+    testing.expect (forward_line "kit" [ "wait"; "job-17-x"; "60000" ] = "kit job \"wait\" \"job-17-x\" \"60000\"") "forwarded verb"
+    testing.expect (forward_code !+ 0i32 = 0i32 && forward_code !+ 3i32 = 3i32 && forward_code !+ 255i32 = 4i32 && forward_code !- 0i32 = 4i32) "exit codes"
+    testing.expect (joined "C:\\jobs" "job-1" = "C:/jobs/job-1") "join"
+///> _
+:= main () : i32 =
+    export "kit_job_dispatch_run" dispatch_run
+    export "kit_job_forward_run" forward_run
+    export "kit_job_list_on" list_on_run
+    0i32

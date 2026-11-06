@@ -1,0 +1,9 @@
+:= token (text : string) (cursor : i32) : i32 * i32 * string * bool =
+    $'predicate_lex_domain::kit_predicate_token(&*!text,!cursor)' : i32 * i32 * string * bool
+:= literal (text : string) (cursor : i32) : string * i32 * bool = $'predicate_literal_domain::kit_predicate_literal(&*\
+    !text,!cursor)' : string * i32 * bool
+:= encode (text : string) : string = $'predicate_literal_domain::kit_predicate_encode(&*!text)' : string
+:= skip (text : string) (cursor : i32) : i32 = $'predicate_lex_domain::kit_predicate_skip(&*!text,!cursor)' : i32
+:= word_end (text : string) (cursor : i32) : i32 =
+    $'predicate_lex_domain::kit_predicate_word_end(&*!text,!cursor)' : i32
+:= canonical (text : string) : string * bool = $'predicate_lex_domain::kit_predicate_canonical(&*!text)' : string * bool

@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "args.spi"
+output = "args.rs"
+
+[package]
+name = "kit-agile-next-args"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_next_args"
+path = "args.rs"
+
+[dependencies]
+agile-task-query = { path = "../agile_task_query" }
+agile-planning-filters = { path = "../agile_planning_filters" }
+kit-window-query = { path = "../kit_window_query" }

@@ -1,0 +1,13 @@
+packages:
+    |core-
+    spiral-
+    spiral-
+    union_reflection
+    kit_jobs
+    kit_machine_windows
+    kit_tree_lease
+    kit_process_alive
+link:
+    kit_process_alive
+modules:
+    claim

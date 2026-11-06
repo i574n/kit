@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    crate_growth_contract
+modules:
+    growth

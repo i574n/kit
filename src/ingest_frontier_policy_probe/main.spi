@@ -1,0 +1,11 @@
+:< ingest_frontier_contract.model
+
+:= main () : i32 =
+    := _ = policy_plan ()
+    := manifest = manifest_binding 1i32 2i32
+    := trim = trim_binding 0i32
+    := extracted = extracted_binding 1i32 1i32 0i32
+    := targets = targets_binding 1i32 2i32
+    := frontier = frontier_binding 3i32 3i32
+    := result = complete_binding manifest trim extracted targets frontier
+    ? result < 1i32 ?> 1i32 |: 0i32

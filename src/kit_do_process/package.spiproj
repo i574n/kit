@@ -1,0 +1,11 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    rust_std_string
+    kit_receipt
+    kit_do_records
+modules:
+    host
+    grammar
+    run

@@ -1,0 +1,127 @@
+///- --package .
+:# pattern static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| letters =
+    | WordLetters
+    | Blanks
+    | AnyLetter
+    | NoneOf : string
+    | AnyOf : string
+
+:| piece =
+    | Text : string
+    | Texts : list string
+    | Words : list string
+    | Run : letters * i32
+    | Maybe : string
+    | Edge
+    | Start
+    | End
+
+:= name_run () : piece = Run (WordLetters, 1i32)
+
+:= blanks () : piece = Run (Blanks, 0i32)
+
+:= some_blanks () : piece = Run (Blanks, 1i32)
+
+:= anything () : piece = Run (AnyLetter, 0i32)
+
+:= word (~mark : string) : list piece = [ Words [ mark ] ]
+
+:~ word_code (code : i32) : bool =
+    (code >= 97i32 && code <= 122i32) || (code >= 65i32 && code <= 90i32) || (code >= 48i32 && code <= 57i32)
+    || code = 95i32
+
+:~ code_at (~text : array u8) (at : i32) : i32 =
+    ? at < 0i32 || at >= am'.length text ?> -1i32 |: (conv (am'.index at text) : i32)
+
+:~ ^ code_in (~marks : array u8) (code : i32) (index : i32) : bool =
+    index < am'.length marks && (code_at marks index = code || code_in marks code (index + 1i32))
+
+:~ fits (set : letters) (code : i32) : bool =
+    ?= set ?|
+    | WordLetters => word_code code
+    | Blanks => code = 32i32 || code = 9i32
+    | AnyLetter => !+
+    | NoneOf marks => not (code_in (sm'.utf8_get_bytes marks) code 0i32)
+    | AnyOf marks => code_in (sm'.utf8_get_bytes marks) code 0i32
+
+:~ ^ run_length (~text : array u8) (set : letters) (at : i32) (count : i32) : i32 =
+    ? at + count < am'.length text && fits set (code_at text (at + count)) ?> run_length text set at (count + 1i32)
+    |: count
+
+:~ ^ bytes_from (~text : array u8) (~mark : array u8) (at : i32) (index : i32) : bool =
+    index >= am'.length mark
+    || (code_at text (at + index) = code_at mark index && bytes_from text mark at (index + 1i32))
+
+:~ text_at (~text : array u8) (at : i32) (~mark : string) : bool =
+    bytes_from text (sm'.utf8_get_bytes mark) at 0i32
+
+:~ edge_at (~text : array u8) (at : i32) : bool =
+    word_code (code_at text (at - 1i32)) <> word_code (code_at text at)
+
+:~ ^ word_from (~text : array u8) (~mark : string) (at : i32) : bool =
+    ? at > am'.length text ?> !-
+    |? edge_at text at && text_at text at mark && edge_at text (at + (sm'.length mark : i32)) ?> !+
+    |: word_from text mark (at + 1i32)
+
+:~ has_word (~line : string) (marks : list string) : bool =
+    := text = sm'.utf8_get_bytes line
+    listm'.try_find_ (\ (mark : string) => word_from text mark 0i32) marks <> None
+
+:~ ^ matches_at (~text : array u8) (pieces : list piece) (at : i32) : bool =
+    ?= pieces ?|
+    | [] => !+
+    | Text mark :: rest => text_at text at mark && matches_at text rest (at + (sm'.length mark : i32))
+    | Texts marks :: rest =>
+        listm'.try_find_ (\ (mark : string) => matches_at text (Text mark :: rest) at) marks <> None
+    | Words marks :: rest =>
+        listm'.try_find_ (\ (mark : string) => matches_at text (Edge :: Text mark :: Edge :: rest) at) marks <> None
+    | Maybe mark :: rest =>
+        (text_at text at mark && matches_at text rest (at + (sm'.length mark : i32))) || matches_at text rest at
+    | Edge :: rest => edge_at text at && matches_at text rest at
+    | Start :: rest => at = 0i32 && matches_at text rest at
+    | End :: rest => at = am'.length text && matches_at text rest at
+    | Run (set, least) :: rest =>
+        :~ ^ attempt (count : i32) : bool =
+            ? count < least ?> !-
+            |? matches_at text rest (at + count) ?> !+
+            |: attempt (count - 1i32)
+        attempt (run_length text set at 0i32)
+
+:~ ^ found_from (~text : array u8) (pieces : list piece) (at : i32) : bool =
+    ? at > am'.length text ?> !-
+    |? matches_at text pieces at ?> !+
+    |: found_from text pieces (at + 1i32)
+
+:~ found (~line : string) (alternatives : list (list piece)) : bool =
+    := text = sm'.utf8_get_bytes line
+    listm'.try_find_ (\ (pieces : list piece) => found_from text pieces 0i32) alternatives <> None
+
+:= lowered (item : piece) : piece =
+    ?= item ?|
+    | Text mark => Text (sm'.to_lower mark)
+    | Texts marks => Texts (marks |> listm.map sm'.to_lower)
+    | Words marks => Words (marks |> listm.map sm'.to_lower)
+    | Maybe mark => Maybe (sm'.to_lower mark)
+    | other => other
+
+///> rust
+:# pieces_match_text_runs_edges_and_anchors =
+    ? found "a try b" [ word "try" ] ?> () |: failwith "a word between blanks"
+    ? found "retry" [ word "try" ] |> not ?> () |: failwith "a word inside a longer word"
+    ? found "x ? f(y) : z" [ [ Text "? "; Run (NoneOf ":", 1i32); Text " : " ] ] ?> () |: failwith "a run gives back"
+    ? found "  ? $'a' : bool ?>" [ [ Start; blanks (); Text "? $'" ] ] ?> () |: failwith "an anchored lead"
+    ? found "b ? $'a'" [ [ Start; blanks (); Text "? $'" ] ] |> not ?> () |: failwith "the anchor holds"
+    ? found "fn x ->'  " [ [ Text "->'"; blanks (); End ] ] ?> () |: failwith "an end after blanks"
+    ? found "fnonce() ->" [ [ Text "fn"; Maybe "once"; Text "() ->" ] ] ?> () |: failwith "an optional text"
+    ? found "fn() ->" [ [ Text "fn"; Maybe "once"; Text "() ->" ] ] ?> () |: failwith "an optional text left out"
+    ? lowered (Text "FParsec.") = Text "fparsec." ?> () |: failwith "texts compare in lower case"
+    ? found "x = orelse |e|" [ [ Words [ "if"; "orelse" ]; Text " |" ] ] ?> () |: failwith "one of several words"
+    ? found "xorelse |e|" [ [ Words [ "if"; "orelse" ]; Text " |" ] ] |> not ?> () |: failwith "words keep edges"
+    ? found "a /* b" [ [ Text "a "; Texts [ "//"; "/*" ] ] ] ?> () |: failwith "one of several texts"
+    ? found "été → if x" [ word "if" ] ?> () |: failwith "multi-byte letters before a word"
+    ? has_word "été → if x" [ "else"; "if" ] && has_word "elsewhere" [ "else" ] |> not ?> () |: failwith "has_word"

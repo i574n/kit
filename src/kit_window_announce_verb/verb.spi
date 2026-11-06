@@ -1,0 +1,109 @@
+///- --package .
+:# verb static =
+    :< sm'_operators
+    :< kit_machine_windows.window_model
+    :< kit_window_announce.announce
+    :< kit_window_announce_rows.rows
+
+:< sm'_operators
+:< kit_machine_windows.window_model
+:< kit_window_announce.announce
+:< kit_window_announce_rows.rows
+
+:= day_ms () : u64 = 86400000u64
+
+:| start_read =
+    | StartAt : u64
+    | StartRefused : string
+
+:~ clock_start (h : u64) (m : u64) (now_ms : u64) (offset_minutes : i64) : u64 =
+    := shift = (conv (? offset_minutes < 0i64 ?> -offset_minutes |: offset_minutes) : u64) * 60000u64
+    := local_now = ? offset_minutes < 0i64 ?> now_ms - shift |: now_ms + shift
+    := local_start = local_now / day_ms () * day_ms () + (h * 60u64 + m) * 60000u64
+    := utc_start = ? offset_minutes < 0i64 ?> local_start + shift |: local_start - shift
+    ? utc_start < now_ms ?> utc_start + day_ms () |: utc_start
+
+:~ start_of (~text : string) (now_ms : u64) (offset_minutes : i64) : start_read =
+    := bad = StartRefused ("start must be HH:MM or +minutes, got '" ++# text ++# "'")
+    := number = \ (t : string) => optionm'.default_value 99999u64 (convert.try_convert t)
+    := after = ? sm'.starts_with "+" text ?> number (sm'.substring 1i32 ((sm'.length text : i32) - 1i32) text) |: 99999u64
+    ?= sm'.split_list ":" text ?|
+    | hours :: mins :: [] =>
+        := h, m = number hours, number mins
+        ? h > 23u64 || m > 59u64 ?> bad |: StartAt (clock_start h m now_ms offset_minutes)
+    | _ => ? after < 99999u64 ?> StartAt (now_ms + after * 60000u64) |: bad
+
+:= announce_schema () : string =
+    "///- --no-respell\nunion announced_row =\n    | Announced :: string * string * u64 * u64 * u64 -> announced_row\n"
+
+:~ appended (~text : string) (block : announced) : string =
+    := base = ? text = "" ?> announce_schema () |: text
+    := count : i32 = sm'.split_list "\n" base |> listm'.filter (\ (line : string) => sm'.starts_with "inl announced_" line) |> listm.length
+    base ++# (? sm'.ends_with "\n" base ?> "" |: "\n") ++# announced_row (count + 1i32) block ++# "\n"
+
+:~ announced_path (~root : string) : string = sm'.replace "\\" "/" root ++# "/announced.spi"
+:| announce_option =
+    | AnnounceLabel
+    | AnnounceWork
+
+:~ option_after (option : announce_option) (words : list string) : string =
+    := flag = "--" ++# union_reflection.cases.union_case_kebab "Announce" option
+    := step = \ (found, armed) (word : string) => ? armed && found = "" ?> word, !- |: found, word = flag
+    := found, _ = words |> listm.fold step ("", !-)
+    found
+
+:~ verb_words () : list string =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: words => words
+    | _ => []
+
+:~ refused (~reason : string) : i32 =
+    console.write_error_line ("kit error: window announce: " ++# reason)
+    2i32
+
+:~ announce_run (~root : string) : i32 =
+    := words = verb_words ()
+    ?= words ?|
+    | class_text :: start_text :: minutes_text :: rest =>
+        := now_ms = workspace_primitives.clock.unix_ms ()
+        ?= class_of class_text, start_of start_text now_ms (kit_receipt.receipt.local_offset_minutes ()), (convert.try_convert minutes_text : option u64) ?|
+        | ClassUnknown, _, _ => refused ("unknown class '" ++# class_text ++# "'")
+        | _, StartRefused reason, _ => refused reason
+        | ClassKnown kind, StartAt from_ms, Some minutes =>
+            := label = option_after AnnounceLabel rest
+            := work = optionm'.default_value minutes (convert.try_convert (option_after AnnounceWork rest))
+            := block = { holder = ? label = "" ?> "unnamed" |: label; kind = kind; from_ms = from_ms; until_ms = from_ms + minutes * 60000u64; work_minutes = work }
+            := path = announced_path root
+            := existing = ? file_system.file_exists path ?> file_system.read_all_text path |: ""
+            := _ = file_system.create_dir_all (sm'.replace "\\" "/" root)
+            file_system.write_all_text path (appended existing block)
+            console.write_line ("kit window announce ok class=" ++# class_word kind ++# " holder=" ++# block.holder ++# " starts_in_min=" ++# sm'.show (minutes_left from_ms now_ms) ++# " minutes=" ++# sm'.show minutes ++# " path=" ++# path)
+            0i32
+        | _, _, None => refused ("minutes must be a whole number, got '" ++# minutes_text ++# "'")
+    | _ => refused "usage: window announce <class> <HH:MM|+minutes> <minutes> [--work <minutes>] [--label <holder>]"
+
+:= install () : announced =
+    { holder = "compiler"; kind = CompilerInstall; from_ms = 2000000u64; until_ms = 2600000u64; work_minutes = 10u64 }
+
+///> rust
+:# an_announced_block_is_appended_as_a_numbered_typed_row =
+    := first = appended "" (install ())
+    testing.expect (announced_of first = [ install () ]) first
+    := block = install ()
+    := second = appended first { block ?| holder = "main" }
+    testing.expect (sm'.contains "inl announced_2 () = Announced (\"main\"" second && listm.length (announced_of second) = 2i32) second
+
+///> rust
+:# a_start_reads_as_minutes_from_now_or_a_local_clock_time =
+    testing.expect (start_of "+15" 1000u64 0i64 = StartAt 901000u64) "+minutes"
+    testing.expect (start_of "00:30" 0u64 0i64 = StartAt 1800000u64) "today, utc"
+    testing.expect (start_of "00:00" 1000u64 0i64 = StartAt 86400000u64) "a passed time is tomorrow"
+    testing.expect (start_of "01:00" 86400000u64 -60i64 = StartAt 93600000u64) "local is utc-1: 01:00 local tomorrow is 02:00 utc"
+    testing.expect (start_of "25:00" 0u64 0i64 = StartRefused "start must be HH:MM or +minutes, got '25:00'") "bad hour"
+    testing.expect (start_of "soon" 0u64 0i64 = StartRefused "start must be HH:MM or +minutes, got 'soon'") "not a time"
+    testing.expect (option_after AnnounceLabel [ "--work"; "10"; "--label"; "pack12" ] = "pack12") "the label follows --label"
+    testing.expect (option_after AnnounceWork [ "--work"; "10" ] = "10" && option_after AnnounceWork [] = "") "work minutes"
+///> _
+:= main () : i32 =
+    export "kit_window_announce_run" ((\ root => announce_run root) : string -> i32)
+    0i32

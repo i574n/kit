@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "lock.spi"
+output = "lock.rs"
+
+[package]
+name = "kit-agile-lock"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_lock"
+path = "lock.rs"
+
+[dependencies]
+kit-process-alive = { path = "../kit_process_alive" }

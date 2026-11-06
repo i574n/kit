@@ -1,0 +1,125 @@
+:< predicate_lex.model
+
+:= different (a : string) (b : string) : bool = ? (=.) a b ?> !- |: !+
+
+:~ ^ composite_end (text : string) (cursor : i32) (depth : i32) : i32 =
+    := _, after, part, ok = token text cursor
+    ? (=.) ok !- || (=.) part "" ?> -2i32
+    |? (=.) part "{" || (=.) part "[" ?> composite_end text after ((+.) depth 1i32)
+    |? (=.) part "}" || (=.) part "]" ?>
+        ? (=.) depth 1i32 ?> after |: composite_end text after ((-.) depth 1i32)
+    |: composite_end text after depth
+:~ ^ scalar_end (text : string) (cursor : i32) : i32 =
+    := first, after, part, ok = token text cursor
+    ? (=.) ok !- ?> -2i32
+    |? (=.) part "" || (=.) part "," || (=.) part "}" || (=.) part "]" ?> first
+    |: scalar_end text after
+:= value_end (text : string) (cursor : i32) : i32 =
+    := _, after, part, ok = token text cursor
+    ? (=.) ok !- || (=.) part "" ?> -2i32
+    |? (=.) part "{" || (=.) part "[" ?> composite_end text after 1i32
+    |: scalar_end text after
+:~ ^ fields (text : string) (cursor : i32) (key : string) : i32 =
+    := first, after, part, ok = token text cursor
+    ? (=.) ok !- ?> -2i32
+    |? (=.) part "}" ?> -1i32
+    |:
+        := name, _, string_ok = literal text first
+        := _, colon_end, colon, colon_ok = token text after
+        ? (=.) string_ok !- || (=.) colon_ok !- || different colon ":" ?> -2i32
+        |? (=.) name key ?> skip text colon_end
+        |:
+            := end_value = value_end text colon_end
+            ? (<) end_value 0i32 ?> -2i32
+            |:
+                := _, next, separator, ok = token text end_value
+                ? (=.) ok !- ?> -2i32
+                |? (=.) separator "}" ?> -1i32
+                |? (=.) separator "," ?> fields text next key
+                |: -2i32
+:= field (text : string) (cursor : i32) (key : string) : i32 =
+    ? (<) cursor 0i32 ?> -2i32
+    |:
+        := _, after, part, ok = token text cursor
+        ? ok && (=.) part "{" ?> fields text after key |: -2i32
+:~ ^ members (text : string) (cursor : i32) (wanted : string) : i32 =
+    := first, after, part, ok = token text cursor
+    ? (=.) ok !- ?> -1i32
+    |? (=.) part "]" ?> 0i32
+    |? (=.) part "," ?> members text after wanted
+    |:
+        := value, end_string, valid = literal text first
+        ? (=.) valid !- ?> -1i32
+        |? (=.) value wanted ?> 1i32
+        |: members text end_string wanted
+
+:= requirement (text : string) (package_at : i32) : i32 =
+    := metadata = field text package_at "metadata"
+    := kit = field text metadata "kit"
+    ? (<) kit 0i32 ?> 0i32
+    |:
+        := _, _, part, ok = token text kit
+        ? ok && (=.) part "null" ?> 0i32
+        |? (=.) ok !- || different part "{" ?> -3i32
+        |:
+            := required = field text kit "test-requires-cli"
+            ? (=.) required -1i32 ?> 0i32
+            |? (<) required 0i32 ?> -3i32
+            |:
+                := _, _, flag, valid = token text required
+                ? valid && (=.) flag "true" ?> 1i32
+                |? valid && (=.) flag "false" ?> 0i32
+                |: -4i32
+
+:~ ^ packages
+    (text : string) (cursor : i32) (members_at : i32) (wanted : string) (found : bool) (need_cli : i32)
+    : i32
+    =
+    := first, after, part, ok = token text cursor
+    ? (=.) ok !- ?> -5i32
+    |? (=.) part "]" ?> ? found ?> need_cli |: -2i32
+    |? (=.) part "," ?> packages text after members_at wanted found need_cli
+    |? different part "{" ?> -5i32
+    |:
+        := end_package = value_end text first
+        := name_at = field text first "name"
+        := id_at = field text first "id"
+        := name, _, name_ok = literal text name_at
+        := id, _, id_ok = literal text id_at
+        ? (<) end_package 0i32 || (=.) name_ok !- || (=.) id_ok !- ?> -5i32
+        |? (=.) name wanted ?>
+            := member = members text members_at id
+            ? (<) member 0i32 ?> -5i32
+            |? (=.) member 1i32 ?>
+                ? found ?> -2i32
+                |:
+                    := requires = requirement text first
+                    ? (<) requires 0i32 ?> requires
+                    |: packages text end_package members_at wanted !+ requires
+            |: packages text end_package members_at wanted found need_cli
+        |: packages text end_package members_at wanted found need_cli
+
+:~ ^ selected
+    (text : string) (names : string) (cursor : i32) (separator : char) (packages_at : i32) (members_at : i32)
+    (need_cli : i32)
+    : i32
+    =
+    := end_name = find_char names cursor separator
+    := wanted = predicate_lex_core.model.cut names cursor end_name
+    := result = packages text packages_at members_at wanted !- 0i32
+    ? (<) result 0i32 ?> result
+    |:
+        := next_need = ? (=.) result 1i32 ?> 1i32 |: need_cli
+        ? (=.) end_name (predicate_lex_core.model.length names) ?> next_need
+        |: selected text names ((+.) end_name 1i32) separator packages_at members_at next_need
+
+:~ inspect (text : string) (names : string) (separator : string) : i32 =
+    := package_at = field text 0i32 "packages"
+    := member_at = field text 0i32 "workspace_members"
+    ? (<) package_at 0i32 || (<) member_at 0i32 ?> -5i32
+    |:
+        := _, packages_after, package_kind, packages_ok = token text package_at
+        := _, members_after, member_kind, members_ok = token text member_at
+        ? packages_ok && members_ok && (=.) package_kind "[" && (=.) member_kind "[" ?>
+            selected text names 0i32 (predicate_lex_core.model.at separator 0i32) packages_after members_after 0i32
+        |: -5i32

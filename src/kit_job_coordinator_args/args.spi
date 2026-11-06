@@ -1,0 +1,71 @@
+///- --package .
+:# args static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| coordinator_step =
+    | StepBuild
+    | StepStart
+
+:| coordinator_valued =
+    | ValuedSpiral
+    | ValuedKit
+    | ValuedSpool
+
+:== coordinator_row = { build : bool; start : bool; spiral : string; kit : string; spool : string; rejected : string }
+
+:= step_word (step : coordinator_step) : string = union_reflection.cases.union_case_kebab "Step" step
+
+:= coordinator_word (flag : coordinator_valued) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ coordinator_applied (flag : coordinator_valued) (~value : string) (row : coordinator_row) : coordinator_row =
+    ?= flag ?|
+    | ValuedSpiral => { row ?| spiral = value }
+    | ValuedKit => { row ?| kit = value }
+    | ValuedSpool => { row ?| spool = value }
+
+:~ stepped (step : coordinator_step) (row : coordinator_row) : coordinator_row =
+    ?= step ?|
+    | StepBuild => { row ?| build = !+ }
+    | StepStart => { row ?| start = !+ }
+
+:~ ^ flags_read (words : list string) (row : coordinator_row) : coordinator_row =
+    ?= words ?|
+    | [] => row
+    | word :: rest =>
+        := named = \ (flag : coordinator_valued) => word = coordinator_word flag
+        ?= union_reflection.cases.union_case_where named Some None, rest ?|
+        | Some _, [] => { row ?| rejected = "option " ++# word ++# " has no value" }
+        | Some flag, (value :: after) => flags_read after (coordinator_applied flag value row)
+        | None, _ => { row ?| rejected = "unknown option " ++# word }
+
+:~ coordinator_of (words : list string) : coordinator_row =
+    := empty = { build = !-; start = !-; spiral = ""; kit = ""; spool = ""; rejected = "" }
+    ?= words ?|
+    | word :: rest =>
+        ?= union_reflection.cases.union_case_where (\ (s : coordinator_step) => word = step_word s) Some None ?|
+        | Some step => flags_read rest (stepped step empty)
+        | None => { empty ?| rejected = "expected build or start, received " ++# word }
+    | [] => { empty ?| rejected = "expected build or start" }
+
+:~ ^ dropped (count : i32) (words : list string) : list string =
+    ?= words ?|
+    | _ :: rest ?& count > 0i32 => dropped (count - 1i32) rest
+    | _ => words
+
+:~ coordinator_args_read (skipped : i32) : array_base coordinator_row =
+    (;[ coordinator_of (dropped skipped (env.command_line_arguments ())) ] : array coordinator_row) |> am'.base
+
+///> rust
+:# coordinator_words_name_a_step_and_its_flags =
+    := build = coordinator_of [ "build"; "--spiral"; "C:/s"; "--kit"; "C:/k" ]
+    testing.expect (build.build && build.start = !- && build.spiral = "C:/s" && build.kit = "C:/k") build.rejected
+    testing.expect ((coordinator_of [ "stop" ]).rejected = "expected build or start, received stop") "steps"
+    testing.expect ((coordinator_of [ "start"; "--spool" ]).rejected = "option --spool has no value") "a value"
+    testing.expect ((coordinator_of []).rejected = "expected build or start") "a step is required"
+///> _
+:= main () : i32 =
+    export "kit_job_coordinator_args_read" coordinator_args_read
+    0i32

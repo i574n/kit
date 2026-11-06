@@ -1,0 +1,84 @@
+///- --package .
+:# cells static =
+    :< sm'_operators
+    :< kit_exec_metrics.metrics
+
+:< sm'_operators
+:< kit_exec_metrics.metrics
+
+:== cell_record = { phases : list (phase * u64); target : string }
+
+:= backends () : list backend =
+    [
+        kit_exec_metrics.metrics.Rust;
+        kit_exec_metrics.metrics.Gleam;
+        kit_exec_metrics.metrics.Zig;
+        CBackend;
+        kit_exec_metrics.metrics.Lua;
+        kit_exec_metrics.metrics.Wasm;
+        kit_exec_metrics.metrics.Fsharp
+    ]
+
+:= backend_of_target (~target : string) : option backend =
+    := word = ?= sm'.split_list " " (sm'.trim target) ?| | first :: _ => first | [] => ""
+    backends () |> listm'.try_find_ (\ (b : backend) => backend_word b = word)
+
+:~ cell_samples (m : machine) (r : cell_record) : list exec_sample =
+    ?= backend_of_target r.target ?|
+    | None => []
+    | Some b => r.phases |> listm.map (\ (p, ms) => TimedSample (m, Duration (b, p, ms)))
+
+:= cells_phase_keys () : list (phase * string) =
+    [ Compile, "compile"; Mount, "mount"; SlotWait, "slot_wait"; LockWait, "rust_lock_wait"; Run, "target" ]
+
+:~ ^ records_from
+    (doc : kit_os_json.json.json_value) (at : i32) (count : i32) (acc : list cell_record)
+    : list cell_record
+    =
+    ? at >= count
+    ?> listm.rev acc
+    |:
+        := cell = "/cells/" ++# sm'.show at ++# "/metadata"
+        := timed = \ ((p, key) : phase * string) => p, kit_os_json.json.u64_at doc (cell ++# "/phases_ms/" ++# key)
+        := target = kit_os_json.json.text_at doc (cell ++# "/spiral_test/targets/0/target")
+        records_from doc (at + 1i32) count ({ phases = cells_phase_keys () |> listm.map timed; target = target } :: acc)
+
+:~ cell_records_of (~notebook : string) : list cell_record =
+    := doc = kit_os_json.json.parsed notebook
+    records_from doc 0i32 (kit_os_json.json.count_at doc "/cells") []
+
+:~ notebook_samples (m : machine) (~notebook : string) : list exec_sample =
+    cell_records_of notebook |> listm.fold (\ (acc : list exec_sample) r => listm.append acc (cell_samples m r)) []
+
+:~ notebook_prom ((machine_word, notebook) : string * string) : string =
+    exported (notebook_samples (? machine_word = "node" ?> Node |: Box) notebook)
+
+///> rust
+:# a_cell_record_becomes_one_duration_sample_per_phase =
+    := cell = { phases = [ Compile, 49451u64; LockWait, 14451u64; Run, 20054u64 ]; target = "rust --deps x=\"1\"" }
+    := samples = cell_samples Box cell
+    := compile = "kit_exec_duration_ms{machine=\"box\",backend=\"rust\",phase=\"compile\"} 49451"
+    testing.expect (sm'.contains compile (exported samples)) (exported samples)
+    := rust = kit_exec_metrics.metrics.Rust
+    testing.expect (duration_ms samples rust LockWait = 14451u64 && duration_ms samples rust Run = 20054u64) "phases"
+    testing.expect (cell_samples Box { cell ?| target = "" } = []) "a cell with no target backend has no samples"
+    := gleam = kit_exec_metrics.metrics.Gleam
+    testing.expect (backend_of_target "gleam" = Some gleam && backend_of_target "python" = None) "backend words"
+
+///> rust --deps serde_json="1.0.151"
+:# notebook_cells_are_read_from_their_metadata =
+    := prelude = "{\"metadata\":{\"phases_ms\":{\"compile\":10,\"target\":5}}}"
+    := timed =
+        "{\"metadata\":{\"phases_ms\":{\"compile\":49451,\"mount\":7225,\"rust_lock_wait\":14451,\"target\":20054},"
+        ++# "\"spiral_test\":{\"targets\":[{\"ms\":72644,\"target\":\"rust --deps sysinfo\"}]}}}"
+    := notebook = "{\"cells\":[" ++# prelude ++# "," ++# timed ++# "]}"
+    := records = cell_records_of notebook
+    testing.expect ((listm.length records : i32) = 2i32) "one record per cell"
+    := samples = notebook_samples Node notebook
+    := rust = kit_exec_metrics.metrics.Rust
+    testing.expect (duration_ms samples rust Mount = 7225u64 && duration_ms samples rust Compile = 49451u64) "timed"
+    testing.expect ((listm.length samples : i32) = 5i32) "the prelude has no target, so only the timed cell counts"
+///> _
+:= main () : i32 =
+    export "kit_exec_notebook_prom" notebook_prom
+    0i32

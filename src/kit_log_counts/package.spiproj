@@ -1,0 +1,8 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_log_sections
+modules:
+    count_scan
+    entry

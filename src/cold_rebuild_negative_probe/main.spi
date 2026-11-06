@@ -1,0 +1,14 @@
+:< cold_rebuild_contract.model
+:< cold_rebuild_contract.bindings
+
+:= main () : i32 =
+    := _ = cold_rebuild_public_plan ()
+    ? cold_rebuild_expected_shards_binding 90i32 2i32 <> 45i32 ?> 1i32
+    |? cold_rebuild_shape_binding 90i32 2i32 45i32 <> 1i32 ?> 2i32
+    |? cold_rebuild_shape_binding 86i32 4i32 21i32 <> 0i32 ?> 3i32
+    |? cold_rebuild_shape_binding 87i32 5i32 22i32 <> 0i32 ?> 4i32
+    |? cold_rebuild_shape_binding 87i32 4i32 21i32 <> 0i32 ?> 5i32
+    |? cold_rebuild_shape_binding 90i32 0i32 0i32 <> 0i32 ?> 6i32
+    |? cold_rebuild_gate_binding 62i32 <> 0i32 ?> 7i32
+    |? cold_rebuild_product_binding 1i32 0i32 <> 0i32 ?> 8i32
+    |: 0i32

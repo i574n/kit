@@ -1,0 +1,10 @@
+packages:
+    |core-
+    spiral-
+    kit_os_json
+    kit_hook_rules
+    kit_hook_verbs
+link:
+    kit_hook_verbs
+modules:
+    hook

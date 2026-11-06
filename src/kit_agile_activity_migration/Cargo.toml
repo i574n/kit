@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "migration.spi"
+output = "migration.rs"
+
+[package]
+name = "kit-agile-activity-migration"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_activity_migration"
+path = "migration.rs"

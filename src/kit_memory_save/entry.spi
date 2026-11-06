@@ -1,0 +1,14 @@
+:< save
+
+:~ memory_save_run ((dir, kind, slug, description, body) : string * string * string * string * string) : i32 =
+    memory_saved dir kind slug description body
+
+:~ memory_forget_run ((dir, slug) : string * string) : i32 = memory_forgotten dir slug
+
+:~ memory_edit_run ((dir, slug, field, text) : string * string * string * string) : i32 = memory_edited dir slug field text
+
+:= main () : i32 =
+    export "kit_memory_save" memory_save_run
+    export "kit_memory_forget" memory_forget_run
+    export "kit_memory_edit" memory_edit_run
+    0i32

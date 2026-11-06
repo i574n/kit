@@ -1,0 +1,184 @@
+///- --package .
+:# args static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| register_valued =
+    | ValuedTest
+    | ValuedRuns
+    | ValuedArms
+    | ValuedGroup
+    | ValuedPrediction
+    | ValuedMetric
+    | ValuedDecision
+    | ValuedConfidence
+    | ValuedQuestion
+    | ValuedTime
+
+:== register_row =
+    {
+        test : string
+        runs : string
+        arms : string
+        group : string
+        prediction : string
+        metric : string
+        decision : string
+        confidence : string
+        question : string
+        time : string
+        rejected : string
+    }
+
+:= valued_word (flag : register_valued) : string = "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ valued_applied (flag : register_valued) (~value : string) (row : register_row) : register_row =
+    ?= flag ?|
+    | ValuedTest => { row ?| test = value }
+    | ValuedRuns => { row ?| runs = value }
+    | ValuedArms => { row ?| arms = value }
+    | ValuedGroup => { row ?| group = value }
+    | ValuedPrediction => { row ?| prediction = value }
+    | ValuedMetric => { row ?| metric = value }
+    | ValuedDecision => { row ?| decision = value }
+    | ValuedConfidence => { row ?| confidence = value }
+    | ValuedQuestion => { row ?| question = value }
+    | ValuedTime => { row ?| time = value }
+
+:~ ^ words_read (words : list string) (row : register_row) : register_row =
+    ?= words ?|
+    | [] => row
+    | word :: rest =>
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : register_valued) => word = valued_word flag) Some None
+        ?= valued, rest ?|
+        | Some _, [] => { row ?| rejected = "option " ++# word ++# " has no value" }
+        | Some flag, (value :: after) => words_read after (valued_applied flag value row)
+        | None, _ => { row ?| rejected = "unknown option " ++# word }
+
+:~ register_of (words : list string) : register_row =
+    := empty =
+        {
+            test = ""
+            runs = ""
+            arms = ""
+            group = ""
+            prediction = ""
+            metric = ""
+            decision = ""
+            confidence = "0.95"
+            question = ""
+            time = ""
+            rejected = ""
+        }
+    words_read words empty
+
+:| import_valued =
+    | ImportRegisteredAt
+    | ImportEvidence
+
+:== import_row =
+    {
+        ledger : string
+        id : string
+        registered_at : string
+        evidence : string
+        plan : register_row
+        rejected : string
+    }
+
+:= import_word (flag : import_valued) : string = "--" ++# union_reflection.cases.union_case_kebab "Import" flag
+
+:~ import_applied (flag : import_valued) (~value : string) (row : import_row) : import_row =
+    ?= flag ?|
+    | ImportRegisteredAt => { row ?| registered_at = value }
+    | ImportEvidence => { row ?| evidence = value }
+
+:~ ^ import_split (words : list string) (row : import_row) (rest : list string) : import_row * list string =
+    ?= words ?|
+    | [] => row, listm.rev rest
+    | word :: more =>
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : import_valued) => word = import_word flag) Some None
+        := positional = sm'.starts_with "--" word |> not
+        ?= valued, more ?|
+        | Some _, [] => { row ?| rejected = "option " ++# word ++# " has no value" }, listm.rev rest
+        | Some flag, (value :: after) => import_split after (import_applied flag value row) rest
+        | None, _ ?& positional && row.ledger = "" => import_split more { row ?| ledger = word } rest
+        | None, _ ?& positional && row.id = "" => import_split more { row ?| id = word } rest
+        | None, _ => import_split more row (word :: rest)
+
+:~ import_of (words : list string) : import_row =
+    := empty = { ledger = ""; id = ""; registered_at = ""; evidence = ""; plan = register_of []; rejected = "" }
+    := row, rest = import_split words empty []
+    := plan = register_of rest
+    { row ?| plan = plan; rejected = ? row.rejected <> "" ?> row.rejected |: plan.rejected }
+
+:| table_valued =
+    | TableWhere
+
+:== table_test_row = { table : string; wheres : string; plan : register_row; rejected : string }
+
+:= table_word (flag : table_valued) : string = "--" ++# union_reflection.cases.union_case_kebab "Table" flag
+
+:~ ^ table_split (words : list string) (row : table_test_row) (rest : list string) : table_test_row * list string =
+    := where_word = table_word TableWhere
+    ?= words ?|
+    | [] => row, listm.rev rest
+    | word :: [] ?& word = where_word => { row ?| rejected = "option " ++# word ++# " has no value" }, listm.rev rest
+    | word :: value :: more ?& word = where_word =>
+        table_split more { row ?| wheres = ? row.wheres = "" ?> value |: row.wheres ++# "\n" ++# value } rest
+    | word :: more ?& sm'.starts_with "--" word |> not && row.table = "" =>
+        table_split more { row ?| table = word } rest
+    | word :: more => table_split more row (word :: rest)
+
+:~ table_test_of (words : list string) : table_test_row =
+    := row, rest = table_split words { table = ""; wheres = ""; plan = register_of []; rejected = "" } []
+    := plan = register_of rest
+    { row ?| plan = plan; rejected = ? row.rejected <> "" ?> row.rejected |: plan.rejected }
+
+:~ ^ dropped (count : i32) (words : list string) : list string =
+    ?= words ?|
+    | _ :: rest ?& count > 0i32 => dropped (count - 1i32) rest
+    | _ => words
+
+:~ register_args_read (skipped : i32) : array_base register_row =
+    (;[ register_of (dropped skipped (env.command_line_arguments ())) ] : array register_row) |> am'.base
+
+:~ import_args_read (skipped : i32) : array_base import_row =
+    (;[ import_of (dropped skipped (env.command_line_arguments ())) ] : array import_row) |> am'.base
+
+:~ table_test_args_read (skipped : i32) : array_base table_test_row =
+    (;[ table_test_of (dropped skipped (env.command_line_arguments ())) ] : array table_test_row) |> am'.base
+
+///> rust
+:# register_flags_read_by_reflection =
+    := row = register_of [ "--test"; "paired"; "--runs"; "12"; "--metric"; "ms"; "--time"; "2h" ]
+    testing.expect (row.test = "paired" && row.runs = "12" && row.metric = "ms" && row.time = "2h") row.test
+    testing.expect (row.confidence = "0.95" && (register_of [ "--confidence"; "0.9" ]).confidence = "0.9") "default"
+    testing.expect ((register_of [ "--runs" ]).rejected = "option --runs has no value") "a value is required"
+    testing.expect ((register_of [ "--seed"; "1" ]).rejected = "unknown option --seed") "an unknown flag is refused"
+    := words = union_reflection.cases.union_cases_joined valued_word "|"
+    := expected = "--test|--runs|--arms|--group|--prediction|--metric|--decision|" ++# "--confidence|--question|--time"
+    testing.expect (words = expected) words
+
+///> rust
+:# import_words_read_their_own_flags_and_pass_the_rest_to_register =
+    := row = import_of [ "l"; "PR-2"; "--registered-at"; "2026-11-01"; "--test"; "paired"; "--evidence"; "e.md" ]
+    testing.expect (row.ledger = "l" && row.id = "PR-2" && row.registered_at = "2026-11-01") row.registered_at
+    testing.expect (row.evidence = "e.md" && row.plan.test = "paired" && row.rejected = "") row.plan.test
+
+///> rust
+:# table_test_words_take_the_table_and_every_where_and_pass_the_rest_to_register =
+    := row = table_test_of [ "t.tsv"; "--test"; "welch"; "--where"; "a=1"; "--metric"; "ms"; "--where"; "b>2" ]
+    testing.expect (row.table = "t.tsv" && row.wheres = "a=1\nb>2" && row.plan.test = "welch") row.wheres
+    testing.expect (row.plan.metric = "ms" && row.plan.confidence = "0.95" && row.rejected = "") row.plan.metric
+    testing.expect ((table_test_of [ "t.tsv"; "--where" ]).rejected = "option --where has no value") "a value"
+    testing.expect ((table_test_of [ "t.tsv"; "extra" ]).rejected = "unknown option extra") "one table only"
+///> _
+:= main () : i32 =
+    export "kit_experiment_register_args" register_args_read
+    export "kit_experiment_import_args" import_args_read
+    export "kit_experiment_table_test_args" table_test_args_read
+    0i32

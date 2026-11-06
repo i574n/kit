@@ -1,0 +1,40 @@
+///- --package .
+:# orphans static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:~ hold_orphaned (~id : string) : bool =
+    := home = sm'.trim (text_or_empty (job_file id "host-home"))
+    := host = decimal_u64 (text_or_empty (joined (joined (joined (jobs_root ()) "hosts") home) "pid"))
+    kit_process_alive.alive.home_abandoned (home, host)
+
+:~ orphan_settled (~id : string) : bool =
+    := record = job_record_of id
+    ?= job_state_of record ?|
+    | Settled (JobLost) ?& record.exit_text = "" =>
+        := supervisor = decimal_u64 (text_or_empty (job_file id "supervisor"))
+        := held = joined (joined (jobs_root ()) "held") id
+        := stop_ms = decimal_u64 (text_or_empty (job_file id "stop"))
+        := unattended = supervisor = 0u64 || process_alive supervisor = !-
+        ? stop_ms > 0u64 && stop_ms + 60000u64 < record.now_ms && unattended
+        ?>
+            := detail = "stop requested and no live supervisor or host acted on it within 60 s"
+            := _ = text_written (job_file id "exit") (exit_line 143i32 stop_ms JobStopped detail)
+            ? file_exists held ?> file_system.file_delete held |: ()
+            !+
+        |? file_exists held && hold_orphaned id
+        ?>
+            := detail = "held by a host whose owner session and host process are gone; it never started"
+            := _ = text_written (job_file id "exit") (exit_line 125i32 record.started_ms JobLost detail)
+            file_system.file_delete held
+            !+
+        |: !-
+    | _ => !-
+
+:= main () : i32 =
+    export "kit_job_orphan_settled" orphan_settled
+    0i32

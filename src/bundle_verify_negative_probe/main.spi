@@ -1,0 +1,7 @@
+:< bundle_verify_contract.model
+
+:= main () : i32 =
+    ?= verify_corrupt_fixture "/tmp/kit-bundle-verify-negative.zip" ?|
+    | BundleVerifyRejected _ => 0i32
+    | BundleVerifyAccepted _ => 1i32
+    | BundleVerifyFailed _ => 2i32

@@ -1,0 +1,5 @@
+:< idioms
+
+:= main () : i32 =
+    export "kit_lint_flow_idiom" ((\ line => idiom_of line <> None) : string -> bool)
+    0i32

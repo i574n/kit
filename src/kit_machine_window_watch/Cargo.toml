@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "windows.spi"
+output = "windows.rs"
+
+[package]
+name = "kit-machine-window-watch"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_machine_window_watch"
+path = "windows.rs"
+
+[dependencies]
+kit-job-control = { path = "../kit_job_control" }

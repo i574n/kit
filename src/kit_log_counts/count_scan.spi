@@ -1,0 +1,267 @@
+///- --package .
+:# count_scan static =
+    :< sm'_operators
+    :< kit_log_sections.section_scan
+
+:< sm'_operators
+:< kit_log_sections.section_scan
+
+:== count_column =
+    {
+        name : string
+        pattern : sm'.regex
+        scope : option sm'.regex
+        set : option string
+    }
+
+:== count_spec =
+    {
+        name : string
+        pattern : string
+        scope : string
+        set_path : string
+        set_pattern : string
+    }
+
+:== section_count =
+    {
+        section : string
+        header : bool
+        lines : u64
+        counts : list u64
+    }
+
+:== count_pass =
+    {
+        current : section_count
+        rows : list string
+        sections : u64
+    }
+
+:= unix_line (~line : string) : string = sm'.trim_end_suffix "\r" line
+
+:= set_split (~text : string) : string * string =
+    := offset = sm'.index_of_char_from 2i32 ':' text
+    := at = offset + 2i32
+    ? offset < 0i32
+    ?> text, ""
+    |: sm'.substring 0i32 at text, sm'.substring (at + 1i32) ((sm'.length text : i32) - at - 1i32) text
+
+:~ ^ set_values (lines : array string) (index : i32) (pattern : sm'.regex) (found : list string) : list string =
+    ? index >= am'.length lines
+    ?> found
+    |:
+        := value = group_in (unix_line (am'.index index lines)) pattern "value"
+        set_values lines (index + 1i32) pattern (? value = "" ?> found |: value :: found)
+
+:~ set_text_of (~text : string) (~pattern : string) : string =
+    := lines = sm'.split "\n" text |> array
+    := regex = compiled_pattern (? pattern = "" ?> "^(?<value>.+)$" |: pattern)
+    "\n" ++# sm'.concat_list "\n" (set_values lines 0i32 regex []) ++# "\n"
+
+:= in_set (~set : string) (~value : string) : bool = value <> "" && sm'.contains ("\n" ++# value ++# "\n") set
+
+:~ count_column_of (spec : count_spec) : count_column =
+    {
+        name = spec.name
+        pattern = compiled_pattern spec.pattern
+        scope = optional_pattern spec.scope
+        set = ? spec.set_path = "" ?> None |: Some (set_text_of (file_system.read_all_text spec.set_path) spec.set_pattern)
+    }
+
+:= pair_of (~text : string) : string * string =
+    := at = sm'.index_of "=" text
+    ? at < 0i32 ?> text, "" |: sm'.substring 0i32 at text, sm'.substring (at + 1i32) ((sm'.length text : i32) - at - 1i32) text
+
+:| count_flag =
+    | FlagCount
+    | FlagInSet
+    | FlagCountIn
+
+:= count_flag_word (flag : count_flag) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Flag" flag
+
+:~ ^ named_after (flag : count_flag) (~name : string) (words : list string) : string =
+    ?= words ?|
+    | (word :: value :: rest) =>
+        := key, found = pair_of value
+        ? word = count_flag_word flag && key = name ?> found |: named_after flag name (value :: rest)
+    | _ => ""
+
+:~ ^ specs_from (words : list string) (all : list string) : list count_spec =
+    ?= words ?|
+    | (word :: value :: rest) =>
+        ? word = count_flag_word FlagCount
+        ?>
+            := name, pattern = pair_of value
+            := set_path, set_pattern = set_split (named_after FlagInSet name all)
+            := spec =
+                {
+                    name = name
+                    pattern = pattern
+                    scope = named_after FlagCountIn name all
+                    set_path = set_path
+                    set_pattern = set_pattern
+                }
+            spec :: specs_from rest all
+        |: specs_from (value :: rest) all
+    | _ => []
+
+:~ command_specs () : list count_spec =
+    := words = ?= env.command_line_arguments () ?| | _ :: _ :: rest => rest | _ => []
+    specs_from words words
+
+:~ ^ missing_set (specs : list count_spec) : string =
+    ?= specs ?|
+    | spec :: rest =>
+        ? spec.set_path <> "" && (file_system.file_exists spec.set_path |> not) ?> spec.set_path |: missing_set rest
+    | [] => ""
+
+:~ matches_in (~line : string) (column : count_column) : u64 =
+    := scoped =
+        ?= column.scope ?|
+        | Some scope => group_in line scope "rest"
+        | None => line
+    := counted (total : u64) (captures : map.hash_map string string) : u64 =
+        ?= column.set ?|
+        | None => total + 1u64
+        | Some set => ? in_set set (optionm'.default_value' "" (map.get "value" captures)) ?> total + 1u64 |: total
+    ? scoped = "" ?> 0u64 |: sm'.regex_captures scoped column.pattern |> am'.vec_fold' counted 0u64
+
+:~ ^ counts_added (~line : string) (columns : list count_column) (counts : list u64) : list u64 =
+    ?= columns, counts ?|
+    | (column :: more), (count :: rest) => count + matches_in line column :: counts_added line more rest
+    | _ => []
+
+:= zero_counts (columns : list count_column) : list u64 = columns |> listm.map \ (_ : count_column) => 0u64
+
+:= count_row (current : section_count) : string =
+    csv.tsv_line (current.section :: listm.map (\ (count : u64) => sm'.format count) current.counts)
+
+:= closed (pass : count_pass) : count_pass =
+    ? pass.current.header || pass.current.lines > 0u64
+    ?> { pass ?| rows = count_row pass.current :: pass.rows; sections = pass.sections + 1u64 }
+    |: pass
+
+:~ ^ counted_from
+    (lines : array string) (index : i32) (section_on : option sm'.regex) (columns : list count_column)
+    (pass : count_pass)
+    : count_pass
+    =
+    ? index >= am'.length lines
+    ?> closed pass
+    |:
+        := line = unix_line (am'.index index lines)
+        := section =
+            ?= section_on ?|
+            | Some pattern => group_in line pattern "section"
+            | None => ""
+        := next =
+            ? section <> ""
+            ?>
+                := pass = closed pass
+                { pass ?| current = { section = section; header = !+; lines = 0u64; counts = zero_counts columns } }
+            |? line = ""
+            ?> pass
+            |:
+                := current = pass.current
+                := counts = counts_added line columns current.counts
+                { pass ?| current = { current ?| lines = current.lines + 1u64; counts = counts } }
+        counted_from lines (index + 1i32) section_on columns next
+
+:= file_label (~path : string) : string =
+    := parts = sm'.split "/" (sm'.replace "\\" "/" path) |> array
+    part (am'.length parts - 1i32) parts
+
+:~ counts_text (~log : string) (~label : string) (~section_on : string) (specs : list count_spec) : string * u64 =
+    := patterns = specs |> listm.map (\ (spec : count_spec) => count_column_of spec)
+    := lines = sm'.split "\n" log |> array
+    := start = { section = label; header = !-; lines = 0u64; counts = zero_counts patterns }
+    := pass =
+        counted_from lines 0i32 (optional_pattern section_on) patterns { current = start; rows = []; sections = 0u64 }
+    := table = pass.rows |> listm.rev |> listm.fold (\ text (row : string) => text ++# row ++# "\n") ""
+    table, pass.sections
+
+:~ counts_of_file (~path : string) (~section_on : string) (specs : list count_spec) : string * u64 =
+    counts_text (file_system.read_all_text path) (file_label path) section_on specs
+
+:~ counts_header (specs : list count_spec) : string =
+    csv.tsv_line ("section" :: listm.map (\ (spec : count_spec) => spec.name) specs)
+
+:= trace () : string =
+    "== run 1\r\nseen at 10,10: 20,20 30,30\r\nseen at 11,11: 40,40\r\nseen at 12,12:\r\n== run 2\r\n"
+    ^^ "seen at 50,50: 60,60\r\n== run 3\r\n"
+
+:= zone () : string = "10,10 protection-zone\n30,30 protection-zone\n40,40 protection-zone\n99,99 floor-up\n"
+
+:= count_expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust -d regex
+:# a_set_keeps_the_values_its_regex_captures =
+    := set = set_text_of (zone ()) "^(?<value>\\d+,\\d+) protection-zone$"
+    count_expect (in_set set "30,30") "a zone tile"
+    count_expect (in_set set "99,99" |> not) "another kind of tile"
+    count_expect (in_set set "0,30" |> not) "a value is matched whole, not as a suffix"
+    := column =
+        {
+            name = "monsters"
+            pattern = compiled_pattern " (?<value>\\d+,\\d+)"
+            scope = optional_pattern "seen at \\d+,\\d+:(?<rest>.*)$"
+            set = Some set
+        }
+    count_expect (matches_in "seen at 10,10: 20,20 30,30 40,40" column = 2u64) "every zone position after the prefix"
+    count_expect (set_split "C:\\maps\\zone.txt:^(?<value>x)$" = ("C:\\maps\\zone.txt", "^(?<value>x)$")) "drive letter"
+    count_expect (set_split "zone.txt" = ("zone.txt", "")) "no regex"
+
+:= spec_of (~name : string) (~pattern : string) (~scope : string) : count_spec =
+    { name = name; pattern = pattern; scope = scope; set_path = ""; set_pattern = "" }
+
+///> rust -d regex
+:# count_flags_become_specs =
+    := words =
+        [
+            "--count"
+            "monsters= (?<value>\\d+)"
+            "--out"
+            "x.tsv"
+            "--in-set"
+            "monsters=C:\\maps\\zone.txt:^(?<value>\\d+)$"
+            "--count"
+            "samples=seen"
+            "--count-in"
+            "monsters=^seen(?<rest>.*)$"
+        ]
+    ?= specs_from words words ?|
+    | (monsters :: samples :: []) =>
+        count_expect (monsters.name = "monsters" && monsters.pattern = " (?<value>\\d+)") "first --count"
+        count_expect (monsters.scope = "^seen(?<rest>.*)$") "its --count-in, given after it"
+        count_expect (monsters.set_path = "C:\\maps\\zone.txt" && monsters.set_pattern = "^(?<value>\\d+)$") "its --in-set"
+        count_expect (samples.name = "samples" && samples.scope = "" && samples.set_path = "") "second --count"
+    | _ => failwith "two specs"
+    := plain = spec_of "a" "x" ""
+    := lost = { plain ?| set_path = "C:\\no\\such\\set.txt" }
+    count_expect (missing_set [ plain; lost ] = "C:\\no\\such\\set.txt") "a missing set file"
+    count_expect (missing_set [ plain ] = "") "no set file named"
+
+///> rust -d regex
+:# counts_per_section_with_scopes_and_no_set =
+    := specs =
+        [
+            spec_of "samples" "seen at " ""
+            spec_of "knight" "seen at (?<value>\\d+,\\d+):" ""
+            spec_of "monsters" " (?<value>\\d+,\\d+)" "seen at \\d+,\\d+:(?<rest>.*)$"
+        ]
+    count_expect (counts_header specs = csv.tsv_line [ "section"; "samples"; "knight"; "monsters" ]) (counts_header specs)
+    := text, sections = counts_text (trace ()) "trace.log" "^== (?<section>.*)$" specs
+    := rows = [ csv.tsv_line [ "run 1"; "3"; "3"; "3" ]; csv.tsv_line [ "run 2"; "1"; "1"; "1" ]; csv.tsv_line [ "run 3"; "0"; "0"; "0" ] ]
+    count_expect (text = sm'.concat_list "" (listm.map (\ (row : string) => row ++# "\n") rows)) text
+    count_expect (sections = 3u64) "three sections"
+
+///> rust -d regex
+:# a_file_without_headers_is_one_section_named_by_the_file =
+    := log = "seen at 1,1: 2,2\nseen at 3,3:\n"
+    := text, sections = counts_text log "live-hunter.log" "^== (?<section>.*)$" [ spec_of "samples" "seen at " "" ]
+    count_expect (text = csv.tsv_line [ "live-hunter.log"; "2" ] ++# "\n") text
+    count_expect (sections = 1u64) "one section"
+    count_expect (file_label "C:\\logs\\live-hunter.log" = "live-hunter.log") "windows path"
+    count_expect (file_label "logs/a.log" = "a.log") "slash path"

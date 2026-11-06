@@ -1,0 +1,78 @@
+///- --package .
+:# hook static =
+    :< sm'_operators
+    :< kit_hook_rules.rules
+
+:< sm'_operators
+:< kit_hook_rules.rules
+
+:~ ^ flag_value (words : list string) (~flag : string) : string =
+    ?= words ?|
+    | name :: value :: _ ?& name = flag => value
+    | _ :: rest => flag_value rest flag
+    | [] => ""
+
+:~ comma_list (~text : string) : list string =
+    sm'.split_list "," text |> listm.map sm'.trim |> listm'.filter (\ (w : string) => w <> "")
+
+:~ policy_of (words : list string) : hook_policy =
+    {
+        repos_root = flag_value words "--repos-root"
+        closed_roots = comma_list (flag_value words "--closed-root")
+        refused_extensions = comma_list (flag_value words "--refuse")
+        advised_extensions = comma_list (flag_value words "--advise")
+    }
+
+:~ pre_output (v : verdict) : string =
+    := head = "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\","
+    ?= v ?|
+    | Allow => ""
+    | Deny reason =>
+        := decision = "\"permissionDecision\":\"deny\",\"permissionDecisionReason\":"
+        head ++# decision ++# json.quote reason ++# "}}"
+    | Advise text => head ++# "\"additionalContext\":" ++# json.quote text ++# "}}"
+
+:~ pre_text (words : list string) (~tool : string) (~path : string) (present : bool) : string =
+    ? path = "" ?> "" |: pre_output (pre_verdict (policy_of words) tool path present)
+
+:~ pre_answered (words : list string) (~payload_text : string) : string =
+    := payload = kit_os_json.json.parsed payload_text
+    := tool = kit_os_json.json.text_at payload "/tool_name"
+    := file = kit_os_json.json.text_at payload "/tool_input/file_path"
+    := path = ? file = "" ?> kit_os_json.json.text_at payload "/tool_input/notebook_path" |: file
+    pre_text words tool path (file_system.file_exists path)
+
+:~ writes_answered (~payload_text : string) : string =
+    := command = kit_os_json.json.text_at (kit_os_json.json.parsed payload_text) "/tool_input/command"
+    "kit hook " ++# kit_hook_verbs.lease_verbs.sign_line command
+
+:~ hook_usage () : i32 =
+    console.write_error_line "usage: kit hook pre [--repos-root d] [--closed-root d,..] [--refuse .x,..] [--advise .x]"
+    console.write_error_line "       kit hook writes   (reads a Bash/PowerShell hook payload; prints writes=yes|no)"
+    2i32
+
+:~ hook_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: event :: words ?& event = "pre" =>
+        := text = pre_answered words (console.read_to_end ())
+        := _ = ? text = "" ?> () |: console.write_line text
+        0i32
+    | _ :: event :: _ ?& event = "writes" =>
+        console.write_line (writes_answered (console.read_to_end ()))
+        0i32
+    | _ => hook_usage ()
+
+///> rust
+:# a_hook_payload_becomes_one_verdict_line =
+    := words = [ "--repos-root"; "D:/r"; "--closed-root"; "D:/s"; "--refuse"; ".py"; "--advise"; ".tsv,.csv" ]
+    := p = policy_of words
+    testing.expect (p.repos_root = "D:/r" && p.closed_roots = [ "D:/s" ]) "roots"
+    testing.expect (p.advised_extensions = [ ".tsv"; ".csv" ] && p.refused_extensions = [ ".py" ]) "extensions"
+    := denied = pre_text words "Edit" "D:/r/x/docs/backlog/state/agile.spi" !+
+    testing.expect (sm'.contains "\"permissionDecision\":\"deny\"" denied) denied
+    testing.expect (pre_text words "Edit" "D:/r/x/src/a.spi" !+ = "") "an ordinary edit prints nothing"
+    testing.expect (pre_text words "Edit" "" !- = "") "no path allows"
+///> _
+:= main () : i32 =
+    export "kit_hook_run" hook_run
+    0i32

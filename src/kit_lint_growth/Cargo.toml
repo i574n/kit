@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "growth.spi"
+output = "growth.rs"
+
+[package]
+name = "kit-lint-growth"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_lint_growth"
+path = "growth.rs"

@@ -1,0 +1,68 @@
+:< rust_std_env.model
+
+:= accept (~checkpoint : i32) (~event : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_plan_accept(!checkpoint, !event)' : i32
+
+:= advance (~checkpoint : i32) (~event : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_plan_advance(!checkpoint, !event)' : i32
+
+:= row_policy (~required : i32) (~policy : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_row_policy(!required, !policy)' : i32
+
+:= dependency (~has_dependency : i32) (~dependency_passed : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_dependency(!has_dependency, !dependency_passed)' : i32
+
+:= observed (~required : i32) (~exit_code : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_observed_accept(!required, !exit_code)' : i32
+
+:= resume (~accepted : i32) (~policy : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_resume_action(!accepted, !policy)' : i32
+
+:= workspace_policy (~program_requested : i32) (~nested_manifest : i32) : i32 =
+    $'process_batch_plan_domain::kit_batch_matrix_workspace_policy(!program_requested, !nested_manifest)' : i32
+
+:= main () : i32 =
+    := spawn = advance 0i32 0i32
+    := run = advance spawn 1i32
+    := link = advance run 2i32
+    := complete = advance link 4i32
+    := row_pass = row_policy 0i32 0i32
+    := row_block = row_policy 1i32 1i32
+    := dep_root = dependency 0i32 0i32
+    := dep_pass = dependency 1i32 1i32
+    := accept_pass = observed 0i32 0i32
+    := accept_block = observed 1i32 1i32
+    := resume_skip = resume 1i32 0i32
+    := cargo_nested = workspace_policy 2i32 1i32
+    := cargo_root = workspace_policy 3i32 1i32
+    := noncargo_nested = workspace_policy 0i32 1i32
+    := invalid_workspace = workspace_policy 4i32 1i32
+    ? spawn = 1i32 ?>
+        ? run = 2i32 ?>
+            ? link = 3i32 ?>
+                ? complete = 5i32 ?>
+                    ? row_pass = 1i32 ?>
+                        ? row_block = 1i32 ?>
+                            ? dep_root = 1i32 ?>
+                                ? dep_pass = 1i32 ?>
+                                    ? accept_pass = 1i32 ?>
+                                        ? accept_block = 1i32 ?>
+                                            ? resume_skip = 0i32 ?>
+                                                ? cargo_nested = 1i32 ?>
+                                                    ? cargo_root = 0i32 ?>
+                                                        ? noncargo_nested = 0i32 ?>
+                                                            ? invalid_workspace < 0i32 ?> 0i32 |: 1i32
+                                                        |: 1i32
+                                                    |: 1i32
+                                                |: 1i32
+                                            |: 1i32
+                                        |: 1i32
+                                    |: 1i32
+                                |: 1i32
+                            |: 1i32
+                        |: 1i32
+                    |: 1i32
+                |: 1i32
+            |: 1i32
+        |: 1i32
+    |: 1i32

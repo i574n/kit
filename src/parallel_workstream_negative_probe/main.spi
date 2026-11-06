@@ -1,0 +1,39 @@
+:< parallel_workstream_contract.model
+
+:= main () : i32 =
+    := concurrency = workstream_concurrency_binding 3i32 133i32 133i32 45i32
+    := completion = workstream_completion_binding 3i32 3i32 1i32 1i32 1i32 3i32
+    := merge_authorized = workstream_merge_authorization_binding 3i32 1i32 1i32 1i32 3i32 1i32 1i32 1i32
+    := cancel_unsafe = workstream_cancel_before_promotion_binding 1i32 2i32 1i32 2i32 1i32 0i32 2i32
+    := canonical_unsafe = workstream_cancel_before_promotion_binding 1i32 2i32 1i32 2i32 0i32 1i32 2i32
+    := negative_guard =
+        ? concurrency = 0i32 ?>
+            ? completion = 1i32 ?>
+                ? merge_authorized = 0i32 ?>
+                    ? cancel_unsafe = 0i32 ?>
+                        ? canonical_unsafe = 0i32 ?> 0i32 |: 1i32
+                    |: 1i32
+                |: 1i32
+            |: 1i32
+        |: 1i32
+    ?= workstream_receipt_binding negative_guard 1i32 0i32 1i32 ?|
+    | 0 =>
+        ?= workstream_parallel_binding 1i32 56i32 3i32 3i32 ?|
+        | 0 =>
+            ?= workstream_merge_binding 2i32 3i32 1i32 1i32 1i32 ?|
+            | 0 =>
+                ?= workstream_merge_binding 3i32 3i32 0i32 1i32 1i32 ?|
+                | 0 =>
+                    ?= workstream_merge_binding 3i32 3i32 1i32 0i32 1i32 ?|
+                    | 0 =>
+                        ?= workstream_failure_binding 2i32 1i32 0i32 1i32 ?|
+                        | 0 =>
+                            ?= workstream_failure_binding 2i32 1i32 0i32 0i32 ?|
+                            | 1 => 0i32
+                            | _ => 7i32
+                        | _ => 6i32
+                    | _ => 5i32
+                | _ => 4i32
+            | _ => 3i32
+        | _ => 2i32
+    | _ => 1i32

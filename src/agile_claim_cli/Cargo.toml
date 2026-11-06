@@ -1,0 +1,25 @@
+[package.metadata.spiral]
+entry = "cli.spi"
+output = "cli.rs"
+
+[package]
+name = "agile-claim-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "agile_claim_cli"
+path = "cli.rs"
+
+[dependencies]
+agile-claim-rank = { path = "../agile_claim_rank" }
+agile-claim-item = { path = "../agile_claim_item" }
+agile-claim-store = { path = "../agile_claim_store" }
+agile-claim-queue = { path = "../agile_claim_queue" }
+agile-claim-lease = { path = "../agile_claim_lease" }
+agile-claim-release = { path = "../agile_claim_release" }
+agile-claim-listing = { path = "../agile_claim_listing" }
+agile-claim-request = { path = "../agile_claim_request" }
+agile-team-lane = { path = "../agile_team_lane" }

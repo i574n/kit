@@ -1,0 +1,139 @@
+:< sm'_operators
+:< kit_machine_watch_model.model
+:< kit_machine_watch.host
+:< kit_os_machine.metrics
+
+:== health_tally =
+    {
+        lines : list string
+        tools : u64
+        healthy : u64
+        unowned : u64
+        dangling : u64
+        leftover : u64
+        hogs : u64
+    }
+
+:= decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert (sm'.trim text))
+
+:~ ^ value_in (words : list string) (~flag : string) : string =
+    ?= words ?|
+    | [] => ""
+    | word :: rest =>
+        ? word = flag
+        ?>
+            ?= rest ?|
+            | value :: _ => value
+            | [] => ""
+        |: value_in rest flag
+
+:= history_row (tally : health_tally) (stalled : u64) : string =
+    csv.tsv_line [
+        sm'.decimal_text tally.tools
+        sm'.decimal_text tally.healthy
+        sm'.decimal_text tally.unowned
+        sm'.decimal_text tally.dangling
+        sm'.decimal_text tally.leftover
+        sm'.decimal_text tally.hogs
+        sm'.decimal_text stalled
+    ]
+
+:= counted (tally : health_tally) (verdict : health_verdict) : health_tally =
+    ?= verdict ?|
+    | Healthy => { tally ?| tools = tally.tools + 1u64; healthy = tally.healthy + 1u64 }
+    | Unowned => { tally ?| tools = tally.tools + 1u64; unowned = tally.unowned + 1u64 }
+    | Dangling => { tally ?| tools = tally.tools + 1u64; dangling = tally.dangling + 1u64 }
+    | Leftover => { tally ?| tools = tally.tools + 1u64; leftover = tally.leftover + 1u64 }
+    | Hog => { tally ?| tools = tally.tools + 1u64; hogs = tally.hogs + 1u64 }
+
+:= health_line (~rows : process_rows) (at : i32) (owner : process_owner) (verdict : health_verdict) : string =
+    "  " ++# sm'.decimal_text (row_pid rows at) ++# "  " ++# row_name rows at
+    ++# "  " ++# cores_text (row_cores rows at)
+    ++# " cores  " ++# sm'.decimal_text (row_megabytes rows at) ++# " MB  " ++# sm'.decimal_text (row_age rows at)
+    ++# " min  " ++# owner_text owner ++# "  " ++# health_text verdict
+
+:~ ^ tallied
+    (limits : watch_limits) (~rows : process_rows) (all : bool) (at : i32) (tally : health_tally)
+    : health_tally
+    =
+    ? at >= row_count rows
+    ?> tally
+    |:
+        := owner = owner_of rows at
+        ?= owner ?|
+        | NotATool => tallied limits rows all (at + 1i32) tally
+        | _ =>
+            := verdict = health_of limits owner (row_megabytes rows at) (row_cores rows at) (row_age rows at)
+            := shown =
+                ?= verdict ?|
+                | Healthy => all
+                | Unowned => all
+                | _ => !+
+            := tally = counted tally verdict
+            := tally = ? shown ?> { tally ?| lines = health_line rows at owner verdict :: tally.lines } |: tally
+            tallied limits rows all (at + 1i32) tally
+
+:= flag_given (~flag : string) : bool =
+    env.command_line_arguments () |> listm'.exists' (\ (word : string) => word = flag)
+
+:~ health_pass (sample_ms : u64) (all : bool) : bool =
+    := rows = process_rows_sampled sample_ms
+    := empty =
+        { lines = []; tools = 0u64; healthy = 0u64; unowned = 0u64; dangling = 0u64; leftover = 0u64; hogs = 0u64 }
+    := tally = tallied (default_limits ()) rows all 0i32 empty
+    tally.lines |> listm.rev |> listm.iter console.write_line
+    := stalled = stalled_jobs_listed ()
+    := _ = ? stalled = "" ?> () |: console.write_line stalled
+    := stalled_count : u64 = ? stalled = "" ?> 0u64 |: conv (am'.length (sm'.split "\n" stalled |> array))
+    := history = history_written (history_row tally stalled_count)
+    := failing = tally.dangling + tally.leftover > 0u64
+    console.write_line (
+        "kit machine health " ++# (? failing ?> "failed" |: "ok") ++# " tools=" ++# sm'.decimal_text tally.tools
+        ++# " ok=" ++# sm'.decimal_text tally.healthy ++# " unowned=" ++# sm'.decimal_text tally.unowned
+        ++# " dangling=" ++# sm'.decimal_text tally.dangling
+        ++# " leftover=" ++# sm'.decimal_text tally.leftover ++# " hogs=" ++# sm'.decimal_text tally.hogs
+        ++# " stalled=" ++# sm'.decimal_text stalled_count ++# " history=" ++# history
+    )
+    failing
+
+:~ ^ health_passes (sample_ms : u64) (all : bool) (left : u64) (failing : bool) : bool =
+    ? left = 0u64 ?> failing |: health_passes sample_ms all (left - 1u64) (health_pass sample_ms all)
+
+:~ ^ cores_sum (~rows : process_rows) (at : i32) (acc : f64) : f64 =
+    ? at >= row_count rows ?> acc |: cores_sum rows (at + 1i32) (acc + row_cores rows at)
+
+:~ gate_run () : i32 =
+    := words = env.command_line_arguments ()
+    := min_disk = decimal_of (value_in words "--min-disk-gb")
+    := min_ram = decimal_of (value_in words "--min-free-mb")
+    := max_busy = decimal_of (value_in words "--max-busy-pct")
+    := mount_arg = value_in words "--mount"
+    := mount = ? mount_arg <> "" ?> mount_arg |? is_windows () ?> "C:\\" |: "/"
+    := disk = disk_free_gb mount
+    := ram = free_megabytes ()
+    := rows = process_rows_sampled 2000u64
+    := cpusf : f64 = conv (logical_cpus ())
+    := busy : u64 = conv (cores_sum rows 0i32 0.0f64 / cpusf * 100.0f64)
+    := ok = disk >= min_disk && ram >= min_ram && busy < max_busy
+    := reason =
+        ? disk < min_disk ?> "disk-" ++# sm'.decimal_text disk ++# "gb<" ++# sm'.decimal_text min_disk
+        |? ram < min_ram ?> "ram-" ++# sm'.decimal_text ram ++# "mb<" ++# sm'.decimal_text min_ram
+        |? busy >= max_busy ?> "busy-" ++# sm'.decimal_text busy ++# "pct>=" ++# sm'.decimal_text max_busy
+        |: "ok"
+    console.write_line ("kit machine health gate=" ++# (? ok ?> "ok" |: "refused") ++# " reason=" ++# reason ++# " disk=" ++# sm'.decimal_text disk ++# "gb ram=" ++# sm'.decimal_text ram ++# "mb busy=" ++# sm'.decimal_text busy ++# "pct")
+    ? ok ?> 0i32 |: 1i32
+
+:~ health_normal_run () : i32 =
+    := words = env.command_line_arguments ()
+    := every = decimal_of (value_in words "--every")
+    := times = decimal_of (value_in words "--times")
+    := sample_ms = ? every = 0u64 ?> 3000u64 |: every * 1000u64
+    := passes = ? every = 0u64 ?> 1u64 |? times = 0u64 ?> 1u64 |: times
+    ? health_passes sample_ms (flag_given "--all") passes !- ?> 1i32 |: 0i32
+
+:~ health_run () : i32 =
+    ? flag_given "--gate" ?> gate_run () |: health_normal_run ()
+
+:= main () : i32 =
+    export "kit_machine_health_run" ((\ () => health_run ()) : () -> i32)
+    0i32

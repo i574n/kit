@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "walk.spi"
+output = "walk.rs"
+
+[package]
+name = "kit-crate-walk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_crate_walk"
+path = "walk.rs"
+
+[dependencies]
+kit-crate-largest = { path = "../kit_crate_largest" }

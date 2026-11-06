@@ -1,0 +1,52 @@
+///- --package .
+:# grammar static =
+    :< sm'_operators
+    :< host
+    :< kit_do_records.records
+
+:< sm'_operators
+:< host
+:< kit_do_records.records
+
+:| lab_step =
+    | LabAudit : string * string
+    | Blank
+
+:| lab_parse =
+    | LabParsed : lab_step
+    | LabRejected : string
+
+:~ lab_parsed (~records : record_list) (~record : i32) : lab_parse =
+    := kind = field_at records record 0i32
+    := against_at = field_index records record "against"
+    := folder = body_at records record 3i32
+    ? kind = ""
+    ?> LabParsed Blank
+    |? kind <> "query" || field_at records record 1i32 <> "lab"
+    ?> LabRejected ((field_at records record 1i32) ++# " cannot share one program with lab yet; run it as its own call")
+    |? body_at records record 2i32 <> "audit"
+    ?> LabRejected "lab: expected lab audit <folder> against <backlog>"
+    |? folder = "" || folder = "against"
+    ?> LabRejected "lab audit: expected the lab folder"
+    |? against_at < 0i32 || body_at records record (against_at + 1i32) = ""
+    ?> LabRejected "lab audit: expected against <backlog root>"
+    |: LabParsed (LabAudit (folder, body_at records record (against_at + 1i32)))
+
+
+:= rejection_at (~records : record_list) (~record : i32) : string =
+    ?= lab_parsed records record ?|
+    | LabRejected message => message
+    | LabParsed _ => ""
+
+///> rust
+:# lab_statements_name_a_folder_and_a_backlog =
+    ?= lab_parsed (records_from_bars "ok\nquery|lab|waudit|wlab|wagainst|wbacklog") 1i32 ?|
+    | LabParsed (LabAudit (folder, backlog)) => testing.expect (folder = "lab" && backlog = "backlog") "audit parts"
+    | _ => testing.expect !- "audit"
+    := records = records_from_bars "ok\nquery|lab|waudit|wlab\nquery|lab|wlist|wlab\nquery|hash|wa"
+    testing.expect (rejection_at records 1i32 = "lab audit: expected against <backlog root>") "audit without a backlog"
+    testing.expect (rejection_at records 2i32 = "lab: expected lab audit <folder> against <backlog>") "unknown action"
+    testing.expect
+        (rejection_at records 3i32 = "hash cannot share one program with lab yet; run it as its own call")
+        "foreign family"
+    testing.expect (item_id_of "convo-in-spiral" = "CONVO-IN-SPIRAL") "folder names become ids"

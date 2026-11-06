@@ -1,0 +1,18 @@
+:< flat_bundle_contract.model
+
+:= one_is (value : i32) : bool =
+    ? value < 1i32 ?> !-
+    |? 1i32 < value ?> !-
+    |: !+
+
+:= main () : i32 =
+    := _ = policy_plan ()
+    ? one_is (preflight_binding 1i32 1i32) ?>
+        ? one_is (manifest_binding 1i32 1i32) ?>
+            ? one_is (size_binding 1i32 1i32) ?>
+                ? one_is (compression_binding 1i32 1i32) ?>
+                    ? one_is (complete_binding 1i32 1i32) ?> 0i32 |: 5i32
+                |: 4i32
+            |: 3i32
+        |: 2i32
+    |: 1i32

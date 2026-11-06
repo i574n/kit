@@ -1,0 +1,97 @@
+///- --package .
+:# precheck static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| precheck_finding =
+    | WidthOver : string * i32 * i32
+    | OpenString : string * i32
+    | ReservedOutput : string * string
+
+:~ finding_line (finding : precheck_finding) : string =
+    ?= finding ?|
+    | ReservedOutput (file, name) =>
+        := why = " is a name Cargo reserves in a crate root (build.rs = build script); rename the module"
+        file ++# ": output " ++# name ++# why
+    | WidthOver (file, row, width) =>
+        file ++# ":" ++# sm'.show row ++# ": width " ++# sm'.show width ++# " > 120"
+    | OpenString (file, row) =>
+        file ++# ":" ++# sm'.show row ++# ": a string literal is left open at the line end (a broken \\n or \\\"?)"
+
+:~ host_line (~line : string) : bool =
+    := mark = "$"
+    sm'.contains (mark ++# "'") line || sm'.contains (mark ++# "\"") line || sm'.ends_with "\\" (sm'.trim line)
+
+:~ ^ quotes_from (chars : list char) (escaped : bool) (count : i32) : i32 =
+    ?= chars ?|
+    | [] => count
+    | c :: rest =>
+        ? escaped ?> quotes_from rest !- count
+        |? c = '\\' ?> quotes_from rest !+ count
+        |? c = '"' ?> quotes_from rest !- (count + 1i32)
+        |: quotes_from rest !- count
+
+:~ open_string (~line : string) : bool =
+    := bare = sm'.replace "'\"'" "" line
+    (quotes_from (sm'.to_char_list bare) !- 0i32) % 2i32 = 1i32
+
+:~ file_findings (~file : string) (~text : string) : list precheck_finding =
+    := lines = sm'.split_list "\n" (sm'.replace "\r" "" text)
+    := checked = \ ((acc, row, after_host) : list precheck_finding * i32 * bool) (line : string) =>
+        := width : i32 = sm'.length line
+        := wide = ? width > 120i32 ?> [ WidthOver (file, row, width) ] |: []
+        := skip = after_host || host_line line || sm'.starts_with "///" (sm'.trim line)
+        := opened = ? skip |> not && open_string line ?> [ OpenString (file, row) ] |: []
+        listm.append acc (listm.append wide opened), row + 1i32, sm'.ends_with "\\" (sm'.trim line)
+    := found, _, _ = lines |> listm.fold checked ([], 1i32, !-)
+    found
+
+:~ manifest_findings (~file : string) (~text : string) : list precheck_finding =
+    := reserved = [ "build.rs"; "main.rs"; "lib.rs" ]
+    := named = \ (name : string) => sm'.contains ("output = \"" ++# name ++# "\"") text
+    reserved |> listm'.filter named |> listm.map (\ (name : string) => ReservedOutput (file, name))
+
+:~ path_findings (~file : string) : list precheck_finding =
+    := text = file_system.read_text_or_empty file
+    ? sm'.ends_with "Cargo.toml" file ?> manifest_findings file text |: file_findings file text
+
+:~ precheck_run (paths : array_base string) : i32 =
+    := files = am'.to_list_base' paths |> listm'.unbox
+    := findings = files |> listm.fold (\ acc (file : string) => listm.append acc (path_findings file)) []
+    findings |> listm.iter (\ (f : precheck_finding) => console.write_line (finding_line f))
+    := count : i32 = listm.length findings
+    := files_count : i32 = listm.length files
+    ? count = 0i32
+    ?>
+        console.write_line ("kit lint precheck ok files=" ++# sm'.show files_count ++# " findings=0")
+        0i32
+    |:
+        := totals = "files=" ++# sm'.show files_count ++# " findings=" ++# sm'.show count
+        console.write_line ("kit lint precheck refused: " ++# totals)
+        1i32
+
+///> rust
+:# precheck_flags_wide_lines_and_strings_left_open =
+    := good = ":= a () : string = \"x \\\"quoted\\\" y\"\n:= b () : char = '\"'\n"
+    testing.expect (file_findings "g.spi" good = []) "escaped quotes and a quote char are fine"
+    := broken = ":= c () : string = sm'.split_list \"\n\" text\n"
+    := split = [ OpenString ("b.spi", 1i32); OpenString ("b.spi", 2i32) ]
+    testing.expect (file_findings "b.spi" broken = split) "a string split across two lines"
+    := host = ":= h () : string = " ++# "$" ++# "'format\\!(\"{}\", 1)' : string\n"
+    testing.expect (file_findings "h.spi" host = []) "host macro lines are skipped"
+    := ten = "xxxxxxxxxx"
+    := sixty = ten ++# ten ++# ten ++# ten ++# ten ++# ten
+    := wide = ":= w () : string = \"" ++# sixty ++# sixty ++# "\"\n"
+    testing.expect (file_findings "w.spi" wide = [ WidthOver ("w.spi", 1i32, 141i32) ]) "a line over 120"
+
+///> rust
+:# a_crate_output_named_like_a_cargo_file_is_refused =
+    := manifest = "[package.metadata.spiral]\nentry = \"build.spi\"\noutput = \"build.rs\"\n"
+    := expected = [ ReservedOutput ("a/Cargo.toml", "build.rs") ]
+    testing.expect (manifest_findings "a/Cargo.toml" manifest = expected) "build.rs"
+    testing.expect (manifest_findings "b/Cargo.toml" "output = \"builder.rs\"" = []) "builder.rs is fine"
+///> _
+:= main () : i32 =
+    export "kit_lint_precheck_run" precheck_run
+    0i32

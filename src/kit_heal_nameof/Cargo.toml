@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "heal.spi"
+output = "heal.rs"
+
+[package]
+name = "kit-heal-nameof"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_heal_nameof"
+path = "heal.rs"
+
+[dependencies]
+kit-nameof-findings = { path = "../kit_nameof_findings" }

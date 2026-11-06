@@ -1,0 +1,80 @@
+///- --package .
+:# spelling static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| head_word =
+    | HeadInl
+    | HeadUnion
+    | HeadOpen
+    | HeadType
+
+:= keyword_of (word : head_word) : string =
+    ?= word ?|
+    | HeadInl => "inl "
+    | HeadUnion => "union "
+    | HeadOpen => "open "
+    | HeadType => "type "
+
+:= symbol_of (word : head_word) : string =
+    ?= word ?|
+    | HeadInl => ":= "
+    | HeadUnion => ":| "
+    | HeadOpen => ":< "
+    | HeadType => ":== "
+
+:| row_head =
+    | KeywordHead : head_word
+    | SymbolHead : head_word
+    | OtherLine
+
+:= head_words () : list head_word = [ HeadType; HeadInl; HeadUnion; HeadOpen ]
+
+:= row_head_of (line : string) : row_head =
+    head_words ()
+    |> listm.fold
+        \ found (word : head_word) =>
+            ?= found ?|
+            | OtherLine =>
+                ? sm'.starts_with (keyword_of word) line ?> KeywordHead word
+                |? sm'.starts_with (symbol_of word) line ?> SymbolHead word
+                |: OtherLine
+            | _ => found
+        OtherLine
+
+:= state_lines (text : string) : list string = sm'.split_list "\n" (sm'.replace "\r" "" text)
+
+:= respelled_rows (text : string) : i32 =
+    state_lines text
+    |> listm.fold
+        \ total (line : string) =>
+            ?= row_head_of line ?|
+            | SymbolHead _ => total + 1i32
+            | _ => total
+        0i32
+
+:= unspelled_line (line : string) : string =
+    ?= row_head_of line ?|
+    | SymbolHead word =>
+        := cut = (sm'.length (symbol_of word) : i32)
+        keyword_of word ++# sm'.substring cut ((sm'.length line : i32) - cut) line
+    | _ => line
+
+:= unspelled (text : string) : string = state_lines text |> listm.map unspelled_line |> sm'.concat_list "\n"
+
+///> rust
+:# a_respelled_state_is_counted_and_restored =
+    := note = " note_of_a_1 () = Note (\"A\", \":= x\")\n"
+    := original = "///- --no-respell\nunion status =\n    | Done :: status\ninl" ++# note
+    := respelled = "///- --no-respell\n:| status =\n    | Done :: status\n:=" ++# note
+    testing.expect (respelled_rows original = 0i32) "a keyword-spelled state has no respelled rows"
+    testing.expect (respelled_rows respelled = 2i32) "both symbol heads are counted"
+    testing.expect (unspelled respelled = original) "unspell restores the keyword heads and nothing else"
+    testing.expect (unspelled original = original) "unspell leaves a keyword-spelled state byte-identical"
+
+///> rust
+:# only_column_zero_heads_are_rows =
+    testing.expect (row_head_of ":== task = { id : string }" = SymbolHead HeadType) "type is matched before inl"
+    testing.expect (row_head_of "    := not_a_row" = OtherLine) "an indented symbol is not a row head"
+    testing.expect (row_head_of ":< agile" = SymbolHead HeadOpen) "a segment's open line is a head"

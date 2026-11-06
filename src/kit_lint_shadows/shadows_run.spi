@@ -1,0 +1,108 @@
+///- --package .
+:# shadows_run static =
+    :< sm'_operators
+
+:< sm'_operators
+:< file_system_operators
+
+:== shadow = kit_lint_shadows_core.shadows.shadow
+
+:= kind_name (s : shadow) : string = kit_lint_shadows_core.shadows.kind_name s.kind
+
+:~ scan_of (~text : string) : array string * array i32 * array i32 * array i32 =
+    $'kit_lint_shadows_core::kit_lint_shadows_scan(&*!text)' : array string * array i32 * array i32 * array i32
+
+:~ scanned_shadows (~text : string) : list shadow =
+    := names, firsts, seconds, kinds = scan_of text
+    := count = am'.length names : i32
+    :~ ^ walk (index : i32) (found : list shadow) : list shadow =
+        ? index < 0i32 ?> found
+        |:
+            := kind = kit_lint_shadows_core.shadows.kind_of_code (am'.index index kinds)
+            := name, first, second = am'.index index names, am'.index index firsts, am'.index index seconds
+            := s = { name; first; second; kind }
+            walk (index - 1i32) (s :: found)
+    walk (count - 1i32) []
+:= shadow_row (file : string) (s : shadow) : string =
+    file ++# ":" ++# sm'.obj_to_string s.second ++# "  " ++# s.name ++# "  " ++# kind_name s
+    ++# "  first at line " ++# sm'.obj_to_string s.first
+
+:~ known_in (~baseline : string) (file : string) (s : shadow) : bool =
+    sm'.split_list "\n" baseline
+    |> listm'.exists'
+        \ (row : string) =>
+            sm'.starts_with (file ++# ":") row && sm'.contains ("  " ++# s.name ++# "  ") row
+            && sm'.contains (kind_name s) row
+
+:~ open_rows
+    (~root : string) (~lib : string) (~path : string) (~file : string) (~text : string) (~baseline : string)
+    : list string * i32 * i32
+    =
+    := rows, total, fresh =
+        $'kit_lint_opens::kit_lint_open_rows(&*!root, &*!lib, &*!path, &*!file, &*!text, \
+            &*!baseline)' : array string * i32 * i32
+    :~ ^ listed (index : i32) (found : list string) : list string =
+        ? index < 0i32 ?> found |: listed (index - 1i32) (am'.index index rows :: found)
+    listed (am'.length rows - 1i32) [], total, fresh
+
+:== shadows_tally = { files : i32; shadows : i32; fresh : i32 }
+
+:= tally_text (t : shadows_tally) : string =
+    (? t.fresh = 0i32 ?> "ok" |: "failed") ++# "  files " ++# sm'.obj_to_string t.files ++# "  shadows "
+    ++# sm'.obj_to_string t.shadows ++# "  new " ++# sm'.obj_to_string t.fresh
+
+:~ shadows_report
+    (~root : string) (paths : list string) (~baseline : string) (opens : bool) (~lib : string)
+    : list string * shadows_tally
+    =
+    := starts = ?= paths ?| | [] => [ root ] | _ => paths |> listm.map (\ (path : string) => root </> path)
+    := named = starts |> listm'.filter \ (path : string) => file_system.file_exists path
+    := dirs = starts |> listm'.filter \ (path : string) => file_system.file_exists path |> not
+    := files = listm.append named (kit_lint_walk.walk.spi_files dirs [])
+    := rows, total, fresh =
+        files
+        |> listm.fold
+            \ (rows, total, fresh) (path : string) =>
+                := file = kit_lint_walk.walk.relative_to root path
+                := text = file_system.read_all_text path
+                := found = scanned_shadows text
+                := unknown = found |> listm'.filter \ (s : shadow) => not (known_in baseline file s)
+                := here = unknown |> listm.map (shadow_row file) |> listm.rev
+                := opened_rows, opened_total, opened_fresh =
+                    ? opens ?> open_rows root lib path file text baseline |: [], 0i32, 0i32
+                := here = listm.append (listm.rev opened_rows) here
+                := total = total + listm.length found + opened_total
+                listm.append here rows, total, fresh + listm.length unknown + opened_fresh
+            ([], 0i32, 0i32)
+    listm.rev rows, { files = listm.length files; shadows = total; fresh }
+
+:~ shadows_run () : i32 =
+    := started = kit_receipt.receipt.now_ms ()
+    := args = kit_lint_macros.lint.lint_args ()
+    := root = args.root
+    := given = args.baseline
+    := baseline_path = ? given = "" || file_system.file_exists given ?> given |: root </> given
+    ? root = "" || file_system.directory_exists root |> not ?>
+        console.write_error_line (
+            "kit error: lint usage: lint shadows <root> [<path>...] [--baseline <rows>]" ++# " [--opens [--lib <dir>]]"
+        )
+        2i32
+    |? baseline_path <> "" && file_system.file_exists baseline_path |> not ?>
+        console.write_error_line ("kit error: lint shadows: no baseline file at " ++# given)
+        2i32
+    |:
+        := baseline = ? baseline_path = "" ?> "" |: file_system.read_all_text baseline_path
+        := opens = args.opens
+        := lib_given = args.lib
+        := lib = ? lib_given <> "" ?> lib_given |: env.get_environment_variable "SPIRAL_LIB"
+        := rows, tally = shadows_report root (kit_lint_macros.lint.listed_paths args.paths) baseline opens lib
+        rows |> listm.iter console.write_line
+        := elapsed = kit_receipt.receipt.elapsed_text started
+        := clock = kit_receipt.receipt.clock_text ()
+        console.write_line (tally_text tally ++# "  " ++# elapsed ++# "  " ++# clock)
+        ? tally.fresh = 0i32 ?> 0i32 |: 1i32
+
+///> _
+:= main () : i32 =
+    export "kit_lint_shadows_run" ((\ () => shadows_run ()) : () -> i32)
+    0i32

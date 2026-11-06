@@ -1,0 +1,115 @@
+:< sm'_operators
+
+:== file_table =
+    {
+        text : string
+        rows : u64
+    }
+
+:~ ^ data_rows (lines : array string) (index : i32) (acc : file_table) : file_table =
+    ? index >= am'.length lines ?> acc
+    |:
+        := line = am'.index index lines
+        ? line = "" || sm'.starts_with "#" line ?> data_rows lines (index + 1i32) acc
+        |: data_rows lines (index + 1i32) { text = acc.text ++# line ++# "\n"; rows = acc.rows + 1u64 }
+
+:~ split_pair (~text : string) (~separator : string) : string * string =
+    := at = sm'.index_of separator text
+    ? at < 0
+    ?> text, ""
+    |:
+        sm'.substring 0i32 at text,
+        sm'.substring (at + sm'.length separator) (sm'.length text - at - sm'.length separator) text
+
+:~ decimal (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+
+:| sequence_flag =
+    | FlagTime
+    | FlagInterval
+    | FlagWindow
+    | FlagOrder
+    | FlagLatency
+    | FlagBetween
+    | FlagFrom
+    | FlagTo
+    | FlagMs
+    | FlagModulo
+    | FlagOut
+    | FlagSectionOn
+    | FlagCarry
+    | FlagFirst
+    | FlagLast
+    | FlagCount
+    | FlagCountIn
+    | FlagInSet
+
+:= flag_word (flag : sequence_flag) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Flag" flag
+
+:~ sequence_words () : list string =
+    ?= env.command_line_arguments () ?|
+    | _ :: _ :: rest => rest
+    | _ => []
+
+:~ ^ value_after (~flag : string) (words : list string) : string =
+    ?= words ?|
+    | word :: value :: rest => ? word = flag ?> value |: value_after flag (value :: rest)
+    | _ => ""
+
+:~ known_flag (~word : string) : bool =
+    union_reflection.cases.union_case_where (\ (flag : sequence_flag) => word = flag_word flag) (\ _ => !+) !-
+
+:~ ^ has_flag (~flag : string) (words : list string) : bool =
+    ?= words ?|
+    | word :: rest => word = flag || has_flag flag rest
+    | [] => !-
+
+:~ ^ paths_from (words : list string) (acc : list string) (~refusal : string) : list string * string =
+    ?= words ?|
+    | [] => listm.rev acc, refusal
+    | word :: rest =>
+        ? sm'.starts_with "--" word |> not ?> paths_from rest (word :: acc) refusal
+        |? known_flag word |> not ?> listm.rev acc, (? refusal = "" ?> "unknown option " ++# word |: refusal)
+        |:
+            ?= rest ?|
+            | _ :: after => paths_from after acc refusal
+            | [] => listm.rev acc, refusal
+:~ ^ named_files (~path : string) (names : array string) (index : i32) (acc : list string) : list string =
+    ? index < 0i32 ?> acc
+    |:
+        := file = path ++# "/" ++# am'.index index names
+        named_files path names (index - 1i32) (? file_system.file_exists file ?> (file :: acc) |: acc)
+
+:~ ^ files_in (paths : list string) (acc : list string) : list string =
+    ?= paths ?|
+    | [] => listm.rev acc
+    | (path :: rest) =>
+        ? file_system.directory_exists path
+        ?>
+            := names =
+                file_system.read_dir_names path
+                |> resultm.unwrap'
+                |> am'.from_vec_base
+                |> am'.map_base sm'.from_std_string
+                |> array
+                |> am'.sort_by id
+            files_in rest (
+                listm.fold (\ kept file => (file :: kept)) acc (named_files path names (am'.length names - 1i32) [])
+            )
+        |: files_in rest (path :: acc)
+
+:~ ^ missing_path (paths : list string) : string =
+    ?= paths ?|
+    | [] => ""
+    | (path :: rest) =>
+        ? file_system.file_exists path || file_system.directory_exists path ?> missing_path rest |: path
+:= usage () : string =
+    "usage: table sequences <file|dir>... --time <regex with (?<ms>digits)> (--interval name=A [--between B] "
+    ^^ "[--modulo ms] | --window name=A --from M --ms lo..hi | --order name=A,B | --latency name=A --to B | "
+    ^^ "[--section-on <regex with (?<section>)>] [--carry <regex>] (--first|--last) name=<regex with (?<id>) and "
+    ^^ "(?<value>)>... | [--section-on <regex>] (--count name=<regex [(?<value>)]>... [--count-in name=<regex with "
+    ^^ "(?<rest>)>] [--in-set name=<file>[:<regex with (?<value>)>]])) [--out file.tsv]"
+
+:~ refused (~reason : string) : i32 =
+    console.write_error_line ("kit error: table sequences " ++# reason ++# "; " ++# usage ())
+    2i32

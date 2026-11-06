@@ -1,0 +1,5 @@
+:< typed_predicate.model
+:= main () : i32 =
+    := rules = One (named { name = "hash"; representation = Text; rule = sha256_text () })
+    emit (map `$inspect_one rules)
+    0i32

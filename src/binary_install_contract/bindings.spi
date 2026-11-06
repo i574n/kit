@@ -1,0 +1,49 @@
+:< model
+
+:~ binary_install_shape_binding (path_count_ok : i32) (distinct_paths : i32) : i32 =
+    ? path_count_ok < 1i32 ?> 0i32
+    |? distinct_paths < 1i32 ?> 0i32
+    |: 1i32
+
+:~ binary_install_source_binding (expected_match : i32) (source_state : i32) : i32 =
+    ? expected_match < 1i32 ?> 0i32
+    |? source_state < 3i32 ?> 0i32
+    |? 3i32 < source_state ?> 0i32
+    |: 1i32
+
+:~ binary_install_freshness_binding (expected_code : i32) (observed_code : i32) : i32 =
+    ? expected_code < 0i32 ?> 0i32
+    |? observed_code < 0i32 ?> 0i32
+    |? 1i32 < expected_code ?> 0i32
+    |? 1i32 < observed_code ?> 0i32
+    |? expected_code < observed_code ?> 0i32
+    |? observed_code < expected_code ?> 0i32
+    |: 1i32
+
+:~ binary_install_running_destination_binding (same_as_current : i32) (guard_enabled : i32) : i32 =
+    ? guard_enabled < 1i32 ?> 0i32
+    |? same_as_current < 0i32 ?> 0i32
+    |? 0i32 < same_as_current ?> 0i32
+    |: 1i32
+
+:~ binary_install_permission_binding (mode_valid : i32) (executable : i32) : i32 =
+    ? mode_valid < 1i32 ?> 0i32
+    |? executable < 1i32 ?> 0i32
+    |: 1i32
+
+:~ binary_install_mode_binding (mode_code : i32) (effect_mask : i32) : i32 =
+    ? mode_code < 0i32 ?> 0i32
+    |? 1i32 < mode_code ?> 0i32
+    |? effect_mask < 0i32 ?> 0i32
+    |? mode_code < 1i32 ?>
+        ? effect_mask < 1i32 ?> 1i32 |: 0i32
+    |:
+        ? effect_mask < 7i32 ?> 0i32
+        |? 7i32 < effect_mask ?> 0i32
+        |: 1i32
+
+:~ binary_install_commit_binding (payload_hash_ok : i32) (evidence_mask : i32) : i32 =
+    ? payload_hash_ok < 1i32 ?> 0i32
+    |? evidence_mask < 7i32 ?> 0i32
+    |? 7i32 < evidence_mask ?> 0i32
+    |: 1i32

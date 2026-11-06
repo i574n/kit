@@ -1,0 +1,65 @@
+///- --package .
+:# args static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| adoption_switch =
+    | SwitchHabits
+
+:| adoption_valued =
+    | ValuedDaysBack
+    | ValuedDays
+    | ValuedOut
+
+:== adoption_args = { days_back : string; days : string; out : string; habits : bool; rejected : string }
+
+:= switch_word (flag : adoption_switch) : string = "--" ++# union_reflection.cases.union_case_kebab "Switch" flag
+
+:= valued_word (flag : adoption_valued) : string = "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ valued_applied (flag : adoption_valued) (~value : string) (args : adoption_args) : adoption_args =
+    ?= flag ?|
+    | ValuedDaysBack => { args ?| days_back = value }
+    | ValuedDays => { args ?| days = value }
+    | ValuedOut => { args ?| out = value }
+
+:~ ^ words_read (words : list string) (args : adoption_args) : adoption_args =
+    ?= words ?|
+    | [] => args
+    | word :: rest =>
+        := switched =
+            union_reflection.cases.union_case_where (\ (flag : adoption_switch) => word = switch_word flag) Some None
+        := valued =
+            union_reflection.cases.union_case_where (\ (flag : adoption_valued) => word = valued_word flag) Some None
+        ?= switched, valued, rest ?|
+        | Some _, _, _ => words_read rest { args ?| habits = !+ }
+        | _, Some _, [] => { args ?| rejected = "option " ++# word ++# " has no value" }
+        | _, Some flag, (value :: after) => words_read after (valued_applied flag value args)
+        | _ => { args ?| rejected = "unknown option " ++# word }
+
+:~ args_of (words : list string) : adoption_args =
+    words_read words { days_back = ""; days = ""; out = ""; habits = !-; rejected = "" }
+
+:~ days_back_of (args : adoption_args) : u64 =
+    := spelled = ? args.days_back <> "" ?> args.days_back |: args.days
+    := asked = optionm'.default_value 0u64 (convert.try_convert spelled)
+    ? asked = 0u64 ?> 7u64 |: asked
+
+:~ ^ dropped (count : i32) (words : list string) : list string =
+    ?= words ?|
+    | _ :: rest ?& count > 0i32 => dropped (count - 1i32) rest
+    | _ => words
+
+:~ adoption_args_read () : adoption_args = args_of (dropped 1i32 (env.command_line_arguments ()))
+
+///> rust
+:# adoption_flags_read_by_reflection =
+    := args = args_of [ "--days"; "3"; "--habits"; "--out"; "a.tsv" ]
+    testing.expect (args.habits && args.out = "a.tsv" && days_back_of args = 3u64) args.out
+    testing.expect (days_back_of (args_of [ "--days"; "3"; "--days-back"; "5" ]) = 5u64) "--days-back wins over --days"
+    testing.expect (days_back_of (args_of []) = 7u64) "a week by default"
+    testing.expect ((args_of [ "--out" ]).rejected = "option --out has no value") "a value is required"
+    testing.expect ((args_of [ "stray" ]).rejected = "unknown option stray") "a stray word is refused"
+    := words = union_reflection.cases.union_cases_joined valued_word "|"
+    testing.expect (words = "--days-back|--days|--out") words

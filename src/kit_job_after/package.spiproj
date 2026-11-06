@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+    kit_process_alive
+link:
+    kit_process_alive
+modules:
+    after

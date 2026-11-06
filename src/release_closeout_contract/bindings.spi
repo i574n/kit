@@ -1,0 +1,47 @@
+:< model
+
+:~ release_closeout_shape_binding (observed_mask : i32) (gate_count : i32) : i32 =
+    ? observed_mask < 63i32 ?> 0i32
+    |? 63i32 < observed_mask ?> 0i32
+    |? gate_count < 6i32 ?> 0i32
+    |? 6i32 < gate_count ?> 0i32
+    |: 1i32
+
+:~ release_closeout_migration_binding (expected : i32) (observed : i32) : i32 =
+    ? expected < 0i32 ?> 0i32
+    |? observed < 0i32 ?> 0i32
+    |? expected < observed ?> 0i32
+    |? observed < expected ?> 0i32
+    |: 1i32
+
+:~ release_closeout_evidence_binding (evidence_mask : i32) (expected_mask : i32) : i32 =
+    ? evidence_mask < 7i32 ?> 0i32
+    |? 7i32 < evidence_mask ?> 0i32
+    |? expected_mask < 7i32 ?> 0i32
+    |? 7i32 < expected_mask ?> 0i32
+    |: 1i32
+
+:~ release_closeout_mode_binding (mode_code : i32) (effect_mask : i32) : i32 =
+    ? mode_code < 0i32 ?> 0i32
+    |? 1i32 < mode_code ?> 0i32
+    |? effect_mask < 0i32 ?> 0i32
+    |? mode_code < 1i32 ?>
+        ? effect_mask < 1i32 ?> 1i32 |: 0i32
+    |:
+        ? effect_mask < 3i32 ?> 0i32
+        |? 3i32 < effect_mask ?> 0i32
+        |: 1i32
+
+:~ release_closeout_commit_binding (commit_mask : i32) (expected_mask : i32) : i32 =
+    ? commit_mask < 7i32 ?> 0i32
+    |? 7i32 < commit_mask ?> 0i32
+    |? expected_mask < 7i32 ?> 0i32
+    |? 7i32 < expected_mask ?> 0i32
+    |: 1i32
+
+:~ release_closeout_refresh_binding (refresh_mask : i32) (expected_mask : i32) : i32 =
+    ? refresh_mask < 127i32 ?> 0i32
+    |? 127i32 < refresh_mask ?> 0i32
+    |? expected_mask < 127i32 ?> 0i32
+    |? 127i32 < expected_mask ?> 0i32
+    |: 1i32

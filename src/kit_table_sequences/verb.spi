@@ -1,0 +1,16 @@
+:< kit_table_sequence_args.args
+
+:~ measures_run () : i32 = $'kit_table_sequence_measures::kit_table_sequence_measures_run()' : i32
+
+:~ sections_run () : i32 = $'kit_table_sections::kit_table_sections_run()' : i32
+
+:~ counts_run () : i32 = $'kit_table_counts::kit_table_counts_run()' : i32
+
+:~ sequences_run () : i32 =
+    := words = sequence_words ()
+    := columns = has_flag (flag_word FlagFirst) words || has_flag (flag_word FlagLast) words
+    ? has_flag (flag_word FlagCount) words ?> counts_run () |? columns ?> sections_run () |: measures_run ()
+
+:= main () : i32 =
+    export "kit_table_sequences_run" sequences_run
+    0i32

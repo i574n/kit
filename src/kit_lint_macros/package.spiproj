@@ -1,0 +1,11 @@
+packages:
+    |core-
+    spiral-
+    kit_receipt
+    kit_lint_model
+    kit_lint_walk
+    kit_lint_args
+link:
+    kit_lint_args
+modules:
+    lint

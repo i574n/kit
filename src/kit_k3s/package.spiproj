@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    k3s_manifest
+modules:
+    k3s

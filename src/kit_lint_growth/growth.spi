@@ -1,0 +1,119 @@
+///- --package .
+:# growth static =
+    :< sm'_operators
+    :< kit_lint_model.model
+
+:< sm'_operators
+:< kit_lint_model.model
+
+:| change_kind =
+    | RowForOldCode
+    | RowForNewFile
+    | RowForNewCode
+
+:== baseline_change = { kind : change_kind; row : known_violation }
+
+:= change_word (kind : change_kind) : string = union_reflection.cases.union_case_kebab "RowFor" kind
+
+:~ refused (change : baseline_change) : bool = change.kind <> RowForOldCode
+
+:~ spi_known (~part : string) : option known_violation =
+    := parts = sm'.split "\"" part |> array
+    ? am'.length parts < 7i32 ?> None
+    |: Some { file = am'.index 1i32 parts; name = am'.index 3i32 parts; class = am'.index 5i32 parts }
+
+:~ knowns_of (~spi : string) : list known_violation =
+    := keep = \ (kept : list known_violation) (part : string) =>
+        ?= spi_known part ?|
+        | Some row => row :: kept
+        | None => kept
+    sm'.split_list "inl lint_known_" (sm'.replace "\n" " " (sm'.replace "\r" "" spi)) |> listm.fold keep [] |> listm.rev
+
+:~ same_row (row : known_violation) (other : known_violation) : bool =
+    row.file = other.file && row.name = other.name && row.class = other.class
+
+:~ added_rows (now : list known_violation) (head : list known_violation) : list known_violation =
+    := keep = \ (kept : list known_violation) (row : known_violation) =>
+        ? listm'.try_find_ (same_row row) head <> None ?> kept |: row :: kept
+    now |> listm.fold keep [] |> listm.rev
+
+:~ head_knowns (~report : string) : list known_violation = baseline_of report
+
+:~ change_of (present : bool) (head : list known_violation) (row : known_violation) : baseline_change =
+    := kind =
+        ? present |> not ?> RowForNewFile
+        |? listm'.try_find_ (same_row row) head <> None ?> RowForOldCode
+        |: RowForNewCode
+    { kind = kind; row = row }
+
+:| exit_rule =
+    | ZeroOnly
+    | AnyExit
+
+:~ command_text (rule : exit_rule) (~program : string) (args : list string) : option string =
+    := command = process.shared_command_new program
+    args |> listm.iter (\ (arg : string) => process.shared_command_arg command arg)
+    process.shared_command_no_input command
+    := output = process.shared_command_output command
+    := accepted = ?= rule ?| | ZeroOnly => process.command_output_code output = 0i32 | AnyExit => !+
+    ? process.command_output_ran output && accepted ?> Some (process.command_output_stdout output) |: None
+
+:~ head_text (~repo : string) (~path : string) : option string =
+    command_text ZeroOnly "git" [ "-C"; repo; "show"; "HEAD:" ++# path ]
+
+:~ staged
+    (~root : string) (~scan_repo : string) (~scan : string) (present : list string) (row : known_violation)
+    : list string
+    =
+    ? listm'.contains row.file present ?> present
+    |:
+        ?= head_text scan_repo (scan ++# "/" ++# row.file) ?|
+        | Some text =>
+            := path = root ++# "/" ++# row.file
+            := folder = optionm'.default_value root (file_system.directory_parent path)
+            := _ = file_system.create_dir_all folder
+            file_system.write_all_text path text
+            row.file :: present
+        | None => present
+
+:~ change_line (change : baseline_change) : string =
+    := row = change.row
+    sm'.concat_list "  " [ change_word change.kind; row.file; (? row.name = "" ?> "-" |: row.name); row.class ]
+
+:~ growth_run ((baseline_repo, baseline, scan_repo, scan) : string * string * string * string) : i32 =
+    := now_rows = knowns_of (file_system.read_all_text (baseline_repo ++# "/" ++# baseline))
+    := head_rows = knowns_of (optionm'.default_value "" (head_text baseline_repo baseline))
+    := added = added_rows now_rows head_rows
+    := root = baseline_repo ++# "/.cache/lint-growth"
+    := present = added |> listm.fold (staged root scan_repo scan) []
+    := kit = env.current_executable ()
+    := head = head_knowns (optionm'.default_value "" (command_text AnyExit kit [ "lint"; "macros"; root ]))
+    := changes = added |> listm.map (\ (row : known_violation) => change_of (listm'.contains row.file present) head row)
+    changes |> listm.iter (\ (change : baseline_change) => console.write_line (change_line change))
+    := tally = \ (count : i32) (change : baseline_change) => ? refused change ?> count + 1i32 |: count
+    := bad : i32 = changes |> listm.fold tally 0i32
+    := counts = sm'.concat_list "" [ " added="; sm'.show (listm.length added : i32); " refused="; sm'.show bad ]
+    console.write_line ("kit lint growth " ++# (? bad = 0i32 ?> "ok" |: "refused") ++# counts)
+    ? bad = 0i32 ?> 0i32 |: 1i32
+
+///> rust
+:# a_baseline_row_is_allowed_only_for_code_that_existed_at_head =
+    := row = { file = "pkg/a.spi"; name = "f"; class = "cast" }
+    testing.expect ((change_of !+ [ row ] row).kind = RowForOldCode) "HEAD's lint already reports it"
+    testing.expect ((change_of !- [] row).kind = RowForNewFile) "a file new since HEAD is refused"
+    testing.expect ((change_of !+ [] row).kind = RowForNewCode) "a macro new since HEAD is refused"
+    testing.expect (refused (change_of !+ [] row) && refused (change_of !+ [ row ] row) |> not) "only old code passes"
+
+///> rust
+:# only_rows_missing_at_head_are_judged_from_the_lint_report =
+    := kept = { file = "pkg/a.spi"; name = "f"; class = "cast" }
+    := added = { file = "pkg/b.spi"; name = "g"; class = "block" }
+    testing.expect (added_rows [ kept; added ] [ kept ] = [ added ]) "an existing row is not judged again"
+    testing.expect (head_knowns "pkg/a.spi:3  f  cast  x\nok  files 1\n" = [ kept ]) "lint rows"
+    testing.expect (change_word RowForNewFile = "new-file") "the change word comes from the case name"
+    := spi = "inl lint_known_1 () = LintKnown (\"pkg/a.spi\", \"f\", \"cast\")\n"
+    testing.expect (knowns_of spi = [ kept ]) "baseline rows parse into records"
+///> _
+:= main () : i32 =
+    export "kit_lint_growth_run" growth_run
+    0i32

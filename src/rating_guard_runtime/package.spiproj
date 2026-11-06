@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    rating_guard_contract
+modules:
+    guard

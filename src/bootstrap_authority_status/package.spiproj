@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    bootstrap_policy
+modules:
+    main

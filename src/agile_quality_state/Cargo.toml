@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "state_rows.spi"
+output = "state_rows.rs"
+
+[package]
+name = "agile-quality-state"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "agile_quality_state"
+path = "state_rows.rs"
+
+[dependencies]
+agile-quality-lint = { path = "../agile_quality_lint" }
+agile-quality-facts = { path = "../agile_quality_facts" }

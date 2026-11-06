@@ -1,0 +1,96 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= agile_call (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("agile", args))
+
+:= backlog () : string =
+    "inl task_kit_a () = Task (\"KIT-A\", \"view item\", Story, P1, D2, 0u32, Planned, \"\", \"kit\", \"current\", "
+    ^^ "\"current\")\ninl task_kit_b () = Task (\"KIT-B\", \"done item\", Story, P1, D2, 100u32, Done, \"\", \"kit\", "
+    ^^ "\"current\", \"current\")\ninl task_main_c () = Task (\"MAIN-C\", \"other team\", Story, P0, D1, 0u32, "
+    ^^ "Planned, \"\", \"\", \"current\", \"current\")\ninl main () : i32 = 0i32\n"
+
+///> rust
+:# a_saved_view_runs_its_stored_flags_in_one_call =
+    := root = fixture_root_create "agile views"
+    fixture_write root "state/agile.spi" (backlog ())
+    := here = fixture_text_of root
+    shows (succeeded (agile_call root (Arg ("views", Arg (here, NoArgs))))) "kit agile views ok views=0"
+    shows
+        (
+            succeeded (agile_call root (Arg ("view-add", Arg (here, Arg ("kit-open", Arg ("list", Arg ("--team",
+                Arg ("kit", Arg ("--open", NoArgs)))))))))
+        )
+        "kit agile view-add ok name=kit-open verb=list flags='--team kit --open' replaced=no"
+    := listed = succeeded (agile_call root (Arg ("view", Arg (here, Arg ("kit-open", NoArgs)))))
+    shows listed "KIT-A"
+    hides listed "KIT-B"
+    hides listed "MAIN-C"
+    shows
+        (
+            succeeded (agile_call root (Arg ("view-add", Arg (here, Arg ("kit-open", Arg ("list", Arg ("--team",
+                Arg ("kit", NoArgs))))))))
+        )
+        "replaced=yes"
+    := replaced = succeeded (agile_call root (Arg ("view", Arg (here, Arg ("kit-open", NoArgs)))))
+    shows replaced "KIT-B"
+    hides (succeeded (agile_call root (Arg ("view", Arg (here, Arg ("kit-open", Arg ("--open", NoArgs))))))) "KIT-B"
+    := views = succeeded (agile_call root (Arg ("views", Arg (here, NoArgs))))
+    shows views "kit-open  list  --team kit"
+    shows views "kit agile views ok views=1"
+    shows (fixture_read root "state/views.spi") "inl view_kit_open () = View (\"kit-open\", \"list\", \"--team kit\")"
+    rejected_with (agile_call root (Arg ("view", Arg (here, Arg ("missing", NoArgs))))) 2i32 "no view named missing"
+    rejected_with
+        (agile_call root (Arg ("view-add", Arg (here, Arg ("Bad", Arg ("list", NoArgs))))))
+        2i32
+        "view names are lowercase letters, digits and hyphens"
+    rejected_with
+        (agile_call root (Arg ("view-add", Arg (here, Arg ("shown", Arg ("show", NoArgs))))))
+        2i32
+        "view verbs are list|next"
+    rejected_with
+        (
+            agile_call root (Arg ("view-add", Arg (here, Arg ("spaced", Arg ("list", Arg ("--tag", Arg ("two words",
+                NoArgs)))))))
+        )
+        2i32
+        "each stored flag must be one word"
+    fixture_root_remove root
+
+///> rust
+:# a_saved_view_registers_its_module_so_agile_check_sees_it =
+    := root = fixture_root_create "agile views module"
+    fixture_write root "state/agile.spi" (backlog ())
+    fixture_write root "state/package.spiproj" "modules:\n    agile\n"
+    := here = fixture_text_of root
+    shows
+        (
+            succeeded (
+                agile_call root (Arg ("view-add", Arg (here, Arg ("kit-open", Arg ("list", Arg ("--open", NoArgs))))))
+            )
+        )
+        "replaced=no"
+    shows (fixture_read root "state/package.spiproj") "modules:\n    views\n    agile\n"
+    shows
+        (succeeded (agile_call root (Arg ("view-add", Arg (here, Arg ("kit-next", Arg ("next", NoArgs)))))))
+        "replaced=no"
+    hides (fixture_read root "state/package.spiproj") "views\n    views"
+    fixture_write root "state/package.spiproj" "packages:\n    |core-\n"
+    rejected_with
+        (agile_call root (Arg ("view-add", Arg (here, Arg ("kit-later", Arg ("list", NoArgs))))))
+        2i32
+        "no modules section to list views in"
+    fixture_root_remove root
+
+///> rust
+:# a_failed_view_write_leaves_no_pending_copy =
+    := root = fixture_root_create "agile views pending"
+    fixture_write root "state/agile.spi" (backlog ())
+    fixture_mkdir root "state/views.spi"
+    := here = fixture_text_of root
+    rejected_with
+        (agile_call root (Arg ("view-add", Arg (here, Arg ("kit-open", Arg ("list", NoArgs))))))
+        2i32
+        "could not move the replacement file into place"
+    hides (fixture_entries root "state") ".pending"
+    fixture_root_remove root

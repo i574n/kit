@@ -1,0 +1,23 @@
+[package.metadata.spiral]
+entry = "main.spi"
+output = "legacy_surface.rs"
+
+[package]
+name = "legacy-capability-domain"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+path = "legacy_surface.rs"
+
+[dependencies]
+kit-process-observation = { path = "../kit_process_observation" }
+kit-rust-std-fs = { path = "../rust_std_fs" }
+kit-rust-std-fs-mutation = { path = "../rust_std_fs_mutation" }
+kit-tree-copy = { path = "../kit_tree_copy" }
+
+[lints.clippy]
+needless_return = "allow"
+needless_late_init = "allow"

@@ -1,0 +1,11 @@
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:~ summary_settled ((verb, id) : string * string) : string =
+    := _ = kit_job_orphans.orphans.orphan_settled id
+    job_summary verb id
+
+:= main () : i32 =
+    export "kit_job_summary" summary_settled
+    0i32

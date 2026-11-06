@@ -1,0 +1,11 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    workspace_primitives
+    kit_jobs
+    kit_machine_windows
+    kit_window_announce
+    kit_window_announce_rows
+modules:
+    check

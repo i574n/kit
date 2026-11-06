@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    kit_ci_model
+modules:
+    verdict
+    entry

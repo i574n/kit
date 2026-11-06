@@ -1,0 +1,6 @@
+packages:
+    |core-
+    spiral-
+    kit_machine_watch_model
+modules:
+    windows

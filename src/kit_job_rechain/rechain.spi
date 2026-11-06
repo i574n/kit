@@ -1,0 +1,59 @@
+///- --package .
+:# rechain static =
+    :< sm'_operators
+
+:< sm'_operators
+:< kit_job_after_model.model
+
+:= argument (index : i32) : string = optionm'.default_value "" (env.try_command_line_argument index)
+
+:= after_path (~id : string) : string = kit_jobs.jobs.job_file id "after"
+
+:= text_at (~path : string) : string = ? file_system.file_exists path ?> file_system.read_all_text path |: ""
+
+:= waits_on_after (~id : string) : bool =
+    file_system.file_exists (after_path id) && file_system.file_exists (kit_jobs.jobs.job_file id "after-done") |> not
+
+:~ ^ chain_reaches (~from : string) (~target : string) (steps : i32) : bool =
+    ? from = target ?> !+
+    |? steps <= 0i32 || waits_on_after from |> not ?> !-
+    |: chain_reaches (after_file_predecessor (text_at (after_path from))) target (steps - 1i32)
+
+:~ facts_of (~id : string) (~predecessor : string) : rechain_facts =
+    := state = kit_jobs.jobs.job_state_now id
+    := known = kit_jobs.jobs.known_job id
+    {
+        job_known = known
+        predecessor_known = kit_jobs.jobs.known_job predecessor
+        same_job = id = predecessor
+        chained = known && file_system.file_exists (after_path id)
+        waiting = waits_on_after id && kit_jobs.model.state_settled state |> not
+        state = kit_jobs.model.state_word state
+        previous = after_file_predecessor (text_at (after_path id))
+        cycle = chain_reaches predecessor id 64i32
+    }
+
+:~ rechain_run () : i32 =
+    := id = argument 2i32
+    := predecessor = argument 3i32
+    ?= ? id = "" || predecessor = "" ?> None |: mode_of_flag (argument 4i32) ?|
+    | None =>
+        console.write_error_line ("kit error: job usage: " ++# usage ())
+        2i32
+    | Some mode =>
+        ?= rechain_of (facts_of id predecessor) ?|
+        | Refused refusal =>
+            console.write_error_line ("kit error: job after refused: " ++# refusal_text refusal id predecessor)
+            2i32
+        | Repointed previous =>
+            file_system.write_all_text (after_path id) (after_file_text predecessor mode)
+            console.write_line (
+                "kit job after ok id=" ++# id ++# " after=" ++# predecessor ++# " after_mode=" ++# mode_word mode
+                ++# " previous=" ++# previous
+            )
+            0i32
+
+///> rust
+:# a_job_reaches_itself_without_reading_a_file =
+    expect (chain_reaches "job-1-a" "job-1-a" 3i32) "the walk starts at the target"
+    expect (after_file_predecessor "job-2-b\tok" = "job-2-b") "predecessor field"

@@ -1,0 +1,120 @@
+///- --package .
+:# placement static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| machine_id =
+    | MachineId : string
+
+:| load_percent =
+    | LoadPercent : u64
+
+:| slot_class =
+    | HeavySlot
+    | LightSlot
+
+:== machine_slots =
+    {
+        heavy_free : u64
+        light_free : u64
+    }
+
+:== machine_sample =
+    {
+        machine : machine_id
+        local : bool
+        holds_tree : bool
+        slice : string
+        load : load_percent
+        slots : machine_slots
+    }
+
+:| tree_need =
+    | TreeFree
+    | ReadsLiveTree
+    | WritesLiveTree
+    | ReadsSlice : string
+
+:| placement_verdict =
+    | PlaceOn : machine_id
+    | QueueUntilFree
+
+:= free_of (wanted : slot_class) (slots : machine_slots) : u64 =
+    ?= wanted ?|
+    | HeavySlot => slots.heavy_free
+    | LightSlot => slots.light_free
+
+:= percent_of (load : load_percent) : u64 =
+    ?= load ?|
+    | LoadPercent percent => percent
+
+:= beats (candidate : machine_sample) (held : machine_sample) : bool =
+    := mine, theirs = percent_of candidate.load, percent_of held.load
+    mine < theirs || (mine = theirs && candidate.local && (held.local |> not))
+
+:= eligible (need : tree_need) (sample : machine_sample) : bool =
+    ?= need ?|
+    | TreeFree => !+
+    | ReadsLiveTree => sample.holds_tree
+    | WritesLiveTree => sample.local
+    | ReadsSlice digest => sample.local || sample.slice = digest
+
+:= placement_of (wanted : slot_class) (need : tree_need) (samples : list machine_sample) : placement_verdict =
+    := pick = \ (best : option machine_sample) (sample : machine_sample) =>
+        ? free_of wanted sample.slots = 0u64 || (eligible need sample |> not) ?> best
+        |:
+            ?= best ?|
+            | None => Some sample
+            | Some held => ? beats sample held ?> Some sample |: best
+    ?= samples |> listm.fold pick None ?|
+    | Some chosen => PlaceOn chosen.machine
+    | None => QueueUntilFree
+
+:= sample_of (~name : string) (local : bool) (load : u64) (heavy : u64) (light : u64) : machine_sample =
+    := slots = { heavy_free = heavy; light_free = light }
+    { machine = MachineId name; local = local; holds_tree = local; slice = ""; load = LoadPercent load; slots = slots }
+
+///> rust
+:# a_heavy_job_goes_to_the_free_machine_with_the_lower_load_or_waits =
+    := heavy = placement_of HeavySlot TreeFree
+    := box = sample_of "box" !+ 40u64 1u64 2u64
+    := node = sample_of "node" !- 20u64 1u64 2u64
+    := node_full = sample_of "node" !- 20u64 0u64 2u64
+    := box_full = sample_of "box" !+ 40u64 0u64 2u64
+    := on = \ (~name : string) => PlaceOn (MachineId name)
+    testing.expect (heavy [ box; node ] = on "node") "the lower load wins"
+    testing.expect (heavy [ box; node_full ] = on "box") "a full machine is skipped"
+    testing.expect (heavy [ box_full; node_full ] = QueueUntilFree) "no free slot queues"
+    := tied_node = sample_of "node" !- 30u64 1u64 0u64
+    := tied_box = sample_of "box" !+ 30u64 1u64 0u64
+    testing.expect (heavy [ tied_node; tied_box ] = on "box") "a tie goes to the local machine"
+    := light_full_box = sample_of "box" !+ 10u64 1u64 0u64
+    testing.expect (placement_of LightSlot TreeFree [ light_full_box; node ] = on "node") "the class picks the slots"
+    := busy_box = sample_of "box" !+ 70u64 1u64 1u64
+    := mid_node = sample_of "node" !- 50u64 1u64 1u64
+    := idle_vultr = sample_of "vultr" !- 10u64 0u64 4u64
+    testing.expect (heavy [ busy_box; mid_node; idle_vultr ] = on "node") "no heavy slot, no placement"
+    testing.expect (placement_of HeavySlot ReadsLiveTree [ box; node ] = on "box") "a live-tree job stays put"
+    testing.expect (placement_of HeavySlot ReadsLiveTree [ box_full; node ] = QueueUntilFree) "it waits for the tree"
+
+///> rust
+:# a_remote_slice_must_match_and_live_tree_writers_stay_local =
+    := box = sample_of "box" !+ 50u64 1u64 1u64
+    := plain_node = sample_of "node" !- 10u64 1u64 1u64
+    := node = { plain_node ?| slice = "A1" }
+    := on = \ (~name : string) => PlaceOn (MachineId name)
+    testing.expect (placement_of HeavySlot (ReadsSlice "A1") [ box; node ] = on "node") "the same slice: the idle node"
+    testing.expect (placement_of HeavySlot (ReadsSlice "B2") [ box; node ] = on "box") "a stale slice is never used"
+    := box_full = sample_of "box" !+ 50u64 0u64 1u64
+    testing.expect (placement_of HeavySlot (ReadsSlice "B2") [ box_full; node ] = QueueUntilFree) "or it waits"
+    := tree_node = { node ?| holds_tree = !+ }
+    testing.expect (placement_of HeavySlot WritesLiveTree [ box; tree_node ] = on "box") "writers stay local"
+
+///> gleam
+:# placement_holds_on_the_gleam_target_too =
+    := heavy = placement_of HeavySlot TreeFree
+    := tied_box = sample_of "box" !+ 30u64 1u64 0u64
+    := tied_node = sample_of "node" !- 30u64 1u64 0u64
+    testing.expect (heavy [ tied_node; tied_box ] = PlaceOn (MachineId "box")) "gleam: ties go local"
+    testing.expect (heavy [] = QueueUntilFree) "gleam: no machines queues"

@@ -1,0 +1,183 @@
+///- --package .
+:# request static =
+    :< sm'_operators
+    :< agile_claim_model.claim
+
+:< sm'_operators
+:< agile_claim_model.claim
+
+:| claim_verb =
+    | VerbNext
+    | VerbClaim
+    | VerbRelease
+
+:= verb_word (verb : claim_verb) : string = union_reflection.cases.union_case_kebab "Verb" verb
+
+:~ verb_of (~word : string) : option claim_verb =
+    union_reflection.cases.union_case_where (\ (verb : claim_verb) => verb_word verb = word) Some None
+
+:| claim_flag =
+    | FlagAny
+    | FlagAs
+    | FlagTtl
+    | FlagPaths
+    | FlagClaim
+
+:= flag_word (flag : claim_flag) : string = "--" ++# union_reflection.cases.union_case_kebab "Flag" flag
+
+:~ flag_of (~word : string) : option claim_flag =
+    union_reflection.cases.union_case_where (\ (flag : claim_flag) => flag_word flag = word) Some None
+
+:== claim_request = { verb : claim_verb; item : string; lane : string; ttl_min : i32; paths : list string; grab : bool }
+
+:| request_read =
+    | RequestRead : claim_request
+    | RequestRefused : string
+
+:~ globs_of_flag (~value : string) : list string = sm'.split_list "," value |> listm'.filter (\ (g : string) => g <> "")
+
+:~ paths_refusal (~value : string) : string =
+    "--paths expects comma-separated globs without spaces, quotes or parentheses, got '" ++# value ++# "'"
+
+:~ ttl_read (~value : string) : option i32 =
+    ?= (convert.try_convert value : option i32) ?|
+    | Some minutes => ? minutes > 0i32 ?> Some minutes |: None
+    | None => None
+
+:~ ^ flags_read (words : list string) (request : claim_request) : request_read =
+    ?= words ?|
+    | [] => ? request.lane = "" ?> RequestRefused "--as <lane> is required" |: RequestRead request
+    | word :: rest =>
+        := value, after =
+            ?= rest ?|
+            | next :: more => next, more
+            | [] => "", []
+        := globs = globs_of_flag value
+        ?= flag_of word ?|
+        | None => RequestRefused ("unexpected argument " ++# word)
+        | Some flag =>
+            ?= flag ?|
+            | FlagAny => flags_read rest request
+            | FlagClaim =>
+                ? request.verb = VerbNext ?> flags_read rest { request ?| grab = !+ }
+                |: RequestRefused "--claim belongs to next; claim takes an item ID"
+            | FlagAs =>
+                ? plain_text value ?> flags_read after { request ?| lane = value }
+                |: RequestRefused ("--as expects a lane name, got '" ++# value ++# "'")
+            | FlagTtl =>
+                ?= ttl_read value ?|
+                | Some minutes => flags_read after { request ?| ttl_min = minutes }
+                | None => RequestRefused ("--ttl expects positive minutes, got '" ++# value ++# "'")
+            | FlagPaths =>
+                := plain = listm.fold (\ ok (g : string) => ok && plain_text g) !+ globs
+                ? request.verb = VerbClaim && globs <> [] && plain ?> flags_read after { request ?| paths = globs }
+                |: RequestRefused (paths_refusal value)
+
+
+:~ request_of (verb : claim_verb) (words : list string) : request_read =
+    := empty = { verb = verb; item = ""; lane = ""; ttl_min = 90i32; paths = []; grab = !- }
+    ? verb = VerbNext ?>
+        := any = listm'.contains (flag_word FlagAny) words
+        ? any ?> flags_read words empty |: RequestRefused "next claims only with --any"
+    |:
+        ?= words ?|
+        | item :: rest =>
+            ? plain_text item && sm'.starts_with "--" item = !-
+            ?> flags_read rest { empty ?| item = item }
+            |: RequestRefused ("expected an item ID, got '" ++# item ++# "'")
+        | [] => RequestRefused "expected an item ID"
+
+
+
+
+:== parsed_request =
+    {
+        refusal : string
+        next : bool
+        grab : bool
+        release : bool
+        verb : string
+        item : string
+        lane : string
+        ttl_min : i32
+        paths : array_base string
+    }
+
+:~ ^ listed_from (items : array_base string) (at : i32) (found : list string) : list string =
+    ? at < 0i32 ?> found |: listed_from items (at - 1i32) (am'.index_base at items :: found)
+
+:~ refused_request (~verb : string) (~reason : string) : parsed_request =
+    := none = (;[] : array string) |> am'.base
+    {
+        refusal = reason
+        next = !-
+        grab = !-
+        release = !-
+        verb = verb
+        item = ""
+        lane = ""
+        ttl_min = 0i32
+        paths = none
+    }
+
+:~ read_request (r : claim_request) : parsed_request =
+    := gather = \ (kept : array string) (path : string) => kept ++ ;[ path ]
+    := paths = r.paths |> listm.fold gather ;[] |> am'.base
+    := next = r.verb = VerbNext
+    := release = r.verb = VerbRelease
+    := verb = verb_word r.verb
+    {
+        refusal = ""
+        next = next
+        grab = r.grab
+        release = release
+        verb = verb
+        item = r.item
+        lane = r.lane
+        ttl_min = r.ttl_min
+        paths = paths
+    }
+
+:~ request_parsed ((verb_text, words) : string * array_base string) : array_base parsed_request =
+    := listed = listed_from words (am'.length_base words - 1i32) []
+    := one =
+        ?= verb_of verb_text ?|
+        | None => refused_request verb_text "not a claim verb"
+        | Some verb =>
+            ?= request_of verb listed ?|
+            | RequestRefused reason => refused_request verb_text reason
+            | RequestRead r => read_request r
+    (;[ one ] : array parsed_request) |> am'.base
+///> rust
+:# flags_parse_into_a_typed_request =
+    ?= request_of VerbClaim [ "KIT-A"; "--as"; "kit"; "--paths"; "src/a/**,lib/b.spi"; "--ttl"; "30" ] ?|
+    | RequestRead r =>
+        testing.expect (r.item = "KIT-A" && r.lane = "kit" && r.ttl_min = 30i32) r.item
+        testing.expect (r.paths = [ "src/a/**"; "lib/b.spi" ]) "paths"
+    | RequestRefused reason => testing.expect !- reason
+    ?= request_of VerbNext [ "--any"; "--as"; "kit" ] ?|
+    | RequestRead r => testing.expect (r.lane = "kit" && r.ttl_min = 90i32 && r.grab |> not) "next lists by default"
+    | RequestRefused reason => testing.expect !- reason
+    ?= request_of VerbNext [ "--any"; "--as"; "kit"; "--claim" ] ?|
+    | RequestRead r => testing.expect r.grab "--claim takes the first candidate"
+    | RequestRefused reason => testing.expect !- reason
+    ?= request_of VerbClaim [ "KIT-A"; "--as"; "kit"; "--claim" ] ?|
+    | RequestRead _ => testing.expect !- "--claim is only for next"
+    | RequestRefused reason => testing.expect (reason = "--claim belongs to next; claim takes an item ID") reason
+    testing.expect (request_of VerbNext [ "--as"; "kit" ] = RequestRefused "next claims only with --any") "--any needed"
+    testing.expect (request_of VerbNext [ "--any" ] = RequestRefused "--as <lane> is required") "a lane is required"
+    := idless = request_of VerbRelease [ "--as"; "kit" ]
+    testing.expect (idless = RequestRefused "expected an item ID, got '--as'") "id first"
+    testing.expect (verb_of "release" = Some VerbRelease && verb_of "lease" = None) "verbs come from case names"
+    testing.expect (flag_of "--paths" = Some FlagPaths && flag_of "--path" = None) "flags come from case names"
+    := pathed = request_of VerbNext [ "--any"; "--as"; "kit"; "--paths"; "a" ]
+    testing.expect (pathed = RequestRefused (paths_refusal "a")) "next takes no paths"
+    := nothing = (;[] : array string) |> am'.base
+    := unknown = am'.index_base 0i32 (request_parsed ("nope", nothing))
+    testing.expect (unknown.refusal = "not a claim verb") "unknown verb"
+    := release = am'.index_base 0i32 (request_parsed ("release", (;[ "KIT-A"; "--as"; "kit" ] : array string) |> am'.base))
+    testing.expect (release.release && (release.next |> not) && release.refusal = "") release.refusal
+///> _
+:= main () : i32 =
+    export "agile_claim_request_parsed" request_parsed
+    0i32

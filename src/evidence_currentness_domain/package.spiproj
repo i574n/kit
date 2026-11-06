@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    typed_predicate
+modules:
+    model
+    terminal
+    main

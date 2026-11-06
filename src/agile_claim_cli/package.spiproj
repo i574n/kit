@@ -1,0 +1,24 @@
+packages:
+    |core-
+    spiral-
+    workspace_primitives
+    rust_std_env
+    rust_std_string
+    rust_std_fs
+    agile_mutation_policy
+    agile_task_text
+    agile_note_model
+    agile_claim_model
+    agile_claim_api
+    agile_claim_request
+    agile_claim_store
+    union_reflection
+    agile_team_lane
+    agile_claim_listing
+link:
+    agile_claim_listing
+    agile_claim_request
+    agile_claim_store
+    agile_team_lane
+modules:
+    cli

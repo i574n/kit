@@ -1,0 +1,30 @@
+:< model
+
+:~ proxy_parallel_search_request_binding (flags : i32) (limit : i32) : i32 =
+    parallel_search_request_binding flags limit
+
+:~ proxy_parallel_search_worker_binding (workers : i32) (available : i32) : i32 =
+    parallel_search_worker_binding workers available
+
+:~ proxy_parallel_search_parity_binding (serial_count : i32) (parallel_count : i32) : i32 =
+    parallel_search_parity_binding serial_count parallel_count
+
+:~ proxy_parallel_manifest_order_binding (is_sorted : i32) (is_unique : i32) : i32 =
+    parallel_manifest_order_binding is_sorted is_unique
+
+:~ proxy_parallel_manifest_parity_binding (serial_fingerprint : i32) (parallel_fingerprint : i32) : i32 =
+    parallel_manifest_parity_binding serial_fingerprint parallel_fingerprint
+
+:~ proxy_parallel_consumer_mode_binding (mode : i32) (output_segments : i32) : i32 =
+    parallel_consumer_mode_binding mode output_segments
+
+:~ proxy_parallel_consumer_output_binding (expected_fingerprint : i32) (output_fingerprint : i32) : i32 =
+    parallel_consumer_output_binding expected_fingerprint output_fingerprint
+
+:~ proxy_search_descends_into (~path : string) : bool = search_descends_into (search_directory_of path)
+
+:~ proxy_search_scope_binding (~relative : string) : i32 =
+    search_scope_code (search_scope_of relative)
+
+:~ proxy_hash_tree_request_binding (root_valid : i32) (relative_segments : i32) : i32 =
+    hash_integrity_contract.model.tree_request_binding root_valid relative_segments

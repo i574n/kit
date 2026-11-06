@@ -1,0 +1,37 @@
+:~ receipt_row_tuple (line : string) : string * string * string * string * string =
+    := empty = codec_empty ()
+    := line_len = sm.length line : i32
+    := first = find_char line 0i32 (char_tab ())
+    ? (=.) first line_len ?> empty, empty, empty, empty, empty
+    |:
+        := kind = slice_exclusive line 0i32 first
+        ? (=.) kind "snapshot" ?>
+            := second = find_char line ((+.) first 1i32) (char_tab ())
+            ? (<) second line_len ?> empty, empty, empty, empty, empty
+            |:
+                := value = slice_exclusive line ((+.) first 1i32) line_len
+                ? (=.) value "" ?> empty, empty, empty, empty, empty
+                |: "snapshot", value, empty, empty, empty
+        |? (=.) kind "module" ?>
+            := second = find_char line ((+.) first 1i32) (char_tab ())
+            ? (=.) second line_len ?> empty, empty, empty, empty, empty
+            |:
+                := third = find_char line ((+.) second 1i32) (char_tab ())
+                ? (=.) third line_len ?> empty, empty, empty, empty, empty
+                |:
+                    := fourth = find_char line ((+.) third 1i32) (char_tab ())
+                    ? (=.) fourth line_len ?> empty, empty, empty, empty, empty
+                    |:
+                        := fifth = find_char line ((+.) fourth 1i32) (char_tab ())
+                        ? (<) fifth line_len ?> empty, empty, empty, empty, empty
+                        |:
+                            := path = slice_exclusive line ((+.) first 1i32) second
+                            := bytes = slice_exclusive line ((+.) second 1i32) third
+                            := fingerprint = slice_exclusive line ((+.) third 1i32) fourth
+                            := attestation = slice_exclusive line ((+.) fourth 1i32) line_len
+                            ? (=.) path "" ?> empty, empty, empty, empty, empty
+                            |? (=.) bytes "" ?> empty, empty, empty, empty, empty
+                            |? (=.) fingerprint "" ?> empty, empty, empty, empty, empty
+                            |? (=.) attestation "" ?> empty, empty, empty, empty, empty
+                            |: "module", path, bytes, fingerprint, attestation
+        |: empty, empty, empty, empty, empty

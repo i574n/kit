@@ -1,0 +1,11 @@
+:~ entry_allowed (depth : i32) (entries : i32) : i32 =
+    ? depth < 0i32 ?> 0i32
+    |? 128i32 < depth ?> 0i32
+    |? entries < 0i32 ?> 0i32
+    |? entries < 100000i32 ?> 1i32
+    |: 0i32
+
+:~ remaining_entries (entries : i32) : i32 =
+    ? entries < 0i32 ?> -1i32
+    |? 100000i32 < entries ?> -1i32
+    |: 100000i32 - entries

@@ -1,0 +1,12 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+    kit_process_alive
+    workspace_primitives
+    kit_os_files
+    kit_os_process
+link:
+    kit_process_alive
+modules:
+    ticket

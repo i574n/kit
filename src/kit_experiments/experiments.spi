@@ -1,0 +1,137 @@
+///- --package .
+:# experiments static =
+    :< rust_std_string.model
+    :< sm'_operators
+    :< experiment_model
+    :< ledger_host
+
+:< rust_std_string.model
+:< sm'_operators
+:< experiment_model
+:< ledger_host
+
+:~ registration_text (~id : string) (~at : string) (kind : test_kind) (row : kit_experiment_args.args.register_row)
+    : string
+    =
+    field_line "id" id
+    ++# field_line "registered" at
+    ++# field_line "question" row.question
+    ++# field_line "test" (test_word kind)
+    ++# field_line "metric" row.metric
+    ++# field_line "group" row.group
+    ++# field_line "arms" row.arms
+    ++# field_line "runs" row.runs
+    ++# field_line "prediction" row.prediction
+    ++# field_line "confidence" row.confidence
+    ++# field_line "decision" row.decision
+    ++# field_line "time" row.time
+    ++# field_line "registered_local" (local_stamp ())
+
+:~ registered_as (~ledger : string) (~id : string) (kind : test_kind) (row : kit_experiment_args.args.register_row)
+    : i32
+    =
+    ?= plan_checked kind row.arms row.group (decimal_i32 row.runs) row.prediction row.metric row.decision ?|
+    | PlanRejected reason => failed ("register: " ++# reason)
+    | PlanAccepted =>
+        := at = agile_note_model.model.utc_stamp (now_ms ())
+        := problem = text_created (record_path ledger id "registration") (registration_text id at kind row)
+        ? problem <> ""
+        ?> failed ("register: " ++# id ++# " is already registered or the ledger is unwritable (" ++# problem ++# ")")
+        |:
+            stdout_line (
+                "kit experiment register ok id="
+                ++# id
+                ++# " test="
+                ++# test_word kind
+                ++# " runs="
+                ++# row.runs
+                ++# " registered="
+                ++# at
+            )
+            0i32
+
+:~ registered (~ledger : string) (~id : string) : i32 =
+    := row = am'.index_base 0i32 (kit_experiment_args.args.register_args_read 4i32)
+    ? identifier_ok id = !-
+    ?> failed ("register: the ID must be letters, digits, '-' or '_', received '" ++# id ++# "'; " ++# experiment_usage ())
+    |? row.rejected <> "" ?> failed ("register: " ++# row.rejected ++# "; " ++# experiment_usage ())
+    |:
+        ?= test_of row.test ?|
+        | TestUnknown => failed ("register: --test must be " ++# test_words () ++# ", received '" ++# row.test ++# "'")
+        | TestKnown kind => registered_as ledger id kind row
+
+:~ shown (~ledger : string) (~id : string) : i32 =
+    := plan = file_text (record_path ledger id "registration")
+    ? plan = ""
+    ?> failed (concat5 "show: no registration for " id " in " ledger "")
+    |:
+        stdout_line (
+            concat5
+                "registration\n"
+                plan
+                "amendments\n"
+                (file_text (record_path ledger id "amendments"))
+                (
+                    concat5
+                        "disclosures\n"
+                        (file_text (record_path ledger id "disclosures"))
+                        "verdict\n"
+                        (file_text (record_path ledger id "verdict"))
+                        (concat5 "addenda\n" (file_text (record_path ledger id "addenda")) "" "" "")
+                )
+        )
+        stdout_line (
+            concat5
+                "kit experiment show ok id="
+                id
+                (? path_exists (record_path ledger id "verdict") ?> " verdict=recorded" |: " verdict=pending")
+                ""
+                ""
+        )
+        0i32
+
+:| experiment_verb =
+    | VerbRegister
+    | VerbAnalyze
+    | VerbShow
+    | VerbAmend
+    | VerbAddendum
+    | VerbImport
+    | VerbRecordVerdict
+
+:= experiment_verb_word (verb : experiment_verb) : string =
+    union_reflection.cases.union_case_kebab "Verb" verb
+
+:~ experiment_verb_of (~word : string) : option experiment_verb =
+    union_reflection.cases.union_case_where (\ (verb : experiment_verb) => word = experiment_verb_word verb) Some None
+
+:~ verb_ran (verb : experiment_verb) (~ledger : string) (~id : string) : i32 =
+    ?= verb ?|
+    | VerbRegister => registered ledger id
+    | VerbAnalyze => $'kit_experiment_analysis::kit_experiment_analyze_run()' : i32
+    | VerbShow => shown ledger id
+    | VerbAmend => $'kit_experiment_amend::kit_experiment_amend_run()' : i32
+    | VerbAddendum => $'kit_experiment_amend::kit_experiment_addendum_run()' : i32
+    | VerbImport => $'kit_experiment_import::kit_experiment_import_run()' : i32
+    | VerbRecordVerdict => $'kit_experiment_import::kit_experiment_verdict_run()' : i32
+
+:~ experiment_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: rest =>
+        ?= experiment_verb_of word ?|
+        | Some verb =>
+            ?= rest ?|
+            | ledger :: id :: _ => verb_ran verb ledger id
+            | ledger :: [] => verb_ran verb ledger ""
+            | [] => verb_ran verb "" ""
+        | None => failed ("unknown verb '" ++# word ++# "'; " ++# experiment_usage ())
+    | _ => failed ("unknown verb ''; " ++# experiment_usage ())
+///> rust
+:# experiment_verbs_read_by_reflection =
+    := words = union_reflection.cases.union_cases_joined experiment_verb_word "|"
+    testing.expect (words = "register|analyze|show|amend|addendum|import|record-verdict") words
+    testing.expect (experiment_verb_word VerbRecordVerdict = "record-verdict") "kebab case"
+///> _
+:= main () : i32 =
+    export "kit_experiment_run" ((\ () => experiment_run ()) : () -> i32)
+    0i32

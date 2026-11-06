@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "append.spi"
+output = "append.rs"
+
+[package]
+name = "kit-table-append"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_table_append"
+path = "append.rs"

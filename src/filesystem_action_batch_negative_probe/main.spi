@@ -1,0 +1,18 @@
+:< filesystem_action_batch_contract.bindings
+
+:= main () : i32 =
+    ?= fs_action_shape_binding 0i32 0i32 ?|
+    | 0 =>
+        ?= fs_action_freshness_binding 4i32 1i32 ?|
+        | 0 =>
+            ?= fs_action_apply_binding 4i32 3i32 ?|
+            | 0 =>
+                ?= fs_action_verify_binding 4i32 5i32 ?|
+                | 0 =>
+                    ?= fs_action_rollback_binding 4i32 3i32 ?|
+                    | 0 => 0i32
+                    | _ => 1i32
+                | _ => 1i32
+            | _ => 1i32
+        | _ => 1i32
+    | _ => 1i32

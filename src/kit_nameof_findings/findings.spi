@@ -1,0 +1,31 @@
+///- --package .
+:< sm'_operators
+:< nameof_heal
+
+:== finding_row = { kind : string; first_line : i32; arms : i32; cases : string }
+
+:~ row_of (found : finding) : finding_row =
+    ?= found ?|
+    | finding f =>
+        {
+            kind = union_reflection.cases.union_case_kebab "" f.kind
+            first_line = f.first_line
+            arms = f.arms
+            cases = finding_cases found
+        }
+
+:~ finding_rows ((source, tokens) : string * string) : array_base finding_row =
+    := gather = \ (kept : array finding_row) (found : finding) => kept ++ ;[ row_of found ]
+    findings source tokens |> listm.fold gather ;[] |> am'.base
+
+///> rust
+:# the_lib_fixture_reads_as_two_rows =
+    := rows = finding_rows (heal_fixture_source (), heal_fixture_tokens ())
+    testing.expect (am'.length_base rows = 2i32) "two findings"
+    := first = am'.index_base 0i32 rows
+    testing.expect (first.kind = "to-name" && first.first_line = 7i32 && first.arms = 3i32) "the first is a to-name run"
+    testing.expect (first.cases = "GadtCase,HostMacro,RcWrap") first.cases
+///> _
+:= main () : i32 =
+    export "kit_nameof_finding_rows" finding_rows
+    0i32

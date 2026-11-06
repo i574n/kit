@@ -1,0 +1,381 @@
+:< workspace_primitives.outcome
+:< sm'_operators
+:< workspace_primitives.numbers
+:< workspace_primitives.bytes
+:< agile_task_text.model
+
+:| task_load =
+    | LoadLight
+    | LoadMedium
+    | LoadHeavy
+
+:| task_assignee =
+    | AssigneeAgent
+    | AssigneePair
+    | AssigneeUser
+
+:| planned_estimate =
+    | Unestimated
+    | EstimateMinutes : i32
+
+:| planned_load =
+    | LoadUnset
+    | PlannedLoad : task_load
+
+:| planned_assignee =
+    | Unassigned
+    | PlannedAssignee : task_assignee
+
+:== task_planning =
+    {
+        estimate : planned_estimate
+        load : planned_load
+        assignee : planned_assignee
+    }
+
+:| planning_field =
+    | FieldEstimate
+    | FieldLoad
+    | FieldAssignee
+
+:= unplanned () : task_planning = { estimate = Unestimated; load = LoadUnset; assignee = Unassigned }
+
+:= parse_case_named \* t. (name : t -> string) (~text : string) : validation_result t =
+    union_reflection.cases.union_cases_fold
+        (\ parsed (case_value : t) => ? (text = (name case_value)) ?> Valid case_value |: parsed)
+        Invalid
+
+:= task_load_case (load : task_load) : string = union_reflection.cases.union_case_suffix "Load" load
+:= task_assignee_case (assignee : task_assignee) : string = union_reflection.cases.union_case_suffix "Assignee" assignee
+:= task_load_name (load : task_load) : string = ascii_lowercase (task_load_case load)
+:= task_assignee_name (assignee : task_assignee) : string = ascii_lowercase (task_assignee_case assignee)
+
+:= planning_field_name (field : planning_field) : string =
+    ascii_lowercase (union_reflection.cases.union_case_suffix "Field" field)
+:= parse_planning_field (~text : string) : validation_result planning_field = parse_case_named planning_field_name text
+:| cleared_word =
+    | ClearedNone
+    | ClearedDash
+
+:= cleared_text (word : cleared_word) : string =
+    ?= word ?|
+    | ClearedNone => "none"
+    | ClearedDash => "-"
+
+:= cleared_value (~text : string) : bool =
+    union_reflection.cases.union_case_where (\ (word : cleared_word) => text = cleared_text word) (\ _ => !+) !-
+
+:~ parse_planned_load (~text : string) : validation_result planned_load =
+    := lowered = ascii_lowercase text
+    ? cleared_value lowered ?> Valid LoadUnset
+    |:
+        ?= parse_case_named task_load_name lowered ?|
+        | Valid load => Valid (PlannedLoad load)
+        | Invalid => Invalid
+
+:~ parse_planned_assignee (~text : string) : validation_result planned_assignee =
+    := lowered = ascii_lowercase text
+    ? cleared_value lowered ?> Valid Unassigned
+    |:
+        ?= parse_case_named task_assignee_name lowered ?|
+        | Valid assignee => Valid (PlannedAssignee assignee)
+        | Invalid => Invalid
+
+:= planned_or_unset (parsed : validation_result planned_load) : planned_load =
+    ?= parsed ?|
+    | Valid load => load
+    | Invalid => LoadUnset
+
+:= assigned_or_unset (parsed : validation_result planned_assignee) : planned_assignee =
+    ?= parsed ?|
+    | Valid assignee => assignee
+    | Invalid => Unassigned
+
+:| estimate_unit =
+    | MinuteUnit
+    | HourUnit
+
+:= estimate_unit_factor = \|
+    | MinuteUnit => 1i32
+    | HourUnit => 60i32
+
+:= estimate_digit_limit () : i32 = 6i32
+:= ascii_zero () : i32 = 48i32
+:= ascii_digit (code : i32) : bool = ? ascii_zero () <= code ?> code <= 57i32 |: !-
+:= decimal_step (value : i32) (code : i32) : i32 = $"!value * 10 + !code - 48"
+:= i32_scaled (value : i32) (factor : i32) : i32 = (value * factor)
+
+:~ ^ decimal_digits_value (text : string) (offset : i32) (length : i32) (value : i32) : i32 =
+    ? length <= offset
+    ?> value
+    |? ascii_digit (byte_at text offset)
+    ?> decimal_digits_value text (offset + 1i32) length (decimal_step value (byte_at text offset))
+    |: -1i32
+
+:~ decimal_value (~digits : string) : validation_result i32 =
+    := length = byte_len digits
+    ? length <= 0i32 ?> Invalid
+    |? length <= estimate_digit_limit () ?>
+        := value = decimal_digits_value digits 0i32 length 0i32
+        ? value < 0i32 ?> Invalid |: Valid value
+    |: Invalid
+
+:= estimate_unit_of (~text : string) : estimate_unit =
+    ? sm'.ends_with "h" text ?> HourUnit |: MinuteUnit
+
+:= estimate_digits (~text : string) : string =
+    ? sm'.ends_with "h" text ?> byte_slice text 0i32 (byte_len text - 1i32)
+    |? sm'.ends_with "m" text ?> byte_slice text 0i32 (byte_len text - 1i32)
+    |: text
+
+:= estimate_minute_ceiling () : i32 = 999999i32
+
+:= bounded_estimate (minutes : i32) : validation_result planned_estimate =
+    ? minutes <= estimate_minute_ceiling () ?> Valid (EstimateMinutes minutes) |: Invalid
+
+:~ parse_planned_estimate (~text : string) : validation_result planned_estimate =
+    ? cleared_value text ?> Valid Unestimated
+    |:
+        ?= decimal_value (estimate_digits text) ?|
+        | Valid value => bounded_estimate (i32_scaled value (estimate_unit_factor (estimate_unit_of text)))
+        | Invalid => Invalid
+
+:= planning_field_rule = \|
+    | FieldEstimate => "estimate must be whole minutes (360, 360m) or hours (6h), at most 999999 minutes, or none"
+    | FieldLoad => "load must be light, medium, heavy or none"
+    | FieldAssignee => "assignee must be agent, pair, user or none"
+
+:= task_load_code = \|
+    | LoadLight => 1i32
+    | LoadMedium => 2i32
+    | LoadHeavy => 3i32
+
+:= task_assignee_code = \|
+    | AssigneeAgent => 1i32
+    | AssigneePair => 2i32
+    | AssigneeUser => 3i32
+
+:= planned_load_code = \|
+    | LoadUnset => 0i32
+    | PlannedLoad load => task_load_code load
+
+:= planned_assignee_code = \|
+    | Unassigned => 0i32
+    | PlannedAssignee assignee => task_assignee_code assignee
+
+:= planned_minutes = \|
+    | Unestimated => 0i32
+    | EstimateMinutes minutes => minutes
+
+:= estimate_known = \|
+    | Unestimated => !-
+    | EstimateMinutes _ => !+
+
+:= estimate_text = \|
+    | Unestimated => "-"
+    | EstimateMinutes minutes => (i32_text minutes) ++# "m"
+
+:= load_text = \|
+    | LoadUnset => "-"
+    | PlannedLoad load => task_load_name load
+
+:= assignee_text = \|
+    | Unassigned => "-"
+    | PlannedAssignee assignee => task_assignee_name assignee
+
+:= json_quoted (~text : string) : string = "\"" ++# text ++# "\""
+
+:= estimate_json = \|
+    | Unestimated => "null"
+    | EstimateMinutes minutes => i32_text minutes
+
+:= load_json = \|
+    | LoadUnset => "null"
+    | PlannedLoad load => json_quoted (task_load_name load)
+
+:= assignee_json = \|
+    | Unassigned => "null"
+    | PlannedAssignee assignee => json_quoted (task_assignee_name assignee)
+
+:~ planning_json_fields (plan : task_planning) : string =
+    := estimate = "\"estimate_minutes\":" ++# (estimate_json plan.estimate) ++# ",\"load\":" ++# (load_json plan.load)
+    estimate ++# ",\"assignee\":" ++# (assignee_json plan.assignee)
+
+:~ planning_summary (plan : task_planning) : string =
+    := estimate = "estimate=" ++# (estimate_text plan.estimate) ++# " load=" ++# (load_text plan.load)
+    estimate ++# " assignee=" ++# (assignee_text plan.assignee)
+
+:= estimate_state_token = \|
+    | Unestimated => "Unestimated"
+    | EstimateMinutes minutes => "Minutes " ++# (i32_text minutes) ++# "u32"
+
+:= load_state_token = \|
+    | LoadUnset => "LoadUnset"
+    | PlannedLoad load => "Load " ++# (task_load_case load)
+
+:= assignee_state_token = \|
+    | Unassigned => "Unassigned"
+    | PlannedAssignee assignee => "Assigned " ++# (task_assignee_case assignee)
+
+:= estimate_of_token (~token : string) : planned_estimate =
+    ? sm'.starts_with "Minutes " token ?>
+        ?= decimal_value (sm'.replace "u32" "" (byte_slice token 8i32 (byte_len token))) ?|
+        | Valid minutes => EstimateMinutes minutes
+        | Invalid => Unestimated
+    |: Unestimated
+
+:= load_of_token (~token : string) : planned_load =
+    ? sm'.starts_with "Load " token ?> planned_or_unset (parse_planned_load (byte_slice token 5i32 (byte_len token)))
+    |: LoadUnset
+
+:= assignee_of_token (~token : string) : planned_assignee =
+    ? sm'.starts_with "Assigned " token
+    ?> assigned_or_unset (parse_planned_assignee (byte_slice token 9i32 (byte_len token)))
+    |: Unassigned
+
+:= schema_cases \* t. (case_text : t -> string) (type_name : string) : string =
+    union_reflection.cases.union_cases_joined
+        \ (case_value : t) => !!!!StaticStringConcat(case_text case_value, !!!!StaticStringConcat(" :: ", type_name))
+        " | "
+
+:= planning_schema () : string =
+    inl loads = "union task_load =\n    | " ++# (schema_cases task_load_case "task_load") ++# """
+
+
+
+        """
+    inl assignees = "union task_assignee =\n    | " ++# (schema_cases task_assignee_case "task_assignee") ++# """
+
+
+
+        """
+    inl estimates = """
+        union planned_estimate =
+            | Unestimated :: planned_estimate | Minutes :: u32 -> planned_estimate
+
+
+        """
+    inl options = """
+        union planned_load =
+            | LoadUnset :: planned_load | Load :: task_load -> planned_load
+
+        union planned_assignee =
+            | Unassigned :: planned_assignee | Assigned :: task_assignee -> planned_assignee
+
+
+        """
+    loads
+    ++# assignees
+    ++# estimates
+    ++# options
+    ++# (
+        "union task_planning =\n    | Planning :: string * planned_estimate * planned_load * planned_assignee -> "
+        ^^ "task_planning"
+    )
+
+:= planning_schema_marker () : string = "union task_planning ="
+:= agile_item_marker () : string = "-> agile_item"
+:= planning_arguments_offset () : i32 = 10i32
+
+:= planning_anchor (~id : string) : string = "Planning (\"" ++# id ++# "\","
+:= task_anchor (~id : string) : string = "Task (\"" ++# id ++# "\","
+:= planning_binding (~id : string) : string = "planning_of_" ++# (ascii_lowercase (sm'.replace "-" "_" id))
+
+:== planning_tokens =
+    {
+        estimate_token : string
+        load_token : string
+        assignee_token : string
+    }
+
+:= unset_tokens () : planning_tokens =
+    { estimate_token = "Unestimated"; load_token = "LoadUnset"; assignee_token = "Unassigned" }
+
+:= tokens_with (field : planning_field) (~token : string) (tokens : planning_tokens) : planning_tokens =
+    ?= field ?|
+    | FieldEstimate => { tokens ?| estimate_token = token }
+    | FieldLoad => { tokens ?| load_token = token }
+    | FieldAssignee => { tokens ?| assignee_token = token }
+
+:~ planning_row (~id : string) (tokens : planning_tokens) : string =
+    := head = "inl " ++# (planning_binding id) ++# " () = Planning (" ++# (spi_quoted id) ++# ", "
+    := tail = tokens.estimate_token ++# ", " ++# tokens.load_token ++# ", " ++# tokens.assignee_token
+    head ++# tail ++# ")"
+
+:~ ^ declared_from (text : string) (~needle : string) (offset : i32) : i32 =
+    := found = byte_find_from text needle offset
+    ? found < 0i32 ?> found
+    |? declared_task text found ?> found
+    |: declared_from text needle (found + 1i32)
+
+:= planning_offset (text : string) (~id : string) : i32 = declared_from text (planning_anchor id) 0i32
+
+:~ byte_find_between (text : string) (~needle : string) (start : i32) (stop : i32) : i32 =
+    $'(!text).get(!start as usize..!stop as usize).and_then(|slice| slice.find(&*!needle)).map(|at| at as i32 + \
+        !start).unwrap_or(-1)' : i32
+
+:~ planning_offset_near (text : string) (~id : string) (start : i32) : i32 =
+    := next = byte_find_from text "Task (\"" (start + 1i32)
+    := found = byte_find_between text (planning_anchor id) start (? next < 0i32 ?> byte_len text |: next)
+    ? found >= 0i32 && declared_task text found ?> found |: (-1i32)
+:~ planning_at (text : string) (found : i32) : task_planning =
+    := field = tuple_field text ((found + (planning_arguments_offset ()))) (byte_len text)
+    {
+        estimate = estimate_of_token (field 1i32)
+        load = load_of_token (field 2i32)
+        assignee = assignee_of_token (field 3i32)
+    }
+
+:~ planning_of (text : string) (~id : string) : task_planning =
+    := found = planning_offset text id
+    ? found < 0i32 ?> unplanned () |: planning_at text found
+
+:~ planning_near (text : string) (~id : string) (start : i32) : task_planning =
+    := found = planning_offset_near text id start
+    ? found < 0i32 ?> unplanned () |: planning_at text found
+
+:~ planning_tokens_of (text : string) (~id : string) : planning_tokens =
+    := found = planning_offset text id
+    ? found < 0i32 ?> unset_tokens ()
+    |:
+        := field = tuple_field text ((found + (planning_arguments_offset ()))) (byte_len text)
+        { estimate_token = field 1i32; load_token = field 2i32; assignee_token = field 3i32 }
+
+:= line_end_after (text : string) (offset : i32) : i32 =
+    := found = byte_find_from text "\n" offset
+    ? found < 0i32 ?> byte_len text |: found
+
+:= spliced (text : string) (start : i32) (stop : i32) (~middle : string) : string =
+    (byte_slice text 0i32 start) ++# middle ++# (byte_slice text stop (byte_len text))
+
+:~ planning_upserted (text : string) (~id : string) (tokens : planning_tokens) : validation_result string =
+    := task = byte_find text (task_anchor id)
+    ? task < 0i32
+    ?> Invalid
+    |:
+        := existing = planning_offset text id
+        ? existing < 0i32
+        ?>
+            := stop = line_end_after text task
+            Valid (spliced text stop stop ("\n" ++# (planning_row id tokens)))
+        |:
+            Valid (
+                spliced text (line_start_before text existing) (line_end_after text existing) (planning_row id tokens)
+            )
+
+:~ planning_schema_ensured (text : string) : string =
+    ? byte_find text (planning_schema_marker ()) < 0i32 ?>
+        := item = byte_find text (agile_item_marker ())
+        if item < 0i32 then (planning_schema ()) ++# """
+
+
+
+            """ ++# text
+        |:
+            := stop = line_end_after text item
+            spliced text stop stop ("""
+
+
+
+                """ ++# (planning_schema ()))
+    |: text

@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    rust_std_string
+    union_reflection
+    kit_table_query
+modules:
+    filter
+    entry

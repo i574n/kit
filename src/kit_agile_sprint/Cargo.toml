@@ -1,0 +1,19 @@
+[package.metadata.spiral]
+entry = "sprint.spi"
+output = "sprint.rs"
+
+[package]
+name = "kit-agile-sprint"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_sprint"
+path = "sprint.rs"
+
+[dependencies]
+kit-agile-sprint-change = { path = "../kit_agile_sprint_change" }
+kit-agile-sprint-show = { path = "../kit_agile_sprint_show" }
+kit-agile-sprint-start = { path = "../kit_agile_sprint_start" }

@@ -1,0 +1,79 @@
+:< rust_std_fs.model
+:< sm'_operators
+:< agile_note_model.model
+:< workspace_primitives.files
+:< agile_claim_model.claim
+
+:= claims_path (~root : string) : string = root ++# "/state/claims.spi"
+:= package_path (~root : string) : string = root ++# "/state/package.spiproj"
+
+:~ claims_loaded (~root : string) : bool * string =
+    ?= probe (unchecked (claims_path root)) ?|
+    | FileMissing _ => !-, ""
+    | FileReadable file => !+, loaded_string (read_text file)
+
+:~ listed (~text : string) : bool = sm'.contains "\n    claims\n" text || sm'.ends_with "\n    claims" text
+
+:~ module_registered (~root : string) : state_write =
+    ?= probe (unchecked (package_path root)) ?|
+    | FileMissing _ => StateWritten
+    | FileReadable file =>
+        := text = loaded_string (read_text file)
+        ? listed text ?> StateWritten
+        |? sm'.contains "modules:\n" text = !- ?> StateWriteFailed "state/package.spiproj has no modules section to list claims in"
+        |:
+            ?= replace_file_checked (package_path root) (sm'.replace "modules:\n" "modules:\n    claims\n" text) ?|
+            | Replaced => StateWritten
+            | problem => StateWriteFailed (file_replacement_problem problem)
+
+:~ claims_saved (~root : string) (existed : bool) (~original : string) (~updated : string) : string =
+    := path = claims_path root
+    := unchanged = ? existed ?> text_equals original path |: file_exists path = !-
+    := written =
+        ? unchanged = !- ?> StateChangedSinceRead
+        |:
+            ?= replace_file_checked path updated ?|
+            | Replaced => module_registered root
+            | problem => StateWriteFailed (file_replacement_problem problem)
+    ?= written ?|
+    | StateWritten => ""
+    | StateChangedSinceRead => "state/claims.spi changed since it was read; nothing written, run the call again"
+    | StateWriteFailed reason => reason
+
+:~ claims_applied
+    (~root : string) (existed : bool) (~original : string) (~change : string) (~item : string) (~owner : string)
+    (expires_ms : u64) (~paths : string) (~known : string)
+    : string
+    =
+    := claims = claims_of_text original
+    := listed_ids = sm'.split_list " " known
+    := lease = { item = item; owner = owner; expires_ms = expires_ms; paths = ? sm'.starts_with "~" owner ?> [] |: sm'.split_list ";" paths |> listm'.filter (\ (g : string) => g <> "") }
+    := changed =
+        ?= change_of change ?|
+        | ChangeUpsert => upserted claims lease
+        | ChangeRemove => released claims item
+        | ChangeNone => claims
+    := kept = changed |> listm'.filter (\ (c : claim) => listm'.contains c.item listed_ids)
+    ? change_of change = ChangeNone ?> "" |: claims_saved root existed original (claims_text kept)
+
+:== claim_application =
+    {
+        root : string
+        existed : bool
+        original : string
+        change : string
+        item : string
+        owner : string
+        expires_ms : u64
+        paths : string
+        known : string
+    }
+
+:~ applied_claims (applications : array_base claim_application) : string =
+    := a = am'.index_base 0i32 applications
+    claims_applied a.root a.existed a.original a.change a.item a.owner a.expires_ms a.paths a.known
+
+:= main () : i32 =
+    export "kit_claims_loaded" ((\ root => claims_loaded root) : string -> bool * string)
+    export "kit_claims_applied" applied_claims
+    0i32

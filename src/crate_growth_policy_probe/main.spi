@@ -1,0 +1,22 @@
+:< crate_growth_contract.model
+:< crate_growth_contract.bindings
+
+:= main () : i32 =
+    := _ = current_plan ()
+    := compensation = owner_growth_compensation_binding 7i32 7i32
+    := exception = crate_growth_exception_binding 1i32 1i32
+    ?= crate_growth_partition_binding 74i32 113i32 ?|
+    | 1 =>
+        ?= crate_growth_default_binding 74i32 0i32 ?|
+        | 1 =>
+            ?= crate_growth_unit_binding 81i32 70i32 ?|
+            | 1 =>
+                ?= compensation ?|
+                | 1 =>
+                    ?= exception ?|
+                    | 1 => 0i32
+                    | _ => 5i32
+                | _ => 4i32
+            | _ => 3i32
+        | _ => 2i32
+    | _ => 1i32

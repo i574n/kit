@@ -1,0 +1,9 @@
+packages:
+    |core-
+    spiral-
+    kit_jobs
+    kit_machine_watch
+    kit_jobs_doctor_model
+modules:
+    check
+    entry

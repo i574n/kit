@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "main.spi"
+output = "compiler_discovery.rs"
+
+[package]
+name = "kit-compiler-discovery"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_compiler_discovery"
+path = "compiler_discovery.rs"
+
+[dependencies]
+kit-proxy-search = { path = "../kit_proxy_search" }
+kit-rust-std-fs = { path = "../rust_std_fs" }

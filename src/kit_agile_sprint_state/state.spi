@@ -1,0 +1,62 @@
+///- --package .
+:# state static =
+    :< sm'_operators
+    :< agile_sprint.model
+    :< agile_sprint_rows.rows
+
+:< sm'_operators
+:< agile_sprint.model
+:< agile_sprint_rows.rows
+
+:~ sprints_read (~text : string) : list sprint = sprints_from (kit_agile_sprint_read.read.flat_rows_of text)
+
+:~ open_sprint_of (~sprints_text : string) : string =
+    ?= first_open (sprints_read sprints_text) ?|
+    | Some s => s.terms.id
+    | None => ""
+
+:== sprint_head = { id : string; goal : string; start : string; finish : string; running : bool }
+
+:== item_shown = { task : string; minutes : i32; committed : bool }
+
+:~ chosen (sprints : list sprint) (~id : string) : option sprint =
+    ? id = "" ?> first_open sprints
+    |: listm'.try_find_ (\ (s : sprint) => s.terms.id = id) sprints
+
+:~ sprint_head_of ((text, id) : string * string) : array_base sprint_head =
+    ?= chosen (sprints_read text) id ?|
+    | Some s =>
+        := t = s.terms
+        := head = { id = t.id; goal = t.goal; start = t.start; finish = t.finish; running = s.status = SprintOpen }
+        ;[ head ] |> am'.base
+    | None => (;[] : array sprint_head) |> am'.base
+
+:~ sprint_items_of ((text, id) : string * string) : array_base item_shown =
+    ?= chosen (sprints_read text) id ?|
+    | Some s =>
+        := shown = \ (kept : array item_shown) (item : sprint_item) =>
+            kept ++ ;[ { task = item.task; minutes = item.minutes; committed = item.fate = Committed } ]
+        s.items |> listm.fold shown ;[] |> am'.base
+    | None => (;[] : array item_shown) |> am'.base
+
+:~ velocity_of ((text, last) : string * i32) : i32 =
+    velocity (reviews_from (kit_agile_sprint_read.read.review_rows_of text) |> listm.rev) last
+
+///> rust
+:# the_state_unit_reads_the_open_sprint_its_head_and_items =
+    := item = { task = "KIT-A"; minutes = 60i32; fate = Committed }
+    := first = sprints_appended "" { terms = fixture_terms "S-1"; status = SprintOpen; items = [ item ] }
+    testing.expect (open_sprint_of first = "S-1") "the appended sprint is open"
+    testing.expect (open_sprint_of "" = "") "no sprints, none open"
+    := head = sprint_head_of (first, "")
+    testing.expect (am'.length_base head = 1i32 && (am'.index_base 0i32 head).running) "the open sprint is chosen"
+    testing.expect (am'.length_base (sprint_items_of (first, "S-1")) = 1i32) "S-1 has one item"
+    testing.expect (am'.length_base (sprint_head_of (first, "S-9")) = 0i32) "an unknown sprint has no head"
+    testing.expect (velocity_of (first, 3i32) = 0i32) "no reviews, no velocity"
+///> _
+:= main () : i32 =
+    export "kit_agile_open_sprint" open_sprint_of
+    export "kit_agile_sprint_head" sprint_head_of
+    export "kit_agile_sprint_items" sprint_items_of
+    export "kit_agile_sprint_velocity" velocity_of
+    0i32

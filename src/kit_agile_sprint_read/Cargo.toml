@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "read.spi"
+output = "read.rs"
+
+[package]
+name = "kit-agile-sprint-read"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_agile_sprint_read"
+path = "read.rs"

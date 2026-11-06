@@ -1,0 +1,91 @@
+///- --package .
+:# remote_run static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| remote_command =
+    | RemoteManifest
+    | RemotePlan
+    | RemoteSync
+    | RemoteUnpack
+
+:= remote_word (command : remote_command) : string = union_reflection.cases.union_case_kebab "Remote" command
+
+:~ remote_of (~word : string) : option remote_command =
+    union_reflection.cases.union_case_where (\ (command : remote_command) => remote_word command = word) Some None
+
+:~ skip_of (rest : list string) : option string =
+    ?= rest ?|
+    | [] => Some ""
+    | flag :: listed :: [] ?& flag = "--skip" => Some listed
+    | _ => None
+
+:~ refused (~reason : string) : i32 =
+    console.write_error_line ("kit error: mirror " ++# reason)
+    2i32
+
+:~ listing_at (~root : string) (~listed : string) : kit_mirror_local.local.listing =
+    am'.index_base 0i32 (kit_mirror_local.local.listing_of (root, listed))
+
+:~ plan_at (~alias : string) (~remote : string) (~listed : string) (~text : string) : kit_mirror_plan.plan.shipment =
+    am'.index_base 0i32 (kit_mirror_plan.plan.plan_of (alias, remote, listed, text))
+
+:~ listed_of (items : array_base string) : list string = items |> am'.to_list_base' |> listm'.unbox
+
+:~ manifest_printed (~root : string) (~listed : string) : i32 =
+    ? file_system.directory_exists root = !- ?> refused ("manifest needs an existing root, received " ++# root)
+    |:
+        := found = listing_at root listed
+        console.write found.text
+        console.write_error_line ("kit mirror manifest ok files=" ++# sm'.format found.files ++# " fingerprint=" ++# found.fingerprint)
+        0i32
+
+:~ plan_printed (~alias : string) (~local : string) (~remote : string) (~listed : string) : i32 =
+    := ours = listing_at local listed
+    := planned = plan_at alias remote listed ours.text
+    ? planned.refused <> "" ?> refused ("plan " ++# alias ++# ": " ++# planned.refused)
+    |:
+        := shown = \ (word : string) (items : array_base string) =>
+            listed_of items |> listm.iter (\ (path : string) => console.write_line (word ++# "\t" ++# path))
+        shown "add" planned.added
+        shown "change" planned.changed
+        shown "remove" planned.removed
+        := same = planned.found = ours.fingerprint
+        console.write_error_line ("kit mirror plan " ++# (? same ?> "in-step" |: "drift") ++# " machine=" ++# alias ++# " local=" ++# ours.fingerprint)
+        ? same ?> 0i32 |: 1i32
+
+:~ command_ran (command : remote_command) (words : list string) : i32 =
+    := usage = "usage: mirror manifest <root> | plan|sync <ssh-alias> <local-root> <remote-root> | unpack <root> <removal-list>; [--skip a,b]"
+    ?= command, words ?|
+    | RemoteUnpack, (root :: list_name :: []) => kit_mirror_unpack.unpack.unpack_printed (root, list_name)
+    | RemoteManifest, (root :: rest) =>
+        ?= skip_of rest ?|
+        | Some listed => manifest_printed root listed
+        | None => refused usage
+    | RemotePlan, (alias :: local :: remote :: rest) =>
+        ?= skip_of rest ?|
+        | Some listed => plan_printed alias local remote listed
+        | None => refused usage
+    | RemoteSync, (alias :: local :: remote :: rest) =>
+        ?= skip_of rest ?|
+        | Some listed => kit_mirror_sync.sync.sync_printed (alias, local, remote, listed)
+        | None => refused usage
+    | _ => refused usage
+
+:~ remote_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: words =>
+        ?= remote_of word ?|
+        | Some command => command_ran command words
+        | None => refused ("unknown command " ++# word ++# "; check|manifest|plan|sync|unpack")
+    | _ => refused "expected a command: check|manifest|plan|sync|unpack"
+
+///> rust
+:# remote_words_are_their_case_names_and_skip_reads_one_flag =
+    testing.expect (remote_of "plan" = Some RemotePlan && remote_of "unpack" = Some RemoteUnpack && remote_of "x" = None) "words"
+    testing.expect (skip_of [] = Some "" && skip_of [ "--skip"; "a,b" ] = Some "a,b" && skip_of [ "--bogus" ] = None) "skip"
+///> _
+:= main () : i32 =
+    export "kit_mirror_remote_run" remote_run
+    0i32

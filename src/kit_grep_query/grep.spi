@@ -1,0 +1,172 @@
+///- --package .
+:# grep static =
+    :< sm'_operators
+    :< kit_receipt.receipt
+    :< kit_grep_found.found
+    :< hits
+    :< search
+
+:< sm'_operators
+:< kit_receipt.receipt
+:< kit_grep_found.found
+:< hits
+:< search
+
+:| needle_hint =
+    | NoNeedleHint
+    | LiteralLooksLikePattern
+
+:= regex_syntax_in (needle : string) : bool =
+    sm'.contains "|" needle
+    || sm'.contains ".*" needle
+    || sm'.contains "[" needle
+    || sm'.starts_with "^" needle
+    || sm'.ends_with "$" needle
+
+:= needle_hint_of (regex : bool) (needle : string) : needle_hint =
+    ? regex |> not && regex_syntax_in needle ?> LiteralLooksLikePattern |: NoNeedleHint
+
+:= hint_text (hint : needle_hint) (total : i32) : string =
+    ? total <> 0i32 ?> ""
+    |:
+        ?= hint ?|
+        | NoNeedleHint => ""
+        | LiteralLooksLikePattern => "  hint: the needle is literal; pass --regex to use it as a pattern"
+
+:= stderr_line (~text : string) : () = console.write_error_line text
+:~ decimal_u64 (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
+
+:= rejected (~message : string) : i32 =
+    stderr_line ("kit error: " ++# message)
+    2i32
+
+:== search_options =
+    {
+        glob : string
+        context : u64
+        limit : u64
+        ignore_case : bool
+        regex : bool
+        json : bool
+    }
+
+:~ search_start () : search_options =
+    { glob = ""; context = 0u64; limit = 200u64; ignore_case = !-; regex = !-; json = !- }
+
+:| grep_switch =
+    | SwitchIgnoreCase
+    | SwitchJson
+    | SwitchRegex
+
+:| grep_valued =
+    | ValuedGlob
+    | ValuedContext
+    | ValuedMax
+
+:= switch_word (flag : grep_switch) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Switch" flag
+
+:= valued_word (flag : grep_valued) : string =
+    "--" ++# union_reflection.cases.union_case_kebab "Valued" flag
+
+:~ switch_of (~word : string) : option grep_switch =
+    union_reflection.cases.union_case_where (\ (flag : grep_switch) => word = switch_word flag) Some None
+
+:~ valued_of (~word : string) : option grep_valued =
+    union_reflection.cases.union_case_where (\ (flag : grep_valued) => word = valued_word flag) Some None
+
+:~ switch_applied (flag : grep_switch) (options : search_options) : search_options =
+    ?= flag ?|
+    | SwitchIgnoreCase => { options ?| ignore_case = !+ }
+    | SwitchJson => { options ?| json = !+ }
+    | SwitchRegex => { options ?| regex = !+ }
+
+:~ valued_applied (flag : grep_valued) (~value : string) (options : search_options) : search_options =
+    ?= flag ?|
+    | ValuedGlob => { options ?| glob = value }
+    | ValuedContext => { options ?| context = decimal_u64 value }
+    | ValuedMax => { options ?| limit = decimal_u64 value }
+
+:~ ^ options_read (words : list string) (options : search_options) : search_options =
+    ?= words ?|
+    | [] => options
+    | word :: rest =>
+        ?= switch_of word ?|
+        | Some flag => options_read rest (switch_applied flag options)
+        | None =>
+            ?= valued_of word ?|
+            | Some flag =>
+                ?= rest ?|
+                | value :: after => options_read after (valued_applied flag value options)
+                | [] => options
+            | None => options_read rest options
+:~ search_receipt
+    (hits : search_hits) (json : bool) (context : i32) (limit : i32) (hint : needle_hint) (~started : u64)
+    : i32
+    =
+    := counts = files_rendered hits json context limit 0i32 (counts_start ())
+    := searched = decimal_text (searched_files hits)
+    := matched = i32_text (hit_files hits)
+    ? json ?>
+        := head =
+            "{\"files\":"
+            ++# searched
+            ++# ",\"matched\":"
+            ++# matched
+            ++# (",\"total\":" ++# (i32_text counts.total) ++# ",\"shown\":" ++# (i32_text counts.shown))
+        stdout_text (head ++# ",\"matches\":[" ++# counts.json ++# "]}")
+        0i32
+    |:
+        := summary =
+            "files " ++# searched ++# " searched  " ++# matched ++# (" matched  matches " ++# (i32_text counts.total))
+        receipt_line Succeeded
+            (
+                (? counts.shown < counts.total ?> summary ++# "  shown " ++# (i32_text counts.shown) |: summary)
+                ++# hint_text hint counts.total
+            )
+            started
+        0i32
+
+:~ grep_searched (~root : string) (~needle : string) (flags : list string) : i32 =
+    := started = now_ms ()
+    := options = options_read flags (search_start ())
+    := context = options.context
+    := limit = options.limit
+    ? root = "" || needle = "" ?> rejected (kit_read_query.model.read_usage ())
+    |:
+        := kind =
+            ? options.regex ?> PatternNeedle options.ignore_case
+            |? options.ignore_case ?> CaselessNeedle
+            |: LiteralNeedle
+        := problem = ? options.regex ?> found_problem needle |: ""
+        ? problem <> "" ?> rejected ("grep: invalid --regex pattern: " ++# problem)
+        |:
+            ?= root_kind root ?|
+            | MissingRoot => rejected ("grep root not found: " ++# root)
+            | _ =>
+                := caseless, pattern = needle_flags kind
+                search_receipt
+                    (searched_in root options.glob needle caseless pattern)
+                    options.json
+                    ((conv context : i32))
+                    ((conv limit : i32))
+                    (needle_hint_of options.regex needle)
+                    started
+
+:~ grep_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: root :: needle :: flags => grep_searched root needle flags
+    | _ => grep_searched "" "" []
+
+///> rust
+:# grep_flags_read_by_reflection =
+    := switches = union_reflection.cases.union_cases_joined switch_word "|"
+    testing.expect (switches = "--ignore-case|--json|--regex") switches
+    := valued = union_reflection.cases.union_cases_joined valued_word "|"
+    testing.expect (valued = "--glob|--context|--max") valued
+    := read = options_read [ "--json"; "--glob"; "*.spi"; "--bogus"; "--max"; "7"; "--context" ] (search_start ())
+    testing.expect (read.json && read.glob = "*.spi" && read.limit = 7u64 && read.context = 0u64) read.glob
+///> _
+:= main () : i32 =
+    export "kit_grep_run" ((\ () => grep_run ()) : () -> i32)
+    0i32

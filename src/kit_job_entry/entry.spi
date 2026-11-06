@@ -1,0 +1,51 @@
+:< sm'_operators
+:< kit_jobs.model
+:< kit_jobs.host
+:< kit_jobs.jobs
+
+:~ dispatched () : i32 = kit_job_dispatch.dispatch.dispatch_run (jobs_root ())
+
+:~ started_code (attached : bool) : i32 =
+    := answer = kit_job_launch.launch.start_answered attached |> am'.index 0i32
+    := _ = ? attached && answer.id <> "" ?> stdout_line (shared_summary "run" answer.id) |: ()
+    answer.code
+
+:~ job_ran (command : job_command) (~first : string) (~second : string) : i32 =
+    ?= command ?|
+    | JobStart => ? first = "--on" ?> dispatched () |: started_code !-
+    | JobRun => started_code !+
+    | JobSupervise =>
+        ? first = "" || sm'.starts_with "-" first
+        ?> rejected "supervise is started by kit itself for one job id and takes no flags; see job --help"
+        |: kit_job_supervise.supervise.supervise_job first
+    | JobHost =>
+        ? sm'.starts_with "-" first
+        ?> rejected "host is started by kit itself and takes no flags; see job --help"
+        |: kit_job_host.host_run.host_run ()
+    | JobStatus => kit_job_query.query.status_placed first
+    | JobWait => kit_job_query.query.wait_placed (first, second)
+    | JobList =>
+        ? first = "--on" ?> kit_job_dispatch.dispatch.list_on_run (jobs_root ()) |: kit_job_control.control.job_listed ()
+    | JobTail => kit_job_query.query.tail_placed first
+    | JobStop => kit_job_query.query.stop_placed first
+    | JobAfter => kit_job_rechain.rechain.rechain_run ()
+    | JobChain => ? first = "--run-serial" ?> kit_job_serial.serial.serial_run () |: kit_job_chain.chain.chain_run ()
+    | JobAmend => kit_job_control.control.job_amended ()
+    | JobDoctor => kit_jobs_doctor.entry.doctor_checked ()
+    | JobCoordinator => kit_job_coordinator.coordinator.coordinator_run (jobs_root ())
+    | JobUnknown => rejected (job_usage ())
+
+:~ job_operands (command : job_command) (operands : list string) : i32 =
+    ?= operands ?|
+    | first :: second :: _ => job_ran command first second
+    | first :: [] => job_ran command first ""
+    | [] => job_ran command "" ""
+
+:~ job_run () : i32 =
+    ?= env.command_line_arguments () ?|
+    | _ :: verb :: operands => job_operands (job_command_of verb) operands
+    | _ => rejected (job_usage ())
+
+:= main () : i32 =
+    export "kit_job_run" job_run
+    0i32

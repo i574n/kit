@@ -1,0 +1,86 @@
+///- --package .
+:# model static =
+
+:| formal_authority_blocker =
+    | SemanticCloseoutPending
+    | ColdProofV4Pending
+    | DifferentialCatalogPending
+    | FamilyContractsPending
+    | ColdRebuildPending
+
+:| formal_authority_state =
+    | FormalAuthorityBlocked : i32
+    | FormalAuthorityExclusive
+
+:= blocker_label = \|
+    | SemanticCloseoutPending => "semantic-closeout"
+    | ColdProofV4Pending => "cold-proof-v4"
+    | DifferentialCatalogPending => "differential-catalog"
+    | FamilyContractsPending => "family-contracts"
+    | ColdRebuildPending => "cold-rebuild"
+
+:= blocker_index (blocker : formal_authority_blocker) : i32 = union_reflection.cases.union_case_index blocker - 1i32
+:= blocker_bit (blocker : formal_authority_blocker) : i32 = $'1i32 << !(blocker_index blocker)' : i32
+:= blocker_at (index : i32) (blocker : formal_authority_blocker) : bool = blocker_index blocker = index
+:= label_at (position : i32) : string =
+    blocker_label (union_reflection.cases.union_case_at position SemanticCloseoutPending)
+
+:= current_formal_blocker_mask () : i32 = 0i32
+:= current_formal_authority () : formal_authority_state = FormalAuthorityExclusive
+:= operational_replacement_ready () : bool = !+
+:= legacy_fallback_execution_allowed () : bool = !-
+
+:~ authority_declared_mask_binding (reserved_a : i32) (reserved_b : i32) : i32 =
+    ? reserved_a = 0i32 ?>
+        ? reserved_b = 0i32 ?> current_formal_blocker_mask () |: -1i32
+    |: -1i32
+
+:~ authority_state_binding (mask : i32) (reserved : i32) : i32 =
+    ? reserved = 0i32 ?>
+        ? mask = 0i32 ?> 1i32 |: 0i32
+    |: -1i32
+
+:~ authority_live_mask_binding (proof_flags : i32) (reserved : i32) : i32 =
+    := full =
+        union_reflection.cases.union_cases_fold
+            \ mask (blocker : formal_authority_blocker) => mask + blocker_bit blocker
+            0i32
+    ? reserved = 0i32 ?>
+        ? proof_flags < 0i32 ?> -1i32
+        |? full < proof_flags ?> -1i32
+        |: full - proof_flags
+    |: -1i32
+
+:~ authority_blocker_bit_binding (index : i32) (reserved : i32) : i32 =
+    ? reserved = 0i32 ?> union_reflection.cases.union_case_where (blocker_at index) blocker_bit (-1i32)
+    |: -1i32
+
+:~ authority_blocker_labels (~input : string) : string * string * string * string * string =
+    ? input = "v1" ?> label_at 1i32, label_at 2i32, label_at 3i32, label_at 4i32, label_at 5i32
+    |: "", "", "", "", ""
+
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust
+:# blocker_bits_and_labels_come_from_the_union =
+    expect
+        (authority_blocker_bit_binding 0i32 0i32 = 1i32 && authority_blocker_bit_binding 4i32 0i32 = 16i32)
+        "bits follow declaration order"
+    expect
+        (authority_blocker_bit_binding 5i32 0i32 = -1i32 && authority_blocker_bit_binding (-1i32) 0i32 = -1i32)
+        "indexes past the union have no bit"
+    expect
+        (authority_live_mask_binding 3i32 0i32 = 28i32 && authority_live_mask_binding 32i32 0i32 = -1i32)
+        "live mask over all five blockers"
+    := first, second, third, fourth, fifth = authority_blocker_labels "v1"
+    expect
+        (
+            first = "semantic-closeout"
+            && second = "cold-proof-v4"
+            && third = "differential-catalog"
+            && fourth = "family-contracts"
+            && fifth = "cold-rebuild"
+        )
+        first
+    := none, _, _, _, _ = authority_blocker_labels "v2"
+    expect (none = "") "only v1 has labels"

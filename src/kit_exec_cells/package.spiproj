@@ -1,0 +1,7 @@
+packages:
+    |core-
+    spiral-
+    kit_exec_metrics
+    kit_os_json
+modules:
+    cells

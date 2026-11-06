@@ -1,0 +1,19 @@
+
+:| archive_extract_negative_fixture =
+    | DestinationAlreadyExists
+    | UnsafeArchiveEntry
+    | UnconfinedStaging
+    | PayloadCountMismatch
+
+:= main () : i32 =
+    global "#![allow(clippy::needless_return, clippy::needless_late_init)]"
+    := _ = native_extract_plan ()
+    := destination_exists = archive_extract_preflight_binding 1i32 1i32
+    := unsafe_entry = archive_extract_preflight_binding 0i32 0i32
+    := unconfined_stage = archive_extract_process_binding 1i32 0i32
+    := count_mismatch = archive_extract_complete_binding 4i32 3i32
+    ? 0i32 < destination_exists ?> 1i32
+    |? 0i32 < unsafe_entry ?> 1i32
+    |? 0i32 < unconfined_stage ?> 1i32
+    |? 0i32 < count_mismatch ?> 1i32
+    |: 0i32

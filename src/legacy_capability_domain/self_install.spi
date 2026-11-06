@@ -1,0 +1,94 @@
+:! self_install_idle = ()
+:! self_install_validated = ()
+:! self_install_staged = ()
+:! self_install_binary_committed = ()
+:! self_install_link_preserved = ()
+:! self_install_link_committed = ()
+:! self_install_complete = ()
+
+:| self_install_link_state =
+    | LinkAbsent
+    | LinkSymlink
+    | LinkRegularFile
+    | LinkDirectory
+
+:| self_install_fault =
+    | NoSelfInstallFault
+    | FailAfterBinaryCommit
+    | FailBeforeLinkCommit
+    | FailAfterLinkCommit
+
+:| self_install_op from to =
+    | ValidateSelfInstall :: self_install_op self_install_idle self_install_validated
+    | StageSelfInstall :: self_install_op self_install_validated self_install_staged
+    | CommitSelfInstallBinary :: self_install_op self_install_staged self_install_binary_committed
+    | PreserveSelfInstallLink :: self_install_op self_install_binary_committed self_install_link_preserved
+    | CommitSelfInstallLink :: self_install_op self_install_link_preserved self_install_link_committed
+    | CompleteSelfInstall :: self_install_op self_install_link_committed self_install_complete
+
+:| ^ self_install_plan from to =
+    | SelfInstallStep :: \* from to. self_install_op from to -> self_install_plan from to
+    | SelfInstallThen :: \* from to.
+        (\? middle. self_install_plan from middle * self_install_plan middle to) ->
+        self_install_plan from to
+
+:= self_install_complete_plan () : self_install_plan self_install_idle self_install_complete =
+    SelfInstallThen (\? (
+        SelfInstallStep ValidateSelfInstall,
+        SelfInstallThen (\? (
+            SelfInstallStep StageSelfInstall,
+            SelfInstallThen (\? (
+                SelfInstallStep CommitSelfInstallBinary,
+                SelfInstallThen (\? (
+                    SelfInstallStep PreserveSelfInstallLink,
+                    SelfInstallThen (\? (
+                        SelfInstallStep CommitSelfInstallLink,
+                        SelfInstallStep CompleteSelfInstall
+                    ))
+                ))
+            ))
+        ))
+    ))
+
+:= self_install_link_state_code = \|
+    | LinkAbsent => 0i32
+    | LinkSymlink => 1i32
+    | LinkRegularFile => 2i32
+    | LinkDirectory => 3i32
+
+:= self_install_fault_code = \|
+    | NoSelfInstallFault => 0i32
+    | FailAfterBinaryCommit => 1i32
+    | FailBeforeLinkCommit => 2i32
+    | FailAfterLinkCommit => 3i32
+
+:~ self_install_preflight_binding (source_regular : i32) (source_executable : i32) : i32 =
+    ? source_regular < 1i32 ?> 0i32
+    |? 1i32 < source_regular ?> 0i32
+    |? source_executable < 1i32 ?> 0i32
+    |? 1i32 < source_executable ?> 0i32
+    |: 1i32
+
+:~ self_install_target_binding (destination_safe : i32) (link_state_code : i32) : i32 =
+    ? destination_safe < 1i32 ?> 0i32
+    |? 1i32 < destination_safe ?> 0i32
+    |? link_state_code < 0i32 ?> 0i32
+    |? 3i32 < link_state_code ?> 0i32
+    |? link_state_code = 3i32 ?> 0i32
+    |: 1i32
+
+:~ self_install_fault_binding (configured : i32) (observed : i32) : i32 =
+    ? configured < 1i32 ?> 0i32
+    |? 3i32 < configured ?> 0i32
+    |? observed < 1i32 ?> 0i32
+    |? 3i32 < observed ?> 0i32
+    |? configured < observed ?> 0i32
+    |? observed < configured ?> 0i32
+    |: 1i32
+
+:~ self_install_complete_binding (binary_matches : i32) (link_matches : i32) : i32 =
+    ? binary_matches < 1i32 ?> 0i32
+    |? 1i32 < binary_matches ?> 0i32
+    |? link_matches < 1i32 ?> 0i32
+    |? 1i32 < link_matches ?> 0i32
+    |: 1i32

@@ -1,0 +1,24 @@
+:< crate_growth_contract.bindings
+
+:= main () : i32 =
+    := unauthorized_crate = crate_growth_default_binding 75i32 0i32
+    := incomplete_exception = crate_growth_exception_binding 0i32 1i32
+    := complete_exception = crate_growth_exception_binding 1i32 1i32
+    := authorized_crate = crate_growth_default_binding 75i32 complete_exception
+    := silent_owner_growth = crate_growth_unit_binding 81i32 88i32
+    := undercompensated = owner_growth_compensation_binding 7i32 6i32
+    ?= unauthorized_crate ?|
+    | 0 =>
+        ?= incomplete_exception ?|
+        | 0 =>
+            ?= authorized_crate ?|
+            | 1 =>
+                ?= silent_owner_growth ?|
+                | 0 =>
+                    ?= undercompensated ?|
+                    | 0 => 0i32
+                    | _ => 5i32
+                | _ => 4i32
+            | _ => 3i32
+        | _ => 2i32
+    | _ => 1i32

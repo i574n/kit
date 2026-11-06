@@ -1,0 +1,8 @@
+:< kit_jobs.model
+:< kit_jobs.jobs
+
+:~ environment_refusal (id : string) : string = snapshot_refusal (job_environment_adopted id)
+
+:= main () : i32 =
+    export "kit_job_environment_adopted" environment_refusal
+    0i32

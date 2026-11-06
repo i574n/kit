@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "run.spi"
+output = "run.rs"
+
+[package]
+name = "kit-run-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_run_cli"
+path = "run.rs"
+
+[dependencies]
+kit-run-build = { path = "../kit_run_build" }

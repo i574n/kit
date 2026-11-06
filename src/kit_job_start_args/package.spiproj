@@ -1,0 +1,11 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_jobs
+    kit_job_launch_model
+    kit_flag_words
+link:
+    kit_flag_words
+modules:
+    start_args
