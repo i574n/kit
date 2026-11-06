@@ -65,7 +65,7 @@
                 |: concat5 acc "MEMORY.md: entry for missing " target "\n" ""
             )
 
-:~ memory_check (~data : string) : i32 =
+:~ memory_check (data : string) : i32 =
     ? file_present data = !-
     ?> failed (concat5 "check needs a readable data file: " data "" "" "")
     |:
@@ -104,7 +104,7 @@
             listed rest kind (shown + 1i32)
         |: listed rest kind shown
 
-:~ memory_list_run (~data : string) (~kind : string) : i32 =
+:~ memory_list_run ((data, kind) : string * string) : i32 =
     ? file_present data = !-
     ?> failed (concat5 "list needs a readable data file: " data "" "" "")
     |:
@@ -182,7 +182,7 @@
             ranked_printed rest limit (shown + 1i32)
         |: shown
 
-:~ memory_recall (~data : string) (~query : string) (limit : i32) : i32 =
+:~ memory_recall ((data, query, limit) : string * string * i32) : i32 =
     ? file_present data = !-
     ?> failed (concat5 "recall needs a readable data file: " data "" "" "")
     |? query_words query = ""
@@ -201,9 +201,7 @@
         0i32
 
 := main () : i32 =
-    export "kit_memory_check" ((\ data => memory_check data) : string -> i32)
-    export "kit_memory_list" ((\ (data, kind) => memory_list_run data kind) : string * string -> i32)
-    export
-        "kit_memory_recall"
-        ((\ (data, query, limit) => memory_recall data query limit) : string * string * i32 -> i32)
+    export "kit_memory_check" memory_check
+    export "kit_memory_list" memory_list_run
+    export "kit_memory_recall" memory_recall
     0i32

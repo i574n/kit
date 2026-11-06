@@ -6,7 +6,7 @@
 :< sm'_operators
 :< file_system_operators
 
-:= skipped_dir (name : string) : bool =
+:= skipped_directory (name : string) : bool =
     sm'.starts_with "." name || name = "target" || name = "node_modules" || name = "_build" || name = "deps"
     || name = "bin" || name = "obj"
 
@@ -26,7 +26,7 @@
                 entry_names path
                 |> listm.rev
                 |> listm.fold
-                    \ ahead (name : string) => ? skipped_dir name ?> ahead |: (path </> name) :: ahead
+                    \ ahead (name : string) => ? skipped_directory name ?> ahead |: (path </> name) :: ahead
                     rest
             spi_files deeper found
         |: spi_files rest found

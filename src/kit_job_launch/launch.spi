@@ -20,9 +20,10 @@
     =
     := word = shape_word shape
     := id, supervisor, problem =
-        $'kit_job_create::kit_job_create(&*!word, &*!after_mode, &*!after_job, !attached, !cap_mb, !slot_minutes, \
-            !done_minutes, !hold_minutes, !quiet_wait, !min_free, !front, &*!label, !timeout, &*!inner, &*!cwd)'
-        : string * string * string
+        kit_job_create.create.job_created (
+            word, after_mode, after_job, attached, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait,
+            min_free, front, label, timeout, inner, cwd
+        )
     ? problem <> "" ?> LaunchRefused problem |: Launched (id, supervisor)
 := supervised_job (~id : string) : i32 = $'kit_job_supervise::kit_job_supervise(&*!id)' : i32
 
@@ -95,7 +96,7 @@
         ?|
         | LaunchRefused refused_problem => rejected refused_problem, ""
         | Launched (id, supervisor) =>
-            := settles = attached = !- && after_mode = "" && shape = PlainStart && settle_ms > 0u64
+            := settles = attached = !- && after_mode = "" && shape = StartPlain && settle_ms > 0u64
             ?= (? settles ?> start_settle_of id settle_ms |: SettleHealthy) ?|
             | SettleFailed (settled, detail) =>
                 stderr_line (settle_failure_line id settled detail)
@@ -142,7 +143,7 @@
 := record_mark () : string = sm'.char_text 30u8
 
 :~ launched_text (~label : string) (~timeout : u64) (~inner : string) (~cwd : string) : string =
-    ?= job_launched PlainStart "" "" !- 0u64 0u64 0u64 0u64 0u64 0u64 !- label timeout inner cwd ?|
+    ?= job_launched StartPlain "" "" !- 0u64 0u64 0u64 0u64 0u64 0u64 !- label timeout inner cwd ?|
     | Launched (id, supervisor) => id ++# (record_mark ()) ++# supervisor
     | LaunchRefused problem => "error: " ++# problem
 

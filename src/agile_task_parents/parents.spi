@@ -1,0 +1,64 @@
+///- --package .
+:# parents static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== parent_link = { child : string; parent : string }
+
+:= row_marker () : string = " = Parent (\""
+
+:~ quoted_pair (~text : string) : option (string * string) =
+    ?= sm'.split_list "\", \"" text ?|
+    | child :: rest :: [] ?& sm'.ends_with "\")" rest =>
+        := parent = sm'.trim_end_suffix "\")" rest
+        ? child = "" || parent = "" ?> None |: Some (child, parent)
+    | _ => None
+
+:~ link_of_line (~line : string) : option parent_link =
+    := row = sm'.trim line
+    := at = sm'.index_of (row_marker ()) row
+    ? at < 0i32 ?> None
+    |:
+        := start = at + sm'.length (row_marker ())
+        ?= quoted_pair (sm'.slice start (sm'.length row - 1i32) row) ?|
+        | Some (child, parent) => Some { child = child; parent = parent }
+        | None => None
+
+:~ links_of_text (~text : string) : list parent_link =
+    := gathered = \ (found : list parent_link) (line : string) =>
+        ?= link_of_line line ?|
+        | Some link => link :: found
+        | None => found
+    sm'.split_list "\n" (sm'.replace "\r" "" text) |> listm.fold gathered [] |> listm.rev
+
+:~ slug_of (~id : string) : string = sm'.to_lower id |> sm'.replace "-" "_" |> sm'.replace "." "_"
+
+:~ row_of_link (link : parent_link) : string =
+    "inl parent_of_" ++# slug_of link.child ++# " () = Parent (\"" ++# link.child ++# "\", \"" ++# link.parent ++# "\")"
+
+:~ children_of (links : list parent_link) (~parent : string) : list string =
+    links
+    |> listm'.filter (\ (link : parent_link) => link.parent = parent)
+    |> listm.map (\ (link : parent_link) => link.child)
+
+:~ tree_lines (links : list parent_link) (~parent : string) : list string =
+    parent :: (children_of links parent |> listm.map (\ (child : string) => "  " ++# child))
+
+:~ links_of (text : string) : array_base parent_link = links_of_text text |> listm'.box |> listm'.to_array'
+
+///> rust
+:# parent_rows_round_trip_and_group_children_under_their_epic =
+    := text =
+        "inl planning_of_x () = Planning (\"X\", Unestimated, LoadUnset, Unassigned)\n"
+        ^^ "inl parent_of_scrum_xp_s7 () = Parent (\"SCRUM-XP-S7\", \"EOIE-SCRUM-XP\")\n"
+        ^^ "inl parent_of_scrum_xp_s8 () = Parent (\"SCRUM-XP-S8\", \"EOIE-SCRUM-XP\")\r\n"
+        ^^ "inl parent_of_broken () = Parent (\"ONLY-ONE\")\n"
+    := links = links_of_text text
+    testing.expect ((listm.length links : i32) = 2i32) "two well-formed Parent rows, the broken one is skipped"
+    testing.expect (children_of links "EOIE-SCRUM-XP" = [ "SCRUM-XP-S7"; "SCRUM-XP-S8" ]) "children in file order"
+    := s7 = { child = "SCRUM-XP-S7"; parent = "EOIE-SCRUM-XP" }
+    := expected = "inl parent_of_scrum_xp_s7 () = Parent (\"SCRUM-XP-S7\", \"EOIE-SCRUM-XP\")"
+    testing.expect (row_of_link s7 = expected) "row shape"
+    testing.expect (link_of_line (row_of_link s7) = Some s7) "a written row reads back"
+    testing.expect (tree_lines links "EOIE-SCRUM-XP" = [ "EOIE-SCRUM-XP"; "  SCRUM-XP-S7"; "  SCRUM-XP-S8" ]) "tree"

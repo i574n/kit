@@ -107,6 +107,7 @@
 :~ mirror_run () : i32 =
     ?= env.command_line_arguments () ?|
     | _ :: word :: left :: right :: paths ?& is_check word => mirror_checked left right paths
+    | _ :: word :: _ ?& is_check word = !- => kit_mirror_remote.remote_run.remote_run ()
     | _ => mirror_checked "" "" []
 
 := main () : i32 =

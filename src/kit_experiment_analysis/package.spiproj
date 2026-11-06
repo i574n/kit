@@ -6,5 +6,8 @@ packages:
     kit_table_query
     agile_note_model
     kit_experiments
+    kit_experiment_verb_args
+link:
+    kit_experiment_verb_args
 modules:
     analysis

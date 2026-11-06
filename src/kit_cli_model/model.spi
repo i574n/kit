@@ -63,12 +63,6 @@
 
 := job_run () : i32 = $"kit_job_entry::kit_job_run()" : i32
 
-:= repo_run () : i32 = $"kit_repo_state::kit_repo_run()" : i32
-:= repo_affected_run () : i32 = $"kit_repo_affected::kit_repo_affected_run()" : i32
-:= repo_accept_review_run () : i32 = $"kit_repo_accept_review::kit_repo_accept_review_run()" : i32
-
-:= table_run () : i32 = $"kit_table_query::kit_table_run()" : i32
-
 := read_run () : i32 = $"kit_read_query::kit_read_run()" : i32
 := grep_run () : i32 = $"kit_grep_query::kit_grep_run()" : i32
 := do_run () : i32 = $"kit_do::kit_do_run()" : i32
@@ -76,8 +70,6 @@
 := standards_run () : i32 = $"kit_standards::kit_standards_run()" : i32
 := window_run () : i32 = $"kit_machine_windows::kit_window_run()" : i32
 := experiment_run () : i32 = $"kit_experiments::kit_experiment_run()" : i32
-:= logs_run () : i32 = $"kit_table_logs::kit_table_logs_run()" : i32
-:= sequences_run () : i32 = $"kit_table_sequences::kit_table_sequences_run()" : i32
 := guide_run () : i32 = $"kit_guide::kit_guide_run()" : i32
 := machine_run () : i32 = $"kit_machine_watch::kit_machine_watch_run()" : i32
 := adoption_run () : i32 = $"kit_adoption::kit_adoption_run()" : i32
@@ -86,7 +78,6 @@
 := ci_run () : i32 = $"kit_ci_parity::kit_ci_parity_run()" : i32
 := os_launch_run () : i32 = $"kit_os_launch::kit_process_launch_run()" : i32
 := crate_run () : i32 = $"kit_crate_gate::kit_crate_gate_run()" : i32
-:= table_test_run () : i32 = $"kit_table_test::kit_table_test_run()" : i32
 := env_run () : i32 = $"kit_env_pins::kit_env_run()" : i32
 := mirror_run () : i32 = $"kit_mirror::kit_mirror_run()" : i32
 := evidence_run () : i32 = $"kit_evidence::kit_evidence_run()" : i32
@@ -117,20 +108,8 @@
 := direct_routed (verb : direct_verb) : i32 =
     ?= verb ?|
     | VerbJob => job_run ()
-    | VerbRepo =>
-        ? argument_file.process_argument 2i32 = "affected"
-        ?> repo_affected_run ()
-        |? argument_file.process_argument 2i32 = "accept-review"
-        ?> repo_accept_review_run ()
-        |: repo_run ()
-    | VerbTable =>
-        ? argument_file.process_argument 2i32 = "logs"
-        ?> logs_run ()
-        |? argument_file.process_argument 2i32 = "sequences"
-        ?> sequences_run ()
-        |? argument_file.process_argument 2i32 = "test"
-        ?> table_test_run ()
-        |: table_run ()
+    | VerbRepo => kit_cli_routes.routes.repo_routed ()
+    | VerbTable => kit_cli_routes.routes.table_routed ()
     | VerbRead => read_run ()
     | VerbLines => read_run ()
     | VerbGrep => grep_run ()

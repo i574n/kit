@@ -1,0 +1,67 @@
+///- --package .
+:# unpack static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:= incoming_name () : string = ".kit-mirror-incoming.tar"
+
+:~ tar_program () : string =
+    := system_root = env.get_environment_variable "SystemRoot"
+    ? system_root = "" ?> "tar" |: system_root ++# "/System32/tar.exe"
+
+:| removal =
+    | RemovalInside : string
+    | RemovalRefused : string
+
+:~ removal_of (~path : string) : removal =
+    := parts = sm'.split_list "/" (sm'.replace "\\" "/" path)
+    ? path = "" || sm'.starts_with "/" path || sm'.contains ":" path || listm'.contains ".." parts
+    ?> RemovalRefused path
+    |: RemovalInside path
+
+:~ ^ removed_inside (~root : string) (paths : list string) (count : i32) (refused : list string) : i32 * list string =
+    ?= paths ?|
+    | [] => count, listm.rev refused
+    | path :: rest =>
+        ?= removal_of path ?|
+        | RemovalRefused bad => removed_inside root rest count (bad :: refused)
+        | RemovalInside inside =>
+            := full = root ++# "/" ++# inside
+            ? file_system.file_exists full ?>
+                file_system.file_delete full
+                removed_inside root rest (count + 1i32) refused
+            |: removed_inside root rest count refused
+
+:~ unpack_printed ((root, list_name) : string * string) : i32 =
+    := base = sm'.replace "\\" "/" root
+    := tar = base ++# "/" ++# incoming_name ()
+    := list = base ++# "/" ++# list_name
+    ? list_name = "" || removal_of list_name <> RemovalInside list_name ?>
+        console.write_error_line ("kit error: mirror unpack: the removal list name must be a plain relative name")
+        2i32
+    |? file_system.file_exists tar = !- ?>
+        console.write_error_line ("kit error: mirror unpack: no " ++# incoming_name () ++# " under " ++# base)
+        2i32
+    |? process.succeeded (process.captured_by (tar_program ()) [ "-xf"; tar; "-C"; base ] !+) = !- ?>
+        console.write_error_line ("kit error: mirror unpack: tar could not extract " ++# tar)
+        2i32
+    |:
+        := wanted = ? file_system.file_exists list ?> sm'.split_list "\n" (file_system.read_all_text list) |: []
+        := count, refused = removed_inside base (listm'.filter (\ (path : string) => path <> "") wanted) 0i32 []
+        file_system.file_delete tar
+        ? file_system.file_exists list ?> file_system.file_delete list
+        refused |> listm.iter (\ (path : string) => console.write_error_line ("kit mirror unpack refused " ++# path))
+        := counts = "removed=" ++# sm'.format count ++# " refused=" ++# sm'.format (listm.length refused : i32)
+        console.write_error_line ("kit mirror unpack ok " ++# counts)
+        ? refused = [] ?> 0i32 |: 1i32
+
+///> rust
+:# removals_stay_inside_the_root =
+    testing.expect (removal_of "sub/a.txt" = RemovalInside "sub/a.txt") "a relative path is inside"
+    testing.expect (removal_of "../x" = RemovalRefused "../x" && removal_of "C:/x" = RemovalRefused "C:/x") "escapes"
+    testing.expect (removal_of "/etc/x" = RemovalRefused "/etc/x" && removal_of "a\\..\\..\\b" = RemovalRefused "a\\..\\..\\b") "more"
+///> _
+:= main () : i32 =
+    export "kit_mirror_unpack_printed" unpack_printed
+    0i32

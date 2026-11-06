@@ -34,7 +34,7 @@
 
 :~ batch_paths (command : string) : array string = sm'.split " --path " command |> array
 
-:~ batch_output_dir (command : string) : string =
+:~ batch_output_directory (command : string) : string =
     := at = (sm'.index_of " --output-dir " command : i32)
     ? at < 0i32 ?> ""
     |:
@@ -202,8 +202,8 @@
         "pwsh -NoProfile -File C:\\c\\run_notebook.ps1 --path C:\\r\\src\\a\\one.spi --path C:\\r\\src\\b\\two.spi "
         ^^ "--output-dir C:\\r\\src\\target\\spiral-tests --no-html --gate"
     expect (am'.length (batch_paths command) = 3i32) "a head chunk plus two paths"
-    expect (batch_output_dir command = "C:\\r\\src\\target\\spiral-tests") "output dir stops at the next flag"
-    expect (batch_output_dir "pwsh run.ps1 --path x.spi" = "") "no output dir"
+    expect (batch_output_directory command = "C:\\r\\src\\target\\spiral-tests") "output dir stops at the next flag"
+    expect (batch_output_directory "pwsh run.ps1 --path x.spi" = "") "no output dir"
 
 ///> rust
 :# progress_counts_reports_written_since_the_batch_started =

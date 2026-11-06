@@ -18,6 +18,7 @@ kit-heal-nameof = { path = "../kit_heal_nameof" }
 kit-hook = { path = "../kit_hook" }
 kit-run-cli = { path = "../kit_run_cli" }
 kit-exec-export = { path = "../kit_exec_export" }
+kit-cli-routes = { path = "../kit_cli_routes" }
 kit-job-entry = { path = "../kit_job_entry" }
 kit-repo-state = { path = "../kit_repo_state" }
 kit-repo-affected = { path = "../kit_repo_affected" }

@@ -4,5 +4,12 @@ packages:
     rust_std_string
     union_reflection
     kit_memory_model
+    kit_memory_query
+    kit_memory_import
+    kit_memory_save
+link:
+    kit_memory_query
+    kit_memory_import
+    kit_memory_save
 modules:
     memory

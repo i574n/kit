@@ -8,6 +8,7 @@ packages:
     kit_do_verbs
     kit_do_facts_receipt
 link:
+    kit_do_model
     kit_do_verbs
     kit_do_facts_receipt
 modules:

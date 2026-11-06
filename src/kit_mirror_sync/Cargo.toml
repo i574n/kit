@@ -1,0 +1,18 @@
+[package.metadata.spiral]
+entry = "sync.spi"
+output = "sync.rs"
+
+[package]
+name = "kit-mirror-sync"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_mirror_sync"
+path = "sync.rs"
+
+[dependencies]
+kit-mirror-local = { path = "../kit_mirror_local" }
+kit-mirror-plan = { path = "../kit_mirror_plan" }

@@ -81,7 +81,7 @@
 :~ path_joined (~dir : string) (~name : string) (~extension : string) : string =
     $'std::rc::Rc::<str>::from(std::path::Path::new(&*!dir).join(format\!("{}{}", &*!name, \
         &*!extension)).to_string_lossy().as_ref())' : string
-:~ names_dir (~name : string) : bool =
+:~ names_directory (~name : string) : bool =
     $'(!name).contains(char::from(47u8)) || (!name).contains(char::from(92u8))' : bool
 :~ path_entries (~separator : string) : string =
     $'std::rc::Rc::<str>::from(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).map(|dir| \
@@ -93,7 +93,7 @@
 := on_windows () : bool = $'cfg\!(windows)' : bool
 
 := search_dirs (~cwd : string) (~name : string) : string =
-    ? names_dir name ?> cwd
+    ? names_directory name ?> cwd
     |? on_windows () ?> cwd ++# "\n" ++# (path_entries "\n")
     |: path_entries "\n"
 
@@ -243,7 +243,7 @@
     let _ = std::fs::write(std::path::Path::new(&*!dir).join(&*!name), &*!text); }' : ()
 :~ scratch_removed (~dir : string) : () = $'{ let _ = std::fs::remove_dir_all(&*!dir); }' : ()
 
-:= scratch_dir () : string =
+:= scratch_directory () : string =
     := dir = scratch_path ()
     file_planted dir "job.cmd" "@echo job"
     dir
@@ -257,7 +257,7 @@
 
 ///> rust
 :# shell_syntax_and_builtins_keep_the_shell_and_name_why =
-    := dir = scratch_dir ()
+    := dir = scratch_directory ()
     testing.expect (launch_of dir (words_of_line "build.cmd > out.txt") launch_mode = "shell (syntax >)") "redirect"
     testing.expect (launch_of dir (words_of_line "no-such-program-kit") launch_mode = "shell (not found)") "missing"
     testing.expect (sm'.starts_with "Assoc|Break|Call|Cd|" (builtin_names ())) (builtin_names ())
@@ -273,7 +273,7 @@
 
 ///> rust
 :# native_programs_start_directly_with_their_resolved_path =
-    := dir = scratch_dir ()
+    := dir = scratch_directory ()
     := program = ? on_windows () ?> "where.exe" |: "ls"
     := words = words_of_line (program ++# " \"-a b\" c")
     := mode = launch_of dir words launch_mode

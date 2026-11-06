@@ -199,6 +199,19 @@ fn main() {
     expect (path_exists (fixture_path root "jobs/held/job-5-ownerless") = !-) "an ownerless hold is dropped"
     fixture_root_remove root
 ///> rust
+:# a_job_held_for_a_machine_slot_lists_as_pending_not_running =
+    := root = fixture_root_create "job held queued"
+    fixture_write root "jobs/job-6-queued/label" "queued"
+    fixture_write root "jobs/job-6-queued/timeout_ms" "600000"
+    fixture_write root "jobs/job-6-queued/started_ms" (stamp 60000u64)
+    fixture_write root "jobs/job-6-queued/heartbeat_ms" (stamp 1000u64)
+    fixture_write root "jobs/held/job-6-queued" "a live host that holds it for a slot"
+    := status = succeeded (job_call root (Arg ("status", Arg ("job-6-queued", NoArgs))))
+    shows status "state=pending exit=-"
+    expect (path_exists (fixture_path root "jobs/held/job-6-queued")) "a live hold stays"
+    fixture_root_remove root
+
+///> rust
 :# a_wait_without_a_limit_waits_out_the_job =
     := root = fixture_root_create "job wait default"
     := nap = rustc_program root "nap" "fn main() { std::thread::sleep(std::time::Duration::from_secs(3)); }"
@@ -430,4 +443,35 @@ fn main() {
         "expects --timeout <ms>"
     := _ = succeeded (job_call root (Arg ("stop", Arg (running, NoArgs))))
     shows (succeeded (job_call root (Arg ("wait", Arg (queued, Arg ("60000", NoArgs)))))) "state=finished exit=0"
+    fixture_root_remove root
+
+///> rust
+:# a_wait_names_why_it_ended =
+    := root = fixture_root_create "wait end"
+    := sleepy = rustc_program root "sleepy" "fn main() { std::thread::sleep(std::time::Duration::from_secs(300)); }"
+    := started = succeeded (job_call root (Arg ("start", Arg ("asleep", Arg ("600000", Arg (sleepy, NoArgs))))))
+    := id = word_after started "id="
+    := short = job_call root (Arg ("wait", Arg (id, Arg ("1500", NoArgs))))
+    expect (short.code = 3i32) (cat "a running job exits 3, " (run_text short))
+    shows short.stdout "state=running"
+    shows short.stdout "end=timed-out"
+    := orphaned =
+        kit_run
+            (fixture_text_of root)
+            (Arg (cat "KIT_JOBS_HOME=" (fixture_path root "jobs"), Arg ("KIT_JOB_WATCH=4294967290", NoArgs)))
+            (Arg ("KIT_JOB_RELAUNCHED", NoArgs))
+            (Arg ("job", Arg ("wait", Arg (id, Arg ("60000", NoArgs)))))
+    shows orphaned.stdout "end=caller-gone"
+    := _ = succeeded (job_call root (Arg ("stop", Arg (id, NoArgs))))
+    shows (job_call root (Arg ("wait", Arg (id, Arg ("60000", NoArgs))))).stdout "end=finished"
+    fixture_root_remove root
+
+///> rust
+:# the_coordinator_verb_names_its_steps_and_refuses_a_start_without_a_build =
+    := root = fixture_root_create "job coordinator"
+    rejected_with (job_call root (Arg ("coordinator", NoArgs))) 2i32 "expected build or start"
+    := unknown = Arg ("coordinator", Arg ("stop", NoArgs))
+    rejected_with (job_call root unknown) 2i32 "expected build or start, received stop"
+    := start = Arg ("coordinator", Arg ("start", Arg ("--spool", Arg (fixture_path root "spool", NoArgs))))
+    rejected_with (job_call root start) 2i32 "run kit job coordinator build"
     fixture_root_remove root

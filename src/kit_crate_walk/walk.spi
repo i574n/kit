@@ -54,7 +54,7 @@
         := pieces = am'.length (sm'.split "\n" text |> array)
         ? sm'.ends_with "\n" text ?> pieces - 1i32 |: pieces
 
-:= skipped_dir (name : string) : bool =
+:= skipped_directory (name : string) : bool =
     sm'.starts_with "." name
     || name = "target"
     || name = "node_modules"
@@ -67,7 +67,7 @@
     := at = sm'.last_index_of "/" slashed
     ? at < 0i32 ?> slashed |: sm'.substring (at + 1i32) ((sm'.length slashed : i32) - at - 1i32) slashed
 
-:~ dir_names (path : string) : list string =
+:~ directory_names (path : string) : list string =
     file_system.read_dir_names path
     |> resultm.unwrap'
     |> am'.vec_fold' (\ names name => (sm'.from_std_string name :: names)) []
@@ -95,9 +95,9 @@
     | (dir :: rest) =>
         := found = ?= measured dir ?| | Some m => (m :: found) | None => found
         := deeper =
-            dir_names dir
+            directory_names dir
             |> listm.fold \ acc (name : string) =>
-                    ? not (skipped_dir name) && file_system.directory_exists (dir </> name)
+                    ? not (skipped_directory name) && file_system.directory_exists (dir </> name)
                     ?> ((dir </> name) :: acc)
                     |: acc
                 rest

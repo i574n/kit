@@ -47,3 +47,4 @@ kit-agile-sprint = { path = "../kit_agile_sprint" }
 kit-agile-lint = { path = "../kit_agile_lint" }
 kit-agile-gate = { path = "../kit_agile_gate" }
 kit-agile-cadence = { path = "../kit_agile_cadence" }
+agile-task-tree = { path = "../agile_task_tree" }

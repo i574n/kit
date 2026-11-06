@@ -16,5 +16,5 @@
 := u64_at (value : json_value) (~pointer : string) : u64 =
     $'!value.pointer(&*!pointer).and_then(serde_json::Value::as_u64).unwrap_or(0)' : u64
 
-:= length_at (value : json_value) (~pointer : string) : i32 =
+:= count_at (value : json_value) (~pointer : string) : i32 =
     $'!value.pointer(&*!pointer).and_then(serde_json::Value::as_array).map_or(0, |items| items.len() as i32)' : i32

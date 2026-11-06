@@ -8,7 +8,7 @@
 :< workspace_primitives.console
 :< workspace_primitives.files
 
-:= argument_len index : i32 = rust_std_env.model.argument_len index
+:= argument_byte_count index : i32 = rust_std_env.model.argument_byte_count index
 := argument_byte index offset : i32 = rust_std_env.model.argument_byte index offset
 := argument_owned index : string = rust_std_env.model.argument_owned index
 := i32_positive value : bool = $"0 < !value"
@@ -23,7 +23,7 @@
     |? task_id_byte_allowed (argument_byte 2i32 offset) ?> task_id_bytes_allowed (offset + 1i32) length
     |: !-
 := validate_task_id () : validation_result string =
-    := length = argument_len 2i32
+    := length = argument_byte_count 2i32
     ? i32_positive length ?>
         ? task_id_bytes_allowed 0i32 length ?> Valid (argument_owned 2i32) |: Invalid
     |: Invalid

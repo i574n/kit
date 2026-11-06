@@ -19,9 +19,9 @@ dependencies = [
  "agile-claim-item",
  "agile-claim-lease",
  "agile-claim-listing",
- "agile-claim-release",
  "agile-claim-queue",
  "agile-claim-rank",
+ "agile-claim-release",
  "agile-claim-request",
  "agile-claim-store",
  "agile-team-lane",
@@ -44,10 +44,6 @@ name = "agile-claim-listing"
 version = "0.0.0"
 
 [[package]]
-name = "agile-claim-release"
-version = "0.0.0"
-
-[[package]]
 name = "agile-claim-queue"
 version = "0.0.0"
 
@@ -58,8 +54,13 @@ dependencies = [
  "agile-planning-fields",
  "agile-planning-filters",
  "kit-agile-records",
+ "kit-job-names",
  "kit-process-alive",
 ]
+
+[[package]]
+name = "agile-claim-release"
+version = "0.0.0"
 
 [[package]]
 name = "agile-claim-request"
@@ -275,6 +276,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "agile-task-parents"
+version = "0.0.0"
+
+[[package]]
 name = "agile-task-query"
 version = "0.0.0"
 
@@ -292,6 +297,14 @@ version = "0.0.0"
 dependencies = [
  "agile-field-rendering",
  "kit-agile-records",
+]
+
+[[package]]
+name = "agile-task-tree"
+version = "0.0.0"
+dependencies = [
+ "agile-quality-facts",
+ "agile-task-listing",
 ]
 
 [[package]]
@@ -749,6 +762,7 @@ dependencies = [
  "agile-task-notes",
  "agile-task-rename",
  "agile-task-revision",
+ "agile-task-tree",
  "agile-task-views",
  "agile-title-notes",
  "agile-todo-merge",
@@ -791,6 +805,7 @@ version = "0.0.0"
 dependencies = [
  "agile-planning-revision",
  "agile-quality-state",
+ "agile-task-parents",
  "agile-task-revision",
  "agile-todo-scan",
  "kit-agile-lease",
@@ -963,10 +978,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kit-ceremonies"
-version = "0.0.0"
-
-[[package]]
 name = "kit-cadence-activity"
 version = "0.0.0"
 dependencies = [
@@ -980,6 +991,10 @@ version = "0.0.0"
 dependencies = [
  "agile-quality-state",
 ]
+
+[[package]]
+name = "kit-ceremonies"
+version = "0.0.0"
 
 [[package]]
 name = "kit-ci-parity"
@@ -1020,6 +1035,7 @@ dependencies = [
  "kit-bundle-retention",
  "kit-ceremonies",
  "kit-ci-parity",
+ "kit-cli-routes",
  "kit-command-help",
  "kit-command-usages",
  "kit-compiler-discovery",
@@ -1069,6 +1085,20 @@ dependencies = [
  "legacy-capability-domain",
  "process-batch-plan-domain",
  "semantic-evidence-domain",
+]
+
+[[package]]
+name = "kit-cli-routes"
+version = "0.0.0"
+dependencies = [
+ "kit-proof-scope",
+ "kit-repo-accept-review",
+ "kit-repo-affected",
+ "kit-repo-state",
+ "kit-table-logs",
+ "kit-table-query",
+ "kit-table-sequences",
+ "kit-table-test",
 ]
 
 [[package]]
@@ -1179,6 +1209,7 @@ dependencies = [
  "kit-do-git",
  "kit-do-jobs",
  "kit-do-lab",
+ "kit-do-model",
  "kit-do-process",
  "kit-do-program",
  "kit-do-read",
@@ -1195,6 +1226,7 @@ name = "kit-do-edit"
 version = "0.0.0"
 dependencies = [
  "kit-do-commit",
+ "kit-do-model",
  "kit-do-process",
  "kit-do-verbs",
  "regex",
@@ -1206,6 +1238,7 @@ name = "kit-do-facts"
 version = "0.0.0"
 dependencies = [
  "kit-do-facts-receipt",
+ "kit-do-model",
  "kit-do-read",
  "kit-do-tables",
  "kit-do-verbs",
@@ -1222,6 +1255,7 @@ version = "0.0.0"
 name = "kit-do-file-steps"
 version = "0.0.0"
 dependencies = [
+ "kit-do-model",
  "kit-do-read",
  "kit-do-verbs",
  "regex",
@@ -1243,6 +1277,7 @@ name = "kit-do-jobs"
 version = "0.0.0"
 dependencies = [
  "kit-command-line",
+ "kit-do-model",
  "kit-do-verbs",
  "kit-job-control",
  "kit-job-entry",
@@ -1257,6 +1292,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-do-model"
+version = "0.0.0"
+
+[[package]]
 name = "kit-do-process"
 version = "0.0.0"
 dependencies = [
@@ -1269,6 +1308,7 @@ dependencies = [
 name = "kit-do-program"
 version = "0.0.0"
 dependencies = [
+ "kit-do-model",
  "kit-do-verbs",
 ]
 
@@ -1276,6 +1316,7 @@ dependencies = [
 name = "kit-do-read"
 version = "0.0.0"
 dependencies = [
+ "kit-do-model",
  "kit-do-walk",
  "rayon",
  "regex",
@@ -1288,6 +1329,9 @@ version = "0.0.0"
 [[package]]
 name = "kit-do-verbs"
 version = "0.0.0"
+dependencies = [
+ "kit-do-model",
+]
 
 [[package]]
 name = "kit-do-walk"
@@ -1298,6 +1342,7 @@ name = "kit-do-write"
 version = "0.0.0"
 dependencies = [
  "kit-do-file-steps",
+ "kit-do-model",
  "kit-do-read",
  "kit-do-verbs",
  "regex",
@@ -1319,8 +1364,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-exec-cells"
+version = "0.0.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "kit-exec-export"
+version = "0.0.0"
+dependencies = [
+ "kit-exec-cells",
+ "kit-exec-jobs",
+]
+
+[[package]]
+name = "kit-exec-jobs"
+version = "0.0.0"
+dependencies = [
+ "kit-process-alive",
+]
+
+[[package]]
 name = "kit-experiment-amend"
 version = "0.0.0"
+dependencies = [
+ "kit-experiment-verb-args",
+]
 
 [[package]]
 name = "kit-experiment-analysis"
@@ -1328,16 +1398,29 @@ version = "0.0.0"
 dependencies = [
  "agile-task-notes",
  "kit-experiment-stats",
+ "kit-experiment-verb-args",
  "kit-table-query",
  "kit-table-text",
 ]
 
 [[package]]
-name = "kit-experiment-import"
+name = "kit-experiment-args"
 version = "0.0.0"
 
 [[package]]
+name = "kit-experiment-import"
+version = "0.0.0"
+dependencies = [
+ "kit-experiment-args",
+ "kit-experiment-verb-args",
+]
+
+[[package]]
 name = "kit-experiment-stats"
+version = "0.0.0"
+
+[[package]]
+name = "kit-experiment-verb-args"
 version = "0.0.0"
 
 [[package]]
@@ -1346,6 +1429,7 @@ version = "0.0.0"
 dependencies = [
  "kit-experiment-amend",
  "kit-experiment-analysis",
+ "kit-experiment-args",
  "kit-experiment-import",
 ]
 
@@ -1448,6 +1532,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-job-bin"
+version = "0.0.0"
+
+[[package]]
 name = "kit-job-chain"
 version = "0.0.0"
 
@@ -1456,10 +1544,23 @@ name = "kit-job-control"
 version = "0.0.0"
 dependencies = [
  "kit-job-launch",
+ "kit-job-names",
  "kit-job-state",
+ "kit-job-summary",
  "kit-machine-windows",
  "kit-process-alive",
 ]
+
+[[package]]
+name = "kit-job-coordinator"
+version = "0.0.0"
+dependencies = [
+ "kit-job-coordinator-args",
+]
+
+[[package]]
+name = "kit-job-coordinator-args"
+version = "0.0.0"
 
 [[package]]
 name = "kit-job-create"
@@ -1469,10 +1570,6 @@ dependencies = [
  "kit-job-host-request",
  "kit-machine-windows",
 ]
-
-[[package]]
-name = "kit-job-bin"
-version = "0.0.0"
 
 [[package]]
 name = "kit-job-dispatch"
@@ -1487,6 +1584,7 @@ version = "0.0.0"
 dependencies = [
  "kit-job-chain",
  "kit-job-control",
+ "kit-job-coordinator",
  "kit-job-dispatch",
  "kit-job-gate",
  "kit-job-host",
@@ -1496,6 +1594,7 @@ dependencies = [
  "kit-job-rechain",
  "kit-job-serial",
  "kit-job-state",
+ "kit-job-summary",
  "kit-job-supervise",
  "kit-jobs-doctor",
  "kit-machine-windows",
@@ -1519,9 +1618,11 @@ dependencies = [
 name = "kit-job-host"
 version = "0.0.0"
 dependencies = [
+ "kit-job-names",
  "kit-job-peers",
  "kit-job-queue",
  "kit-job-state",
+ "kit-job-summary",
  "kit-os-launch",
  "kit-process-alive",
 ]
@@ -1543,8 +1644,23 @@ dependencies = [
  "kit-job-host",
  "kit-job-start-args",
  "kit-job-state",
+ "kit-job-summary",
  "kit-job-supervise",
  "kit-machine-windows",
+]
+
+[[package]]
+name = "kit-job-names"
+version = "0.0.0"
+dependencies = [
+ "kit-process-alive",
+]
+
+[[package]]
+name = "kit-job-orphans"
+version = "0.0.0"
+dependencies = [
+ "kit-process-alive",
 ]
 
 [[package]]
@@ -1564,6 +1680,7 @@ dependencies = [
  "kit-job-gate",
  "kit-job-host-request",
  "kit-job-state",
+ "kit-job-summary",
  "kit-machine-windows",
  "kit-process-alive",
 ]
@@ -1592,6 +1709,7 @@ version = "0.0.0"
 name = "kit-job-slot"
 version = "0.0.0"
 dependencies = [
+ "kit-job-ticket",
  "kit-process-alive",
 ]
 
@@ -1603,14 +1721,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "kit-job-orphans"
+name = "kit-job-state"
 version = "0.0.0"
 dependencies = [
+ "kit-job-orphans",
  "kit-process-alive",
 ]
 
 [[package]]
-name = "kit-job-state"
+name = "kit-job-summary"
 version = "0.0.0"
 dependencies = [
  "kit-job-orphans",
@@ -1625,6 +1744,13 @@ dependencies = [
  "kit-job-env",
  "kit-job-gate",
  "kit-machine-windows",
+]
+
+[[package]]
+name = "kit-job-ticket"
+version = "0.0.0"
+dependencies = [
+ "kit-process-alive",
 ]
 
 [[package]]
@@ -1697,9 +1823,9 @@ name = "kit-lint-cli"
 version = "0.0.0"
 dependencies = [
  "kit-lint-growth",
+ "kit-lint-macros",
  "kit-lint-precheck",
  "kit-tracked-text",
- "kit-lint-macros",
 ]
 
 [[package]]
@@ -1861,6 +1987,45 @@ version = "0.0.0"
 
 [[package]]
 name = "kit-mirror"
+version = "0.0.0"
+dependencies = [
+ "kit-mirror-remote",
+]
+
+[[package]]
+name = "kit-mirror-local"
+version = "0.0.0"
+dependencies = [
+ "sha2",
+]
+
+[[package]]
+name = "kit-mirror-plan"
+version = "0.0.0"
+dependencies = [
+ "sha2",
+]
+
+[[package]]
+name = "kit-mirror-remote"
+version = "0.0.0"
+dependencies = [
+ "kit-mirror-local",
+ "kit-mirror-plan",
+ "kit-mirror-sync",
+ "kit-mirror-unpack",
+]
+
+[[package]]
+name = "kit-mirror-sync"
+version = "0.0.0"
+dependencies = [
+ "kit-mirror-local",
+ "kit-mirror-plan",
+]
+
+[[package]]
+name = "kit-mirror-unpack"
 version = "0.0.0"
 
 [[package]]
@@ -2041,6 +2206,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "kit-proof-scope"
+version = "0.0.0"
+dependencies = [
+ "kit-proof-scope-manifests",
+]
+
+[[package]]
+name = "kit-proof-scope-manifests"
+version = "0.0.0"
+
+[[package]]
 name = "kit-proxy-edit-contracts"
 version = "0.0.0"
 
@@ -2109,28 +2285,6 @@ name = "kit-resume"
 version = "0.0.0"
 dependencies = [
  "kit-agile-records",
-]
-
-[[package]]
-name = "kit-exec-cells"
-version = "0.0.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "kit-exec-export"
-version = "0.0.0"
-dependencies = [
- "kit-exec-cells",
- "kit-exec-jobs",
-]
-
-[[package]]
-name = "kit-exec-jobs"
-version = "0.0.0"
-dependencies = [
- "kit-process-alive",
 ]
 
 [[package]]
@@ -2320,6 +2474,7 @@ dependencies = [
 name = "kit-table-test"
 version = "0.0.0"
 dependencies = [
+ "kit-experiment-args",
  "kit-experiment-stats",
  "kit-table-query",
  "kit-table-text",

@@ -15,6 +15,7 @@ path = "launch.rs"
 
 [dependencies]
 kit-job-state = { path = "../kit_job_state" }
+kit-job-summary = { path = "../kit_job_summary" }
 kit-job-create = { path = "../kit_job_create" }
 kit-job-start-args = { path = "../kit_job_start_args" }
 kit-machine-windows = { path = "../kit_machine_windows" }

@@ -97,8 +97,8 @@
     held_beat id
 
 :~ held_released (~id : string) : () =
-    := path = held_file id
-    $'{ let _ = std::fs::remove_file(&*!path); }' : ()
+    := _ = host_paths.request_removed (held_file id)
+    ()
 
 :~ held_owned_by (~id : string) (~home : string) : bool = text_or_empty (job_file id "host-home") = home
 

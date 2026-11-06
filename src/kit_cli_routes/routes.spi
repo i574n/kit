@@ -1,0 +1,66 @@
+///- --package .
+:# routes static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:| repo_sub =
+    | RepoAffected
+    | RepoAcceptReview
+    | RepoScope
+
+:| table_sub =
+    | TableLogs
+    | TableSequences
+    | TableTest
+
+:= repo_word (sub : repo_sub) : string = union_reflection.cases.union_case_kebab "Repo" sub
+
+:= table_word (sub : table_sub) : string = union_reflection.cases.union_case_kebab "Table" sub
+
+:~ repo_named (~word : string) : option repo_sub =
+    union_reflection.cases.union_case_where (\ (sub : repo_sub) => repo_word sub = word) Some None
+
+:~ table_named (~word : string) : option table_sub =
+    union_reflection.cases.union_case_where (\ (sub : table_sub) => table_word sub = word) Some None
+
+:~ subcommand () : string =
+    ?= env.command_line_arguments () ?|
+    | _ :: word :: _ => word
+    | _ => ""
+
+:~ repo_ran (sub : repo_sub) : i32 =
+    ?= sub ?|
+    | RepoAffected => kit_repo_affected.affected.affected_run ()
+    | RepoAcceptReview => kit_repo_accept_review.accept.accept_review_run ()
+    | RepoScope => kit_proof_scope.scope_run.scope_run ()
+
+:~ table_ran (sub : table_sub) : i32 =
+    ?= sub ?|
+    | TableLogs => kit_table_logs.logs.logs_run ()
+    | TableSequences => kit_table_sequences.verb.sequences_run ()
+    | TableTest => kit_table_test.table_test.table_tested ()
+
+:~ repo_routed () : i32 =
+    ?= repo_named (subcommand ()) ?|
+    | Some sub => repo_ran sub
+    | None => kit_repo_state.repo.repo_run ()
+
+:~ table_routed () : i32 =
+    ?= table_named (subcommand ()) ?|
+    | Some sub => table_ran sub
+    | None => kit_table_query.table.table_run ()
+
+///> rust
+:# repo_and_table_subcommands_are_their_case_names =
+    testing.expect (repo_named "affected" = Some RepoAffected) "repo affected"
+    testing.expect (repo_named "accept-review" = Some RepoAcceptReview) "two words are kebab"
+    testing.expect (repo_named "scope" = Some RepoScope) "repo scope"
+    testing.expect (repo_named "status" = None) "anything else is the plain repo verb"
+    testing.expect (table_named "logs" = Some TableLogs && table_named "test" = Some TableTest) "table"
+    testing.expect (table_named "sequences" = Some TableSequences && table_named "query" = None) "table words"
+///> _
+:= main () : i32 =
+    export "kit_cli_repo_routed" repo_routed
+    export "kit_cli_table_routed" table_routed
+    0i32

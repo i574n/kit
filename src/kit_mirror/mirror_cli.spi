@@ -52,3 +52,22 @@
         2i32
         "usage: mirror check"
     fixture_root_remove root
+
+///> rust
+:# a_manifest_prints_sorted_hash_size_path_lines_and_a_fingerprint =
+    := root = mirror_fixture ()
+    := listed = kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("mirror", Arg ("manifest", Arg ("left", NoArgs))))
+    testing.expect (listed.code = 0i32) (run_text listed)
+    same
+        listed.stdout
+        (
+            "b602f7ad4316adfd9f3e5ca998773702a5db1a1f1599a14516f40101665fb6d2 9 ci.yml\n"
+            ^^ "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b 1 extra.txt\n"
+            ^^ "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c 4 scripts/build.ps1\n"
+        )
+    shows listed.stderr "kit mirror manifest ok files=3 fingerprint="
+    := skipped =
+        kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("mirror", Arg ("manifest", Arg ("left", Arg ("--skip",
+            Arg ("scripts", NoArgs))))))
+    shows skipped.stderr "kit mirror manifest ok files=2 fingerprint="
+    fixture_root_remove root

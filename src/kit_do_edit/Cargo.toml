@@ -19,3 +19,4 @@ kit-do-process = { path = "../kit_do_process" }
 kit-do-commit = { path = "../kit_do_commit" }
 regex = "1.13.1"
 sha2 = "0.11.1"
+kit-do-model = { path = "../kit_do_model" }

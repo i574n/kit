@@ -212,7 +212,7 @@
 
 :~ path_verdict_of_code (code : i32) : path_verdict =
     ? 0i32 < code ?> ScanPath (case_at code CFamily) |: SkipPath (case_at (0i32 - code) SkipUnknownSyntax)
-:= size_verdict (size : u64) : content_verdict =
+:= byte_count_verdict (size : u64) : content_verdict =
     ? (size > (largest_scanned_bytes ())) ?> ContentLarge |: ContentScan
 
 := bytes_verdict (has_nul : bool) : content_verdict = ? has_nul ?> ContentBinary |: ContentScan
@@ -688,7 +688,7 @@
     labelled (path_label (path_verdict "assets/logo.png" !-)) "syntax"
     labelled (path_label (path_verdict "scripts/Makefile" !-)) "scan hash"
     labelled (path_label (path_verdict "src/compiler.fs" !-)) "scan fsharp"
-    labelled (content_label (size_verdict 40000000u64)) "large"
+    labelled (content_label (byte_count_verdict 40000000u64)) "large"
     labelled (content_label (bytes_verdict !+)) "binary"
 
 ///> rust
@@ -861,9 +861,9 @@
 
 ///> rust
 :# files_up_to_32_mib_are_scanned_and_larger_ones_are_skipped =
-    := compiler_sized = counted_content (empty_tally ()) (size_verdict 11534336u64)
+    := compiler_sized = counted_content (empty_tally ()) (byte_count_verdict 11534336u64)
     expect (sm'.contains "large:0" (tally_skips compiler_sized)) (tally_skips compiler_sized)
-    := oversized = counted_content (empty_tally ()) (size_verdict 33554433u64)
+    := oversized = counted_content (empty_tally ()) (byte_count_verdict 33554433u64)
     expect (sm'.contains "large:1" (tally_skips oversized)) (tally_skips oversized)
 
 ///> rust

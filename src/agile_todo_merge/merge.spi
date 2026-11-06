@@ -113,7 +113,7 @@
     ?= path_verdict_of_code ($'agile_todo_paths::kit_agile_todo_path_verdict(&*!relative, !sibling)' : i32) ?|
     | ScanPath syntax =>
         := size = rust_std_fs.model.file_byte_size absolute
-        ?= size_verdict size ?|
+        ?= byte_count_verdict size ?|
         | ContentLarge => skipped state absolute
         | _ =>
             := mtime = rust_std_fs.model.file_modified_ms absolute

@@ -4,5 +4,10 @@ packages:
     union_reflection
     agile_note_model
     kit_experiments
+    kit_experiment_args
+    kit_experiment_verb_args
+link:
+    kit_experiment_args
+    kit_experiment_verb_args
 modules:
     import

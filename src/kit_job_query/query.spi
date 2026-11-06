@@ -11,12 +11,25 @@
         0i32
     |: rejected ("status: unknown job id " ++# id)
 
+:| wait_end =
+    | WaitFinished
+    | WaitTimedOut
+    | WaitCallerGone
+
+:~ wait_end_of (state : job_state) (~watch : u64) : wait_end =
+    ? state_settled state ?> WaitFinished
+    |? process_alive watch = !- ?> WaitCallerGone
+    |: WaitTimedOut
+
+:~ wait_end_word (finish : wait_end) : string = sm'.kebab_of (union_reflection.cases.union_case_suffix "Wait" finish)
+
 :~ job_waited (~id : string) (~limit : string) : i32 =
     ? known_job id ?>
         := _ = held_revival ()
         := deadline = now_ms () + (? limit = "" ?> 864000000u64 |: decimal_u64 limit)
-        := state = waited id deadline (watched_caller ())
-        stdout_line (shared_summary "wait" id)
+        := watch = watched_caller ()
+        := state = waited id deadline watch
+        stdout_line (shared_summary "wait" id ++# " end=" ++# wait_end_word (wait_end_of state watch))
         state_exit state
     |: rejected ("wait: unknown job id " ++# id)
 

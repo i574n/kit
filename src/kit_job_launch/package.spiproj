@@ -4,5 +4,8 @@ packages:
     union_reflection
     kit_jobs
     kit_job_launch_model
+    kit_job_create
+link:
+    kit_job_create
 modules:
     launch

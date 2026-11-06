@@ -108,16 +108,16 @@
                             (sm.concat out (sm.concat member "\n"))
 
 :~ bundle_workspace_members_parse (source : string) : string =
-    := source_len = sm.length source : i32
+    := source_count = sm.length source : i32
     := members_at = find_text source 0i32 "members"
-    ? (=.) members_at source_len ?> codec_empty ()
+    ? (=.) members_at source_count ?> codec_empty ()
     |:
         := open_at = find_char source members_at '['
-        ? (=.) open_at source_len ?> codec_empty ()
+        ? (=.) open_at source_count ?> codec_empty ()
         |:
             := body_from = (+.) open_at 1i32
             := body_near_to = find_char source body_from ']'
-            ? (=.) body_near_to source_len ?> codec_empty ()
+            ? (=.) body_near_to source_count ?> codec_empty ()
             |:
                 := body = slice_exclusive source body_from body_near_to
                 bundle_workspace_members_loop body 0i32 (sm.length body : i32) "\n" ""

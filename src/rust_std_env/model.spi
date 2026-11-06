@@ -9,10 +9,10 @@
 := argument_at (~index : i32) : string =
     $'std::rc::Rc::<str>::from(std::env::args().nth(!index as usize).unwrap_or_default())' : string
 
-:= args_len_is (~expected : i32) : bool =
+:= argument_count_is (~expected : i32) : bool =
     $'i32::try_from(std::env::args().skip(2).count()).unwrap_or(i32::MAX) == !expected ' : bool
 
-:= argument_len (~index : i32) : i32 =
+:= argument_byte_count (~index : i32) : i32 =
     $'usize::try_from(!index).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or(-1, \
         |value| i32::try_from(value.len()).unwrap_or(i32::MAX))' : i32
 

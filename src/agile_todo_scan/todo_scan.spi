@@ -39,16 +39,16 @@
 
 := path_is_link (~path : string) : bool = $'std::fs::symlink_metadata(&*!path).map(|metadata| \
     metadata.file_type().is_symlink()).unwrap_or(false)' : bool
-:= path_is_dir (~path : string) : bool = file_system.directory_exists path
+:= path_is_directory (~path : string) : bool = file_system.directory_exists path
 := path_is_file (~path : string) : bool = file_system.file_exists path
 
 := entry_kind_of (~path : string) : entry_kind =
     ? path_is_link path ?> LinkedEntry
-    |? path_is_dir path ?> Directory
+    |? path_is_directory path ?> Directory
     |? path_is_file path ?> RegularFile
     |: AbsentEntry
 
-:= file_size (~path : string) : u64 = $'std::fs::metadata(&*!path).map(|metadata| metadata.len()).unwrap_or(0)' : u64
+:= file_byte_count (~path : string) : u64 = (conv (file_system.rust_file_length path) : u64)
 := spiral_sibling_present (~path : string) : bool =
     $'std::path::Path::new(&*!path).with_extension("spi").is_file()' : bool
 := read_content (~path : string) : bool * string =
@@ -146,7 +146,7 @@
             := tally = counted_path state.tally verdict
             ?= verdict ?|
             | ScanPath syntax =>
-                ?= size_verdict (file_size absolute) ?|
+                ?= byte_count_verdict (file_byte_count absolute) ?|
                 | ContentLarge => { state ?| tally = counted_content tally ContentLarge }
                 | _ => read_and_scanned state tally syntax display absolute
             | _ => { state ?| tally = tally }

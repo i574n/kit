@@ -1,0 +1,14 @@
+[package.metadata.spiral]
+entry = "verbs.spi"
+output = "verbs.rs"
+
+[package]
+name = "kit-experiment-verb-args"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_experiment_verb_args"
+path = "verbs.rs"

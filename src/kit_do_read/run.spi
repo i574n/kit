@@ -49,8 +49,8 @@
         ? git
         ?> git_hits root paths q.needle q.literal
         |: searched root paths q.needle q.literal q.before q.after q.first q.paths_only
-    | ReadAround => around root target q.needle q.before q.after
-    | ListFiles => listing root paths
+    | Read => around root target q.needle q.before q.after
+    | Files => listing root paths
     | Head => edge_lines root paths q.count !-
     | Tail => edge_lines root paths q.count !+
     | Wait => waited root target q.needle q.timeout_ms
@@ -71,7 +71,7 @@
             matches = (state.matches + third)
             searches = (state.searches + 1u64)
         }
-    | ReadAround =>
+    | Read =>
         { state ?|
             report = report
             failed = failed
@@ -79,7 +79,7 @@
             lines = (state.lines + third)
             arounds = (state.arounds + 1u64)
         }
-    | ListFiles =>
+    | Files =>
         { state ?|
             report = report
             failed = failed

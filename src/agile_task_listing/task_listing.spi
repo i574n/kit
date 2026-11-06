@@ -408,6 +408,6 @@
         agile_list (kit_agile_list_args.args.list_root ()) request
     |: agile_list_failure reason
 := main () : i32 =
-    export "kit_agile_list_run" ((\ () => agile_list_entry ()) : () -> i32)
+    export "kit_agile_list_run" agile_list_entry
     := _ = agile_list_entry ()
     0i32

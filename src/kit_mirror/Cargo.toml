@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_mirror"
 path = "check.rs"
+
+[dependencies]
+kit-mirror-remote = { path = "../kit_mirror_remote" }

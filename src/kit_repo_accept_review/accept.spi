@@ -29,5 +29,5 @@
     |: reviewed_files before_path after_path
 
 := main () : i32 =
-    export "kit_repo_accept_review_run" ((\ () => accept_review_run ()) : () -> i32)
+    export "kit_repo_accept_review_run" accept_review_run
     0i32

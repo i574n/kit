@@ -54,25 +54,25 @@
     := word = stream_word receipt
     stream_word_exit_code word
 
-:= stream_stdout_len receipt : u64 =
+:= stream_stdout_byte_count receipt : u64 =
     := ~word = stream_word receipt
     $"(!word >> 8) & 65535u64"
 
-:= stream_stderr_len receipt : u64 =
+:= stream_stderr_byte_count receipt : u64 =
     := ~word = stream_word receipt
     $"(!word >> 24) & 65535u64"
 
 := stdout_capture_ok receipt : bool =
     all3
         (u64_eq (stream_exit_code receipt) 0u64)
-        (u64_eq (stream_stdout_len receipt) 8u64)
-        (u64_eq (stream_stderr_len receipt) 0u64)
+        (u64_eq (stream_stdout_byte_count receipt) 8u64)
+        (u64_eq (stream_stderr_byte_count receipt) 0u64)
 
 := stderr_capture_ok receipt : bool =
     all3
         (u64_eq (stream_exit_code receipt) 2u64)
-        (u64_eq (stream_stdout_len receipt) 0u64)
-        (u64_gte (stream_stderr_len receipt) 1u64)
+        (u64_eq (stream_stdout_byte_count receipt) 0u64)
+        (u64_gte (stream_stderr_byte_count receipt) 1u64)
 
 := spawned_receipt () : bounded_process_receipt process_idle_state process_running_state =
     bounded_process_receipt ProcessSpawned

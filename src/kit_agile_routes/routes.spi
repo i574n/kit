@@ -5,8 +5,8 @@
 
 := agile_mutation_error (~message : string) : i32 = workspace_primitives.console.stderr_failure message
 
-:= args_len_is expected : bool = rust_std_env.model.args_len_is expected
-:= argument_len index : i32 = rust_std_env.model.argument_len index
+:= argument_count_is expected : bool = rust_std_env.model.argument_count_is expected
+:= argument_byte_count index : i32 = rust_std_env.model.argument_byte_count index
 := argument_byte index offset : i32 = rust_std_env.model.argument_byte index offset
 := argument_owned index : string = rust_std_env.model.argument_owned index
 := argument_equals index expected : bool = rust_std_env.model.argument_equals index expected
@@ -58,7 +58,7 @@
     := value = argument_byte index offset
     ? i32_digit value ?> i32_digit_value value |: invalid_i32 ()
 := validate_progress () : validation_result agile_progress =
-    := length = argument_len 3i32
+    := length = argument_byte_count 3i32
     := a = digit_value 3i32 0i32
     := b = digit_value 3i32 1i32
     := c = digit_value 3i32 2i32
@@ -84,7 +84,8 @@
         \ _ => !+
         !-
 := agile_edit_route () : i32 =
-    ? planning_field_named (argument_owned 3i32) ?> $"agile_planning_revision::kit_agile_planning_edit_run()"
+    ? argument_owned 3i32 = "--parent" ?> agile_task_parents.verb.parent_edit_run ()
+    |? planning_field_named (argument_owned 3i32) ?> $"agile_planning_revision::kit_agile_planning_edit_run()"
     |: $"agile_task_revision::kit_agile_edit_run()"
 := agile_begin_route () : i32 =
     := root = argument_owned 1i32

@@ -1,0 +1,17 @@
+[package.metadata.spiral]
+entry = "plan.spi"
+output = "plan.rs"
+
+[package]
+name = "kit-mirror-plan"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_mirror_plan"
+path = "plan.rs"
+
+[dependencies]
+sha2 = "0.11.1"

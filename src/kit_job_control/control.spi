@@ -1,3 +1,7 @@
+///- --package .
+:# control static =
+    :< sm'_operators
+
 :< sm'_operators
 :< kit_jobs.model
 :< kit_jobs.host
@@ -126,13 +130,8 @@
     ++# " timeout_ms="
     ++# text_or_empty (job_file id "timeout_ms")
 
-:~ newest_labeled (~label : string) : string =
-    := root = jobs_root ()
-    $'std::rc::Rc::<str>::from(std::fs::read_dir(&*!root).into_iter().flatten().flatten().filter(|entry| \
-        std::fs::read_to_string(entry.path().join("label")).map(|text| text.trim() == \
-        &*!label).unwrap_or(false)).map(|entry| entry.file_name().to_string_lossy().into_owned()).max_by_key(|name| \
-        name.split(char::from(45u8)).nth(1).and_then(|stamp| stamp.parse::<u64>().ok()).unwrap_or(0)).unwrap_or_defaul\
-        t())' : string
+:~ newest_labeled (label : string) : string = kit_job_names.names.newest_labeled label
+
 
 := main () : i32 =
     export "kit_job_tail_run" job_tailed

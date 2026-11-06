@@ -1,4 +1,5 @@
 :< rust_std_string.model
+:< sm'_operators
 :< kit_table_query.cells
 :< kit_table_query.table
 :< kit_experiments.experiment_model
@@ -126,9 +127,11 @@
         concat5 first ", " arm " " (concat5 (i32_text right.rows) "/" planned (numeric_note study.kind right) "")
     | OneArm => first
 
-:~ analyzed_plan (~ledger : string) (study : plan) (cells : table_cells) : i32 =
-    := wheres = where_clauses ()
-    := table_path = argument 5i32
+:~ analyzed_plan (~ledger : string) (row : kit_experiment_verb_args.verbs.analyze_row) (study : plan) (cells : table_cells)
+    : i32
+    =
+    := wheres = row.wheres
+    := table_path = row.table
     := mask, missing_wheres =
         := kept, detail = $'kit_table_query::kit_table_rows_kept(&*!table_path, &*!wheres)' : bool * string
         ?= rows_kept_of kept detail ?|
@@ -138,7 +141,7 @@
     := time = optional_column cells study.time
     := metric = column_of cells study.metric
     ? metric < 0i32 || missing_wheres <> "" || (study.group <> "" && group < 0i32) || (study.time <> "" && time < 0i32)
-    ?> failed (concat5 "analyze: unknown columns in " (argument 5i32) " (header: " (header_joined cells ",") ")")
+    ?> failed ("analyze: unknown columns in " ++# row.table ++# " (header: " ++# header_joined cells "," ++# ")")
     |:
         := chosen = { kept = mask; group = group; time = time; since = study.since }
         := empty = { rows = 0i32; count = 0.0f64; sum = 0.0f64; squares = 0.0f64; successes = 0i32 }
@@ -154,7 +157,7 @@
         := counts = arm_counts study left right
         := shortfall = left.rows < study.runs || right.rows < study.runs
         := verdict_at = field_of (file_text (record_path ledger study.id "verdict")) "analyzed"
-        ?= look_of counts shortfall (option_value "--interim") verdict_at ?|
+        ?= look_of counts shortfall row.interim verdict_at ?|
         | LookRefused reason =>
             stdout_line (concat5 "kit experiment analyze refused id=" study.id " " reason "")
             1i32
@@ -199,17 +202,17 @@
                 0i32
 
 :~ analyzed () : i32 =
-    := ledger = argument 3i32
-    := id = argument 4i32
-    := text = plan_text ledger id
-    ? text = "" ?> failed (concat5 "analyze: no registration for " id " in " ledger "")
+    := row = am'.index_base 0i32 (kit_experiment_verb_args.verbs.analyze_args_read 2i32)
+    := text = plan_text row.ledger row.id
+    ? row.rejected <> "" ?> failed ("analyze: " ++# row.rejected)
+    |? text = "" ?> failed ("analyze: no registration for " ++# row.id ++# " in " ++# row.ledger)
     |:
         ?= plan_trusted text ?|
-        | PlanBroken reason => failed (concat5 "analyze: the registration of " id " is unusable: " reason "")
+        | PlanBroken reason => failed ("analyze: the registration of " ++# row.id ++# " is unusable: " ++# reason)
         | PlanRead study =>
-            ?= table_read (argument 5i32) ?|
-            | TableUnreadable problem => failed (concat5 "analyze: " problem "" "" "")
-            | TableLoaded cells => analyzed_plan ledger study cells
+            ?= table_read row.table ?|
+            | TableUnreadable problem => failed ("analyze: " ++# problem)
+            | TableLoaded cells => analyzed_plan row.ledger row study cells
 := main () : i32 =
     export "kit_experiment_analyze_run" ((\ () => analyzed ()) : () -> i32)
     0i32

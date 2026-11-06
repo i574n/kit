@@ -1,9 +1,9 @@
 ///- --package .
 :< sm'_operators
 
-:~ lock_dir_claimed (~path : string) : bool = $'std::fs::create_dir(&*!path).is_ok()' : bool
+:~ lock_directory_claimed (~path : string) : bool = $'std::fs::create_dir(&*!path).is_ok()' : bool
 
-:~ lock_dir_removed (~path : string) : () = $'{ let _ = std::fs::remove_dir(&*!path); }' : ()
+:~ lock_directory_removed (~path : string) : () = $'{ let _ = std::fs::remove_dir(&*!path); }' : ()
 
 :~ state_lock_path (~root : string) : string = root ++# "/state/agile.spi.lock"
 
@@ -26,10 +26,10 @@
 
 :~ state_lock_cleared (~root : string) : () =
     file_system.file_delete (lock_holder_path root)
-    lock_dir_removed (state_lock_path root)
+    lock_directory_removed (state_lock_path root)
 
 :~ ^ state_lock_waited (~root : string) (deadline : u64) (unread : i32) : bool =
-    ? lock_dir_claimed (state_lock_path root) ?>
+    ? lock_directory_claimed (state_lock_path root) ?>
         := pid : u64 = convert.convert (kit_os_process.process.own_pid ())
         := started = workspace_primitives.clock.unix_ms ()
         file_system.write_all_text (lock_holder_path root) (lock_holder_text pid started)

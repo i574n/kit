@@ -12,3 +12,7 @@ publish.workspace = true
 [lib]
 name = "kit_experiment_import"
 path = "import.rs"
+
+[dependencies]
+kit-experiment-args = { path = "../kit_experiment_args" }
+kit-experiment-verb-args = { path = "../kit_experiment_verb_args" }

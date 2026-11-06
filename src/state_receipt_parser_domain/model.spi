@@ -82,14 +82,14 @@
     := snapshot = parse_snapshot_line line
     ? (=.) snapshot "" ?> parse_module_line line |: snapshot
 
-:~ ^ parse_source_loop (source : string) (at : i32) (source_len : i32) (out : string) : string =
-    ? (=.) at source_len ?> out
+:~ ^ parse_source_loop (source : string) (at : i32) (source_count : i32) (out : string) : string =
+    ? (=.) at source_count ?> out
     |:
-        := line_near_to = find_char_loop source at source_len (char_newline ())
+        := line_near_to = find_char_loop source at source_count (char_newline ())
         := line = slice_exclusive source at line_near_to
         := out = sm.concat out (parse_receipt_line line)
-        := next = ? (=.) line_near_to source_len ?> source_len |: (+.) line_near_to 1i32
-        parse_source_loop source next source_len out
+        := next = ? (=.) line_near_to source_count ?> source_count |: (+.) line_near_to 1i32
+        parse_source_loop source next source_count out
 
 :~ receipt_parse (source : string) : string =
     parse_source_loop source 0i32 (sm.length source : i32) ""

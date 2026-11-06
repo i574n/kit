@@ -164,20 +164,6 @@
 :~ records_family (~records : record_list) : program_family =
     first_seen (family_priority ()) (families_of records 1i32 (nothing_seen ()))
 
-///> _
-:= main () : i32 =
-    export
-        "kit_do_program_family"
-        ((\ encoded => program_family_word (records_family (records_of encoded))) : string -> string)
-    export "kit_do_verb_family" ((\ word => do_verb_family word) : string -> string)
-    export "kit_do_fact_named" fact_named
-    export "kit_do_fact_word" fact_word_shown
-    export "kit_do_run_named" run_named
-    export "kit_do_write_named" write_named
-    export "kit_do_tool_named" tool_named
-    0i32
-
-
 ///> rust
 :# every_verb_names_its_family_once =
     testing.expect (do_verb_family "search" = "reads") "search reads"
@@ -210,3 +196,16 @@
     testing.expect (family_of_bars "ok\nquery|lab|qlist\nquery|git|qstatus" = "labs") "labs outrank git"
     testing.expect (family_of_bars "ok\nedit|qa.txt" = "edits") "no query is an edit program"
     testing.expect (program_family_named "jobs" = Some Jobs) "family words read back"
+
+///> _
+:= main () : i32 =
+    export
+        "kit_do_program_family"
+        ((\ encoded => program_family_word (records_family (records_of encoded))) : string -> string)
+    export "kit_do_verb_family" ((\ word => do_verb_family word) : string -> string)
+    export "kit_do_fact_named" fact_named
+    export "kit_do_fact_word" fact_word_shown
+    export "kit_do_run_named" run_named
+    export "kit_do_write_named" write_named
+    export "kit_do_tool_named" tool_named
+    0i32

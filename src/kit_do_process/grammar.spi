@@ -3,10 +3,12 @@
     :< rust_std_string.model
     :< host
     :< kit_do_records.records
+    :< sm'_operators
 
 :< rust_std_string.model
 :< host
 :< kit_do_records.records
+:< sm'_operators
 
 :| process_step =
     | RunForeground : string * u64
@@ -94,38 +96,47 @@
         |: StepParsed (RunUntil (command, needle, timeout))
     |: StepParsed (RunForeground (command, timeout))
 
-:~ step_parsed (~records : record_list) (~record : i32) : step_parse =
-    := verb = field_at records record 1i32
+:| run_verb =
+    | StepRun
+    | StepTail
+    | StepSearch
+    | StepErrors
+    | StepProcesses
+    | StepStop
+
+:= run_verb_word (verb : run_verb) : string = union_reflection.cases.union_case_kebab "Step" verb
+
+:~ verb_parsed (~records : record_list) (~record : i32) (verb : run_verb) : step_parse =
     := needle = first_of_kind records record 113u8
-    ? verb = "run"
-    ?> run_parsed records record
-    |? verb = "tail"
-    ?>
+    ?= verb ?|
+    | StepRun => run_parsed records record
+    | StepTail =>
         ? first_of_kind records record 119u8 <> "output"
         ?> StepRejected "tail: a run program reads its own output: tail output <n>"
         |:
             := count = decimal_of (body_at records record 3i32)
             StepParsed (TailOutput (? count = 0u64 ?> 10u64 |: count))
-    |? verb = "search"
-    ?>
+    | StepSearch =>
         ? needle = "" ?> StepRejected "search: expected a quoted pattern"
         |? in_output records record ?> StepParsed (SearchOutput needle)
         |: StepRejected "search: a run program searches its own output: search \"<regex>\" in output"
-    |? verb = "errors"
-    ?>
+    | StepErrors =>
         ? needle = "" || field_index records record "by" < 0i32
         ?> StepRejected "errors: expected errors in output by \"<regex>\""
         |: StepParsed (ErrorsBy needle)
-    |? verb = "processes"
-    ?>
+    | StepProcesses =>
         ? needle = ""
         ?> StepRejected "processes: expected where command ~ \"<regex>\""
         |: StepParsed (ProcessesMatching needle)
-    |? verb = "stop"
-    ?>
+    | StepStop =>
         := name = first_of_kind records record 119u8
         ? name = "" ?> StepRejected "stop: expected a run name" |: StepParsed (StopNamed name)
-    |: StepRejected (concat5 verb " cannot share one program with run yet; run it as its own call" "" "" "")
+
+:~ step_parsed (~records : record_list) (~record : i32) : step_parse =
+    := word = field_at records record 1i32
+    ?= union_reflection.cases.union_case_where (\ (verb : run_verb) => run_verb_word verb = word) Some None ?|
+    | Some verb => verb_parsed records record verb
+    | None => StepRejected (word ++# " cannot share one program with run yet; run it as its own call")
 
 
 := rejection_at (~records : record_list) (~record : i32) : string =

@@ -25,3 +25,4 @@ kit-do-process = { path = "../kit_do_process" }
 kit-do-read = { path = "../kit_do_read" }
 kit-do-write = { path = "../kit_do_write" }
 kit-do-file-steps = { path = "../kit_do_file_steps" }
+kit-do-model = { path = "../kit_do_model" }

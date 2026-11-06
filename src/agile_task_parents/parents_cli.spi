@@ -1,0 +1,30 @@
+///- --package ../kit_cli_check --timeout 900000
+:< cli
+
+:= agile_call (root : fixture_root) (args : cli_args) : cli_run =
+    kit_run (fixture_text_of root) NoArgs NoArgs (Arg ("agile", args))
+
+:= backlog () : string =
+    "inl task_kit_a () = Task (\"KIT-A\", \"child item\", Story, P1, D2, 0u32, Planned, \"\", \"kit\", \"current\", "
+    ^^ "\"current\")\ninl task_epic_e () = Task (\"EPIC-E\", \"the epic\", Epic, P0, D5, 0u32, Active, \"\", \"kit\", "
+    ^^ "\"current\", \"current\")\ninl main () : i32 = 0i32\n"
+
+///> rust
+:# a_child_gets_one_parent_row_and_the_tree_lists_it_under_its_epic =
+    := root = fixture_root_create "agile parents"
+    fixture_write root "state/agile.spi" (backlog ())
+    fixture_write root "state/package.spiproj" "modules:\n    agile\n"
+    := here = fixture_text_of root
+    := set = agile_call root (Arg ("edit", Arg (here, Arg ("KIT-A", Arg ("--parent", Arg ("EPIC-E", NoArgs))))))
+    shows (succeeded set) "kit agile edit ok child=KIT-A parent=EPIC-E links=1"
+    shows (fixture_read root "state/parents.spi") "inl parent_of_kit_a () = Parent (\"KIT-A\", \"EPIC-E\")"
+    shows (fixture_read root "state/package.spiproj") "    parents\n"
+    := tree = succeeded (agile_call root (Arg ("list", Arg (here, Arg ("--tree", NoArgs)))))
+    shows tree "EPIC-E  done=0/1"
+    shows tree "  KIT-A  Planned"
+    shows tree "kit agile list ok tree epics=1 links=1"
+    := cleared = agile_call root (Arg ("edit", Arg (here, Arg ("KIT-A", Arg ("--parent", Arg ("--clear", NoArgs))))))
+    shows (succeeded cleared) "kit agile edit ok child=KIT-A parent=none links=0"
+    := unknown = agile_call root (Arg ("edit", Arg (here, Arg ("NOPE", Arg ("--parent", Arg ("EPIC-E", NoArgs))))))
+    rejected_with unknown 2i32 "no task NOPE"
+    fixture_root_remove root

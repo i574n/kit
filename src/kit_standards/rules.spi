@@ -35,6 +35,7 @@
         header_targets : bool
         header_untargeted : bool
         seen_test : bool
+        skipped_main : bool
         notebook_header : bool
     }
 
@@ -153,6 +154,12 @@
                 "a test block in a module without a notebook header never runs; start the file with "
                 ^^ "///- --package . and a :# <module> static = prelude"
             )
+        |? test_line && scan.seen_test = !- && scan.skipped_main
+        ?>
+            finding path number rule (
+                "a ///> _ main above the first test skips the whole module cell in notebooks, so every test sees "
+                ^^ "nothing; move ///> _ and main below the last test"
+            )
         |?
             sm'.starts_with "test " line
             && sm'.contains " static =" line = !-
@@ -220,6 +227,9 @@
             || (number = 2i32 && sm'.starts_with "///-" scan.last_code && trimmed_start line = "///> _")
         := seen_test = scan.seen_test || (sm'.starts_with ":# " line && sm'.contains " static =" line = !-)
         := notebook_header = scan.notebook_header || (number = 1i32 && sm'.starts_with "///-" (trimmed_start line))
+        := skipped_main =
+            scan.skipped_main
+            || (sm'.starts_with ":= main () : i32 =" line && scan.last_code = "///> _" && scan.seen_test = !-)
         := next =
             {
                 findings = scan.findings ++# found
@@ -229,6 +239,7 @@
                 header_targets = header_targets
                 header_untargeted = header_untargeted
                 seen_test = seen_test
+                skipped_main = skipped_main
                 notebook_header = notebook_header
             }
         lines_scanned list path module (line_rest text) (number + 1i32) next
@@ -242,6 +253,7 @@
         header_targets = !-
         header_untargeted = !-
         seen_test = !-
+        skipped_main = !-
         notebook_header = !-
     }
 
@@ -292,6 +304,9 @@
     testing.expect (sm'.contains flagged leading = !-) "a main before the tests"
     := prelude = scanned_text list "m" ("///- --package .\n///> _\n:# m static =\n\n" ++# tested ++# entry)
     testing.expect (sm'.contains flagged prelude = !-) "an untargeted prelude"
+    := skipped = scanned_text list "m" (head ++# "///> _\n" ++# entry ++# "\n" ++# tested)
+    testing.expect (sm'.contains "m.spi:9  test-targets  a ///> _ main above the first test" skipped) skipped
+    testing.expect (sm'.contains "skips the whole module cell" leading = !-) "an unmarked main before the tests"
 
 ///> rust
 :# a_test_block_needs_a_notebook_header_to_run =

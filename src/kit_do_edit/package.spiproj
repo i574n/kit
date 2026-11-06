@@ -6,6 +6,8 @@ packages:
     kit_do_model
     kit_do_records
     kit_do_store
+link:
+    kit_do_model
 modules:
     host
     decode

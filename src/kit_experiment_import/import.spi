@@ -7,11 +7,13 @@
     bytes[7] == 45u8 && bytes[8..10].iter().all(u8::is_ascii_digit) }' : bool
 
 :~ imported () : i32 =
-    := ledger = argument 3i32
-    := id = argument 4i32
-    := claimed = option_value "--registered-at"
-    := evidence = option_value "--evidence"
-    ? identifier_ok id = !-
+    := row = am'.index_base 0i32 (kit_experiment_args.args.import_args_read 2i32)
+    := ledger = row.ledger
+    := id = row.id
+    := claimed = row.registered_at
+    := evidence = row.evidence
+    ? row.rejected <> "" ?> failed ("import: " ++# row.rejected)
+    |? identifier_ok id = !-
     ?> failed ("import: the ID must be letters, digits, '-' or '_', received '" ++# id ++# "'")
     |? dated claimed = !-
     ?>
@@ -22,25 +24,25 @@
     |? evidence = ""
     ?> failed "import: --evidence names what attests the registration (a git commit or file@line)"
     |:
-        ?= test_of (option_value "--test") ?|
+        ?= test_of row.plan.test ?|
         | TestUnknown =>
             failed (
-                "import: --test must be " ++# (test_words ()) ++# ", received '" ++# (option_value "--test") ++# "'"
+                "import: --test must be " ++# (test_words ()) ++# ", received '" ++# row.plan.test ++# "'"
             )
         | TestKnown kind =>
             ?=
                 plan_checked kind
-                    (option_value "--arms")
-                    (option_value "--group")
-                    (decimal_i32 (option_value "--runs"))
-                    (option_value "--prediction")
-                    (option_value "--metric")
-                    (option_value "--decision")
+                    row.plan.arms
+                    row.plan.group
+                    (decimal_i32 row.plan.runs)
+                    row.plan.prediction
+                    row.plan.metric
+                    row.plan.decision
             ?|
             | PlanRejected reason => failed ("import: " ++# reason)
             | PlanAccepted =>
                 := now = agile_note_model.model.utc_stamp (now_ms ())
-                := confidence = ? option_value "--confidence" = "" ?> "0.95" |: option_value "--confidence"
+                := confidence = row.plan.confidence
                 := provenance =
                     (field_line "id" id)
                     ++# (field_line "registered" claimed)
@@ -48,17 +50,17 @@
                     ++# (field_line "imported_at" now)
                     ++# (field_line "evidence" evidence)
                 := plan =
-                    (field_line "question" (option_value "--question"))
+                    (field_line "question" row.plan.question)
                     ++# (field_line "test" (test_word kind))
-                    ++# (field_line "metric" (option_value "--metric"))
-                    ++# (field_line "group" (option_value "--group"))
-                    ++# (field_line "arms" (option_value "--arms"))
+                    ++# (field_line "metric" row.plan.metric)
+                    ++# (field_line "group" row.plan.group)
+                    ++# (field_line "arms" row.plan.arms)
                 := rest =
-                    (field_line "runs" (option_value "--runs"))
-                    ++# (field_line "prediction" (option_value "--prediction"))
+                    (field_line "runs" row.plan.runs)
+                    ++# (field_line "prediction" row.plan.prediction)
                     ++# (field_line "confidence" confidence)
-                    ++# (field_line "decision" (option_value "--decision"))
-                    ++# (field_line "time" (option_value "--time"))
+                    ++# (field_line "decision" row.plan.decision)
+                    ++# (field_line "time" row.plan.time)
                 := problem = text_created (record_path ledger id "registration") (provenance ++# plan ++# rest)
                 ? problem <> ""
                 ?>
@@ -80,12 +82,14 @@
                     0i32
 
 :~ verdict_recorded () : i32 =
-    := ledger = argument 3i32
-    := id = argument 4i32
+    := row = am'.index_base 0i32 (kit_experiment_verb_args.verbs.verdict_args_read 2i32)
+    := ledger = row.ledger
+    := id = row.id
     := plan = plan_text ledger id
-    := verdict = option_value "--verdict"
-    := claimed = option_value "--at"
-    ? plan = ""
+    := verdict = row.verdict
+    := claimed = row.at
+    ? row.rejected <> "" ?> failed ("record-verdict: " ++# row.rejected)
+    |? plan = ""
     ?> failed ("record-verdict: no registration for " ++# id ++# " in " ++# ledger)
     |? field_of plan "imported" <> "yes"
     ?>
@@ -99,7 +103,7 @@
     ?> failed "record-verdict: --at needs the source's verdict date or time (YYYY-MM-DD...)"
     |:
         := now = agile_note_model.model.utc_stamp (now_ms ())
-        := evidence = ? option_value "--evidence" = "" ?> field_of plan "evidence" |: option_value "--evidence"
+        := evidence = ? row.evidence = "" ?> field_of plan "evidence" |: row.evidence
         := problem =
             text_created
                 (record_path ledger id "verdict")

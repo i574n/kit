@@ -35,7 +35,7 @@
 :~ hook_replaced (~line : string) (~file : string) (~before : string) (~after : string) : string =
     := tail = concat5 "](" file ") — " before ""
     ? contains line (concat5 "](" file ")" "" "") && ends_with line tail
-    ?> concat5 (text_between line 0i32 (text_length line - text_length before)) after "" "" ""
+    ?> concat5 (text_between line 0i32 (text_count line - text_count before)) after "" "" ""
     |: line
 
 :~ memory_edited (~dir : string) (~slug : string) (~field : string) (~given : string) : i32 =

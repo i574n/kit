@@ -1,0 +1,110 @@
+///- --package .
+:# manifest static =
+    :< testing
+
+:< sm'_operators
+
+:| section =
+    | Other
+    | Packages
+    | Modules
+
+:~ text_lines (text : string) : list string =
+    text |> sm'.replace "\r" "" |> sm'.split "\n" |> am'.to_list_base' |> listm'.unbox
+
+:~ ^ indent_of (s : string) (k : i32) : i32 =
+    ? sm'.starts_with " " s ?> indent_of (sm'.slice 1i32 (sm'.length s - 1i32) s) (k + 1i32) |: k
+
+:~ header_of (entry : string) : section =
+    ? entry = "packages:" ?> Packages |? entry = "modules:" ?> Modules |: Other
+
+:~ dep_name (entry : string) : string =
+    := bare = ? sm'.starts_with "|" entry ?> sm'.slice 1i32 (sm'.length entry - 1i32) entry |: entry
+    ? sm'.ends_with "-" bare ?> sm'.slice 0i32 (sm'.length bare - 2i32) bare |: bare
+
+:~ value_after (key : string) (entry : string) : string =
+    sm'.slice (sm'.length key) (sm'.length entry - 1i32) entry |> sm'.trim
+
+:~ ^ popped (stack : list (i32 * string)) (d : i32) : list (i32 * string) =
+    ?= stack ?|
+    | (k, _) :: rest => ? k >= d ?> popped rest d |: stack
+    | [] => []
+
+:~ ^ prefix_of (stack : list (i32 * string)) : string =
+    ?= stack ?|
+    | (_, p) :: rest => prefix_of rest ++# p
+    | [] => ""
+
+:~ ^ read_lines
+    (ls : list string) (now : section) (stack : list (i32 * string)) (pdir : string) (deps : list string) (mods : list string)
+    : string * list string * list string
+    =
+    ?= ls ?|
+    | [] => pdir, listm.rev deps, listm.rev mods
+    | l :: rest =>
+        := d = indent_of l 0i32
+        := entry = sm'.trim l
+        ? entry = "" ?> read_lines rest now stack pdir deps mods
+        |? d = 0i32 ?> read_header rest pdir deps mods entry
+        |: read_entry rest now stack pdir deps mods d entry
+:& :~ read_header (rest : list string) (pdir : string) (deps : list string) (mods : list string) (entry : string)
+    : string * list string * list string
+    =
+    ? sm'.starts_with "packageDir:" entry ?> read_lines rest Other [] (value_after "packageDir:" entry) deps mods
+    |: read_lines rest (header_of entry) [] pdir deps mods
+:& :~ read_entry
+    (rest : list string) (now : section) (stack : list (i32 * string)) (pdir : string) (deps : list string)
+    (mods : list string) (d : i32) (entry : string)
+    : string * list string * list string
+    =
+    ?= now ?|
+    | Packages => read_lines rest now stack pdir (dep_name entry :: deps) mods
+    | Modules =>
+        := inner = popped stack d
+        ? sm'.ends_with "/" entry ?> read_lines rest now ((d, entry) :: inner) pdir deps mods
+        |: read_lines rest now inner pdir deps ((prefix_of inner ++# entry) :: mods)
+    | Other => read_lines rest now stack pdir deps mods
+
+:~ manifest_of (text : string) : string * list string * list string = read_lines (text_lines text) Other [] "" [] []
+
+:~ up_one (acc : list string) : list string =
+    ?= acc ?|
+    | a :: up => ? a = ".." ?> ".." :: acc |: up
+    | [] => [ ".." ]
+
+:~ ^ normal_parts (parts : list string) (acc : list string) : list string =
+    ?= parts ?|
+    | p :: rest =>
+        ? p = "" || p = "." ?> normal_parts rest acc
+        |? p = ".." ?> normal_parts rest (up_one acc)
+        |: normal_parts rest (p :: acc)
+    | [] => listm.rev acc
+
+:~ ^ joined_with (sep : string) (xs : list string) : string =
+    ?= xs ?|
+    | x :: rest =>
+        ?= rest ?|
+        | [] => x
+        | _ => x ++# sep ++# joined_with sep rest
+    | [] => ""
+
+:~ normal_path (p : string) : string =
+    := parts = p |> sm'.replace "\\" "/" |> sm'.split "/" |> am'.to_list_base' |> listm'.unbox
+    joined_with "/" (normal_parts parts [])
+
+:~ joined_path (dir : string) (rel : string) : string = normal_path (dir ++# "/" ++# rel)
+
+:~ resolved (dir : string) (pdir : string) (dep : string) : string =
+    ? sm'.starts_with "." dep ?> joined_path dir dep |: joined_path (joined_path dir pdir) dep
+
+:~ src_text () : string =
+    "packageDir: ../deps/spiral/lib\npackages:\n    |core-\n    spiral-\nmodules:\n    a\n    engine/\n        b\n        c\n    d\n"
+
+///> rust
+:# a_manifest_yields_its_package_dir_deps_and_nested_modules_in_order =
+    manifest_of (src_text ()) |> _assert_eq ("../deps/spiral/lib", [ "core"; "spiral" ], [ "a"; "engine/b"; "engine/c"; "d" ])
+
+///> rust
+:# paths_normalize_dot_segments_and_backslashes =
+    (normal_path "tibia/apps/arena/../../src", normal_path "a\\b/./c", normal_path "../x/../../y")
+    |> _assert_eq ("tibia/src", "a/b/c", "../../y")

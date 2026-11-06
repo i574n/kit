@@ -8,11 +8,13 @@ packages:
     kit_hook
     kit_run_cli
     kit_exec_export
+    kit_cli_routes
 link:
     kit_heal_nameof
     kit_hook
     kit_run_cli
     kit_exec_export
+    kit_cli_routes
 modules:
     argument_file
     model

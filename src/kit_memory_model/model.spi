@@ -18,7 +18,7 @@
 := path_joined (~dir : string) (~name : string) : string = $'std::rc::Rc::<str>::from(std::path::Path::new(&*!dir).joi\
     n(&*!name).to_string_lossy().as_ref())' : string
 := count_text (value : i32) : string = (sm'.show value)
-:= text_length (~text : string) : i32 = sm'.length text
+:= text_count (~text : string) : i32 = sm'.length text
 := byte_at (~text : string) (index : i32) : i32 = $'(!text).as_bytes().get(!index as usize).map(|byte| *byte as \
     i32).unwrap_or(-1)' : i32
 := text_between (~text : string) (start : i32) (stop : i32) : string = sm'.bytes_between start stop text
@@ -120,7 +120,7 @@
                     node_type = line_value front "  node_type: "
                     origin = line_value front "  originSessionId: "
                     modified = line_value front "  modified: "
-                    body = text_between text (close + 5i32) (text_length text)
+                    body = text_between text (close + 5i32) (text_count text)
                 }
             ? rendered entry = text
             ?> EntryRead entry
@@ -237,11 +237,11 @@
     }
 
 :~ ^ store_from (~text : string) (offset : i32) (store : memory_store) : memory_store =
-    ? offset >= text_length text
+    ? offset >= text_count text
     ?> { store ?| memories = memories_flipped store.memories NoMemories }
     |:
         := stop = index_of text "\n" offset
-        := stop = ? stop < 0i32 ?> text_length text |: stop
+        := stop = ? stop < 0i32 ?> text_count text |: stop
         := line = text_between text offset stop
         := next =
             ? starts_with line "inl memory_" && contains line "= Memory ("

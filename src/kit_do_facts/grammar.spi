@@ -144,7 +144,7 @@
 
 :~ query_fact_parsed (~records : record_list) (~record : i32) (verb : kit_do_model.model.query_verb) : fact_parse =
     ?= verb ?|
-    | ListFiles => counted_fact records record (query_word verb) !+
+    | Files => counted_fact records record (query_word verb) !+
     | _ => unshared (query_word verb)
 
 :~ fact_parsed (~records : record_list) (~record : i32) : fact_parse =

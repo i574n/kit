@@ -33,6 +33,7 @@
     | BangExport :: probe drift
     | HostBlock :: probe drift
     | HostStatement :: probe drift
+    | BannedNameToken :: probe drift
 
 :! any_probe = \? side. probe side
 
@@ -68,6 +69,7 @@
     | BangExport => MayNotRise
     | HostBlock => NeverRises
     | HostStatement => NeverRises
+    | BannedNameToken => NeverRises
 
 := probe_word \* side. (which : probe side) : string = union_reflection.cases.union_case_kebab "" which
 
@@ -97,6 +99,7 @@
     | BangExport => "!!!!Export\\("
     | HostBlock => "\\$'[^']*$"
     | HostStatement => "\\x24'[^']*(;|$)"
+    | BannedNameToken => "^(:~|:=|inl|let)\\s+(\\^\\s*)?([a-z0-9]+_)*(length|len|size|dir|ctx)(_[a-z0-9]+)*'*([\\s(]|$)"
 
 := each_probe \* state. (step : state -> any_probe -> state) (initial : state) : state =
     := s = step initial (any_probe (\? GadtCase))
@@ -122,7 +125,8 @@
     := s = step s (any_probe (\? StdStringUse))
     := s = step s (any_probe (\? BangExport))
     := s = step s (any_probe (\? HostBlock))
-    step s (any_probe (\? HostStatement))
+    := s = step s (any_probe (\? HostStatement))
+    step s (any_probe (\? BannedNameToken))
 
 := any_word (any_probe p : any_probe) : string =
     := \? side. which = p
@@ -185,7 +189,7 @@
                 ^^ "higher-kinded type-decl "
                 ^^ "host-macro wide-host-macro "
                 ^^ "rust-global encoded-row pipe-table number-arm string-concat top-level-macro rc-wrap "
-                ^^ "std-string-use bang-export host-block host-statement"
+                ^^ "std-string-use bang-export host-block host-statement banned-name-token"
             )
         )
         words

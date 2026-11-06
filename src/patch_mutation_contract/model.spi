@@ -44,7 +44,7 @@
         ))
     ))
 
-:= args_len_is expected : bool = rust_std_env.model.args_len_is expected
+:= argument_count_is expected : bool = rust_std_env.model.argument_count_is expected
 := argument_owned index : string = rust_std_env.model.argument_owned index
 := patch_is_apply () : bool = rust_std_env.model.argument_equals 0i32 "apply"
 := patch_is_check () : bool = rust_std_env.model.argument_equals 0i32 "check"
@@ -57,7 +57,7 @@
     <gate-program>\")"
 := patch_prepare_context (~root : string) (~plan : string) : string = $"patch_prepare_source_owned(!root.as_ref(), \
     !plan.as_ref())"
-:= patch_source_ready source : bool = i32_positive (patch_domain.context.source_len source)
+:= patch_source_ready source : bool = i32_positive (patch_domain.context.source_count source)
 := patch_apply_context (~context : patch_domain.context.patch_context) (~count : i32) : i32 =
     := root = patch_domain.context.root context
     := source = patch_domain.context.source context
@@ -93,7 +93,7 @@
     | _ => patch_preflight_error ()
 
 :~ patch_entry () : i32 =
-    ? args_len_is 3i32 ?>
+    ? argument_count_is 3i32 ?>
         := root = argument_owned 1i32
         := plan = argument_owned 2i32
         := source = patch_prepare_context root plan
@@ -111,7 +111,7 @@
     |: patch_usage_error ()
 
 :~ patch_rehearse_entry () : i32 =
-    ? args_len_is 3i32 ?>
+    ? argument_count_is 3i32 ?>
         := root = argument_owned 1i32
         := plan = argument_owned 2i32
         := source = patch_prepare_context root plan
@@ -125,7 +125,7 @@
     |: patch_rehearse_usage_error ()
 
 :~ patch_gated_entry () : i32 =
-    ? args_len_is 4i32
+    ? argument_count_is 4i32
     ?>
         := root = argument_owned 1i32
         := plan = argument_owned 2i32

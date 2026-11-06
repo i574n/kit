@@ -152,7 +152,7 @@
         | CountByCapture => value_measures name pattern (capture_values files pattern) (expanded rest files)
         | _ => MeasureThen (kind, name, pattern, value, expanded rest files)
 
-:= text_length (~text : string) : i32 = sm'.length text
+:= text_count (~text : string) : i32 = sm'.length text
 
 :~ capture_from (~text : string) (~pattern : string) (offset : i32) : string =
     $'std::rc::Rc::<str>::from(regex::Regex::new(&*!pattern).ok().and_then(|p| p.captures_at(&*!text, \
@@ -167,7 +167,7 @@
     : string * i32
     =
     := stop = match_end_from text pattern offset
-    ? stop < 0i32 || stop > text_length text ?> rows, count
+    ? stop < 0i32 || stop > text_count text ?> rows, count
     |:
         := value = sm'.replace "\t" " " (capture_from text pattern offset)
         matched_rows path text pattern stop (rows ++# path ++# "\t" ++# value ++# "\n") (count + 1i32)
@@ -280,5 +280,5 @@
                         measure_count columns 0i32)))
 
 := main () : i32 =
-    export "kit_table_logs_run" ((\ () => logs_run ()) : () -> i32)
+    export "kit_table_logs_run" logs_run
     0i32

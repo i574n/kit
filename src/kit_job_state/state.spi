@@ -8,11 +8,6 @@
     := state = job_state_now id
     state_word state, state_exit state, state_detail state
 
-:~ summary_settled (~verb : string) (~id : string) : string =
-    := _ = kit_job_orphans.orphans.orphan_settled id
-    job_summary verb id
-
 := main () : i32 =
-    export "kit_job_summary" ((\ (verb, id) => summary_settled verb id) : string * string -> string)
     export "kit_job_state_parts" ((\ id => state_parts id) : string -> string * i32 * string)
     0i32

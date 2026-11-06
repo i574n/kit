@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_experiment_amend"
 path = "amend.rs"
+
+[dependencies]
+kit-experiment-verb-args = { path = "../kit_experiment_verb_args" }

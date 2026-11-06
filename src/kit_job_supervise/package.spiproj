@@ -2,5 +2,14 @@ packages:
     |core-
     spiral-
     kit_jobs
+    kit_machine_windows
+    kit_job_gate
+    kit_job_env
+    kit_job_after
+link:
+    kit_machine_windows
+    kit_job_gate
+    kit_job_env
+    kit_job_after
 modules:
     supervise

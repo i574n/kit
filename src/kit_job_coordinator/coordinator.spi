@@ -1,0 +1,143 @@
+///- --package .
+:# coordinator static =
+    :< sm'_operators
+
+:< sm'_operators
+
+:== receipt = { package : string; ebins : list string; entry : string }
+
+:| receipt_read =
+    | ReceiptRead : receipt
+    | ReceiptRefused : string
+
+:= receipt_marker () : string = "cells-build-only "
+
+:~ value_after (~key : string) (~line : string) : option string =
+    := prefix = receipt_marker () ++# key ++# "="
+    := skip = sm'.length prefix
+    ? sm'.starts_with prefix line ?> Some (sm'.trim (sm'.substring skip (sm'.length line - skip) line)) |: None
+
+:~ receipt_folded (found : receipt) (~line : string) : receipt =
+    ?= value_after "package" line, value_after "ebin" line, value_after "entry" line ?|
+    | Some package, _, _ => { found ?| package = package }
+    | _, Some ebin, _ => { found ?| ebins = listm.append found.ebins [ ebin ] }
+    | _, _, Some entry => { found ?| entry = entry }
+    | _ => found
+
+:~ receipt_of (~text : string) : receipt_read =
+    := found = sm'.split_list "\n" text |> listm.fold receipt_folded { package = ""; ebins = []; entry = "" }
+    ? found.ebins = [] ?> ReceiptRefused "the receipt names no ebin; run the build again"
+    |? found.entry = "" ?> ReceiptRefused "the receipt names no entry module"
+    |: ReceiptRead found
+
+:~ erl_args (found : receipt) : list string =
+    listm.append ("-noshell" :: "-pa" :: found.ebins) [ "-eval"; found.entry ++# ":main()" ]
+
+:~ erl_args_of_text (~text : string) : array_base string =
+    ?= receipt_of text ?|
+    | ReceiptRead found =>
+        := pushed = \ (acc : array string) (arg : string) => acc ++ ;[ arg ]
+        erl_args found |> listm.fold pushed ;[] |> am'.base
+    | ReceiptRefused _ => (;[] : array string) |> am'.base
+
+:= entry_test () : string = "the_coordinator_serves_the_spool_its_environment_names"
+
+:~ build_args (~spiral : string) (~kit : string) (~out : string) : list string =
+    [
+        "-NoProfile"; "-File"; spiral ++# "/apps/cells/spi/run_notebook.ps1"
+        "--path"; kit ++# "/src/kit_coordinator_actor/actor.spi"; "--build-only"; "--test"; entry_test ()
+        "--no-html"; "--output-path"; out
+    ]
+
+:~ quoted (~text : string) : string = "'" ++# sm'.replace "'" "''" text ++# "'"
+
+:~ start_script (found : receipt) (~spool : string) (~kit : string) : string =
+    "$env:KIT_COORDINATOR_SPOOL = " ++# quoted spool ++# "; $env:KIT_COORDINATOR_KIT = " ++# quoted kit ++# "; & erl "
+    ++# sm'.concat_list " " (erl_args found |> listm.map quoted)
+
+:~ built (~root : string) (args : kit_job_coordinator_args.args.coordinator_row) : i32 =
+    := ran = process.captured_by "pwsh" (build_args args.spiral args.kit (root ++# "/coordinator-build.ipynb")) !+
+    ?= receipt_of ran.stdout ?|
+    | ReceiptRefused reason =>
+        := exit = " (exit " ++# sm'.show ran.code ++# ")"
+        console.write_error_line ("kit error: job coordinator build: " ++# reason ++# exit)
+        1i32
+    | ReceiptRead found =>
+        file_system.write_all_text (root ++# "/coordinator.receipt") ran.stdout
+        := ebins = sm'.show (listm.length found.ebins : i32)
+        console.write_line ("kit job coordinator build ok ebins=" ++# ebins ++# " package=" ++# found.package)
+        0i32
+
+:~ missing_ebins (found : receipt) : list string =
+    found.ebins |> listm'.filter (\ (ebin : string) => file_system.directory_exists ebin |> not)
+
+:~ started (~root : string) (args : kit_job_coordinator_args.args.coordinator_row) : i32 =
+    := path = root ++# "/coordinator.receipt"
+    := text = ? file_system.file_exists path ?> file_system.read_all_text path |: ""
+    ?= receipt_of text ?|
+    | ReceiptRefused reason =>
+        console.write_error_line ("kit error: job coordinator start: " ++# reason ++# "; run kit job coordinator build")
+        2i32
+    | ReceiptRead found ?& missing_ebins found <> [] =>
+        console.write_error_line "kit error: job coordinator start: a built ebin is gone; run kit job coordinator build"
+        2i32
+    | ReceiptRead found ?& args.spool = "" =>
+        console.write_error_line "kit error: job coordinator start: --spool <dir> is required"
+        2i32
+    | ReceiptRead found =>
+        := kit = env.current_executable ()
+        := script = start_script found args.spool kit
+        := argv = [ "job"; "start"; "kit-coordinator"; "604800000"; "pwsh"; "-NoProfile"; "-Command"; script ]
+        := ran = process.captured_by kit argv !+
+        console.write (ran.stdout)
+        ? process.succeeded ran ?> 0i32 |: 1i32
+
+:~ coordinator_run (~root : string) : i32 =
+    := args = am'.index_base 0i32 (kit_job_coordinator_args.args.coordinator_args_read 2i32)
+    ? args.rejected <> "" ?>
+        console.write_error_line ("kit error: job coordinator: " ++# args.rejected)
+        2i32
+    |? args.build ?> built root args
+    |: started root args
+
+:~ submission_line (~id : string) (~label : string) (~machine : string) (timeout_ms : u64) (command : list string)
+    : string
+    =
+    id ++# " " ++# label ++# " " ++# machine ++# " " ++# sm'.show timeout_ms ++# " -- " ++# sm'.concat_list " " command
+
+///> rust
+:# a_receipt_reads_its_package_ebins_and_entry =
+    := text =
+        "noise\ncells-build-only package=C:/t/gleam\ncells-build-only ebin=C:/t/a/ebin\n"
+        ++# "cells-build-only ebin=C:/t/b/ebin\ncells-build-only entry=main\n"
+    ?= receipt_of text ?|
+    | ReceiptRead found =>
+        testing.expect (found.package = "C:/t/gleam" && found.entry = "main") found.package
+        testing.expect (found.ebins = [ "C:/t/a/ebin"; "C:/t/b/ebin" ]) "both ebins, in order"
+        := args = erl_args found
+        testing.expect (args = [ "-noshell"; "-pa"; "C:/t/a/ebin"; "C:/t/b/ebin"; "-eval"; "main:main()" ]) "erl argv"
+    | ReceiptRefused reason => testing.expect !- reason
+    ?= receipt_of "cells-build-only entry=main\n" ?|
+    | ReceiptRefused reason => testing.expect (sm'.contains "no ebin" reason) reason
+    | ReceiptRead _ => testing.expect !- "a receipt without ebins is refused"
+
+///> rust
+:# a_submission_line_has_the_shape_the_coordinator_parses =
+    := line = submission_line "job-7" "probe" "node" 60000u64 [ "pwsh"; "-File"; "x.ps1" ]
+    testing.expect (line = "job-7 probe node 60000 -- pwsh -File x.ps1") line
+    := refused = erl_args_of_text "cells-build-only entry=main"
+    testing.expect (am'.length_base refused = 0i32) "a refused receipt has no argv"
+
+///> rust
+:# the_build_argv_runs_build_only_and_the_start_script_quotes_every_path =
+    := args = build_args "C:/s" "C:/k" "C:/o.ipynb"
+    testing.expect (listm.length args = 11i32 && sm'.concat_list " " args |> sm'.contains "--build-only --test") "argv"
+    := found = { package = "C:/p"; ebins = [ "C:/it's/ebin" ]; entry = "main" }
+    := script = start_script found "C:/spool" "C:/kit.exe"
+    testing.expect (sm'.contains "$env:KIT_COORDINATOR_SPOOL = 'C:/spool'" script) script
+    testing.expect (sm'.contains "'C:/it''s/ebin'" script && sm'.contains "'main:main()'" script) script
+///> _
+:= main () : i32 =
+    export "kit_job_coordinator_erl_args" erl_args_of_text
+    export "kit_job_coordinator_run" coordinator_run
+    0i32

@@ -45,7 +45,7 @@
 
 :~ cell_records_of (~notebook : string) : list cell_record =
     := doc = kit_os_json.json.parsed notebook
-    records_from doc 0i32 (kit_os_json.json.length_at doc "/cells") []
+    records_from doc 0i32 (kit_os_json.json.count_at doc "/cells") []
 
 :~ notebook_samples (m : machine) (~notebook : string) : list exec_sample =
     cell_records_of notebook |> listm.fold (\ (acc : list exec_sample) r => listm.append acc (cell_samples m r)) []

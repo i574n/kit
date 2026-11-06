@@ -12,5 +12,5 @@
     ? has_flag (flag_word FlagCount) words ?> counts_run () |? columns ?> sections_run () |: measures_run ()
 
 := main () : i32 =
-    export "kit_table_sequences_run" ((\ () => sequences_run ()) : () -> i32)
+    export "kit_table_sequences_run" sequences_run
     0i32

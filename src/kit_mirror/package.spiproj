@@ -2,6 +2,9 @@ packages:
     |core-
     spiral-
     union_reflection
+    kit_mirror_remote
+link:
+    kit_mirror_remote
 modules:
     mirror
     check

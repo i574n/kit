@@ -24,7 +24,7 @@
 := line_end_from (~text : string) (offset : i32) : i32 = $'(!text).get(!offset as usize..).and_then(|rest| \
     rest.find(char::from(10u8))).map(|at| at as i32 + !offset).unwrap_or((!text).len() as i32)' : i32
 := text_between (~text : string) (start : i32) (stop : i32) : string = sm'.bytes_between start stop text
-:= text_length (~text : string) : i32 = sm'.length text
+:= text_count (~text : string) : i32 = sm'.length text
 := count_text (value : i32) : string = (sm'.show value)
 
 :| guide_place =
@@ -56,7 +56,7 @@
         |: BetweenBlocks, tally
 
 :~ ^ guided (~spec : string) (offset : i32) (place : guide_place) (tally : guide_tally) : guide_tally =
-    ? offset >= text_length spec ?> tally
+    ? offset >= text_count spec ?> tally
     |:
         := stop = line_end_from spec offset
         := next_place, next_tally = line_guided place (text_between spec offset stop) tally

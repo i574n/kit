@@ -20,13 +20,17 @@
     | JobChain
     | JobAmend
     | JobDoctor
+    | JobCoordinator
     | JobUnknown
 
 := job_command_of (~word : string) : job_command =
     optionm'.default_value JobUnknown (reflection.union_try_pick ("job" ++# word))
 
 := job_usage () : string =
-    "job doctor [--env] (audits kit processes, job files and after-chains; --env also compares a detached job's "
+    "job coordinator build --spiral <dir> --kit <dir> (builds the resident job coordinator through Cells --build-only "
+    ^^ "and records its receipt) | job coordinator start --spool <dir> (starts it as a resident job that takes "
+    ^^ "<name>.sub files from the spool) | "
+    ^^ "job doctor [--env] (audits kit processes, job files and after-chains; --env also compares a detached job's "
     ^^ "environment with this shell's; exit 1 on a finding) | job after <queued-id> <predecessor-id> [--ok] "
     ^^ "(re-points a job still waiting on --after/--after-ok; label, timeout, gate and command are kept) | job chain "
     ^^ "[--ok] [--serial] [<after-id>] -- <label> <timeout-ms> <program> [args...] -- <label> ... (starts each job "
@@ -292,6 +296,7 @@
             ("start", JobStart); ("run", JobRun); ("supervise", JobSupervise); ("host", JobHost)
             ("status", JobStatus); ("wait", JobWait); ("list", JobList); ("tail", JobTail); ("stop", JobStop)
             ("after", JobAfter); ("chain", JobChain); ("amend", JobAmend); ("doctor", JobDoctor)
+            ("coordinator", JobCoordinator)
         ]
     expect (listm.fold (\ ok (word, command) => ok && job_command_of word = command) true pairs) "each verb picks its case"
     expect (job_command_of "Start" = JobUnknown) "verbs are lower case"

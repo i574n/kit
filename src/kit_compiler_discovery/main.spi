@@ -53,10 +53,10 @@
             if !spiral_artifact_metadata(directory)?.is_dir() { return Err("compiler dependency root is not a directory".to_owned()); }
             for name in kit_rust_std_fs::rooted_list_names(directory)? {
                 let path = directory.join(&name);
-                *remaining = remaining.checked_sub(1).ok_or_else(|| "compiler dependency inventory exceeds 512 entries".to_owned())?;
                 let metadata = spiral_artifact_metadata(&path)?;
+                if !metadata.is_dir() && !spiral_dependency_name(&name) { continue; }
+                *remaining = remaining.checked_sub(1).ok_or_else(|| "compiler dependency inventory exceeds 512 entries".to_owned())?;
                 if metadata.is_dir() { spiral_dependency_paths(root, &path, depth + 1, remaining, output)?; continue; }
-                if !spiral_dependency_name(&name) { continue; }
                 if !spiral_artifact_metadata(&path)?.is_file() { return Err(format!("compiler dependency is not a file: {}", path.display())); }
                 let relative = path.strip_prefix(root).map_err(|error| error.to_string())?;
                 let label = relative.to_str().ok_or_else(|| "compiler dependency path is not UTF-8".to_owned())?.replace('\\', "/");

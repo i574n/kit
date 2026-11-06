@@ -639,6 +639,15 @@
     |:
         ? readonly = 1i32 ?> 292i32 |: 420i32
 
+:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
+
+///> rust
+:# archive_permissions_keep_executable_and_readonly_intent =
+    expect (bundle_portable_mode_binding 0i32 0i32 = 420i32) "a plain file is 0o644"
+    expect (bundle_portable_mode_binding 0i32 1i32 = 292i32) "a read-only file is 0o444"
+    expect (bundle_portable_mode_binding 1i32 0i32 = 493i32) "an executable is 0o755"
+    expect (bundle_portable_mode_binding 1i32 1i32 = 365i32) "a read-only executable is 0o555"
+
 ///> _
 := main () : i32 =
     := _ = deterministic_plan ()
@@ -658,12 +667,3 @@
     emit_archive_extract_runtime ()
     emit_long_name_tests ()
     0i32
-
-:= expect (condition : bool) (~detail : string) : () = ? condition ?> () |: failwith detail
-
-///> rust
-:# archive_permissions_keep_executable_and_readonly_intent =
-    expect (bundle_portable_mode_binding 0i32 0i32 = 420i32) "a plain file is 0o644"
-    expect (bundle_portable_mode_binding 0i32 1i32 = 292i32) "a read-only file is 0o444"
-    expect (bundle_portable_mode_binding 1i32 0i32 = 493i32) "an executable is 0o755"
-    expect (bundle_portable_mode_binding 1i32 1i32 = 365i32) "a read-only executable is 0o555"

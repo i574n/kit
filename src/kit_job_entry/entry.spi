@@ -32,6 +32,7 @@
     | JobChain => ? first = "--run-serial" ?> kit_job_serial.serial.serial_run () |: kit_job_chain.chain.chain_run ()
     | JobAmend => kit_job_control.control.job_amended ()
     | JobDoctor => kit_jobs_doctor.entry.doctor_checked ()
+    | JobCoordinator => kit_job_coordinator.coordinator.coordinator_run (jobs_root ())
     | JobUnknown => rejected (job_usage ())
 
 :~ job_operands (command : job_command) (operands : list string) : i32 =

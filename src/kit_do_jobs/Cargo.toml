@@ -18,3 +18,4 @@ kit-command-line = { path = "../kit_command_line" }
 kit-job-entry = { path = "../kit_job_entry" }
 kit-job-control = { path = "../kit_job_control" }
 kit-do-verbs = { path = "../kit_do_verbs" }
+kit-do-model = { path = "../kit_do_model" }

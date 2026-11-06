@@ -1,6 +1,6 @@
 :! prompt_title = i32
 
-:= argument_len (index : i32) : i32 = rust_std_env.model.argument_len index
+:= argument_byte_count (index : i32) : i32 = rust_std_env.model.argument_byte_count index
 := argument_byte (index : i32) (offset : i32) : i32 = rust_std_env.model.argument_byte index offset
 := i32_eq (a : i32) (b : i32) : bool = (a = b)
 := i32_le (a : i32) (b : i32) : bool = (a <= b)
@@ -30,7 +30,7 @@
         |: invalid_i32 ()
 
 := validate_title () : i32 =
-    := length = argument_len 2i32
+    := length = argument_byte_count 2i32
     ? i32_positive length ?> validate_title_loop 0i32 length 0i32 !- |: invalid_i32 ()
 
 :~ lease_title_entry () : i32 = validate_title ()

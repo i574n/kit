@@ -152,8 +152,8 @@
     ?= q.verb ?|
     | Search =>
         ? needle = "" ?> "search: expected a quoted pattern" |? target = "" ?> "search: expected in <path|glob>" |: ""
-    | ReadAround => ? target = "" ?> "read: expected a path" |? needle = "" ?> "read: expected around \"<text>\"" |: ""
-    | ListFiles => ? target = "" ?> "files: expected a path or glob" |: ""
+    | Read => ? target = "" ?> "read: expected a path" |? needle = "" ?> "read: expected around \"<text>\"" |: ""
+    | Files => ? target = "" ?> "files: expected a path or glob" |: ""
     | Head => ? target = "" ?> "head: expected a path or glob" |: ""
     | Tail => ? target = "" ?> "tail: expected a path or glob" |: ""
     | Wait => ? target = "" ?> "wait: expected a file" |? needle = "" ?> "wait: expected ~ \"<regex>\"" |: ""

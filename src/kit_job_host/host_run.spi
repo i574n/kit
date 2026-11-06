@@ -1,3 +1,7 @@
+///- --package .
+:# host_run static =
+    :< sm'_operators
+
 :< sm'_operators
 :< kit_jobs.host
 :< kit_jobs.jobs
@@ -6,14 +10,11 @@
 :< host_paths
 :< queue
 
-:~ own_pid () : u64 = $'std::process::id() as u64' : u64
+:= own_pid () : u64 = conv (kit_os_process.process.own_pid ())
 
 :~ owner_ended_file (~home : string) : string = joined (host_home_directory home) "owner-ended"
 
-:~ next_request (~dir : string) : string =
-    $'std::rc::Rc::<str>::from(std::fs::read_dir(&*!dir).into_iter().flatten().flatten().map(|entry| \
-        entry.file_name().to_string_lossy().into_owned()).filter(|name| \
-        name.ends_with(".start")).min().unwrap_or_default())' : string
+:~ next_request (~dir : string) : string = kit_job_names.names.earliest_ending (dir, ".start")
 
 :~ supervisor_child_started (~kids : children) (~executable : string) (~id : string) : bool =
     child_started kids executable ;[ "job"; "supervise"; id ]
@@ -128,6 +129,7 @@
         := _ = directory_created (requests_directory terms.home)
         := _ = text_written (host_pid_file terms.home) (decimal_text (own_pid ()))
         host_served (no_children ()) terms (now_ms ())
+
 
 := main () : i32 =
     export "kit_job_host_run" host_run

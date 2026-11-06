@@ -18,3 +18,4 @@ kit-table-text = { path = "../kit_table_text" }
 agile-task-notes = { path = "../agile_task_notes" }
 kit-experiment-stats = { path = "../kit_experiment_stats" }
 kit-table-query = { path = "../kit_table_query" }
+kit-experiment-verb-args = { path = "../kit_experiment_verb_args" }

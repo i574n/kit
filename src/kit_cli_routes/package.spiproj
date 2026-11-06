@@ -1,0 +1,23 @@
+packages:
+    |core-
+    spiral-
+    union_reflection
+    kit_repo_state
+    kit_repo_affected
+    kit_repo_accept_review
+    kit_table_query
+    kit_table_logs
+    kit_table_sequences
+    kit_table_test
+    kit_proof_scope
+link:
+    kit_repo_state
+    kit_repo_affected
+    kit_repo_accept_review
+    kit_table_query
+    kit_table_logs
+    kit_table_sequences
+    kit_table_test
+    kit_proof_scope
+modules:
+    routes

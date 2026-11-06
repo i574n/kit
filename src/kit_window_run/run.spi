@@ -71,7 +71,7 @@
                 stdout_line ("kit window run ok id=" ++# id ++# " exit=" ++# (exit_text code) ++# " released=yes")
                 code
 
-:~ heavy_queue_dir () : string =
+:~ heavy_queue_directory () : string =
     $'std::rc::Rc::<str>::from(std::env::var_os("KIT_HEAVY_QUEUE").or_else(|| \
         std::env::var_os("LOCALAPPDATA").or_else(|| std::env::var_os("HOME")).map(|base| \
         std::path::PathBuf::from(base).join("spiral-bin").join("heavy-queue").into_os_string())).map(|path| \
@@ -108,7 +108,7 @@
                 ++# ("  held " ++# (number_text (file_minutes path)) ++# "m  " ++# (field_rest row 3i32))
             holder_lines (other_rows paths) (? shown = "" ?> line |: shown ++# "\n" ++# line)
 
-:~ heavy_holders_text () : string = holder_lines (holder_paths (heavy_queue_dir ())) ""
+:~ heavy_holders_text () : string = holder_lines (holder_paths (heavy_queue_directory ())) ""
 := main () : i32 =
     export "kit_window_run_run" ((\ () => window_ran ()) : () -> i32)
     export "kit_heavy_holders_text" ((\ () => heavy_holders_text ()) : () -> string)

@@ -26,7 +26,7 @@
         .unwrap_or_default().as_str())'
     : string
 
-:~ file_length (~path : string) : u64 = $'std::fs::metadata(&*!path).map(|metadata| metadata.len()).unwrap_or(0)' : u64
+:~ file_byte_count (~path : string) : u64 = (conv (file_system.rust_file_length path) : u64)
 
 :~ stdout_line (~text : string) : i32 =
     console.write_line text
@@ -76,11 +76,11 @@
     := target = root ++# "/" ++# name
     ? inside_root listed = !- || inside_root name = !-
     ?> OutsideRoot
-    |? file_length target = 0u64
+    |? file_byte_count target = 0u64
     ?> MissingFile
     |:
         := sha = file_sha256 target
-        := size = file_length target
+        := size = file_byte_count target
         ?= refreshed_text (file_system.read_all_text evidence) listed name sha size ?|
         | None => NotListed
         | Some text =>

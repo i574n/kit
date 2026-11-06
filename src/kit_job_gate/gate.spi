@@ -236,7 +236,7 @@
         0i32
 
 :~ job_window_gate (~id : string) : i32 =
-    := slotted = $'kit_job_slot::kit_job_slot_gate(&*!id)' : i32
+    := slotted = kit_job_slot.slot.slot_gate id
     ? slotted <> 0i32 ?> slotted
     |:
         := windowed = windowed_gate id HeavyBuild
@@ -245,8 +245,8 @@
 :~ job_compile_gate (~id : string) : i32 = windowed_gate id Compile
 
 := main () : i32 =
-    export "kit_job_window_gate" ((\ id => job_window_gate id) : string -> i32)
-    export "kit_job_compile_gate" ((\ id => job_compile_gate id) : string -> i32)
-    export "kit_job_gate_held_step" ((\ id => held_window_step id) : string -> i32)
-    export "kit_job_gate_window_dropped" ((\ id => held_window_dropped id) : string -> ())
+    export "kit_job_window_gate" job_window_gate
+    export "kit_job_compile_gate" job_compile_gate
+    export "kit_job_gate_held_step" held_window_step
+    export "kit_job_gate_window_dropped" held_window_dropped
     0i32

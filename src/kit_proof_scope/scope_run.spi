@@ -1,0 +1,66 @@
+///- --package .
+:# scope_run static =
+    :< sm'_operators
+    :< import_scope
+
+:< sm'_operators
+:< import_scope
+
+:| scope_valued =
+    | ScopeChanged
+
+:== scope_args = { root : string; changed : list string; rejected : string }
+
+:= scope_word (flag : scope_valued) : string = "--" ++# union_reflection.cases.union_case_kebab "Scope" flag
+
+:~ ^ scope_read (words : list string) (args : scope_args) : scope_args =
+    ?= words ?|
+    | [] => args
+    | word :: rest =>
+        := named = \ (flag : scope_valued) => scope_word flag = word
+        ?= union_reflection.cases.union_case_where named Some None, rest ?|
+        | Some _, [] => { args ?| rejected = "option " ++# word ++# " has no value" }
+        | Some _, (value :: after) =>
+            := listed = sm'.split_list "," value |> listm'.filter (\ (path : string) => sm'.trim path <> "")
+            scope_read after { args ?| changed = listm.append args.changed listed }
+        | None, _ ?& sm'.starts_with "--" word => { args ?| rejected = "unknown option " ++# word }
+        | None, _ ?& args.root = "" => scope_read rest { args ?| root = word }
+        | None, _ => { args ?| rejected = "unexpected word " ++# word }
+
+:~ scope_args_of (words : list string) : scope_args =
+    := args = scope_read words { root = ""; changed = []; rejected = "" }
+    ? args.rejected = "" && args.root = "" ?> { args ?| rejected = "expected <repo root> --changed <path,path...>" }
+    |? args.rejected = "" && args.changed = [] ?> { args ?| rejected = "--changed <path,path...> is required" }
+    |: args
+
+:~ ^ after_words (count : i32) (words : list string) : list string =
+    ?= words ?|
+    | _ :: rest ?& count > 0i32 => after_words (count - 1i32) rest
+    | _ => words
+
+:~ scope_run () : i32 =
+    := args = scope_args_of (after_words 2i32 (env.command_line_arguments ()))
+    ? args.rejected <> "" ?>
+        console.write_error_line ("kit error: repo scope: " ++# args.rejected)
+        2i32
+    |:
+        := rows = kit_proof_scope_manifests.manifest_walk.manifests_under args.root
+        := changed = listm'.box args.changed |> listm'.to_array'
+        := paths = listed (kit_proof_scope_manifests.manifest_walk.anchored_paths (args.root, changed))
+        := pkgs = rows |> am'.to_list_base' |> listm'.unbox |> listm.map package_from
+        := lines = scope_lines (scope_of pkgs paths)
+        lines |> listm.iter (\ (line : string) => console.write_line line)
+        := counts = "packages=" ++# sm'.show (am'.length_base rows) ++# " proof_sets=" ++# sm'.show (listm.length lines : i32)
+        console.write_line ("kit repo scope ok " ++# counts)
+        0i32
+
+///> rust
+:# scope_words_take_the_root_and_every_changed_path =
+    := args = scope_args_of [ "C:/r"; "--changed"; "src/a.spi,apps/x.spi"; "--changed"; "src/b.spi" ]
+    testing.expect (args.root = "C:/r" && args.changed = [ "src/a.spi"; "apps/x.spi"; "src/b.spi" ]) args.rejected
+    testing.expect ((scope_args_of [ "C:/r" ]).rejected = "--changed <path,path...> is required") "changed is required"
+    testing.expect ((scope_args_of [ "C:/r"; "--since"; "HEAD" ]).rejected = "unknown option --since") "unknown"
+///> _
+:= main () : i32 =
+    export "kit_proof_scope_run" scope_run
+    0i32

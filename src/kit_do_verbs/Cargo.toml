@@ -12,3 +12,6 @@ publish.workspace = true
 [lib]
 name = "kit_do_verbs"
 path = "verbs.rs"
+
+[dependencies]
+kit-do-model = { path = "../kit_do_model" }

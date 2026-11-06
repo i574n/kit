@@ -1,0 +1,161 @@
+///- --package .
+:# import_scope static =
+    :< testing
+
+:< sm'_operators
+
+:| package = Package : string * list string * list string
+
+:~ listed (items : array_base string) : list string = items |> am'.to_list_base' |> listm'.unbox
+
+:~ package_from (row : kit_proof_scope_manifests.manifest_walk.manifest_row) : package =
+    Package (row.dir, listed row.deps, listed row.modules)
+
+:~ package_of (dir : string) (text : string) : package =
+    package_from (kit_proof_scope_manifests.manifest_walk.row_of dir text)
+
+:~ without_spi (s : string) : string = ? sm'.ends_with ".spi" s ?> sm'.slice 0i32 (sm'.length s - 5i32) s |: s
+
+:~ module_in (dir : string) (path : string) : option string =
+    := prefix = dir ++# "/"
+    ? sm'.starts_with prefix path
+    ?> Some (sm'.slice (sm'.length prefix) (sm'.length path - 1i32) path |> without_spi)
+    |: None
+
+:~ longer (best : option (string * string)) ((d, m) : string * string) : option (string * string) =
+    ?= best ?|
+    | Some (b, _) => ? (sm'.length b : i32) >= (sm'.length d : i32) ?> best |: Some (d, m)
+    | None => Some (d, m)
+
+:~ ^ located_in (pkgs : list package) (path : string) (best : option (string * string)) : option (string * string) =
+    ?= pkgs ?|
+    | Package (d, _, _) :: rest =>
+        ?= module_in d path ?|
+        | Some m => located_in rest path (longer best (d, m))
+        | None => located_in rest path best
+    | [] => best
+
+:~ ^ hits_of (pkgs : list package) (paths : list string) : list (string * string) =
+    ?= paths ?|
+    | p :: rest =>
+        ?= located_in pkgs p None ?|
+        | Some h => h :: hits_of pkgs rest
+        | None => hits_of pkgs rest
+    | [] => []
+
+:~ ^ dirs_of (hits : list (string * string)) : list string =
+    ?= hits ?|
+    | (d, _) :: rest => d :: dirs_of rest
+    | [] => []
+
+:~ ^ among (xs : list string) (x : string) : bool =
+    ?= xs ?|
+    | y :: rest => ? y = x ?> !+ |: among rest x
+    | [] => !-
+
+:~ ^ any_among (xs : list string) (ys : list string) : bool =
+    ?= xs ?|
+    | x :: rest => ? among ys x ?> !+ |: any_among rest ys
+    | [] => !-
+
+:~ ^ grown (pkgs : list package) (dirty : list string) : list string =
+    ?= pkgs ?|
+    | Package (d, deps, _) :: rest =>
+        := more = grown rest dirty
+        ? not (among more d) && any_among deps dirty ?> d :: more |: more
+    | [] => dirty
+
+:~ ^ closed_over (pkgs : list package) (dirty : list string) (fuel : i32) : list string =
+    := next = grown pkgs dirty
+    ? fuel <= 0i32 || (listm.length next : i32) = (listm.length dirty : i32) ?> next
+    |: closed_over pkgs next (fuel - 1i32)
+
+:~ ^ index_in (xs : list string) (x : string) (k : i32) : option i32 =
+    ?= xs ?|
+    | y :: rest => ? y = x ?> Some k |: index_in rest x (k + 1i32)
+    | [] => None
+
+:~ position (mods : list string) (m : string) : i32 =
+    ?= index_in mods m 0i32 ?|
+    | Some k => k
+    | None => 0i32
+
+:~ ^ earliest (hits : list (string * string)) (d : string) (mods : list string) (best : i32) : i32 =
+    ?= hits ?|
+    | (hd, m) :: rest =>
+        := at = ? hd = d ?> position mods m |: best
+        earliest rest d mods (? at < best ?> at |: best)
+    | [] => best
+
+:~ ^ dropped (xs : list string) (i : i32) : list string =
+    ?= xs ?|
+    | _ :: rest => ? i <= 0i32 ?> xs |: dropped rest (i - 1i32)
+    | [] => []
+
+:~ reproved_from (hits : list (string * string)) (d : string) (mods : list string) : list string =
+    dropped mods (earliest hits d mods (listm.length mods : i32))
+
+:~ ^ scope_in (pkgs : list package) (closed : list string) (dirty : list string) (hits : list (string * string))
+    : list (string * list string)
+    =
+    ?= pkgs ?|
+    | Package (d, deps, mods) :: rest =>
+        := tail = scope_in rest closed dirty hits
+        ? any_among deps closed ?> (d, mods) :: tail
+        |? among dirty d ?> (d, reproved_from hits d mods) :: tail
+        |: tail
+    | [] => []
+
+:~ scope_of (pkgs : list package) (paths : list string) : list (string * list string) =
+    := hits = hits_of pkgs paths
+    := dirty = dirs_of hits
+    scope_in pkgs (closed_over pkgs dirty (listm.length pkgs : i32)) dirty hits
+
+:~ ^ scope_lines (s : list (string * list string)) : list string =
+    ?= s ?|
+    | (d, ms) :: rest => (d ++# ": " ++# sm'.concat_list " " ms) :: scope_lines rest
+    | [] => []
+
+:~ src_text () : string =
+    "packageDir: ../deps/spiral/lib\npackages:\n    |core-\n    spiral-\nmodules:\n    a\n    engine/\n        b\n        c\n    d\n"
+
+:~ arena_text () : string =
+    "packageDir: ../../deps/spiral/lib\r\npackages:\r\n    |core-\r\n    spiral-\r\n    ../../src-\r\nmodules:\r\n    x\r\n    y\r\n"
+
+:~ lone_text () : string = "packageDir: ../../deps/spiral/lib\npackages:\n    |core-\n    spiral-\nmodules:\n    q\n"
+
+:~ fixture () : list package =
+    [
+        package_of "tibia/deps/spiral/lib/spiral" "modules:\n    base\n    common\n"
+        package_of "tibia/src" (src_text ())
+        package_of "tibia/apps/arena" (arena_text ())
+        package_of "tibia/apps/lone" (lone_text ())
+    ]
+
+:~ every_package_lines () : list string =
+    [
+        "tibia/deps/spiral/lib/spiral: base common"
+        "tibia/src: a engine/b engine/c d"
+        "tibia/apps/arena: x y"
+        "tibia/apps/lone: q"
+    ]
+
+:~ scope_for (paths : list string) : list string =
+    scope_lines (scope_of (fixture ()) (listm.map kit_proof_scope_manifests.manifest.normal_path paths))
+
+///> rust
+:# a_change_reproves_later_modules_and_every_dependent_package =
+    scope_for [ "tibia/src/engine/c.spi" ] |> _assert_eq [ "tibia/src: engine/c d"; "tibia/apps/arena: x y" ]
+
+///> rust
+:# a_leaf_change_stays_inside_its_package =
+    scope_for [ "tibia\\apps\\arena\\y.spi" ] |> _assert_eq [ "tibia/apps/arena: y" ]
+
+///> rust
+:# a_lib_change_reproves_every_package_that_uses_lib =
+    scope_for [ "tibia/deps/spiral/lib/spiral/base.spi" ] |> _assert_eq (every_package_lines ())
+
+///> rust
+:# a_manifest_or_unknown_file_reproves_its_whole_package_and_outside_paths_add_nothing =
+    (scope_for [ "tibia/src/package.spiproj" ], scope_for [ "elsewhere/z.spi" ])
+    |> _assert_eq ([ "tibia/src: a engine/b engine/c d"; "tibia/apps/arena: x y" ], [])

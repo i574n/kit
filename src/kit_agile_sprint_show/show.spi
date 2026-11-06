@@ -20,9 +20,8 @@
     ? (sm'.length line : i32) > 160i32 ?> sm'.substring 0i32 160i32 line ++# "..." |: line
 
 :~ last_note_line (~agile_text : string) (~task : string) : string =
-    ?= sm'.split_list "\n" (agile_note_listing.note_listing.last_note_of (agile_text, task)) ?|
-    | _ :: line :: _ => clipped (sm'.trim line)
-    | _ => ""
+    := lines = sm'.split "\n" (agile_note_listing.note_listing.last_note_of (agile_text, task))
+    ? am'.length_base lines < 2i32 ?> "" |: clipped (sm'.trim (am'.index_base 1i32 lines))
 
 :~ ^ committed_from (items : array_base kit_agile_sprint_state.state.item_shown) (at : i32) (sum : i32) : i32 =
     ? at >= am'.length_base items ?> sum

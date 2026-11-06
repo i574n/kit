@@ -202,7 +202,7 @@
         ? tally.count = 0i32 ?> 0i32 |: 1i32
 
 :~ census_requested () : bool = $'std::env::args().nth(2).is_some_and(|flag| matches\!(flag.as_str(), \
-    "--census" | "--baseline" | "--baseline-merge" | "--ratchet"))' : bool
+    "--census" | "--baseline" | "--baseline-merge" | "--ratchet" | "--scoreboard"))' : bool
 
 :~ standards_run () : i32 = ? census_requested () ?> $'kit_style_census::kit_census_run()' : i32 |: rules_run ()
 

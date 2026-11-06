@@ -10,66 +10,55 @@
 :< experiment_model
 :< ledger_host
 
+:~ registration_text (~id : string) (~at : string) (kind : test_kind) (row : kit_experiment_args.args.register_row)
+    : string
+    =
+    field_line "id" id
+    ++# field_line "registered" at
+    ++# field_line "question" row.question
+    ++# field_line "test" (test_word kind)
+    ++# field_line "metric" row.metric
+    ++# field_line "group" row.group
+    ++# field_line "arms" row.arms
+    ++# field_line "runs" row.runs
+    ++# field_line "prediction" row.prediction
+    ++# field_line "confidence" row.confidence
+    ++# field_line "decision" row.decision
+    ++# field_line "time" row.time
+    ++# field_line "registered_local" (local_stamp ())
+
+:~ registered_as (~ledger : string) (~id : string) (kind : test_kind) (row : kit_experiment_args.args.register_row)
+    : i32
+    =
+    ?= plan_checked kind row.arms row.group (decimal_i32 row.runs) row.prediction row.metric row.decision ?|
+    | PlanRejected reason => failed ("register: " ++# reason)
+    | PlanAccepted =>
+        := at = agile_note_model.model.utc_stamp (now_ms ())
+        := problem = text_created (record_path ledger id "registration") (registration_text id at kind row)
+        ? problem <> ""
+        ?> failed ("register: " ++# id ++# " is already registered or the ledger is unwritable (" ++# problem ++# ")")
+        |:
+            stdout_line (
+                "kit experiment register ok id="
+                ++# id
+                ++# " test="
+                ++# test_word kind
+                ++# " runs="
+                ++# row.runs
+                ++# " registered="
+                ++# at
+            )
+            0i32
+
 :~ registered (~ledger : string) (~id : string) : i32 =
+    := row = am'.index_base 0i32 (kit_experiment_args.args.register_args_read 4i32)
     ? identifier_ok id = !-
-    ?>
-        failed (
-            concat5 "register: the ID must be letters, digits, '-' or '_', received '" id "'; " (experiment_usage ()) ""
-        )
+    ?> failed ("register: the ID must be letters, digits, '-' or '_', received '" ++# id ++# "'; " ++# experiment_usage ())
+    |? row.rejected <> "" ?> failed ("register: " ++# row.rejected ++# "; " ++# experiment_usage ())
     |:
-        ?= test_of (option_value "--test") ?|
-        | TestUnknown =>
-            failed (concat5 "register: --test must be " (test_words ()) ", received '" (option_value "--test") "'")
-        | TestKnown kind =>
-            := runs = decimal_i32 (option_value "--runs")
-            ?=
-                plan_checked kind
-                    (option_value "--arms")
-                    (option_value "--group")
-                    runs
-                    (option_value "--prediction")
-                    (option_value "--metric")
-                    (option_value "--decision")
-            ?|
-            | PlanRejected reason => failed (concat5 "register: " reason "" "" "")
-            | PlanAccepted =>
-                := at = agile_note_model.model.utc_stamp (now_ms ())
-                := confidence = ? option_value "--confidence" = "" ?> "0.95" |: option_value "--confidence"
-                := head =
-                    concat5
-                        (field_line "id" id)
-                        (field_line "registered" at)
-                        (field_line "question" (option_value "--question"))
-                        (field_line "test" (test_word kind))
-                        (field_line "metric" (option_value "--metric"))
-                := body =
-                    concat5
-                        (field_line "group" (option_value "--group"))
-                        (field_line "arms" (option_value "--arms"))
-                        (field_line "runs" (option_value "--runs"))
-                        (field_line "prediction" (option_value "--prediction"))
-                        (field_line "confidence" confidence)
-                := problem =
-                    text_created
-                        (record_path ledger id "registration")
-                        (
-                            concat5 head body
-                                (field_line "decision" (option_value "--decision"))
-                                (field_line "time" (option_value "--time"))
-                                (field_line "registered_local" (local_stamp ()))
-                        )
-                ? problem <> ""
-                ?> failed (concat5 "register: " id " is already registered or the ledger is unwritable (" problem ")")
-                |:
-                    stdout_line (
-                        concat5
-                            "kit experiment register ok id="
-                            id
-                            " test="
-                            (test_word kind)
-                            (concat5 " runs=" (option_value "--runs") " registered=" at "")
-                    )
-                    0i32
+        ?= test_of row.test ?|
+        | TestUnknown => failed ("register: --test must be " ++# test_words () ++# ", received '" ++# row.test ++# "'")
+        | TestKnown kind => registered_as ledger id kind row
 
 :~ shown (~ledger : string) (~id : string) : i32 =
     := plan = file_text (record_path ledger id "registration")

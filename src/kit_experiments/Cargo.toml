@@ -17,3 +17,4 @@ path = "experiments.rs"
 kit-experiment-amend = { path = "../kit_experiment_amend" }
 kit-experiment-import = { path = "../kit_experiment_import" }
 kit-experiment-analysis = { path = "../kit_experiment_analysis" }
+kit-experiment-args = { path = "../kit_experiment_args" }

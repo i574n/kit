@@ -5,7 +5,7 @@
 :~ halted (child : child_process) (~id : string) (halt : job_halt) : i32 =
     := stop = tree_stop_of (child_tree_stopped child)
     := _ = text_written (job_file id "exit") (halt_line halt (now_ms ()) stop)
-    := _ = $'kit_machine_windows::kit_job_windows_dropped(&*!id)' : u64
+    := _ = kit_machine_windows.windows.job_windows_dropped id
     := code, _, _ = halt_terms halt
     code
 
@@ -20,7 +20,7 @@
     |? code <> -1i64 ?>
         := exit = (conv code : i32)
         := _ = text_written (job_file id "exit") (exit_line exit (now_ms ()) (JobFinished exit) "")
-        := _ = $'kit_machine_windows::kit_job_windows_dropped(&*!id)' : u64
+        := _ = kit_machine_windows.windows.job_windows_dropped id
         exit
     |:
         ?=
@@ -47,8 +47,8 @@
 
 :~ supervise_cleared (~id : string) : i32 =
     := gate =
-        ? file_exists (job_file id "heavy-wrapper.ps1") ?> $'kit_job_gate::kit_job_window_gate(&*!id)' : i32
-        |? file_exists (job_file id "window-class") ?> $'kit_job_gate::kit_job_compile_gate(&*!id)' : i32
+        ? file_exists (job_file id "heavy-wrapper.ps1") ?> kit_job_gate.gate.job_window_gate id
+        |? file_exists (job_file id "window-class") ?> kit_job_gate.gate.job_compile_gate id
         |: 0i32
     ? gate <> 0i32 ?> gate
     |:
@@ -80,12 +80,12 @@
 
 :~ supervise_job (~id : string) : i32 =
     := _ = text_written (job_file id "supervisor") (decimal_text (env.process_id ()))
-    := refusal = $'kit_job_env::kit_job_environment_adopted(&*!id)' : string
+    := refusal = kit_job_env.env_adopt.environment_refusal id
     ? refusal <> "" ?>
         := _ = text_written (job_file id "exit") (exit_line 125i32 (now_ms ()) (JobSpawnFailed "") refusal)
         125i32
     |:
-        := halted = ? file_exists (job_file id "after") ?> $'kit_job_after::kit_job_after_wait(&*!id)' : i32 |: 0i32
+        := halted = ? file_exists (job_file id "after") ?> kit_job_after.after.after_wait id |: 0i32
         ? halted <> 0i32 ?> halted |: supervise_cleared id
 
 := main () : i32 =

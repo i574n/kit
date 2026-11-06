@@ -101,5 +101,5 @@
         2i32
 
 := main () : i32 =
-    export "kit_repo_run" ((\ () => repo_run ()) : () -> i32)
+    export "kit_repo_run" repo_run
     0i32

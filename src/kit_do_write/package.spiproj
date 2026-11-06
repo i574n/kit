@@ -8,6 +8,7 @@ packages:
     kit_do_verbs
     kit_do_write_host
 link:
+    kit_do_model
     kit_do_verbs
 modules:
     grammar

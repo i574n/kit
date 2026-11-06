@@ -175,21 +175,21 @@
     ? (<) near_to from ?> codec_empty () |: slice_exclusive text from near_to
 
 :~ state_receipt_constructor_payload_from (source : string) (marker : string) (search_from : i32) : string * i32 * i32 =
-    := source_len = sm.length source : i32
+    := source_count = sm.length source : i32
     := marker_at = find_text source search_from marker
-    ? (=.) marker_at source_len ?> codec_empty (), source_len, 0i32
+    ? (=.) marker_at source_count ?> codec_empty (), source_count, 0i32
     |:
         := payload_from = (+.) marker_at (sm.length marker : i32)
         := line_end = find_char source payload_from (char_newline ())
-        := next_at = ? (<) line_end source_len ?> (+.) line_end 1i32 |: source_len
+        := next_at = ? (<) line_end source_count ?> (+.) line_end 1i32 |: source_count
         := close_at = state_receipt_find_last_char_loop source payload_from line_end ')' -1i32
         ? (<) close_at payload_from ?> codec_empty (), next_at, 2i32
         |: slice_exclusive source payload_from close_at, next_at, 1i32
 
 :~ state_receipt_constructor_payload (source : string) (marker : string) : string =
-    := source_len = sm.length source : i32
+    := source_count = sm.length source : i32
     := marker_at = find_text source 0i32 marker
-    ? (=.) marker_at source_len ?> codec_empty ()
+    ? (=.) marker_at source_count ?> codec_empty ()
     |:
         := payload_from = (+.) marker_at (sm.length marker : i32)
         := line_end = find_char source payload_from (char_newline ())
@@ -236,9 +236,9 @@
     ? valid ?> payload |: codec_empty ()
 
 :~ state_receipt_series_records_valid (source : string) : bool =
-    := source_len = sm.length source : i32
+    := source_count = sm.length source : i32
     := marker_at = find_text source 0i32 "SeriesRecord ("
-    ? (=.) marker_at source_len ?> !+
+    ? (=.) marker_at source_count ?> !+
     |:
         := payload = state_receipt_last_series_record_payload source
         ? (=.) payload "" ?> !- |: !+
@@ -270,12 +270,12 @@
     codec_u64_decimal_value (state_receipt_u32_spi_literal_decimal input)
 
 :~ state_receipt_named_u32_assignment_or_max (source : string) (name : string) : u64 =
-    := source_len = sm.length source : i32
+    := source_count = sm.length source : i32
     := marker_at = find_text source 0i32 name
-    ? (=.) marker_at source_len ?> 18446744073709551615u64
+    ? (=.) marker_at source_count ?> 18446744073709551615u64
     |:
         := equals_at = find_char source ((+.) marker_at (sm.length name : i32)) '='
-        ? (=.) equals_at source_len ?> 18446744073709551615u64
+        ? (=.) equals_at source_count ?> 18446744073709551615u64
         |:
             := value_from = (+.) equals_at 1i32
             := line_end = find_char source value_from (char_newline ())
@@ -320,12 +320,12 @@
     (source : string) (search_from : i32) (seen_capabilities : string) (paths : string) (count : u64)
     : u64 * string
     =
-    := source_len = sm.length source : i32
-    ? (=.) search_from source_len
+    := source_count = sm.length source : i32
+    ? (=.) search_from source_count
     ?> count, paths
     |:
         := line_end = find_char source search_from (char_newline ())
-        := next_at = ? (<) line_end source_len ?> (+.) line_end 1i32 |: source_len
+        := next_at = ? (<) line_end source_count ?> (+.) line_end 1i32 |: source_count
         := line = state_receipt_trim (slice_exclusive source search_from line_end)
         := prefix = "// recovered-fixture|"
         := line_len = sm.length line : i32

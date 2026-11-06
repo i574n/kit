@@ -66,7 +66,7 @@ inl home_joined (~relative : string) : string = $'std::rc::Rc::<str>::from(std::
         let trimmed = rest.trim_start(); before && trimmed.len() < rest.len() && \
         trimmed.chars().next().is_some_and(|c| c.is_ascii_lowercase()) }) }' : bool
 
-:= text_length (~text : string) : u64 = $'(&*!text).len() as u64' : u64
+:= text_count (~text : string) : u64 = $'(&*!text).len() as u64' : u64
 inl line_end (~text : string) (start : u64) : u64 = $'(&*!text)[!start as usize..].find(char::from(10u8)).map(|found| \
     !start + found as u64).unwrap_or((&*!text).len() as u64)' : u64
 inl slice_of (~text : string) (start : u64) (stop : u64) : string = $'std::rc::Rc::<str>::from(&(&*!text)[!start as \

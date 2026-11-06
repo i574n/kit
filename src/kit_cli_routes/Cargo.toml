@@ -1,0 +1,23 @@
+[package.metadata.spiral]
+entry = "routes.spi"
+output = "routes.rs"
+
+[package]
+name = "kit-cli-routes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "kit_cli_routes"
+path = "routes.rs"
+[dependencies]
+kit-repo-state = { path = "../kit_repo_state" }
+kit-repo-affected = { path = "../kit_repo_affected" }
+kit-repo-accept-review = { path = "../kit_repo_accept_review" }
+kit-table-query = { path = "../kit_table_query" }
+kit-table-logs = { path = "../kit_table_logs" }
+kit-table-sequences = { path = "../kit_table_sequences" }
+kit-table-test = { path = "../kit_table_test" }
+kit-proof-scope = { path = "../kit_proof_scope" }

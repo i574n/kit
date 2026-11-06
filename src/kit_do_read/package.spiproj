@@ -5,6 +5,8 @@ packages:
     kit_do_model
     union_reflection
     kit_do_records
+link:
+    kit_do_model
 modules:
     host
     grammar

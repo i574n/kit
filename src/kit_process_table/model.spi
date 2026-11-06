@@ -5,8 +5,8 @@
 :< sm'_operators
 
 :| process_command =
-    | ListProcesses
-    | StopProcesses
+    | ProcessPs
+    | ProcessKill
     | ProcessUnknown
 
 :| stop_scope =
@@ -22,8 +22,36 @@
 
 := process_usage () : string = "ps [regex] [--tree] [--mine] | kill <pid>... [--tree] [--mine [--theirs <job-id>]]"
 
+:= process_word (command : process_command) : string = union_reflection.cases.union_case_kebab "Process" command
+
 := process_command_of (~word : string) : process_command =
-    ? word = "ps" ?> ListProcesses |? word = "kill" ?> StopProcesses |: ProcessUnknown
+    := named = \ (command : process_command) => process_word command = word
+    union_reflection.cases.union_case_where named (\ c => c) ProcessUnknown
+
+:| ps_switch =
+    | PsTree
+    | PsMine
+
+:== ps_args = { pattern : string; tree : bool; mine : bool; rejected : string }
+
+:= ps_word (switch : ps_switch) : string = "--" ++# union_reflection.cases.union_case_kebab "Ps" switch
+
+:~ ps_switched (switch : ps_switch) (args : ps_args) : ps_args =
+    ?= switch ?|
+    | PsTree => { args ?| tree = !+ }
+    | PsMine => { args ?| mine = !+ }
+
+:~ ^ ps_read (words : list string) (args : ps_args) : ps_args =
+    ?= words ?|
+    | [] => args
+    | word :: rest =>
+        ?= union_reflection.cases.union_case_where (\ (switch : ps_switch) => ps_word switch = word) Some None ?|
+        | Some switch => ps_read rest (ps_switched switch args)
+        | None ?& sm'.starts_with "--" word => { args ?| rejected = "unknown option " ++# word }
+        | None ?& args.pattern = "" => ps_read rest { args ?| pattern = word }
+        | None => { args ?| rejected = "one pattern only, received " ++# word }
+
+:~ ps_of (words : list string) : ps_args = ps_read words { pattern = ""; tree = !-; mine = !-; rejected = "" }
 
 := all_digits (~text : string) : bool = sm'.all_digits text
 :~ decimal_of (~text : string) : u64 = optionm'.default_value 0u64 (convert.try_convert text)
@@ -96,3 +124,17 @@
     expect (stop_text "9" (stop_result_of 3u64 3u64) = "stop 9  stopped (tree: 3 processes)") "tree"
     expect (stop_complete (stop_result_of 2u64 3u64) = !-) "partial fails"
     expect (stop_text "9" (stop_result_of 2u64 3u64) = "stop 9  stopped 2 of 3 processes") "partial text"
+
+///> rust
+:# process_verbs_are_their_case_names =
+    expect (process_command_of "ps" = ProcessPs && process_command_of "kill" = ProcessKill) "ps and kill"
+    expect (process_command_of "top" = ProcessUnknown && process_command_of "" = ProcessUnknown) "anything else"
+    expect (process_word ProcessKill = "kill") "kebab of the case"
+
+///> rust
+:# ps_words_read_the_pattern_and_the_reflected_switches =
+    := args = ps_of [ "--tree"; "kit"; "--mine" ]
+    expect (args.pattern = "kit" && args.tree && args.mine && args.rejected = "") args.pattern
+    expect ((ps_of [ "--all" ]).rejected = "unknown option --all") "an unknown switch is refused"
+    expect ((ps_of [ "a"; "b" ]).rejected = "one pattern only, received b") "one pattern"
+    expect ((ps_of []).pattern = "") "no pattern lists everything"

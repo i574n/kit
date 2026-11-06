@@ -4,6 +4,8 @@ packages:
     kit_receipt
     kit_do_model
     kit_do_records
+link:
+    kit_do_model
 modules:
     host
     decode

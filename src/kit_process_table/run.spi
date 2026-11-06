@@ -4,30 +4,26 @@
 :< host
 :< listing
 
-:~ ^ pattern_from (~index : i32) (~count : i32) : string =
-    ? index < count ?>
-        ? argument index = "--tree" || argument index = "--mine" ?> pattern_from (index + 1i32) count
-        |: argument index
-    |: ""
-
-:~ list_run (~started : u64) : i32 =
-    := count = argument_count ()
-    := pattern = pattern_from 2i32 count
+:~ list_run (~started : u64) (args : ps_args) : i32 =
+    := pattern = args.pattern
     := problem = pattern_problem pattern
-    ? problem <> "" ?>
+    ? args.rejected <> "" ?>
+        stdout_line ("ps: " ++# args.rejected ++# "; usage: kit " ++# process_usage ())
+        2i32
+    |? problem <> "" ?>
         stdout_line ("ps: invalid pattern: " ++# problem)
         2i32
     |:
         := rows = rows_oldest_first (kit_machine_watch.host.process_rows_sampled 500u64)
         := own = own_pid ()
-        ?= scope_of rows (flag_present "--mine" 2i32 count) own ?|
+        ?= scope_of rows args.mine own ?|
         | NoSession =>
             stdout_line "ps --mine: no claude or codex process above this kit"
             2i32
         | scope =>
             := listing =
                 listed rows pattern scope
-                    (flag_present "--tree" 2i32 count)
+                    args.tree
                     own
                     (local_offset_minutes ())
                     0i32
@@ -38,9 +34,10 @@
 
 :~ process_run () : i32 =
     := started = now_ms ()
-    ?= process_command_of (argument 1i32) ?|
-    | ListProcesses => list_run started
-    | StopProcesses => $'kit_process_kill::kit_process_kill_run()' : i32
+    := verb, rest = ?= env.command_line_arguments () ?| | word :: more => word, more | [] => "", []
+    ?= process_command_of verb ?|
+    | ProcessPs => list_run started (ps_of rest)
+    | ProcessKill => $'kit_process_kill::kit_process_kill_run()' : i32
     | ProcessUnknown =>
         stdout_line ("usage: kit " ++# (process_usage ()))
         2i32

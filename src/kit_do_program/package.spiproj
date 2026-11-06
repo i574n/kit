@@ -3,6 +3,8 @@ packages:
     spiral-
     rust_std_string
     kit_do_model
+link:
+    kit_do_model
 modules:
     program
     compiled

@@ -66,6 +66,6 @@
     | TableUnknown => rejected (table_usage ())
 
 := main () : i32 =
-    export "kit_table_run" ((\ () => table_run ()) : () -> i32)
+    export "kit_table_run" table_run
     export "kit_table_rows_kept" ((\ (path, wheres) => rows_kept path wheres) : string * string -> bool * string)
     0i32

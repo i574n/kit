@@ -2,22 +2,27 @@
 :< kit_experiments.experiment_model
 :< kit_experiments.ledger_host
 
+:~ amend_row () : kit_experiment_verb_args.verbs.amend_row =
+    am'.index_base 0i32 (kit_experiment_verb_args.verbs.amend_args_read 2i32)
+
 :~ amended () : i32 =
-    := ledger = argument 3i32
-    := id = argument 4i32
+    := row = amend_row ()
+    := ledger = row.ledger
+    := id = row.id
     := plan = plan_text ledger id
-    ? plan = ""
+    ? row.rejected <> "" ?> failed ("amend: " ++# row.rejected)
+    |? plan = ""
     ?> failed ("amend: no registration for " ++# id ++# " in " ++# ledger)
     |:
-        := field = option_value "--field"
-        ?= amend_checked field (option_value "--reason") (looked_at ledger id) ?|
+        := field = row.field
+        ?= amend_checked field (row.reason) (looked_at ledger id) ?|
         | AmendRefused reason => failed ("amend: " ++# reason)
         | AmendAccepted =>
             := at = agile_note_model.model.utc_stamp (now_ms ())
             := change =
                 (field_line "amended" at)
-                ++# (field_line "reason" (option_value "--reason"))
-                ++# field_line field (option_value "--value")
+                ++# (field_line "reason" (row.reason))
+                ++# field_line field (row.value)
                 ++# (field_line "registered_local" (local_stamp ()))
             := next = plan ++# change
             ?= test_of (field_of next "test") ?|
@@ -46,15 +51,17 @@
                             ++# id
                             ++# " field="
                             ++# field
-                            ++# (" value=" ++# (option_value "--value") ++# " amended=" ++# at)
+                            ++# (" value=" ++# (row.value) ++# " amended=" ++# at)
                         )
                         0i32
 
 :~ addended () : i32 =
-    := ledger = argument 3i32
-    := id = argument 4i32
-    := note = argument 5i32
-    ? plan_text ledger id = ""
+    := row = amend_row ()
+    := ledger = row.ledger
+    := id = row.id
+    := note = row.note
+    ? row.rejected <> "" ?> failed ("addendum: " ++# row.rejected)
+    |? plan_text ledger id = ""
     ?> failed ("addendum: no registration for " ++# id ++# " in " ++# ledger)
     |? note = ""
     ?> failed "addendum: the text is the post-hoc note, kept apart from the verdict"

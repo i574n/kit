@@ -31,7 +31,7 @@
     := index = entry_index at
     $'!entries[!index].0.clone()' : string
 
-:= entry_is_dir (~entries : entry_list) (at : i32) : bool =
+:= entry_is_directory (~entries : entry_list) (at : i32) : bool =
     := index = entry_index at
     $'!entries[!index].1' : bool
 
@@ -105,7 +105,7 @@
                 := name = entry_name entries at
                 := relative = listm.append folder [ name ]
                 ? entry_is_link entries at ?> scan (at + 1i32) folders
-                |? entry_is_dir entries at
+                |? entry_is_directory entries at
                 ?> scan (at + 1i32) (? listm'.contains name (skipped_folders ()) ?> folders |: relative :: folders)
                 |:
                     := _ = ? kept rules name relative ?> buffer_added buffer (sm'.concat_list "/" relative) |: !-

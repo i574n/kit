@@ -7,13 +7,13 @@
     := step = step_of (queued_of id)
     ?= step ?|
     | StartSupervisor =>
-        := slotted = $'kit_job_slot::kit_job_slot_held_step(&*!id)' : i32
-        ? slotted <> 0i32 ?> slotted |: $'kit_job_gate::kit_job_gate_held_step(&*!id)' : i32
+        := slotted = kit_job_slot.slot.slot_held_step id
+        ? slotted <> 0i32 ?> slotted |: kit_job_gate.gate.held_window_step id
     | KeepWaiting => 1i32
     | _ =>
         settled_in_queue id step
-        $'kit_job_slot::kit_job_slot_ticket_dropped(&*!id)' : ()
-        $'kit_job_gate::kit_job_gate_window_dropped(&*!id)' : ()
+        kit_job_slot.slot.slot_ticket_dropped id
+        kit_job_gate.gate.held_window_dropped id
         2i32
 
 := main () : i32 =

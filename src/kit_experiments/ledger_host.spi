@@ -3,12 +3,6 @@
 
 :~ stdout_line (~text : string) : () = console.write_line text
 :~ stderr_line (~text : string) : () = console.write_error_line text
-:~ argument (~index : i32) : string = optionm'.default_value "" (env.try_command_line_argument (index - 1i32))
-:~ option_value (~flag : string) : string = rust_std_env.model.argument_after_flag flag
-:~ where_clauses () : string =
-    $'std::rc::Rc::<str>::from({ let args = std::env::args().collect::<Vec<_>>(); \
-        args.windows(2).filter(|pair| pair[0] == "--where").map(|pair| \
-        pair[1].clone()).collect::<Vec<_>>().join("\n") }.as_str())' : string
 :~ now_ms () : u64 = $'std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| \
     elapsed.as_millis() as u64).unwrap_or(0)' : u64
 :~ joined (~base : string) (~name : string) : string = $'std::rc::Rc::<str>::from(std::path::Path::new(&*!base).join(&\

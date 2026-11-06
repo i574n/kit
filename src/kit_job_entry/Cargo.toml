@@ -25,7 +25,9 @@ kit-job-supervise = { path = "../kit_job_supervise" }
 kit-job-launch = { path = "../kit_job_launch" }
 kit-job-host = { path = "../kit_job_host" }
 kit-job-state = { path = "../kit_job_state" }
+kit-job-summary = { path = "../kit_job_summary" }
 kit-machine-windows = { path = "../kit_machine_windows" }
 kit-job-gate = { path = "../kit_job_gate" }
 kit-job-host-request = { path = "../kit_job_host_request" }
 kit-job-query = { path = "../kit_job_query" }
+kit-job-coordinator = { path = "../kit_job_coordinator" }

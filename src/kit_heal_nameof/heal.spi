@@ -12,7 +12,7 @@
         (\ verb => Some verb)
         None
 
-:~ skipped_dir (~name : string) : bool =
+:~ skipped_directory (~name : string) : bool =
     name = "target" || name = ".git" || name = ".cache" || name = "node_modules" || name = "deps" || name = "_build"
 
 :~ ^ spi_files_from (dirs : list string) (found : list string) : list string =
@@ -21,7 +21,7 @@
     | dir :: rest =>
         := step = \ ((more, files) : list string * list string) (name : string) =>
             := path = dir ++# "/" ++# name
-            ? file_system.directory_exists path ?> (? skipped_dir name ?> (more, files) |: (path :: more, files))
+            ? file_system.directory_exists path ?> (? skipped_directory name ?> (more, files) |: (path :: more, files))
             |? sm'.ends_with ".spi" name ?> (more, path :: files)
             |: (more, files)
         := more, files = kit_os_files.files.entry_names dir |> listm.fold step (rest, found)
@@ -122,7 +122,7 @@
 :# heal_words_and_finding_lines_read_back =
     testing.expect (heal_named "nameof" = Some HealNameof) "nameof names the case-name heal"
     testing.expect (heal_named "x" = None) "the heal names no project"
-    testing.expect (skipped_dir "target" && skipped_dir "src" |> not) "build output is skipped, sources are not"
+    testing.expect (skipped_directory "target" && skipped_directory "src" |> not) "build output skipped, sources not"
     := row = { kind = "to-name"; first_line = 7i32; arms = 3i32; cases = "GadtCase,HostMacro,RcWrap" }
     testing.expect
         (finding_line "f.spi" row = "nameof f.spi:7 to-name arms=3 cases=GadtCase,HostMacro,RcWrap")

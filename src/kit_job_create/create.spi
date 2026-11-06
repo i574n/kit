@@ -13,11 +13,11 @@
 
 :~ job_argv (shape : start_shape) (~id : string) (~label : string) (~inner : string) (~timeout : u64) : string =
     ?= shape ?|
-    | PlainStart => inner
-    | CompileStart =>
+    | StartPlain => inner
+    | StartCompile =>
         := _ = text_written (job_file id "window-class") "compile"
         inner
-    | HeavyStart =>
+    | StartHeavy =>
         := gate = heavy_gate_script ()
         ? gate = "" ?> ""
         |:
@@ -111,10 +111,11 @@
                 ? sm'.starts_with "error:" supervisor ?> LaunchRefused supervisor |: Launched (id, supervisor)
 
 :~ job_created
-    (~shape : string) (~after_mode : string) (~after_job : string) (attached : bool) (~cap_mb : u64)
-    (~slot_minutes : u64)
-    (~done_minutes : u64) (~hold_minutes : u64) (~quiet_wait : u64) (~min_free : u64) (front : bool) (~label : string)
-    (~timeout : u64) (~inner : string) (~cwd : string)
+    ((
+        shape, after_mode, after_job, attached, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait, min_free,
+        front, label, timeout, inner, cwd
+    ) :
+        string * string * string * bool * u64 * u64 * u64 * u64 * u64 * u64 * bool * string * u64 * string * string)
     : string * string * string
     =
     ?=
@@ -139,17 +140,5 @@
     | LaunchRefused problem => "", "", problem
 
 := main () : i32 =
-    export
-        "kit_job_create"
-        (
-            \ (
-                shape, after_mode, after_job, attached, cap_mb, slot_minutes, done_minutes, hold_minutes, quiet_wait,
-                min_free, front, label, timeout, inner, cwd
-            ) =>
-                job_created
-                    shape after_mode after_job attached cap_mb slot_minutes done_minutes hold_minutes quiet_wait
-                    min_free front label timeout inner cwd
-            : string * string * string * bool * u64 * u64 * u64 * u64 * u64 * u64 * bool * string * u64 * string
-            * string -> string * string * string
-        )
+    export "kit_job_create" job_created
     0i32

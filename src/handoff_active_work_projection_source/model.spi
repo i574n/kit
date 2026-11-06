@@ -53,13 +53,13 @@
                 |: codec_empty ()
         |: codec_empty ()
 
-:~ ^ handoff_active_work_projection_loop (source : string) (at : i32) (source_len : i32) (out : string) : string =
-    ? (=.) at source_len ?> out
+:~ ^ handoff_active_work_projection_loop (source : string) (at : i32) (source_count : i32) (out : string) : string =
+    ? (=.) at source_count ?> out
     |:
         := line_near_to = find_char source at (char_newline ())
         := line = slice_exclusive source at line_near_to
         := line_len = sm.length line : i32
-        := next_at = ? (=.) line_near_to source_len ?> source_len |: (+.) line_near_to 1i32
+        := next_at = ? (=.) line_near_to source_count ?> source_count |: (+.) line_near_to 1i32
         := is_task = (<) (find_text line 0i32 "Task (") line_len
         := is_active = (<) (find_text line 0i32 ", Active,") line_len
         := is_blocked = (<) (find_text line 0i32 ", Blocked,") line_len
@@ -68,8 +68,8 @@
             ? (=.) item "" ?> codec_empty ()
             |:
                 := with_newline = sm.concat out "\n"
-                handoff_active_work_projection_loop source next_at source_len (sm.concat with_newline item)
-        |: handoff_active_work_projection_loop source next_at source_len out
+                handoff_active_work_projection_loop source next_at source_count (sm.concat with_newline item)
+        |: handoff_active_work_projection_loop source next_at source_count out
 
 :~ handoff_active_work_projection (source : string) : string =
     handoff_active_work_projection_loop source 0i32 (sm.length source : i32) "ok"

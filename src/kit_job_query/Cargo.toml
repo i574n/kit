@@ -18,6 +18,7 @@ kit-process-alive = { path = "../kit_process_alive" }
 kit-job-dispatch = { path = "../kit_job_dispatch" }
 kit-job-control = { path = "../kit_job_control" }
 kit-job-state = { path = "../kit_job_state" }
+kit-job-summary = { path = "../kit_job_summary" }
 kit-machine-windows = { path = "../kit_machine_windows" }
 kit-job-gate = { path = "../kit_job_gate" }
 kit-job-host-request = { path = "../kit_job_host_request" }

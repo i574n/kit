@@ -337,6 +337,6 @@
     := text = help_lines ()
     expect (sm'.starts_with "job: " text) "help lines follow the union order"
     expect
-        (am'.length (sm'.split "\n" text |> array) = 25i32)
-        "28 verbs print 25 lines: read, lines and grep share one, ps and kill share one"
+        (am'.length (sm'.split "\n" text |> array) = 29i32)
+        "32 verbs print 29 lines: read, lines and grep share one, ps and kill share one"
     expect (sm'.index_of "mirror check " text >= 0i32) "mirror has a help line"

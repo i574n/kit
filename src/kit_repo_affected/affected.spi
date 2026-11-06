@@ -64,5 +64,5 @@
         0i32
 
 := main () : i32 =
-    export "kit_repo_affected_run" ((\ () => affected_run ()) : () -> i32)
+    export "kit_repo_affected_run" affected_run
     0i32

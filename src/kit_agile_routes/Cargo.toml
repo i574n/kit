@@ -20,3 +20,4 @@ agile-todo-scan = { path = "../agile_todo_scan" }
 agile-planning-revision = { path = "../agile_planning_revision" }
 agile-task-revision = { path = "../agile_task_revision" }
 agile-quality-state = { path = "../agile_quality_state" }
+agile-task-parents = { path = "../agile_task_parents" }

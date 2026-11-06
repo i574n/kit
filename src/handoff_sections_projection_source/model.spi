@@ -44,28 +44,29 @@
         |: codec_empty ()
 
 :~ ^ projection_handoff_title_seen_loop
-    (source : string) (at : i32) (stop_at : i32) (source_len : i32) (title : string)
+    (source : string) (at : i32) (stop_at : i32) (source_count : i32) (title : string)
     : bool
     =
     ? (<) at stop_at ?>
         := line_near_to = find_char source at (char_newline ())
         := line = slice_exclusive source at line_near_to
         := line_len = sm.length line : i32
-        := next_at = ? (=.) line_near_to source_len ?> source_len |: (+.) line_near_to 1i32
+        := next_at = ? (=.) line_near_to source_count ?> source_count |: (+.) line_near_to 1i32
         ? (<) (find_text line 0i32 "HandoffSection (") line_len ?>
             := prior_title = projection_handoff_title line
-            ? (=.) prior_title title ?> !+ |: projection_handoff_title_seen_loop source next_at stop_at source_len title
-        |: projection_handoff_title_seen_loop source next_at stop_at source_len title
+            ? (=.) prior_title title ?> !+
+            |: projection_handoff_title_seen_loop source next_at stop_at source_count title
+        |: projection_handoff_title_seen_loop source next_at stop_at source_count title
     |: !-
 
 := projection_handoff_title_seen_before (source : string) (stop_at : i32) (title : string) : bool =
     projection_handoff_title_seen_loop source 0i32 stop_at (sm.length source : i32) title
 
 :~ ^ handoff_sections_projection_loop
-    (source : string) (at : i32) (source_len : i32) (count : i32) (out : string)
+    (source : string) (at : i32) (source_count : i32) (count : i32) (out : string)
     : string
     =
-    ? (=.) at source_len ?>
+    ? (=.) at source_count ?>
         ? (<) count 4i32 ?> codec_empty ()
         |? (<) 10i32 count ?> codec_empty ()
         |: out
@@ -73,7 +74,7 @@
         := line_near_to = find_char source at (char_newline ())
         := line = slice_exclusive source at line_near_to
         := line_len = sm.length line : i32
-        := next_at = ? (=.) line_near_to source_len ?> source_len |: (+.) line_near_to 1i32
+        := next_at = ? (=.) line_near_to source_count ?> source_count |: (+.) line_near_to 1i32
         ? (<) (find_text line 0i32 "HandoffSection (") line_len ?>
             := title = projection_handoff_title line
             := body = projection_handoff_body line
@@ -88,8 +89,8 @@
 
                     """
                 := out3 = sm.concat out2 body
-                handoff_sections_projection_loop source next_at source_len ((+.) count 1i32) out3
-        |: handoff_sections_projection_loop source next_at source_len count out
+                handoff_sections_projection_loop source next_at source_count ((+.) count 1i32) out3
+        |: handoff_sections_projection_loop source next_at source_count count out
 
 :~ handoff_sections_projection (source : string) : string =
     handoff_sections_projection_loop source 0i32 (sm.length source : i32) 0i32 "ok"

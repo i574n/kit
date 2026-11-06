@@ -33,8 +33,8 @@
         )
     )
 
-:= args_len_is expected : bool = rust_std_env.model.args_len_is expected
-:= argument_len index : i32 = rust_std_env.model.argument_len index
+:= argument_count_is expected : bool = rust_std_env.model.argument_count_is expected
+:= argument_byte_count index : i32 = rust_std_env.model.argument_byte_count index
 := argument_byte index offset : i32 = rust_std_env.model.argument_byte index offset
 := argument_owned index : string = rust_std_env.model.argument_owned index
 := argument_equals index expected : bool = rust_std_env.model.argument_equals index expected
@@ -60,11 +60,12 @@
     := count = env.host_argument_count ()
     ? count > 2i32 ?> count - 2i32 |: 0i32
 
-:= agile_root_only (run : string -> i32) : i32 = ? args_len_is 2i32 ?> run (argument_owned 1i32) |: agile_usage_error ()
+:= agile_root_only (run : string -> i32) : i32 =
+    ? argument_count_is 2i32 ?> run (argument_owned 1i32) |: agile_usage_error ()
 := agile_with_root (route : () -> i32) : i32 = ? 2i32 <= agile_argument_count () ?> route () |: agile_usage_error ()
 := agile_arity_route (accepted : bool) (route : () -> i32) : i32 = ? accepted ?> route () |: agile_usage_error ()
-:= agile_either_arity a b : bool = ? args_len_is a ?> !+ |: args_len_is b
-:= set_with_author () : bool = ? args_len_is 7i32 ?> ((argument_owned 5i32) = "--as") |: !-
+:= agile_either_arity a b : bool = ? argument_count_is a ?> !+ |: argument_count_is b
+:= set_with_author () : bool = ? argument_count_is 7i32 ?> ((argument_owned 5i32) = "--as") |: !-
 := agile_set_author_error () : i32 =
     := message =
             "agile set records no author (only agile note does); drop --as "
@@ -92,18 +93,18 @@
 := agile_route (subcommand : agile_subcommand) : i32 =
     ?= subcommand ?|
     | AgileInit => agile_root_only \ _ => $"agile_backlog_scaffold::kit_agile_init_run()"
-    | AgileBegin => agile_arity_route (args_len_is 3i32) agile_begin_route
+    | AgileBegin => agile_arity_route (argument_count_is 3i32) agile_begin_route
     | AgileLease | AgileStatus => agile_root_only agile_lease_status
     | AgileHandoff => agile_root_only agile_handoff
-    | AgileList => agile_with_root \ () => $"agile_task_listing::kit_agile_list_run()"
+    | AgileList => agile_with_root \ () => agile_task_tree.epic_tree.list_routed ()
     | AgileCheck => agile_root_only agile_check
     | AgileRecord => agile_root_only agile_record
     | AgileSet =>
-        ? set_with_author () ?> agile_set_author_error () |: agile_arity_route (args_len_is 5i32) agile_set_route
+        ? set_with_author () ?> agile_set_author_error () |: agile_arity_route (argument_count_is 5i32) agile_set_route
     | AgileAdd =>
         agile_arity_route (8i32 <= agile_argument_count ()) \ () =>
             $"agile_task_creation::kit_agile_add_run()"
-    | AgileEdit => agile_arity_route (args_len_is 5i32) agile_edit_route
+    | AgileEdit => agile_arity_route (argument_count_is 5i32) agile_edit_route
     | AgileShow => agile_with_root \ () => $"agile_task_inspection::kit_agile_show_run()"
     | AgilePlan => agile_with_root \ () => $"agile_planning_rollup::kit_agile_planning_rollup_run()"
     | AgileMigrateTags => agile_with_root \ () => $"agile_planning_migration::kit_agile_migrate_tags_run()"
@@ -114,8 +115,9 @@
     | AgileCadence => agile_with_root \ () => kit_agile_cadence.cadence.cadence_run ()
     | AgileNote => agile_arity_route (agile_either_arity 4i32 6i32) \ () => $"agile_task_notes::kit_agile_note_run()"
     | AgileNoteEdit => agile_with_root \ () => $"agile_note_edit::kit_agile_note_edit_run()"
-    | AgileNotes => agile_arity_route (args_len_is 4i32) \ () => $"agile_title_notes::kit_agile_notes_from_title_run()"
-    | AgileRename => agile_arity_route (args_len_is 4i32) \ () => $"agile_task_rename::kit_agile_rename_run()"
+    | AgileNotes =>
+        agile_arity_route (argument_count_is 4i32) \ () => $"agile_title_notes::kit_agile_notes_from_title_run()"
+    | AgileRename => agile_arity_route (argument_count_is 4i32) \ () => $"agile_task_rename::kit_agile_rename_run()"
     | AgileSeal => agile_with_root \ () => $"agile_note_seal::kit_agile_seal_run()"
     | AgileTodos =>
         agile_with_root \ () =>

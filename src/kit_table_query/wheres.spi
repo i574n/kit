@@ -24,15 +24,15 @@
 
 := operator_char (c : char) : bool = c = '<' || c = '>' || c = '=' || c = '!'
 
-:= clause_length (clause : string) : i32 = sm'.length clause
+:= clause_char_count (clause : string) : i32 = sm'.length clause
 
 :~ ^ operator_from (clause : string) (i : i32) : i32 =
-    ? i >= clause_length clause ?> -1i32
+    ? i >= clause_char_count clause ?> -1i32
     |? operator_char (sm'.index i clause) ?> i
     |: operator_from clause (i + 1i32)
 
 := operator_width (clause : string) (at : i32) : i32 =
-    := doubled = at + 1i32 < clause_length clause && sm'.index (at + 1i32) clause = '='
+    := doubled = at + 1i32 < clause_char_count clause && sm'.index (at + 1i32) clause = '='
     ? doubled && sm'.index at clause <> '=' ?> 2i32 |: 1i32
 
 :== clause = { name : string; op : where_op; value : string }
@@ -40,7 +40,8 @@
 := clause_at (text : string) (at : i32) : clause =
     := width = operator_width text at
     := name, symbol = sm'.substring 0i32 at text, sm'.substring at width text
-    { name = name; op = where_op_of symbol; value = sm'.substring (at + width) (clause_length text - at - width) text }
+    := value = sm'.substring (at + width) (clause_char_count text - at - width) text
+    { name = name; op = where_op_of symbol; value = value }
 
 := clause_of (text : string) : option clause =
     := at = operator_from text 0i32

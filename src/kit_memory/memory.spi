@@ -58,35 +58,34 @@
         | VerbImport =>
             := dir = argument 3i32
             := data = argument 4i32
-            ? data = "" ?> failed (memory_usage ()) |: $'kit_memory_import::kit_memory_import(&*!dir, &*!data)' : i32
+            ? data = "" ?> failed (memory_usage ()) |: kit_memory_import.import.memory_imported (dir, data)
         | VerbRender =>
             ? argument 4i32 = "" ?> failed (memory_usage ()) |: memory_render (argument 3i32) (argument 4i32)
         | VerbCheck =>
             := data = argument 3i32
-            ? data = "" ?> failed (memory_usage ()) |: $'kit_memory_query::kit_memory_check(&*!data)' : i32
+            ? data = "" ?> failed (memory_usage ()) |: kit_memory_query.query.memory_check data
         | VerbList =>
             := data = argument 3i32
             := kind = option_value "--kind"
-            ? data = "" ?> failed (memory_usage ()) |: $'kit_memory_query::kit_memory_list(&*!data, &*!kind)' : i32
+            ? data = "" ?> failed (memory_usage ()) |: kit_memory_query.query.memory_list_run (data, kind)
         | VerbRecall =>
             := data = argument 3i32
             := query = argument 4i32
             := limit = decimal_of (option_value "--limit") 10i32
-            ? query = "" ?> failed (memory_usage ()) |: $'kit_memory_query::kit_memory_recall(&*!data, &*!query, \
-                !limit)' : i32
+            ? query = "" ?> failed (memory_usage ()) |: kit_memory_query.query.memory_recall (data, query, limit)
         | VerbSave =>
             ? argument 7i32 = "" ?> failed (memory_usage ())
             |:
                 := dir, kind, slug = argument 3i32, argument 4i32, argument 5i32
                 := description, body = argument 6i32, argument 7i32
-                $'kit_memory_save::kit_memory_save(&*!dir, &*!kind, &*!slug, &*!description, &*!body)' : i32
+                kit_memory_save.entry.memory_save_run (dir, kind, slug, description, body)
         | VerbForget =>
             := dir, slug = argument 3i32, argument 4i32
-            ? slug = "" ?> failed (memory_usage ()) |: $'kit_memory_save::kit_memory_forget(&*!dir, &*!slug)' : i32
+            ? slug = "" ?> failed (memory_usage ()) |: kit_memory_save.entry.memory_forget_run (dir, slug)
         | VerbEdit =>
             := dir, slug, field, text = argument 3i32, argument 4i32, argument 5i32, argument 6i32
             ? text = "" ?> failed (memory_usage ())
-            |: $'kit_memory_save::kit_memory_edit(&*!dir, &*!slug, &*!field, &*!text)' : i32
+            |: kit_memory_save.entry.memory_edit_run (dir, slug, field, text)
 
 := main () : i32 =
     export "kit_memory_run" ((\ () => memory_run ()) : () -> i32)

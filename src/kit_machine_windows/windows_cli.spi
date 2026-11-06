@@ -189,7 +189,8 @@
                 NoArgs))))))))
             "id="
     pause_ms 4000u64
-    shows (fixture_read root (cat "jobs/" (cat job "/slot"))) "waiting ticket="
+    := queued = fixture_read root (cat "jobs/" (cat job "/slot"))
+    testing.expect (sm'.contains "waiting ticket=" queued || sm'.contains "held ticket=" queued) queued
     shows (succeeded (heavy_call root (Arg ("stop", Arg (job, NoArgs))))) "state=stopped"
     pause_ms 1500u64
     := slot = fixture_read root (cat "jobs/" (cat job "/slot"))

@@ -20,6 +20,13 @@ $kitRoot = Split-Path $PSScriptRoot -Parent
 $kit = Join-Path $env:LOCALAPPDATA 'kit\bin\kit.exe'
 if ($Node -and -not $NodeStage) {
     Set-Location $kitRoot
+    $touched = @(git -C $kitRoot status --porcelain --untracked-files=all -- src | ForEach-Object { $_.Substring(3).Trim() } | Where-Object { $_ -match '\.spi$|(^|/)Cargo\.toml$' -and (Test-Path -LiteralPath (Join-Path $kitRoot $_)) })
+    if ($touched) {
+        $pre = (& $kit lint precheck @touched 2>&1 | Out-String).Trim()
+        if ($pre -match 'kit lint precheck refused') { throw "precheck refused the snapshot; fix before a node train:`n$pre" }
+        $verdict = if ($pre -match 'kit lint precheck ok') { ($pre -split "`n")[-1] } else { 'precheck unavailable in the installed kit; skipped' }
+        [Console]::WriteLine("$(Get-Date -Format HH:mm:ss) launch-train $Name $verdict ($($touched.Count) touched files)")
+    }
     & $kit job start "kit-$Name-node" 43200000 pwsh -NoProfile -File $PSCommandPath -Name $Name -Node $Node -NodeMirror $NodeMirror -SshHost $SshHost -NodeStage -CellsPort $CellsPort
     exit $LASTEXITCODE
 }
@@ -114,7 +121,15 @@ if ($NodeStage) {
     $jobId = [regex]::Match($start, 'id=(\S+)').Groups[1].Value
     if (-not $jobId) { throw "node job did not start: $start" }
     Say "node half started: $jobId"
-    $wait = & $remote $Node job wait $jobId 2>&1 | Out-String
+    $misses = 0
+    while ($true) {
+        $wait = & $remote $Node job wait $jobId 2>&1 | Out-String
+        if ($wait -match 'kit job wait ok') { break }
+        $misses++
+        Say "node wait lost its route ($misses of 10): $(($wait.Trim() -split "`n" | Select-Object -Last 1))"
+        if ($misses -ge 10) { break }
+        Start-Sleep -Seconds 60
+    }
     & $remote $Node job tail $jobId 40 2>&1 | Where-Object { $_ -match '^\d\d:\d\d:\d\d ' } | ForEach-Object { Say "node: $_" }
     if ($wait -notmatch 'exit=0\b') { throw "node half failed: $(($wait -split "`n" | Select-Object -Last 1))" }
     $after = Invoke-NodePwsh "Get-ChildItem '$mirror\kit\src' -Recurse -File -Filter *.rs | Where-Object { `$_.FullName -notmatch '\\target\\' } | ForEach-Object { `"`$(`$_.FullName.Substring('$mirror\kit\'.Length)) `$((Get-FileHash `$_.FullName).Hash)`" }"

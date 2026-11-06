@@ -9,7 +9,9 @@ packages:
     union_reflection
     agile_quality_lint
     agile_quality_state
+    agile_task_parents
 link:
     agile_quality_state
+    agile_task_parents
 modules:
     routes

@@ -313,7 +313,7 @@
 
 := main () : i32 =
     export "kit_window_run" ((\ () => window_run ()) : () -> i32)
-    export "kit_job_windows_dropped" ((\ id => job_windows_dropped id) : string -> u64)
+    export "kit_job_windows_dropped" job_windows_dropped
     export
         "kit_heavy_wrapper"
         (

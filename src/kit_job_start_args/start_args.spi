@@ -111,8 +111,8 @@
     ? mode <> "" ?>
         ? lead.after_mode <> "" ?> at, { lead ?| repeated = word }, options
         |: flags_read (at + 2i32) { lead ?| after_mode = mode; after_job = argument (at + 1i32) } options
-    |? shape <> PlainStart ?>
-        ? lead.shape <> PlainStart ?> at, { lead ?| repeated = word }, options
+    |? shape <> StartPlain ?>
+        ? lead.shape <> StartPlain ?> at, { lead ?| repeated = word }, options
         |: flags_read (at + shape_offset shape) { lead ?| shape = shape } options
     |:
         ?= start_flag_of word ?|
@@ -131,7 +131,7 @@
 :~ start_args ()
     : bool * string * string * string * string * u64 * u64 * u64 * u64 * u64 * u64 * u64 * i32 * u64 * bool
     =
-    := lead_none = { after_mode = ""; after_job = ""; shape = PlainStart; repeated = "" }
+    := lead_none = { after_mode = ""; after_job = ""; shape = StartPlain; repeated = "" }
     := first, lead, options = flags_read 3i32 lead_none (start_options_none ())
     := after_mode = lead.after_mode
     := after_job = lead.after_job
@@ -166,17 +166,17 @@
     ?> refusal "--done-within needs a positive number of minutes"
     |? (held_given || wait_given) && quiet = !-
     ?> refusal "--quiet-hold and --quiet-wait follow --quiet"
-    |? quiet && shape <> HeavyStart
+    |? quiet && shape <> StartHeavy
     ?> refusal "--quiet applies to --heavy jobs: it holds compiles off while the heavy work starts"
     |? quiet && (hold_minutes = 0u64 || hold_minutes > 60u64)
     ?> refusal "--quiet-hold takes 1 to 60 minutes (compiles wait at most that long)"
-    |? slot_limited && shape = PlainStart
+    |? slot_limited && shape = StartPlain
     ?> refusal "--slot-within applies to --heavy or --compile jobs, which wait for a slot or window"
     |? options.floored && min_free = 0u64
     ?> refusal "--min-free-mb needs a positive number of MB"
-    |? options.front && shape <> HeavyStart
+    |? options.front && shape <> StartHeavy
     ?> refusal "--front applies to --heavy jobs: it queues the job first in the heavy line"
-    |? options.floored && shape = PlainStart
+    |? options.floored && shape = StartPlain
     ?> refusal "--min-free-mb applies to --heavy or --compile jobs, which wait for a window"
     |? sm'.starts_with "--" (argument first)
     ?> refusal ("unknown option " ++# argument first ++# "; " ++# job_usage ())

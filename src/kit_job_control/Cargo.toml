@@ -14,6 +14,8 @@ name = "kit_job_control"
 path = "control.rs"
 [dependencies]
 kit-job-state = { path = "../kit_job_state" }
+kit-job-summary = { path = "../kit_job_summary" }
 kit-machine-windows = { path = "../kit_machine_windows" }
 kit-job-launch = { path = "../kit_job_launch" }
 kit-process-alive = { path = "../kit_process_alive" }
+kit-job-names = { path = "../kit_job_names" }

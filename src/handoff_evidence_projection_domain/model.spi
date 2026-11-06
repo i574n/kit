@@ -6,9 +6,9 @@
         |: projection_find_digit_loop text ((+.) at 1i32) text_len
 
 := projection_line (source : string) (marker : string) : string =
-    := source_len = sm.length source : i32
+    := source_count = sm.length source : i32
     := marker_at = find_text source 0i32 marker
-    ? (=.) marker_at source_len ?> codec_empty ()
+    ? (=.) marker_at source_count ?> codec_empty ()
     |:
         := line_near_to = find_char source marker_at (char_newline ())
         slice_exclusive source marker_at line_near_to
@@ -71,10 +71,10 @@
     ? (=.) name "kit" ?> !+ |: (=.) name "kit.exe"
 
 :~ handoff_cold_projection (source : string) : string =
-    := source_len = sm.length source : i32
+    := source_count = sm.length source : i32
     := closed_at = find_text source 0i32 "ColdReceiptClosed"
     := pending_at = find_text source 0i32 "ColdReceiptPending"
-    := status = ? (<) closed_at source_len ?> "closed" |? (<) pending_at source_len ?> "pending" |: "other"
+    := status = ? (<) closed_at source_count ?> "closed" |? (<) pending_at source_count ?> "pending" |: "other"
     := flags = projection_u32 source "inl current_cold_replay_flags"
     := binary_line = projection_line source "inl binary_gate"
     := binary_line_len = sm.length binary_line : i32

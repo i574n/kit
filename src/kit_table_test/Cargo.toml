@@ -17,3 +17,4 @@ path = "table_test.rs"
 kit-table-text = { path = "../kit_table_text" }
 kit-experiment-stats = { path = "../kit_experiment_stats" }
 kit-table-query = { path = "../kit_table_query" }
+kit-experiment-args = { path = "../kit_experiment_args" }

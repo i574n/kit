@@ -15,7 +15,7 @@
 :| separator_result = | SeparatorOk : i32 | SeparatorError
 :| parsed_patch = | ParsedPatch : i32 | InvalidPatch
 
-:= source_len (~source : string) : i32 =
+:= source_count (~source : string) : i32 =
     $'i32::try_from(!source.len()).unwrap_or(i32::MAX)' : i32
 
 := source_byte (~source : string) (~index : i32) : i32 =
@@ -174,7 +174,7 @@
     ? i32_positive canonical_count ?> PatchPlanValid canonical_count
     |? i32_lt canonical_count 0i32 ?> PatchPlanMalformed
     |:
-        := length = source_len source
+        := length = source_count source
         ? i32_lt length 0i32 ?> PatchPlanUnavailable
         |? length <= 262144i32 ?> scan_plan source 0i32 length 0i32
         |: PatchPlanTooLarge
