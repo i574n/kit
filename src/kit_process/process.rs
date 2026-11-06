@@ -64,7 +64,9 @@ pub fn typecheck_spiral_file(compiler: &SpiralCompilerDiscovery, path: &std::pat
         if candidate.is_file() { candidate } else { compiler.path.clone() }
     } else { compiler.path.clone() };
     let mut command = spiral_compiler_command(&check_compiler);
-    command.arg("--check").arg(path);
+    command.arg("--check");
+    if native_spiral_host(&check_compiler) { command.arg("--timeout-ms").arg(timeout_ms.to_string()); }
+    command.arg(path);
     let status = run_bounded(&mut command, timeout_ms)?;
     if !status.success() { return Err(format!("Spiral typecheck attestation failed for {} via {}", path.display(), check_compiler.display())); }
     Ok(())

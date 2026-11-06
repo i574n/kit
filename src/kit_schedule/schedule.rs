@@ -37,11 +37,10 @@ enum US3 {
     US3_ScheduleDue,
     US3_ScheduleWaits(u64),
 }
-struct Mut0 { l0: Rc<str> }
+pub struct Mut0 { pub l0: Rc<str> }
 fn refused_1(mut v0: Rc<str>) -> i32 {
-    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: schedule "); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v0));
-    println!("{}", v2);
+    let mut v1: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: schedule "); } LIT.with(|lit| lit.clone()) }, v0));
+    println!("{}", v1);
     2i32
 }
 fn command_line_argument_4(mut v0: i32) -> Rc<str> {
@@ -54,12 +53,12 @@ fn command_line_arguments_back_3(mut v0: i32, mut v1: i32, mut v2: Rc<UH0>) -> R
     loop {
         let v3: bool = v1 < v0;
         if v3 {
-            return v2.clone();
+            return v2;
         } else {
             let v4: i32 = v1.wrapping_sub(1i32);
             let v5: Rc<str> = command_line_argument_4(v1);
-            let mut v6: Rc<UH0> = Rc::new(UH0::UH0_Cons(v5.clone(), v2.clone()));
-            (v1, v2) = (v4, v6.clone());
+            let mut v6: Rc<UH0> = Rc::new(UH0::UH0_Cons(v5, v2));
+            (v1, v2) = (v4, v6);
             continue;
         }
     }
@@ -216,12 +215,12 @@ fn method15(mut v0: Rc<str>, mut v1: i32) -> i32 {
     }
 }
 fn stamp_of_11(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
-    let mut v2: Rc<str> = method9(v0.clone(), v1.clone());
+    let mut v2: Rc<str> = method9(v0, v1);
     let v3: bool = file_exists_12(v2.clone());
     if v3 {
         let v5: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v2);
         let mut v7: Vec<u8> = v5.unwrap();
-        let v8: Vec<u8> = method13(v7.clone());
+        let v8: Vec<u8> = method13(v7);
         let v10: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v8);
         let mut v12: std::string::String = v10.unwrap();
         let mut v14: Rc<str> = Rc::<str>::from(String::as_str(&v12));
@@ -229,23 +228,23 @@ fn stamp_of_11(mut v0: Rc<str>, mut v1: Rc<str>) -> US1 {
         let v16: i32 = 0i32;
         let v17: i32 = method14(v14.clone(), v15, v16);
         let v18: i32 = v15.wrapping_sub(1i32);
-        let v19: Rc<str> = string_slice(&v14.clone(), v17 as i64, v18 as i64);
+        let v19: Rc<str> = string_slice(&v14, v17 as i64, v18 as i64);
         let v20: i32 = (v19.clone().len() as i32);
         let v21: i32 = method15(v19.clone(), v20);
-        let v22: Rc<str> = string_slice(&v19.clone(), 0i32 as i64, v21 as i64);
+        let v22: Rc<str> = string_slice(&v19, 0i32 as i64, v21 as i64);
         let v23: Option<u64> = (v22).trim().parse::<u64>().ok();
-        let v24: Option<u64> = method6(v23.clone());
+        let v24: Option<u64> = method6(v23);
         let mut v25: Rc<dyn Fn((u64)) -> US1> = closure1();
         let mut v26: Option<US1> = v24.map(|x| v25(x));
         let v28: US1 = US1::US1_None;
         let v29: US1 = v28.clone();
         let v30: US1 = v26.unwrap_or(v29);
-        v30.clone()
+        v30
     } else {
         US1::US1_None
     }
 }
-fn method17(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+fn method17(mut v0: &Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let mut v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
@@ -255,7 +254,7 @@ fn format_real_16(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let mut v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method17(v2.clone(), v3);
+    method17(&v2, v3);
     let v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
@@ -269,10 +268,10 @@ fn stamp_written_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64) -> () {
 fn schedule_run_0() -> i32 {
     let mut v0: i32 = 1i32;
     let mut v1: Rc<UH0> = command_line_arguments_from_2(v0);
-    let v232: US0 = match &*v1 {
+    let v232: US0 = match Rc::unwrap_or_clone(v1) {
         UH0::UH0_Cons(v2, v3) => {
-            let mut v2: Rc<str> = v2.clone();
-            let v3: Rc<UH0> = v3.clone();
+            let mut v2: Rc<str> = v2;
+            let v3: Rc<UH0> = v3;
             let v4: bool = "due" == &*v2;
             if v4 {
                 match &*v3 {
@@ -283,21 +282,21 @@ fn schedule_run_0() -> i32 {
                             UH0::UH0_Cons(v7, v8) => {
                                 let mut v7: Rc<str> = v7.clone();
                                 let v8: Rc<UH0> = v8.clone();
-                                match &*v8 {
+                                match Rc::unwrap_or_clone(v8) {
                                     UH0::UH0_Nil => {
                                         let v9: Option<u64> = (v7).trim().parse::<u64>().ok();
-                                        let v10: Option<u64> = method6(v9.clone());
+                                        let v10: Option<u64> = method6(v9);
                                         let mut v11: Rc<dyn Fn((u64)) -> US1> = closure1();
                                         let mut v12: Option<US1> = v10.map(|x| v11(x));
                                         let mut v14: US1 = US1::US1_None;
                                         let v15: US1 = v14.clone();
                                         let v16: US1 = v12.unwrap_or(v15);
-                                        match &v16 {
+                                        match v16 {
                                             US1::US1_None => {
                                                 US0::US0_ScheduleUsage
                                             }
                                             US1::US1_Some(v17) => {
-                                                let v17: u64 = *v17;
+                                                let v17: u64 = v17;
                                                 let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
                                                 let v19: bool = v5.contains(&*v18);
                                                 let v20: bool = v19 == false;
@@ -398,7 +397,7 @@ fn schedule_run_0() -> i32 {
                                                 };
                                                 if v67 {
                                                     let v68: u64 = v17.wrapping_mul(60000u64);
-                                                    US0::US0_AskDue(v5.clone(), v68)
+                                                    US0::US0_AskDue(v5, v68)
                                                 } else {
                                                     US0::US0_ScheduleUsage
                                                 }
@@ -418,7 +417,7 @@ fn schedule_run_0() -> i32 {
                             _ => {
                                 let v86: bool = "ran" == &*v2;
                                 if v86 {
-                                    match &*v6 {
+                                    match Rc::unwrap_or_clone(v6) {
                                         UH0::UH0_Nil => {
                                             let v87: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
                                             let v88: bool = v5.contains(&*v87);
@@ -513,7 +512,7 @@ fn schedule_run_0() -> i32 {
                                             };
                                             let v134: bool = v133 && v129;
                                             if v134 {
-                                                US0::US0_MarkRan(v5.clone())
+                                                US0::US0_MarkRan(v5)
                                             } else {
                                                 US0::US0_ScheduleUsage
                                             }
@@ -531,7 +530,7 @@ fn schedule_run_0() -> i32 {
                         if v145 {
                             let v146: bool = "list" == &*v2;
                             if v146 {
-                                match &*v3 {
+                                match Rc::unwrap_or_clone(v3) {
                                     UH0::UH0_Nil => {
                                         US0::US0_ListSchedules
                                     }
@@ -543,7 +542,7 @@ fn schedule_run_0() -> i32 {
                         } else {
                             let v151: bool = "list" == &*v2;
                             if v151 {
-                                match &*v3 {
+                                match Rc::unwrap_or_clone(v3) {
                                     UH0::UH0_Nil => {
                                         US0::US0_ListSchedules
                                     }
@@ -562,7 +561,7 @@ fn schedule_run_0() -> i32 {
                         UH0::UH0_Cons(v159, v160) => {
                             let v159: Rc<str> = v159.clone();
                             let v160: Rc<UH0> = v160.clone();
-                            match &*v160 {
+                            match Rc::unwrap_or_clone(v160) {
                                 UH0::UH0_Nil => {
                                     let v161: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
                                     let v162: bool = v159.contains(&*v161);
@@ -657,7 +656,7 @@ fn schedule_run_0() -> i32 {
                                     };
                                     let v208: bool = v207 && v203;
                                     if v208 {
-                                        US0::US0_MarkRan(v159.clone())
+                                        US0::US0_MarkRan(v159)
                                     } else {
                                         US0::US0_ScheduleUsage
                                     }
@@ -670,7 +669,7 @@ fn schedule_run_0() -> i32 {
                         _ => {
                             let v217: bool = "list" == &*v2;
                             if v217 {
-                                match &*v3 {
+                                match Rc::unwrap_or_clone(v3) {
                                     UH0::UH0_Nil => {
                                         US0::US0_ListSchedules
                                     }
@@ -684,7 +683,7 @@ fn schedule_run_0() -> i32 {
                 } else {
                     let v223: bool = "list" == &*v2;
                     if v223 {
-                        match &*v3 {
+                        match Rc::unwrap_or_clone(v3) {
                             UH0::UH0_Nil => {
                                 US0::US0_ListSchedules
                             }
@@ -703,25 +702,25 @@ fn schedule_run_0() -> i32 {
         }
     };
     let v233: US2 = schedules_root_7();
-    match &v233 {
+    match v233 {
         US2::US2_None => {
             let v234: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("has no stamp folder: neither KIT_SCHEDULES_HOME nor LOCALAPPDATA is set"); } LIT.with(|lit| lit.clone()) };
-            refused_1(v234.clone())
+            refused_1(v234)
         }
         US2::US2_Some(v236) => {
-            let v236: Rc<str> = v236.clone();
-            match &v232 {
+            let v236: Rc<str> = v236;
+            match v232 {
                 US0::US0_AskDue(v237, v238) => {
-                    let v237: Rc<str> = v237.clone();
-                    let v238: u64 = *v238;
-                    let v239: US1 = stamp_of_11(v236.clone(), v237.clone());
+                    let v237: Rc<str> = v237;
+                    let v238: u64 = v238;
+                    let v239: US1 = stamp_of_11(v236, v237.clone());
                     let v240: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
-                    let v250: US3 = match &v239 {
+                    let v250: US3 = match v239 {
                         US1::US1_None => {
                             US3::US3_ScheduleDue
                         }
                         US1::US1_Some(v241) => {
-                            let v241: u64 = *v241;
+                            let v241: u64 = v241;
                             let v242: u64 = v241.wrapping_add(v238);
                             let v243: bool = v240 >= v242;
                             if v243 {
@@ -732,28 +731,24 @@ fn schedule_run_0() -> i32 {
                             }
                         }
                     };
-                    let v264: Rc<str> = match &v250 {
+                    let v260: Rc<str> = match &v250 {
                         US3::US3_ScheduleDue => {
-                            let v251: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule due ok name="); } LIT.with(|lit| lit.clone()) };
-                            let v252: Rc<str> = Rc::<str>::from(format!("{}{}", v251, v237));
-                            let v253: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" due=yes"); } LIT.with(|lit| lit.clone()) };
-                            let v254: Rc<str> = Rc::<str>::from(format!("{}{}", v252, v253));
-                            v254.clone()
+                            let v251: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule due ok name="); } LIT.with(|lit| lit.clone()) }, v237));
+                            let v252: Rc<str> = Rc::<str>::from(format!("{}{}", v251, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" due=yes"); } LIT.with(|lit| lit.clone()) }));
+                            v252
                         }
-                        US3::US3_ScheduleWaits(v255) => {
-                            let v255: u64 = *v255;
-                            let v256: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule due ok name="); } LIT.with(|lit| lit.clone()) };
-                            let v257: Rc<str> = Rc::<str>::from(format!("{}{}", v256, v237));
-                            let v258: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" due=no next_in_s="); } LIT.with(|lit| lit.clone()) };
-                            let v259: Rc<str> = Rc::<str>::from(format!("{}{}", v257, v258));
-                            let v260: u64 = v255.wrapping_div(1000u64);
-                            let v261: Rc<str> = format_real_16(v260);
-                            let v262: Rc<str> = Rc::<str>::from(format!("{}{}", v259, v261));
-                            v262.clone()
+                        US3::US3_ScheduleWaits(v253) => {
+                            let v253: u64 = *v253;
+                            let v254: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule due ok name="); } LIT.with(|lit| lit.clone()) }, v237));
+                            let v255: Rc<str> = Rc::<str>::from(format!("{}{}", v254, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" due=no next_in_s="); } LIT.with(|lit| lit.clone()) }));
+                            let v256: u64 = v253.wrapping_div(1000u64);
+                            let v257: Rc<str> = format_real_16(v256);
+                            let v258: Rc<str> = Rc::<str>::from(format!("{}{}", v255, v257));
+                            v258
                         }
                     };
-                    println!("{}", v264);
-                    let v265: bool = match &v250 {
+                    println!("{}", v260);
+                    let v261: bool = match v250 {
                         US3::US3_ScheduleDue => {
                             true
                         }
@@ -761,34 +756,31 @@ fn schedule_run_0() -> i32 {
                             false
                         }
                     };
-                    if v265 {
+                    if v261 {
                         0i32
                     } else {
                         1i32
                     }
                 }
                 US0::US0_ListSchedules => {
-                    let v275: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule list ok root="); } LIT.with(|lit| lit.clone()) };
-                    let v276: Rc<str> = Rc::<str>::from(format!("{}{}", v275, v236));
-                    println!("{}", v276);
+                    let v269: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule list ok root="); } LIT.with(|lit| lit.clone()) }, v236));
+                    println!("{}", v269);
                     0i32
                 }
-                US0::US0_MarkRan(v267) => {
-                    let v267: Rc<str> = v267.clone();
-                    let v268: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
-                    stamp_written_18(v236.clone(), v267.clone(), v268);
-                    let v269: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule ran ok name="); } LIT.with(|lit| lit.clone()) };
-                    let v270: Rc<str> = Rc::<str>::from(format!("{}{}", v269, v267));
-                    let v271: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" at_ms="); } LIT.with(|lit| lit.clone()) };
-                    let v272: Rc<str> = Rc::<str>::from(format!("{}{}", v270, v271));
-                    let v273: Rc<str> = format_real_16(v268);
-                    let v274: Rc<str> = Rc::<str>::from(format!("{}{}", v272, v273));
-                    println!("{}", v274);
+                US0::US0_MarkRan(v263) => {
+                    let v263: Rc<str> = v263;
+                    let v264: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
+                    stamp_written_18(v236, v263.clone(), v264);
+                    let v265: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule ran ok name="); } LIT.with(|lit| lit.clone()) }, v263));
+                    let v266: Rc<str> = Rc::<str>::from(format!("{}{}", v265, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" at_ms="); } LIT.with(|lit| lit.clone()) }));
+                    let v267: Rc<str> = format_real_16(v264);
+                    let v268: Rc<str> = Rc::<str>::from(format!("{}{}", v266, v267));
+                    println!("{}", v268);
                     0i32
                 }
                 US0::US0_ScheduleUsage => {
-                    let v277: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule: due <name> <minutes> (exit 0 when due, 1 when not) | ran <name> | list (a name has no path characters; stamps under KIT_SCHEDULES_HOME, else LOCALAPPDATA\\kit\\schedules; never a relative folder)"); } LIT.with(|lit| lit.clone()) };
-                    refused_1(v277.clone())
+                    let v270: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit schedule: due <name> <minutes> (exit 0 when due, 1 when not) | ran <name> | list (a name has no path characters; stamps under KIT_SCHEDULES_HOME, else LOCALAPPDATA\\kit\\schedules; never a relative folder)"); } LIT.with(|lit| lit.clone()) };
+                    refused_1(v270)
                 }
             }
         }
@@ -802,3 +794,4 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
 pub fn kit_schedule_run() -> i32 {
     closure0()()
 }
+pub type SpiralShape_97df63ebabc3 = Mut0;

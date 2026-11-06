@@ -21,7 +21,7 @@ enum US2 {
     US2_WindowPruned,
     US2_WindowDropped,
 }
-struct Mut0 { l0: Rc<str> }
+pub struct Mut0 { pub l0: Rc<str> }
 #[derive(Clone)]
 enum US3 {
     US3_StoredRead(Rc<str>, Rc<str>, u64),
@@ -94,12 +94,12 @@ fn now_ms_3() -> u64 {
 }
 fn windows_root_4() -> Rc<str> {
     let mut v0: Rc<str> = std::rc::Rc::<str>::from(std::env::var_os("KIT_WINDOWS_HOME").map(std::path::PathBuf::from).or_else(|| std::env::var_os("LOCALAPPDATA").map(|base| std::path::PathBuf::from(base).join("kit").join("windows"))).or_else(|| std::env::var_os("HOME").map(|base| std::path::PathBuf::from(base).join(".cache").join("kit").join("windows"))).unwrap_or_else(|| std::path::PathBuf::from(".kit-windows")).to_string_lossy().as_ref());
-    v0.clone()
+    v0
 }
 fn stored_rows_5(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = { let mut rows = std::fs::read_dir(&*v0).into_iter().flatten().flatten().map(|entry| entry.path()).filter(|path| path.extension().map(|ext| ext == "window").unwrap_or(false)).filter_map(|path| std::fs::read_to_string(&path).ok()).map(|text| text.trim().to_owned()).filter(|text| !text.is_empty()).collect::<Vec<_>>(); rows.sort_by_key(|row| row.split(char::from(9u8)).nth(4).and_then(|start| start.parse::<u64>().ok()).unwrap_or(0)); std::rc::Rc::<str>::from(rows.join("
 ")) };
-    v1.clone()
+    v1
 }
 fn first_row_7(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from(v0.lines().next().unwrap_or(""));
@@ -120,18 +120,18 @@ fn closure1() -> Rc<dyn Fn((u64)) -> US0> {
 }
 fn decimal_of_10(mut v0: Rc<str>) -> u64 {
     let mut v1: Option<u64> = (v0).trim().parse::<u64>().ok();
-    let v2: Option<u64> = method11(v1.clone());
+    let v2: Option<u64> = method11(v1);
     let mut v3: Rc<dyn Fn((u64)) -> US0> = closure1();
     let mut v4: Option<US0> = v2.map(|x| v3(x));
     let v6: US0 = US0::US0_None;
     let v7: US0 = v6.clone();
     let v8: US0 = v4.unwrap_or(v7);
-    match &v8 {
+    match v8 {
         US0::US0_None => {
             0u64
         }
         US0::US0_Some(v9) => {
-            let v9: u64 = *v9;
+            let v9: u64 = v9;
             v9
         }
     }
@@ -173,7 +173,7 @@ fn process_alive_15(mut v0: u64) -> bool {
 }
 fn orphaned_window_12(mut v0: Rc<str>) -> bool {
     let mut v1: US1 = holder_of_13(v0.clone());
-    match &v1 {
+    match v1 {
         US1::US1_LeaseHolder => {
             false
         }
@@ -192,7 +192,10 @@ fn joined_17(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     v2
 }
 fn concat5_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v2));
+    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v3));
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v4));
     v8
 }
 fn window_file_16(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
@@ -205,7 +208,7 @@ fn file_removed_19(mut v0: Rc<str>) -> bool {
     let mut v1: bool = std::fs::remove_file(&*v0).is_ok();
     v1
 }
-fn method23(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+fn method23(mut v0: &Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let v2: Rc<str> = v0.borrow().l0.clone();
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
@@ -215,7 +218,7 @@ fn format_real_22(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method23(v2.clone(), v3);
+    method23(&v2, v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
@@ -223,7 +226,7 @@ fn number_text_21(mut v0: u64) -> Rc<str> {
     format_real_22(v0)
 }
 fn window_event_word_24(mut v0: US2) -> Rc<str> {
-    match &v0 {
+    match v0 {
         US2::US2_WindowDropped => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("dropped"); } LIT.with(|lit| lit.clone()) };
             v7
@@ -288,7 +291,7 @@ fn live_rows_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: Rc<str>) -
     loop {
         let mut v4: bool = &*v1 == "";
         if v4 {
-            return v3.clone();
+            return v3;
         } else {
             let v5: Rc<str> = first_row_7(v1.clone());
             let v6: bool = row_expired_8(v5.clone(), v2);
@@ -300,31 +303,31 @@ fn live_rows_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: u64, mut v3: Rc<str>) -
             if v8 {
                 let v9: i32 = 0i32;
                 let v10: Rc<str> = tab_field_9(v5.clone(), v9);
-                let v11: Rc<str> = window_file_16(v0.clone(), v10.clone());
-                let v12: bool = file_removed_19(v11.clone());
+                let v11: Rc<str> = window_file_16(v0.clone(), v10);
+                let v12: bool = file_removed_19(v11);
                 let mut v13: US2 = US2::US2_WindowPruned;
-                event_logged_20(v0.clone(), v13.clone(), v5.clone());
-                let v14: Rc<str> = other_rows_25(v1.clone());
-                v1 = v14.clone();
+                event_logged_20(v0.clone(), v13, v5);
+                let v14: Rc<str> = other_rows_25(v1);
+                v1 = v14;
                 continue;
             } else {
-                let mut v16: Rc<str> = other_rows_25(v1.clone());
+                let mut v16: Rc<str> = other_rows_25(v1);
                 let mut v17: bool = &*v3 == "";
                 let v21: Rc<str> = if v17 {
-                    v5.clone()
+                    v5
                 } else {
                     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    concat5_18(v3.clone(), v18.clone(), v5.clone(), v19.clone(), v19.clone())
+                    concat5_18(v3, v18, v5, v19.clone(), v19.clone())
                 };
-                (v1, v3) = (v16.clone(), v21.clone());
+                (v1, v3) = (v16, v21);
                 continue;
             }
         }
     }
 }
 fn class_word_29(mut v0: US5) -> Rc<str> {
-    match &v0 {
+    match v0 {
         US5::US5_Bench => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bench"); } LIT.with(|lit| lit.clone()) };
             v7
@@ -442,9 +445,9 @@ fn row_of_27(mut v0: Rc<str>) -> US4 {
     let mut v1: i32 = 1i32;
     let v2: Rc<str> = tab_field_9(v0.clone(), v1);
     let mut v3: US7 = class_of_28(v2);
-    match &v3 {
+    match v3 {
         US7::US7_ClassKnown(v5) => {
-            let v5: US5 = v5.clone();
+            let v5: US5 = v5;
             let v6: i32 = 2i32;
             let v7: Rc<str> = tab_field_9(v0.clone(), v6);
             let v8: bool = &*v7 == "held";
@@ -473,21 +476,21 @@ fn row_of_27(mut v0: Rc<str>) -> US4 {
 fn leases_of_rows_26(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
     let v2: bool = &*v0 == "";
     if v2 {
-        v1.clone()
+        v1
     } else {
         let mut v3: Rc<str> = other_rows_25(v0.clone());
         let mut v4: Rc<UH0> = leases_of_rows_26(v3, v1);
         let v5: Rc<str> = first_row_7(v0);
         let v6: US4 = row_of_27(v5);
-        match &v6 {
+        match v6 {
             US4::US4_RowKnown(v7, v8, v9, v10, v11, v12) => {
-                let v7: Rc<str> = v7.clone();
-                let v8: US5 = v8.clone();
-                let v9: US6 = v9.clone();
-                let v10: Rc<str> = v10.clone();
-                let v11: u64 = *v11;
-                let v12: u64 = *v12;
-                let mut v13: bool = match &v8 {
+                let v7: Rc<str> = v7;
+                let v8: US5 = v8;
+                let v9: US6 = v9;
+                let v10: Rc<str> = v10;
+                let v11: u64 = v11;
+                let v12: u64 = v12;
+                let mut v13: bool = match v8 {
                     US5::US5_TreeRead => {
                         true
                     }
@@ -497,9 +500,9 @@ fn leases_of_rows_26(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
                 };
                 if v13 {
                     let v14: US3 = US3::US3_StoredRead(v10, v7, v12);
-                    Rc::new(UH0::UH0_LeaseThen(v14, v4.clone()))
+                    Rc::new(UH0::UH0_LeaseThen(v14, v4))
                 } else {
-                    v4.clone()
+                    v4
                 }
             }
             US4::US4_RowUnknown => {
@@ -510,48 +513,48 @@ fn leases_of_rows_26(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<UH0> {
 }
 fn claim_of_30(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> US8 {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH0::UH0_LeaseThen(v4, v5) => {
-                let mut v4: US3 = v4.clone();
-                let v5: Rc<UH0> = v5.clone();
-                let v15: US9 = match &v4 {
+                let mut v4: US3 = v4;
+                let v5: Rc<UH0> = v5;
+                let v15: US9 = match v4 {
                     US3::US3_StoredRead(v6, v7, v8) => {
-                        let v6: Rc<str> = v6.clone();
-                        let v7: Rc<str> = v7.clone();
-                        let v8: u64 = *v8;
-                        US9::US9_Some(v6.clone(), v7.clone(), v8)
+                        let v6: Rc<str> = v6;
+                        let v7: Rc<str> = v7;
+                        let v8: u64 = v8;
+                        US9::US9_Some(v6, v7, v8)
                     }
                     US3::US3_StoredShape(v10, v11, v12) => {
-                        let v10: Rc<str> = v10.clone();
-                        let v11: Rc<str> = v11.clone();
-                        let v12: u64 = *v12;
+                        let v10: Rc<str> = v10;
+                        let v11: Rc<str> = v11;
+                        let v12: u64 = v12;
                         US9::US9_None
                     }
                 };
-                match &v15 {
+                match v15 {
                     US9::US9_None => {
-                        v0 = v5.clone();
+                        v0 = v5;
                         continue;
                     }
                     US9::US9_Some(v16, v17, v18) => {
-                        let mut v16: Rc<str> = v16.clone();
-                        let mut v17: Rc<str> = v17.clone();
-                        let v18: u64 = *v18;
+                        let mut v16: Rc<str> = v16;
+                        let mut v17: Rc<str> = v17;
+                        let v18: u64 = v18;
                         let v19: bool = v2 < v18;
                         let v38: bool = if v19 {
                             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
                             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
                             let v22: Rc<str> = Rc::<str>::from(v1.replace(&*v20, &*v21));
                             let v23: Rc<str> = Rc::<str>::from(v22.to_lowercase());
-                            let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v21));
+                            let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
                             let v25: Rc<str> = Rc::<str>::from(v16.replace(&*v20, &*v21));
                             let v26: Rc<str> = Rc::<str>::from(v25.to_lowercase());
                             let v27: bool = v26.ends_with(&*v21);
                             let v29: Rc<str> = if v27 {
-                                v26.clone()
+                                v26
                             } else {
-                                let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v21));
-                                v28.clone()
+                                let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+                                v28
                             };
                             let v30: bool = &*v24 == &*v29;
                             if v30 {
@@ -561,10 +564,10 @@ fn claim_of_30(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> US8 {
                                 let v32: Rc<str> = Rc::<str>::from(v31.to_lowercase());
                                 let v33: bool = v32.ends_with(&*v21);
                                 let v35: Rc<str> = if v33 {
-                                    v32.clone()
+                                    v32
                                 } else {
-                                    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v21));
-                                    v34.clone()
+                                    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+                                    v34
                                 };
                                 let v36: bool = v23.starts_with(&*v35);
                                 v36
@@ -573,9 +576,9 @@ fn claim_of_30(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: u64) -> US8 {
                             false
                         };
                         if v38 {
-                            return US8::US8_TreeHeld(v16.clone(), v17.clone(), v18);
+                            return US8::US8_TreeHeld(v16, v17, v18);
                         } else {
-                            v0 = v5.clone();
+                            v0 = v5;
                             continue;
                         }
                     }
@@ -595,61 +598,54 @@ fn window_claimed_1(mut v0: Rc<str>) -> i32 {
     let mut v1: bool = &*v0 == "";
     if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit error: window claim <path> (refused while a tree-read window covers the path)"); } LIT.with(|lit| lit.clone()) };
-        stderr_line_2(v2.clone());
+        stderr_line_2(v2);
         2i32
     } else {
         let mut v3: u64 = now_ms_3();
         let mut v4: Rc<str> = windows_root_4();
         let v5: Rc<str> = stored_rows_5(v4.clone());
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v7: Rc<str> = live_rows_6(v4.clone(), v5.clone(), v3, v6.clone());
+        let v7: Rc<str> = live_rows_6(v4, v5, v3, v6);
         let v8: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_NoLeases); } CASE.with(|case| case.clone()) };
-        let v9: Rc<UH0> = leases_of_rows_26(v7.clone(), v8.clone());
-        let v10: US8 = claim_of_30(v9.clone(), v0.clone(), v3);
-        let mut v17: US10 = match &v10 {
+        let v9: Rc<UH0> = leases_of_rows_26(v7, v8);
+        let v10: US8 = claim_of_30(v9, v0.clone(), v3);
+        let mut v17: US10 = match v10 {
             US8::US8_TreeFree => {
                 US10::US10_EditAllowed
             }
             US8::US8_TreeHeld(v12, v13, v14) => {
-                let v12: Rc<str> = v12.clone();
-                let mut v13: Rc<str> = v13.clone();
-                let v14: u64 = *v14;
-                US10::US10_EditRefused(v12.clone(), v13.clone(), v14)
+                let v12: Rc<str> = v12;
+                let mut v13: Rc<str> = v13;
+                let v14: u64 = v14;
+                US10::US10_EditRefused(v12, v13, v14)
             }
         };
-        match &v17 {
+        match v17 {
             US10::US10_EditAllowed => {
-                let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window claim ok path="); } LIT.with(|lit| lit.clone()) };
-                let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v0));
-                let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v20));
-                let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edit allowed"); } LIT.with(|lit| lit.clone()) };
-                let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
-                stdout_line_31(v23.clone());
+                let v18: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window claim ok path="); } LIT.with(|lit| lit.clone()) }, v0));
+                let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) }));
+                let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edit allowed"); } LIT.with(|lit| lit.clone()) }));
+                stdout_line_31(v20);
                 0i32
             }
-            US10::US10_EditRefused(v24, v25, v26) => {
-                let v24: Rc<str> = v24.clone();
-                let v25: Rc<str> = v25.clone();
-                let v26: u64 = *v26;
-                let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window claim refused path="); } LIT.with(|lit| lit.clone()) };
-                let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v0));
-                let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
-                let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edit refused: "); } LIT.with(|lit| lit.clone()) };
-                let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v24));
-                let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" is read by "); } LIT.with(|lit| lit.clone()) };
-                let v35: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v32, v33)), v25));
-                let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
-                let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
-                let v38: u64 = v26.wrapping_sub(v3);
-                let v39: u64 = v38.wrapping_add(59999u64);
-                let v40: u64 = v39.wrapping_div(60000u64);
-                let v41: Rc<str> = format_real_22(v40);
-                let v42: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v41));
-                let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" more min"); } LIT.with(|lit| lit.clone()) };
-                let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v30, Rc::<str>::from(format!("{}{}", v42, v43))));
-                stdout_line_31(v45.clone());
+            US10::US10_EditRefused(v21, v22, v23) => {
+                let v21: Rc<str> = v21;
+                let v22: Rc<str> = v22;
+                let v23: u64 = v23;
+                let v24: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit window claim refused path="); } LIT.with(|lit| lit.clone()) }, v0));
+                let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v24, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) }));
+                let v26: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("edit refused: "); } LIT.with(|lit| lit.clone()) }, v21));
+                let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" is read by "); } LIT.with(|lit| lit.clone()) }));
+                let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v22));
+                let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v28, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) }));
+                let v30: u64 = v23.wrapping_sub(v3);
+                let v31: u64 = v30.wrapping_add(59999u64);
+                let v32: u64 = v31.wrapping_div(60000u64);
+                let v33: Rc<str> = format_real_22(v32);
+                let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v33));
+                let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v34, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" more min"); } LIT.with(|lit| lit.clone()) }));
+                let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v35));
+                stdout_line_31(v36);
                 1i32
             }
         }
@@ -682,12 +678,12 @@ fn arguments_from_32(mut v0: i32) -> Rc<UH1> {
     } else {
         US11::US11_None
     };
-    match &v8 {
+    match v8 {
         US11::US11_None => {
             { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) }
         }
         US11::US11_Some(v10) => {
-            let v10: Rc<str> = v10.clone();
+            let v10: Rc<str> = v10;
             let v11: i32 = v0.wrapping_add(1i32);
             let v12: Rc<UH1> = arguments_from_32(v11);
             Rc::new(UH1::UH1_Cons(v10, v12))
@@ -697,18 +693,18 @@ fn arguments_from_32(mut v0: i32) -> Rc<UH1> {
 fn claim_run_0() -> i32 {
     let mut v0: i32 = 0i32;
     let mut v1: Rc<UH1> = arguments_from_32(v0);
-    match &*v1 {
+    match Rc::unwrap_or_clone(v1) {
         UH1::UH1_Cons(v2, v3) => {
-            let v2: Rc<str> = v2.clone();
-            let mut v3: Rc<UH1> = v3.clone();
-            match &*v3 {
+            let v2: Rc<str> = v2;
+            let mut v3: Rc<UH1> = v3;
+            match Rc::unwrap_or_clone(v3) {
                 UH1::UH1_Cons(v4, v5) => {
-                    let mut v4: Rc<str> = v4.clone();
-                    let v5: Rc<UH1> = v5.clone();
-                    match &*v5 {
+                    let mut v4: Rc<str> = v4;
+                    let v5: Rc<UH1> = v5;
+                    match Rc::unwrap_or_clone(v5) {
                         UH1::UH1_Cons(v6, v7) => {
-                            let v6: Rc<str> = v6.clone();
-                            let v7: Rc<UH1> = v7.clone();
+                            let v6: Rc<str> = v6;
+                            let v7: Rc<UH1> = v7;
                             window_claimed_1(v6)
                         }
                         _ => {
@@ -737,3 +733,4 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
 pub fn kit_window_claim_run() -> i32 {
     closure0()()
 }
+pub type SpiralShape_97df63ebabc3 = Mut0;

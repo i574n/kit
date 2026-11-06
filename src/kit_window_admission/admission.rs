@@ -7,7 +7,7 @@ enum US0 {
     US0_HeldBack(Rc<str>),
     US0_LowMemory(u64, u64),
 }
-struct Mut0 { l0: Rc<str> }
+pub struct Mut0 { pub l0: Rc<str> }
 #[derive(Clone)]
 enum US2 {
     US2_LiveGui,
@@ -41,10 +41,13 @@ enum US4 {
     US4_RowUnknown,
 }
 fn concat5_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    let mut v5: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v2));
+    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v3));
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v4));
     v8
 }
-fn method5(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+fn method5(mut v0: &Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let v2: Rc<str> = v0.borrow().l0.clone();
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
@@ -54,7 +57,7 @@ fn format_real_4(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method5(v2.clone(), v3);
+    method5(&v2, v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
@@ -62,18 +65,18 @@ fn number_text_3(mut v0: u64) -> Rc<str> {
     format_real_4(v0)
 }
 fn admission_terms_1(mut v0: US0) -> Rc<str> {
-    match &v0 {
+    match v0 {
         US0::US0_Admitted => {
             let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v1
         }
         US0::US0_HeldBack(v2) => {
-            let v2: Rc<str> = v2.clone();
+            let v2: Rc<str> = v2;
             v2
         }
         US0::US0_LowMemory(v3, v4) => {
-            let mut v3: u64 = *v3;
-            let mut v4: u64 = *v4;
+            let mut v3: u64 = v3;
+            let mut v4: u64 = v4;
             let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("reason=low-memory free_mb="); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<str> = number_text_3(v3);
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" need_mb="); } LIT.with(|lit| lit.clone()) };
@@ -84,7 +87,7 @@ fn admission_terms_1(mut v0: US0) -> Rc<str> {
     }
 }
 fn class_word_7(mut v0: US2) -> Rc<str> {
-    match &v0 {
+    match v0 {
         US2::US2_Bench => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bench"); } LIT.with(|lit| lit.clone()) };
             v7
@@ -217,18 +220,18 @@ fn closure1() -> Rc<dyn Fn((u64)) -> US3> {
 }
 fn decimal_of_11(mut v0: Rc<str>) -> u64 {
     let v1: Option<u64> = (v0).trim().parse::<u64>().ok();
-    let v2: Option<u64> = method12(v1.clone());
+    let v2: Option<u64> = method12(v1);
     let mut v3: Rc<dyn Fn((u64)) -> US3> = closure1();
     let mut v4: Option<US3> = v2.map(|x| v3(x));
     let v6: US3 = US3::US3_None;
     let v7: US3 = v6.clone();
     let v8: US3 = v4.unwrap_or(v7);
-    match &v8 {
+    match v8 {
         US3::US3_None => {
             0u64
         }
         US3::US3_Some(v9) => {
-            let v9: u64 = *v9;
+            let v9: u64 = v9;
             v9
         }
     }
@@ -250,25 +253,25 @@ fn held_until_latest_8(mut v0: Rc<str>, mut v1: u64) -> u64 {
             let v6: bool = &*v5 == "held";
             let v10: u64 = if v6 {
                 let v7: i32 = 5i32;
-                let v8: Rc<str> = tab_field_10(v3.clone(), v7);
-                decimal_of_11(v8.clone())
+                let v8: Rc<str> = tab_field_10(v3, v7);
+                decimal_of_11(v8)
             } else {
                 0u64
             };
-            let v11: Rc<str> = other_rows_13(v0.clone());
+            let v11: Rc<str> = other_rows_13(v0);
             let v12: bool = v10 > v1;
             let v13: u64 = if v12 {
                 v10
             } else {
                 v1
             };
-            (v0, v1) = (v11.clone(), v13);
+            (v0, v1) = (v11, v13);
             continue;
         }
     }
 }
 fn needed_mb_15(mut v0: US2) -> u64 {
-    match &v0 {
+    match v0 {
         US2::US2_Bench => {
             2048u64
         }
@@ -308,7 +311,7 @@ fn floor_of_14(mut v0: US2, mut v1: u64) -> u64 {
     }
 }
 fn compiles_19(mut v0: US2) -> bool {
-    match &v0 {
+    match v0 {
         US2::US2_Compile => {
             true
         }
@@ -318,7 +321,7 @@ fn compiles_19(mut v0: US2) -> bool {
     }
 }
 fn lease_only_20(mut v0: US2) -> bool {
-    match &v0 {
+    match v0 {
         US2::US2_TreeRead => {
             true
         }
@@ -331,7 +334,7 @@ fn lease_only_20(mut v0: US2) -> bool {
     }
 }
 fn exclusive_21(mut v0: US2) -> bool {
-    match &v0 {
+    match v0 {
         US2::US2_CompilerInstall => {
             true
         }
@@ -344,7 +347,7 @@ fn exclusive_21(mut v0: US2) -> bool {
     }
 }
 fn quiet_22(mut v0: US2) -> bool {
-    match &v0 {
+    match v0 {
         US2::US2_Bench => {
             true
         }
@@ -354,7 +357,7 @@ fn quiet_22(mut v0: US2) -> bool {
     }
 }
 fn loud_23(mut v0: US2) -> bool {
-    match &v0 {
+    match v0 {
         US2::US2_Bench => {
             true
         }
@@ -370,7 +373,7 @@ fn loud_23(mut v0: US2) -> bool {
     }
 }
 fn holds_compiles_24(mut v0: US2) -> bool {
-    match &v0 {
+    match v0 {
         US2::US2_CompileHold => {
             true
         }
@@ -441,9 +444,9 @@ fn row_of_25(mut v0: Rc<str>) -> US4 {
     let v1: i32 = 1i32;
     let v2: Rc<str> = tab_field_10(v0.clone(), v1);
     let mut v3: US1 = class_of_6(v2);
-    match &v3 {
+    match v3 {
         US1::US1_ClassKnown(v5) => {
-            let mut v5: US2 = v5.clone();
+            let mut v5: US2 = v5;
             let v6: i32 = 2i32;
             let v7: Rc<str> = tab_field_10(v0.clone(), v6);
             let v8: bool = &*v7 == "held";
@@ -470,7 +473,7 @@ fn row_of_25(mut v0: Rc<str>) -> US4 {
     }
 }
 fn writes_tree_27(mut v0: US2) -> bool {
-    match &v0 {
+    match v0 {
         US2::US2_TreeWrite => {
             true
         }
@@ -480,7 +483,7 @@ fn writes_tree_27(mut v0: US2) -> bool {
     }
 }
 fn tree_access_28(mut v0: US2) -> bool {
-    match &v0 {
+    match v0 {
         US2::US2_TreeRead => {
             true
         }
@@ -515,7 +518,7 @@ fn path_prefix_30(mut v0: Rc<str>) -> Rc<str> {
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = Rc::<str>::from(v0.replace(&*v1, &*v2));
     let mut v4: Rc<str> = Rc::<str>::from(v3.to_lowercase());
-    let mut v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v2));
+    let mut v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
     let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("//"); } LIT.with(|lit| lit.clone()) };
     let v7: Rc<str> = Rc::<str>::from(v5.replace(&*v6, &*v2));
     v7
@@ -533,14 +536,14 @@ fn path_overlaps_29(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
 }
 fn row_blocks_17(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64, mut v4: bool, mut v5: Rc<str>) -> bool {
     let v6: US4 = row_of_25(v5);
-    match &v6 {
+    match v6 {
         US4::US4_RowKnown(v7, v8, v9, v10, v11, v12) => {
-            let v7: Rc<str> = v7.clone();
-            let v8: US2 = v8.clone();
-            let v9: US5 = v9.clone();
-            let v10: Rc<str> = v10.clone();
-            let v11: u64 = *v11;
-            let v12: u64 = *v12;
+            let v7: Rc<str> = v7;
+            let v8: US2 = v8;
+            let v9: US5 = v9;
+            let v10: Rc<str> = v10;
+            let v11: u64 = v11;
+            let v12: u64 = v12;
             let v13: bool = &*v7 == &*v2;
             if v13 {
                 false
@@ -552,12 +555,12 @@ fn row_blocks_17(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64, mut
                     false
                 };
                 if v16 {
-                    match &v9 {
+                    match v9 {
                         US5::US5_Held => {
                             true
                         }
                         US5::US5_Waiting => {
-                            let v17: bool = writes_tree_27(v8.clone());
+                            let v17: bool = writes_tree_27(v8);
                             if v17 {
                                 let v18: bool = v11 < v3;
                                 v18
@@ -567,9 +570,9 @@ fn row_blocks_17(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64, mut
                         }
                     }
                 } else {
-                    match &v9 {
+                    match v9 {
                         US5::US5_Held => {
-                            clashes_18(v8.clone(), v0.clone())
+                            clashes_18(v8, v0)
                         }
                         US5::US5_Waiting => {
                             let v23: bool = exclusive_21(v8.clone());
@@ -615,22 +618,22 @@ fn first_blocker_16(mut v0: US2, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64, 
         let v6: bool = &*v5 == "";
         if v6 {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            return v7.clone();
+            return v7;
         } else {
             let v8: Rc<str> = first_row_9(v5.clone());
             let v9: bool = row_blocks_17(v0.clone(), v1.clone(), v2.clone(), v3, v4, v8.clone());
             if v9 {
-                return v8.clone();
+                return v8;
             } else {
-                let v10: Rc<str> = other_rows_13(v5.clone());
-                v5 = v10.clone();
+                let v10: Rc<str> = other_rows_13(v5);
+                v5 = v10;
                 continue;
             }
         }
     }
 }
 fn settle_ms_33(mut v0: US2) -> u64 {
-    match &v0 {
+    match v0 {
         US2::US2_Bench => {
             90000u64
         }
@@ -650,15 +653,15 @@ fn settle_ms_33(mut v0: US2) -> u64 {
 }
 fn settling_mb_32(mut v0: Rc<str>, mut v1: u64) -> u64 {
     let v2: US4 = row_of_25(v0);
-    match &v2 {
+    match v2 {
         US4::US4_RowKnown(v3, v4, v5, v6, v7, v8) => {
-            let mut v3: Rc<str> = v3.clone();
-            let mut v4: US2 = v4.clone();
-            let mut v5: US5 = v5.clone();
-            let v6: Rc<str> = v6.clone();
-            let v7: u64 = *v7;
-            let v8: u64 = *v8;
-            match &v5 {
+            let mut v3: Rc<str> = v3;
+            let mut v4: US2 = v4;
+            let mut v5: US5 = v5;
+            let v6: Rc<str> = v6;
+            let v7: u64 = v7;
+            let v8: u64 = v8;
+            match v5 {
                 US5::US5_Held => {
                     let v9: u64 = settle_ms_33(v4.clone());
                     let v10: u64 = v7.wrapping_add(v9);
@@ -686,10 +689,10 @@ fn settling_total_31(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> u64 {
             return v2;
         } else {
             let mut v4: Rc<str> = other_rows_13(v0.clone());
-            let mut v5: Rc<str> = first_row_9(v0.clone());
-            let v6: u64 = settling_mb_32(v5.clone(), v1);
+            let mut v5: Rc<str> = first_row_9(v0);
+            let v6: u64 = settling_mb_32(v5, v1);
             let v7: u64 = v2.wrapping_add(v6);
-            (v0, v2) = (v4.clone(), v7);
+            (v0, v2) = (v4, v7);
             continue;
         }
     }
@@ -755,9 +758,9 @@ fn admission_needing_35(mut v0: u64, mut v1: Rc<str>, mut v2: u64, mut v3: u64) 
 }
 fn verdict_terms_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64, mut v4: u64, mut v5: Rc<str>, mut v6: u64, mut v7: u64, mut v8: u64) -> Rc<str> {
     let v9: US1 = class_of_6(v0);
-    match &v9 {
+    match v9 {
         US1::US1_ClassKnown(v11) => {
-            let v11: US2 = v11.clone();
+            let v11: US2 = v11;
             let v12: bool = v4 > 0u64;
             let v18: bool = if v12 {
                 let v13: u64 = v4.wrapping_mul(60000u64);
@@ -785,9 +788,10 @@ fn verdict_terms_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u6
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, u64, u64, Rc<str>, u64, u64, u64) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, u64, u64, Rc<str>, u64, u64, u64) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: u64, mut v4: u64, mut v5: Rc<str>, mut v6: u64, mut v7: u64, mut v8: u64| -> Rc<str> {
-        verdict_terms_0(v0.clone(), v1.clone(), v2.clone(), v3, v4, v5.clone(), v6, v7, v8)
+        verdict_terms_0(v0, v1, v2, v3, v4, v5, v6, v7, v8)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_window_verdict(v0: &str, v1: &str, v2: &str, v3: u64, v4: u64, v5: &str, v6: u64, v7: u64, v8: u64) -> Rc<str> {
     closure0()(Rc::<str>::from(v0), Rc::<str>::from(v1), Rc::<str>::from(v2), v3, v4, Rc::<str>::from(v5), v6, v7, v8)
 }
+pub type SpiralShape_97df63ebabc3 = Mut0;

@@ -51,7 +51,7 @@ fn agile_transient_schema_code_0(mut v0: Rc<str>) -> u64 {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        agile_transient_schema_code_0(v0.clone())
+        agile_transient_schema_code_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn state_path_candidate_code_2(mut v0: Rc<str>) -> u64 {
@@ -73,7 +73,7 @@ fn agile_state_path_candidate_code_1(mut v0: Rc<str>) -> u64 {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        agile_state_path_candidate_code_1(v0.clone())
+        agile_state_path_candidate_code_1(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_agile_state_transient_schema_code(v0: &str) -> u64 {

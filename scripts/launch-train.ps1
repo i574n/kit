@@ -10,7 +10,8 @@ param(
     [string] $Node = '',
     [string] $NodeMirror = 'kit-train',
     [string] $SshHost = '',
-    [switch] $NodeStage
+    [switch] $NodeStage,
+    [string] $ResumeNodeJob = ''
 )
 $ErrorActionPreference = 'Stop'
 if (-not $SshHost) { $SshHost = $Node }
@@ -51,83 +52,93 @@ if ($NodeStage) {
         if ($LASTEXITCODE -ne 0) { throw "node command failed (exit $LASTEXITCODE): $($lines | Select-Object -Last 3)" }
         $lines
     }
-    $dllPath = 'AppData\Local\spiral-bin\bin\single-flight\SpiralCompiler\Release\net11.0\SpiralCompiler.dll'
-    $corePath = $dllPath.Replace('SpiralCompiler.dll', 'SpiralCompilerCore.dll')
-    $boxParity = "dll=$((Get-FileHash (Join-Path $HOME $dllPath)).Hash) core=$((Get-FileHash (Join-Path $HOME $corePath)).Hash) $(rustc --version)"
-    $nodeParity = (Invoke-NodePwsh "`"dll=`$((Get-FileHash (Join-Path `$HOME '$dllPath')).Hash) core=`$((Get-FileHash (Join-Path `$HOME '$corePath')).Hash) `$(rustc --version)`"") -join ''
-    if ($boxParity -ne $nodeParity) { throw "toolchain parity: box [$boxParity] node [$nodeParity]; refusing a node train" }
-    Say "parity ok: $boxParity"
-    $regenDir = 'C:\Users\alias\AppData\Local\spiral-bin\kit-regeneration'
-    $space = (Invoke-NodePwsh "`$f = [math]::Round((Get-PSDrive C).Free/1GB,1); `$s = @(Get-ChildItem '$regenDir' -Directory -ErrorAction SilentlyContinue | Where-Object { `$_.LastWriteTime -lt (Get-Date).AddHours(-6) }).Count; `"`$f `$s`"") -join ''
-    $freeGb, $staleDirs = $space.Trim() -split ' '
-    if ([double]$freeGb -lt 5) { throw "node C: has $freeGb GB free (< 5 GB; a regen needs ~1.5 GB plus caches); $staleDirs staged workspace(s) older than 6 h sit in $regenDir; free space first, refusing a node train" }
-    Say "node disk ok: $freeGb GB free, $staleDirs stale staged workspace(s) in kit-regeneration"
     $snapshotRoot = Join-Path $kitRoot ".cache\release-tree\$Name"
     $libCopy = Join-Path $kitRoot ".cache\release-tree\$Name-lib\lib\spiral"
-    $liveLib = (Resolve-Path -LiteralPath (Join-Path $kitRoot '..\spiral\lib\spiral')).Path
-    $treeDirs = @('src', 'scripts', 'compiler-contracts')
-    & robocopy $kitRoot $snapshotRoot /MIR /XD target .cache .git /NFL /NDL /NJH /NJS /NP | Out-Null
-    if ($LASTEXITCODE -ge 8) { throw "snapshot copy failed (robocopy exit $LASTEXITCODE)" }
-    & robocopy $liveLib $libCopy /MIR /XD bench target /NFL /NDL /NJH /NJS /NP | Out-Null
-    if ($LASTEXITCODE -ge 8) { throw "lib copy failed (robocopy exit $LASTEXITCODE)" }
-    $snapshotManifest = Get-Manifest $snapshotRoot $treeDirs
-    $libManifest = Get-Manifest (Split-Path $libCopy) @('spiral')
-    foreach ($repo in 'spiral', 'kit') {
-        $sync = & $remote $Node sync $repo -Mirror $NodeMirror 2>&1 | Out-String
-        if ($sync -notmatch "REMOTE-SYNC-OK $repo") { throw "sync $repo failed: $(($sync -split "`n" | Select-Object -Last 3) -join ' ')" }
-    }
     $mirror = "C:\home\remote\$NodeMirror"
-    $walker = 'function W([string] $d) { foreach ($e in [IO.Directory]::EnumerateFileSystemEntries($d)) { if ([IO.Directory]::Exists($e)) { if ([IO.Path]::GetFileName($e) -notin ''target'', ''.cache'', ''.git'', ''bench'', ''node_modules'', ''vendor'') { W $e } } elseif ([IO.Path]::GetExtension($e) -in ''.spi'', ''.spir'', ''.rs'', ''.toml'', ''.spiproj'', ''.ps1'', ''.lock'') { $e } } }'
-    function Get-NodeManifest([string] $root, [string[]] $dirs) {
-        $list = ($dirs | ForEach-Object { "'$_'" }) -join ', '
-        @(Invoke-NodePwsh "$walker; @(foreach (`$dir in @($list)) { `$b = Join-Path '$root' `$dir; if ([IO.Directory]::Exists(`$b)) { W `$b | ForEach-Object { `"`$(`$_.Substring($($root.Length + 1))) `$((Get-FileHash -LiteralPath `$_).Hash)`" } } }) | Sort-Object")
-    }
-    foreach ($pair in @(@($snapshotRoot, "$mirror\kit", $treeDirs, $snapshotManifest), @((Split-Path $libCopy), "$mirror\spiral\lib", @('spiral'), $libManifest))) {
-        $boxRoot, $nodeRoot, $dirs, $want = $pair
-        $wantMap = @{}; foreach ($row in $want) { $rel, $h = $row -split ' ', 2; $wantMap[$rel] = $h }
-        $haveMap = @{}; foreach ($row in (Get-NodeManifest $nodeRoot $dirs)) { $rel, $h = $row -split ' ', 2; $haveMap[$rel] = $h }
-        $push = @($wantMap.Keys | Where-Object { $haveMap[$_] -ne $wantMap[$_] })
-        $drop = @($haveMap.Keys | Where-Object { -not $wantMap.ContainsKey($_) })
-        if (-not $want.Count) { throw "box manifest of $boxRoot is empty; refusing to reconcile $nodeRoot against nothing" }
-        if ($drop.Count -gt [Math]::Max(25, $haveMap.Count / 10)) { throw "reconcile would remove $($drop.Count) of $($haveMap.Count) files under $nodeRoot; refusing (a manifest root is likely wrong)" }
-        if ($push.Count) {
-            $list = Join-Path ([IO.Path]::GetTempPath()) "node-train-$Name-push.txt"
-            $tar = Join-Path ([IO.Path]::GetTempPath()) "node-train-$Name-push.tar"
-            [IO.File]::WriteAllLines($list, @($push | ForEach-Object { $_.Replace('\', '/') }))
-            & tar.exe -cf $tar -C $boxRoot -T $list
-            if ($LASTEXITCODE -ne 0) { throw "tar of $($push.Count) differing files failed" }
-            scp -q $tar "${SshHost}:C:/home/remote/stage/node-train-push.tar"
-            Invoke-NodePwsh "tar.exe -xf C:\home\remote\stage\node-train-push.tar -C '$nodeRoot'; if (`$LASTEXITCODE) { throw 'untar failed' }" | Out-Null
-            Remove-Item $list, $tar -ErrorAction Ignore
+    if ($ResumeNodeJob) {
+        if (-not (Test-Path -LiteralPath $libCopy)) { throw "no launch snapshot under $snapshotRoot; cannot resume $ResumeNodeJob" }
+        $jobId = $ResumeNodeJob
+        $before = @(Get-Manifest $snapshotRoot @('src') | Where-Object { $_ -match '^src\\\S+\.rs ' })
+        Say "resuming node half $jobId against the launch snapshot ($($before.Count) generated files)"
+    } else {
+        $dllPath = 'AppData\Local\spiral-bin\bin\single-flight\SpiralCompiler\Release\net11.0\SpiralCompiler.dll'
+        $corePath = $dllPath.Replace('SpiralCompiler.dll', 'SpiralCompilerCore.dll')
+        $boxParity = "dll=$((Get-FileHash (Join-Path $HOME $dllPath)).Hash) core=$((Get-FileHash (Join-Path $HOME $corePath)).Hash) $(rustc --version)"
+        $nodeParity = (Invoke-NodePwsh "`"dll=`$((Get-FileHash (Join-Path `$HOME '$dllPath')).Hash) core=`$((Get-FileHash (Join-Path `$HOME '$corePath')).Hash) `$(rustc --version)`"") -join ''
+        if ($boxParity -ne $nodeParity) { throw "toolchain parity: box [$boxParity] node [$nodeParity]; refusing a node train" }
+        Say "parity ok: $boxParity"
+        $regenDir = 'C:\Users\alias\AppData\Local\spiral-bin\kit-regeneration'
+        $space = (Invoke-NodePwsh "`$f = [math]::Round((Get-PSDrive C).Free/1GB,1); `$s = @(Get-ChildItem '$regenDir' -Directory -ErrorAction SilentlyContinue | Where-Object { `$_.LastWriteTime -lt (Get-Date).AddHours(-6) }).Count; `"`$f `$s`"") -join ''
+        $freeGb, $staleDirs = $space.Trim() -split ' '
+        if ([double]$freeGb -lt 5) { throw "node C: has $freeGb GB free (< 5 GB; a regen needs ~1.5 GB plus caches); $staleDirs staged workspace(s) older than 6 h sit in $regenDir; free space first, refusing a node train" }
+        Say "node disk ok: $freeGb GB free, $staleDirs stale staged workspace(s) in kit-regeneration"
+        $snapshotRoot = Join-Path $kitRoot ".cache\release-tree\$Name"
+        $libCopy = Join-Path $kitRoot ".cache\release-tree\$Name-lib\lib\spiral"
+        $liveLib = (Resolve-Path -LiteralPath (Join-Path $kitRoot '..\spiral\lib\spiral')).Path
+        $treeDirs = @('src', 'scripts', 'compiler-contracts')
+        & robocopy $kitRoot $snapshotRoot /MIR /XD target .cache .git /NFL /NDL /NJH /NJS /NP | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "snapshot copy failed (robocopy exit $LASTEXITCODE)" }
+        & robocopy $liveLib $libCopy /MIR /XD bench target /NFL /NDL /NJH /NJS /NP | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "lib copy failed (robocopy exit $LASTEXITCODE)" }
+        $snapshotManifest = Get-Manifest $snapshotRoot $treeDirs
+        $libManifest = Get-Manifest (Split-Path $libCopy) @('spiral')
+        foreach ($repo in 'spiral', 'kit') {
+            $sync = & $remote $Node sync $repo -Mirror $NodeMirror 2>&1 | Out-String
+            if ($sync -notmatch "REMOTE-SYNC-OK $repo") { throw "sync $repo failed: $(($sync -split "`n" | Select-Object -Last 3) -join ' ')" }
         }
-        if ($drop.Count) { Invoke-NodePwsh ("foreach (`$f in @(" + (($drop | ForEach-Object { "'$nodeRoot\$_'" }) -join ', ') + ")) { Remove-Item -LiteralPath `$f -Force }") | Out-Null }
-        $again = Get-NodeManifest $nodeRoot $dirs
-        if (($again -join "`n") -ne ($want -join "`n")) { throw "node mirror $nodeRoot still differs from the snapshot after reconciling; refusing a node train" }
-        Say "node mirror $nodeRoot = snapshot ($($want.Count) files; pushed $($push.Count), removed $($drop.Count))"
+        $mirror = "C:\home\remote\$NodeMirror"
+        $walker = 'function W([string] $d) { foreach ($e in [IO.Directory]::EnumerateFileSystemEntries($d)) { if ([IO.Directory]::Exists($e)) { if ([IO.Path]::GetFileName($e) -notin ''target'', ''.cache'', ''.git'', ''bench'', ''node_modules'', ''vendor'') { W $e } } elseif ([IO.Path]::GetExtension($e) -in ''.spi'', ''.spir'', ''.rs'', ''.toml'', ''.spiproj'', ''.ps1'', ''.lock'') { $e } } }'
+        function Get-NodeManifest([string] $root, [string[]] $dirs) {
+            $list = ($dirs | ForEach-Object { "'$_'" }) -join ', '
+            @(Invoke-NodePwsh "$walker; @(foreach (`$dir in @($list)) { `$b = Join-Path '$root' `$dir; if ([IO.Directory]::Exists(`$b)) { W `$b | ForEach-Object { `"`$(`$_.Substring($($root.Length + 1))) `$((Get-FileHash -LiteralPath `$_).Hash)`" } } }) | Sort-Object")
+        }
+        foreach ($pair in @(@($snapshotRoot, "$mirror\kit", $treeDirs, $snapshotManifest), @((Split-Path $libCopy), "$mirror\spiral\lib", @('spiral'), $libManifest))) {
+            $boxRoot, $nodeRoot, $dirs, $want = $pair
+            $wantMap = @{}; foreach ($row in $want) { $rel, $h = $row -split ' ', 2; $wantMap[$rel] = $h }
+            $haveMap = @{}; foreach ($row in (Get-NodeManifest $nodeRoot $dirs)) { $rel, $h = $row -split ' ', 2; $haveMap[$rel] = $h }
+            $push = @($wantMap.Keys | Where-Object { $haveMap[$_] -ne $wantMap[$_] })
+            $drop = @($haveMap.Keys | Where-Object { -not $wantMap.ContainsKey($_) })
+            if (-not $want.Count) { throw "box manifest of $boxRoot is empty; refusing to reconcile $nodeRoot against nothing" }
+            if ($drop.Count -gt [Math]::Max(25, $haveMap.Count / 10)) { throw "reconcile would remove $($drop.Count) of $($haveMap.Count) files under $nodeRoot; refusing (a manifest root is likely wrong)" }
+            if ($push.Count) {
+                $list = Join-Path ([IO.Path]::GetTempPath()) "node-train-$Name-push.txt"
+                $tar = Join-Path ([IO.Path]::GetTempPath()) "node-train-$Name-push.tar"
+                [IO.File]::WriteAllLines($list, @($push | ForEach-Object { $_.Replace('\', '/') }))
+                & tar.exe -cf $tar -C $boxRoot -T $list
+                if ($LASTEXITCODE -ne 0) { throw "tar of $($push.Count) differing files failed" }
+                scp -q $tar "${SshHost}:C:/home/remote/stage/node-train-push.tar"
+                Invoke-NodePwsh "tar.exe -xf C:\home\remote\stage\node-train-push.tar -C '$nodeRoot'; if (`$LASTEXITCODE) { throw 'untar failed' }" | Out-Null
+                Remove-Item $list, $tar -ErrorAction Ignore
+            }
+            if ($drop.Count) { Invoke-NodePwsh ("foreach (`$f in @(" + (($drop | ForEach-Object { "'$nodeRoot\$_'" }) -join ', ') + ")) { Remove-Item -LiteralPath `$f -Force }") | Out-Null }
+            $again = Get-NodeManifest $nodeRoot $dirs
+            if (($again -join "`n") -ne ($want -join "`n")) { throw "node mirror $nodeRoot still differs from the snapshot after reconciling; refusing a node train" }
+            Say "node mirror $nodeRoot = snapshot ($($want.Count) files; pushed $($push.Count), removed $($drop.Count))"
+        }
+        Invoke-NodePwsh "Copy-Item 'C:\home\bin\kit.exe' '$mirror\kit\kit.exe' -Force" | Out-Null
+        $boxState = Join-Path $kitRoot '.cache\release-train'
+        $lastInstalled = Join-Path $boxState 'last-installed.txt'
+        if (Test-Path -LiteralPath $lastInstalled) {
+            $lastName = (Get-Content -LiteralPath $lastInstalled -TotalCount 1).Trim()
+            $nodeState = "$($mirror.Replace('\', '/'))/kit/.cache/release-train"
+            Invoke-NodePwsh "New-Item -ItemType Directory -Force '$mirror\kit\.cache\release-train\$lastName' | Out-Null" | Out-Null
+            scp -q $lastInstalled "${SshHost}:$nodeState/last-installed.txt"
+            scp -q (Join-Path $boxState "$lastName\shipped-manifest.txt") "${SshHost}:$nodeState/$lastName/shipped-manifest.txt"
+            Say "node notebook selection uses the box's last installed train $lastName"
+        }
+        $before = Invoke-NodePwsh "Get-ChildItem '$mirror\kit\src' -Recurse -File -Filter *.rs | Where-Object { `$_.FullName -notmatch '\\target\\' } | ForEach-Object { `"`$(`$_.FullName.Substring('$mirror\kit\'.Length)) `$((Get-FileHash `$_.FullName).Hash)`" }"
+        $start = & $remote $Node job start "kit-$Name" 36000000 pwsh -NoProfile -File "$mirror\kit\scripts\release-train.ps1" -Name $Name -KitRoot "$mirror\kit" -Lib "$mirror\spiral\lib\spiral" -NotebooksOnly 2>&1 | Out-String
+        $jobId = [regex]::Match($start, 'id=(\S+)').Groups[1].Value
+        if (-not $jobId) { throw "node job did not start: $start" }
+        Say "node half started: $jobId"
     }
-    Invoke-NodePwsh "Copy-Item 'C:\home\bin\kit.exe' '$mirror\kit\kit.exe' -Force" | Out-Null
-    $boxState = Join-Path $kitRoot '.cache\release-train'
-    $lastInstalled = Join-Path $boxState 'last-installed.txt'
-    if (Test-Path -LiteralPath $lastInstalled) {
-        $lastName = (Get-Content -LiteralPath $lastInstalled -TotalCount 1).Trim()
-        $nodeState = "$($mirror.Replace('\', '/'))/kit/.cache/release-train"
-        Invoke-NodePwsh "New-Item -ItemType Directory -Force '$mirror\kit\.cache\release-train\$lastName' | Out-Null" | Out-Null
-        scp -q $lastInstalled "${SshHost}:$nodeState/last-installed.txt"
-        scp -q (Join-Path $boxState "$lastName\shipped-manifest.txt") "${SshHost}:$nodeState/$lastName/shipped-manifest.txt"
-        Say "node notebook selection uses the box's last installed train $lastName"
-    }
-    $before = Invoke-NodePwsh "Get-ChildItem '$mirror\kit\src' -Recurse -File -Filter *.rs | Where-Object { `$_.FullName -notmatch '\\target\\' } | ForEach-Object { `"`$(`$_.FullName.Substring('$mirror\kit\'.Length)) `$((Get-FileHash `$_.FullName).Hash)`" }"
-    $start = & $remote $Node job start "kit-$Name" 36000000 pwsh -NoProfile -File "$mirror\kit\scripts\release-train.ps1" -Name $Name -KitRoot "$mirror\kit" -Lib "$mirror\spiral\lib\spiral" -NotebooksOnly 2>&1 | Out-String
-    $jobId = [regex]::Match($start, 'id=(\S+)').Groups[1].Value
-    if (-not $jobId) { throw "node job did not start: $start" }
-    Say "node half started: $jobId"
     $misses = 0
     while ($true) {
-        $wait = & $remote $Node job wait $jobId 2>&1 | Out-String
+        $wait = try { & $remote $Node job wait $jobId 2>&1 | Out-String } catch { "$_" }
         if ($wait -match 'kit job wait ok') { break }
         $misses++
         Say "node wait lost its route ($misses of 10): $(($wait.Trim() -split "`n" | Select-Object -Last 1))"
-        if ($misses -ge 10) { break }
+        if ($misses -ge 10) { throw "node half UNKNOWN: route lost $misses times; the job may still be running on $Node. Resume with -NodeStage -ResumeNodeJob $jobId once it answers" }
         Start-Sleep -Seconds 60
     }
     & $remote $Node job tail $jobId 40 2>&1 | Where-Object { $_ -match '^\d\d:\d\d:\d\d ' } | ForEach-Object { Say "node: $_" }

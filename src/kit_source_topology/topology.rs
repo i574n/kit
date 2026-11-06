@@ -437,7 +437,7 @@ fn build_cache_binding_3(mut v0: u64, mut v1: i32, mut v2: i32) -> i32 {
             }
         }
     };
-    match &v14 {
+    match v14 {
         US0::US0_NoBuildCacheEvidence => {
             0i32
         }
@@ -505,7 +505,7 @@ fn source_directory_kind_5(mut v0: Rc<str>) -> u64 {
 }
 fn closure5() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        source_directory_kind_5(v0.clone())
+        source_directory_kind_5(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_source_topology_limit_binding(v0: i32, v1: i32) -> i32 {

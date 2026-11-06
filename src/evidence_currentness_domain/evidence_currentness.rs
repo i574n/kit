@@ -454,7 +454,7 @@ fn check_0(mut v0: Rc<str>) -> bool {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> bool> = Rc::new(move |mut v0: Rc<str>| -> bool {
-        check_0(v0.clone())
+        check_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn evidence_row_stage_2(mut v0: i32, mut v1: i32) -> i32 {
@@ -518,7 +518,7 @@ fn rust_tool_environment_binding_3(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        rust_tool_environment_binding_3(v0.clone())
+        rust_tool_environment_binding_3(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn evidence_public_binary_binding_4(mut v0: i32, mut v1: i32) -> Rc<str> {

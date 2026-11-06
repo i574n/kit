@@ -158,10 +158,10 @@ fn classify_archive_name_1(mut v0: Rc<str>) -> US0 {
 }
 fn archive_classification_code_0(mut v0: Rc<str>) -> i32 {
     let mut v1: US0 = classify_archive_name_1(v0);
-    match &v1 {
+    match v1 {
         US0::US0_Recognized(v2) => {
-            let mut v2: US1 = v2.clone();
-            match &v2 {
+            let mut v2: US1 = v2;
+            match v2 {
                 US1::US1_Bzip2TarArchive => {
                     4i32
                 }
@@ -186,15 +186,15 @@ fn archive_classification_code_0(mut v0: Rc<str>) -> i32 {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        archive_classification_code_0(v0.clone())
+        archive_classification_code_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn archive_classification_label_2(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: US0 = classify_archive_name_1(v0);
-    match &v1 {
+    match v1 {
         US0::US0_Recognized(v2) => {
-            let mut v2: US1 = v2.clone();
-            match &v2 {
+            let mut v2: US1 = v2;
+            match v2 {
                 US1::US1_Bzip2TarArchive => {
                     let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tar.bz2"); } LIT.with(|lit| lit.clone()) };
                     v7
@@ -225,7 +225,7 @@ fn archive_classification_label_2(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        archive_classification_label_2(v0.clone())
+        archive_classification_label_2(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn method5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
@@ -311,7 +311,7 @@ fn read_octal_field_4(mut v0: Rc<str>) -> US2 {
     } else {
         let v11: bool = u64::from_str_radix(&*v8, 8).is_err();
         if v11 {
-            US2::US2_InvalidOctal(v8.clone())
+            US2::US2_InvalidOctal(v8)
         } else {
             let v13: u64 = u64::from_str_radix(&*v8, 8).unwrap_or(0);
             US2::US2_OctalValue(v13)
@@ -320,45 +320,44 @@ fn read_octal_field_4(mut v0: Rc<str>) -> US2 {
 }
 fn octal_field_value_3(mut v0: Rc<str>) -> u64 {
     let mut v1: US2 = read_octal_field_4(v0);
-    match &v1 {
+    match v1 {
         US2::US2_EmptyField => {
             0u64
         }
         US2::US2_InvalidOctal(v3) => {
-            let v3: Rc<str> = v3.clone();
+            let v3: Rc<str> = v3;
             0u64
         }
         US2::US2_OctalValue(v2) => {
-            let mut v2: u64 = *v2;
+            let mut v2: u64 = v2;
             v2
         }
     }
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        octal_field_value_3(v0.clone())
+        octal_field_value_3(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn octal_field_error_7(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: US2 = read_octal_field_4(v0);
-    match &v2 {
+    match v2 {
         US2::US2_InvalidOctal(v3) => {
-            let v3: Rc<str> = v3.clone();
-            let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("invalid tar "); } LIT.with(|lit| lit.clone()) };
-            let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v1));
-            let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-            let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v5, v6)), v3));
-            v8
+            let v3: Rc<str> = v3;
+            let v4: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("invalid tar "); } LIT.with(|lit| lit.clone()) }, v1));
+            let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+            let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v3));
+            v6
         }
         _ => {
-            let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v9
+            let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            v7
         }
     }
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
-        octal_field_error_7(v0.clone(), v1.clone())
+        octal_field_error_7(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_archive_format_code(v0: &str) -> i32 {

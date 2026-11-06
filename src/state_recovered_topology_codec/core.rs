@@ -156,7 +156,7 @@ fn skip_spaces_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 continue;
             } else {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                let v9: u8 = codec_runtime_char_7(v8.clone());
+                let v9: u8 = codec_runtime_char_7(v8);
                 let v10: bool = v4 == v9 ;
                 if v10 {
                     let v11: i32 = v1 + 1i32 ;
@@ -183,7 +183,7 @@ fn state_receipt_trim_right_loop_12(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 continue;
             } else {
                 let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                let v8: u8 = codec_runtime_char_7(v7.clone());
+                let v8: u8 = codec_runtime_char_7(v7);
                 let v9: bool = v4 == v8 ;
                 if v9 {
                     v1 = v3;
@@ -498,10 +498,10 @@ fn state_receipt_recovered_fixture_scan_loop_20(mut v0: Rc<str>, mut v1: i32, mu
         let v5: i32 = (v0.clone().len() as i32);
         let v6: bool = v1 == v5 ;
         if v6 {
-            return (v4, v3.clone());
+            return (v4, v3);
         } else {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let v8: u8 = codec_runtime_char_7(v7.clone());
+            let v8: u8 = codec_runtime_char_7(v7);
             let v9: i32 = find_char_loop_6(v0.clone(), v1, v5, v8);
             let v10: bool = v9 < v5;
             let v12: i32 = if v10 {
@@ -516,16 +516,16 @@ fn state_receipt_recovered_fixture_scan_loop_20(mut v0: Rc<str>, mut v1: i32, mu
             } else {
                 let v15: i32 = v9 - 1i32 ;
                 let v16: Rc<str> = string_slice(&v0.clone(), v1 as i64, v15 as i64);
-                v16.clone()
+                v16
             };
-            let v18: Rc<str> = state_receipt_trim_10(v17.clone());
+            let v18: Rc<str> = state_receipt_trim_10(v17);
             let v19: i32 = (v18.clone().len() as i32);
             let v20: bool = v19 >= 21i32;
             let v26: bool = if v20 {
                 let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("// recovered-fixture|"); } LIT.with(|lit| lit.clone()) };
                 let v22: i32 = 0i32;
                 let v23: i32 = 21i32;
-                let v24: i32 = find_text_loop_4(v18.clone(), v21.clone(), v22, v19, v23);
+                let v24: i32 = find_text_loop_4(v18.clone(), v21, v22, v19, v23);
                 let v25: bool = v24 == 0i32 ;
                 v25
             } else {
@@ -574,7 +574,7 @@ fn state_receipt_recovered_fixture_scan_loop_20(mut v0: Rc<str>, mut v1: i32, mu
                 };
                 if v50 {
                     let v51: Rc<str> = codec_empty_8();
-                    return (18446744073709551615u64, v51.clone());
+                    return (18446744073709551615u64, v51);
                 } else {
                     let v52: i32 = v29 + 1i32 ;
                     let v53: bool = v52 == v32 ;
@@ -583,7 +583,7 @@ fn state_receipt_recovered_fixture_scan_loop_20(mut v0: Rc<str>, mut v1: i32, mu
                     } else {
                         let v55: i32 = v32 - 1i32 ;
                         let v56: Rc<str> = string_slice(&v18.clone(), v52 as i64, v55 as i64);
-                        v56.clone()
+                        v56
                     };
                     let v58: i32 = v32 + 1i32 ;
                     let v59: bool = v58 == v35 ;
@@ -592,7 +592,7 @@ fn state_receipt_recovered_fixture_scan_loop_20(mut v0: Rc<str>, mut v1: i32, mu
                     } else {
                         let v61: i32 = v35 - 1i32 ;
                         let v62: Rc<str> = string_slice(&v18.clone(), v58 as i64, v61 as i64);
-                        v62.clone()
+                        v62
                     };
                     let v64: i32 = v35 + 1i32 ;
                     let v65: bool = v64 == v38 ;
@@ -601,7 +601,7 @@ fn state_receipt_recovered_fixture_scan_loop_20(mut v0: Rc<str>, mut v1: i32, mu
                     } else {
                         let v67: i32 = v38 - 1i32 ;
                         let v68: Rc<str> = string_slice(&v18.clone(), v64 as i64, v67 as i64);
-                        v68.clone()
+                        v68
                     };
                     let v70: i32 = v38 + 1i32 ;
                     let v71: bool = v70 == v19 ;
@@ -609,8 +609,8 @@ fn state_receipt_recovered_fixture_scan_loop_20(mut v0: Rc<str>, mut v1: i32, mu
                         codec_empty_8()
                     } else {
                         let v73: i32 = v19 - 1i32 ;
-                        let v74: Rc<str> = string_slice(&v18.clone(), v70 as i64, v73 as i64);
-                        v74.clone()
+                        let v74: Rc<str> = string_slice(&v18, v70 as i64, v73 as i64);
+                        v74
                     };
                     let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     let v77: bool = v63 == v76 ;
@@ -628,34 +628,34 @@ fn state_receipt_recovered_fixture_scan_loop_20(mut v0: Rc<str>, mut v1: i32, mu
                     };
                     if v81 {
                         let v82: Rc<str> = codec_empty_8();
-                        return (18446744073709551615u64, v82.clone());
+                        return (18446744073709551615u64, v82);
                     } else {
-                        let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v57.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
+                        let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v57, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
                         let v84: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }, v83.clone()));
                         let v85: i32 = (v2.clone().len() as i32);
                         let v86: i32 = 0i32;
                         let v87: i32 = (v84.clone().len() as i32);
-                        let v88: i32 = find_text_loop_4(v2.clone(), v84.clone(), v86, v85, v87);
+                        let v88: i32 = find_text_loop_4(v2.clone(), v84, v86, v85, v87);
                         let v89: bool = v88 < v85;
                         if v89 {
                             let v90: Rc<str> = codec_empty_8();
-                            return (18446744073709551615u64, v90.clone());
+                            return (18446744073709551615u64, v90);
                         } else {
-                            let v91: Rc<str> = Rc::<str>::from(format!("{}{}", v2.clone(), v83.clone()));
-                            let v92: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }, v75.clone()));
-                            let v93: Rc<str> = Rc::<str>::from(format!("{}{}", v69.clone(), v92.clone()));
-                            let v94: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }, v93.clone()));
-                            let v95: Rc<str> = Rc::<str>::from(format!("{}{}", v63.clone(), v94.clone()));
+                            let v91: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v83));
+                            let v92: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }, v75));
+                            let v93: Rc<str> = Rc::<str>::from(format!("{}{}", v69, v92));
+                            let v94: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }, v93));
+                            let v95: Rc<str> = Rc::<str>::from(format!("{}{}", v63, v94));
                             let v96: bool = v3 == v76 ;
                             let v99: Rc<str> = if v96 {
-                                v95.clone()
+                                v95
                             } else {
-                                let v97: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }, v95.clone()));
-                                let v98: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v97.clone()));
-                                v98.clone()
+                                let v97: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }, v95));
+                                let v98: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v97));
+                                v98
                             };
                             let v100: u64 = v4 + 1u64 ;
-                            (v1, v2, v3, v4) = (v12, v91.clone(), v99.clone(), v100);
+                            (v1, v2, v3, v4) = (v12, v91, v99, v100);
                             continue;
                         }
                     }
@@ -689,17 +689,17 @@ fn state_receipt_recovered_fixture_paths_21(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_recovered_topology_count_or_max_2(v0.clone())
+        state_receipt_recovered_topology_count_or_max_2(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_recovered_fixture_record_count_or_max_18(v0.clone())
+        state_receipt_recovered_fixture_record_count_or_max_18(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        state_receipt_recovered_fixture_paths_21(v0.clone())
+        state_receipt_recovered_fixture_paths_21(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure3() -> Rc<dyn Fn(i32, i32) -> i32> {

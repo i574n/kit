@@ -129,7 +129,7 @@ fn closure3() -> Rc<dyn Fn(i32, i32) -> i32> {
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> = Rc::new(move |mut v0: Rc<str>| -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
-        authority_blocker_labels_4(v0.clone())
+        authority_blocker_labels_4(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_authority_state(v0: i32, v1: i32) -> i32 {

@@ -623,14 +623,14 @@ fn bundle_workspace_members_loop_18(mut v0: Rc<str>, mut v1: i32, mut v2: i32, m
     loop {
         let v5: bool = v1 == v2 ;
         if v5 {
-            return v4.clone();
+            return v4;
         } else {
             let v6: i32 = (v0.clone().len() as i32);
             let v7: u8 = b'"';
             let v8: i32 = find_char_loop_19(v0.clone(), v1, v6, v7);
             let v9: bool = v8 == v2 ;
             if v9 {
-                return v4.clone();
+                return v4;
             } else {
                 let v10: i32 = v8 + 1i32 ;
                 let v11: u8 = b'"';
@@ -645,27 +645,27 @@ fn bundle_workspace_members_loop_18(mut v0: Rc<str>, mut v1: i32, mut v2: i32, m
                     } else {
                         let v17: i32 = v12 - 1i32 ;
                         let v18: Rc<str> = string_slice(&v0.clone(), v10 as i64, v17 as i64);
-                        v18.clone()
+                        v18
                     };
                     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     let v21: bool = v19 == v20 ;
                     if v21 {
                         return codec_empty_16();
                     } else {
-                        let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v19.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
+                        let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v19, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
                         let v24: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }, v23.clone()));
                         let v25: i32 = (v3.clone().len() as i32);
                         let v26: i32 = 0i32;
                         let v27: i32 = (v24.clone().len() as i32);
-                        let v28: i32 = find_text_loop_20(v3.clone(), v24.clone(), v26, v25, v27);
+                        let v28: i32 = find_text_loop_20(v3.clone(), v24, v26, v25, v27);
                         let v29: bool = v28 < v25;
                         if v29 {
                             return codec_empty_16();
                         } else {
                             let v31: i32 = v12 + 1i32 ;
-                            let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v23.clone()));
-                            let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v4.clone(), v23.clone()));
-                            (v1, v3, v4) = (v31, v32.clone(), v33.clone());
+                            let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v23.clone()));
+                            let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v23));
+                            (v1, v3, v4) = (v31, v32, v33);
                             continue;
                         }
                     }
@@ -756,7 +756,7 @@ fn closure7() -> Rc<dyn Fn(i32, i32) -> i32> {
 }
 fn closure8() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        bundle_workspace_members_parse_15(v0.clone())
+        bundle_workspace_members_parse_15(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_flat_bundle_preflight_binding(v0: i32, v1: i32) -> i32 {

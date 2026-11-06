@@ -38,7 +38,7 @@ fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("typed-payload"); } LIT.with(|lit| lit.clone()) };
         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
-        (v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone())
+        (v3, v4, v5, v6, v7)
     } else {
         let v8: bool = 1i32 == v1;
         if v8 {
@@ -47,7 +47,7 @@ fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expected"); } LIT.with(|lit| lit.clone()) };
             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("replacement"); } LIT.with(|lit| lit.clone()) };
             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
-            (v9.clone(), v10.clone(), v11.clone(), v12.clone(), v13.clone())
+            (v9, v10, v11, v12, v13)
         } else {
             let v14: bool = 2i32 == v1;
             if v14 {
@@ -56,7 +56,7 @@ fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
                 let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("old"); } LIT.with(|lit| lit.clone()) };
                 let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("new"); } LIT.with(|lit| lit.clone()) };
                 let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
-                (v15.clone(), v16.clone(), v17.clone(), v18.clone(), v19.clone())
+                (v15, v16, v17, v18, v19)
             } else {
                 let v20: bool = 3i32 == v1;
                 if v20 {
@@ -64,14 +64,14 @@ fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
                     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/generated"); } LIT.with(|lit| lit.clone()) };
                     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
                     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
-                    (v21.clone(), v22.clone(), v23.clone(), v23.clone(), v24.clone())
+                    (v21, v22, v23.clone(), v23.clone(), v24)
                 } else {
                     let v25: bool = 4i32 == v1;
                     if v25 {
                         let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("toolchain"); } LIT.with(|lit| lit.clone()) };
                         let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cargo-check"); } LIT.with(|lit| lit.clone()) };
                         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
-                        (v26.clone(), v27.clone(), v28.clone(), v28.clone(), v26.clone())
+                        (v26.clone(), v27, v28.clone(), v28.clone(), v26.clone())
                     } else {
                         let v29: bool = 5i32 == v1;
                         if v29 {
@@ -80,7 +80,7 @@ fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
                             let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expected-sha"); } LIT.with(|lit| lit.clone()) };
                             let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/source.spi"); } LIT.with(|lit| lit.clone()) };
                             let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
-                            (v30.clone(), v31.clone(), v32.clone(), v33.clone(), v34.clone())
+                            (v30, v31, v32, v33, v34)
                         } else {
                             let v35: bool = 6i32 == v1;
                             if v35 {
@@ -89,7 +89,7 @@ fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
                                 let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0755"); } LIT.with(|lit| lit.clone()) };
                                 let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0644"); } LIT.with(|lit| lit.clone()) };
                                 let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
-                                (v36.clone(), v37.clone(), v38.clone(), v39.clone(), v40.clone())
+                                (v36, v37, v38, v39, v40)
                             } else {
                                 let v41: bool = 7i32 == v1;
                                 if v41 {
@@ -98,7 +98,7 @@ fn plan_descriptor_by_index_1(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc
                                     let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
                                     let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/target"); } LIT.with(|lit| lit.clone()) };
                                     let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("write"); } LIT.with(|lit| lit.clone()) };
-                                    (v42.clone(), v43.clone(), v44.clone(), v45.clone(), v46.clone())
+                                    (v42, v43, v44, v45, v46)
                                 } else {
                                     let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("invalid"); } LIT.with(|lit| lit.clone()) };
                                     let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -686,22 +686,22 @@ fn plan_decode_code_12(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        plan_schema_tag_0(v0.clone())
+        plan_schema_tag_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> = Rc::new(move |mut v0: Rc<str>| -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
-        plan_descriptor_by_index_1(v0.clone())
+        plan_descriptor_by_index_1(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        plan_manifest_header_projection_2(v0.clone())
+        plan_manifest_header_projection_2(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> = Rc::new(move |mut v0: Rc<str>| -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
-        plan_manifest_row_hex_tuple_5(v0.clone())
+        plan_manifest_row_hex_tuple_5(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure4() -> Rc<dyn Fn() -> i32> {
@@ -721,12 +721,12 @@ fn closure6() -> Rc<dyn Fn() -> i32> {
 }
 fn closure7() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        plan_index_valid_11(v0.clone())
+        plan_index_valid_11(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure8() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>| -> u64 {
-        plan_decode_code_12(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone())
+        plan_decode_code_12(v0, v1, v2, v3, v4)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_plan_ir_schema(v0: &str) -> Rc<str> {

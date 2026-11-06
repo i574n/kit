@@ -1,7 +1,6 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
-struct Mut0 { l0: Rc<str> }
 #[derive(Clone)]
 enum US0 {
     US0_Valid(i32),
@@ -24,10 +23,10 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     let mut v1: bool = &*v0 == "init";
     let mut v4: Rc<str> = if v1 {
         let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
-        v2.clone()
+        v2
     } else {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v3.clone()
+        v3
     };
     let v5: bool = &*v4 == "";
     let mut v7: bool = if v5 {
@@ -38,9 +37,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v9: Rc<str> = if v7 {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <title>"); } LIT.with(|lit| lit.clone()) };
-        v8.clone()
+        v8
     } else {
-        v4.clone()
+        v4
     };
     let v10: bool = &*v9 == "";
     let v12: bool = if v10 {
@@ -51,9 +50,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v14: Rc<str> = if v12 {
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
-        v13.clone()
+        v13
     } else {
-        v9.clone()
+        v9
     };
     let v15: bool = &*v14 == "";
     let v17: bool = if v15 {
@@ -64,9 +63,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v19: Rc<str> = if v17 {
         let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
-        v18.clone()
+        v18
     } else {
-        v14.clone()
+        v14
     };
     let v20: bool = &*v19 == "";
     let v22: bool = if v20 {
@@ -77,9 +76,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v24: Rc<str> = if v22 {
         let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
-        v23.clone()
+        v23
     } else {
-        v19.clone()
+        v19
     };
     let v25: bool = &*v24 == "";
     let v27: bool = if v25 {
@@ -90,9 +89,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v29: Rc<str> = if v27 {
         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [all|Planned|Active|Blocked|Paused|Done] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--sort priority|difficulty|progress] [--load light|medium|heavy|none] [--assignee agent|pair|user|none] [--json]"); } LIT.with(|lit| lit.clone()) };
-        v28.clone()
+        v28
     } else {
-        v24.clone()
+        v24
     };
     let v30: bool = &*v29 == "";
     let v32: bool = if v30 {
@@ -103,9 +102,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v34: Rc<str> = if v32 {
         let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [--compiler <absolute>]"); } LIT.with(|lit| lit.clone()) };
-        v33.clone()
+        v33
     } else {
-        v29.clone()
+        v29
     };
     let v35: bool = &*v34 == "";
     let v37: bool = if v35 {
@@ -116,9 +115,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v39: Rc<str> = if v37 {
         let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
-        v38.clone()
+        v38
     } else {
-        v34.clone()
+        v34
     };
     let v40: bool = &*v39 == "";
     let v42: bool = if v40 {
@@ -129,9 +128,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v44: Rc<str> = if v42 {
         let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <id> <progress> <Planned|Active|Blocked|Paused|Done>"); } LIT.with(|lit| lit.clone()) };
-        v43.clone()
+        v43
     } else {
-        v39.clone()
+        v39
     };
     let v45: bool = &*v44 == "";
     let v47: bool = if v45 {
@@ -142,9 +141,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v49: Rc<str> = if v47 {
         let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <ID> <Epic|Feature|Story|TaskKind> <P0..P5> <D0..D8> <title> <tags> [--estimate <m>] [--load <l>] [--assignee <a>] [--deps <A,B>] [--note <text> --as <author>]"); } LIT.with(|lit| lit.clone()) };
-        v48.clone()
+        v48
     } else {
-        v44.clone()
+        v44
     };
     let v50: bool = &*v49 == "";
     let v52: bool = if v50 {
@@ -155,9 +154,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v54: Rc<str> = if v52 {
         let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <id> <title|title-append|kind|priority|difficulty|deps|tags|estimate|load|assignee> <value>"); } LIT.with(|lit| lit.clone()) };
-        v53.clone()
+        v53
     } else {
-        v49.clone()
+        v49
     };
     let v55: bool = &*v54 == "";
     let v57: bool = if v55 {
@@ -168,9 +167,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v59: Rc<str> = if v57 {
         let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <id> [--json]"); } LIT.with(|lit| lit.clone()) };
-        v58.clone()
+        v58
     } else {
-        v54.clone()
+        v54
     };
     let v60: bool = &*v59 == "";
     let v62: bool = if v60 {
@@ -181,9 +180,9 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v64: Rc<str> = if v62 {
         let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [--json]"); } LIT.with(|lit| lit.clone()) };
-        v63.clone()
+        v63
     } else {
-        v59.clone()
+        v59
     };
     let v65: bool = &*v64 == "";
     let v67: bool = if v65 {
@@ -194,207 +193,272 @@ fn agile_subcommand_shape_1(mut v0: Rc<str>) -> Rc<str> {
     };
     let v69: Rc<str> = if v67 {
         let v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("preview|apply <root>"); } LIT.with(|lit| lit.clone()) };
-        v68.clone()
+        v68
     } else {
-        v64.clone()
+        v64
     };
     let v70: bool = &*v69 == "";
     let v72: bool = if v70 {
-        let v71: bool = &*v0 == "note";
+        let v71: bool = &*v0 == "migrate-activity";
         v71
     } else {
         false
     };
     let v74: Rc<str> = if v72 {
-        let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <id> <text> [--as <author>]"); } LIT.with(|lit| lit.clone()) };
-        v73.clone()
+        let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("preview|apply <root>"); } LIT.with(|lit| lit.clone()) };
+        v73
     } else {
-        v69.clone()
+        v69
     };
     let v75: bool = &*v74 == "";
     let v77: bool = if v75 {
-        let v76: bool = &*v0 == "note-edit";
+        let v76: bool = &*v0 == "sprint";
         v76
     } else {
         false
     };
     let v79: Rc<str> = if v77 {
-        let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <id> <note-number> <text> [--as <author>] [--append] [--expect-at <iso> | --expect-prefix <text>]"); } LIT.with(|lit| lit.clone()) };
-        v78.clone()
+        let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("start <root> <id> <days> <goal> [--items A,B] | show <root> [<id>] | add|drop <root> <id> <item> | close <root> <id> | velocity <root> [--last n]"); } LIT.with(|lit| lit.clone()) };
+        v78
     } else {
-        v74.clone()
+        v74
     };
     let v80: bool = &*v79 == "";
     let v82: bool = if v80 {
-        let v81: bool = &*v0 == "notes";
+        let v81: bool = &*v0 == "lint";
         v81
     } else {
         false
     };
     let v84: Rc<str> = if v82 {
-        let v83: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("from-title <root> <id>"); } LIT.with(|lit| lit.clone()) };
-        v83.clone()
+        let v83: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [--census | --team <team>]"); } LIT.with(|lit| lit.clone()) };
+        v83
     } else {
-        v79.clone()
+        v79
     };
     let v85: bool = &*v84 == "";
     let v87: bool = if v85 {
-        let v86: bool = &*v0 == "rename";
+        let v86: bool = &*v0 == "gate";
         v86
     } else {
         false
     };
     let v89: Rc<str> = if v87 {
-        let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <old-id> <new-id>"); } LIT.with(|lit| lit.clone()) };
-        v88.clone()
+        let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> --team <team> --as <lane>"); } LIT.with(|lit| lit.clone()) };
+        v88
     } else {
-        v84.clone()
+        v84
     };
     let v90: bool = &*v89 == "";
     let v92: bool = if v90 {
-        let v91: bool = &*v0 == "seal";
+        let v91: bool = &*v0 == "cadence";
         v91
     } else {
         false
     };
     let v94: Rc<str> = if v92 {
-        let v93: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [--dry-run]"); } LIT.with(|lit| lit.clone()) };
-        v93.clone()
+        let v93: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [--hours n] [--days n | --since yyyy-mm-dd] [--team t] [--round h]"); } LIT.with(|lit| lit.clone()) };
+        v93
     } else {
-        v89.clone()
+        v89
     };
     let v95: bool = &*v94 == "";
     let v97: bool = if v95 {
-        let v96: bool = &*v0 == "todos";
+        let v96: bool = &*v0 == "note";
         v96
     } else {
         false
     };
     let v99: Rc<str> = if v97 {
-        let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [<path>...] [--json] [--tagged | --id <ID>] | <root> --record"); } LIT.with(|lit| lit.clone()) };
-        v98.clone()
+        let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <id> <text> [--as <author>]"); } LIT.with(|lit| lit.clone()) };
+        v98
     } else {
-        v94.clone()
+        v94
     };
     let v100: bool = &*v99 == "";
     let v102: bool = if v100 {
-        let v101: bool = &*v0 == "next";
+        let v101: bool = &*v0 == "note-edit";
         v101
     } else {
         false
     };
     let v104: Rc<str> = if v102 {
-        let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [--as main|subagent] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--load <loads>] [--fits] [count] | <root> --any --as <lane> [--ttl <minutes>] (claims the top free item)"); } LIT.with(|lit| lit.clone()) };
-        v103.clone()
+        let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <id> <note-number> <text> [--as <author>] [--append] [--expect-at <iso> | --expect-prefix <text>]"); } LIT.with(|lit| lit.clone()) };
+        v103
     } else {
-        v99.clone()
+        v99
     };
     let v105: bool = &*v104 == "";
     let v107: bool = if v105 {
-        let v106: bool = &*v0 == "claim";
+        let v106: bool = &*v0 == "notes";
         v106
     } else {
         false
     };
     let v109: Rc<str> = if v107 {
-        let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <ID> --as <lane> [--paths <glob,glob>] [--ttl <minutes>]"); } LIT.with(|lit| lit.clone()) };
-        v108.clone()
+        let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("from-title <root> <id>"); } LIT.with(|lit| lit.clone()) };
+        v108
     } else {
-        v104.clone()
+        v104
     };
     let v110: bool = &*v109 == "";
     let v112: bool = if v110 {
-        let v111: bool = &*v0 == "release";
+        let v111: bool = &*v0 == "rename";
         v111
     } else {
         false
     };
     let v114: Rc<str> = if v112 {
-        let v113: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <ID> --as <lane>"); } LIT.with(|lit| lit.clone()) };
-        v113.clone()
+        let v113: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <old-id> <new-id>"); } LIT.with(|lit| lit.clone()) };
+        v113
     } else {
-        v109.clone()
+        v109
     };
     let v115: bool = &*v114 == "";
     let v117: bool = if v115 {
-        let v116: bool = &*v0 == "roots";
+        let v116: bool = &*v0 == "seal";
         v116
     } else {
         false
     };
     let v119: Rc<str> = if v117 {
-        let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [add|drop <path>...]"); } LIT.with(|lit| lit.clone()) };
-        v118.clone()
+        let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [--dry-run]"); } LIT.with(|lit| lit.clone()) };
+        v118
     } else {
-        v114.clone()
+        v114
     };
     let v120: bool = &*v119 == "";
     let v122: bool = if v120 {
-        let v121: bool = &*v0 == "links";
+        let v121: bool = &*v0 == "todos";
         v121
     } else {
         false
     };
     let v124: Rc<str> = if v122 {
-        let v123: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> --memory <dir> [--json]"); } LIT.with(|lit| lit.clone()) };
-        v123.clone()
+        let v123: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [<path>...] [--json] [--tagged | --id <ID>] | <root> --record"); } LIT.with(|lit| lit.clone()) };
+        v123
     } else {
-        v119.clone()
+        v119
     };
     let v125: bool = &*v124 == "";
     let v127: bool = if v125 {
-        let v126: bool = &*v0 == "wip";
+        let v126: bool = &*v0 == "next";
         v126
     } else {
         false
     };
     let v129: Rc<str> = if v127 {
-        let v128: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
-        v128.clone()
+        let v128: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [--as main|subagent] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--load <loads>] [--fits] [count] | <root> --any --as <lane> [--ttl <minutes>] (claims the top free item)"); } LIT.with(|lit| lit.clone()) };
+        v128
     } else {
-        v124.clone()
+        v124
     };
     let v130: bool = &*v129 == "";
     let v132: bool = if v130 {
-        let v131: bool = &*v0 == "views";
+        let v131: bool = &*v0 == "claim";
         v131
     } else {
         false
     };
     let v134: Rc<str> = if v132 {
-        let v133: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
-        v133.clone()
+        let v133: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <ID> --as <lane> [--paths <glob,glob>] [--ttl <minutes>]"); } LIT.with(|lit| lit.clone()) };
+        v133
     } else {
-        v129.clone()
+        v129
     };
     let v135: bool = &*v134 == "";
     let v137: bool = if v135 {
-        let v136: bool = &*v0 == "view";
+        let v136: bool = &*v0 == "release";
         v136
     } else {
         false
     };
     let v139: Rc<str> = if v137 {
-        let v138: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <name> [extra flags...]"); } LIT.with(|lit| lit.clone()) };
-        v138.clone()
+        let v138: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <ID> --as <lane>"); } LIT.with(|lit| lit.clone()) };
+        v138
     } else {
-        v134.clone()
+        v134
     };
     let v140: bool = &*v139 == "";
     let v142: bool = if v140 {
-        let v141: bool = &*v0 == "view-add";
+        let v141: bool = &*v0 == "roots";
         v141
     } else {
         false
     };
-    if v142 {
-        let v143: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <name> <list|next> [flags...]"); } LIT.with(|lit| lit.clone()) };
-        v143.clone()
+    let v144: Rc<str> = if v142 {
+        let v143: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> [add|drop <path>...]"); } LIT.with(|lit| lit.clone()) };
+        v143
     } else {
-        v139.clone()
+        v139
+    };
+    let v145: bool = &*v144 == "";
+    let v147: bool = if v145 {
+        let v146: bool = &*v0 == "links";
+        v146
+    } else {
+        false
+    };
+    let v149: Rc<str> = if v147 {
+        let v148: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> --memory <dir> [--json]"); } LIT.with(|lit| lit.clone()) };
+        v148
+    } else {
+        v144
+    };
+    let v150: bool = &*v149 == "";
+    let v152: bool = if v150 {
+        let v151: bool = &*v0 == "wip";
+        v151
+    } else {
+        false
+    };
+    let v154: Rc<str> = if v152 {
+        let v153: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
+        v153
+    } else {
+        v149
+    };
+    let v155: bool = &*v154 == "";
+    let v157: bool = if v155 {
+        let v156: bool = &*v0 == "views";
+        v156
+    } else {
+        false
+    };
+    let v159: Rc<str> = if v157 {
+        let v158: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root>"); } LIT.with(|lit| lit.clone()) };
+        v158
+    } else {
+        v154
+    };
+    let v160: bool = &*v159 == "";
+    let v162: bool = if v160 {
+        let v161: bool = &*v0 == "view";
+        v161
+    } else {
+        false
+    };
+    let v164: Rc<str> = if v162 {
+        let v163: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <name> [extra flags...]"); } LIT.with(|lit| lit.clone()) };
+        v163
+    } else {
+        v159
+    };
+    let v165: bool = &*v164 == "";
+    let v167: bool = if v165 {
+        let v166: bool = &*v0 == "view-add";
+        v166
+    } else {
+        false
+    };
+    if v167 {
+        let v168: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("<root> <name> <list|next> [flags...]"); } LIT.with(|lit| lit.clone()) };
+        v168
+    } else {
+        v164
     }
 }
-fn method3(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+fn method3(mut v0: &Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let v2: Rc<str> = v0.borrow().l0.clone();
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
@@ -404,7 +468,7 @@ fn format_real_2(mut v0: i32) -> Rc<str> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method3(v2.clone(), v3);
+    method3(&v2, v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
@@ -414,25 +478,22 @@ fn agile_usage_error_0() -> i32 {
     let v2: Rc<str> = agile_subcommand_shape_1(v1.clone());
     let v3: bool = &*v2 == "";
     if v3 {
-        let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile supports init <root>, begin <root> <title>, lease <root>, status <root>, handoff <root>, list <root> [all|Planned|Active|Blocked|Paused|Done] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--sort priority|difficulty|progress] [--load light|medium|heavy|none] [--assignee agent|pair|user|none] [--json], check <root> [--compiler <absolute>], record <root>, set <root> <id> <progress> <Planned|Active|Blocked|Paused|Done>, add <root> <ID> <Epic|Feature|Story|TaskKind> <P0..P5> <D0..D8> <title> <tags> [--estimate <m>] [--load <l>] [--assignee <a>] [--deps <A,B>] [--note <text> --as <author>], edit <root> <id> <title|title-append|kind|priority|difficulty|deps|tags|estimate|load|assignee> <value>, show <root> <id> [--json], plan <root> [--json], migrate-tags preview|apply <root>, note <root> <id> <text> [--as <author>], note-edit <root> <id> <note-number> <text> [--as <author>] [--append] [--expect-at <iso> | --expect-prefix <text>], notes from-title <root> <id>, rename <root> <old-id> <new-id>, seal <root> [--dry-run], todos <root> [<path>...] [--json] [--tagged | --id <ID>] | <root> --record, next <root> [--as main|subagent] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--load <loads>] [--fits] [count] | <root> --any --as <lane> [--ttl <minutes>] (claims the top free item), claim <root> <ID> --as <lane> [--paths <glob,glob>] [--ttl <minutes>], release <root> <ID> --as <lane>, roots <root> [add|drop <path>...], links <root> --memory <dir> [--json], wip <root>, views <root>, view <root> <name> [extra flags...], view-add <root> <name> <list|next> [flags...]"); } LIT.with(|lit| lit.clone()) };
+        let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile supports init <root>, begin <root> <title>, lease <root>, status <root>, handoff <root>, list <root> [all|Planned|Active|Blocked|Paused|Done] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--sort priority|difficulty|progress] [--load light|medium|heavy|none] [--assignee agent|pair|user|none] [--json], check <root> [--compiler <absolute>], record <root>, set <root> <id> <progress> <Planned|Active|Blocked|Paused|Done>, add <root> <ID> <Epic|Feature|Story|TaskKind> <P0..P5> <D0..D8> <title> <tags> [--estimate <m>] [--load <l>] [--assignee <a>] [--deps <A,B>] [--note <text> --as <author>], edit <root> <id> <title|title-append|kind|priority|difficulty|deps|tags|estimate|load|assignee> <value>, show <root> <id> [--json], plan <root> [--json], migrate-tags preview|apply <root>, migrate-activity preview|apply <root>, sprint start <root> <id> <days> <goal> [--items A,B] | show <root> [<id>] | add|drop <root> <id> <item> | close <root> <id> | velocity <root> [--last n], lint <root> [--census | --team <team>], gate <root> --team <team> --as <lane>, cadence <root> [--hours n] [--days n | --since yyyy-mm-dd] [--team t] [--round h], note <root> <id> <text> [--as <author>], note-edit <root> <id> <note-number> <text> [--as <author>] [--append] [--expect-at <iso> | --expect-prefix <text>], notes from-title <root> <id>, rename <root> <old-id> <new-id>, seal <root> [--dry-run], todos <root> [<path>...] [--json] [--tagged | --id <ID>] | <root> --record, next <root> [--as main|subagent] [--team <team>] [--tag <tag>] [--prefix <ID prefix>] [--words <w1,w2>] [--open] [--ready] [--blocked] [--load <loads>] [--fits] [count] | <root> --any --as <lane> [--ttl <minutes>] (claims the top free item), claim <root> <ID> --as <lane> [--paths <glob,glob>] [--ttl <minutes>], release <root> <ID> --as <lane>, roots <root> [add|drop <path>...], links <root> --memory <dir> [--json], wip <root>, views <root>, view <root> <name> [extra flags...], view-add <root> <name> <list|next> [flags...]"); } LIT.with(|lit| lit.clone()) };
         let v5: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v4 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
         v5
     } else {
-        let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile "); } LIT.with(|lit| lit.clone()) };
-        let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v1));
-        let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects "); } LIT.with(|lit| lit.clone()) };
-        let v10: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v7, v8)), v2));
-        let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", received "); } LIT.with(|lit| lit.clone()) };
-        let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
-        let v13: i32 = std::env::args().skip(3i32 as usize).count() as i32;
-        let v14: Rc<str> = format_real_2(v13);
-        let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v14));
-        let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" operands; see kit agile --help"); } LIT.with(|lit| lit.clone()) };
-        let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
-        let v18: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v17 + "
+        let v6: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile "); } LIT.with(|lit| lit.clone()) }, v1));
+        let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects "); } LIT.with(|lit| lit.clone()) }));
+        let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v2));
+        let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", received "); } LIT.with(|lit| lit.clone()) }));
+        let v10: i32 = std::env::args().skip(3i32 as usize).count() as i32;
+        let v11: Rc<str> = format_real_2(v10);
+        let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v11));
+        let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" operands; see kit agile --help"); } LIT.with(|lit| lit.clone()) }));
+        let v14: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v13 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-        v18
+        v14
     }
 }
 fn closure0() -> Rc<dyn Fn() -> i32> {
@@ -458,6 +519,52 @@ fn closure1() -> Rc<dyn Fn() -> i32> {
             v8
         }
     }); } CLOSURE.with(|closure| closure.clone())
+}
+fn checks_joined_5(mut v0: &Rc<RefCell<Vec<(Rc<str>, Rc<str>, Rc<str>)>>>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
+    loop {
+        let v3: i32 = (v0.clone().borrow().len() as i32);
+        let mut v4: bool = v1 >= v3;
+        if v4 {
+            return v2;
+        } else {
+            let (mut v5, mut v6, mut v7): (Rc<str>, Rc<str>, Rc<str>) = v0.borrow()[v1 as usize].clone();
+            let v8: i32 = v1.wrapping_add(1i32);
+            let v9: bool = &*v2 == "";
+            let v12: Rc<str> = if v9 {
+                v7
+            } else {
+                let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v2, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }));
+                let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v7));
+                v11
+            };
+            (v1, v2) = (v8, v12);
+            continue;
+        }
+    }
+}
+fn lint_warned_4(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> () {
+    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
+    let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
+    let v5: Rc<str> = Rc::<str>::from(v0.replace(&*v3, &*v4));
+    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) }));
+    let mut v7: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v6).unwrap_or_default().as_str());
+    let v8: Rc<RefCell<Vec<(Rc<str>, Rc<str>, Rc<str>)>>> = agile_quality_state::kit_agile_lint_item_failures(&v7, &v1, &v2);
+    let v9: i32 = 0i32;
+    let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let v11: Rc<str> = checks_joined_5(&v8, v9, v10);
+    let v12: bool = &*v11 == "";
+    if v12 {
+        ()
+    } else {
+        let v13: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile lint warning id="); } LIT.with(|lit| lit.clone()) }, v1));
+        let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" status="); } LIT.with(|lit| lit.clone()) }));
+        let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v2));
+        let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v15, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" failing="); } LIT.with(|lit| lit.clone()) }));
+        let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v11));
+        let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (add the marker lines; a later train refuses the change)"); } LIT.with(|lit| lit.clone()) }));
+        eprintln!("{}", v18);
+        ()
+    }
 }
 fn closure2() -> Rc<dyn Fn() -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> i32> = Rc::new(move || -> i32 {
@@ -569,85 +676,77 @@ fn closure2() -> Rc<dyn Fn() -> i32> {
         let v62: bool = &*v61 == "Planned";
         let v66: US1 = if v62 {
             let v63: US2 = US2::US2_AgilePlanned;
-            US1::US1_Valid(v63.clone())
+            US1::US1_Valid(v63)
         } else {
             US1::US1_Invalid
         };
         let v67: bool = &*v61 == "Active";
         let v70: US1 = if v67 {
             let v68: US2 = US2::US2_AgileActive;
-            US1::US1_Valid(v68.clone())
+            US1::US1_Valid(v68)
         } else {
-            v66.clone()
+            v66
         };
         let v71: bool = &*v61 == "Blocked";
         let v74: US1 = if v71 {
             let v72: US2 = US2::US2_AgileBlocked;
-            US1::US1_Valid(v72.clone())
+            US1::US1_Valid(v72)
         } else {
-            v70.clone()
+            v70
         };
         let v75: bool = &*v61 == "Paused";
         let v78: US1 = if v75 {
             let v76: US2 = US2::US2_AgilePaused;
-            US1::US1_Valid(v76.clone())
+            US1::US1_Valid(v76)
         } else {
-            v74.clone()
+            v74
         };
         let v79: bool = &*v61 == "Done";
         let v82: US1 = if v79 {
             let v80: US2 = US2::US2_AgileDone;
-            US1::US1_Valid(v80.clone())
+            US1::US1_Valid(v80)
         } else {
-            v78.clone()
+            v78
         };
-        match &v59 {
+        match v59 {
             US0::US0_Invalid => {
-                let v120: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("progress"); } LIT.with(|lit| lit.clone()) };
-                let v121: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a whole number 0..100"); } LIT.with(|lit| lit.clone()) };
-                let v122: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile set: "); } LIT.with(|lit| lit.clone()) };
-                let v123: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile set: progress"); } LIT.with(|lit| lit.clone()) };
-                let v124: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" must be "); } LIT.with(|lit| lit.clone()) };
-                let v125: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" must be a whole number 0..100"); } LIT.with(|lit| lit.clone()) };
-                let v126: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", received '"); } LIT.with(|lit| lit.clone()) };
-                let v127: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" must be a whole number 0..100, received '"); } LIT.with(|lit| lit.clone()) };
-                let v128: i32 = 3i32;
-                let v129: Rc<str> = usize::try_from(v128).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-                let v130: Rc<str> = Rc::<str>::from(format!("{}{}", v127, v129));
-                let v131: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-                let v133: Rc<str> = Rc::<str>::from(format!("{}{}", v123, Rc::<str>::from(format!("{}{}", v130, v131))));
-                let v134: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; usage: agile set <root> <id> <progress> <Planned|Active|Blocked|Paused|Done>"); } LIT.with(|lit| lit.clone()) };
-                let v135: Rc<str> = Rc::<str>::from(format!("{}{}", v133, v134));
-                let v136: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v135 + "
+                let v116: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("progress"); } LIT.with(|lit| lit.clone()) };
+                let v117: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("a whole number 0..100"); } LIT.with(|lit| lit.clone()) };
+                let v118: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile set: "); } LIT.with(|lit| lit.clone()) }, v116));
+                let v119: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" must be "); } LIT.with(|lit| lit.clone()) }, v117));
+                let v120: Rc<str> = Rc::<str>::from(format!("{}{}", v119, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", received '"); } LIT.with(|lit| lit.clone()) }));
+                let v121: i32 = 3i32;
+                let v122: Rc<str> = usize::try_from(v121).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+                let v123: Rc<str> = Rc::<str>::from(format!("{}{}", v120, v122));
+                let v124: Rc<str> = Rc::<str>::from(format!("{}{}", v123, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) }));
+                let v125: Rc<str> = Rc::<str>::from(format!("{}{}", v118, v124));
+                let v126: Rc<str> = Rc::<str>::from(format!("{}{}", v125, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; usage: agile set <root> <id> <progress> <Planned|Active|Blocked|Paused|Done>"); } LIT.with(|lit| lit.clone()) }));
+                let v127: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v126 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-                v136
+                v127
             }
             US0::US0_Valid(v83) => {
-                let v83: i32 = *v83;
-                match &v82 {
+                let v83: i32 = v83;
+                match v82 {
                     US1::US1_Invalid => {
-                        let v101: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status"); } LIT.with(|lit| lit.clone()) };
-                        let v102: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planned, Active, Blocked, Paused or Done"); } LIT.with(|lit| lit.clone()) };
-                        let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile set: "); } LIT.with(|lit| lit.clone()) };
-                        let v104: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile set: status"); } LIT.with(|lit| lit.clone()) };
-                        let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" must be "); } LIT.with(|lit| lit.clone()) };
-                        let v106: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" must be Planned, Active, Blocked, Paused or Done"); } LIT.with(|lit| lit.clone()) };
-                        let v107: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", received '"); } LIT.with(|lit| lit.clone()) };
-                        let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" must be Planned, Active, Blocked, Paused or Done, received '"); } LIT.with(|lit| lit.clone()) };
-                        let v109: i32 = 4i32;
-                        let v110: Rc<str> = usize::try_from(v109).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-                        let v111: Rc<str> = Rc::<str>::from(format!("{}{}", v108, v110));
-                        let v112: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-                        let v114: Rc<str> = Rc::<str>::from(format!("{}{}", v104, Rc::<str>::from(format!("{}{}", v111, v112))));
-                        let v115: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; usage: agile set <root> <id> <progress> <Planned|Active|Blocked|Paused|Done>"); } LIT.with(|lit| lit.clone()) };
-                        let v116: Rc<str> = Rc::<str>::from(format!("{}{}", v114, v115));
-                        let v117: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v116 + "
+                        let v102: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("status"); } LIT.with(|lit| lit.clone()) };
+                        let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planned, Active, Blocked, Paused or Done"); } LIT.with(|lit| lit.clone()) };
+                        let v104: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile set: "); } LIT.with(|lit| lit.clone()) }, v102));
+                        let v105: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" must be "); } LIT.with(|lit| lit.clone()) }, v103));
+                        let v106: Rc<str> = Rc::<str>::from(format!("{}{}", v105, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", received '"); } LIT.with(|lit| lit.clone()) }));
+                        let v107: i32 = 4i32;
+                        let v108: Rc<str> = usize::try_from(v107).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+                        let v109: Rc<str> = Rc::<str>::from(format!("{}{}", v106, v108));
+                        let v110: Rc<str> = Rc::<str>::from(format!("{}{}", v109, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) }));
+                        let v111: Rc<str> = Rc::<str>::from(format!("{}{}", v104, v110));
+                        let v112: Rc<str> = Rc::<str>::from(format!("{}{}", v111, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; usage: agile set <root> <id> <progress> <Planned|Active|Blocked|Paused|Done>"); } LIT.with(|lit| lit.clone()) }));
+                        let v113: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v112 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-                        v117
+                        v113
                     }
                     US1::US1_Valid(v84) => {
-                        let v84: US2 = v84.clone();
-                        match &v84 {
+                        let v84: US2 = v84;
+                        let v98: i32 = match &v84 {
                             US2::US2_AgileDone => {
                                 let v85: Rc<str> = std::rc::Rc::<str>::from(agile_todo_scan::kit_agile_todo_sites(&*v1, &*v3).trim_end());
                                 let v86: bool = &*v85 == "";
@@ -655,17 +754,16 @@ fn closure2() -> Rc<dyn Fn() -> i32> {
                                     let v87: i32 = kit_agile_state::agile_set_validated_owned(v1.as_ref(), v3.as_ref(), v83, 4i32);
                                     v87
                                 } else {
-                                    let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile set "); } LIT.with(|lit| lit.clone()) };
-                                    let v89: Rc<str> = Rc::<str>::from(format!("{}{}", v88, v3));
-                                    let v90: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: TODO blocks still name it; cut them or keep the item open:\n"); } LIT.with(|lit| lit.clone()) };
-                                    let v92: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v89, v90)), v85));
-                                    let v93: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v92 + "
+                                    let v88: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile set "); } LIT.with(|lit| lit.clone()) }, v3.clone()));
+                                    let v89: Rc<str> = Rc::<str>::from(format!("{}{}", v88, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: TODO blocks still name it; cut them or keep the item open:\n"); } LIT.with(|lit| lit.clone()) }));
+                                    let v90: Rc<str> = Rc::<str>::from(format!("{}{}", v89, v85));
+                                    let v91: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v90 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-                                    v93
+                                    v91
                                 }
                             }
                             _ => {
-                                let v98: i32 = match &v84 {
+                                let v96: i32 = match v84 {
                                     US2::US2_AgileActive => {
                                         1i32
                                     }
@@ -680,17 +778,24 @@ fn closure2() -> Rc<dyn Fn() -> i32> {
                                     }
                                     _ => unreachable!(),
                                 };
-                                let v99: i32 = kit_agile_state::agile_set_validated_owned(v1.as_ref(), v3.as_ref(), v83, v98);
-                                v99
+                                let v97: i32 = kit_agile_state::agile_set_validated_owned(v1.as_ref(), v3.as_ref(), v83, v96);
+                                v97
                             }
-                        }
+                        };
+                        let v99: bool = v98 == 0i32;
+                        if v99 {
+                            let v100: i32 = 4i32;
+                            let v101: Rc<str> = usize::try_from(v100).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+                            lint_warned_4(v1, v3, v101)
+                        };
+                        v98
                     }
                 }
             }
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn planning_field_named_4(mut v0: Rc<str>) -> bool {
+fn planning_field_named_6(mut v0: Rc<str>) -> bool {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Estimate"); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = std::rc::Rc::<str>::from(v1.to_ascii_lowercase());
     let v3: bool = &*v0 == &*v2;
@@ -714,13 +819,21 @@ fn closure3() -> Rc<dyn Fn() -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> i32> = Rc::new(move || -> i32 {
         let mut v0: i32 = 3i32;
         let mut v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-        let v2: bool = planning_field_named_4(v1.clone());
+        let v2: bool = &*v1 == "--parent";
         if v2 {
-            let v3: i32 = agile_planning_revision::kit_agile_planning_edit_run();
+            let v3: i32 = agile_task_parents::kit_agile_parent_edit_run();
             v3
         } else {
-            let mut v4: i32 = agile_task_revision::kit_agile_edit_run();
-            v4
+            let mut v4: i32 = 3i32;
+            let v5: Rc<str> = usize::try_from(v4).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
+            let v6: bool = planning_field_named_6(v5);
+            if v6 {
+                let mut v7: i32 = agile_planning_revision::kit_agile_planning_edit_run();
+                v7
+            } else {
+                let v8: i32 = agile_task_revision::kit_agile_edit_run();
+                v8
+            }
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
@@ -736,3 +849,4 @@ pub fn kit_agile_set_route() -> i32 {
 pub fn kit_agile_edit_route() -> i32 {
     closure3()()
 }
+use agile_task_parents::SpiralShape_97df63ebabc3 as Mut0;

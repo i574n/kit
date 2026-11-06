@@ -50,12 +50,12 @@ fn arguments_from_5(mut v0: i32) -> Rc<UH0> {
     } else {
         US0::US0_None
     };
-    match &v8 {
+    match v8 {
         US0::US0_None => {
             { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) }
         }
         US0::US0_Some(v10) => {
-            let v10: Rc<str> = v10.clone();
+            let v10: Rc<str> = v10;
             let v11: i32 = v0.wrapping_add(1i32);
             let v12: Rc<UH0> = arguments_from_5(v11);
             Rc::new(UH0::UH0_Cons(v10, v12))
@@ -65,14 +65,14 @@ fn arguments_from_5(mut v0: i32) -> Rc<UH0> {
 fn sequence_words_4() -> Rc<UH0> {
     let v0: i32 = 0i32;
     let mut v1: Rc<UH0> = arguments_from_5(v0);
-    match &*v1 {
+    match Rc::unwrap_or_clone(v1) {
         UH0::UH0_Cons(v2, v3) => {
-            let v2: Rc<str> = v2.clone();
-            let v3: Rc<UH0> = v3.clone();
-            match &*v3 {
+            let v2: Rc<str> = v2;
+            let v3: Rc<UH0> = v3;
+            match Rc::unwrap_or_clone(v3) {
                 UH0::UH0_Cons(v4, v5) => {
-                    let v4: Rc<str> = v4.clone();
-                    let v5: Rc<UH0> = v5.clone();
+                    let v4: Rc<str> = v4;
+                    let v5: Rc<UH0> = v5;
                     v5
                 }
                 _ => {
@@ -87,15 +87,15 @@ fn sequence_words_4() -> Rc<UH0> {
 }
 fn has_flag_8(mut v0: Rc<str>, mut v1: Rc<UH0>) -> bool {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
+                let v2: Rc<str> = v2;
+                let v3: Rc<UH0> = v3;
                 let v4: bool = &*v2 == &*v0;
                 if v4 {
                     return true;
                 } else {
-                    v1 = v3.clone();
+                    v1 = v3;
                     continue;
                 }
             }
@@ -107,24 +107,20 @@ fn has_flag_8(mut v0: Rc<str>, mut v1: Rc<UH0>) -> bool {
 }
 fn sequences_run_0() -> i32 {
     let v0: Rc<UH0> = sequence_words_4();
-    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--"); } LIT.with(|lit| lit.clone()) };
-    let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("first"); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--first"); } LIT.with(|lit| lit.clone()) };
-    let v4: bool = has_flag_8(v3, v0.clone());
-    let v8: bool = if v4 {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--first"); } LIT.with(|lit| lit.clone()) };
+    let v2: bool = has_flag_8(v1, v0.clone());
+    let v5: bool = if v2 {
         true
     } else {
-        let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("last"); } LIT.with(|lit| lit.clone()) };
-        let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--last"); } LIT.with(|lit| lit.clone()) };
-        has_flag_8(v6, v0.clone())
+        let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--last"); } LIT.with(|lit| lit.clone()) };
+        has_flag_8(v3, v0.clone())
     };
-    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("count"); } LIT.with(|lit| lit.clone()) };
-    let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--count"); } LIT.with(|lit| lit.clone()) };
-    let v11: bool = has_flag_8(v10, v0);
-    if v11 {
+    let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--count"); } LIT.with(|lit| lit.clone()) };
+    let v7: bool = has_flag_8(v6, v0);
+    if v7 {
         counts_run_1()
     } else {
-        if v8 {
+        if v5 {
             sections_run_2()
         } else {
             measures_run_3()

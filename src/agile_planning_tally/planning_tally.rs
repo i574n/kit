@@ -117,12 +117,12 @@ fn parse_planned_load_2(mut v0: Rc<str>) -> US1 {
         } else {
             v19
         };
-        match &v25 {
+        match v25 {
             US4::US4_Invalid => {
                 US1::US1_Invalid
             }
             US4::US4_Valid(v26) => {
-                let v26: US3 = v26.clone();
+                let v26: US3 = v26;
                 let v27: US2 = US2::US2_PlannedLoad(v26);
                 US1::US1_Valid(v27)
             }
@@ -169,12 +169,12 @@ fn parse_planned_assignee_3(mut v0: Rc<str>) -> US5 {
         } else {
             v19
         };
-        match &v25 {
+        match v25 {
             US8::US8_Invalid => {
                 US5::US5_Invalid
             }
             US8::US8_Valid(v26) => {
-                let v26: US7 = v26.clone();
+                let v26: US7 = v26;
                 let v27: US6 = US6::US6_PlannedAssignee(v26);
                 US5::US5_Valid(v27)
             }
@@ -197,19 +197,19 @@ fn bucket_of_1(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
     let v9: bool = &*v0 == "load";
     let v22: US0 = if v9 {
         let v10: US1 = parse_planned_load_2(v1.clone());
-        match &v10 {
+        match v10 {
             US1::US1_Invalid => {
                 US0::US0_UnknownBucket
             }
             US1::US1_Valid(v11) => {
-                let v11: US2 = v11.clone();
-                let v17: i32 = match &v11 {
+                let v11: US2 = v11;
+                let v17: i32 = match v11 {
                     US2::US2_LoadUnset => {
                         0i32
                     }
                     US2::US2_PlannedLoad(v12) => {
-                        let v12: US3 = v12.clone();
-                        match &v12 {
+                        let v12: US3 = v12;
+                        match v12 {
                             US3::US3_LoadHeavy => {
                                 3i32
                             }
@@ -231,16 +231,16 @@ fn bucket_of_1(mut v0: Rc<str>, mut v1: Rc<str>) -> US0 {
     let v23: bool = &*v0 == "assignee";
     let v36: US0 = if v23 {
         let v24: US5 = parse_planned_assignee_3(v1.clone());
-        match &v24 {
+        match v24 {
             US5::US5_Invalid => {
                 US0::US0_UnknownBucket
             }
             US5::US5_Valid(v25) => {
-                let v25: US6 = v25.clone();
-                let v31: i32 = match &v25 {
+                let v25: US6 = v25;
+                let v31: i32 = match v25 {
                     US6::US6_PlannedAssignee(v26) => {
-                        let v26: US7 = v26.clone();
-                        match &v26 {
+                        let v26: US7 = v26;
+                        match v26 {
                             US7::US7_AssigneeAgent => {
                                 1i32
                             }
@@ -294,7 +294,7 @@ fn field_end_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US10) -> i32 {
                 return v1;
             } else {
                 let v10: i32 = v1.wrapping_add(1i32);
-                let v25: US10 = match &v3 {
+                let v25: US10 = match v3 {
                     US10::US10_ScanEscaped => {
                         US10::US10_ScanQuoted
                     }
@@ -320,7 +320,7 @@ fn field_end_7(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US10) -> i32 {
                         }
                     }
                 };
-                (v1, v3) = (v10, v25.clone());
+                (v1, v3) = (v10, v25);
                 continue;
             }
         }
@@ -346,7 +346,7 @@ fn field_start_6(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 
             return v1;
         } else {
             let v5: US10 = US10::US10_ScanPlain;
-            let v6: i32 = field_end_7(v0.clone(), v1, v2, v5.clone());
+            let v6: i32 = field_end_7(v0.clone(), v1, v2, v5);
             let mut v7: i32 = v6.wrapping_add(1i32);
             let v8: i32 = skip_spaces_8(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
@@ -441,12 +441,12 @@ fn planning_at_11(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
         let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v15: Rc<str> = Rc::<str>::from(v12.replace(&*v13, &*v14));
         let v16: US11 = decimal_value_12(v15);
-        match &v16 {
+        match v16 {
             US11::US11_Invalid => {
                 US9::US9_Unestimated
             }
             US11::US11_Valid(v17) => {
-                let v17: i32 = *v17;
+                let v17: i32 = v17;
                 US9::US9_EstimateMinutes(v17)
             }
         }
@@ -464,12 +464,12 @@ fn planning_at_11(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
         let v31: i32 = (v28.clone().len() as i32);
         let v32: Rc<str> = std::rc::Rc::<str>::from(v28.get(5i32 as usize..v31 as usize).unwrap_or(""));
         let v33: US1 = parse_planned_load_2(v32);
-        match &v33 {
+        match v33 {
             US1::US1_Invalid => {
                 US2::US2_LoadUnset
             }
             US1::US1_Valid(v34) => {
-                let v34: US2 = v34.clone();
+                let v34: US2 = v34;
                 v34
             }
         }
@@ -487,12 +487,12 @@ fn planning_at_11(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
         let v47: i32 = (v44.clone().len() as i32);
         let v48: Rc<str> = std::rc::Rc::<str>::from(v44.get(9i32 as usize..v47 as usize).unwrap_or(""));
         let v49: US5 = parse_planned_assignee_3(v48);
-        match &v49 {
+        match v49 {
             US5::US5_Invalid => {
                 US6::US6_Unassigned
             }
             US5::US5_Valid(v50) => {
-                let v50: US6 = v50.clone();
+                let v50: US6 = v50;
                 v50
             }
         }
@@ -502,23 +502,21 @@ fn planning_at_11(mut v0: Rc<str>, mut v1: i32) -> (US9, US2, US6) {
     (v23, v39, v55)
 }
 fn planning_of_9(mut v0: Rc<str>, mut v1: Rc<str>) -> (US9, US2, US6) {
-    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) };
-    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
-    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
-    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v4));
-    let v6: i32 = 0i32;
-    let mut v7: i32 = declared_from_10(v0.clone(), v5, v6);
-    let v8: bool = v7 < 0i32;
-    let (mut v15, mut v16, mut v17): (US9, US2, US6) = if v8 {
-        let v9: US9 = US9::US9_Unestimated;
-        let v10: US2 = US2::US2_LoadUnset;
-        let v11: US6 = US6::US6_Unassigned;
-        (v9, v10, v11)
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Planning (\""); } LIT.with(|lit| lit.clone()) }, v1));
+    let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) }));
+    let v4: i32 = 0i32;
+    let v5: i32 = declared_from_10(v0.clone(), v3, v4);
+    let v6: bool = v5 < 0i32;
+    let (mut v13, mut v14, mut v15): (US9, US2, US6) = if v6 {
+        let mut v7: US9 = US9::US9_Unestimated;
+        let v8: US2 = US2::US2_LoadUnset;
+        let v9: US6 = US6::US6_Unassigned;
+        (v7, v8, v9)
     } else {
-        let (mut v12, mut v13, mut v14): (US9, US2, US6) = planning_at_11(v0, v7);
-        (v12, v13, v14)
+        let (mut v10, mut v11, mut v12): (US9, US2, US6) = planning_at_11(v0, v5);
+        (v10, v11, v12)
     };
-    (v15, v16, v17)
+    (v13, v14, v15)
 }
 fn rollup_task_at_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> (Rc<str>, Rc<str>, Rc<str>, US9, US2, US6) {
     let mut v3: i32 = 0i32;
@@ -624,10 +622,10 @@ fn loop_15(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut 
             let mut v7: i32 = 0i32;
             let v8: i32 = method16(v5.clone(), v6, v7);
             let v9: i32 = v6.wrapping_sub(1i32);
-            let v10: Rc<str> = string_slice(&v5.clone(), v8 as i64, v9 as i64);
+            let v10: Rc<str> = string_slice(&v5, v8 as i64, v9 as i64);
             let v11: i32 = (v10.clone().len() as i32);
             let v12: i32 = method17(v10.clone(), v11);
-            let v13: Rc<str> = string_slice(&v10.clone(), 0i32 as i64, v12 as i64);
+            let v13: Rc<str> = string_slice(&v10, 0i32 as i64, v12 as i64);
             let mut v14: bool = &*v13 == &*v0;
             if v14 {
                 return true;
@@ -640,13 +638,13 @@ fn loop_15(mut v0: Rc<str>, mut v1: Rc<RefCell<Vec<Rc<str>>>>, mut v2: i32, mut 
     }
 }
 fn bucket_holds_14(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: US9, mut v5: US2, mut v6: US6) -> bool {
-    match &v0 {
+    match v0 {
         US0::US0_AssigneeBucket(v17) => {
-            let v17: i32 = *v17;
-            let v23: i32 = match &v6 {
+            let v17: i32 = v17;
+            let v23: i32 = match v6 {
                 US6::US6_PlannedAssignee(v18) => {
-                    let v18: US7 = v18.clone();
-                    match &v18 {
+                    let v18: US7 = v18;
+                    match v18 {
                         US7::US7_AssigneeAgent => {
                             1i32
                         }
@@ -666,7 +664,7 @@ fn bucket_holds_14(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str
             v24
         }
         US0::US0_EpicBucket(v25) => {
-            let v25: Rc<str> = v25.clone();
+            let v25: Rc<str> = v25;
             let v26: bool = &*v25 == &*v1;
             if v26 {
                 true
@@ -675,21 +673,21 @@ fn bucket_holds_14(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str
                 let v28: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v3.split(&*v27).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
                 let v29: i32 = (v28.clone().borrow().len() as i32);
                 let v30: i32 = 0i32;
-                loop_15(v25.clone(), v28.clone(), v29, v30)
+                loop_15(v25, v28, v29, v30)
             }
         }
         US0::US0_EveryTask => {
             true
         }
         US0::US0_LoadBucket(v9) => {
-            let v9: i32 = *v9;
-            let v15: i32 = match &v5 {
+            let v9: i32 = v9;
+            let v15: i32 = match v5 {
                 US2::US2_LoadUnset => {
                     0i32
                 }
                 US2::US2_PlannedLoad(v10) => {
-                    let v10: US3 = v10.clone();
-                    match &v10 {
+                    let v10: US3 = v10;
+                    match v10 {
                         US3::US3_LoadHeavy => {
                             3i32
                         }
@@ -706,7 +704,7 @@ fn bucket_holds_14(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str
             v16
         }
         US0::US0_StatusBucket(v7) => {
-            let mut v7: Rc<str> = v7.clone();
+            let mut v7: Rc<str> = v7;
             let v8: bool = &*v7 == &*v2;
             v8
         }
@@ -715,7 +713,7 @@ fn bucket_holds_14(mut v0: US0, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str
         }
     }
 }
-fn tally_with_18(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: US9, mut v9: US2, mut v10: US6) -> (i32, i32, i32, i32, i32) {
+fn tally_with_18(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: &Rc<str>, mut v6: Rc<str>, mut v7: &Rc<str>, mut v8: US9, mut v9: US2, mut v10: US6) -> (i32, i32, i32, i32, i32) {
     let v13: i32 = match &v8 {
         US9::US9_EstimateMinutes(v11) => {
             let v11: i32 = *v11;
@@ -734,9 +732,9 @@ fn tally_with_18(mut v0: i32, mut v1: i32, mut v2: i32, mut v3: i32, mut v4: i32
         0i32
     };
     let v18: i32 = v1.wrapping_add(v17);
-    let v21: bool = match &v8 {
+    let v21: bool = match v8 {
         US9::US9_EstimateMinutes(v19) => {
-            let v19: i32 = *v19;
+            let v19: i32 = v19;
             true
         }
         US9::US9_Unestimated => {
@@ -774,16 +772,16 @@ fn tally_from_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US0, mut v4: 
             let (mut v17, mut v18, mut v19, mut v20, mut v21, mut v22): (Rc<str>, Rc<str>, Rc<str>, US9, US2, US6) = rollup_task_at_5(v0.clone(), v12, v2);
             let v23: bool = bucket_holds_14(v3.clone(), v17.clone(), v18.clone(), v19.clone(), v20.clone(), v21.clone(), v22.clone());
             let (mut v39, mut v40, mut v41, mut v42, mut v43): (i32, i32, i32, i32, i32) = if v23 {
-                let (mut v24, mut v25, mut v26, mut v27, mut v28): (i32, i32, i32, i32, i32) = tally_with_18(v4, v5, v6, v7, v8, v17.clone(), v18.clone(), v19.clone(), v20.clone(), v21.clone(), v22.clone());
-                let (mut v29, mut v30, mut v31, mut v32, mut v33): (i32, i32, i32, i32, i32) = tally_from_4(v0.clone(), v12, v2, v3.clone(), v24, v25, v26, v27, v28);
+                let (mut v24, mut v25, mut v26, mut v27, mut v28): (i32, i32, i32, i32, i32) = tally_with_18(v4, v5, v6, v7, v8, &v17, v18, &v19, v20, v21, v22);
+                let (mut v29, mut v30, mut v31, mut v32, mut v33): (i32, i32, i32, i32, i32) = tally_from_4(v0, v12, v2, v3, v24, v25, v26, v27, v28);
                 (v29, v30, v31, v32, v33)
             } else {
-                let (mut v34, mut v35, mut v36, mut v37, mut v38): (i32, i32, i32, i32, i32) = tally_from_4(v0.clone(), v12, v2, v3.clone(), v4, v5, v6, v7, v8);
+                let (mut v34, mut v35, mut v36, mut v37, mut v38): (i32, i32, i32, i32, i32) = tally_from_4(v0, v12, v2, v3, v4, v5, v6, v7, v8);
                 (v34, v35, v36, v37, v38)
             };
             (v39, v40, v41, v42, v43)
         } else {
-            let (mut v44, mut v45, mut v46, mut v47, mut v48): (i32, i32, i32, i32, i32) = tally_from_4(v0.clone(), v12, v2, v3.clone(), v4, v5, v6, v7, v8);
+            let (mut v44, mut v45, mut v46, mut v47, mut v48): (i32, i32, i32, i32, i32) = tally_from_4(v0, v12, v2, v3, v4, v5, v6, v7, v8);
             (v44, v45, v46, v47, v48)
         };
         (v49, v50, v51, v52, v53)
@@ -804,7 +802,7 @@ fn planning_tally_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> (i32, 
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (i32, i32, i32, i32, i32)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (i32, i32, i32, i32, i32)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>| -> (i32, i32, i32, i32, i32) {
-        planning_tally_0(v0.clone(), v1.clone(), v2.clone())
+        planning_tally_0(v0, v1, v2)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_agile_planning_tally(v0: &str, v1: &str, v2: &str) -> (i32, i32, i32, i32, i32) {

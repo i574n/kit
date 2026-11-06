@@ -338,6 +338,10 @@ enum US2 {
     US2_VerbEvidence,
     US2_VerbLint,
     US2_VerbSchedule,
+    US2_VerbHeal,
+    US2_VerbHook,
+    US2_VerbRun,
+    US2_VerbMetrics,
 }
 #[derive(Clone)]
 enum US1 {
@@ -527,7 +531,31 @@ fn direct_of_2(mut v0: Rc<str>) -> US1 {
                                                                                                                     let v83: US2 = US2::US2_VerbSchedule;
                                                                                                                     US1::US1_DirectKnown(v83)
                                                                                                                 } else {
-                                                                                                                    US1::US1_DirectUnknown
+                                                                                                                    let v85: bool = &*v0 == "heal";
+                                                                                                                    if v85 {
+                                                                                                                        let v86: US2 = US2::US2_VerbHeal;
+                                                                                                                        US1::US1_DirectKnown(v86)
+                                                                                                                    } else {
+                                                                                                                        let v88: bool = &*v0 == "hook";
+                                                                                                                        if v88 {
+                                                                                                                            let v89: US2 = US2::US2_VerbHook;
+                                                                                                                            US1::US1_DirectKnown(v89)
+                                                                                                                        } else {
+                                                                                                                            let v91: bool = &*v0 == "run";
+                                                                                                                            if v91 {
+                                                                                                                                let v92: US2 = US2::US2_VerbRun;
+                                                                                                                                US1::US1_DirectKnown(v92)
+                                                                                                                            } else {
+                                                                                                                                let v94: bool = &*v0 == "metrics";
+                                                                                                                                if v94 {
+                                                                                                                                    let v95: US2 = US2::US2_VerbMetrics;
+                                                                                                                                    US1::US1_DirectKnown(v95)
+                                                                                                                                } else {
+                                                                                                                                    US1::US1_DirectUnknown
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    }
                                                                                                                 }
                                                                                                             }
                                                                                                         }
@@ -577,206 +605,182 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
         let mut v4: bool = &*v1 == "help";
         let v7: Rc<str> = if v4 {
             let v5: Rc<str> = command_spec_domain::kit_direct_verb_usage(&*v3);
-            v5.clone()
+            v5
         } else {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v6.clone()
+            v6
         };
         let v8: bool = &*v7 != "";
         if v8 {
-            direct_help_1(v7.clone())
+            direct_help_1(v7)
         } else {
-            let v10: US1 = direct_of_2(v1.clone());
-            match &v10 {
+            let v10: US1 = direct_of_2(v1);
+            match v10 {
                 US1::US1_DirectKnown(v11) => {
-                    let mut v11: US2 = v11.clone();
-                    match &v11 {
+                    let mut v11: US2 = v11;
+                    match v11 {
                         US2::US2_VerbAdoption => {
-                            let v51: i32 = kit_adoption::kit_adoption_run();
-                            v51
+                            let v26: i32 = kit_adoption::kit_adoption_run();
+                            v26
                         }
                         US2::US2_VerbBacklog => {
-                            let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("backlog"); } LIT.with(|lit| lit.clone()) };
-                            ceremony_routed_3(v59.clone())
+                            let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("backlog"); } LIT.with(|lit| lit.clone()) };
+                            ceremony_routed_3(v34)
                         }
                         US2::US2_VerbCi => {
-                            let v54: i32 = kit_ci_parity::kit_ci_parity_run();
-                            v54
+                            let v29: i32 = kit_ci_parity::kit_ci_parity_run();
+                            v29
                         }
                         US2::US2_VerbCrate => {
-                            let v56: i32 = kit_crate_gate::kit_crate_gate_run();
-                            v56
+                            let v31: i32 = kit_crate_gate::kit_crate_gate_run();
+                            v31
                         }
                         US2::US2_VerbDo => {
-                            let v43: i32 = kit_do::kit_do_run();
-                            v43
+                            let v18: i32 = kit_do::kit_do_run();
+                            v18
                         }
                         US2::US2_VerbEnv => {
-                            let v57: i32 = kit_env_pins::kit_env_run();
-                            v57
+                            let v32: i32 = kit_env_pins::kit_env_run();
+                            v32
                         }
                         US2::US2_VerbEvidence => {
-                            let v65: i32 = kit_evidence::kit_evidence_run();
-                            v65
+                            let v40: i32 = kit_evidence::kit_evidence_run();
+                            v40
                         }
                         US2::US2_VerbExperiment => {
-                            let v48: i32 = kit_experiments::kit_experiment_run();
-                            v48
+                            let v23: i32 = kit_experiments::kit_experiment_run();
+                            v23
                         }
                         US2::US2_VerbGrep => {
-                            let v42: i32 = kit_grep_query::kit_grep_run();
-                            v42
+                            let v17: i32 = kit_grep_query::kit_grep_run();
+                            v17
                         }
                         US2::US2_VerbGuide => {
-                            let v49: i32 = kit_guide::kit_guide_run();
-                            v49
+                            let v24: i32 = kit_guide::kit_guide_run();
+                            v24
+                        }
+                        US2::US2_VerbHeal => {
+                            let v43: i32 = kit_heal_nameof::kit_heal_run();
+                            v43
+                        }
+                        US2::US2_VerbHook => {
+                            let v44: i32 = kit_hook::kit_hook_run();
+                            v44
                         }
                         US2::US2_VerbJob => {
-                            let v12: i32 = kit_jobs::kit_job_run();
+                            let v12: i32 = kit_job_entry::kit_job_run();
                             v12
                         }
                         US2::US2_VerbKill => {
-                            let v45: i32 = kit_process_table::kit_process_run();
-                            v45
+                            let v20: i32 = kit_process_table::kit_process_run();
+                            v20
                         }
                         US2::US2_VerbLines => {
-                            let v41: i32 = kit_read_query::kit_read_run();
-                            v41
+                            let v16: i32 = kit_read_query::kit_read_run();
+                            v16
                         }
                         US2::US2_VerbLint => {
-                            let v66: i32 = kit_lint_cli::kit_lint_cli_run();
-                            v66
+                            let v41: i32 = kit_lint_cli::kit_lint_cli_run();
+                            v41
                         }
                         US2::US2_VerbMachine => {
-                            let v50: i32 = kit_machine_watch::kit_machine_watch_run();
-                            v50
+                            let v25: i32 = kit_machine_watch::kit_machine_watch_run();
+                            v25
                         }
                         US2::US2_VerbMemory => {
-                            let v52: i32 = kit_memory::kit_memory_run();
-                            v52
+                            let v27: i32 = kit_memory::kit_memory_run();
+                            v27
                         }
-                        US2::US2_VerbMirror => {
-                            let v58: i32 = kit_mirror::kit_mirror_run();
-                            v58
-                        }
-                        US2::US2_VerbProcess => {
-                            let v55: i32 = kit_os_launch::kit_process_launch_run();
-                            v55
-                        }
-                        US2::US2_VerbPs => {
-                            let v44: i32 = kit_process_table::kit_process_run();
-                            v44
-                        }
-                        US2::US2_VerbRead => {
-                            let v40: i32 = kit_read_query::kit_read_run();
-                            v40
-                        }
-                        US2::US2_VerbRepo => {
-                            let v13: i32 = 2i32;
-                            let v14: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v13 as usize).unwrap_or_default());
-                            let v15: bool = &*v14 == "affected";
-                            if v15 {
-                                let v16: i32 = kit_repo_affected::kit_repo_affected_run();
-                                v16
-                            } else {
-                                let v17: i32 = 2i32;
-                                let v18: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v17 as usize).unwrap_or_default());
-                                let v19: bool = &*v18 == "accept-review";
-                                if v19 {
-                                    let v20: i32 = kit_repo_accept_review::kit_repo_accept_review_run();
-                                    v20
-                                } else {
-                                    let v21: i32 = kit_repo_state::kit_repo_run();
-                                    v21
-                                }
-                            }
-                        }
-                        US2::US2_VerbResume => {
-                            let v53: i32 = kit_resume::kit_resume_run();
-                            v53
-                        }
-                        US2::US2_VerbSchedule => {
-                            let v67: i32 = kit_schedule::kit_schedule_run();
-                            v67
-                        }
-                        US2::US2_VerbStandards => {
-                            let v46: i32 = kit_standards::kit_standards_run();
+                        US2::US2_VerbMetrics => {
+                            let v46: i32 = kit_exec_export::kit_exec_export_run();
                             v46
                         }
+                        US2::US2_VerbMirror => {
+                            let v33: i32 = kit_mirror::kit_mirror_run();
+                            v33
+                        }
+                        US2::US2_VerbProcess => {
+                            let v30: i32 = kit_os_launch::kit_process_launch_run();
+                            v30
+                        }
+                        US2::US2_VerbPs => {
+                            let v19: i32 = kit_process_table::kit_process_run();
+                            v19
+                        }
+                        US2::US2_VerbRead => {
+                            let v15: i32 = kit_read_query::kit_read_run();
+                            v15
+                        }
+                        US2::US2_VerbRepo => {
+                            let v13: i32 = kit_cli_routes::kit_cli_repo_routed();
+                            v13
+                        }
+                        US2::US2_VerbResume => {
+                            let v28: i32 = kit_resume::kit_resume_run();
+                            v28
+                        }
+                        US2::US2_VerbRun => {
+                            let v45: i32 = kit_run_cli::kit_run_run();
+                            v45
+                        }
+                        US2::US2_VerbSchedule => {
+                            let v42: i32 = kit_schedule::kit_schedule_run();
+                            v42
+                        }
+                        US2::US2_VerbStandards => {
+                            let v21: i32 = kit_standards::kit_standards_run();
+                            v21
+                        }
                         US2::US2_VerbStandup => {
-                            let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("standup"); } LIT.with(|lit| lit.clone()) };
-                            ceremony_routed_3(v63.clone())
+                            let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("standup"); } LIT.with(|lit| lit.clone()) };
+                            ceremony_routed_3(v38)
                         }
                         US2::US2_VerbStory => {
-                            let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("story"); } LIT.with(|lit| lit.clone()) };
-                            ceremony_routed_3(v61.clone())
+                            let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("story"); } LIT.with(|lit| lit.clone()) };
+                            ceremony_routed_3(v36)
                         }
                         US2::US2_VerbTable => {
-                            let v24: i32 = 2i32;
-                            let v25: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v24 as usize).unwrap_or_default());
-                            let v26: bool = &*v25 == "logs";
-                            if v26 {
-                                let v27: i32 = kit_table_logs::kit_table_logs_run();
-                                v27
-                            } else {
-                                let v28: i32 = 2i32;
-                                let v29: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v28 as usize).unwrap_or_default());
-                                let v30: bool = &*v29 == "sequences";
-                                if v30 {
-                                    let v31: i32 = kit_table_sequences::kit_table_sequences_run();
-                                    v31
-                                } else {
-                                    let v32: i32 = 2i32;
-                                    let v33: Rc<str> = std::rc::Rc::<str>::from(std::env::args().nth(v32 as usize).unwrap_or_default());
-                                    let v34: bool = &*v33 == "test";
-                                    if v34 {
-                                        let v35: i32 = kit_table_test::kit_table_test_run();
-                                        v35
-                                    } else {
-                                        let v36: i32 = kit_table_query::kit_table_run();
-                                        v36
-                                    }
-                                }
-                            }
+                            let v14: i32 = kit_cli_routes::kit_cli_table_routed();
+                            v14
                         }
                         US2::US2_VerbWindow => {
-                            let v47: i32 = kit_machine_windows::kit_window_run();
-                            v47
+                            let v22: i32 = kit_machine_windows::kit_window_run();
+                            v22
                         }
                     }
                 }
                 US1::US1_DirectUnknown => {
-                    let v96: i32 = kit_legacy_operations::dogfood_shim_argv0_code();
-                    let v97: bool = 0i32 == v96;
-                    if v97 {
-                        let v98: i32 = KitProcessVerbCode();
-                        let v99: bool = v98 == 7i32;
-                        let v138: US3 = if v99 {
+                    let v79: i32 = kit_legacy_operations::dogfood_shim_argv0_code();
+                    let v80: bool = 0i32 == v79;
+                    if v80 {
+                        let v81: i32 = KitProcessVerbCode();
+                        let v82: bool = v81 == 7i32;
+                        let v121: US3 = if v82 {
                             US3::US3_LeaseDeniedHandler
                         } else {
-                            let v101: i32 = v98.wrapping_add(1i32);
-                            let v102: bool = v101 == 1i32;
-                            let v123: US4 = if v102 {
+                            let v84: i32 = v81.wrapping_add(1i32);
+                            let v85: bool = v84 == 1i32;
+                            let v106: US4 = if v85 {
                                 US4::US4_StatusSpec
                             } else {
-                                let v104: bool = v101 == 2i32;
-                                if v104 {
+                                let v87: bool = v84 == 2i32;
+                                if v87 {
                                     US4::US4_PatchSpec
                                 } else {
-                                    let v106: bool = v101 == 3i32;
-                                    if v106 {
+                                    let v89: bool = v84 == 3i32;
+                                    if v89 {
                                         US4::US4_AgileSpec
                                     } else {
-                                        let v108: bool = v101 == 4i32;
-                                        if v108 {
+                                        let v91: bool = v84 == 4i32;
+                                        if v91 {
                                             US4::US4_BundleSpec
                                         } else {
-                                            let v110: bool = v101 == 5i32;
-                                            if v110 {
+                                            let v93: bool = v84 == 5i32;
+                                            if v93 {
                                                 US4::US4_ProxySpec
                                             } else {
-                                                let v112: bool = v101 == 6i32;
-                                                if v112 {
+                                                let v95: bool = v84 == 6i32;
+                                                if v95 {
                                                     US4::US4_HelpSpec
                                                 } else {
                                                     US4::US4_UnknownSpec
@@ -786,7 +790,7 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
                                     }
                                 }
                             };
-                            match &v123 {
+                            match v106 {
                                 US4::US4_AgileSpec => {
                                     US3::US3_AgileHandler
                                 }
@@ -810,92 +814,92 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
                                 }
                             }
                         };
-                        match &v138 {
+                        match v121 {
                             US3::US3_AgileHandler => {
-                                let v170: i32 = KitAgileAdapter();
-                                v170
+                                let v153: i32 = KitAgileAdapter();
+                                v153
                             }
                             US3::US3_BundleHandler => {
-                                let v171: i32 = KitBundleAdapter();
-                                v171
+                                let v154: i32 = KitBundleAdapter();
+                                v154
                             }
                             US3::US3_HelpHandler => {
-                                let v173: i32 = KitHelpRejected();
-                                v173
+                                let v156: i32 = KitHelpRejected();
+                                v156
                             }
                             US3::US3_LeaseDeniedHandler => {
                                 2i32
                             }
                             US3::US3_PatchHandler => {
-                                let v169: i32 = KitPatchAdapter();
-                                v169
+                                let v152: i32 = KitPatchAdapter();
+                                v152
                             }
                             US3::US3_ProxyHandler => {
-                                let v172: i32 = KitProxyAdapter();
-                                v172
+                                let v155: i32 = KitProxyAdapter();
+                                v155
                             }
                             US3::US3_StatusHandler => {
-                                let v139: i32 = std::env::args().skip(2).count() as i32;
-                                let v140: bool = 0i32 == v139;
-                                if v140 {
-                                    let v141: i32 = bootstrap_authority_status::kit_bootstrap_workspace_state_status();
-                                    let v142: bool = 1i32 == v141;
-                                    if v142 {
-                                        let v143: i32 = bootstrap_authority_status::kit_bootstrap_compiler_session_status();
-                                        let v144: bool = 1i32 == v143;
-                                        if v144 {
-                                            let v145: i32 = bootstrap_authority_status::kit_bootstrap_legacy_bundle_writer_status();
-                                            let v146: bool = 1i32 == v145;
-                                            if v146 {
-                                                let v147: i32 = bootstrap_authority_status::kit_bootstrap_ingest_frontier_status();
-                                                let v148: bool = 1i32 == v147;
-                                                if v148 {
-                                                    let v149: i32 = process_batch_plan_domain::kit_batch_matrix_auto_chain_budget(60000, 16000);
-                                                    let v150: bool = 1i32 == v149;
-                                                    if v150 {
-                                                        let v151: i32 = bootstrap_authority_status::kit_bootstrap_settled_migration_status();
-                                                        let v152: i32 = KitStatusOk(v151);
-                                                        v152
+                                let v122: i32 = std::env::args().skip(2).count() as i32;
+                                let v123: bool = 0i32 == v122;
+                                if v123 {
+                                    let v124: i32 = bootstrap_authority_status::kit_bootstrap_workspace_state_status();
+                                    let v125: bool = 1i32 == v124;
+                                    if v125 {
+                                        let v126: i32 = bootstrap_authority_status::kit_bootstrap_compiler_session_status();
+                                        let v127: bool = 1i32 == v126;
+                                        if v127 {
+                                            let v128: i32 = bootstrap_authority_status::kit_bootstrap_legacy_bundle_writer_status();
+                                            let v129: bool = 1i32 == v128;
+                                            if v129 {
+                                                let v130: i32 = bootstrap_authority_status::kit_bootstrap_ingest_frontier_status();
+                                                let v131: bool = 1i32 == v130;
+                                                if v131 {
+                                                    let v132: i32 = process_batch_plan_domain::kit_batch_matrix_auto_chain_budget(60000, 16000);
+                                                    let v133: bool = 1i32 == v132;
+                                                    if v133 {
+                                                        let v134: i32 = bootstrap_authority_status::kit_bootstrap_settled_migration_status();
+                                                        let v135: i32 = KitStatusOk(v134);
+                                                        v135
                                                     } else {
-                                                        let v153: i32 = KitStatusAuthorityError();
-                                                        v153
+                                                        let v136: i32 = KitStatusAuthorityError();
+                                                        v136
                                                     }
                                                 } else {
-                                                    let v155: i32 = KitStatusAuthorityError();
-                                                    v155
+                                                    let v138: i32 = KitStatusAuthorityError();
+                                                    v138
                                                 }
                                             } else {
-                                                let v157: i32 = KitStatusAuthorityError();
-                                                v157
+                                                let v140: i32 = KitStatusAuthorityError();
+                                                v140
                                             }
                                         } else {
-                                            let v159: i32 = KitStatusAuthorityError();
-                                            v159
+                                            let v142: i32 = KitStatusAuthorityError();
+                                            v142
                                         }
                                     } else {
-                                        let v161: i32 = KitStatusAuthorityError();
-                                        v161
+                                        let v144: i32 = KitStatusAuthorityError();
+                                        v144
                                     }
                                 } else {
-                                    let v163: bool = 1i32 == v139;
-                                    if v163 {
-                                        let v164: i32 = bootstrap_authority_status::kit_bootstrap_settled_migration_status();
-                                        let v165: i32 = KitStatusLive(v164);
-                                        v165
+                                    let v146: bool = 1i32 == v122;
+                                    if v146 {
+                                        let v147: i32 = bootstrap_authority_status::kit_bootstrap_settled_migration_status();
+                                        let v148: i32 = KitStatusLive(v147);
+                                        v148
                                     } else {
-                                        let v166: i32 = KitStatusArityError();
-                                        v166
+                                        let v149: i32 = KitStatusArityError();
+                                        v149
                                     }
                                 }
                             }
                             US3::US3_UnknownHandler => {
-                                let v174: i32 = KitUnknownRejected();
-                                v174
+                                let v157: i32 = KitUnknownRejected();
+                                v157
                             }
                         }
                     } else {
-                        let v183: i32 = kit_legacy_operations::dogfood_shim_dispatch();
-                        v183
+                        let v166: i32 = kit_legacy_operations::dogfood_shim_dispatch();
+                        v166
                     }
                 }
             }
@@ -904,12 +908,12 @@ fn closure0() -> Rc<dyn Fn() -> i32> {
 }
 fn run_from_4(mut v0: US0, mut v1: Rc<dyn Fn() -> i32>) -> i32 {
     #[cfg(windows)] { unsafe extern "system" { fn SetHandleInformation(handle: *mut std::ffi::c_void, mask: u32, flags: u32) -> i32; } use std::os::windows::io::AsRawHandle; unsafe { SetHandleInformation(std::io::stdin().as_raw_handle(), 1, 0); SetHandleInformation(std::io::stdout().as_raw_handle(), 1, 0); SetHandleInformation(std::io::stderr().as_raw_handle(), 1, 0); } };
-    match &v0 {
+    match v0 {
         US0::US0_DirectArguments => {
             v1()
         }
         US0::US0_FileArguments(v3) => {
-            let v3: Rc<str> = v3.clone();
+            let v3: Rc<str> = v3;
             let mut v4: Result<std::rc::Rc<str>, std::rc::Rc<str>> = std::fs::read_to_string(&*v3).map(std::rc::Rc::<str>::from).map_err(|error| std::rc::Rc::<str>::from(format!("--args-from {}: {error}", &*v3)));
             let v5: bool = v4.is_ok();
             if v5 {
@@ -941,7 +945,7 @@ fn spiral_main() -> i32 {
     std::panic::set_hook(Box::new(|info| { if info.to_string().contains("failed printing to stdout") { std::process::exit(0) } eprintln!("{info}") }));
     let v0: US0 = argument_source_0();
     let mut v1: Rc<dyn Fn() -> i32> = closure0();
-    let v2: i32 = run_from_4(v0.clone(), v1.clone());
+    let v2: i32 = run_from_4(v0, v1);
     let v3: i32 = kit_coverage_prune::coverage_finish(v2);
     v3
 }

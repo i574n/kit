@@ -754,7 +754,7 @@ fn proxy_write_action_binding_16(mut v0: i32, mut v1: i32) -> i32 {
                     let v22: i32 = v21.wrapping_rem(2i32);
                     let v23: bool = v22 == 1i32;
                     let v24: US0 = proxy_write_action_17(v6, v8, v11, v14, v17, v20, v23);
-                    match &v24 {
+                    match v24 {
                         US0::US0_CreateMissingFile => {
                             0i32
                         }
@@ -783,7 +783,7 @@ fn proxy_usage_19(mut v0: Rc<str>) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("plan-ir-inspect|plan-ir-check|install-self|self-upgrade-check|fs-chmod|fs-symlink|fs-copy-tree|command-output|command-capture|command-capture-env|fs-list|fs-read|fs-context|fs-search|parallel-search|hash|hash-tree|fs-write|text-replace|fs-remove|fs-remove-tree|run|archive-extract|zip-extract|toolchain|portable-toolchain|legacy-surface|restart-baton|command-capture-matrix|command-capture-matrix-gate|batch-plan|batch-plan-resume|fs-slice|parallel-manifest|product-diff|fs-copy|spiral-session-shutdown|prune-build-cache|prune-compiler-sidecars|incident-recovery|external-payload|differential-compare|coverage-assess|coverage-export|coverage-union|coverage-run|source-stats|source-topology|ingest-map|ingest-trim-check|ingest-extracted-manifest|ingest-targets|ingest-targets-derive|frontier-map|spi-map|source-map|spi-diff|source-diff|source-recovery-diff|cold-rebuild-matrix|cold-rebuild-owner|source-author|fs-batch-write|fs-actions|binary-install|release-closeout|shim|prune-uncovered|formal-receipts-renew|coverage-register"); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("proxy plan-ir-inspect <index>\nproxy plan-ir-check\nproxy install-self <source-binary> <installed-binary> <canonical-link>\nproxy self-upgrade-check <current-root> <candidate-root>\nproxy fs-chmod <root> <relative-path> <octal-mode>\nproxy fs-symlink <root> <target-relative> <link-relative>\nproxy fs-copy-tree <source> <destination>\nproxy command-output <root> <timeout-ms> <program> [args...]\nproxy command-capture <root> <receipt-relative> <timeout-ms> <program> [args...]\nproxy command-capture-env <root> <receipt-relative> <timeout-ms> <cwd-relative> <env-cell> <program> [args...]\nproxy fs-list <root> [relative]\nproxy fs-read <root> <relative> [max-bytes]\nproxy fs-context <root> <relative> <needle> <radius-bytes>\nproxy fs-search <root> <relative> <needle>\nproxy parallel-search <root> <relative> <needle> <max-hits>\nproxy hash <root> <relative>\nproxy hash-tree <root> <relative>\nproxy fs-write <root> <relative> [--replace-existing|--create-or-replace] [--expect-hash <sha256>] [--expect-nonempty] [--] <text>\nproxy text-replace <check|apply> <root> <relative> <old> <new> [--all|--expect <count>]\nproxy fs-remove <root> <relative>\nproxy fs-remove-tree <root> <relative> [--missing-ok]\nproxy run --cwd <directory> --program <program> [--timeout-ms <ms>] [--env KEY=VALUE]... [--unset KEY]... [-- <args...>]\nproxy archive-extract <archive> <destination>\nproxy zip-extract <archive> <destination>\nproxy toolchain <root> <action> ...\nproxy portable-toolchain <root> ...\nproxy legacy-surface\nproxy restart-baton <root> <receipt-relative> <bundle-absolute> <expected-migration> <active-workstream> <touched-sources> <next-gate>\nproxy command-capture-matrix <root> <spec-relative> <timeout-ms> <report-relative> [parallel-chains [auto | start-chain chain-count]]\nproxy command-capture-matrix-gate <root> <report-relative>\nproxy batch-plan <root> <spec-relative> <timeout-ms> <report-relative> [parallel-chains [auto | start-chain chain-count]]\nproxy batch-plan-resume <root> <report-relative> <resume-relative>\nproxy fs-slice <root> <relative> <start> <count>\nproxy parallel-manifest <root> <relative> <max-entries> [preview|apply <output-relative>]\nproxy product-diff <left-root> <right-root>\nproxy fs-copy <root> <source> <target>\nproxy spiral-session-shutdown <compiler> [timeout-ms]\nproxy prune-build-cache <root> <relative-target>\nproxy prune-compiler-sidecars <root> [--dry-run]\nproxy incident-recovery snapshot <root> <source-relative> <snapshot-parent-relative> <receipt-relative> | restore <root> <target-relative> <snapshot-relative> <receipt-relative>\nproxy external-payload <register|hydrate|dehydrate> <root> <payload-relative> <cache-relative> <receipt-relative>\nproxy differential-compare <root> <oracle> <direct> <receipt>\nproxy coverage-assess <test.lcov> <smoke.lcov> <test-floor> <smoke-floor> <combined-floor>\nproxy coverage-export <profraw-dir> <binary-path> <grcov> <llvm-bin-dir> <source-root> <output-lcov> <timeout-ms>\nproxy coverage-union <output-lcov> <input-lcov> <input-lcov> [input-lcov ...]\nproxy coverage-run <root> <cargo> <compiler> <target-dir> <profraw-dir> <public|workspace|smoke|owner:package> <timeout-ms>\nproxy source-stats <root> [--crates]\nproxy source-topology <root> [state/authority_census.spi]\nproxy ingest-map <root>\nproxy ingest-trim-check <root>\nproxy ingest-extracted-manifest <root>\nproxy ingest-targets <root>\nproxy ingest-targets-derive <root>\nproxy frontier-map <root>\nproxy spi-map <root>\nproxy source-map <root>\nproxy spi-diff <left-root> <right-root>\nproxy source-diff <left-root> <right-root>\nproxy source-recovery-diff <current-root> <candidate-root> [candidate-root ...]\nproxy cold-rebuild-matrix <root> <matrix-relative> <kit> <compiler> <dotnet> <rustfmt> [compiler-timeout-ms]\nproxy cold-rebuild-owner <root> <snapshot-relative> <input-relative> <output-relative> <compiler> <dotnet> <rustfmt-or-empty> <timeout-ms> <workspace-root-or-empty>\nproxy source-author <preview|apply> <root> <target-relative> <template-relative> <expected-target-sha256|missing> <expected-template-sha256> KEY=VALUE...\nproxy fs-batch-write <preview|apply> <root> <plan.spi>\nproxy fs-actions <preview|apply> <root> <plan.spi>\nproxy binary-install <preview|apply> <root> <source-relative> <destination-relative> <provenance-relative> <expected-source-sha256> <expected-destination-sha256|missing> <expected-provenance-sha256|missing> <mode-octal>\nproxy release-closeout <preview|apply> <root> <receipt-relative> <expected-migration> <expected-receipt-sha256|missing> <name|relative|sha256>... (six gates)\nproxy shim install <root> <relative-dir> <block|warn|pass> | uninstall <root> <relative-dir> | status <root> <relative-dir>\nproxy prune-uncovered <root> <relative> <test.lcov> <smoke.lcov> -- <validation-program> [args...]\nproxy formal-receipts-renew <root>\nproxy coverage-register <root> <current.lcov> <seed.lcov>"); } LIT.with(|lit| lit.clone()) };
     let v3: Rc<str> = v1.split("|").zip(v2.split(char::from(10u8))).find_map(|(key,item)| if key == &*v0 { Some(std::rc::Rc::<str>::from(item)) } else { None }).unwrap_or_else(|| { thread_local!{ static LIT: std::rc::Rc<str> = std::rc::Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) });
-    v3.clone()
+    v3
 }
 fn proxy_usage_bridge_18(mut v0: Rc<str>) -> Rc<str> {
     proxy_usage_19(v0)
@@ -820,12 +820,12 @@ fn closure5() -> Rc<dyn Fn(i32, i32) -> i32> {
 }
 fn closure6() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        proxy_run_token_code_14(v0.clone())
+        proxy_run_token_code_14(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure7() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        proxy_write_token_code_15(v0.clone())
+        proxy_write_token_code_15(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure8() -> Rc<dyn Fn(i32, i32) -> i32> {
@@ -835,7 +835,7 @@ fn closure8() -> Rc<dyn Fn(i32, i32) -> i32> {
 }
 fn closure9() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        proxy_usage_bridge_18(v0.clone())
+        proxy_usage_bridge_18(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_legacy_operations_proxy_dogfood_shim_decision_packed_binding(v0: i32, v1: i32) -> i32 {

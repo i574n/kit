@@ -62,7 +62,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
         let v14: bool = v12 == v13 ;
         if v14 {
             let v15: i32 = v6 + 1i32 ;
-            let v16: u8 = codec_runtime_char_3(v3.clone());
+            let v16: u8 = codec_runtime_char_3(v3);
             let v17: i32 = find_char_loop_4(v0.clone(), v15, v2, v16);
             let v18: bool = v17 < v2;
             if v18 {
@@ -74,7 +74,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
                     codec_empty_1()
                 } else {
                     let v22: i32 = v2 - 1i32 ;
-                    let v23: Rc<str> = string_slice(&v0.clone(), v19 as i64, v22 as i64);
+                    let v23: Rc<str> = string_slice(&v0, v19 as i64, v22 as i64);
                     v23
                 };
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -187,7 +187,7 @@ fn receipt_row_tuple_0(mut v0: Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, 
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>)> = Rc::new(move |mut v0: Rc<str>| -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {
-        receipt_row_tuple_0(v0.clone())
+        receipt_row_tuple_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_state_receipt_row_tuple(v0: &str) -> (Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) {

@@ -26,7 +26,7 @@ fn now_ms_1() -> u64 {
 }
 fn records_of_2(mut v0: Rc<str>) -> std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> {
     let mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>> = std::rc::Rc::new((&*v0).split(char::from(30u8)).map(|record| record.split(char::from(31u8)).map(std::rc::Rc::<str>::from).collect::<Vec<_>>()).collect::<Vec<_>>());
-    v1.clone()
+    v1
 }
 fn field_index_6(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: Rc<str>) -> i32 {
     let v3: i32 = v0.get(v1 as usize).and_then(|fields| fields.iter().position(|field| field.len() > 1 && field.starts_with(char::from(119u8)) && &field[1..] == &*v2)).map(|index| index as i32).unwrap_or(-1);
@@ -35,11 +35,11 @@ fn field_index_6(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, m
 fn words_span_7(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32, mut v3: i32) -> Rc<str> {
     let v4: Rc<str> = { let fields = v0.get(v1 as usize).cloned().unwrap_or_default(); let until = if v3 < 0 { fields.len() } else { (v3 as usize).min(fields.len()) }; std::rc::Rc::<str>::from(fields.iter().take(until).skip(v2 as usize).filter(|raw| raw.len() > 1).flat_map(|raw| raw[1..].split(|c: char| c == char::from(44u8) || c.is_whitespace()).filter(|item| !item.is_empty()).map(str::to_owned).collect::<Vec<_>>()).collect::<Vec<_>>().join("
 ")) };
-    v4.clone()
+    v4
 }
 fn body_at_8(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> Rc<str> {
     let v3: Rc<str> = v0.get(v1 as usize).and_then(|fields| fields.get(v2 as usize)).filter(|field| !field.is_empty()).map(|field| std::rc::Rc::<str>::from(&field[1..])).unwrap_or_default();
-    v3.clone()
+    v3
 }
 fn status_parsed_5(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> US0 {
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("group"); } LIT.with(|lit| lit.clone()) };
@@ -161,10 +161,13 @@ fn days_parsed_12(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, 
 }
 fn field_at_13(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32, mut v2: i32) -> Rc<str> {
     let v3: Rc<str> = v0.get(v1 as usize).and_then(|fields| fields.get(v2 as usize)).cloned().unwrap_or_default();
-    v3.clone()
+    v3
 }
 fn concat5_14(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v2));
+    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v3));
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v4));
     v8
 }
 fn git_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) -> US0 {
@@ -190,7 +193,7 @@ fn git_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
         };
         if v15 {
             let v16: i32 = 1i32;
-            let v17: Rc<str> = field_at_13(v0.clone(), v1, v16);
+            let v17: Rc<str> = field_at_13(v0, v1, v16);
             let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cannot share one program with git yet; run it as its own call"); } LIT.with(|lit| lit.clone()) };
             let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v20: Rc<str> = concat5_14(v17, v18, v19.clone(), v19.clone(), v19);
@@ -198,28 +201,28 @@ fn git_parsed_4(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i32) ->
         } else {
             let v22: bool = &*v5 == "status";
             if v22 {
-                status_parsed_5(v0.clone(), v1)
+                status_parsed_5(v0, v1)
             } else {
                 let v24: bool = &*v7 == "";
                 if v24 {
                     let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("git "); } LIT.with(|lit| lit.clone()) };
                     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": expected a repo folder"); } LIT.with(|lit| lit.clone()) };
                     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let v28: Rc<str> = concat5_14(v25, v5.clone(), v26, v27.clone(), v27);
+                    let v28: Rc<str> = concat5_14(v25, v5, v26, v27.clone(), v27);
                     US0::US0_GitRejected(v28)
                 } else {
                     let v30: bool = &*v5 == "init";
                     if v30 {
-                        let v31: US1 = US1::US1_GitInit(v7.clone());
+                        let v31: US1 = US1::US1_GitInit(v7);
                         US0::US0_GitParsed(v31)
                     } else {
                         let v33: bool = &*v5 == "commit";
                         if v33 {
-                            commit_parsed_9(v0.clone(), v1, v7.clone())
+                            commit_parsed_9(v0, v1, v7)
                         } else {
                             let v35: bool = &*v5 == "history";
                             if v35 {
-                                history_parsed_11(v0.clone(), v1, v7.clone())
+                                history_parsed_11(v0, v1, v7)
                             } else {
                                 let v37: bool = &*v5 == "log";
                                 if v37 {
@@ -245,21 +248,21 @@ fn first_rejection_3(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: i3
         let v3: bool = v1 < v2;
         if v3 {
             let v4: US0 = git_parsed_4(v0.clone(), v1);
-            match &v4 {
+            match v4 {
                 US0::US0_GitParsed(v6) => {
-                    let v6: US1 = v6.clone();
+                    let v6: US1 = v6;
                     let v7: i32 = v1.wrapping_add(1i32);
                     v1 = v7;
                     continue;
                 }
                 US0::US0_GitRejected(v5) => {
-                    let v5: Rc<str> = v5.clone();
-                    return v5.clone();
+                    let v5: Rc<str> = v5;
+                    return v5;
                 }
             }
         } else {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            return v11.clone();
+            return v11;
         }
     }
 }
@@ -274,12 +277,12 @@ fn created_before_17(mut v0: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>, mut v1: Rc
             return false;
         } else {
             let v5: US0 = git_parsed_4(v0.clone(), v2);
-            match &v5 {
+            match v5 {
                 US0::US0_GitParsed(v6) => {
-                    let v6: US1 = v6.clone();
-                    match &v6 {
+                    let v6: US1 = v6;
+                    match v6 {
                         US1::US1_GitInit(v7) => {
-                            let v7: Rc<str> = v7.clone();
+                            let v7: Rc<str> = v7;
                             let v8: bool = &*v7 == &*v1;
                             if v8 {
                                 return true;
@@ -325,11 +328,11 @@ fn agent_session_19() -> bool {
 fn lines_joined_22(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: bool = &*v1 == "";
     if v2 {
-        v0.clone()
+        v0
     } else {
         let v3: bool = &*v0 == "";
         if v3 {
-            v1.clone()
+            v1
         } else {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -338,9 +341,9 @@ fn lines_joined_22(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     }
 }
 fn reported_21(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64, mut v13: Rc<str>, mut v14: bool) -> (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) {
-    let v15: Rc<str> = lines_joined_22(v0.clone(), v13.clone());
+    let v15: Rc<str> = lines_joined_22(v0, v13);
     let v16: bool = v1 || v14;
-    (v15.clone(), v16, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
+    (v15, v16, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
 }
 fn git_run_23(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> Rc<str> {
     let v4: Rc<str> = { let mut command = std::process::Command::new("git"); command.current_dir(std::path::Path::new(&*v0).join(&*v1)).args(["-c", "user.name=kit", "-c"]).arg(format!("user.email=kit{}localhost", char::from(64u8))).args(["-c", "commit.gpgsign=false", "-c", "core.autocrlf=false"]).args((v2).split(char::from(10u8))).stdin(std::process::Stdio::null()); if !(v3).is_empty() { command.env("GIT_AUTHOR_DATE", &*v3).env("GIT_COMMITTER_DATE", &*v3); } let mark = char::from(30u8); std::rc::Rc::<str>::from(match command.output() { Ok(output) => format!("{}{mark}{}{mark}{}", output.status.code().unwrap_or(1), String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr).trim()), Err(error) => format!("1{mark}{mark}git: {error}") }) };
@@ -378,9 +381,9 @@ fn commit_run_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
     let (mut v120, mut v121, mut v122, mut v123, mut v124, mut v125, mut v126, mut v127, mut v128, mut v129, mut v130, mut v131, mut v132): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = if v24 {
         let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  refused: an agent session commits only to a repo this program created with git init; "); } LIT.with(|lit| lit.clone()) };
         let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the user reviews, stages and commits their own repos"); } LIT.with(|lit| lit.clone()) };
-        let v27: Rc<str> = concat5_14(v21.clone(), v25, v26, v20.clone(), v20.clone());
+        let v27: Rc<str> = concat5_14(v21, v25, v26, v20.clone(), v20.clone());
         let v28: bool = true;
-        let (mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40, mut v41): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v5.clone(), v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v27, v28);
+        let (mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40, mut v41): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v27, v28);
         (v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41)
     } else {
         let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("add\n-A"); } LIT.with(|lit| lit.clone()) };
@@ -394,12 +397,12 @@ fn commit_run_18(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
             let (mut v79, mut v80, mut v81, mut v82, mut v83, mut v84, mut v85, mut v86, mut v87, mut v88, mut v89, mut v90, mut v91): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = if v48 {
                 let v49: u64 = v8.wrapping_add(1u64);
                 let v50: bool = false;
-                let (mut v51, mut v52, mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v5.clone(), v6, v7, v49, v9, v10, v11, v12, v13, v14, v15, v16, v17, v21.clone(), v50);
+                let (mut v51, mut v52, mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v5, v6, v7, v49, v9, v10, v11, v12, v13, v14, v15, v16, v17, v21, v50);
                 (v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63)
             } else {
-                let v64: Rc<str> = failure_row_26(v21.clone(), v47);
+                let v64: Rc<str> = failure_row_26(v21, v47);
                 let v65: bool = true;
-                let (mut v66, mut v67, mut v68, mut v69, mut v70, mut v71, mut v72, mut v73, mut v74, mut v75, mut v76, mut v77, mut v78): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v5.clone(), v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v64, v65);
+                let (mut v66, mut v67, mut v68, mut v69, mut v70, mut v71, mut v72, mut v73, mut v74, mut v75, mut v76, mut v77, mut v78): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v64, v65);
                 (v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78)
             };
             (v79, v80, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91)
@@ -424,7 +427,7 @@ fn init_run_28(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: bool, 
     let (mut v52, mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = if v21 {
         let v22: u64 = v4.wrapping_add(1u64);
         let v23: bool = false;
-        let (mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v2.clone(), v3, v22, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v20.clone(), v23);
+        let (mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v2, v3, v22, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v20, v23);
         (v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36)
     } else {
         let v37: Rc<str> = failure_row_26(v20, v18);
@@ -438,7 +441,7 @@ fn history_run_29(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<
     let (mut v17, mut v18, mut v19, mut v20): (Rc<str>, bool, u64, u64) = kit_do_git_reports::kit_do_git_history(&*v0, &*v1, &*v2, &*v3);
     let (mut v52, mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = if v18 {
         let v21: bool = true;
-        let (mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v4.clone(), v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17.clone(), v21);
+        let (mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v21);
         (v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34)
     } else {
         let v35: u64 = v8.wrapping_add(v19);
@@ -463,7 +466,7 @@ fn days_run_31(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str
     let (mut v16, mut v17, mut v18, mut v19): (Rc<str>, bool, u64, u64) = kit_do_git_reports::kit_do_git_days(&*v0, &*v1, &*v2);
     let (mut v51, mut v52, mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = if v17 {
         let v20: bool = true;
-        let (mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v3.clone(), v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16.clone(), v20);
+        let (mut v21, mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = reported_21(v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v20);
         (v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33)
     } else {
         let v34: u64 = v7.wrapping_add(v18);
@@ -479,7 +482,7 @@ fn step_run_27(mut v0: Rc<str>, mut v1: US1, mut v2: Rc<str>, mut v3: bool, mut 
     let (mut v156, mut v157, mut v158, mut v159, mut v160, mut v161, mut v162, mut v163, mut v164, mut v165, mut v166, mut v167, mut v168): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v1 {
         US1::US1_GitInit(v15) => {
             let v15: Rc<str> = v15.clone();
-            init_run_28(v0.clone(), v15, v2.clone(), v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+            init_run_28(v0, v15, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
         }
         _ => {
             let (mut v143, mut v144, mut v145, mut v146, mut v147, mut v148, mut v149, mut v150, mut v151, mut v152, mut v153, mut v154, mut v155): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v1 {
@@ -488,7 +491,7 @@ fn step_run_27(mut v0: Rc<str>, mut v1: US1, mut v2: Rc<str>, mut v3: bool, mut 
                     let v30: Rc<str> = v30.clone();
                     let v31: Rc<str> = v31.clone();
                     let v32: bool = false;
-                    commit_run_18(v0.clone(), v29, v30, v31, v32, v2.clone(), v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+                    commit_run_18(v0, v29, v30, v31, v32, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
                 }
                 _ => {
                     let (mut v130, mut v131, mut v132, mut v133, mut v134, mut v135, mut v136, mut v137, mut v138, mut v139, mut v140, mut v141, mut v142): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v1 {
@@ -496,23 +499,23 @@ fn step_run_27(mut v0: Rc<str>, mut v1: US1, mut v2: Rc<str>, mut v3: bool, mut 
                             let v46: Rc<str> = v46.clone();
                             let v47: Rc<str> = v47.clone();
                             let v48: Rc<str> = v48.clone();
-                            history_run_29(v0.clone(), v46, v47, v48, v2.clone(), v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+                            history_run_29(v0, v46, v47, v48, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
                         }
                         _ => {
                             let (mut v117, mut v118, mut v119, mut v120, mut v121, mut v122, mut v123, mut v124, mut v125, mut v126, mut v127, mut v128, mut v129): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v1 {
                                 US1::US1_GitStatus(v62) => {
                                     let v62: Rc<str> = v62.clone();
-                                    repos_status_30(v0.clone(), v62, v2.clone(), v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+                                    repos_status_30(v0, v62, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
                                 }
                                 _ => {
                                     let (mut v104, mut v105, mut v106, mut v107, mut v108, mut v109, mut v110, mut v111, mut v112, mut v113, mut v114, mut v115, mut v116): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v1 {
                                         US1::US1_GitDays(v76, v77) => {
                                             let v76: Rc<str> = v76.clone();
                                             let v77: Rc<str> = v77.clone();
-                                            days_run_31(v0, v76, v77, v2.clone(), v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+                                            days_run_31(v0, v76, v77, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
                                         }
                                         _ => {
-                                            let (mut v91, mut v92, mut v93, mut v94, mut v95, mut v96, mut v97, mut v98, mut v99, mut v100, mut v101, mut v102, mut v103): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v1 {
+                                            let (mut v91, mut v92, mut v93, mut v94, mut v95, mut v96, mut v97, mut v98, mut v99, mut v100, mut v101, mut v102, mut v103): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match v1 {
                                                 US1::US1_Blank => {
                                                     (v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
                                                 }
@@ -551,23 +554,23 @@ fn gits_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>,
                         let v23: i32 = 1i32;
                         let v24: bool = created_before_17(v1.clone(), v20.clone(), v23, v2);
                         let v25: i32 = v2.wrapping_add(1i32);
-                        let (mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = commit_run_18(v0.clone(), v20, v21, v22, v24, v3.clone(), v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
-                        gits_run_16(v0.clone(), v1.clone(), v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38)
+                        let (mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = commit_run_18(v0.clone(), v20, v21, v22, v24, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+                        gits_run_16(v0, v1, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38)
                     }
                     _ => {
                         let v52: i32 = v2.wrapping_add(1i32);
-                        let (mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = step_run_27(v0.clone(), v19, v3.clone(), v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
-                        let (mut v66, mut v67, mut v68, mut v69, mut v70, mut v71, mut v72, mut v73, mut v74, mut v75, mut v76, mut v77, mut v78): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = gits_run_16(v0.clone(), v1.clone(), v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65);
+                        let (mut v53, mut v54, mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = step_run_27(v0.clone(), v19, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+                        let (mut v66, mut v67, mut v68, mut v69, mut v70, mut v71, mut v72, mut v73, mut v74, mut v75, mut v76, mut v77, mut v78): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = gits_run_16(v0, v1, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65);
                         (v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78)
                     }
                 }
             }
             _ => {
-                let (mut v107, mut v108, mut v109, mut v110, mut v111, mut v112, mut v113, mut v114, mut v115, mut v116, mut v117, mut v118, mut v119): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match &v18 {
+                let (mut v107, mut v108, mut v109, mut v110, mut v111, mut v112, mut v113, mut v114, mut v115, mut v116, mut v117, mut v118, mut v119): (Rc<str>, bool, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) = match v18 {
                     US0::US0_GitRejected(v92) => {
-                        let v92: Rc<str> = v92.clone();
+                        let v92: Rc<str> = v92;
                         let v93: i32 = v2.wrapping_add(1i32);
-                        gits_run_16(v0, v1, v93, v3.clone(), v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15)
+                        gits_run_16(v0, v1, v93, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15)
                     }
                     _ => unreachable!(),
                 };
@@ -583,11 +586,11 @@ fn gits_run_16(mut v0: Rc<str>, mut v1: std::rc::Rc<Vec<Vec<std::rc::Rc<str>>>>,
 fn segments_joined_33(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let mut v2: bool = &*v0 == "";
     if v2 {
-        v1.clone()
+        v1
     } else {
         let v3: bool = &*v1 == "";
         if v3 {
-            v0.clone()
+            v0
         } else {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -599,7 +602,7 @@ fn decimal_text_34(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = std::rc::Rc::<str>::from((v0).to_string());
     v1
 }
-fn receipt_counts_32(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64) -> Rc<str> {
+fn receipt_counts_32(mut v0: &Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mut v4: u64, mut v5: u64, mut v6: u64, mut v7: u64, mut v8: u64, mut v9: u64, mut v10: u64, mut v11: u64, mut v12: u64) -> Rc<str> {
     let v13: u64 = v2.wrapping_add(v3);
     let v14: bool = v13 > 0u64;
     let v22: Rc<str> = if v14 {
@@ -664,7 +667,7 @@ fn receipt_counts_32(mut v0: Rc<str>, mut v1: bool, mut v2: u64, mut v3: u64, mu
 }
 fn elapsed_text_36(mut v0: u64) -> Rc<str> {
     let mut v1: Rc<str> = { let millis = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_millis() as u64).unwrap_or(0).saturating_sub(v0); std::rc::Rc::<str>::from(if millis < 10000 { format!("{millis}ms") } else { format!("{:.1}s", millis as f64 / 1000.0) }) };
-    v1.clone()
+    v1
 }
 fn local_offset_minutes_38() -> i64 {
     let v0: i64 = { #[cfg(windows)] fn offset() -> i64 { #[repr(C)] #[derive(Default)] #[allow(dead_code)] struct WindowsTime { year: u16, month: u16, weekday: u16, day: u16, hour: u16, minute: u16, second: u16, millis: u16 } unsafe extern "system" { fn GetLocalTime(time: *mut WindowsTime); fn GetSystemTime(time: *mut WindowsTime); } let mut local = WindowsTime::default(); let mut universal = WindowsTime::default(); unsafe { GetLocalTime(&mut local); GetSystemTime(&mut universal); } let minutes = |time: &WindowsTime| time.day as i64 * 1440 + time.hour as i64 * 60 + time.minute as i64; let raw = (minutes(&local) - minutes(&universal)).rem_euclid(1440); ((if raw > 840 { raw - 1440 } else { raw }) as f64 / 15.0).round() as i64 * 15 } #[cfg(not(windows))] fn offset() -> i64 { 0 } offset() };
@@ -673,10 +676,10 @@ fn local_offset_minutes_38() -> i64 {
 fn clock_text_37() -> Rc<str> {
     let v0: i64 = local_offset_minutes_38();
     let mut v1: Rc<str> = { let offset = v0; let seconds = (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|elapsed| elapsed.as_secs()).unwrap_or(0) as i64 + offset * 60).rem_euclid(86400); let sign = if offset < 0 { char::from(45u8) } else { char::from(43u8) }; std::rc::Rc::<str>::from(if cfg!(windows) { format!("{:02}:{:02}:{:02}{}{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60, sign, offset.abs() / 60, offset.abs() % 60) } else { format!("{:02}:{:02}:{:02}Z", seconds / 3600, seconds / 60 % 60, seconds % 60) }) };
-    v1.clone()
+    v1
 }
 fn receipt_line_35(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
-    let v6: Rc<str> = match &v0 {
+    let v6: Rc<str> = match v0 {
         US2::US2_Failed => {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("failed"); } LIT.with(|lit| lit.clone()) };
             v4
@@ -686,13 +689,15 @@ fn receipt_line_35(mut v0: US2, mut v1: Rc<str>, mut v2: u64) -> () {
             v3
         }
     };
-    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) };
-    let v10: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v6, v7)), v1)), v7));
-    let v11: Rc<str> = elapsed_text_36(v2);
-    let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v7));
-    let v14: Rc<str> = clock_text_37();
-    let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
-    println!("{}", v15);
+    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) }));
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v1));
+    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) }));
+    let v10: Rc<str> = elapsed_text_36(v2);
+    let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
+    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("  "); } LIT.with(|lit| lit.clone()) }));
+    let v13: Rc<str> = clock_text_37();
+    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
+    println!("{}", v14);
     ()
 }
 fn git_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
@@ -714,12 +719,12 @@ fn git_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         };
         if v22 {
             let v35: US2 = US2::US2_Failed;
-            let v36: Rc<str> = receipt_counts_32(v21.clone(), v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33);
+            let v36: Rc<str> = receipt_counts_32(&v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33);
             receipt_line_35(v35, v36, v2);
             1i32
         } else {
             let v37: US2 = US2::US2_Succeeded;
-            let v38: Rc<str> = receipt_counts_32(v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33);
+            let v38: Rc<str> = receipt_counts_32(&v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33);
             receipt_line_35(v37, v38, v2);
             0i32
         }
@@ -736,7 +741,7 @@ fn git_program_run_0(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> i32 {
-        git_program_run_0(v0.clone(), v1.clone())
+        git_program_run_0(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_do_git_run(v0: &str, v1: &str) -> i32 {

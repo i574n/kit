@@ -13,9 +13,8 @@ fn closure0() -> Rc<dyn Fn() -> u64> {
 fn elapsed_field_1(mut v0: u64) -> Rc<str> {
     let v1: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v0);
     let v2: Rc<str> = std::rc::Rc::<str>::from((v1).to_string());
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v2));
-    v4.clone()
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) }, v2));
+    v3
 }
 fn closure1() -> Rc<dyn Fn(u64) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(u64) -> Rc<str>> = Rc::new(move |mut v0: u64| -> Rc<str> {

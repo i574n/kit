@@ -9,7 +9,7 @@ enum US0 {
 fn load_words_2(mut v0: Rc<str>) -> Rc<RefCell<Vec<Rc<str>>>> {
     let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(v0.split(&*v1).map(|x| Rc::<str>::from(x)).collect::<Vec<Rc<str>>>()));
-    v2.clone()
+    v2
 }
 fn loads_valid_3(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: i32) -> bool {
     loop {
@@ -34,7 +34,7 @@ fn next_request_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: i32, m
     loop {
         let v7: bool = v1 <= v0;
         if v7 {
-            return US0::US0_ArgsParsed(v2.clone(), v3, v4.clone(), v5.clone(), v6);
+            return US0::US0_ArgsParsed(v2, v3, v4, v5, v6);
         } else {
             let v9: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
             let v10: i32 = v0.wrapping_add(1i32);
@@ -50,101 +50,97 @@ fn next_request_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: i32, m
                 };
                 if v15 {
                     let v16: i32 = v0.wrapping_add(2i32);
-                    (v0, v2) = (v16, v11.clone());
+                    (v0, v2) = (v16, v11);
                     continue;
                 } else {
-                    let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--as expects main or subagent, got "); } LIT.with(|lit| lit.clone()) };
-                    let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v11));
-                    return US0::US0_ArgsRejected(v19.clone());
+                    let v18: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--as expects main or subagent, got "); } LIT.with(|lit| lit.clone()) }, v11));
+                    return US0::US0_ArgsRejected(v18);
                 }
             } else {
-                let v22: bool = &*v9 == "--json";
-                if v22 {
-                    let v23: bool = true;
-                    (v0, v6) = (v10, v23);
+                let v21: bool = &*v9 == "--json";
+                if v21 {
+                    let v22: bool = true;
+                    (v0, v6) = (v10, v22);
                     continue;
                 } else {
-                    let v25: bool = &*v9 == "--fits";
-                    if v25 {
-                        let v26: Rc<str> = kit_window_query::kit_fitting_loads();
-                        (v0, v5) = (v10, v26.clone());
+                    let v24: bool = &*v9 == "--fits";
+                    if v24 {
+                        let v25: Rc<str> = kit_window_query::kit_fitting_loads();
+                        (v0, v5) = (v10, v25);
                         continue;
                     } else {
-                        let v28: bool = &*v9 == "--load";
-                        if v28 {
-                            let v29: bool = &*v11 != "";
-                            let v33: bool = if v29 {
-                                let v30: Rc<RefCell<Vec<Rc<str>>>> = load_words_2(v11.clone());
-                                let v31: i32 = 0i32;
-                                loads_valid_3(v30.clone(), v31)
+                        let v27: bool = &*v9 == "--load";
+                        if v27 {
+                            let v28: bool = &*v11 != "";
+                            let v32: bool = if v28 {
+                                let v29: Rc<RefCell<Vec<Rc<str>>>> = load_words_2(v11.clone());
+                                let v30: i32 = 0i32;
+                                loads_valid_3(v29, v30)
                             } else {
                                 false
                             };
-                            if v33 {
-                                let v34: i32 = v0.wrapping_add(2i32);
-                                (v0, v5) = (v34, v11.clone());
+                            if v32 {
+                                let v33: i32 = v0.wrapping_add(2i32);
+                                (v0, v5) = (v33, v11);
                                 continue;
                             } else {
-                                let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--load expects light, medium, heavy or none, or a comma list of them, got "); } LIT.with(|lit| lit.clone()) };
-                                let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v36, v11));
-                                return US0::US0_ArgsRejected(v37.clone());
+                                let v35: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--load expects light, medium, heavy or none, or a comma list of them, got "); } LIT.with(|lit| lit.clone()) }, v11));
+                                return US0::US0_ArgsRejected(v35);
                             }
                         } else {
-                            let v40: i32 = agile_task_query::kit_query_flag_width(&*v9, &*v11);
-                            let v41: bool = v40 > 0i32;
-                            if v41 {
-                                let v42: i32 = v0.wrapping_add(v40);
-                                let v43: bool = v40 == 2i32;
-                                let v45: Rc<str> = if v43 {
-                                    v11.clone()
+                            let v38: i32 = agile_task_query::kit_query_flag_width(&*v9, &*v11);
+                            let v39: bool = v38 > 0i32;
+                            if v39 {
+                                let v40: i32 = v0.wrapping_add(v38);
+                                let v41: bool = v38 == 2i32;
+                                let v43: Rc<str> = if v41 {
+                                    v11
                                 } else {
-                                    let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                    v44.clone()
+                                    let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                    v42
                                 };
-                                let v46: bool = &*v4 == "";
-                                let v49: Rc<str> = if v46 {
-                                    let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                    v47.clone()
+                                let v44: bool = &*v4 == "";
+                                let v47: Rc<str> = if v44 {
+                                    let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                    v45
                                 } else {
-                                    let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                                    v48.clone()
+                                    let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+                                    v46
                                 };
-                                let v51: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v49)), v9));
-                                let v52: bool = &*v45 == "";
-                                let v55: Rc<str> = if v52 {
-                                    let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                    v53.clone()
+                                let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v47));
+                                let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v48, v9));
+                                let v50: bool = &*v43 == "";
+                                let v53: Rc<str> = if v50 {
+                                    let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                    v51
                                 } else {
-                                    let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                                    v54.clone()
+                                    let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+                                    v52
                                 };
-                                let v57: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v51, v55)), v45));
-                                (v0, v4) = (v42, v57.clone());
+                                let v54: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v53));
+                                let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v43));
+                                (v0, v4) = (v40, v55);
                                 continue;
                             } else {
-                                let v59: bool = v40 < 0i32;
-                                if v59 {
-                                    let v60: Rc<str> = agile_task_query::kit_query_flag_refusal(&*v9, &*v11);
-                                    return US0::US0_ArgsRejected(v60.clone());
+                                let v57: bool = v38 < 0i32;
+                                if v57 {
+                                    let v58: Rc<str> = agile_task_query::kit_query_flag_refusal(&*v9, &*v11);
+                                    return US0::US0_ArgsRejected(v58);
                                 } else {
-                                    let v62: i32 = (v9).parse::<i32>().ok().filter(|value| *value > 0).unwrap_or(0);
-                                    let v63: bool = 0i32 < v62;
-                                    if v63 {
-                                        (v0, v3) = (v10, v62);
+                                    let v60: i32 = (v9).parse::<i32>().ok().filter(|value| *value > 0).unwrap_or(0);
+                                    let v61: bool = 0i32 < v60;
+                                    if v61 {
+                                        (v0, v3) = (v10, v60);
                                         continue;
                                     } else {
-                                        let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected argument "); } LIT.with(|lit| lit.clone()) };
-                                        let v66: Rc<str> = Rc::<str>::from(format!("{}{}", v65, v9));
-                                        let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ("); } LIT.with(|lit| lit.clone()) };
-                                        let v68: Rc<str> = Rc::<str>::from(format!("{}{}", v66, v67));
-                                        let v69: Rc<str> = agile_task_query::kit_query_usage();
-                                        let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expected --as main|subagent, "); } LIT.with(|lit| lit.clone()) };
-                                        let v71: Rc<str> = Rc::<str>::from(format!("{}{}", v70, v69));
-                                        let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", --load <light|medium|heavy|none,...>, --fits, --json or a positive count"); } LIT.with(|lit| lit.clone()) };
-                                        let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v68, Rc::<str>::from(format!("{}{}", v71, v72))));
-                                        let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
-                                        let v76: Rc<str> = Rc::<str>::from(format!("{}{}", v74, v75));
-                                        return US0::US0_ArgsRejected(v76.clone());
+                                        let v63: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected argument "); } LIT.with(|lit| lit.clone()) }, v9));
+                                        let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v63, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ("); } LIT.with(|lit| lit.clone()) }));
+                                        let v65: Rc<str> = agile_task_query::kit_query_usage();
+                                        let v66: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expected --as main|subagent, "); } LIT.with(|lit| lit.clone()) }, v65));
+                                        let v67: Rc<str> = Rc::<str>::from(format!("{}{}", v66, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", --load <light|medium|heavy|none,...>, --fits, --json or a positive count"); } LIT.with(|lit| lit.clone()) }));
+                                        let v68: Rc<str> = Rc::<str>::from(format!("{}{}", v64, v67));
+                                        let v69: Rc<str> = Rc::<str>::from(format!("{}{}", v68, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) }));
+                                        return US0::US0_ArgsRejected(v69);
                                     }
                                 }
                             }
@@ -172,17 +168,17 @@ fn next_request_0() -> (bool, Rc<str>, Rc<str>, i32, Rc<str>, Rc<str>, bool) {
     let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("all"); } LIT.with(|lit| lit.clone()) };
     let v10: bool = false;
     let v11: US0 = next_request_from_1(v0, v5, v6, v7, v8.clone(), v9, v10);
-    match &v11 {
+    match v11 {
         US0::US0_ArgsParsed(v12, v13, v14, v15, v16) => {
-            let v12: Rc<str> = v12.clone();
-            let v13: i32 = *v13;
-            let v14: Rc<str> = v14.clone();
-            let v15: Rc<str> = v15.clone();
-            let v16: bool = *v16;
-            (true, v8.clone(), v12, v13, v14, v15, v16)
+            let v12: Rc<str> = v12;
+            let v13: i32 = v13;
+            let v14: Rc<str> = v14;
+            let v15: Rc<str> = v15;
+            let v16: bool = v16;
+            (true, v8, v12, v13, v14, v15, v16)
         }
         US0::US0_ArgsRejected(v17) => {
-            let v17: Rc<str> = v17.clone();
+            let v17: Rc<str> = v17;
             (false, v17, v8.clone(), 0i32, v8.clone(), v8, false)
         }
     }

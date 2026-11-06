@@ -15,7 +15,7 @@ fn walked_names_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32
         let v5: i32 = (v2.clone().len() as i32);
         let v6: bool = v5 <= v3;
         if v6 {
-            return v4.clone();
+            return v4;
         } else {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
             let v8: i32 = v2.get(v3 as usize..).and_then(|rest| rest.find(&*v7)).map(|found| (found + v3 as usize) as i32).unwrap_or(-1);
@@ -28,58 +28,58 @@ fn walked_names_2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32
             let v11: Rc<str> = std::rc::Rc::<str>::from(v2.get(v3 as usize..v10 as usize).unwrap_or(""));
             let v12: i32 = v10.wrapping_add(1i32);
             let v13: bool = &*v0 == "";
-            let v17: Rc<str> = if v13 {
+            let v16: Rc<str> = if v13 {
                 v11.clone()
             } else {
-                let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-                let v16: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v14)), v11));
-                v16.clone()
+                let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v0.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+                let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v11.clone()));
+                v15
             };
-            let v18: bool = &*v1 == "";
-            let v22: Rc<str> = if v18 {
+            let v17: bool = &*v1 == "";
+            let v20: Rc<str> = if v17 {
                 v11.clone()
             } else {
-                let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-                let v21: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v1, v19)), v11));
-                v21.clone()
+                let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+                let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v11.clone()));
+                v19
             };
-            let v23: bool = &*v11 == "";
-            let v46: Rc<str> = if v23 {
-                v4.clone()
+            let v21: bool = &*v11 == "";
+            let v43: Rc<str> = if v21 {
+                v4
             } else {
-                let v24: i32 = std::fs::symlink_metadata(&*v17).map(|metadata| if metadata.file_type().is_symlink() { 3 } else if metadata.is_dir() { 2 } else if metadata.is_file() { 1 } else { 0 }).unwrap_or(0);
-                let v25: bool = v24 == 2i32;
-                let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("node_modules|vendor|third_party|target|dist|_build|.zig-cache|zig-out|.lake|__pycache__|.venv|venv|.gradle|.next|bin|obj|deps|.git|.cache|elm-stuff|bower_components|.dart_tool|.mypy_cache|.pytest_cache|.tox"); } LIT.with(|lit| lit.clone()) };
-                let v27: bool = v26.split("|").any(|item| item == &*v11);
-                let v28: bool = v25 && v27;
-                if v28 {
-                    let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
-                    let v30: bool = &*v22 == "";
-                    let v34: Rc<str> = if v30 {
-                        v29.clone()
+                let v22: i32 = std::fs::symlink_metadata(&*v16).map(|metadata| if metadata.file_type().is_symlink() { 3 } else if metadata.is_dir() { 2 } else if metadata.is_file() { 1 } else { 0 }).unwrap_or(0);
+                let v23: bool = v22 == 2i32;
+                let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("node_modules|vendor|third_party|target|dist|_build|.zig-cache|zig-out|.lake|__pycache__|.venv|venv|.gradle|.next|bin|obj|deps|.git|.cache|elm-stuff|bower_components|.dart_tool|.mypy_cache|.pytest_cache|.tox"); } LIT.with(|lit| lit.clone()) };
+                let v25: bool = v24.split("|").any(|item| item == &*v11);
+                let v26: bool = v23 && v25;
+                if v26 {
+                    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
+                    let v28: bool = &*v20 == "";
+                    let v31: Rc<str> = if v28 {
+                        v27
                     } else {
-                        let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-                        let v33: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v22, v31)), v29));
-                        v33.clone()
+                        let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v20, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+                        let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v27));
+                        v30
                     };
-                    let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v34));
-                    let v36: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
-                    let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
-                    v37.clone()
+                    let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v31));
+                    let v33: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
+                    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v33));
+                    v34
                 } else {
-                    let v38: i32 = std::fs::symlink_metadata(&*v17).map(|metadata| if metadata.file_type().is_symlink() { 3 } else if metadata.is_dir() { 2 } else if metadata.is_file() { 1 } else { 0 }).unwrap_or(0);
-                    let v39: bool = v38 == 2i32;
-                    if v39 {
-                        walked_directory_1(v17.clone(), v22.clone(), v4.clone())
+                    let v35: i32 = std::fs::symlink_metadata(&*v16).map(|metadata| if metadata.file_type().is_symlink() { 3 } else if metadata.is_dir() { 2 } else if metadata.is_file() { 1 } else { 0 }).unwrap_or(0);
+                    let v36: bool = v35 == 2i32;
+                    if v36 {
+                        walked_directory_1(v16, v20, v4)
                     } else {
-                        let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v22));
-                        let v42: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
-                        let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v42));
-                        v43.clone()
+                        let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v20));
+                        let v39: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
+                        let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v39));
+                        v40
                     }
                 }
             };
-            (v3, v4) = (v12, v46.clone());
+            (v3, v4) = (v12, v43);
             continue;
         }
     }
@@ -98,20 +98,20 @@ fn todo_sources_0(mut v0: Rc<str>) -> (bool, Rc<str>) {
         if v4 {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ls-files\t-co\t--exclude-standard\t-z"); } LIT.with(|lit| lit.clone()) };
             let (mut v7, mut v8): (bool, Rc<str>) = { let mut command = std::process::Command::new("git"); command.arg("-C").arg(&*v0).args(v6.split(char::from(9u8))); match kit_process::run_bounded_capture_with_input(&mut command, 60000u64, None) { Ok(capture) => (capture.termination == kit_process::ProcessTermination::Exited(0), std::rc::Rc::<str>::from(String::from_utf8_lossy(&capture.stdout).as_ref())), Err(error) => (false, std::rc::Rc::<str>::from(error)) } };
-            (v7, v8.clone())
+            (v7, v8)
         } else {
             let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let v10: Rc<str> = walked_directory_1(v0.clone(), v9.clone(), v9.clone());
-            (true, v10.clone())
+            let v10: Rc<str> = walked_directory_1(v0, v9.clone(), v9.clone());
+            (true, v10)
         }
     } else {
         let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        (false, v13.clone())
+        (false, v13)
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> (bool, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (bool, Rc<str>)> = Rc::new(move |mut v0: Rc<str>| -> (bool, Rc<str>) {
-        todo_sources_0(v0.clone())
+        todo_sources_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn method4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
@@ -202,28 +202,28 @@ fn git_head_3(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        git_head_3(v0.clone())
+        git_head_3(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn git_changed_since_6(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
-    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("diff\t--name-only\t--relative\t-z\t"); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
-    let (mut v4, mut v5): (bool, Rc<str>) = { let mut command = std::process::Command::new("git"); command.arg("-C").arg(&*v0).args(v3.split(char::from(9u8))); match kit_process::run_bounded_capture_with_input(&mut command, 60000u64, None) { Ok(capture) => (capture.termination == kit_process::ProcessTermination::Exited(0), std::rc::Rc::<str>::from(String::from_utf8_lossy(&capture.stdout).as_ref())), Err(error) => (false, std::rc::Rc::<str>::from(error)) } };
-    let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ls-files\t-o\t--exclude-standard\t-z"); } LIT.with(|lit| lit.clone()) };
-    let (mut v7, mut v8): (bool, Rc<str>) = { let mut command = std::process::Command::new("git"); command.arg("-C").arg(&*v0).args(v6.split(char::from(9u8))); match kit_process::run_bounded_capture_with_input(&mut command, 60000u64, None) { Ok(capture) => (capture.termination == kit_process::ProcessTermination::Exited(0), std::rc::Rc::<str>::from(String::from_utf8_lossy(&capture.stdout).as_ref())), Err(error) => (false, std::rc::Rc::<str>::from(error)) } };
-    let v9: bool = v4 && v7;
-    if v9 {
-        let v10: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
-        let v12: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v5)), v8));
-        v12
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("diff\t--name-only\t--relative\t-z\t"); } LIT.with(|lit| lit.clone()) }, v1));
+    let (mut v3, mut v4): (bool, Rc<str>) = { let mut command = std::process::Command::new("git"); command.arg("-C").arg(&*v0).args(v2.split(char::from(9u8))); match kit_process::run_bounded_capture_with_input(&mut command, 60000u64, None) { Ok(capture) => (capture.termination == kit_process::ProcessTermination::Exited(0), std::rc::Rc::<str>::from(String::from_utf8_lossy(&capture.stdout).as_ref())), Err(error) => (false, std::rc::Rc::<str>::from(error)) } };
+    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ls-files\t-o\t--exclude-standard\t-z"); } LIT.with(|lit| lit.clone()) };
+    let (mut v6, mut v7): (bool, Rc<str>) = { let mut command = std::process::Command::new("git"); command.arg("-C").arg(&*v0).args(v5.split(char::from(9u8))); match kit_process::run_bounded_capture_with_input(&mut command, 60000u64, None) { Ok(capture) => (capture.termination == kit_process::ProcessTermination::Exited(0), std::rc::Rc::<str>::from(String::from_utf8_lossy(&capture.stdout).as_ref())), Err(error) => (false, std::rc::Rc::<str>::from(error)) } };
+    let v8: bool = v3 && v6;
+    if v8 {
+        let v9: Rc<str> = std::rc::Rc::<str>::from(char::from(0u8).to_string());
+        let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v4));
+        let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v7));
+        v11
     } else {
-        let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v13
+        let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v12
     }
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
-        git_changed_since_6(v0.clone(), v1.clone())
+        git_changed_since_6(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_agile_todo_sources(v0: &str) -> (bool, Rc<str>) {

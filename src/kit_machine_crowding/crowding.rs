@@ -38,7 +38,7 @@ enum US5 {
     US5_Calm,
     US5_Crowded(u64, u64, u64),
 }
-struct Mut0 { l0: Rc<str> }
+pub struct Mut0 { pub l0: Rc<str> }
 fn free_mb_0() -> u64 {
     let mut v0: u64 = { #[cfg(windows)] fn free() -> u64 { #[repr(C)] struct Status { length: u32, load: u32, total: u64, available: u64, total_page: u64, available_page: u64, total_virtual: u64, available_virtual: u64, extended: u64 } unsafe extern "system" { fn GlobalMemoryStatusEx(status: *mut Status) -> i32; } unsafe { let mut status: Status = std::mem::zeroed(); status.length = std::mem::size_of::<Status>() as u32; if GlobalMemoryStatusEx(&mut status) == 0 { u64::MAX } else { status.available / 1048576 } } } #[cfg(not(windows))] fn free() -> u64 { std::fs::read_to_string("/proc/meminfo").ok().and_then(|text| text.lines().find(|line| line.starts_with("MemAvailable:")).and_then(|line| line.split_whitespace().nth(1)).and_then(|kb| kb.parse::<u64>().ok())).map(|kb| kb / 1024).unwrap_or(u64::MAX) } std::env::var("KIT_WINDOWS_FREE_MB").ok().and_then(|text| text.trim().parse::<u64>().ok()).unwrap_or_else(free) };
     v0
@@ -57,7 +57,7 @@ fn tab_field_7(mut v0: Rc<str>, mut v1: i32) -> Rc<str> {
     v2
 }
 fn class_word_9(mut v0: US1) -> Rc<str> {
-    match &v0 {
+    match v0 {
         US1::US1_Bench => {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bench"); } LIT.with(|lit| lit.clone()) };
             v7
@@ -182,18 +182,18 @@ fn closure1() -> Rc<dyn Fn((u64)) -> US4> {
 }
 fn decimal_of_10(mut v0: Rc<str>) -> u64 {
     let v1: Option<u64> = (v0).trim().parse::<u64>().ok();
-    let v2: Option<u64> = method11(v1.clone());
+    let v2: Option<u64> = method11(v1);
     let mut v3: Rc<dyn Fn((u64)) -> US4> = closure1();
     let mut v4: Option<US4> = v2.map(|x| v3(x));
     let v6: US4 = US4::US4_None;
     let v7: US4 = v6.clone();
     let v8: US4 = v4.unwrap_or(v7);
-    match &v8 {
+    match v8 {
         US4::US4_None => {
             0u64
         }
         US4::US4_Some(v9) => {
-            let v9: u64 = *v9;
+            let v9: u64 = v9;
             v9
         }
     }
@@ -202,9 +202,9 @@ fn row_of_6(mut v0: Rc<str>) -> US0 {
     let v1: i32 = 1i32;
     let v2: Rc<str> = tab_field_7(v0.clone(), v1);
     let mut v3: US3 = class_of_8(v2);
-    match &v3 {
+    match v3 {
         US3::US3_ClassKnown(v5) => {
-            let v5: US1 = v5.clone();
+            let v5: US1 = v5;
             let v6: i32 = 2i32;
             let v7: Rc<str> = tab_field_7(v0.clone(), v6);
             let v8: bool = &*v7 == "held";
@@ -231,7 +231,7 @@ fn row_of_6(mut v0: Rc<str>) -> US0 {
     }
 }
 fn needed_mb_12(mut v0: US1) -> u64 {
-    match &v0 {
+    match v0 {
         US1::US1_Bench => {
             2048u64
         }
@@ -268,15 +268,15 @@ fn crowd_with_5(mut v0: u64, mut v1: u64, mut v2: u64, mut v3: Rc<str>, mut v4: 
             (v0, v1, v2)
         }
         _ => {
-            let (mut v24, mut v25, mut v26): (u64, u64, u64) = match &v5 {
+            let (mut v24, mut v25, mut v26): (u64, u64, u64) = match v5 {
                 US0::US0_RowKnown(v6, v7, v8, v9, v10, v11) => {
-                    let v6: Rc<str> = v6.clone();
-                    let v7: US1 = v7.clone();
-                    let v8: US2 = v8.clone();
-                    let v9: Rc<str> = v9.clone();
-                    let v10: u64 = *v10;
-                    let v11: u64 = *v11;
-                    let v17: bool = match &v8 {
+                    let v6: Rc<str> = v6;
+                    let v7: US1 = v7;
+                    let v8: US2 = v8;
+                    let v9: Rc<str> = v9;
+                    let v10: u64 = v10;
+                    let v11: u64 = v11;
+                    let v17: bool = match v8 {
                         US2::US2_Held => {
                             let v12: bool = v4 >= v10;
                             if v12 {
@@ -320,7 +320,7 @@ fn crowd_of_2(mut v0: Rc<str>, mut v1: u64, mut v2: u64, mut v3: u64, mut v4: u6
     };
     (v14, v15, v16)
 }
-fn method14(mut v0: Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
+fn method14(mut v0: &Rc<RefCell<Mut0>>, mut v1: Rc<str>) -> () {
     let v2: Rc<str> = v0.borrow().l0.clone();
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
     v0.borrow_mut().l0 = v3;
@@ -330,7 +330,7 @@ fn format_real_13(mut v0: u64) -> Rc<str> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v2: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: v1 }));
     let mut v3: Rc<str> = Rc::<str>::from(format!("{}", v0));
-    method14(v2.clone(), v3);
+    method14(&v2, v3);
     let mut v4: Rc<str> = v2.borrow().l0.clone();
     v4
 }
@@ -350,38 +350,35 @@ fn machine_crowding_1(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> Rc<str> {
     } else {
         US5::US5_Calm
     };
-    match &v13 {
+    match v13 {
         US5::US5_Calm => {
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v14
         }
         US5::US5_Crowded(v15, v16, v17) => {
-            let v15: u64 = *v15;
-            let v16: u64 = *v16;
-            let v17: u64 = *v17;
+            let v15: u64 = v15;
+            let v16: u64 = v16;
+            let v17: u64 = v17;
             let v18: Rc<str> = format_real_13(v15);
-            let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("== crowding: "); } LIT.with(|lit| lit.clone()) };
-            let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v18));
-            let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" windows granted in the last 3 min need "); } LIT.with(|lit| lit.clone()) };
+            let v19: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("== crowding: "); } LIT.with(|lit| lit.clone()) }, v18));
+            let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" windows granted in the last 3 min need "); } LIT.with(|lit| lit.clone()) }));
+            let v21: Rc<str> = format_real_13(v16);
             let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v21));
-            let v23: Rc<str> = format_real_13(v16);
-            let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v23));
-            let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" MB, "); } LIT.with(|lit| lit.clone()) };
-            let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v25));
-            let v27: Rc<str> = format_real_13(v17);
-            let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
-            let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" MB free: hold new heavy work until they settle"); } LIT.with(|lit| lit.clone()) };
-            let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v29));
-            v30
+            let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" MB, "); } LIT.with(|lit| lit.clone()) }));
+            let v24: Rc<str> = format_real_13(v17);
+            let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
+            let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" MB free: hold new heavy work until they settle"); } LIT.with(|lit| lit.clone()) }));
+            v26
         }
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, u64) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, u64) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: u64| -> Rc<str> {
         let v2: u64 = free_mb_0();
-        machine_crowding_1(v0.clone(), v2, v1)
+        machine_crowding_1(v0, v2, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_machine_crowding(v0: &str, v1: u64) -> Rc<str> {
     closure0()(Rc::<str>::from(v0), v1)
 }
+pub type SpiralShape_97df63ebabc3 = Mut0;

@@ -23,7 +23,7 @@ fn literal_loop_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) ->
         let v5: bool = v1 >= v4;
         if v5 {
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            return (v6.clone(), v1, false);
+            return (v6, v1, false);
         } else {
             let v7: u8 = v0.clone().as_bytes()[v1 as usize];
             let v8: bool = v7 == b'"' ;
@@ -33,12 +33,12 @@ fn literal_loop_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) ->
                     codec_empty_1()
                 } else {
                     let v11: i32 = v1 - 1i32 ;
-                    let v12: Rc<str> = string_slice(&v0.clone(), v2 as i64, v11 as i64);
-                    v12.clone()
+                    let v12: Rc<str> = string_slice(&v0, v2 as i64, v11 as i64);
+                    v12
                 };
-                let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v13.clone()));
+                let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v13));
                 let v15: i32 = v1 + 1i32 ;
-                return (v14.clone(), v15, true);
+                return (v14, v15, true);
             } else {
                 let v16: bool = v7 == b'\\' ;
                 if v16 {
@@ -46,36 +46,36 @@ fn literal_loop_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) ->
                     let v18: bool = v17 >= v4;
                     if v18 {
                         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        return (v19.clone(), v1, false);
+                        return (v19, v1, false);
                     } else {
                         let v20: u8 = v0.clone().as_bytes()[v17 as usize];
                         let v21: bool = v20 == b'n' ;
                         let v36: Rc<str> = if v21 {
                             let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                            v22.clone()
+                            v22
                         } else {
                             let v23: bool = v20 == b'r' ;
                             if v23 {
                                 let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
-                                v24.clone()
+                                v24
                             } else {
                                 let v25: bool = v20 == b't' ;
                                 if v25 {
                                     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                                    v26.clone()
+                                    v26
                                 } else {
                                     let v27: bool = v20 == b'"' ;
                                     if v27 {
                                         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-                                        v28.clone()
+                                        v28
                                     } else {
                                         let v29: bool = v20 == b'\\' ;
                                         if v29 {
                                             let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
-                                            v30.clone()
+                                            v30
                                         } else {
                                             let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                            v31.clone()
+                                            v31
                                         }
                                     }
                                 }
@@ -84,7 +84,7 @@ fn literal_loop_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) ->
                         let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                         let v38: bool = v36 == v37 ;
                         if v38 {
-                            return (v37.clone(), v1, false);
+                            return (v37, v1, false);
                         } else {
                             let v39: i32 = v1 + 2i32 ;
                             let v40: bool = v2 == v1 ;
@@ -93,11 +93,11 @@ fn literal_loop_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) ->
                             } else {
                                 let v42: i32 = v1 - 1i32 ;
                                 let v43: Rc<str> = string_slice(&v0.clone(), v2 as i64, v42 as i64);
-                                v43.clone()
+                                v43
                             };
-                            let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v44.clone()));
-                            let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45.clone(), v36.clone()));
-                            (v1, v2, v3) = (v39, v39, v46.clone());
+                            let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v44));
+                            let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v36));
+                            (v1, v2, v3) = (v39, v39, v46);
                             continue;
                         }
                     }
@@ -131,10 +131,10 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, i32) -> (Rc<str>, i32, bool)> {
             let v9: i32 = v1 + 1i32 ;
             let v10: i32 = v1 + 1i32 ;
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            literal_loop_0(v0.clone(), v9, v10, v11.clone())
+            literal_loop_0(v0, v9, v10, v11)
         } else {
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v15.clone(), v1, false)
+            (v15, v1, false)
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
@@ -148,41 +148,41 @@ fn encode_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> 
                 codec_empty_1()
             } else {
                 let v8: i32 = v1 - 1i32 ;
-                let v9: Rc<str> = string_slice(&v0.clone(), v2 as i64, v8 as i64);
-                v9.clone()
+                let v9: Rc<str> = string_slice(&v0, v2 as i64, v8 as i64);
+                v9
             };
-            let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v10.clone()));
-            let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) }));
-            return v12.clone();
+            let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v10));
+            let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) }));
+            return v12;
         } else {
             let v13: u8 = v0.clone().as_bytes()[v1 as usize];
             let v14: bool = v13 == b'"' ;
             let v29: Rc<str> = if v14 {
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\""); } LIT.with(|lit| lit.clone()) };
-                v15.clone()
+                v15
             } else {
                 let v16: bool = v13 == b'\\' ;
                 if v16 {
                     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\\\"); } LIT.with(|lit| lit.clone()) };
-                    v17.clone()
+                    v17
                 } else {
                     let v18: bool = v13 == b'\n' ;
                     if v18 {
                         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\n"); } LIT.with(|lit| lit.clone()) };
-                        v19.clone()
+                        v19
                     } else {
                         let v20: bool = v13 == b'\r' ;
                         if v20 {
                             let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\r"); } LIT.with(|lit| lit.clone()) };
-                            v21.clone()
+                            v21
                         } else {
                             let v22: bool = v13 == b'\t' ;
                             if v22 {
                                 let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\t"); } LIT.with(|lit| lit.clone()) };
-                                v23.clone()
+                                v23
                             } else {
                                 let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                v24.clone()
+                                v24
                             }
                         }
                     }
@@ -201,11 +201,11 @@ fn encode_loop_3(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> 
                 } else {
                     let v36: i32 = v1 - 1i32 ;
                     let v37: Rc<str> = string_slice(&v0.clone(), v2 as i64, v36 as i64);
-                    v37.clone()
+                    v37
                 };
-                let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v38.clone()));
-                let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39.clone(), v29.clone()));
-                (v1, v2, v3) = (v30, v30, v40.clone());
+                let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v38));
+                let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v29));
+                (v1, v2, v3) = (v30, v30, v40);
                 continue;
             }
         }
@@ -216,7 +216,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         let mut v1: i32 = 0i32;
         let v2: i32 = 0i32;
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-        encode_loop_3(v0.clone(), v1, v2, v3.clone())
+        encode_loop_3(v0, v1, v2, v3)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_predicate_literal(v0: &str, v1: i32) -> (Rc<str>, i32, bool) {

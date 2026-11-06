@@ -275,7 +275,7 @@ fn state_receipt_u32_spi_literal_decimal_10(mut v0: Rc<str>) -> Rc<str> {
             codec_empty_2()
         } else {
             let v15: i32 = v12 - 1i32 ;
-            let v16: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v15 as i64);
+            let v16: Rc<str> = string_slice(&v0, 0i32 as i64, v15 as i64);
             v16
         }
     } else {
@@ -477,7 +477,7 @@ fn skip_spaces_loop_28(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 continue;
             } else {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                let v9: u8 = codec_runtime_char_18(v8.clone());
+                let v9: u8 = codec_runtime_char_18(v8);
                 let v10: bool = v4 == v9 ;
                 if v10 {
                     let v11: i32 = v1 + 1i32 ;
@@ -504,7 +504,7 @@ fn state_receipt_trim_right_loop_29(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 continue;
             } else {
                 let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                let v8: u8 = codec_runtime_char_18(v7.clone());
+                let v8: u8 = codec_runtime_char_18(v7);
                 let v9: bool = v4 == v8 ;
                 if v9 {
                     v1 = v3;
@@ -584,15 +584,15 @@ fn state_receipt_u32_literal_value_checked_26(mut v0: Rc<str>) -> (u64, bool) {
 fn state_receipt_series_records_loop_24(mut v0: Rc<str>, mut v1: i32, mut v2: u64, mut v3: bool, mut v4: Rc<str>) -> (bool, Rc<str>) {
     loop {
         let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("SeriesRecord ("); } LIT.with(|lit| lit.clone()) };
-        let (mut v6, mut v7, mut v8): (Rc<str>, i32, i32) = state_receipt_constructor_payload_from_25(v0.clone(), v5.clone(), v1);
+        let (mut v6, mut v7, mut v8): (Rc<str>, i32, i32) = state_receipt_constructor_payload_from_25(v0.clone(), v5, v1);
         let v9: bool = v8 == 0i32 ;
         if v9 {
-            return (true, v4.clone());
+            return (true, v4);
         } else {
             let v10: bool = v8 == 2i32 ;
             if v10 {
                 let v11: Rc<str> = codec_empty_2();
-                return (false, v11.clone());
+                return (false, v11);
             } else {
                 let v12: i32 = (v6.clone().len() as i32);
                 let v13: i32 = 0i32;
@@ -601,7 +601,7 @@ fn state_receipt_series_records_loop_24(mut v0: Rc<str>, mut v1: i32, mut v2: u6
                 let v16: bool = v15 == v12 ;
                 if v16 {
                     let v17: Rc<str> = codec_empty_2();
-                    return (false, v17.clone());
+                    return (false, v17);
                 } else {
                     let v18: bool = 0i32 == v15 ;
                     let v22: Rc<str> = if v18 {
@@ -609,9 +609,9 @@ fn state_receipt_series_records_loop_24(mut v0: Rc<str>, mut v1: i32, mut v2: u6
                     } else {
                         let v20: i32 = v15 - 1i32 ;
                         let v21: Rc<str> = string_slice(&v6.clone(), 0i32 as i64, v20 as i64);
-                        v21.clone()
+                        v21
                     };
-                    let (mut v23, mut v24): (u64, bool) = state_receipt_u32_literal_value_checked_26(v22.clone());
+                    let (mut v23, mut v24): (u64, bool) = state_receipt_u32_literal_value_checked_26(v22);
                     if v24 {
                         let v26: bool = if v3 {
                             let v25: bool = v23 <= v2;
@@ -621,15 +621,15 @@ fn state_receipt_series_records_loop_24(mut v0: Rc<str>, mut v1: i32, mut v2: u6
                         };
                         if v26 {
                             let v27: Rc<str> = codec_empty_2();
-                            return (false, v27.clone());
+                            return (false, v27);
                         } else {
                             let v28: bool = true;
-                            (v1, v2, v3, v4) = (v7, v23, v28, v6.clone());
+                            (v1, v2, v3, v4) = (v7, v23, v28, v6);
                             continue;
                         }
                     } else {
                         let v33: Rc<str> = codec_empty_2();
-                        return (false, v33.clone());
+                        return (false, v33);
                     }
                 }
             }
@@ -732,57 +732,57 @@ fn state_receipt_coverage_checkpoint_sha_32(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_u64_decimal_valid_0(v0.clone())
+        state_receipt_u64_decimal_valid_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_u64_decimal_value_5(v0.clone())
+        state_receipt_u64_decimal_value_5(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_u32_decimal_valid_8(v0.clone())
+        state_receipt_u32_decimal_valid_8(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_u32_spi_literal_valid_9(v0.clone())
+        state_receipt_u32_spi_literal_valid_9(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_u32_spi_literal_value_12(v0.clone())
+        state_receipt_u32_spi_literal_value_12(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure5() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_dash_shape_13(v0.clone())
+        state_receipt_dash_shape_13(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure6() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        state_receipt_migration_denominator_payload_15(v0.clone())
+        state_receipt_migration_denominator_payload_15(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure7() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_series_records_valid_u64_21(v0.clone())
+        state_receipt_series_records_valid_u64_21(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure8() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        state_receipt_last_series_record_payload_export_30(v0.clone())
+        state_receipt_last_series_record_payload_export_30(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure9() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        state_receipt_coverage_checkpoint_kind_31(v0.clone())
+        state_receipt_coverage_checkpoint_kind_31(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure10() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        state_receipt_coverage_checkpoint_sha_32(v0.clone())
+        state_receipt_coverage_checkpoint_sha_32(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_state_receipt_u64_decimal_valid(v0: &str) -> u64 {

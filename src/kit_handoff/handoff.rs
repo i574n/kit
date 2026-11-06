@@ -122,7 +122,7 @@ fn check_0(mut v0: Rc<str>) -> bool {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> bool> = Rc::new(move |mut v0: Rc<str>| -> bool {
-        check_0(v0.clone())
+        check_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn loop_3(mut v0: Rc<str>, mut v1: u64, mut v2: u64) -> bool {
@@ -189,7 +189,7 @@ fn check_2(mut v0: Rc<str>) -> bool {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> bool> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> bool> = Rc::new(move |mut v0: Rc<str>| -> bool {
-        check_2(v0.clone())
+        check_2(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn binary_install_shape_binding_4(mut v0: i32, mut v1: i32) -> i32 {

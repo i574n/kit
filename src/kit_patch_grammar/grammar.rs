@@ -207,12 +207,12 @@ fn spiral_main() -> i32 {
     } else {
         US0::US0_QuotedError
     };
-    let v95: US1 = match &v12 {
+    let v95: US1 = match v12 {
         US0::US0_QuotedError => {
             US1::US1_InvalidPatch
         }
         US0::US0_QuotedOk(v13) => {
-            let v13: i32 = *v13;
+            let v13: i32 = v13;
             let v14: i32 = v3.wrapping_add(1i32);
             let v15: i32 = v13.wrapping_sub(1i32);
             let v16: i32 = v15.wrapping_sub(v14);
@@ -249,12 +249,12 @@ fn spiral_main() -> i32 {
                 } else {
                     US2::US2_SeparatorError
                 };
-                match &v35 {
+                match v35 {
                     US2::US2_SeparatorError => {
                         US1::US1_InvalidPatch
                     }
                     US2::US2_SeparatorOk(v36) => {
-                        let v36: i32 = *v36;
+                        let v36: i32 = v36;
                         let v37: bool = v36 < v1;
                         let v45: US0 = if v37 {
                             let v38: i32 = usize::try_from(v36).ok().and_then(|index| v0.as_bytes().get(index).copied()).map_or(-1, i32::from);
@@ -268,12 +268,12 @@ fn spiral_main() -> i32 {
                         } else {
                             US0::US0_QuotedError
                         };
-                        match &v45 {
+                        match v45 {
                             US0::US0_QuotedError => {
                                 US1::US1_InvalidPatch
                             }
                             US0::US0_QuotedOk(v46) => {
-                                let v46: i32 = *v46;
+                                let v46: i32 = v46;
                                 let v47: i32 = skip_spaces_0(v0.clone(), v46, v1);
                                 let v48: bool = v47 < v1;
                                 let v57: US2 = if v48 {
@@ -289,12 +289,12 @@ fn spiral_main() -> i32 {
                                 } else {
                                     US2::US2_SeparatorError
                                 };
-                                match &v57 {
+                                match v57 {
                                     US2::US2_SeparatorError => {
                                         US1::US1_InvalidPatch
                                     }
                                     US2::US2_SeparatorOk(v58) => {
-                                        let v58: i32 = *v58;
+                                        let v58: i32 = v58;
                                         let v59: bool = v58 < v1;
                                         let v67: US0 = if v59 {
                                             let v60: i32 = usize::try_from(v58).ok().and_then(|index| v0.as_bytes().get(index).copied()).map_or(-1, i32::from);
@@ -308,12 +308,12 @@ fn spiral_main() -> i32 {
                                         } else {
                                             US0::US0_QuotedError
                                         };
-                                        match &v67 {
+                                        match v67 {
                                             US0::US0_QuotedError => {
                                                 US1::US1_InvalidPatch
                                             }
                                             US0::US0_QuotedOk(v68) => {
-                                                let v68: i32 = *v68;
+                                                let v68: i32 = v68;
                                                 let v69: i32 = skip_spaces_0(v0.clone(), v68, v1);
                                                 let v70: bool = v69 < v1;
                                                 if v70 {
@@ -341,12 +341,12 @@ fn spiral_main() -> i32 {
             }
         }
     };
-    match &v95 {
+    match v95 {
         US1::US1_InvalidPatch => {
             -1i32
         }
         US1::US1_ParsedPatch(v96) => {
-            let v96: i32 = *v96;
+            let v96: i32 = v96;
             v96
         }
     }

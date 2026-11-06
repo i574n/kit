@@ -27,20 +27,22 @@ enum US3 {
     US3_ChangedSinceRead,
 }
 fn agile_edit_failure_1(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
-    let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile edit "); } LIT.with(|lit| lit.clone()) };
-    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
-    let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) };
-    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v3, v4)), v0));
-    let v7: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v6 + "
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("agile edit "); } LIT.with(|lit| lit.clone()) }, v1));
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v2, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rejected: "); } LIT.with(|lit| lit.clone()) }));
+    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v0));
+    let v5: i32 = std::io::Write::write_all(&mut std::io::stderr(), ("kit error: ".to_string() + &*v4 + "
 ").as_bytes()).map(|_| 2i32).unwrap_or(2i32);
-    v7
+    v5
 }
 fn argument_owned_2(mut v0: i32) -> Rc<str> {
     let mut v1: Rc<str> = usize::try_from(v0).ok().and_then(|index| std::env::args().skip(2).nth(index)).map_or_else(std::rc::Rc::<str>::default, std::rc::Rc::<str>::from);
-    v1.clone()
+    v1
 }
 fn concat5_3(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<str> {
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v2)), v3)), v4));
+    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
+    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v2));
+    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v3));
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v4));
     v8
 }
 fn field_end_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
@@ -68,7 +70,7 @@ fn field_end_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
                 return v1;
             } else {
                 let v10: i32 = v1.wrapping_add(1i32);
-                let v25: US1 = match &v3 {
+                let v25: US1 = match v3 {
                     US1::US1_ScanEscaped => {
                         US1::US1_ScanQuoted
                     }
@@ -94,7 +96,7 @@ fn field_end_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: US1) -> i32 {
                         }
                     }
                 };
-                (v1, v3) = (v10, v25.clone());
+                (v1, v3) = (v10, v25);
                 continue;
             }
         }
@@ -120,7 +122,7 @@ fn field_start_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> i32 
             return v1;
         } else {
             let v5: US1 = US1::US1_ScanPlain;
-            let v6: i32 = field_end_5(v0.clone(), v1, v2, v5.clone());
+            let v6: i32 = field_end_5(v0.clone(), v1, v2, v5);
             let v7: i32 = v6.wrapping_add(1i32);
             let v8: i32 = skip_spaces_6(v0.clone(), v7);
             let v9: i32 = v3.wrapping_sub(1i32);
@@ -150,22 +152,21 @@ fn renamed_within_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32) -> bool {
 fn replace_records_unchanged_7(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US3 {
     let v3: bool = kit_agile_records::kit_agile_records_unchanged(&*v0, &*v1);
     if v3 {
-        let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) };
-        let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v4));
-        let v6: bool = std::fs::write(&*v5, &*v2).is_ok();
-        if v6 {
-            let v7: i32 = 40i32;
-            let v8: bool = renamed_within_8(v0.clone(), v5.clone(), v7);
-            if v8 {
-                let v9: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
-                if v9 {
+        let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v0.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".pending"); } LIT.with(|lit| lit.clone()) }));
+        let v5: bool = std::fs::write(&*v4, &*v2).is_ok();
+        if v5 {
+            let v6: i32 = 40i32;
+            let v7: bool = renamed_within_8(v0.clone(), v4.clone(), v6);
+            if v7 {
+                let v8: bool = std::fs::read_to_string(&*v0).is_ok_and(|value| value == *v2);
+                if v8 {
                     US3::US3_Replaced
                 } else {
                     US3::US3_ReadbackMismatch
                 }
             } else {
-                let v13: bool = std::fs::remove_file(&*v5).is_ok() || !std::path::Path::new(&*v5).exists();
-                if v13 {
+                let v12: bool = std::fs::remove_file(&*v4).is_ok() || !std::path::Path::new(&*v4).exists();
+                if v12 {
                     US3::US3_RenameFailed
                 } else {
                     US3::US3_RenameFailedTemporaryKept
@@ -187,7 +188,7 @@ fn agile_edit_entry_0() -> i32 {
         let v4: Rc<str> = agile_field_rendering::kit_agile_edit_field_rule(&*v1);
         let v5: i32 = 2i32;
         let v6: Rc<str> = argument_owned_2(v5);
-        agile_edit_failure_1(v4.clone(), v6.clone())
+        agile_edit_failure_1(v4, v6)
     } else {
         let v8: i32 = 1i32;
         let v9: Rc<str> = argument_owned_2(v8);
@@ -198,107 +199,102 @@ fn agile_edit_entry_0() -> i32 {
         let v14: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
         let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/agile.spi"); } LIT.with(|lit| lit.clone()) };
         let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let v17: Rc<str> = concat5_3(v9.clone(), v15.clone(), v16.clone(), v16.clone(), v16.clone());
+        let v17: Rc<str> = concat5_3(v9, v15, v16.clone(), v16.clone(), v16.clone());
         let v18: bool = std::path::Path::new(&*v17).is_file();
         let v21: US0 = if v18 {
             US0::US0_FileReadable(v17.clone())
         } else {
             US0::US0_FileMissing(v17.clone())
         };
-        match &v21 {
+        match v21 {
             US0::US0_FileMissing(v22) => {
-                let v22: Rc<str> = v22.clone();
+                let v22: Rc<str> = v22;
                 let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/agile.spi is missing"); } LIT.with(|lit| lit.clone()) };
-                agile_edit_failure_1(v23.clone(), v11.clone())
+                agile_edit_failure_1(v23, v11)
             }
             US0::US0_FileReadable(v25) => {
-                let v25: Rc<str> = v25.clone();
+                let v25: Rc<str> = v25;
                 let v26: Rc<str> = std::fs::read_to_string(&*v25).unwrap_or_default().into();
                 let v27: Rc<str> = kit_agile_records::kit_agile_records_as_lines(&*v26);
-                let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task (\""); } LIT.with(|lit| lit.clone()) };
-                let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v11));
-                let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) };
-                let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v30));
-                let v32: i32 = v27.find(&*v31).map(|offset| offset as i32).unwrap_or(-1);
-                let v33: bool = v32 < 0i32;
-                if v33 {
-                    let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no task with this id"); } LIT.with(|lit| lit.clone()) };
-                    agile_edit_failure_1(v34.clone(), v11.clone())
+                let v28: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Task (\""); } LIT.with(|lit| lit.clone()) }, v11.clone()));
+                let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v28, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\","); } LIT.with(|lit| lit.clone()) }));
+                let v30: i32 = v27.find(&*v29).map(|offset| offset as i32).unwrap_or(-1);
+                let v31: bool = v30 < 0i32;
+                if v31 {
+                    let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no task with this id"); } LIT.with(|lit| lit.clone()) };
+                    agile_edit_failure_1(v32, v11)
                 } else {
-                    let v36: i32 = (v27.clone().len() as i32);
-                    let v37: i32 = v32.wrapping_add(6i32);
-                    let v38: i32 = field_start_4(v27.clone(), v37, v36, v2);
-                    let v39: US1 = US1::US1_ScanPlain;
-                    let v40: i32 = field_end_5(v27.clone(), v38, v36, v39.clone());
-                    let v41: Rc<str> = std::rc::Rc::<str>::from(v27.get(v38 as usize..v40 as usize).unwrap_or(""));
-                    let v42: Rc<str> = agile_field_rendering::kit_agile_edit_field_token(&*v1, &*v41, &*v13);
-                    let v43: bool = &*v42 == "";
-                    let v46: US2 = if v43 {
+                    let v34: i32 = (v27.clone().len() as i32);
+                    let v35: i32 = v30.wrapping_add(6i32);
+                    let v36: i32 = field_start_4(v27.clone(), v35, v34, v2);
+                    let v37: US1 = US1::US1_ScanPlain;
+                    let v38: i32 = field_end_5(v27.clone(), v36, v34, v37);
+                    let v39: Rc<str> = std::rc::Rc::<str>::from(v27.get(v36 as usize..v38 as usize).unwrap_or(""));
+                    let v40: Rc<str> = agile_field_rendering::kit_agile_edit_field_token(&*v1, &*v39, &*v13);
+                    let v41: bool = &*v40 == "";
+                    let v44: US2 = if v41 {
                         US2::US2_TokenRejected
                     } else {
-                        US2::US2_TokenRendered(v42.clone())
+                        US2::US2_TokenRendered(v40)
                     };
-                    match &v46 {
+                    match v44 {
                         US2::US2_TokenRejected => {
-                            let v47: Rc<str> = agile_field_rendering::kit_agile_edit_field_rule(&*v1);
-                            agile_edit_failure_1(v47.clone(), v11.clone())
+                            let v45: Rc<str> = agile_field_rendering::kit_agile_edit_field_rule(&*v1);
+                            agile_edit_failure_1(v45, v11)
                         }
-                        US2::US2_TokenRendered(v49) => {
-                            let v49: Rc<str> = v49.clone();
-                            let v50: Rc<str> = std::rc::Rc::<str>::from(v27.get(0i32 as usize..v38 as usize).unwrap_or(""));
-                            let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v49));
-                            let v52: Rc<str> = std::rc::Rc::<str>::from(v27.get(v40 as usize..v36 as usize).unwrap_or(""));
-                            let v53: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v52));
-                            let v54: US3 = replace_records_unchanged_7(v17.clone(), v27.clone(), v53.clone());
-                            match &v54 {
+                        US2::US2_TokenRendered(v47) => {
+                            let v47: Rc<str> = v47;
+                            let v48: Rc<str> = std::rc::Rc::<str>::from(v27.get(0i32 as usize..v36 as usize).unwrap_or(""));
+                            let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v48, v47));
+                            let v50: Rc<str> = std::rc::Rc::<str>::from(v27.get(v38 as usize..v34 as usize).unwrap_or(""));
+                            let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v50));
+                            let v52: US3 = replace_records_unchanged_7(v17, v27.clone(), v51.clone());
+                            match &v52 {
                                 US3::US3_Replaced => {
-                                    let v55: u64 = v27.len() as u64;
-                                    let v56: u64 = v53.len() as u64;
-                                    let v57: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v14);
-                                    let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile edit ok id="); } LIT.with(|lit| lit.clone()) };
-                                    let v59: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v11));
-                                    let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" field="); } LIT.with(|lit| lit.clone()) };
-                                    let v62: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v59, v60)), v1));
-                                    let v63: Rc<str> = std::rc::Rc::<str>::from((v55).to_string());
-                                    let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_before="); } LIT.with(|lit| lit.clone()) };
-                                    let v65: Rc<str> = Rc::<str>::from(format!("{}{}", v64, v63));
-                                    let v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_after="); } LIT.with(|lit| lit.clone()) };
-                                    let v67: Rc<str> = Rc::<str>::from(format!("{}{}", v65, v66));
-                                    let v68: Rc<str> = std::rc::Rc::<str>::from((v56).to_string());
-                                    let v69: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v68));
-                                    let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
-                                    let v71: Rc<str> = Rc::<str>::from(format!("{}{}", v69, v70));
-                                    let v72: Rc<str> = std::rc::Rc::<str>::from((v57).to_string());
-                                    let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v62, Rc::<str>::from(format!("{}{}", v71, v72))));
-                                    let v75: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v74.to_string() + "
+                                    let v53: u64 = v27.len() as u64;
+                                    let v54: u64 = v51.len() as u64;
+                                    let v55: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v14);
+                                    let v56: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit agile edit ok id="); } LIT.with(|lit| lit.clone()) }, v11));
+                                    let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v56, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" field="); } LIT.with(|lit| lit.clone()) }));
+                                    let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v1));
+                                    let v59: Rc<str> = std::rc::Rc::<str>::from((v53).to_string());
+                                    let v60: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_before="); } LIT.with(|lit| lit.clone()) }, v59));
+                                    let v61: Rc<str> = Rc::<str>::from(format!("{}{}", v60, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes_after="); } LIT.with(|lit| lit.clone()) }));
+                                    let v62: Rc<str> = std::rc::Rc::<str>::from((v54).to_string());
+                                    let v63: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v62));
+                                    let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v63, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) }));
+                                    let v65: Rc<str> = std::rc::Rc::<str>::from((v55).to_string());
+                                    let v66: Rc<str> = Rc::<str>::from(format!("{}{}", v64, v65));
+                                    let v67: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v66));
+                                    let v68: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v67.to_string() + "
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
-                                    v75
+                                    v68
                                 }
                                 _ => {
-                                    let v85: Rc<str> = match &v54 {
+                                    let v78: Rc<str> = match v52 {
                                         US3::US3_ChangedSinceRead => {
-                                            let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the file changed since it was read; nothing written, run the call again"); } LIT.with(|lit| lit.clone()) };
-                                            v80.clone()
+                                            let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the file changed since it was read; nothing written, run the call again"); } LIT.with(|lit| lit.clone()) };
+                                            v73
                                         }
                                         US3::US3_ReadbackMismatch => {
-                                            let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
-                                            v79.clone()
+                                            let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("readback did not match the written file"); } LIT.with(|lit| lit.clone()) };
+                                            v72
                                         }
                                         US3::US3_RenameFailed => {
-                                            let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
-                                            v77.clone()
+                                            let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place"); } LIT.with(|lit| lit.clone()) };
+                                            v70
                                         }
                                         US3::US3_RenameFailedTemporaryKept => {
-                                            let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
-                                            v78.clone()
+                                            let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not move the replacement file into place or remove its .pending copy"); } LIT.with(|lit| lit.clone()) };
+                                            v71
                                         }
                                         US3::US3_TemporaryWriteFailed => {
-                                            let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
-                                            v76.clone()
+                                            let v69: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write the replacement file"); } LIT.with(|lit| lit.clone()) };
+                                            v69
                                         }
                                         _ => unreachable!(),
                                     };
-                                    agile_edit_failure_1(v85.clone(), v11.clone())
+                                    agile_edit_failure_1(v78, v11)
                                 }
                             }
                         }

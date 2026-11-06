@@ -92,12 +92,12 @@ fn syntax_of_path_3(mut v0: Rc<str>) -> US3 {
     let v13: bool = v12 < 0i32;
     let v18: Rc<str> = if v13 {
         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v14.clone()
+        v14
     } else {
         let v15: i32 = v12.wrapping_add(1i32);
         let v16: i32 = (v8.clone().len() as i32);
         let v17: Rc<str> = std::rc::Rc::<str>::from(v8.get(v15 as usize..v16 as usize).unwrap_or(""));
-        v17.clone()
+        v17
     };
     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spi|spir|rs|c|h|cc|cpp|cxx|hpp|hh|cs|js|mjs|cjs|ts|tsx|jsx|go|java|kt|kts|swift|zig|gleam|scala|dart|wgsl|glsl|hlsl|proto|jsonc|css|scss|less|php|sv|v"); } LIT.with(|lit| lit.clone()) };
     let v20: bool = &*v18 == "";
@@ -106,88 +106,88 @@ fn syntax_of_path_3(mut v0: Rc<str>) -> US3 {
     let v23: bool = v21 && v22;
     if v23 {
         let v24: US1 = US1::US1_CFamily;
-        US3::US3_KnownSyntax(v24.clone())
+        US3::US3_KnownSyntax(v24)
     } else {
         let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ps1|psm1|psd1|py|pyi|sh|bash|zsh|fish|rb|toml|yml|yaml|ex|exs|r|pl|pm|cmake|nix|conf|cfg|mk|tf|jl|nu|ini|gitignore|gitattributes|editorconfig|dockerignore"); } LIT.with(|lit| lit.clone()) };
         let v27: bool = v26.split("|").any(|item| item == &*v18);
         let v28: bool = v21 && v27;
         if v28 {
             let v29: US1 = US1::US1_HashFamily;
-            US3::US3_KnownSyntax(v29.clone())
+            US3::US3_KnownSyntax(v29)
         } else {
             let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("makefile|dockerfile|justfile|gemfile|rakefile|vagrantfile"); } LIT.with(|lit| lit.clone()) };
             let v32: bool = v31.split("|").any(|item| item == &*v8);
             if v32 {
                 let v33: US1 = US1::US1_HashFamily;
-                US3::US3_KnownSyntax(v33.clone())
+                US3::US3_KnownSyntax(v33)
             } else {
                 let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lua|sql|ada|adb|ads|vhd|vhdl"); } LIT.with(|lit| lit.clone()) };
                 let v36: bool = v35.split("|").any(|item| item == &*v18);
                 let v37: bool = v21 && v36;
                 if v37 {
                     let v38: US1 = US1::US1_DashFamily;
-                    US3::US3_KnownSyntax(v38.clone())
+                    US3::US3_KnownSyntax(v38)
                 } else {
                     let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("hs|lhs|elm|purs|agda|idr"); } LIT.with(|lit| lit.clone()) };
                     let v41: bool = v40.split("|").any(|item| item == &*v18);
                     let v42: bool = v21 && v41;
                     if v42 {
                         let v43: US1 = US1::US1_HaskellFamily;
-                        US3::US3_KnownSyntax(v43.clone())
+                        US3::US3_KnownSyntax(v43)
                     } else {
                         let v45: bool = &*v18 == "lean";
                         if v45 {
                             let v46: US1 = US1::US1_LeanFamily;
-                            US3::US3_KnownSyntax(v46.clone())
+                            US3::US3_KnownSyntax(v46)
                         } else {
                             let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("clj|cljs|cljc|edn|lisp|lsp|el|scm|ss|rkt|asm|nasm"); } LIT.with(|lit| lit.clone()) };
                             let v49: bool = v48.split("|").any(|item| item == &*v18);
                             let v50: bool = v21 && v49;
                             if v50 {
                                 let v51: US1 = US1::US1_LispFamily;
-                                US3::US3_KnownSyntax(v51.clone())
+                                US3::US3_KnownSyntax(v51)
                             } else {
                                 let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("erl|hrl|tex|sty|bib"); } LIT.with(|lit| lit.clone()) };
                                 let v54: bool = v53.split("|").any(|item| item == &*v18);
                                 let v55: bool = v21 && v54;
                                 if v55 {
                                     let v56: US1 = US1::US1_ErlangFamily;
-                                    US3::US3_KnownSyntax(v56.clone())
+                                    US3::US3_KnownSyntax(v56)
                                 } else {
                                     let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("md|markdown|livemd|html|htm|xhtml|xml|svg|xaml|vue|svelte|csproj|fsproj|props|targets|plist"); } LIT.with(|lit| lit.clone()) };
                                     let v59: bool = v58.split("|").any(|item| item == &*v18);
                                     let v60: bool = v21 && v59;
                                     if v60 {
                                         let v61: US1 = US1::US1_MarkupFamily;
-                                        US3::US3_KnownSyntax(v61.clone())
+                                        US3::US3_KnownSyntax(v61)
                                     } else {
                                         let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ml|mli|sml"); } LIT.with(|lit| lit.clone()) };
                                         let v64: bool = v63.split("|").any(|item| item == &*v18);
                                         let v65: bool = v21 && v64;
                                         if v65 {
                                             let v66: US1 = US1::US1_MlFamily;
-                                            US3::US3_KnownSyntax(v66.clone())
+                                            US3::US3_KnownSyntax(v66)
                                         } else {
                                             let v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("pas|pp|dpr|dpk|lpr|inc"); } LIT.with(|lit| lit.clone()) };
                                             let v69: bool = v68.split("|").any(|item| item == &*v18);
                                             let v70: bool = v21 && v69;
                                             if v70 {
                                                 let v71: US1 = US1::US1_PascalFamily;
-                                                US3::US3_KnownSyntax(v71.clone())
+                                                US3::US3_KnownSyntax(v71)
                                             } else {
                                                 let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("bat|cmd"); } LIT.with(|lit| lit.clone()) };
                                                 let v74: bool = v73.split("|").any(|item| item == &*v18);
                                                 let v75: bool = v21 && v74;
                                                 if v75 {
                                                     let v76: US1 = US1::US1_BatchFamily;
-                                                    US3::US3_KnownSyntax(v76.clone())
+                                                    US3::US3_KnownSyntax(v76)
                                                 } else {
                                                     let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs|fsx|fsi"); } LIT.with(|lit| lit.clone()) };
                                                     let v79: bool = v78.split("|").any(|item| item == &*v18);
                                                     let v80: bool = v21 && v79;
                                                     if v80 {
                                                         let v81: US1 = US1::US1_FsharpFamily;
-                                                        US3::US3_KnownSyntax(v81.clone())
+                                                        US3::US3_KnownSyntax(v81)
                                                     } else {
                                                         US3::US3_UnknownSyntax
                                                     }
@@ -209,18 +209,18 @@ fn path_verdict_1(mut v0: Rc<str>, mut v1: bool) -> US0 {
     let v3: bool = v0.ends_with(&*v2);
     if v3 {
         let v4: US2 = US2::US2_SkipNestedRepository;
-        US0::US0_SkipPath(v4.clone())
+        US0::US0_SkipPath(v4)
     } else {
         let v6: i32 = 0i32;
         let mut v7: bool = vendor_segment_from_2(v0.clone(), v6);
         if v7 {
             let v8: US2 = US2::US2_SkipVendorDirectory;
-            US0::US0_SkipPath(v8.clone())
+            US0::US0_SkipPath(v8)
         } else {
             let v10: US3 = syntax_of_path_3(v0.clone());
-            match &v10 {
+            match v10 {
                 US3::US3_KnownSyntax(v13) => {
-                    let v13: US1 = v13.clone();
+                    let v13: US1 = v13;
                     let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spi|spir"); } LIT.with(|lit| lit.clone()) };
                     let v15: i32 = 47i32;
                     let v16: i32 = 0i32;
@@ -237,26 +237,26 @@ fn path_verdict_1(mut v0: Rc<str>, mut v1: bool) -> US0 {
                     let v27: bool = v26 < 0i32;
                     let v32: Rc<str> = if v27 {
                         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                        v28.clone()
+                        v28
                     } else {
                         let v29: i32 = v26.wrapping_add(1i32);
                         let v30: i32 = (v22.clone().len() as i32);
                         let v31: Rc<str> = std::rc::Rc::<str>::from(v22.get(v29 as usize..v30 as usize).unwrap_or(""));
-                        v31.clone()
+                        v31
                     };
                     let v33: bool = v14.split("|").any(|item| item == &*v32);
                     let v34: bool = v33 == false;
                     let v35: bool = v1 && v34;
                     if v35 {
                         let v36: US2 = US2::US2_SkipGeneratedOutput;
-                        US0::US0_SkipPath(v36.clone())
+                        US0::US0_SkipPath(v36)
                     } else {
-                        US0::US0_ScanPath(v13.clone())
+                        US0::US0_ScanPath(v13)
                     }
                 }
                 US3::US3_UnknownSyntax => {
                     let v11: US2 = US2::US2_SkipUnknownSyntax;
-                    US0::US0_SkipPath(v11.clone())
+                    US0::US0_SkipPath(v11)
                 }
             }
         }
@@ -264,10 +264,10 @@ fn path_verdict_1(mut v0: Rc<str>, mut v1: bool) -> US0 {
 }
 fn todo_path_verdict_0(mut v0: Rc<str>, mut v1: bool) -> i32 {
     let mut v2: US0 = path_verdict_1(v0, v1);
-    match &v2 {
+    match v2 {
         US0::US0_ScanPath(v3) => {
-            let v3: US1 = v3.clone();
-            match &v3 {
+            let v3: US1 = v3;
+            match v3 {
                 US1::US1_BatchFamily => {
                     11i32
                 }
@@ -307,8 +307,8 @@ fn todo_path_verdict_0(mut v0: Rc<str>, mut v1: bool) -> i32 {
             }
         }
         US0::US0_SkipPath(v5) => {
-            let v5: US2 = v5.clone();
-            let v6: i32 = match &v5 {
+            let v5: US2 = v5;
+            let v6: i32 = match v5 {
                 US2::US2_SkipGeneratedOutput => {
                     4i32
                 }
@@ -332,7 +332,7 @@ fn todo_path_verdict_0(mut v0: Rc<str>, mut v1: bool) -> i32 {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, bool) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, bool) -> i32> = Rc::new(move |mut v0: Rc<str>, mut v1: bool| -> i32 {
-        todo_path_verdict_0(v0.clone(), v1)
+        todo_path_verdict_0(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_agile_todo_path_verdict(v0: &str, v1: bool) -> i32 {

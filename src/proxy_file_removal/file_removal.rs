@@ -40,7 +40,7 @@ fn file_removal_outcome_1() -> US0 {
         let v6: bool = &*v5 == "";
         if v6 {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove target escapes the root"); } LIT.with(|lit| lit.clone()) };
-            US0::US0_RemovalRejected(v7.clone())
+            US0::US0_RemovalRejected(v7)
         } else {
             let v9: i32 = std::fs::symlink_metadata(&*v5).map(|meta| if meta.file_type().is_symlink() { 1 } else if meta.is_dir() { 3 } else { 0 }).unwrap_or(2);
             let v10: bool = 0i32 == v9;
@@ -61,68 +61,61 @@ fn file_removal_outcome_1() -> US0 {
             };
             match &v19 {
                 US1::US1_DirectoryEntry => {
-                    let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove target is a directory (use fs-remove-tree): "); } LIT.with(|lit| lit.clone()) };
-                    let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v5));
-                    US0::US0_RemovalRejected(v24.clone())
+                    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove target is a directory (use fs-remove-tree): "); } LIT.with(|lit| lit.clone()) }, v5));
+                    US0::US0_RemovalRejected(v22)
                 }
                 US1::US1_MissingEntry => {
-                    let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove target is missing: "); } LIT.with(|lit| lit.clone()) };
-                    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v5));
-                    US0::US0_RemovalRejected(v21.clone())
+                    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove target is missing: "); } LIT.with(|lit| lit.clone()) }, v5));
+                    US0::US0_RemovalRejected(v20)
                 }
                 _ => {
-                    let v26: u64 = std::fs::symlink_metadata(&*v5).map(|meta| meta.len()).unwrap_or(0);
-                    let v27: Rc<str> = std::rc::Rc::<str>::from(kit_rust_std_fs::rooted_unlink_nondirectory(std::path::Path::new(&*v5)).err().unwrap_or_default().as_str());
-                    let v28: bool = &*v27 == "";
-                    if v28 {
-                        let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit proxy fs-remove ok path="); } LIT.with(|lit| lit.clone()) };
-                        let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v5));
-                        let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" kind="); } LIT.with(|lit| lit.clone()) };
-                        let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
-                        let v36: Rc<str> = match &v19 {
+                    let v24: u64 = std::fs::symlink_metadata(&*v5).map(|meta| meta.len()).unwrap_or(0);
+                    let v25: Rc<str> = std::rc::Rc::<str>::from(kit_rust_std_fs::rooted_unlink_nondirectory(std::path::Path::new(&*v5)).err().unwrap_or_default().as_str());
+                    let v26: bool = &*v25 == "";
+                    if v26 {
+                        let v27: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit proxy fs-remove ok path="); } LIT.with(|lit| lit.clone()) }, v5));
+                        let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v27, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" kind="); } LIT.with(|lit| lit.clone()) }));
+                        let v32: Rc<str> = match v19 {
                             US1::US1_RemovedFile => {
-                                let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("file"); } LIT.with(|lit| lit.clone()) };
-                                v33.clone()
+                                let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("file"); } LIT.with(|lit| lit.clone()) };
+                                v29
                             }
                             US1::US1_RemovedSymlink => {
-                                let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("symlink"); } LIT.with(|lit| lit.clone()) };
-                                v34.clone()
+                                let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("symlink"); } LIT.with(|lit| lit.clone()) };
+                                v30
                             }
                             _ => unreachable!(),
                         };
-                        let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v36));
-                        let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes="); } LIT.with(|lit| lit.clone()) };
-                        let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v38));
-                        let v40: Rc<str> = std::rc::Rc::<str>::from((v26).to_string());
-                        let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
-                        let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) };
-                        let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v42));
-                        let v44: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v0);
-                        let v45: Rc<str> = std::rc::Rc::<str>::from((v44).to_string());
-                        let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v45));
-                        US0::US0_RemovalReceipt(v46.clone())
+                        let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v32));
+                        let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" bytes="); } LIT.with(|lit| lit.clone()) }));
+                        let v35: Rc<str> = std::rc::Rc::<str>::from((v24).to_string());
+                        let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
+                        let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v36, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" elapsed_ms="); } LIT.with(|lit| lit.clone()) }));
+                        let v38: u64 = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0).saturating_sub(v0);
+                        let v39: Rc<str> = std::rc::Rc::<str>::from((v38).to_string());
+                        let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v39));
+                        US0::US0_RemovalReceipt(v40)
                     } else {
-                        let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove failed: "); } LIT.with(|lit| lit.clone()) };
-                        let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v48, v27));
-                        US0::US0_RemovalRejected(v49.clone())
+                        let v42: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove failed: "); } LIT.with(|lit| lit.clone()) }, v25));
+                        US0::US0_RemovalRejected(v42)
                     }
                 }
             }
         }
     } else {
-        let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove expects <root> <relative>"); } LIT.with(|lit| lit.clone()) };
-        US0::US0_RemovalRejected(v55.clone())
+        let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fs-remove expects <root> <relative>"); } LIT.with(|lit| lit.clone()) };
+        US0::US0_RemovalRejected(v48)
     }
 }
 fn file_removal_report_0() -> (i32, Rc<str>) {
     let v0: US0 = file_removal_outcome_1();
-    match &v0 {
+    match v0 {
         US0::US0_RemovalReceipt(v1) => {
-            let v1: Rc<str> = v1.clone();
+            let v1: Rc<str> = v1;
             (0i32, v1)
         }
         US0::US0_RemovalRejected(v2) => {
-            let v2: Rc<str> = v2.clone();
+            let v2: Rc<str> = v2;
             (2i32, v2)
         }
     }

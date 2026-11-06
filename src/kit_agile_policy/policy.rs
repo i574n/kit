@@ -35,7 +35,7 @@ fn skip_spaces_loop_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 continue;
             } else {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                let v9: u8 = codec_runtime_char_5(v8.clone());
+                let v9: u8 = codec_runtime_char_5(v8);
                 let v10: bool = v4 == v9 ;
                 if v10 {
                     let v11: i32 = v1 + 1i32 ;
@@ -61,7 +61,7 @@ fn agile_tuple_trim_right_6(mut v0: Rc<str>, mut v1: i32) -> i32 {
                 true
             } else {
                 let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                let v7: u8 = codec_runtime_char_5(v6.clone());
+                let v7: u8 = codec_runtime_char_5(v6);
                 let v8: bool = v4 == v7 ;
                 v8
             };
@@ -89,8 +89,8 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                         codec_empty_2()
                     } else {
                         let v12: i32 = v2 - 1i32 ;
-                        let v13: Rc<str> = string_slice(&v0.clone(), v3 as i64, v12 as i64);
-                        v13.clone()
+                        let v13: Rc<str> = string_slice(&v0, v3 as i64, v12 as i64);
+                        v13
                     };
                     let v15: i32 = 0i32;
                     let v16: i32 = (v14.clone().len() as i32);
@@ -105,13 +105,13 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                             codec_empty_2()
                         } else {
                             let v23: i32 = v18 - 1i32 ;
-                            let v24: Rc<str> = string_slice(&v14.clone(), v17 as i64, v23 as i64);
-                            v24.clone()
+                            let v24: Rc<str> = string_slice(&v14, v17 as i64, v23 as i64);
+                            v24
                         }
                     };
-                    let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
-                    let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v6.clone(), v27.clone()));
-                    return v28.clone();
+                    let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
+                    let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v27));
+                    return v28;
                 }
             }
         } else {
@@ -125,7 +125,7 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                     continue;
                 } else {
                     let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
-                    let v37: u8 = codec_runtime_char_5(v36.clone());
+                    let v37: u8 = codec_runtime_char_5(v36);
                     let v38: bool = v31 == v37 ;
                     if v38 {
                         let v39: i32 = v1 + 1i32 ;
@@ -135,7 +135,7 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                         continue;
                     } else {
                         let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-                        let v44: u8 = codec_runtime_char_5(v43.clone());
+                        let v44: u8 = codec_runtime_char_5(v43);
                         let v45: bool = v31 == v44 ;
                         if v45 {
                             let v46: i32 = v1 + 1i32 ;
@@ -154,7 +154,7 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                 }
             } else {
                 let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-                let v58: u8 = codec_runtime_char_5(v57.clone());
+                let v58: u8 = codec_runtime_char_5(v57);
                 let v59: bool = v31 == v58 ;
                 if v59 {
                     let v60: i32 = v1 + 1i32 ;
@@ -171,7 +171,7 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                         } else {
                             let v67: i32 = v1 - 1i32 ;
                             let v68: Rc<str> = string_slice(&v0.clone(), v3 as i64, v67 as i64);
-                            v68.clone()
+                            v68
                         };
                         let v70: i32 = 0i32;
                         let v71: i32 = (v69.clone().len() as i32);
@@ -186,17 +186,17 @@ fn agile_tuple_parse_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i
                                 codec_empty_2()
                             } else {
                                 let v78: i32 = v73 - 1i32 ;
-                                let v79: Rc<str> = string_slice(&v69.clone(), v72 as i64, v78 as i64);
-                                v79.clone()
+                                let v79: Rc<str> = string_slice(&v69, v72 as i64, v78 as i64);
+                                v79
                             }
                         };
                         let v82: i32 = v1 + 1i32 ;
                         let v83: i32 = v1 + 1i32 ;
                         let v84: bool = false;
                         let v85: bool = false;
-                        let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v81.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
-                        let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v6.clone(), v86.clone()));
-                        (v1, v3, v4, v5, v6) = (v82, v83, v84, v85, v87.clone());
+                        let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v81, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
+                        let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v86));
+                        (v1, v3, v4, v5, v6) = (v82, v83, v84, v85, v87);
                         continue;
                     } else {
                         let v89: i32 = v1 + 1i32 ;
@@ -722,37 +722,37 @@ fn closure4() -> Rc<dyn Fn(i32, i32) -> i32> {
 }
 fn closure5() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        agile_tuple_parse_0(v0.clone())
+        agile_tuple_parse_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure6() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        agile_attestation_normalize_7(v0.clone())
+        agile_attestation_normalize_7(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure7() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        agile_attestation_value_11(v0.clone())
+        agile_attestation_value_11(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure8() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        agile_u64_decimal_normalize_15(v0.clone())
+        agile_u64_decimal_normalize_15(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure9() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        agile_u64_decimal_value_14(v0.clone())
+        agile_u64_decimal_value_14(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure10() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        agile_u64_literal_normalize_17(v0.clone())
+        agile_u64_literal_normalize_17(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure11() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        agile_u64_literal_value_16(v0.clone())
+        agile_u64_literal_value_16(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_agile_set_decision_binding(v0: i32, v1: i32) -> i32 {

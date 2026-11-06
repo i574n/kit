@@ -217,7 +217,7 @@ fn toolchain_u64_decimal_valid_0(mut v0: Rc<str>) -> u64 {
                 codec_empty_2()
             } else {
                 let v13: i32 = v1 - 1i32 ;
-                let v14: Rc<str> = string_slice(&v0.clone(), 1i32 as i64, v13 as i64);
+                let v14: Rc<str> = string_slice(&v0, 1i32 as i64, v13 as i64);
                 v14
             };
             codec_u64_decimal_normalize_4(v15)
@@ -333,7 +333,7 @@ fn toolchain_u64_decimal_value_6(mut v0: Rc<str>) -> u64 {
                 codec_empty_2()
             } else {
                 let v13: i32 = v1 - 1i32 ;
-                let v14: Rc<str> = string_slice(&v0.clone(), 1i32 as i64, v13 as i64);
+                let v14: Rc<str> = string_slice(&v0, 1i32 as i64, v13 as i64);
                 v14
             };
             codec_u64_decimal_normalize_4(v15)
@@ -365,7 +365,7 @@ fn toolchain_u32_decimal_valid_9(mut v0: Rc<str>) -> u64 {
                 codec_empty_2()
             } else {
                 let v13: i32 = v1 - 1i32 ;
-                let v14: Rc<str> = string_slice(&v0.clone(), 1i32 as i64, v13 as i64);
+                let v14: Rc<str> = string_slice(&v0, 1i32 as i64, v13 as i64);
                 v14
             };
             codec_u64_decimal_normalize_4(v15)
@@ -397,7 +397,7 @@ fn toolchain_i32_decimal_code_10(mut v0: Rc<str>) -> u64 {
         let v4: i32 = 0i32;
         let v5: i32 = 0i32;
         let v6: i32 = 1i32;
-        starts_with_loop_1(v0.clone(), v3.clone(), v4, v5, v6)
+        starts_with_loop_1(v0.clone(), v3, v4, v5, v6)
     };
     let v14: bool = if v2 {
         false
@@ -406,7 +406,7 @@ fn toolchain_i32_decimal_code_10(mut v0: Rc<str>) -> u64 {
         let v10: i32 = 0i32;
         let v11: i32 = 0i32;
         let v12: i32 = 1i32;
-        starts_with_loop_1(v0.clone(), v9.clone(), v10, v11, v12)
+        starts_with_loop_1(v0.clone(), v9, v10, v11, v12)
     };
     let v15: bool = v8 || v14;
     let v24: Rc<str> = if v15 {
@@ -419,20 +419,20 @@ fn toolchain_i32_decimal_code_10(mut v0: Rc<str>) -> u64 {
                 codec_empty_2()
             } else {
                 let v20: i32 = v1 - 1i32 ;
-                let v21: Rc<str> = string_slice(&v0.clone(), 1i32 as i64, v20 as i64);
-                v21.clone()
+                let v21: Rc<str> = string_slice(&v0, 1i32 as i64, v20 as i64);
+                v21
             }
         }
     } else {
-        v0.clone()
+        v0
     };
-    let v25: Rc<str> = codec_u64_decimal_normalize_4(v24.clone());
+    let v25: Rc<str> = codec_u64_decimal_normalize_4(v24);
     let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let v27: bool = v25 == v26 ;
     if v27 {
         0u64
     } else {
-        let v28: u64 = codec_u64_decimal_value_7(v25.clone());
+        let v28: u64 = codec_u64_decimal_value_7(v25);
         if v8 {
             let v29: bool = v28 <= 2147483648u64;
             if v29 {
@@ -495,22 +495,22 @@ fn closure0() -> Rc<dyn Fn(i32, i32) -> i32> {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        toolchain_u64_decimal_valid_0(v0.clone())
+        toolchain_u64_decimal_valid_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        toolchain_u64_decimal_value_6(v0.clone())
+        toolchain_u64_decimal_value_6(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        toolchain_u32_decimal_valid_9(v0.clone())
+        toolchain_u32_decimal_valid_9(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>) -> u64> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> u64> = Rc::new(move |mut v0: Rc<str>| -> u64 {
-        toolchain_i32_decimal_code_10(v0.clone())
+        toolchain_i32_decimal_code_10(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_toolchain_cwd(v0: i32, v1: i32) -> i32 {

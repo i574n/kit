@@ -90,36 +90,36 @@ fn parse_quoted_loop_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
     loop {
         let v5: bool = v1 == v2 ;
         if v5 {
-            return (v3.clone(), v1, false);
+            return (v3, v1, false);
         } else {
             let v6: u8 = v0.clone().as_bytes()[v1 as usize];
             if v4 {
                 let v7: bool = v6 == b'n' ;
                 let v24: Rc<str> = if v7 {
                     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                    v8.clone()
+                    v8
                 } else {
                     let v9: bool = v6 == b'r' ;
                     if v9 {
                         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
-                        v10.clone()
+                        v10
                     } else {
                         let v11: bool = v6 == b't' ;
                         if v11 {
                             let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                            v12.clone()
+                            v12
                         } else {
                             let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
                             let v14: u8 = codec_runtime_char_2(v13.clone());
                             let v15: bool = v6 == v14 ;
                             if v15 {
-                                v13.clone()
+                                v13
                             } else {
                                 let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
                                 let v17: u8 = codec_runtime_char_2(v16.clone());
                                 let v18: bool = v6 == v17 ;
                                 if v18 {
-                                    v16.clone()
+                                    v16
                                 } else {
                                     codec_empty_4()
                                 }
@@ -130,17 +130,17 @@ fn parse_quoted_loop_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                 let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 let v26: bool = v24 == v25 ;
                 if v26 {
-                    return (v3.clone(), v1, false);
+                    return (v3, v1, false);
                 } else {
                     let v27: i32 = v1 + 1i32 ;
-                    let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v24.clone()));
+                    let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v24));
                     let v29: bool = false;
-                    (v1, v3, v4) = (v27, v28.clone(), v29);
+                    (v1, v3, v4) = (v27, v28, v29);
                     continue;
                 }
             } else {
                 let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
-                let v37: u8 = codec_runtime_char_2(v36.clone());
+                let v37: u8 = codec_runtime_char_2(v36);
                 let v38: bool = v6 == v37 ;
                 if v38 {
                     let v39: i32 = v1 + 1i32 ;
@@ -149,17 +149,17 @@ fn parse_quoted_loop_8(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                     continue;
                 } else {
                     let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-                    let v45: u8 = codec_runtime_char_2(v44.clone());
+                    let v45: u8 = codec_runtime_char_2(v44);
                     let v46: bool = v6 == v45 ;
                     if v46 {
                         let v47: i32 = v1 + 1i32 ;
-                        return (v3.clone(), v47, true);
+                        return (v3, v47, true);
                     } else {
                         let v48: i32 = v1 + 1i32 ;
                         let v49: Rc<str> = string_slice(&v0.clone(), v1 as i64, v1 as i64);
-                        let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v49.clone()));
+                        let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v49));
                         let v51: bool = false;
-                        (v1, v3, v4) = (v48, v50.clone(), v51);
+                        (v1, v3, v4) = (v48, v50, v51);
                         continue;
                     }
                 }
@@ -181,7 +181,7 @@ fn skip_spaces_loop_9(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> i32 {
                 continue;
             } else {
                 let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                let v9: u8 = codec_runtime_char_2(v8.clone());
+                let v9: u8 = codec_runtime_char_2(v8);
                 let v10: bool = v4 == v9 ;
                 if v10 {
                     let v11: i32 = v1 + 1i32 ;
@@ -198,10 +198,10 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
     loop {
         let v4: bool = v1 == v2 ;
         if v4 {
-            return v3.clone();
+            return v3;
         } else {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            let v6: u8 = codec_runtime_char_2(v5.clone());
+            let v6: u8 = codec_runtime_char_2(v5);
             let v7: i32 = find_char_loop_3(v0.clone(), v1, v2, v6);
             let v8: bool = v1 == v7 ;
             let v12: Rc<str> = if v8 {
@@ -209,13 +209,13 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
             } else {
                 let v10: i32 = v7 - 1i32 ;
                 let v11: Rc<str> = string_slice(&v0.clone(), v1 as i64, v10 as i64);
-                v11.clone()
+                v11
             };
             let v13: i32 = (v12.clone().len() as i32);
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("= StateCheckSnapshot "); } LIT.with(|lit| lit.clone()) };
             let v15: i32 = 0i32;
             let v16: i32 = 21i32;
-            let v17: i32 = find_text_loop_6(v12.clone(), v14.clone(), v15, v13, v16);
+            let v17: i32 = find_text_loop_6(v12.clone(), v14, v15, v13, v16);
             let v18: bool = v17 == v13 ;
             let v34: Rc<str> = if v18 {
                 codec_empty_4()
@@ -223,7 +223,7 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                 let v20: i32 = v17 + 21i32 ;
                 let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u64"); } LIT.with(|lit| lit.clone()) };
                 let v22: i32 = 3i32;
-                let v23: i32 = find_text_loop_6(v12.clone(), v21.clone(), v20, v13, v22);
+                let v23: i32 = find_text_loop_6(v12.clone(), v21, v20, v13, v22);
                 let v24: bool = v23 == v13 ;
                 if v24 {
                     codec_empty_4()
@@ -234,11 +234,11 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                     } else {
                         let v28: i32 = v23 - 1i32 ;
                         let v29: Rc<str> = string_slice(&v12.clone(), v20 as i64, v28 as i64);
-                        v29.clone()
+                        v29
                     };
-                    let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
-                    let v32: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("snapshot\t"); } LIT.with(|lit| lit.clone()) }, v31.clone()));
-                    v32.clone()
+                    let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
+                    let v32: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("snapshot\t"); } LIT.with(|lit| lit.clone()) }, v31));
+                    v32
                 }
             };
             let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -247,7 +247,7 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                 let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("= ModuleTypecheckReceipt ("); } LIT.with(|lit| lit.clone()) };
                 let v38: i32 = 0i32;
                 let v39: i32 = 26i32;
-                let v40: i32 = find_text_loop_6(v12.clone(), v37.clone(), v38, v13, v39);
+                let v40: i32 = find_text_loop_6(v12.clone(), v37, v38, v13, v39);
                 let v41: bool = v40 == v13 ;
                 if v41 {
                     codec_empty_4()
@@ -256,11 +256,11 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                     let v44: bool = v43 == v13 ;
                     let (mut v59, mut v60, mut v61): (Rc<str>, i32, bool) = if v44 {
                         let v45: Rc<str> = codec_empty_4();
-                        (v45.clone(), v43, false)
+                        (v45, v43, false)
                     } else {
                         let v46: u8 = v12.clone().as_bytes()[v43 as usize];
                         let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
-                        let v48: u8 = codec_runtime_char_2(v47.clone());
+                        let v48: u8 = codec_runtime_char_2(v47);
                         let v49: bool = v46 == v48 ;
                         if v49 {
                             let v50: i32 = v43 + 1i32 ;
@@ -268,7 +268,7 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                             parse_quoted_loop_8(v12.clone(), v50, v13, v35.clone(), v51)
                         } else {
                             let v55: Rc<str> = codec_empty_4();
-                            (v55.clone(), v43, false)
+                            (v55, v43, false)
                         }
                     };
                     let v62: bool = v61 == false ;
@@ -306,7 +306,7 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                         codec_empty_4()
                                     } else {
                                         let v86: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                                        let v87: u8 = codec_runtime_char_2(v86.clone());
+                                        let v87: u8 = codec_runtime_char_2(v86);
                                         let v88: i32 = find_char_loop_3(v12.clone(), v81, v13, v87);
                                         let v89: bool = v88 < v83;
                                         let v90: i32 = if v89 {
@@ -320,7 +320,7 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                         } else {
                                             let v93: i32 = v72 - 1i32 ;
                                             let v94: Rc<str> = string_slice(&v12.clone(), v69 as i64, v93 as i64);
-                                            v94.clone()
+                                            v94
                                         };
                                         let v96: bool = v81 == v90 ;
                                         let v100: Rc<str> = if v96 {
@@ -328,7 +328,7 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                         } else {
                                             let v98: i32 = v90 - 1i32 ;
                                             let v99: Rc<str> = string_slice(&v12.clone(), v81 as i64, v98 as i64);
-                                            v99.clone()
+                                            v99
                                         };
                                         let v112: i32 = if v89 {
                                             let v101: i32 = v88 + 1i32 ;
@@ -354,7 +354,7 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                         let v114: bool = v113 == v13 ;
                                         let v171: Rc<str> = if v114 {
                                             let v115: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
-                                            v115.clone()
+                                            v115
                                         } else {
                                             let v116: i32 = v113 + 18i32 ;
                                             let v117: bool = v13 < v116;
@@ -364,11 +364,11 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                                 let v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("RuntimeAttestation"); } LIT.with(|lit| lit.clone()) };
                                                 let v119: i32 = 0i32;
                                                 let v120: i32 = 18i32;
-                                                starts_with_loop_7(v12.clone(), v118.clone(), v113, v119, v120)
+                                                starts_with_loop_7(v12.clone(), v118, v113, v119, v120)
                                             };
                                             if v122 {
                                                 let v123: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
-                                                v123.clone()
+                                                v123
                                             } else {
                                                 let v124: i32 = v113 + 16i32 ;
                                                 let v125: bool = v13 < v124;
@@ -378,13 +378,13 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                                     let v126: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("BuildAttestation"); } LIT.with(|lit| lit.clone()) };
                                                     let v127: i32 = 0i32;
                                                     let v128: i32 = 16i32;
-                                                    starts_with_loop_7(v12.clone(), v126.clone(), v113, v127, v128)
+                                                    starts_with_loop_7(v12.clone(), v126, v113, v127, v128)
                                                 };
                                                 if v130 {
                                                     let v131: i32 = v113 + 16i32 ;
                                                     let v132: i32 = skip_spaces_loop_9(v12.clone(), v131, v13);
                                                     let v133: i32 = 3i32;
-                                                    let v134: i32 = find_text_loop_6(v12.clone(), v70.clone(), v132, v13, v133);
+                                                    let v134: i32 = find_text_loop_6(v12.clone(), v70, v132, v13, v133);
                                                     let v135: bool = v134 == v13 ;
                                                     if v135 {
                                                         codec_empty_4()
@@ -394,11 +394,11 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                                             codec_empty_4()
                                                         } else {
                                                             let v139: i32 = v134 - 1i32 ;
-                                                            let v140: Rc<str> = string_slice(&v12.clone(), v132 as i64, v139 as i64);
-                                                            v140.clone()
+                                                            let v140: Rc<str> = string_slice(&v12, v132 as i64, v139 as i64);
+                                                            v140
                                                         };
-                                                        let v142: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) }, v141.clone()));
-                                                        v142.clone()
+                                                        let v142: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) }, v141));
+                                                        v142
                                                     }
                                                 } else {
                                                     let v144: i32 = v113 + 6i32 ;
@@ -409,12 +409,12 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                                         let v146: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) };
                                                         let v147: i32 = 0i32;
                                                         let v148: i32 = 6i32;
-                                                        starts_with_loop_7(v12.clone(), v146.clone(), v113, v147, v148)
+                                                        starts_with_loop_7(v12.clone(), v146, v113, v147, v148)
                                                     };
                                                     if v150 {
                                                         let v151: i32 = v113 + 6i32 ;
                                                         let v152: i32 = 3i32;
-                                                        let v153: i32 = find_text_loop_6(v12.clone(), v70.clone(), v151, v13, v152);
+                                                        let v153: i32 = find_text_loop_6(v12.clone(), v70, v151, v13, v152);
                                                         let v154: bool = v153 == v13 ;
                                                         if v154 {
                                                             codec_empty_4()
@@ -424,18 +424,18 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                                                 codec_empty_4()
                                                             } else {
                                                                 let v158: i32 = v153 - 1i32 ;
-                                                                let v159: Rc<str> = string_slice(&v12.clone(), v151 as i64, v158 as i64);
-                                                                v159.clone()
+                                                                let v159: Rc<str> = string_slice(&v12, v151 as i64, v158 as i64);
+                                                                v159
                                                             };
-                                                            let v161: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) }, v160.clone()));
-                                                            v161.clone()
+                                                            let v161: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("build:"); } LIT.with(|lit| lit.clone()) }, v160));
+                                                            v161
                                                         }
                                                     } else {
-                                                        let v163: u8 = v12.clone().as_bytes()[v113 as usize];
+                                                        let v163: u8 = v12.as_bytes()[v113 as usize];
                                                         let v164: bool = v163 == b')' ;
                                                         if v164 {
                                                             let v165: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
-                                                            v165.clone()
+                                                            v165
                                                         } else {
                                                             codec_empty_4()
                                                         }
@@ -447,15 +447,15 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                                         if v172 {
                                             codec_empty_4()
                                         } else {
-                                            let v174: Rc<str> = Rc::<str>::from(format!("{}{}", v171.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
-                                            let v175: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) }, v174.clone()));
-                                            let v176: Rc<str> = Rc::<str>::from(format!("{}{}", v100.clone(), v175.clone()));
-                                            let v177: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) }, v176.clone()));
-                                            let v178: Rc<str> = Rc::<str>::from(format!("{}{}", v95.clone(), v177.clone()));
-                                            let v179: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) }, v178.clone()));
-                                            let v180: Rc<str> = Rc::<str>::from(format!("{}{}", v59.clone(), v179.clone()));
-                                            let v181: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("module\t"); } LIT.with(|lit| lit.clone()) }, v180.clone()));
-                                            v181.clone()
+                                            let v174: Rc<str> = Rc::<str>::from(format!("{}{}", v171, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
+                                            let v175: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) }, v174));
+                                            let v176: Rc<str> = Rc::<str>::from(format!("{}{}", v100, v175));
+                                            let v177: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) }, v176));
+                                            let v178: Rc<str> = Rc::<str>::from(format!("{}{}", v95, v177));
+                                            let v179: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) }, v178));
+                                            let v180: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v179));
+                                            let v181: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("module\t"); } LIT.with(|lit| lit.clone()) }, v180));
+                                            v181
                                         }
                                     }
                                 }
@@ -464,9 +464,9 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                     }
                 }
             } else {
-                v34.clone()
+                v34
             };
-            let v190: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), v189.clone()));
+            let v190: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v189));
             let v191: bool = v7 == v2 ;
             let v193: i32 = if v191 {
                 v2
@@ -474,7 +474,7 @@ fn parse_source_loop_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str
                 let v192: i32 = v7 + 1i32 ;
                 v192
             };
-            (v1, v3) = (v193, v190.clone());
+            (v1, v3) = (v193, v190);
             continue;
         }
     }
@@ -487,7 +487,7 @@ fn receipt_parse_0(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        receipt_parse_0(v0.clone())
+        receipt_parse_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_state_receipt_parse(v0: &str) -> Rc<str> {

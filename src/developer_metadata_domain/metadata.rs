@@ -327,7 +327,7 @@ fn packages_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
                             };
                             if v43 {
                                 let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name"); } LIT.with(|lit| lit.clone()) };
-                                fields_8(v0.clone(), v39, v44.clone())
+                                fields_8(v0.clone(), v39, v44)
                             } else {
                                 -2i32
                             }
@@ -344,7 +344,7 @@ fn packages_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
                             };
                             if v53 {
                                 let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("id"); } LIT.with(|lit| lit.clone()) };
-                                fields_8(v0.clone(), v49, v54.clone())
+                                fields_8(v0.clone(), v49, v54)
                             } else {
                                 -2i32
                             }
@@ -369,7 +369,7 @@ fn packages_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
                         } else {
                             let v69: bool = v58 == v3 ;
                             if v69 {
-                                let v70: i32 = members_9(v0.clone(), v2, v61.clone());
+                                let v70: i32 = members_9(v0.clone(), v2, v61);
                                 let v71: bool = v70 < 0i32;
                                 if v71 {
                                     return -5i32;
@@ -391,7 +391,7 @@ fn packages_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
                                                 };
                                                 if v78 {
                                                     let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("metadata"); } LIT.with(|lit| lit.clone()) };
-                                                    fields_8(v0.clone(), v74, v79.clone())
+                                                    fields_8(v0.clone(), v74, v79)
                                                 } else {
                                                     -2i32
                                                 }
@@ -409,7 +409,7 @@ fn packages_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
                                                 };
                                                 if v89 {
                                                     let v90: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) };
-                                                    fields_8(v0.clone(), v85, v90.clone())
+                                                    fields_8(v0.clone(), v85, v90)
                                                 } else {
                                                     -2i32
                                                 }
@@ -449,7 +449,7 @@ fn packages_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: Rc<str>, mut v4
                                                         };
                                                         let v114: i32 = if v111 {
                                                             let v112: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("test-requires-cli"); } LIT.with(|lit| lit.clone()) };
-                                                            fields_8(v0.clone(), v107, v112.clone())
+                                                            fields_8(v0.clone(), v107, v112)
                                                         } else {
                                                             -2i32
                                                         };
@@ -525,11 +525,11 @@ fn selected_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: u8, mut v4:
         } else {
             let v11: i32 = v8 - 1i32 ;
             let v12: Rc<str> = string_slice(&v1.clone(), v2 as i64, v11 as i64);
-            v12.clone()
+            v12
         };
         let v14: bool = false;
         let v15: i32 = 0i32;
-        let v16: i32 = packages_5(v0.clone(), v4, v5, v13.clone(), v14, v15);
+        let v16: i32 = packages_5(v0.clone(), v4, v5, v13, v14, v15);
         let v17: bool = v16 < 0i32;
         if v17 {
             return v16;
@@ -619,7 +619,7 @@ fn inspect_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> i32 {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>| -> i32 {
-        inspect_0(v0.clone(), v1.clone(), v2.clone())
+        inspect_0(v0, v1, v2)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_developer_requirements(v0: &str, v1: &str, v2: &str) -> i32 {

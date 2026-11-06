@@ -10,7 +10,7 @@ enum US0 {
 fn standings_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: bool, mut v5: i32) -> (i32, i32) {
     let v6: i32 = (v3.clone().len() as i32);
     let v7: bool = v6 <= v5;
-    let (mut v50, mut v51): (i32, i32) = if v7 {
+    let (mut v49, mut v50): (i32, i32) = if v7 {
         (v0, v1)
     } else {
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
@@ -52,59 +52,59 @@ fn standings_from_1(mut v0: i32, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, 
                 }
             }
         };
-        let v38: i32 = if v26 {
+        let v37: i32 = if v26 {
             0i32
         } else {
             let v32: Rc<str> = match &v24 {
                 US0::US0_OpenTodo => {
                     let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    v27.clone()
+                    v27
                 }
                 US0::US0_StaleTodo => {
                     let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("stale (item is Done): "); } LIT.with(|lit| lit.clone()) };
-                    v28.clone()
+                    v28
                 }
                 US0::US0_UnknownTodo => {
                     let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown (no backlog item): "); } LIT.with(|lit| lit.clone()) };
-                    v29.clone()
+                    v29
                 }
             };
             let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v13));
-            let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" at "); } LIT.with(|lit| lit.clone()) };
-            let v36: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v33, v34)), v12));
-            let v37: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v36.to_string() + "
+            let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" at "); } LIT.with(|lit| lit.clone()) }));
+            let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v12));
+            let v36: i32 = std::io::Write::write_all(&mut std::io::stdout(), (v35.to_string() + "
 ").as_bytes()).map(|_| 0i32).unwrap_or(2i32);
-            v37
+            v36
         };
-        let (mut v45, mut v46): (i32, i32) = match &v24 {
+        let (mut v44, mut v45): (i32, i32) = match &v24 {
             US0::US0_OpenTodo => {
                 (v0, v1)
             }
             _ => {
-                let (mut v43, mut v44): (i32, i32) = match &v24 {
+                let (mut v42, mut v43): (i32, i32) = match &v24 {
                     US0::US0_StaleTodo => {
-                        let v39: i32 = v0.wrapping_add(1i32);
-                        (v39, v1)
+                        let v38: i32 = v0.wrapping_add(1i32);
+                        (v38, v1)
                     }
                     _ => {
-                        let (mut v41, mut v42): (i32, i32) = match &v24 {
+                        let (mut v40, mut v41): (i32, i32) = match v24 {
                             US0::US0_UnknownTodo => {
-                                let v40: i32 = v1.wrapping_add(1i32);
-                                (v0, v40)
+                                let v39: i32 = v1.wrapping_add(1i32);
+                                (v0, v39)
                             }
                             _ => unreachable!(),
                         };
-                        (v41, v42)
+                        (v40, v41)
                     }
                 };
-                (v43, v44)
+                (v42, v43)
             }
         };
-        let v47: i32 = v11.wrapping_add(1i32);
-        let (mut v48, mut v49): (i32, i32) = standings_from_1(v45, v46, v2.clone(), v3.clone(), v4, v47);
-        (v48, v49)
+        let v46: i32 = v11.wrapping_add(1i32);
+        let (mut v47, mut v48): (i32, i32) = standings_from_1(v44, v45, v2, v3, v4, v46);
+        (v47, v48)
     };
-    (v50, v51)
+    (v49, v50)
 }
 fn standings_of_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool) -> (i32, i32) {
     let v3: i32 = 0i32;
@@ -115,7 +115,7 @@ fn standings_of_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool) -> (i32, i32) 
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, bool) -> (i32, i32)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, bool) -> (i32, i32)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: bool| -> (i32, i32) {
-        standings_of_0(v0.clone(), v1.clone(), v2)
+        standings_of_0(v0, v1, v2)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_agile_todo_standings(v0: &str, v1: &str, v2: bool) -> (i32, i32) {

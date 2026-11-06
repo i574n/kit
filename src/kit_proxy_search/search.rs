@@ -563,7 +563,7 @@ fn proxy_search_descends_into_26(mut v0: Rc<str>) -> bool {
             }
         }
     };
-    match &v21 {
+    match v21 {
         US0::US0_BuildOutputDirectory => {
             false
         }
@@ -583,7 +583,7 @@ fn proxy_search_descends_into_26(mut v0: Rc<str>) -> bool {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> bool> = Rc::new(move |mut v0: Rc<str>| -> bool {
-        proxy_search_descends_into_26(v0.clone())
+        proxy_search_descends_into_26(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn proxy_search_scope_binding_27(mut v0: Rc<str>) -> i32 {
@@ -593,7 +593,7 @@ fn proxy_search_scope_binding_27(mut v0: Rc<str>) -> i32 {
     } else {
         US1::US1_SearchRootedEntry
     };
-    match &v4 {
+    match v4 {
         US1::US1_SearchRootedEntry => {
             1i32
         }
@@ -604,7 +604,7 @@ fn proxy_search_scope_binding_27(mut v0: Rc<str>) -> i32 {
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        proxy_search_scope_binding_27(v0.clone())
+        proxy_search_scope_binding_27(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure2() -> Rc<dyn Fn(i32, i32) -> i32> {

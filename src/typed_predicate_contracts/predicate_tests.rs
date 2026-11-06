@@ -164,16 +164,16 @@ fn loop_1(mut v0: u64) -> u64 {
         if v1 {
             let mut v2: u64 = 1u64;
             let v3: Rc<str> = ascii_text_2(v0, v2);
-            check_3(v3.clone());
+            check_3(v3);
             let v4: u64 = 63u64;
             let v5: Rc<str> = ascii_text_2(v0, v4);
-            check_3(v5.clone());
+            check_3(v5);
             let v6: u64 = 64u64;
             let v7: Rc<str> = ascii_text_2(v0, v6);
-            check_3(v7.clone());
+            check_3(v7);
             let v8: u64 = 65u64;
             let v9: Rc<str> = ascii_text_2(v0, v8);
-            check_3(v9.clone());
+            check_3(v9);
             let v10: u64 = v0.wrapping_add(1u64);
             v0 = v10;
             continue;

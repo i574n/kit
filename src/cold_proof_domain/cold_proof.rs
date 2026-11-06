@@ -65,268 +65,200 @@ pub fn verify_formal_authority(root:&Path)->Result<(),String>{verify_cold_proof(
 mod rebuild_receipt_tests;
 
 fn family_renewal_0(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/legacy_catalog.spi"); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
-    let v5: Rc<str> = std::rc::Rc::<str>::from((0..36u64).map(|i|{let q=char::from(34u8).to_string();let n=char::from(10u8).to_string();let f=i.to_string();["CapabilityFamily (",&q,"f",&f,&q,", Absorbed, x)",&n,"LegacyDecision (",&q,"f",&f,&q,", PortNow, x)",&n].concat()}).collect::<String>());
+    let v1: Rc<str> = Rc::<str>::from(format!("{}{}", v0.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/legacy_catalog.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v3: Rc<str> = std::rc::Rc::<str>::from((0..36u64).map(|i|{let q=char::from(34u8).to_string();let n=char::from(10u8).to_string();let f=i.to_string();["CapabilityFamily (",&q,"f",&f,&q,", Absorbed, x)",&n,"LegacyDecision (",&q,"f",&f,&q,", PortNow, x)",&n].concat()}).collect::<String>());
+    std::fs::write(&*v2,&*v3).unwrap();
+    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/migration.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("migration fixture"); } LIT.with(|lit| lit.clone()) };
     std::fs::write(&*v4,&*v5).unwrap();
-    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/migration.spi"); } LIT.with(|lit| lit.clone()) };
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
-    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("migration fixture"); } LIT.with(|lit| lit.clone()) };
+    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/runtime_drift.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime drift fixture"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v6,&*v7).unwrap();
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/adapter_inventory.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("adapter fixture"); } LIT.with(|lit| lit.clone()) };
     std::fs::write(&*v8,&*v9).unwrap();
-    let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/runtime_drift.spi"); } LIT.with(|lit| lit.clone()) };
-    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
-    let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime drift fixture"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v12,&*v13).unwrap();
-    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/adapter_inventory.spi"); } LIT.with(|lit| lit.clone()) };
-    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
-    let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("adapter fixture"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v16,&*v17).unwrap();
-    let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
-    let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("catalog"); } LIT.with(|lit| lit.clone()) };
-    let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl catalog"); } LIT.with(|lit| lit.clone()) };
-    let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_gate () = (\""); } LIT.with(|lit| lit.clone()) };
-    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v20, v21)), v3));
-    let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\", \""); } LIT.with(|lit| lit.clone()) };
-    let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-    let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0000000000000000000000000000000000000000000000000000000000000000"); } LIT.with(|lit| lit.clone()) };
-    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) };
-    let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v25, Rc::<str>::from(format!("{}{}", v26, v27))));
-    let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("migration"); } LIT.with(|lit| lit.clone()) };
-    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v18, v30)), v21)), v7)), v24));
-    let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v29, Rc::<str>::from(format!("{}{}", v34, Rc::<str>::from(format!("{}{}", v26, v27))))));
-    let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("runtime"); } LIT.with(|lit| lit.clone()) };
-    let v42: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v18, v38)), v21)), v11)), v24));
-    let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v37, Rc::<str>::from(format!("{}{}", v42, Rc::<str>::from(format!("{}{}", v26, v27))))));
-    let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("adapter"); } LIT.with(|lit| lit.clone()) };
-    let v50: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v18, v46)), v21)), v15)), v24));
-    let v53: Rc<str> = Rc::<str>::from(format!("{}{}", v45, Rc::<str>::from(format!("{}{}", v50, Rc::<str>::from(format!("{}{}", v26, v27))))));
-    let v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_family_contract_schema () : family_contract_schema = FamilyContractsV1\ninl current_family_contract_status () : family_contract_status = FamilyContractsClosed\ninl current_family_contract_semantic_flags () : u32 = 31u32\ninl current_family_count () : u32 = 36u32\ninl current_family_decision_count () : u32 = 36u32\ninl current_unsettled_family_count () : u32 = 0u32\n"); } LIT.with(|lit| lit.clone()) };
-    let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v53));
-    let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/family_contracts.spi"); } LIT.with(|lit| lit.clone()) };
-    let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v57));
-    std::fs::write(&*v58,&*v55).unwrap();
-    let v59: bool = renew_family_contracts(std::path::Path::new(&*v0)).unwrap().is_some();
-    if v59 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v60: bool = verify_family_contracts(std::path::Path::new(&*v0)).is_ok();
-    if v60 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v61: bool = renew_family_contracts(std::path::Path::new(&*v0)).unwrap().is_none();
-    if v61 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v63: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v3));
-    let v64: Rc<str> = std::rc::Rc::<str>::from((0..35u64).map(|i|{let q=char::from(34u8).to_string();let n=char::from(10u8).to_string();let f=i.to_string();["CapabilityFamily (",&q,"f",&f,&q,", Absorbed, x)",&n,"LegacyDecision (",&q,"f",&f,&q,", PortNow, x)",&n].concat()}).collect::<String>());
-    std::fs::write(&*v63,&*v64).unwrap();
-    std::fs::write(&*v58,&*v55).unwrap();
-    let v65: Rc<str> = std::rc::Rc::<str>::from(renew_family_contracts(std::path::Path::new(&*v0)).unwrap_err());
-    let v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("family contract catalog mismatch"); } LIT.with(|lit| lit.clone()) };
-    let v67: bool = v65.contains(&*v66);
-    if v67 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v68: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v58).unwrap());
-    let v69: bool = &*v68 == &*v55;
-    if v69 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v1, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/family_contracts.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_family_contract_schema () : family_contract_schema = FamilyContractsV1\ninl current_family_contract_status () : family_contract_status = FamilyContractsClosed\ninl current_family_contract_semantic_flags () : u32 = 31u32\ninl current_family_count () : u32 = 36u32\ninl current_family_decision_count () : u32 = 36u32\ninl current_unsettled_family_count () : u32 = 0u32\ninl catalog_gate () = (\"state/legacy_catalog.spi\", \"0000000000000000000000000000000000000000000000000000000000000000\")\ninl migration_gate () = (\"state/migration.spi\", \"0000000000000000000000000000000000000000000000000000000000000000\")\ninl runtime_gate () = (\"state/runtime_drift.spi\", \"0000000000000000000000000000000000000000000000000000000000000000\")\ninl adapter_gate () = (\"state/adapter_inventory.spi\", \"0000000000000000000000000000000000000000000000000000000000000000\")\n"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v10,&*v11).unwrap();
+    let v12: bool = renew_family_contracts(std::path::Path::new(&*v0)).unwrap().is_some();
+    if v12 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v13: bool = verify_family_contracts(std::path::Path::new(&*v0)).is_ok();
+    if v13 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v14: bool = renew_family_contracts(std::path::Path::new(&*v0)).unwrap().is_none();
+    if v14 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v15: Rc<str> = std::rc::Rc::<str>::from((0..35u64).map(|i|{let q=char::from(34u8).to_string();let n=char::from(10u8).to_string();let f=i.to_string();["CapabilityFamily (",&q,"f",&f,&q,", Absorbed, x)",&n,"LegacyDecision (",&q,"f",&f,&q,", PortNow, x)",&n].concat()}).collect::<String>());
+    std::fs::write(&*v2,&*v15).unwrap();
+    std::fs::write(&*v10,&*v11).unwrap();
+    let v16: Rc<str> = std::rc::Rc::<str>::from(renew_family_contracts(std::path::Path::new(&*v0)).unwrap_err());
+    let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("family contract catalog mismatch"); } LIT.with(|lit| lit.clone()) };
+    let v18: bool = v16.contains(&*v17);
+    if v18 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v19: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v10).unwrap());
+    let v20: bool = &*v19 == "inl current_family_contract_schema () : family_contract_schema = FamilyContractsV1\ninl current_family_contract_status () : family_contract_status = FamilyContractsClosed\ninl current_family_contract_semantic_flags () : u32 = 31u32\ninl current_family_count () : u32 = 36u32\ninl current_family_decision_count () : u32 = 36u32\ninl current_unsettled_family_count () : u32 = 0u32\ninl catalog_gate () = (\"state/legacy_catalog.spi\", \"0000000000000000000000000000000000000000000000000000000000000000\")\ninl migration_gate () = (\"state/migration.spi\", \"0000000000000000000000000000000000000000000000000000000000000000\")\ninl runtime_gate () = (\"state/runtime_drift.spi\", \"0000000000000000000000000000000000000000000000000000000000000000\")\ninl adapter_gate () = (\"state/adapter_inventory.spi\", \"0000000000000000000000000000000000000000000000000000000000000000\")\n";
+    if v20 { () } else { std::panic::panic_any("Spiral test assertion failed") };
     0i32
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        family_renewal_0(v0.clone())
+        family_renewal_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn differential_renewal_1(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
-    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an executable differential route"); } LIT.with(|lit| lit.clone()) };
+    let v1: Rc<str> = Rc::<str>::from(format!("{}{}", v0.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) }));
+    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an executable differential route"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v2,&*v3).unwrap();
+    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v1, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/differential_catalog.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_differential_catalog_schema () : differential_catalog_schema = DifferentialCatalogV1\n"); } LIT.with(|lit| lit.clone()) };
     std::fs::write(&*v4,&*v5).unwrap();
-    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/differential_catalog.spi"); } LIT.with(|lit| lit.clone()) };
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
-    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_differential_catalog_schema () : differential_catalog_schema = DifferentialCatalogV1\n"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v8,&*v9).unwrap();
-    let v10: Rc<str> = std::rc::Rc::<str>::from(renew_differential_catalog(std::path::Path::new(&*v0)).unwrap_err());
-    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("differential route"); } LIT.with(|lit| lit.clone()) };
-    let v12: bool = v10.contains(&*v11);
-    if v12 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v13: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v8).unwrap());
-    let v14: bool = &*v13 == "inl current_differential_catalog_schema () : differential_catalog_schema = DifferentialCatalogV1\n";
-    if v14 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v15: Rc<str> = std::rc::Rc::<str>::from(refresh_cold_proof_census_gate(std::path::Path::new(&*v0)).unwrap_err());
-    let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ColdProofV4 renewal rolled back"); } LIT.with(|lit| lit.clone()) };
-    let v17: bool = v15.contains(&*v16);
-    if v17 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v18: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v8).unwrap());
-    let v19: bool = &*v18 == "inl current_differential_catalog_schema () : differential_catalog_schema = DifferentialCatalogV1\n";
-    if v19 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v6: Rc<str> = std::rc::Rc::<str>::from(renew_differential_catalog(std::path::Path::new(&*v0)).unwrap_err());
+    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("differential route"); } LIT.with(|lit| lit.clone()) };
+    let v8: bool = v6.contains(&*v7);
+    if v8 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v9: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v4).unwrap());
+    let v10: bool = &*v9 == "inl current_differential_catalog_schema () : differential_catalog_schema = DifferentialCatalogV1\n";
+    if v10 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v11: Rc<str> = std::rc::Rc::<str>::from(refresh_cold_proof_census_gate(std::path::Path::new(&*v0)).unwrap_err());
+    let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ColdProofV4 renewal rolled back"); } LIT.with(|lit| lit.clone()) };
+    let v13: bool = v11.contains(&*v12);
+    if v13 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v14: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v4).unwrap());
+    let v15: bool = &*v14 == "inl current_differential_catalog_schema () : differential_catalog_schema = DifferentialCatalogV1\n";
+    if v15 { () } else { std::panic::panic_any("Spiral test assertion failed") };
     0i32
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        differential_renewal_1(v0.clone())
+        differential_renewal_1(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn selection_2(mut v0: Rc<str>) -> i32 {
     let v1: Rc<str> = std::rc::Rc::<str>::from(cold_public_binary(std::path::Path::new(&*v0)).unwrap_or(""));
     let mut v2: bool = &*v1 == "";
     if v2 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v3));
-    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
-    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v5));
-    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("windows binary"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v6,&*v7).unwrap();
-    let v8: Rc<str> = std::rc::Rc::<str>::from(cold_public_binary(std::path::Path::new(&*v0)).unwrap_or(""));
-    let v9: bool = &*v8 == "kit.exe";
-    if v9 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v3));
-    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) };
-    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
-    let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unix binary"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v12,&*v13).unwrap();
-    let v14: Rc<str> = std::rc::Rc::<str>::from(cold_public_binary(std::path::Path::new(&*v0)).unwrap_or(""));
-    let v15: bool = &*v14 == "";
-    if v15 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v3)), v5));
-    std::fs::remove_file(&*v17).unwrap();
-    let v18: Rc<str> = std::rc::Rc::<str>::from(cold_public_binary(std::path::Path::new(&*v0)).unwrap_or(""));
-    let v19: bool = &*v18 == "kit";
-    if v19 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v0.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v3.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) }));
+    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("windows binary"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v4,&*v5).unwrap();
+    let v6: Rc<str> = std::rc::Rc::<str>::from(cold_public_binary(std::path::Path::new(&*v0)).unwrap_or(""));
+    let v7: bool = &*v6 == "kit.exe";
+    if v7 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v3, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) }));
+    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unix binary"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v8,&*v9).unwrap();
+    let v10: Rc<str> = std::rc::Rc::<str>::from(cold_public_binary(std::path::Path::new(&*v0)).unwrap_or(""));
+    let v11: bool = &*v10 == "";
+    if v11 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    std::fs::remove_file(&*v4).unwrap();
+    let v12: Rc<str> = std::rc::Rc::<str>::from(cold_public_binary(std::path::Path::new(&*v0)).unwrap_or(""));
+    let v13: bool = &*v12 == "kit";
+    if v13 { () } else { std::panic::panic_any("Spiral test assertion failed") };
     0i32
 }
 fn closure2() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        selection_2(v0.clone())
+        selection_2(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn binary_gate_3(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
-    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v4,&*v5).unwrap();
-    let v6: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v4)).unwrap());
-    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/authority_census.spi"); } LIT.with(|lit| lit.clone()) };
-    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-    let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deliberately incomplete later census fixture"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v9,&*v10).unwrap();
-    let v11: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v9)).unwrap());
-    let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
-    let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("census"); } LIT.with(|lit| lit.clone()) };
-    let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census"); } LIT.with(|lit| lit.clone()) };
-    let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_gate () = (\""); } LIT.with(|lit| lit.clone()) };
-    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v14, v15)), v8));
-    let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\", \""); } LIT.with(|lit| lit.clone()) };
-    let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v18));
-    let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) };
-    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v19, Rc::<str>::from(format!("{}{}", v11, v20))));
-    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/migration.spi"); } LIT.with(|lit| lit.clone()) };
-    let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-    std::fs::write(&*v25,&*v10).unwrap();
-    let v26: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v25)).unwrap());
-    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("migration"); } LIT.with(|lit| lit.clone()) };
-    let v31: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v27)), v15)), v24)), v18));
-    let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, Rc::<str>::from(format!("{}{}", v26, v20))));
-    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/Cargo.lock"); } LIT.with(|lit| lit.clone()) };
-    let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
-    std::fs::write(&*v36,&*v10).unwrap();
-    let v37: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v36)).unwrap());
-    let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("workspace"); } LIT.with(|lit| lit.clone()) };
-    let v42: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v38)), v15)), v35)), v18));
-    let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v42, Rc::<str>::from(format!("{}{}", v37, v20))));
-    let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/core.spi"); } LIT.with(|lit| lit.clone()) };
-    let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v46));
-    std::fs::write(&*v47,&*v10).unwrap();
-    let v48: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v47)).unwrap());
-    let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state"); } LIT.with(|lit| lit.clone()) };
-    let v53: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v49)), v15)), v46)), v18));
-    let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v53, Rc::<str>::from(format!("{}{}", v48, v20))));
-    let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/cold_proof.spi"); } LIT.with(|lit| lit.clone()) };
-    let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v57));
-    let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_cold_schema () : cold_receipt_schema = ColdReceiptV4\ninl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed\ninl current_cold_replay_flags () : u32 = 15u32\n"); } LIT.with(|lit| lit.clone()) };
-    let v63: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v59, v22)), v33)), v44)), v55));
-    let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binary"); } LIT.with(|lit| lit.clone()) };
-    let v66: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v64)), v15));
-    let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) };
-    let v69: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v66, v67)), v18));
-    let v72: Rc<str> = Rc::<str>::from(format!("{}{}", v63, Rc::<str>::from(format!("{}{}", v69, Rc::<str>::from(format!("{}{}", v6, v20))))));
-    std::fs::write(&*v58,&*v72).unwrap();
-    let v73: Rc<str> = std::rc::Rc::<str>::from(verify_cold_proof(std::path::Path::new(&*v0)).unwrap_err());
-    let v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expected=kit.exe observed=kit"); } LIT.with(|lit| lit.clone()) };
-    let v75: bool = v73.contains(&*v74);
-    if v75 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v77: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v8));
-    std::fs::write(&*v77,&*v10).unwrap();
-    let v78: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v77)).unwrap());
-    let v82: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v13)), v15)), v8)), v18));
-    let v84: Rc<str> = Rc::<str>::from(format!("{}{}", v82, Rc::<str>::from(format!("{}{}", v78, v20))));
-    let v86: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v24));
-    std::fs::write(&*v86,&*v10).unwrap();
-    let v87: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v86)).unwrap());
-    let v91: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v27)), v15)), v24)), v18));
-    let v93: Rc<str> = Rc::<str>::from(format!("{}{}", v91, Rc::<str>::from(format!("{}{}", v87, v20))));
-    let v95: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v35));
-    std::fs::write(&*v95,&*v10).unwrap();
-    let v96: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v95)).unwrap());
-    let v100: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v38)), v15)), v35)), v18));
-    let v102: Rc<str> = Rc::<str>::from(format!("{}{}", v100, Rc::<str>::from(format!("{}{}", v96, v20))));
-    let v104: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v46));
-    std::fs::write(&*v104,&*v10).unwrap();
-    let v105: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v104)).unwrap());
-    let v109: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v49)), v15)), v46)), v18));
-    let v111: Rc<str> = Rc::<str>::from(format!("{}{}", v109, Rc::<str>::from(format!("{}{}", v105, v20))));
-    let v113: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v57));
-    let v117: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v59, v84)), v93)), v102)), v111));
-    let v121: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v64)), v15)), v3)), v18));
-    let v122: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0000000000000000000000000000000000000000000000000000000000000000"); } LIT.with(|lit| lit.clone()) };
-    let v125: Rc<str> = Rc::<str>::from(format!("{}{}", v117, Rc::<str>::from(format!("{}{}", v121, Rc::<str>::from(format!("{}{}", v122, v20))))));
-    std::fs::write(&*v113,&*v125).unwrap();
-    let v126: Rc<str> = std::rc::Rc::<str>::from(verify_cold_proof(std::path::Path::new(&*v0)).unwrap_err());
-    let v127: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("gate rejected name=binary"); } LIT.with(|lit| lit.clone()) };
-    let v128: bool = v126.contains(&*v127);
-    if v128 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v130: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v8));
-    std::fs::write(&*v130,&*v10).unwrap();
-    let v131: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v130)).unwrap());
-    let v135: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v13)), v15)), v8)), v18));
-    let v137: Rc<str> = Rc::<str>::from(format!("{}{}", v135, Rc::<str>::from(format!("{}{}", v131, v20))));
-    let v139: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v24));
-    std::fs::write(&*v139,&*v10).unwrap();
-    let v140: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v139)).unwrap());
-    let v144: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v27)), v15)), v24)), v18));
-    let v146: Rc<str> = Rc::<str>::from(format!("{}{}", v144, Rc::<str>::from(format!("{}{}", v140, v20))));
-    let v148: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v35));
-    std::fs::write(&*v148,&*v10).unwrap();
-    let v149: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v148)).unwrap());
-    let v153: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v38)), v15)), v35)), v18));
-    let v155: Rc<str> = Rc::<str>::from(format!("{}{}", v153, Rc::<str>::from(format!("{}{}", v149, v20))));
-    let v157: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v46));
-    std::fs::write(&*v157,&*v10).unwrap();
-    let v158: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v157)).unwrap());
-    let v162: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v49)), v15)), v46)), v18));
-    let v164: Rc<str> = Rc::<str>::from(format!("{}{}", v162, Rc::<str>::from(format!("{}{}", v158, v20))));
-    let v166: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v57));
-    let v170: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v59, v137)), v146)), v155)), v164));
-    let v174: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v64)), v15)), v3)), v18));
-    let v177: Rc<str> = Rc::<str>::from(format!("{}{}", v170, Rc::<str>::from(format!("{}{}", v174, Rc::<str>::from(format!("{}{}", v6, v20))))));
-    std::fs::write(&*v166,&*v177).unwrap();
-    let v178: Rc<str> = std::rc::Rc::<str>::from(verify_cold_proof(std::path::Path::new(&*v0)).unwrap_err());
-    let v179: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("authority census payload is missing"); } LIT.with(|lit| lit.clone()) };
-    let v180: bool = v178.contains(&*v179);
-    if v180 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v1: Rc<str> = Rc::<str>::from(format!("{}{}", v0.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) }));
+    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v2,&*v3).unwrap();
+    let v4: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v2)).unwrap());
+    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/authority_census.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deliberately incomplete later census fixture"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v5,&*v6).unwrap();
+    let v7: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v5)).unwrap());
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census_gate () = (\"state/authority_census.spi\", \""); } LIT.with(|lit| lit.clone()) }, v8));
+    let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/migration.spi"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v10,&*v6).unwrap();
+    let v11: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v10)).unwrap());
+    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v13: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl migration_gate () = (\"state/migration.spi\", \""); } LIT.with(|lit| lit.clone()) }, v12));
+    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/Cargo.lock"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v14,&*v6).unwrap();
+    let v15: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v14)).unwrap());
+    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v15, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl workspace_gate () = (\"src/Cargo.lock\", \""); } LIT.with(|lit| lit.clone()) }, v16));
+    let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/core.spi"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v18,&*v6).unwrap();
+    let v19: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v18)).unwrap());
+    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl state_gate () = (\"state/core.spi\", \""); } LIT.with(|lit| lit.clone()) }, v20));
+    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v1, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/cold_proof.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_cold_schema () : cold_receipt_schema = ColdReceiptV4\ninl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed\ninl current_cold_replay_flags () : u32 = 15u32\n"); } LIT.with(|lit| lit.clone()) }, v9));
+    let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v13));
+    let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v17));
+    let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v21));
+    let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v4, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v28: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl binary_gate () = (\"kit\", \""); } LIT.with(|lit| lit.clone()) }, v27.clone()));
+    let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v28));
+    std::fs::write(&*v22,&*v29).unwrap();
+    let v30: Rc<str> = std::rc::Rc::<str>::from(verify_cold_proof(std::path::Path::new(&*v0)).unwrap_err());
+    let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expected=kit.exe observed=kit"); } LIT.with(|lit| lit.clone()) };
+    let v32: bool = v30.contains(&*v31);
+    if v32 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    std::fs::write(&*v5,&*v6).unwrap();
+    let v33: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v5)).unwrap());
+    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v35: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census_gate () = (\"state/authority_census.spi\", \""); } LIT.with(|lit| lit.clone()) }, v34));
+    std::fs::write(&*v10,&*v6).unwrap();
+    let v36: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v10)).unwrap());
+    let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v36, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v38: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl migration_gate () = (\"state/migration.spi\", \""); } LIT.with(|lit| lit.clone()) }, v37));
+    std::fs::write(&*v14,&*v6).unwrap();
+    let v39: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v14)).unwrap());
+    let v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v41: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl workspace_gate () = (\"src/Cargo.lock\", \""); } LIT.with(|lit| lit.clone()) }, v40));
+    std::fs::write(&*v18,&*v6).unwrap();
+    let v42: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v18)).unwrap());
+    let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v44: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl state_gate () = (\"state/core.spi\", \""); } LIT.with(|lit| lit.clone()) }, v43));
+    let v45: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_cold_schema () : cold_receipt_schema = ColdReceiptV4\ninl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed\ninl current_cold_replay_flags () : u32 = 15u32\n"); } LIT.with(|lit| lit.clone()) }, v35));
+    let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v38));
+    let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v41));
+    let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v44));
+    let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v48, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl binary_gate () = (\"kit.exe\", \"0000000000000000000000000000000000000000000000000000000000000000\")\n"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v22,&*v49).unwrap();
+    let v50: Rc<str> = std::rc::Rc::<str>::from(verify_cold_proof(std::path::Path::new(&*v0)).unwrap_err());
+    let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("gate rejected name=binary"); } LIT.with(|lit| lit.clone()) };
+    let v52: bool = v50.contains(&*v51);
+    if v52 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    std::fs::write(&*v5,&*v6).unwrap();
+    let v53: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v5)).unwrap());
+    let v54: Rc<str> = Rc::<str>::from(format!("{}{}", v53, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v55: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census_gate () = (\"state/authority_census.spi\", \""); } LIT.with(|lit| lit.clone()) }, v54));
+    std::fs::write(&*v10,&*v6).unwrap();
+    let v56: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v10)).unwrap());
+    let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v56, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v58: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl migration_gate () = (\"state/migration.spi\", \""); } LIT.with(|lit| lit.clone()) }, v57));
+    std::fs::write(&*v14,&*v6).unwrap();
+    let v59: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v14)).unwrap());
+    let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v59, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v61: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl workspace_gate () = (\"src/Cargo.lock\", \""); } LIT.with(|lit| lit.clone()) }, v60));
+    std::fs::write(&*v18,&*v6).unwrap();
+    let v62: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v18)).unwrap());
+    let v63: Rc<str> = Rc::<str>::from(format!("{}{}", v62, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v64: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl state_gate () = (\"state/core.spi\", \""); } LIT.with(|lit| lit.clone()) }, v63));
+    let v65: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_cold_schema () : cold_receipt_schema = ColdReceiptV4\ninl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed\ninl current_cold_replay_flags () : u32 = 15u32\n"); } LIT.with(|lit| lit.clone()) }, v55));
+    let v66: Rc<str> = Rc::<str>::from(format!("{}{}", v65, v58));
+    let v67: Rc<str> = Rc::<str>::from(format!("{}{}", v66, v61));
+    let v68: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v64));
+    let v69: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl binary_gate () = (\"kit.exe\", \""); } LIT.with(|lit| lit.clone()) }, v27));
+    let v70: Rc<str> = Rc::<str>::from(format!("{}{}", v68, v69));
+    std::fs::write(&*v22,&*v70).unwrap();
+    let v71: Rc<str> = std::rc::Rc::<str>::from(verify_cold_proof(std::path::Path::new(&*v0)).unwrap_err());
+    let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("authority census payload is missing"); } LIT.with(|lit| lit.clone()) };
+    let v73: bool = v71.contains(&*v72);
+    if v73 { () } else { std::panic::panic_any("Spiral test assertion failed") };
     0i32
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        binary_gate_3(v0.clone())
+        binary_gate_3(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn loop_5(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
@@ -346,15 +278,15 @@ fn loop_5(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
             v8
         };
         let v10: Rc<str> = std::rc::Rc::<str>::from(v5.to_string());
-        let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
-        let v13: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v10, v11)), v9));
-        let v14: u64 = v1.wrapping_add(1u64);
-        let v15: Rc<str> = loop_5(v0, v14);
-        let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v15));
-        v16
+        let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) }));
+        let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v9));
+        let v13: u64 = v1.wrapping_add(1u64);
+        let v14: Rc<str> = loop_5(v0, v13);
+        let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v14));
+        v15
     }
 }
-fn loop_6(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
+fn loop_6(mut v0: &Rc<str>, mut v1: u64) -> Rc<str> {
     let mut v2: bool = v1 == 10u64;
     if v2 {
         let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
@@ -369,203 +301,150 @@ fn loop_6(mut v0: Rc<str>, mut v1: u64) -> Rc<str> {
             v6
         };
         let v8: Rc<str> = std::rc::Rc::<str>::from(2147483647u64.to_string());
-        let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
-        let v11: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v8, v9)), v7));
-        let v12: u64 = v1.wrapping_add(1u64);
-        let v13: Rc<str> = loop_6(v0, v12);
-        let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v13));
-        v14
+        let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) }));
+        let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v7));
+        let v11: u64 = v1.wrapping_add(1u64);
+        let v12: Rc<str> = loop_6(v0, v11);
+        let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v12));
+        v13
     }
 }
 fn census_bounds_4(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
-    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v4,&*v5).unwrap();
-    let v6: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v4)).unwrap());
-    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/authority_census.spi"); } LIT.with(|lit| lit.clone()) };
-    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-    let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deliberately incomplete later census fixture"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v9,&*v10).unwrap();
-    let v11: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v9)).unwrap());
-    let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
-    let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("census"); } LIT.with(|lit| lit.clone()) };
-    let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census"); } LIT.with(|lit| lit.clone()) };
-    let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_gate () = (\""); } LIT.with(|lit| lit.clone()) };
-    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v14, v15)), v8));
-    let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\", \""); } LIT.with(|lit| lit.clone()) };
-    let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v18));
-    let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) };
-    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v19, Rc::<str>::from(format!("{}{}", v11, v20))));
-    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/migration.spi"); } LIT.with(|lit| lit.clone()) };
-    let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-    std::fs::write(&*v25,&*v10).unwrap();
-    let v26: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v25)).unwrap());
-    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("migration"); } LIT.with(|lit| lit.clone()) };
-    let v31: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v27)), v15)), v24)), v18));
-    let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, Rc::<str>::from(format!("{}{}", v26, v20))));
-    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/Cargo.lock"); } LIT.with(|lit| lit.clone()) };
-    let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
-    std::fs::write(&*v36,&*v10).unwrap();
-    let v37: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v36)).unwrap());
-    let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("workspace"); } LIT.with(|lit| lit.clone()) };
-    let v42: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v38)), v15)), v35)), v18));
-    let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v42, Rc::<str>::from(format!("{}{}", v37, v20))));
-    let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/core.spi"); } LIT.with(|lit| lit.clone()) };
-    let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v46));
-    std::fs::write(&*v47,&*v10).unwrap();
-    let v48: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v47)).unwrap());
-    let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state"); } LIT.with(|lit| lit.clone()) };
-    let v53: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v49)), v15)), v46)), v18));
-    let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v53, Rc::<str>::from(format!("{}{}", v48, v20))));
-    let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/cold_proof.spi"); } LIT.with(|lit| lit.clone()) };
-    let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v57));
-    let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_cold_schema () : cold_receipt_schema = ColdReceiptV4\ninl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed\ninl current_cold_replay_flags () : u32 = 15u32\n"); } LIT.with(|lit| lit.clone()) };
-    let v63: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v59, v22)), v33)), v44)), v55));
-    let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binary"); } LIT.with(|lit| lit.clone()) };
-    let v68: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v64)), v15)), v3)), v18));
-    let v71: Rc<str> = Rc::<str>::from(format!("{}{}", v63, Rc::<str>::from(format!("{}{}", v68, Rc::<str>::from(format!("{}{}", v6, v20))))));
-    std::fs::write(&*v58,&*v71).unwrap();
-    let v73: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v8));
-    let v74: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v73)).unwrap());
-    let v75: u64 = 0u64;
-    let v76: Rc<str> = loop_5(v0.clone(), v75);
-    let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current () = AuthorityCensus ("); } LIT.with(|lit| lit.clone()) };
-    let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v77, v76));
-    let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")\n"); } LIT.with(|lit| lit.clone()) };
-    let v80: Rc<str> = Rc::<str>::from(format!("{}{}", v78, v79));
-    std::fs::write(&*v73,&*v80).unwrap();
-    let v82: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v57));
-    let v86: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v13)), v15)), v8)), v18));
-    let v88: Rc<str> = Rc::<str>::from(format!("{}{}", v86, Rc::<str>::from(format!("{}{}", v74, v20))));
-    let v89: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v73)).unwrap());
-    let v93: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v12, v13)), v15)), v8)), v18));
-    let v95: Rc<str> = Rc::<str>::from(format!("{}{}", v93, Rc::<str>::from(format!("{}{}", v89, v20))));
-    let v96: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v82).unwrap());
-    let v97: Rc<str> = Rc::<str>::from(v96.replace(&*v88, &*v95));
-    std::fs::write(&*v82,&*v97).unwrap();
-    let v98: Rc<str> = std::rc::Rc::<str>::from(verify_cold_proof(std::path::Path::new(&*v0)).unwrap_err());
-    let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("census value exceeds signed comparison range"); } LIT.with(|lit| lit.clone()) };
-    let v100: bool = v98.contains(&*v99);
-    if v100 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v101: u64 = 0u64;
-    let v102: Rc<str> = loop_6(v0, v101);
-    let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("AuthorityCensus ("); } LIT.with(|lit| lit.clone()) };
-    let v104: Rc<str> = Rc::<str>::from(format!("{}{}", v103, v102));
-    let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
-    let v106: Rc<str> = Rc::<str>::from(format!("{}{}", v104, v105));
-    let v107: bool = cold_census_values(&*v106).unwrap() == [i32::MAX as usize;10];
-    if v107 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v1: Rc<str> = Rc::<str>::from(format!("{}{}", v0.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) }));
+    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v2,&*v3).unwrap();
+    let v4: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v2)).unwrap());
+    let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/authority_census.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deliberately incomplete later census fixture"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v5,&*v6).unwrap();
+    let v7: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v5)).unwrap());
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census_gate () = (\"state/authority_census.spi\", \""); } LIT.with(|lit| lit.clone()) }, v8));
+    let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/migration.spi"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v10,&*v6).unwrap();
+    let v11: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v10)).unwrap());
+    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v13: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl migration_gate () = (\"state/migration.spi\", \""); } LIT.with(|lit| lit.clone()) }, v12));
+    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/Cargo.lock"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v14,&*v6).unwrap();
+    let v15: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v14)).unwrap());
+    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v15, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl workspace_gate () = (\"src/Cargo.lock\", \""); } LIT.with(|lit| lit.clone()) }, v16));
+    let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/core.spi"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v18,&*v6).unwrap();
+    let v19: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v18)).unwrap());
+    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl state_gate () = (\"state/core.spi\", \""); } LIT.with(|lit| lit.clone()) }, v20));
+    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v1, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/cold_proof.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_cold_schema () : cold_receipt_schema = ColdReceiptV4\ninl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed\ninl current_cold_replay_flags () : u32 = 15u32\n"); } LIT.with(|lit| lit.clone()) }, v9));
+    let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v13));
+    let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v17));
+    let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v21));
+    let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v4, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v28: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl binary_gate () = (\"kit.exe\", \""); } LIT.with(|lit| lit.clone()) }, v27));
+    let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v28));
+    std::fs::write(&*v22,&*v29).unwrap();
+    let v30: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v5)).unwrap());
+    let v31: u64 = 0u64;
+    let v32: Rc<str> = loop_5(v0.clone(), v31);
+    let v33: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current () = AuthorityCensus ("); } LIT.with(|lit| lit.clone()) }, v32));
+    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")\n"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v5,&*v34).unwrap();
+    let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v30, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v36: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census_gate () = (\"state/authority_census.spi\", \""); } LIT.with(|lit| lit.clone()) }, v35));
+    let v37: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v5)).unwrap());
+    let v38: Rc<str> = Rc::<str>::from(format!("{}{}", v37, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v39: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census_gate () = (\"state/authority_census.spi\", \""); } LIT.with(|lit| lit.clone()) }, v38));
+    let v40: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v22).unwrap());
+    let v41: Rc<str> = Rc::<str>::from(v40.replace(&*v36, &*v39));
+    std::fs::write(&*v22,&*v41).unwrap();
+    let v42: Rc<str> = std::rc::Rc::<str>::from(verify_cold_proof(std::path::Path::new(&*v0)).unwrap_err());
+    let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("census value exceeds signed comparison range"); } LIT.with(|lit| lit.clone()) };
+    let v44: bool = v42.contains(&*v43);
+    if v44 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v45: u64 = 0u64;
+    let v46: Rc<str> = loop_6(&v0, v45);
+    let v47: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("AuthorityCensus ("); } LIT.with(|lit| lit.clone()) }, v46));
+    let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v47, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) }));
+    let v49: bool = cold_census_values(&*v48).unwrap() == [i32::MAX as usize;10];
+    if v49 { () } else { std::panic::panic_any("Spiral test assertion failed") };
     0i32
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        census_bounds_4(v0.clone())
+        census_bounds_4(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn renewal_7(mut v0: Rc<str>) -> i32 {
-    let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) };
-    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v3));
-    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
+    let v1: Rc<str> = Rc::<str>::from(format!("{}{}", v0.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
+    let mut v2: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit.exe"); } LIT.with(|lit| lit.clone()) }));
+    let v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("native binary payload"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v2,&*v3).unwrap();
+    let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/authority_census.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deliberately incomplete later census fixture"); } LIT.with(|lit| lit.clone()) };
     std::fs::write(&*v4,&*v5).unwrap();
-    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/authority_census.spi"); } LIT.with(|lit| lit.clone()) };
-    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v7));
-    let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deliberately incomplete later census fixture"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v8,&*v9).unwrap();
-    let v10: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v8)).unwrap());
-    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl "); } LIT.with(|lit| lit.clone()) };
-    let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("census"); } LIT.with(|lit| lit.clone()) };
-    let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census"); } LIT.with(|lit| lit.clone()) };
-    let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_gate () = (\""); } LIT.with(|lit| lit.clone()) };
-    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v13, v14)), v7));
-    let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\", \""); } LIT.with(|lit| lit.clone()) };
-    let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v17));
-    let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) };
-    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v18, Rc::<str>::from(format!("{}{}", v10, v19))));
-    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/migration.spi"); } LIT.with(|lit| lit.clone()) };
-    let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v23));
-    std::fs::write(&*v24,&*v9).unwrap();
-    let v25: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v24)).unwrap());
-    let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("migration"); } LIT.with(|lit| lit.clone()) };
-    let v30: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v11, v26)), v14)), v23)), v17));
-    let v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, Rc::<str>::from(format!("{}{}", v25, v19))));
-    let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/Cargo.lock"); } LIT.with(|lit| lit.clone()) };
-    let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v34));
-    std::fs::write(&*v35,&*v9).unwrap();
-    let v36: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v35)).unwrap());
-    let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("workspace"); } LIT.with(|lit| lit.clone()) };
-    let v41: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v11, v37)), v14)), v34)), v17));
-    let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v41, Rc::<str>::from(format!("{}{}", v36, v19))));
-    let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/core.spi"); } LIT.with(|lit| lit.clone()) };
-    let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v45));
-    std::fs::write(&*v46,&*v9).unwrap();
-    let v47: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v46)).unwrap());
-    let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state"); } LIT.with(|lit| lit.clone()) };
-    let v52: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v11, v48)), v14)), v45)), v17));
-    let v54: Rc<str> = Rc::<str>::from(format!("{}{}", v52, Rc::<str>::from(format!("{}{}", v47, v19))));
-    let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v1));
-    let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/cold_proof.spi"); } LIT.with(|lit| lit.clone()) };
-    let v57: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v56));
-    let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_cold_schema () : cold_receipt_schema = ColdReceiptV4\ninl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed\ninl current_cold_replay_flags () : u32 = 15u32\n"); } LIT.with(|lit| lit.clone()) };
-    let v62: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v58, v21)), v32)), v43)), v54));
-    let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("binary"); } LIT.with(|lit| lit.clone()) };
-    let v65: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v11, v63)), v14));
-    let v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) };
-    let v68: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v65, v66)), v17));
-    let v69: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0000000000000000000000000000000000000000000000000000000000000000"); } LIT.with(|lit| lit.clone()) };
-    let v72: Rc<str> = Rc::<str>::from(format!("{}{}", v62, Rc::<str>::from(format!("{}{}", v68, Rc::<str>::from(format!("{}{}", v69, v19))))));
-    std::fs::write(&*v57,&*v72).unwrap();
-    let v74: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v34));
-    let v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("renewed lock payload"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v74,&*v75).unwrap();
-    let v76: Rc<str> = std::rc::Rc::<str>::from(renew_cold_proof_text(std::path::Path::new(&*v0),&std::fs::read_to_string(std::path::Path::new(&*v0).join("state/cold_proof.spi")).unwrap()).unwrap());
-    let v77: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v4)).unwrap());
-    let v81: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v11, v63)), v14)), v3)), v17));
-    let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v81, Rc::<str>::from(format!("{}{}", v77, v19))));
-    let v84: bool = v76.contains(&*v83);
-    if v84 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v85: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v74)).unwrap());
-    let v89: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v11, v37)), v14)), v34)), v17));
-    let v91: Rc<str> = Rc::<str>::from(format!("{}{}", v89, Rc::<str>::from(format!("{}{}", v85, v19))));
-    let v92: bool = v76.contains(&*v91);
-    if v92 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v94: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v56));
-    let v95: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v94).unwrap());
-    let v96: Rc<str> = std::rc::Rc::<str>::from(refresh_cold_proof_census_gate(std::path::Path::new(&*v0)).unwrap_err());
-    let v97: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ColdProofV4 renewal rolled back"); } LIT.with(|lit| lit.clone()) };
-    let v98: bool = v96.contains(&*v97);
-    if v98 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v99: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v94).unwrap());
-    let v100: bool = &*v99 == &*v95;
-    if v100 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v102: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v0, v1)), v66));
-    let v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unix binary"); } LIT.with(|lit| lit.clone()) };
-    std::fs::write(&*v102,&*v103).unwrap();
-    let v104: Rc<str> = std::rc::Rc::<str>::from(refresh_cold_proof_census_gate(std::path::Path::new(&*v0)).unwrap_err());
-    let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exactly one root binary"); } LIT.with(|lit| lit.clone()) };
-    let v106: bool = v104.contains(&*v105);
-    if v106 { () } else { std::panic::panic_any("Spiral test assertion failed") };
-    let v107: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v94).unwrap());
-    let v108: bool = &*v107 == &*v95;
-    if v108 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v6: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v4)).unwrap());
+    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl census_gate () = (\"state/authority_census.spi\", \""); } LIT.with(|lit| lit.clone()) }, v7));
+    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/migration.spi"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v9,&*v5).unwrap();
+    let v10: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v9)).unwrap());
+    let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl migration_gate () = (\"state/migration.spi\", \""); } LIT.with(|lit| lit.clone()) }, v11));
+    let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("src/Cargo.lock"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v13,&*v5).unwrap();
+    let v14: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v13)).unwrap());
+    let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl workspace_gate () = (\"src/Cargo.lock\", \""); } LIT.with(|lit| lit.clone()) }, v15));
+    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/core.spi"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v17,&*v5).unwrap();
+    let v18: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v17)).unwrap());
+    let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl state_gate () = (\"state/core.spi\", \""); } LIT.with(|lit| lit.clone()) }, v19));
+    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("state/cold_proof.spi"); } LIT.with(|lit| lit.clone()) }));
+    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl current_cold_schema () : cold_receipt_schema = ColdReceiptV4\ninl current_cold_proof_status () : cold_receipt_status = ColdReceiptClosed\ninl current_cold_replay_flags () : u32 = 15u32\n"); } LIT.with(|lit| lit.clone()) }, v8));
+    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v12));
+    let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v16));
+    let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v24, v20));
+    let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl binary_gate () = (\"kit\", \"0000000000000000000000000000000000000000000000000000000000000000\")\n"); } LIT.with(|lit| lit.clone()) }));
+    std::fs::write(&*v21,&*v26).unwrap();
+    let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("renewed lock payload"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v13,&*v27).unwrap();
+    let v28: Rc<str> = std::rc::Rc::<str>::from(renew_cold_proof_text(std::path::Path::new(&*v0),&std::fs::read_to_string(std::path::Path::new(&*v0).join("state/cold_proof.spi")).unwrap()).unwrap());
+    let v29: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v2)).unwrap());
+    let v30: Rc<str> = Rc::<str>::from(format!("{}{}", v29, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v31: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl binary_gate () = (\"kit.exe\", \""); } LIT.with(|lit| lit.clone()) }, v30));
+    let v32: bool = v28.contains(&*v31);
+    if v32 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v33: Rc<str> = std::rc::Rc::<str>::from(kit_proxy_search::inspection_file_sha256(std::path::Path::new(&*v13)).unwrap());
+    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v33, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")\n"); } LIT.with(|lit| lit.clone()) }));
+    let v35: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("inl workspace_gate () = (\"src/Cargo.lock\", \""); } LIT.with(|lit| lit.clone()) }, v34));
+    let v36: bool = v28.contains(&*v35);
+    if v36 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v37: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v21).unwrap());
+    let v38: Rc<str> = std::rc::Rc::<str>::from(refresh_cold_proof_census_gate(std::path::Path::new(&*v0)).unwrap_err());
+    let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("ColdProofV4 renewal rolled back"); } LIT.with(|lit| lit.clone()) };
+    let v40: bool = v38.contains(&*v39);
+    if v40 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v41: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v21).unwrap());
+    let v42: bool = &*v41 == &*v37;
+    if v42 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v1, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit"); } LIT.with(|lit| lit.clone()) }));
+    let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unix binary"); } LIT.with(|lit| lit.clone()) };
+    std::fs::write(&*v43,&*v44).unwrap();
+    let v45: Rc<str> = std::rc::Rc::<str>::from(refresh_cold_proof_census_gate(std::path::Path::new(&*v0)).unwrap_err());
+    let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("exactly one root binary"); } LIT.with(|lit| lit.clone()) };
+    let v47: bool = v45.contains(&*v46);
+    if v47 { () } else { std::panic::panic_any("Spiral test assertion failed") };
+    let v48: Rc<str> = std::rc::Rc::<str>::from(std::fs::read_to_string(&*v21).unwrap());
+    let v49: bool = &*v48 == &*v37;
+    if v49 { () } else { std::panic::panic_any("Spiral test assertion failed") };
     0i32
 }
 fn closure5() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        renewal_7(v0.clone())
+        renewal_7(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn cold_proof_equal_binding_8(mut v0: i32, mut v1: i32) -> i32 {
@@ -669,7 +548,7 @@ fn check_10(mut v0: Rc<str>) -> bool {
 }
 fn closure6() -> Rc<dyn Fn(Rc<str>) -> bool> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> bool> = Rc::new(move |mut v0: Rc<str>| -> bool {
-        check_10(v0.clone())
+        check_10(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure7() -> Rc<dyn Fn(i32, i32) -> i32> {

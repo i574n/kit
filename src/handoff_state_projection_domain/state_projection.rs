@@ -728,7 +728,7 @@ fn projection_census_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: 
         if v6 {
             let v7: bool = v3 == 10i32 ;
             if v7 {
-                return v4.clone();
+                return v4;
             } else {
                 return codec_empty_1();
             }
@@ -740,7 +740,7 @@ fn projection_census_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: 
                 let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("u32"); } LIT.with(|lit| lit.clone()) };
                 let v13: i32 = (v0.clone().len() as i32);
                 let v14: i32 = 3i32;
-                let v15: i32 = find_text_loop_3(v0.clone(), v12.clone(), v5, v13, v14);
+                let v15: i32 = find_text_loop_3(v0.clone(), v12, v5, v13, v14);
                 let v16: bool = v15 == v2 ;
                 if v16 {
                     return codec_empty_1();
@@ -751,9 +751,9 @@ fn projection_census_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: 
                     } else {
                         let v20: i32 = v15 - 1i32 ;
                         let v21: Rc<str> = string_slice(&v0.clone(), v5 as i64, v20 as i64);
-                        v21.clone()
+                        v21
                     };
-                    let v23: Rc<str> = codec_u64_decimal_normalize_8(v22.clone());
+                    let v23: Rc<str> = codec_u64_decimal_normalize_8(v22);
                     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     let v25: bool = v23 == v24 ;
                     if v25 {
@@ -762,50 +762,50 @@ fn projection_census_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: 
                         let v27: bool = v3 == 0i32 ;
                         let v54: Rc<str> = if v27 {
                             let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spiral_files="); } LIT.with(|lit| lit.clone()) };
-                            v28.clone()
+                            v28
                         } else {
                             let v29: bool = v3 == 1i32 ;
                             if v29 {
                                 let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" generated_rust_files="); } LIT.with(|lit| lit.clone()) };
-                                v30.clone()
+                                v30
                             } else {
                                 let v31: bool = v3 == 2i32 ;
                                 if v31 {
                                     let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" rust_global_sites="); } LIT.with(|lit| lit.clone()) };
-                                    v32.clone()
+                                    v32
                                 } else {
                                     let v33: bool = v3 == 3i32 ;
                                     if v33 {
                                         let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" spiral_loc="); } LIT.with(|lit| lit.clone()) };
-                                        v34.clone()
+                                        v34
                                     } else {
                                         let v35: bool = v3 == 4i32 ;
                                         if v35 {
                                             let v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" generated_rust_loc="); } LIT.with(|lit| lit.clone()) };
-                                            v36.clone()
+                                            v36
                                         } else {
                                             let v37: bool = v3 == 5i32 ;
                                             if v37 {
                                                 let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cargo_crates="); } LIT.with(|lit| lit.clone()) };
-                                                v38.clone()
+                                                v38
                                             } else {
                                                 let v39: bool = v3 == 6i32 ;
                                                 if v39 {
                                                     let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" spiral_packages="); } LIT.with(|lit| lit.clone()) };
-                                                    v40.clone()
+                                                    v40
                                                 } else {
                                                     let v41: bool = v3 == 7i32 ;
                                                     if v41 {
                                                         let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" package_only="); } LIT.with(|lit| lit.clone()) };
-                                                        v42.clone()
+                                                        v42
                                                     } else {
                                                         let v43: bool = v3 == 8i32 ;
                                                         if v43 {
                                                             let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" max_crate_loc="); } LIT.with(|lit| lit.clone()) };
-                                                            v44.clone()
+                                                            v44
                                                         } else {
                                                             let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" max_rust_file_loc="); } LIT.with(|lit| lit.clone()) };
-                                                            v45.clone()
+                                                            v45
                                                         }
                                                     }
                                                 }
@@ -815,11 +815,11 @@ fn projection_census_loop_11(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: 
                                 }
                             }
                         };
-                        let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54.clone(), v23.clone()));
+                        let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v23));
                         let v56: i32 = v15 + 3i32 ;
                         let v57: i32 = v3 + 1i32 ;
-                        let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v4.clone(), v55.clone()));
-                        (v1, v3, v4) = (v56, v57, v58.clone());
+                        let v58: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v55));
+                        (v1, v3, v4) = (v56, v57, v58);
                         continue;
                     }
                 }
@@ -862,12 +862,12 @@ fn handoff_census_projection_10(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        handoff_ratings_projection_0(v0.clone())
+        handoff_ratings_projection_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        handoff_census_projection_10(v0.clone())
+        handoff_census_projection_10(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_handoff_ratings_projection(v0: &str) -> Rc<str> {

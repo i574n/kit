@@ -70,11 +70,11 @@ enum US5 {
     US5_None,
 }
 fn method4(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
-    match &*v0 {
+    match Rc::unwrap_or_clone(v0) {
         UH3::UH3_Cons(v2, v3) => {
-            let mut v2: Rc<str> = v2.clone();
-            let mut v3: Rc<UH3> = v3.clone();
-            let mut v4: Rc<UH3> = method4(v3, v1.clone());
+            let mut v2: Rc<str> = v2;
+            let mut v3: Rc<UH3> = v3;
+            let mut v4: Rc<UH3> = method4(v3, v1);
             let v5: Rc<str> = Rc::<str>::from(v2.to_lowercase());
             Rc::new(UH3::UH3_Cons(v5, v4))
         }
@@ -84,11 +84,11 @@ fn method4(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
     }
 }
 fn method3(mut v0: Rc<UH2>, mut v1: Rc<UH2>) -> Rc<UH2> {
-    match &*v0 {
+    match Rc::unwrap_or_clone(v0) {
         UH2::UH2_Cons(v2, v3) => {
-            let mut v2: US2 = v2.clone();
-            let mut v3: Rc<UH2> = v3.clone();
-            let mut v4: Rc<UH2> = method3(v3, v1.clone());
+            let mut v2: US2 = v2;
+            let mut v3: Rc<UH2> = v3;
+            let mut v4: Rc<UH2> = method3(v3, v1);
             let v22: US2 = match &v2 {
                 US2::US2_Maybe(v16) => {
                     let v16: Rc<str> = v16.clone();
@@ -124,11 +124,11 @@ fn method3(mut v0: Rc<UH2>, mut v1: Rc<UH2>) -> Rc<UH2> {
     }
 }
 fn method2(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
-    match &*v0 {
+    match Rc::unwrap_or_clone(v0) {
         UH1::UH1_Cons(v2, v3) => {
-            let mut v2: Rc<UH2> = v2.clone();
-            let mut v3: Rc<UH1> = v3.clone();
-            let mut v4: Rc<UH1> = method2(v3, v1.clone());
+            let mut v2: Rc<UH2> = v2;
+            let mut v3: Rc<UH1> = v3;
+            let mut v4: Rc<UH1> = method2(v3, v1);
             let v5: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
             let v6: Rc<UH2> = method3(v2, v5);
             Rc::new(UH1::UH1_Cons(v6, v4))
@@ -138,14 +138,14 @@ fn method2(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
         }
     }
 }
-fn attempt_9(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3: i32, mut v4: i32) -> bool {
+fn attempt_9(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3: i32, mut v4: i32) -> bool {
     loop {
         let v5: bool = v4 < v3;
         if v5 {
             return false;
         } else {
             let v6: i32 = v1.wrapping_add(v4);
-            let v7: bool = matches_at_8(v0.clone(), v2.clone(), v6);
+            let v7: bool = matches_at_8(v0, v2.clone(), v6);
             if v7 {
                 return true;
             } else {
@@ -156,7 +156,7 @@ fn attempt_9(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3:
         }
     }
 }
-fn code_at_11(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32) -> i32 {
+fn code_at_11(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: i32) -> i32 {
     let mut v2: bool = v1 < 0i32;
     let v5: bool = if v2 {
         true
@@ -210,16 +210,16 @@ fn word_code_12(mut v0: i32) -> bool {
         v12
     }
 }
-fn edge_at_10(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32) -> bool {
+fn edge_at_10(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: i32) -> bool {
     let mut v2: i32 = v1.wrapping_sub(1i32);
-    let mut v3: i32 = code_at_11(v0.clone(), v2);
+    let mut v3: i32 = code_at_11(v0, v2);
     let mut v4: bool = word_code_12(v3);
     let v5: i32 = code_at_11(v0, v1);
     let v6: bool = word_code_12(v5);
     let v7: bool = v4 != v6;
     v7
 }
-fn bytes_from_14(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<RefCell<Vec<u8>>>, mut v2: i32, mut v3: i32) -> bool {
+fn bytes_from_14(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: Rc<RefCell<Vec<u8>>>, mut v2: i32, mut v3: i32) -> bool {
     loop {
         let mut v4: i32 = (v1.clone().borrow().len() as i32);
         let v5: bool = v3 >= v4;
@@ -227,8 +227,8 @@ fn bytes_from_14(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<RefCell<Vec<u8>>>, mut
             return true;
         } else {
             let v6: i32 = v2.wrapping_add(v3);
-            let v7: i32 = code_at_11(v0.clone(), v6);
-            let v8: i32 = code_at_11(v1.clone(), v3);
+            let v7: i32 = code_at_11(v0, v6);
+            let v8: i32 = code_at_11(&v1, v3);
             let v9: bool = v7 == v8;
             if v9 {
                 let v10: i32 = v3.wrapping_add(1i32);
@@ -240,7 +240,7 @@ fn bytes_from_14(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<RefCell<Vec<u8>>>, mut
         }
     }
 }
-fn text_at_13(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<str>) -> bool {
+fn text_at_13(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<str>) -> bool {
     let mut v3: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(v2.as_bytes().to_vec()));
     let mut v4: i32 = 0i32;
     bytes_from_14(v0, v3, v1, v4)
@@ -250,7 +250,7 @@ fn code_in_17(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: i32) -> bool {
         let mut v3: i32 = (v0.clone().borrow().len() as i32);
         let mut v4: bool = v2 < v3;
         if v4 {
-            let v5: i32 = code_at_11(v0.clone(), v2);
+            let v5: i32 = code_at_11(&v0, v2);
             let v6: bool = v5 == v1;
             if v6 {
                 return true;
@@ -265,12 +265,12 @@ fn code_in_17(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: i32) -> bool {
     }
 }
 fn fits_16(mut v0: US3, mut v1: i32) -> bool {
-    match &v0 {
+    match v0 {
         US3::US3_AnyLetter => {
             true
         }
         US3::US3_AnyOf(v11) => {
-            let v11: Rc<str> = v11.clone();
+            let v11: Rc<str> = v11;
             let v12: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(v11.as_bytes().to_vec()));
             let v13: i32 = 0i32;
             code_in_17(v12, v1, v13)
@@ -285,7 +285,7 @@ fn fits_16(mut v0: US3, mut v1: i32) -> bool {
             }
         }
         US3::US3_NoneOf(v6) => {
-            let v6: Rc<str> = v6.clone();
+            let v6: Rc<str> = v6;
             let v7: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(v6.as_bytes().to_vec()));
             let v8: i32 = 0i32;
             let v9: bool = code_in_17(v7, v1, v8);
@@ -297,13 +297,13 @@ fn fits_16(mut v0: US3, mut v1: i32) -> bool {
         }
     }
 }
-fn run_length_15(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: US3, mut v2: i32, mut v3: i32) -> i32 {
+fn run_length_15(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: US3, mut v2: i32, mut v3: i32) -> i32 {
     loop {
         let mut v4: i32 = v2.wrapping_add(v3);
         let v5: i32 = (v0.clone().borrow().len() as i32);
         let v6: bool = v4 < v5;
         let v9: bool = if v6 {
-            let v7: i32 = code_at_11(v0.clone(), v4);
+            let v7: i32 = code_at_11(v0, v4);
             fits_16(v1.clone(), v7)
         } else {
             false
@@ -317,19 +317,19 @@ fn run_length_15(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: US3, mut v2: i32, mut v3:
         }
     }
 }
-fn method18(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3: Rc<UH3>) -> US5 {
+fn method18(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3: Rc<UH3>) -> US5 {
     loop {
-        match &*v3 {
+        match Rc::unwrap_or_clone(v3) {
             UH3::UH3_Cons(v5, v6) => {
-                let v5: Rc<str> = v5.clone();
-                let v6: Rc<UH3> = v6.clone();
+                let v5: Rc<str> = v5;
+                let v6: Rc<UH3> = v6;
                 let v7: US2 = US2::US2_Text(v5.clone());
-                let v8: Rc<UH2> = Rc::new(UH2::UH2_Cons(v7.clone(), v2.clone()));
-                let v9: bool = matches_at_8(v0.clone(), v8.clone(), v1);
+                let v8: Rc<UH2> = Rc::new(UH2::UH2_Cons(v7, v2.clone()));
+                let v9: bool = matches_at_8(v0, v8, v1);
                 if v9 {
-                    return US5::US5_Some(v5.clone());
+                    return US5::US5_Some(v5);
                 } else {
-                    v3 = v6.clone();
+                    v3 = v6;
                     continue;
                 }
             }
@@ -339,23 +339,23 @@ fn method18(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3: 
         }
     }
 }
-fn method19(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3: Rc<UH3>) -> US5 {
+fn method19(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3: Rc<UH3>) -> US5 {
     loop {
-        match &*v3 {
+        match Rc::unwrap_or_clone(v3) {
             UH3::UH3_Cons(v5, v6) => {
-                let v5: Rc<str> = v5.clone();
-                let v6: Rc<UH3> = v6.clone();
+                let v5: Rc<str> = v5;
+                let v6: Rc<UH3> = v6;
                 let v7: US2 = US2::US2_Edge;
                 let v8: US2 = US2::US2_Text(v5.clone());
                 let v9: US2 = US2::US2_Edge;
-                let v10: Rc<UH2> = Rc::new(UH2::UH2_Cons(v9.clone(), v2.clone()));
-                let v11: Rc<UH2> = Rc::new(UH2::UH2_Cons(v8.clone(), v10.clone()));
-                let v12: Rc<UH2> = Rc::new(UH2::UH2_Cons(v7.clone(), v11.clone()));
-                let v13: bool = matches_at_8(v0.clone(), v12.clone(), v1);
+                let v10: Rc<UH2> = Rc::new(UH2::UH2_Cons(v9, v2.clone()));
+                let v11: Rc<UH2> = Rc::new(UH2::UH2_Cons(v8, v10));
+                let v12: Rc<UH2> = Rc::new(UH2::UH2_Cons(v7, v11));
+                let v13: bool = matches_at_8(v0, v12, v1);
                 if v13 {
-                    return US5::US5_Some(v5.clone());
+                    return US5::US5_Some(v5);
                 } else {
-                    v3 = v6.clone();
+                    v3 = v6;
                     continue;
                 }
             }
@@ -365,17 +365,17 @@ fn method19(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: Rc<UH2>, mut v3: 
         }
     }
 }
-fn matches_at_8(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH2>, mut v2: i32) -> bool {
+fn matches_at_8(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH2>, mut v2: i32) -> bool {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH2::UH2_Cons(v3, v4) => {
-                let mut v3: US2 = v3.clone();
-                let mut v4: Rc<UH2> = v4.clone();
-                match &v3 {
+                let mut v3: US2 = v3;
+                let mut v4: Rc<UH2> = v4;
+                match v3 {
                     US2::US2_Edge => {
-                        let v27: bool = edge_at_10(v0.clone(), v2);
+                        let v27: bool = edge_at_10(v0, v2);
                         if v27 {
-                            v1 = v4.clone();
+                            v1 = v4;
                             continue;
                         } else {
                             return false;
@@ -385,61 +385,61 @@ fn matches_at_8(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH2>, mut v2: i32) -> b
                         let v33: i32 = (v0.clone().borrow().len() as i32);
                         let v34: bool = v2 == v33;
                         if v34 {
-                            v1 = v4.clone();
+                            v1 = v4;
                             continue;
                         } else {
                             return false;
                         }
                     }
                     US2::US2_Maybe(v19) => {
-                        let v19: Rc<str> = v19.clone();
-                        let v20: bool = text_at_13(v0.clone(), v2, v19.clone());
+                        let v19: Rc<str> = v19;
+                        let v20: bool = text_at_13(v0, v2, v19.clone());
                         let v24: bool = if v20 {
-                            let v21: i32 = (v19.clone().len() as i32);
+                            let v21: i32 = (v19.len() as i32);
                             let v22: i32 = v2.wrapping_add(v21);
-                            matches_at_8(v0.clone(), v4.clone(), v22)
+                            matches_at_8(v0, v4.clone(), v22)
                         } else {
                             false
                         };
                         if v24 {
                             return true;
                         } else {
-                            v1 = v4.clone();
+                            v1 = v4;
                             continue;
                         }
                     }
                     US2::US2_Run(v37, v38) => {
-                        let v37: US3 = v37.clone();
-                        let v38: i32 = *v38;
+                        let v37: US3 = v37;
+                        let v38: i32 = v38;
                         let v39: i32 = 0i32;
-                        let v40: i32 = run_length_15(v0.clone(), v37.clone(), v2, v39);
-                        return attempt_9(v0.clone(), v2, v4.clone(), v38, v40);
+                        let v40: i32 = run_length_15(v0, v37, v2, v39);
+                        return attempt_9(v0, v2, v4, v38, v40);
                     }
                     US2::US2_Start => {
                         let v30: bool = v2 == 0i32;
                         if v30 {
-                            v1 = v4.clone();
+                            v1 = v4;
                             continue;
                         } else {
                             return false;
                         }
                     }
                     US2::US2_Text(v5) => {
-                        let v5: Rc<str> = v5.clone();
-                        let v6: bool = text_at_13(v0.clone(), v2, v5.clone());
+                        let v5: Rc<str> = v5;
+                        let v6: bool = text_at_13(v0, v2, v5.clone());
                         if v6 {
-                            let v7: i32 = (v5.clone().len() as i32);
+                            let v7: i32 = (v5.len() as i32);
                             let v8: i32 = v2.wrapping_add(v7);
-                            (v1, v2) = (v4.clone(), v8);
+                            (v1, v2) = (v4, v8);
                             continue;
                         } else {
                             return false;
                         }
                     }
                     US2::US2_Texts(v11) => {
-                        let v11: Rc<UH3> = v11.clone();
-                        let v12: US5 = method18(v0.clone(), v2, v4.clone(), v11.clone());
-                        let v13: bool = match &v12 {
+                        let v11: Rc<UH3> = v11;
+                        let v12: US5 = method18(v0, v2, v4, v11);
+                        let v13: bool = match v12 {
                             US5::US5_None => {
                                 true
                             }
@@ -451,9 +451,9 @@ fn matches_at_8(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH2>, mut v2: i32) -> b
                         return v14;
                     }
                     US2::US2_Words(v15) => {
-                        let v15: Rc<UH3> = v15.clone();
-                        let v16: US5 = method19(v0.clone(), v2, v4.clone(), v15.clone());
-                        let v17: bool = match &v16 {
+                        let v15: Rc<UH3> = v15;
+                        let v16: US5 = method19(v0, v2, v4, v15);
+                        let v17: bool = match v16 {
                             US5::US5_None => {
                                 true
                             }
@@ -472,14 +472,14 @@ fn matches_at_8(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH2>, mut v2: i32) -> b
         }
     }
 }
-fn found_from_7(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH2>, mut v2: i32) -> bool {
+fn found_from_7(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH2>, mut v2: i32) -> bool {
     loop {
         let mut v3: i32 = (v0.clone().borrow().len() as i32);
         let mut v4: bool = v2 > v3;
         if v4 {
             return false;
         } else {
-            let v5: bool = matches_at_8(v0.clone(), v1.clone(), v2);
+            let v5: bool = matches_at_8(v0, v1.clone(), v2);
             if v5 {
                 return true;
             } else {
@@ -490,18 +490,18 @@ fn found_from_7(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH2>, mut v2: i32) -> b
         }
     }
 }
-fn method6(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH1>) -> US4 {
+fn method6(mut v0: &Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH1>) -> US4 {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH1::UH1_Cons(v3, v4) => {
-                let mut v3: Rc<UH2> = v3.clone();
-                let mut v4: Rc<UH1> = v4.clone();
+                let mut v3: Rc<UH2> = v3;
+                let mut v4: Rc<UH1> = v4;
                 let v5: i32 = 0i32;
-                let v6: bool = found_from_7(v0.clone(), v3.clone(), v5);
+                let v6: bool = found_from_7(v0, v3.clone(), v5);
                 if v6 {
-                    return US4::US4_Some(v3.clone());
+                    return US4::US4_Some(v3);
                 } else {
-                    v1 = v4.clone();
+                    v1 = v4;
                     continue;
                 }
             }
@@ -513,8 +513,8 @@ fn method6(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: Rc<UH1>) -> US4 {
 }
 fn found_5(mut v0: Rc<str>, mut v1: Rc<UH1>) -> bool {
     let mut v2: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(v0.as_bytes().to_vec()));
-    let mut v3: US4 = method6(v2, v1);
-    let mut v4: bool = match &v3 {
+    let mut v3: US4 = method6(&v2, v1);
+    let mut v4: bool = match v3 {
         US4::US4_None => {
             true
         }
@@ -527,70 +527,70 @@ fn found_5(mut v0: Rc<str>, mut v1: Rc<UH1>) -> bool {
 }
 fn method1(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US1 {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH0::UH0_Cons(v3, v4) => {
-                let mut v3: US0 = v3.clone();
-                let mut v4: Rc<UH0> = v4.clone();
+                let mut v3: US0 = v3;
+                let mut v4: Rc<UH0> = v4;
                 let v295: Rc<UH1> = match &v3 {
                     US0::US0_FsharpPipeMutate => {
                         let v267: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$'|> fun x -> _"); } LIT.with(|lit| lit.clone()) };
-                        let v268: US2 = US2::US2_Text(v267.clone());
+                        let v268: US2 = US2::US2_Text(v267);
                         let v269: US3 = US3::US3_WordLetters;
-                        let v270: US2 = US2::US2_Run(v269.clone(), 1i32);
+                        let v270: US2 = US2::US2_Run(v269, 1i32);
                         let v271: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("_!"); } LIT.with(|lit| lit.clone()) };
-                        let v272: US2 = US2::US2_Text(v271.clone());
+                        let v272: US2 = US2::US2_Text(v271);
                         let v273: US3 = US3::US3_WordLetters;
-                        let v274: US2 = US2::US2_Run(v273.clone(), 1i32);
+                        let v274: US2 = US2::US2_Run(v273, 1i32);
                         let v275: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" <- Some x'"); } LIT.with(|lit| lit.clone()) };
-                        let v276: US2 = US2::US2_Text(v275.clone());
+                        let v276: US2 = US2::US2_Text(v275);
                         let v277: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v278: Rc<UH2> = Rc::new(UH2::UH2_Cons(v276.clone(), v277.clone()));
-                        let v279: Rc<UH2> = Rc::new(UH2::UH2_Cons(v274.clone(), v278.clone()));
-                        let v280: Rc<UH2> = Rc::new(UH2::UH2_Cons(v272.clone(), v279.clone()));
-                        let v281: Rc<UH2> = Rc::new(UH2::UH2_Cons(v270.clone(), v280.clone()));
-                        let v282: Rc<UH2> = Rc::new(UH2::UH2_Cons(v268.clone(), v281.clone()));
+                        let v278: Rc<UH2> = Rc::new(UH2::UH2_Cons(v276, v277));
+                        let v279: Rc<UH2> = Rc::new(UH2::UH2_Cons(v274, v278));
+                        let v280: Rc<UH2> = Rc::new(UH2::UH2_Cons(v272, v279));
+                        let v281: Rc<UH2> = Rc::new(UH2::UH2_Cons(v270, v280));
+                        let v282: Rc<UH2> = Rc::new(UH2::UH2_Cons(v268, v281));
                         let v283: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        Rc::new(UH1::UH1_Cons(v282.clone(), v283.clone()))
+                        Rc::new(UH1::UH1_Cons(v282, v283))
                     }
                     US0::US0_GleamRebindingBlock => {
                         let v138: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$'"); } LIT.with(|lit| lit.clone()) };
-                        let v139: US2 = US2::US2_Text(v138.clone());
+                        let v139: US2 = US2::US2_Text(v138);
                         let v140: US3 = US3::US3_Blanks;
-                        let v141: US2 = US2::US2_Run(v140.clone(), 1i32);
+                        let v141: US2 = US2::US2_Run(v140, 1i32);
                         let v142: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("case trace_state"); } LIT.with(|lit| lit.clone()) };
                         let v143: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("option.None ->"); } LIT.with(|lit| lit.clone()) };
                         let v144: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("x -> x"); } LIT.with(|lit| lit.clone()) };
                         let v145: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
-                        let v146: Rc<UH3> = Rc::new(UH3::UH3_Cons(v144.clone(), v145.clone()));
-                        let v147: Rc<UH3> = Rc::new(UH3::UH3_Cons(v143.clone(), v146.clone()));
-                        let v148: Rc<UH3> = Rc::new(UH3::UH3_Cons(v142.clone(), v147.clone()));
-                        let v149: US2 = US2::US2_Texts(v148.clone());
+                        let v146: Rc<UH3> = Rc::new(UH3::UH3_Cons(v144, v145));
+                        let v147: Rc<UH3> = Rc::new(UH3::UH3_Cons(v143, v146));
+                        let v148: Rc<UH3> = Rc::new(UH3::UH3_Cons(v142, v147));
+                        let v149: US2 = US2::US2_Texts(v148);
                         let v150: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v151: Rc<UH2> = Rc::new(UH2::UH2_Cons(v149.clone(), v150.clone()));
-                        let v152: Rc<UH2> = Rc::new(UH2::UH2_Cons(v141.clone(), v151.clone()));
-                        let v153: Rc<UH2> = Rc::new(UH2::UH2_Cons(v139.clone(), v152.clone()));
+                        let v151: Rc<UH2> = Rc::new(UH2::UH2_Cons(v149, v150));
+                        let v152: Rc<UH2> = Rc::new(UH2::UH2_Cons(v141, v151));
+                        let v153: Rc<UH2> = Rc::new(UH2::UH2_Cons(v139, v152));
                         let v154: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        Rc::new(UH1::UH1_Cons(v153.clone(), v154.clone()))
+                        Rc::new(UH1::UH1_Cons(v153, v154))
                     }
                     US0::US0_HealedAlready => {
                         let v156: US2 = US2::US2_Start;
                         let v157: US3 = US3::US3_Blanks;
-                        let v158: US2 = US2::US2_Run(v157.clone(), 0i32);
+                        let v158: US2 = US2::US2_Run(v157, 0i32);
                         let v159: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("? $'"); } LIT.with(|lit| lit.clone()) };
-                        let v160: US2 = US2::US2_Text(v159.clone());
+                        let v160: US2 = US2::US2_Text(v159);
                         let v161: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-                        let v162: US3 = US3::US3_NoneOf(v161.clone());
-                        let v163: US2 = US2::US2_Run(v162.clone(), 1i32);
+                        let v162: US3 = US3::US3_NoneOf(v161);
+                        let v163: US2 = US2::US2_Run(v162, 1i32);
                         let v164: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("' : bool ?>"); } LIT.with(|lit| lit.clone()) };
-                        let v165: US2 = US2::US2_Text(v164.clone());
+                        let v165: US2 = US2::US2_Text(v164);
                         let v166: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v167: Rc<UH2> = Rc::new(UH2::UH2_Cons(v165.clone(), v166.clone()));
-                        let v168: Rc<UH2> = Rc::new(UH2::UH2_Cons(v163.clone(), v167.clone()));
-                        let v169: Rc<UH2> = Rc::new(UH2::UH2_Cons(v160.clone(), v168.clone()));
-                        let v170: Rc<UH2> = Rc::new(UH2::UH2_Cons(v158.clone(), v169.clone()));
-                        let v171: Rc<UH2> = Rc::new(UH2::UH2_Cons(v156.clone(), v170.clone()));
+                        let v167: Rc<UH2> = Rc::new(UH2::UH2_Cons(v165, v166));
+                        let v168: Rc<UH2> = Rc::new(UH2::UH2_Cons(v163, v167));
+                        let v169: Rc<UH2> = Rc::new(UH2::UH2_Cons(v160, v168));
+                        let v170: Rc<UH2> = Rc::new(UH2::UH2_Cons(v158, v169));
+                        let v171: Rc<UH2> = Rc::new(UH2::UH2_Cons(v156, v170));
                         let v172: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        Rc::new(UH1::UH1_Cons(v171.clone(), v172.clone()))
+                        Rc::new(UH1::UH1_Cons(v171, v172))
                     }
                     US0::US0_HostCombinator => {
                         let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".all("); } LIT.with(|lit| lit.clone()) };
@@ -598,143 +598,143 @@ fn method1(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US1 {
                         let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".any("); } LIT.with(|lit| lit.clone()) };
                         let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Array.map (fun "); } LIT.with(|lit| lit.clone()) };
                         let v29: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
-                        let v30: Rc<UH3> = Rc::new(UH3::UH3_Cons(v28.clone(), v29.clone()));
-                        let v31: Rc<UH3> = Rc::new(UH3::UH3_Cons(v27.clone(), v30.clone()));
-                        let v32: Rc<UH3> = Rc::new(UH3::UH3_Cons(v26.clone(), v31.clone()));
-                        let v33: Rc<UH3> = Rc::new(UH3::UH3_Cons(v25.clone(), v32.clone()));
-                        let v34: US2 = US2::US2_Texts(v33.clone());
+                        let v30: Rc<UH3> = Rc::new(UH3::UH3_Cons(v28, v29));
+                        let v31: Rc<UH3> = Rc::new(UH3::UH3_Cons(v27, v30));
+                        let v32: Rc<UH3> = Rc::new(UH3::UH3_Cons(v26, v31));
+                        let v33: Rc<UH3> = Rc::new(UH3::UH3_Cons(v25, v32));
+                        let v34: US2 = US2::US2_Texts(v33);
                         let v35: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v36: Rc<UH2> = Rc::new(UH2::UH2_Cons(v34.clone(), v35.clone()));
+                        let v36: Rc<UH2> = Rc::new(UH2::UH2_Cons(v34, v35));
                         let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(".map(|"); } LIT.with(|lit| lit.clone()) };
-                        let v38: US2 = US2::US2_Text(v37.clone());
+                        let v38: US2 = US2::US2_Text(v37);
                         let v39: US3 = US3::US3_WordLetters;
-                        let v40: US2 = US2::US2_Run(v39.clone(), 1i32);
+                        let v40: US2 = US2::US2_Run(v39, 1i32);
                         let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("|"); } LIT.with(|lit| lit.clone()) };
-                        let v42: US2 = US2::US2_Text(v41.clone());
+                        let v42: US2 = US2::US2_Text(v41);
                         let v43: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v44: Rc<UH2> = Rc::new(UH2::UH2_Cons(v42.clone(), v43.clone()));
-                        let v45: Rc<UH2> = Rc::new(UH2::UH2_Cons(v40.clone(), v44.clone()));
-                        let v46: Rc<UH2> = Rc::new(UH2::UH2_Cons(v38.clone(), v45.clone()));
+                        let v44: Rc<UH2> = Rc::new(UH2::UH2_Cons(v42, v43));
+                        let v45: Rc<UH2> = Rc::new(UH2::UH2_Cons(v40, v44));
+                        let v46: Rc<UH2> = Rc::new(UH2::UH2_Cons(v38, v45));
                         let v47: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        let v48: Rc<UH1> = Rc::new(UH1::UH1_Cons(v46.clone(), v47.clone()));
-                        Rc::new(UH1::UH1_Cons(v36.clone(), v48.clone()))
+                        let v48: Rc<UH1> = Rc::new(UH1::UH1_Cons(v46, v47));
+                        Rc::new(UH1::UH1_Cons(v36, v48))
                     }
                     US0::US0_LambdaArrow => {
                         let v174: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fun"); } LIT.with(|lit| lit.clone()) };
                         let v175: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
-                        let v176: Rc<UH3> = Rc::new(UH3::UH3_Cons(v174.clone(), v175.clone()));
-                        let v177: US2 = US2::US2_Words(v176.clone());
+                        let v176: Rc<UH3> = Rc::new(UH3::UH3_Cons(v174, v175));
+                        let v177: US2 = US2::US2_Words(v176);
                         let v178: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                        let v179: US2 = US2::US2_Text(v178.clone());
+                        let v179: US2 = US2::US2_Text(v178);
                         let v180: US3 = US3::US3_WordLetters;
-                        let v181: US2 = US2::US2_Run(v180.clone(), 1i32);
+                        let v181: US2 = US2::US2_Run(v180, 1i32);
                         let v182: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ->"); } LIT.with(|lit| lit.clone()) };
-                        let v183: US2 = US2::US2_Text(v182.clone());
+                        let v183: US2 = US2::US2_Text(v182);
                         let v184: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v185: Rc<UH2> = Rc::new(UH2::UH2_Cons(v183.clone(), v184.clone()));
-                        let v186: Rc<UH2> = Rc::new(UH2::UH2_Cons(v181.clone(), v185.clone()));
-                        let v187: Rc<UH2> = Rc::new(UH2::UH2_Cons(v179.clone(), v186.clone()));
-                        let v188: Rc<UH2> = Rc::new(UH2::UH2_Cons(v177.clone(), v187.clone()));
+                        let v185: Rc<UH2> = Rc::new(UH2::UH2_Cons(v183, v184));
+                        let v186: Rc<UH2> = Rc::new(UH2::UH2_Cons(v181, v185));
+                        let v187: Rc<UH2> = Rc::new(UH2::UH2_Cons(v179, v186));
+                        let v188: Rc<UH2> = Rc::new(UH2::UH2_Cons(v177, v187));
                         let v189: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$'!x ' |> \\ x =>"); } LIT.with(|lit| lit.clone()) };
-                        let v190: US2 = US2::US2_Text(v189.clone());
+                        let v190: US2 = US2::US2_Text(v189);
                         let v191: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v192: Rc<UH2> = Rc::new(UH2::UH2_Cons(v190.clone(), v191.clone()));
+                        let v192: Rc<UH2> = Rc::new(UH2::UH2_Cons(v190, v191));
                         let v193: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("fn"); } LIT.with(|lit| lit.clone()) };
                         let v194: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
-                        let v195: Rc<UH3> = Rc::new(UH3::UH3_Cons(v193.clone(), v194.clone()));
-                        let v196: US2 = US2::US2_Words(v195.clone());
+                        let v195: Rc<UH3> = Rc::new(UH3::UH3_Cons(v193, v194));
+                        let v196: US2 = US2::US2_Words(v195);
                         let v197: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" $'!x '"); } LIT.with(|lit| lit.clone()) };
-                        let v198: US2 = US2::US2_Text(v197.clone());
+                        let v198: US2 = US2::US2_Text(v197);
                         let v199: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v200: Rc<UH2> = Rc::new(UH2::UH2_Cons(v198.clone(), v199.clone()));
-                        let v201: Rc<UH2> = Rc::new(UH2::UH2_Cons(v196.clone(), v200.clone()));
+                        let v200: Rc<UH2> = Rc::new(UH2::UH2_Cons(v198, v199));
+                        let v201: Rc<UH2> = Rc::new(UH2::UH2_Cons(v196, v200));
                         let v202: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        let v203: Rc<UH1> = Rc::new(UH1::UH1_Cons(v201.clone(), v202.clone()));
-                        let v204: Rc<UH1> = Rc::new(UH1::UH1_Cons(v192.clone(), v203.clone()));
-                        Rc::new(UH1::UH1_Cons(v188.clone(), v204.clone()))
+                        let v203: Rc<UH1> = Rc::new(UH1::UH1_Cons(v201, v202));
+                        let v204: Rc<UH1> = Rc::new(UH1::UH1_Cons(v192, v203));
+                        Rc::new(UH1::UH1_Cons(v188, v204))
                     }
                     US0::US0_OneCallParse => {
                         let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("strto"); } LIT.with(|lit| lit.clone()) };
-                        let v109: US2 = US2::US2_Text(v108.clone());
+                        let v109: US2 = US2::US2_Text(v108);
                         let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("lfd"); } LIT.with(|lit| lit.clone()) };
-                        let v111: US3 = US3::US3_AnyOf(v110.clone());
-                        let v112: US2 = US2::US2_Run(v111.clone(), 0i32);
+                        let v111: US3 = US3::US3_AnyOf(v110);
+                        let v112: US2 = US2::US2_Run(v111, 0i32);
                         let v113: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("("); } LIT.with(|lit| lit.clone()) };
-                        let v114: US2 = US2::US2_Text(v113.clone());
+                        let v114: US2 = US2::US2_Text(v113);
                         let v115: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v116: Rc<UH2> = Rc::new(UH2::UH2_Cons(v114.clone(), v115.clone()));
-                        let v117: Rc<UH2> = Rc::new(UH2::UH2_Cons(v112.clone(), v116.clone()));
-                        let v118: Rc<UH2> = Rc::new(UH2::UH2_Cons(v109.clone(), v117.clone()));
+                        let v116: Rc<UH2> = Rc::new(UH2::UH2_Cons(v114, v115));
+                        let v117: Rc<UH2> = Rc::new(UH2::UH2_Cons(v112, v116));
+                        let v118: Rc<UH2> = Rc::new(UH2::UH2_Cons(v109, v117));
                         let v119: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("string.match("); } LIT.with(|lit| lit.clone()) };
                         let v120: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spiralParseInt"); } LIT.with(|lit| lit.clone()) };
                         let v121: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Int32(String("); } LIT.with(|lit| lit.clone()) };
                         let v122: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
-                        let v123: Rc<UH3> = Rc::new(UH3::UH3_Cons(v121.clone(), v122.clone()));
-                        let v124: Rc<UH3> = Rc::new(UH3::UH3_Cons(v120.clone(), v123.clone()));
-                        let v125: Rc<UH3> = Rc::new(UH3::UH3_Cons(v119.clone(), v124.clone()));
-                        let v126: US2 = US2::US2_Texts(v125.clone());
+                        let v123: Rc<UH3> = Rc::new(UH3::UH3_Cons(v121, v122));
+                        let v124: Rc<UH3> = Rc::new(UH3::UH3_Cons(v120, v123));
+                        let v125: Rc<UH3> = Rc::new(UH3::UH3_Cons(v119, v124));
+                        let v126: US2 = US2::US2_Texts(v125);
                         let v127: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v128: Rc<UH2> = Rc::new(UH2::UH2_Cons(v126.clone(), v127.clone()));
+                        let v128: Rc<UH2> = Rc::new(UH2::UH2_Cons(v126, v127));
                         let v129: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        let v130: Rc<UH1> = Rc::new(UH1::UH1_Cons(v128.clone(), v129.clone()));
-                        Rc::new(UH1::UH1_Cons(v118.clone(), v130.clone()))
+                        let v130: Rc<UH1> = Rc::new(UH1::UH1_Cons(v128, v129));
+                        Rc::new(UH1::UH1_Cons(v118, v130))
                     }
                     US0::US0_OneConstructTernary => {
                         let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("(if !"); } LIT.with(|lit| lit.clone()) };
-                        let v62: US2 = US2::US2_Text(v61.clone());
+                        let v62: US2 = US2::US2_Text(v61);
                         let v63: US3 = US3::US3_WordLetters;
-                        let v64: US2 = US2::US2_Run(v63.clone(), 1i32);
+                        let v64: US2 = US2::US2_Run(v63, 1i32);
                         let v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" then \""); } LIT.with(|lit| lit.clone()) };
-                        let v66: US2 = US2::US2_Text(v65.clone());
+                        let v66: US2 = US2::US2_Text(v65);
                         let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) };
                         let v68: US3 = US3::US3_NoneOf(v67.clone());
-                        let v69: US2 = US2::US2_Run(v68.clone(), 0i32);
+                        let v69: US2 = US2::US2_Run(v68, 0i32);
                         let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\" else \""); } LIT.with(|lit| lit.clone()) };
-                        let v71: US2 = US2::US2_Text(v70.clone());
-                        let v72: US3 = US3::US3_NoneOf(v67.clone());
-                        let v73: US2 = US2::US2_Run(v72.clone(), 0i32);
+                        let v71: US2 = US2::US2_Text(v70);
+                        let v72: US3 = US3::US3_NoneOf(v67);
+                        let v73: US2 = US2::US2_Run(v72, 0i32);
                         let v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\")"); } LIT.with(|lit| lit.clone()) };
-                        let v75: US2 = US2::US2_Text(v74.clone());
+                        let v75: US2 = US2::US2_Text(v74);
                         let v76: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v77: Rc<UH2> = Rc::new(UH2::UH2_Cons(v75.clone(), v76.clone()));
-                        let v78: Rc<UH2> = Rc::new(UH2::UH2_Cons(v73.clone(), v77.clone()));
-                        let v79: Rc<UH2> = Rc::new(UH2::UH2_Cons(v71.clone(), v78.clone()));
-                        let v80: Rc<UH2> = Rc::new(UH2::UH2_Cons(v69.clone(), v79.clone()));
-                        let v81: Rc<UH2> = Rc::new(UH2::UH2_Cons(v66.clone(), v80.clone()));
-                        let v82: Rc<UH2> = Rc::new(UH2::UH2_Cons(v64.clone(), v81.clone()));
-                        let v83: Rc<UH2> = Rc::new(UH2::UH2_Cons(v62.clone(), v82.clone()));
+                        let v77: Rc<UH2> = Rc::new(UH2::UH2_Cons(v75, v76));
+                        let v78: Rc<UH2> = Rc::new(UH2::UH2_Cons(v73, v77));
+                        let v79: Rc<UH2> = Rc::new(UH2::UH2_Cons(v71, v78));
+                        let v80: Rc<UH2> = Rc::new(UH2::UH2_Cons(v69, v79));
+                        let v81: Rc<UH2> = Rc::new(UH2::UH2_Cons(v66, v80));
+                        let v82: Rc<UH2> = Rc::new(UH2::UH2_Cons(v64, v81));
+                        let v83: Rc<UH2> = Rc::new(UH2::UH2_Cons(v62, v82));
                         let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("(\"true\" if !"); } LIT.with(|lit| lit.clone()) };
-                        let v85: US2 = US2::US2_Text(v84.clone());
+                        let v85: US2 = US2::US2_Text(v84);
                         let v86: US3 = US3::US3_WordLetters;
-                        let v87: US2 = US2::US2_Run(v86.clone(), 1i32);
+                        let v87: US2 = US2::US2_Run(v86, 1i32);
                         let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" else \"false\")"); } LIT.with(|lit| lit.clone()) };
-                        let v89: US2 = US2::US2_Text(v88.clone());
+                        let v89: US2 = US2::US2_Text(v88);
                         let v90: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v91: Rc<UH2> = Rc::new(UH2::UH2_Cons(v89.clone(), v90.clone()));
-                        let v92: Rc<UH2> = Rc::new(UH2::UH2_Cons(v87.clone(), v91.clone()));
-                        let v93: Rc<UH2> = Rc::new(UH2::UH2_Cons(v85.clone(), v92.clone()));
+                        let v91: Rc<UH2> = Rc::new(UH2::UH2_Cons(v89, v90));
+                        let v92: Rc<UH2> = Rc::new(UH2::UH2_Cons(v87, v91));
+                        let v93: Rc<UH2> = Rc::new(UH2::UH2_Cons(v85, v92));
                         let v94: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("(if (!"); } LIT.with(|lit| lit.clone()) };
-                        let v95: US2 = US2::US2_Text(v94.clone());
+                        let v95: US2 = US2::US2_Text(v94);
                         let v96: US3 = US3::US3_WordLetters;
-                        let v97: US2 = US2::US2_Run(v96.clone(), 1i32);
+                        let v97: US2 = US2::US2_Run(v96, 1i32);
                         let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(") \"true\" else \"false\")"); } LIT.with(|lit| lit.clone()) };
-                        let v99: US2 = US2::US2_Text(v98.clone());
+                        let v99: US2 = US2::US2_Text(v98);
                         let v100: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v101: Rc<UH2> = Rc::new(UH2::UH2_Cons(v99.clone(), v100.clone()));
-                        let v102: Rc<UH2> = Rc::new(UH2::UH2_Cons(v97.clone(), v101.clone()));
-                        let v103: Rc<UH2> = Rc::new(UH2::UH2_Cons(v95.clone(), v102.clone()));
+                        let v101: Rc<UH2> = Rc::new(UH2::UH2_Cons(v99, v100));
+                        let v102: Rc<UH2> = Rc::new(UH2::UH2_Cons(v97, v101));
+                        let v103: Rc<UH2> = Rc::new(UH2::UH2_Cons(v95, v102));
                         let v104: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        let v105: Rc<UH1> = Rc::new(UH1::UH1_Cons(v103.clone(), v104.clone()));
-                        let v106: Rc<UH1> = Rc::new(UH1::UH1_Cons(v93.clone(), v105.clone()));
-                        Rc::new(UH1::UH1_Cons(v83.clone(), v106.clone()))
+                        let v105: Rc<UH1> = Rc::new(UH1::UH1_Cons(v103, v104));
+                        let v106: Rc<UH1> = Rc::new(UH1::UH1_Cons(v93, v105));
+                        Rc::new(UH1::UH1_Cons(v83, v106))
                     }
                     US0::US0_OneOpHostOperator => {
                         let v132: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$0?\""); } LIT.with(|lit| lit.clone()) };
-                        let v133: US2 = US2::US2_Text(v132.clone());
+                        let v133: US2 = US2::US2_Text(v132);
                         let v134: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v135: Rc<UH2> = Rc::new(UH2::UH2_Cons(v133.clone(), v134.clone()));
+                        let v135: Rc<UH2> = Rc::new(UH2::UH2_Cons(v133, v134));
                         let v136: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        Rc::new(UH1::UH1_Cons(v135.clone(), v136.clone()))
+                        Rc::new(UH1::UH1_Cons(v135, v136))
                     }
                     US0::US0_OneOpTernary => {
                         let v206: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$'"); } LIT.with(|lit| lit.clone()) };
@@ -744,104 +744,104 @@ fn method1(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US1 {
                         let v210: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("!"); } LIT.with(|lit| lit.clone()) };
                         let v211: US2 = US2::US2_Text(v210.clone());
                         let v212: US3 = US3::US3_WordLetters;
-                        let v213: US2 = US2::US2_Run(v212.clone(), 1i32);
+                        let v213: US2 = US2::US2_Run(v212, 1i32);
                         let v214: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ?? undefined"); } LIT.with(|lit| lit.clone()) };
-                        let v215: US2 = US2::US2_Text(v214.clone());
+                        let v215: US2 = US2::US2_Text(v214);
                         let v216: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(")"); } LIT.with(|lit| lit.clone()) };
                         let v217: US2 = US2::US2_Maybe(v216.clone());
                         let v218: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
                         let v219: US2 = US2::US2_Text(v218.clone());
                         let v220: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v221: Rc<UH2> = Rc::new(UH2::UH2_Cons(v219.clone(), v220.clone()));
-                        let v222: Rc<UH2> = Rc::new(UH2::UH2_Cons(v217.clone(), v221.clone()));
-                        let v223: Rc<UH2> = Rc::new(UH2::UH2_Cons(v215.clone(), v222.clone()));
-                        let v224: Rc<UH2> = Rc::new(UH2::UH2_Cons(v213.clone(), v223.clone()));
-                        let v225: Rc<UH2> = Rc::new(UH2::UH2_Cons(v211.clone(), v224.clone()));
-                        let v226: Rc<UH2> = Rc::new(UH2::UH2_Cons(v209.clone(), v225.clone()));
-                        let v227: Rc<UH2> = Rc::new(UH2::UH2_Cons(v207.clone(), v226.clone()));
-                        let v228: US2 = US2::US2_Text(v206.clone());
+                        let v221: Rc<UH2> = Rc::new(UH2::UH2_Cons(v219, v220));
+                        let v222: Rc<UH2> = Rc::new(UH2::UH2_Cons(v217, v221));
+                        let v223: Rc<UH2> = Rc::new(UH2::UH2_Cons(v215, v222));
+                        let v224: Rc<UH2> = Rc::new(UH2::UH2_Cons(v213, v223));
+                        let v225: Rc<UH2> = Rc::new(UH2::UH2_Cons(v211, v224));
+                        let v226: Rc<UH2> = Rc::new(UH2::UH2_Cons(v209, v225));
+                        let v227: Rc<UH2> = Rc::new(UH2::UH2_Cons(v207, v226));
+                        let v228: US2 = US2::US2_Text(v206);
                         let v229: US3 = US3::US3_Blanks;
-                        let v230: US2 = US2::US2_Run(v229.clone(), 0i32);
-                        let v231: US2 = US2::US2_Text(v208.clone());
+                        let v230: US2 = US2::US2_Run(v229, 0i32);
+                        let v231: US2 = US2::US2_Text(v208);
                         let v232: US3 = US3::US3_Blanks;
-                        let v233: US2 = US2::US2_Run(v232.clone(), 0i32);
-                        let v234: US2 = US2::US2_Text(v210.clone());
+                        let v233: US2 = US2::US2_Run(v232, 0i32);
+                        let v234: US2 = US2::US2_Text(v210);
                         let v235: US3 = US3::US3_WordLetters;
-                        let v236: US2 = US2::US2_Run(v235.clone(), 1i32);
+                        let v236: US2 = US2::US2_Run(v235, 1i32);
                         let v237: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" ? "); } LIT.with(|lit| lit.clone()) };
-                        let v238: US2 = US2::US2_Text(v237.clone());
+                        let v238: US2 = US2::US2_Text(v237);
                         let v239: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
-                        let v240: US3 = US3::US3_NoneOf(v239.clone());
-                        let v241: US2 = US2::US2_Run(v240.clone(), 1i32);
+                        let v240: US3 = US3::US3_NoneOf(v239);
+                        let v241: US2 = US2::US2_Run(v240, 1i32);
                         let v242: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" : "); } LIT.with(|lit| lit.clone()) };
-                        let v243: US2 = US2::US2_Text(v242.clone());
+                        let v243: US2 = US2::US2_Text(v242);
                         let v244: US3 = US3::US3_NoneOf(v216.clone());
-                        let v245: US2 = US2::US2_Run(v244.clone(), 1i32);
-                        let v246: US2 = US2::US2_Text(v216.clone());
+                        let v245: US2 = US2::US2_Run(v244, 1i32);
+                        let v246: US2 = US2::US2_Text(v216);
                         let v247: US3 = US3::US3_Blanks;
-                        let v248: US2 = US2::US2_Run(v247.clone(), 0i32);
-                        let v249: US2 = US2::US2_Text(v218.clone());
+                        let v248: US2 = US2::US2_Run(v247, 0i32);
+                        let v249: US2 = US2::US2_Text(v218);
                         let v250: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v251: Rc<UH2> = Rc::new(UH2::UH2_Cons(v249.clone(), v250.clone()));
-                        let v252: Rc<UH2> = Rc::new(UH2::UH2_Cons(v248.clone(), v251.clone()));
-                        let v253: Rc<UH2> = Rc::new(UH2::UH2_Cons(v246.clone(), v252.clone()));
-                        let v254: Rc<UH2> = Rc::new(UH2::UH2_Cons(v245.clone(), v253.clone()));
-                        let v255: Rc<UH2> = Rc::new(UH2::UH2_Cons(v243.clone(), v254.clone()));
-                        let v256: Rc<UH2> = Rc::new(UH2::UH2_Cons(v241.clone(), v255.clone()));
-                        let v257: Rc<UH2> = Rc::new(UH2::UH2_Cons(v238.clone(), v256.clone()));
-                        let v258: Rc<UH2> = Rc::new(UH2::UH2_Cons(v236.clone(), v257.clone()));
-                        let v259: Rc<UH2> = Rc::new(UH2::UH2_Cons(v234.clone(), v258.clone()));
-                        let v260: Rc<UH2> = Rc::new(UH2::UH2_Cons(v233.clone(), v259.clone()));
-                        let v261: Rc<UH2> = Rc::new(UH2::UH2_Cons(v231.clone(), v260.clone()));
-                        let v262: Rc<UH2> = Rc::new(UH2::UH2_Cons(v230.clone(), v261.clone()));
-                        let v263: Rc<UH2> = Rc::new(UH2::UH2_Cons(v228.clone(), v262.clone()));
+                        let v251: Rc<UH2> = Rc::new(UH2::UH2_Cons(v249, v250));
+                        let v252: Rc<UH2> = Rc::new(UH2::UH2_Cons(v248, v251));
+                        let v253: Rc<UH2> = Rc::new(UH2::UH2_Cons(v246, v252));
+                        let v254: Rc<UH2> = Rc::new(UH2::UH2_Cons(v245, v253));
+                        let v255: Rc<UH2> = Rc::new(UH2::UH2_Cons(v243, v254));
+                        let v256: Rc<UH2> = Rc::new(UH2::UH2_Cons(v241, v255));
+                        let v257: Rc<UH2> = Rc::new(UH2::UH2_Cons(v238, v256));
+                        let v258: Rc<UH2> = Rc::new(UH2::UH2_Cons(v236, v257));
+                        let v259: Rc<UH2> = Rc::new(UH2::UH2_Cons(v234, v258));
+                        let v260: Rc<UH2> = Rc::new(UH2::UH2_Cons(v233, v259));
+                        let v261: Rc<UH2> = Rc::new(UH2::UH2_Cons(v231, v260));
+                        let v262: Rc<UH2> = Rc::new(UH2::UH2_Cons(v230, v261));
+                        let v263: Rc<UH2> = Rc::new(UH2::UH2_Cons(v228, v262));
                         let v264: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        let v265: Rc<UH1> = Rc::new(UH1::UH1_Cons(v263.clone(), v264.clone()));
-                        Rc::new(UH1::UH1_Cons(v227.clone(), v265.clone()))
+                        let v265: Rc<UH1> = Rc::new(UH1::UH1_Cons(v263, v264));
+                        Rc::new(UH1::UH1_Cons(v227, v265))
                     }
                     US0::US0_ScopingIdiom => {
                         let v5: US2 = US2::US2_Start;
                         let v6: US3 = US3::US3_Blanks;
-                        let v7: US2 = US2::US2_Run(v6.clone(), 0i32);
+                        let v7: US2 = US2::US2_Run(v6, 0i32);
                         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Gleam = \\ () => "); } LIT.with(|lit| lit.clone()) };
-                        let v9: US2 = US2::US2_Maybe(v8.clone());
+                        let v9: US2 = US2::US2_Maybe(v8);
                         let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$'let "); } LIT.with(|lit| lit.clone()) };
-                        let v11: US2 = US2::US2_Text(v10.clone());
+                        let v11: US2 = US2::US2_Text(v10);
                         let v12: US3 = US3::US3_WordLetters;
-                        let v13: US2 = US2::US2_Run(v12.clone(), 1i32);
+                        let v13: US2 = US2::US2_Run(v12, 1i32);
                         let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" = fn ()"); } LIT.with(|lit| lit.clone()) };
-                        let v15: US2 = US2::US2_Text(v14.clone());
+                        let v15: US2 = US2::US2_Text(v14);
                         let v16: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v17: Rc<UH2> = Rc::new(UH2::UH2_Cons(v15.clone(), v16.clone()));
-                        let v18: Rc<UH2> = Rc::new(UH2::UH2_Cons(v13.clone(), v17.clone()));
-                        let v19: Rc<UH2> = Rc::new(UH2::UH2_Cons(v11.clone(), v18.clone()));
-                        let v20: Rc<UH2> = Rc::new(UH2::UH2_Cons(v9.clone(), v19.clone()));
-                        let v21: Rc<UH2> = Rc::new(UH2::UH2_Cons(v7.clone(), v20.clone()));
-                        let v22: Rc<UH2> = Rc::new(UH2::UH2_Cons(v5.clone(), v21.clone()));
+                        let v17: Rc<UH2> = Rc::new(UH2::UH2_Cons(v15, v16));
+                        let v18: Rc<UH2> = Rc::new(UH2::UH2_Cons(v13, v17));
+                        let v19: Rc<UH2> = Rc::new(UH2::UH2_Cons(v11, v18));
+                        let v20: Rc<UH2> = Rc::new(UH2::UH2_Cons(v9, v19));
+                        let v21: Rc<UH2> = Rc::new(UH2::UH2_Cons(v7, v20));
+                        let v22: Rc<UH2> = Rc::new(UH2::UH2_Cons(v5, v21));
                         let v23: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        Rc::new(UH1::UH1_Cons(v22.clone(), v23.clone()))
+                        Rc::new(UH1::UH1_Cons(v22, v23))
                     }
                     US0::US0_ThunkOpener => {
                         let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$'(fun () ->'"); } LIT.with(|lit| lit.clone()) };
-                        let v51: US2 = US2::US2_Text(v50.clone());
+                        let v51: US2 = US2::US2_Text(v50);
                         let v52: US3 = US3::US3_Blanks;
-                        let v53: US2 = US2::US2_Run(v52.clone(), 0i32);
+                        let v53: US2 = US2::US2_Run(v52, 0i32);
                         let v54: US2 = US2::US2_End;
                         let v55: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
-                        let v56: Rc<UH2> = Rc::new(UH2::UH2_Cons(v54.clone(), v55.clone()));
-                        let v57: Rc<UH2> = Rc::new(UH2::UH2_Cons(v53.clone(), v56.clone()));
-                        let v58: Rc<UH2> = Rc::new(UH2::UH2_Cons(v51.clone(), v57.clone()));
+                        let v56: Rc<UH2> = Rc::new(UH2::UH2_Cons(v54, v55));
+                        let v57: Rc<UH2> = Rc::new(UH2::UH2_Cons(v53, v56));
+                        let v58: Rc<UH2> = Rc::new(UH2::UH2_Cons(v51, v57));
                         let v59: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                        Rc::new(UH1::UH1_Cons(v58.clone(), v59.clone()))
+                        Rc::new(UH1::UH1_Cons(v58, v59))
                     }
                 };
                 let v296: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                let v297: Rc<UH1> = method2(v295.clone(), v296.clone());
-                let v298: bool = found_5(v0.clone(), v297.clone());
+                let v297: Rc<UH1> = method2(v295, v296);
+                let v298: bool = found_5(v0.clone(), v297);
                 if v298 {
-                    return US1::US1_Some(v3.clone());
+                    return US1::US1_Some(v3);
                 } else {
-                    v1 = v4.clone();
+                    v1 = v4;
                     continue;
                 }
             }
@@ -880,8 +880,8 @@ fn idiom_of_0(mut v0: Rc<str>) -> US1 {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> bool> = Rc::new(move |mut v0: Rc<str>| -> bool {
-        let mut v1: US1 = idiom_of_0(v0.clone());
-        let mut v2: bool = match &v1 {
+        let mut v1: US1 = idiom_of_0(v0);
+        let mut v2: bool = match v1 {
             US1::US1_None => {
                 true
             }

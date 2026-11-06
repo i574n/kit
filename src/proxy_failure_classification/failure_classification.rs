@@ -20,12 +20,12 @@ fn proxy_child_exit_code_0(mut v0: Rc<str>) -> i32 {
     } else {
         US0::US0_ArgumentFailure
     };
-    match &v5 {
+    match v5 {
         US0::US0_ArgumentFailure => {
             0i32
         }
         US0::US0_ChildProcessFailure(v6) => {
-            let v6: i32 = *v6;
+            let v6: i32 = v6;
             let v7: bool = v6 > 255i32;
             if v7 {
                 255i32
@@ -37,7 +37,7 @@ fn proxy_child_exit_code_0(mut v0: Rc<str>) -> i32 {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        proxy_child_exit_code_0(v0.clone())
+        proxy_child_exit_code_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn command_line_argument_count_3() -> i32 {
@@ -77,15 +77,15 @@ fn proxy_corrected_command_1(mut v0: Rc<str>) -> Rc<str> {
             US1::US1_NoRepair
         }
     };
-    match &v12 {
+    match v12 {
         US1::US1_AddCreateOrReplace => {
             let v13: bool = std::env::args().nth(2 + 3i32 as usize).is_some_and(|word| word.starts_with("--"));
             let v16: Rc<str> = if v13 {
                 let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" --create-or-replace "); } LIT.with(|lit| lit.clone()) };
-                v14.clone()
+                v14
             } else {
                 let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" --create-or-replace -- "); } LIT.with(|lit| lit.clone()) };
-                v15.clone()
+                v15
             };
             let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit proxy "); } LIT.with(|lit| lit.clone()) };
             let v18: Rc<str> = std::rc::Rc::<str>::from(std::env::args().skip(2 + 0i32 as usize).take((3i32 - 0i32).max(0) as usize).map(|word| Some(word.clone()).filter(|plain| plain.is_empty() == false && plain.chars().enumerate().all(|(at, c)| c.is_ascii_alphanumeric() || "_-./:=+,".contains(c) || c == char::from(92u8) || (c == char::from(126u8) && at > 0))).unwrap_or_else(|| [String::from(char::from(39u8)), word.replace(char::from(39u8), &String::from_iter([char::from(39u8); 2])), String::from(char::from(39u8))].concat())).collect::<Vec<_>>().join(" ").as_str());
@@ -94,17 +94,17 @@ fn proxy_corrected_command_1(mut v0: Rc<str>) -> Rc<str> {
             let v21: Rc<str> = std::rc::Rc::<str>::from(std::env::args().skip(2 + 3i32 as usize).take((v20 - 3i32).max(0) as usize).map(|word| Some(word.clone()).filter(|plain| plain.is_empty() == false && plain.chars().enumerate().all(|(at, c)| c.is_ascii_alphanumeric() || "_-./:=+,".contains(c) || c == char::from(92u8) || (c == char::from(126u8) && at > 0))).unwrap_or_else(|| [String::from(char::from(39u8)), word.replace(char::from(39u8), &String::from_iter([char::from(39u8); 2])), String::from(char::from(39u8))].concat())).collect::<Vec<_>>().join(" ").as_str());
             let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v23: Rc<str> = std::rc::Rc::<str>::from([&*v19, &*v21, &*v22].concat().as_str());
-            v23.clone()
+            v23
         }
         US1::US1_ExpectObservedMatches(v24) => {
-            let v24: u64 = *v24;
+            let v24: u64 = v24;
             let v25: bool = v24 == 1;
             if v25 {
                 let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit proxy "); } LIT.with(|lit| lit.clone()) };
                 let v27: Rc<str> = std::rc::Rc::<str>::from(std::env::args().skip(2 + 0i32 as usize).take((6i32 - 0i32).max(0) as usize).map(|word| Some(word.clone()).filter(|plain| plain.is_empty() == false && plain.chars().enumerate().all(|(at, c)| c.is_ascii_alphanumeric() || "_-./:=+,".contains(c) || c == char::from(92u8) || (c == char::from(126u8) && at > 0))).unwrap_or_else(|| [String::from(char::from(39u8)), word.replace(char::from(39u8), &String::from_iter([char::from(39u8); 2])), String::from(char::from(39u8))].concat())).collect::<Vec<_>>().join(" ").as_str());
                 let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 let v29: Rc<str> = std::rc::Rc::<str>::from([&*v26, &*v27, &*v28].concat().as_str());
-                v29.clone()
+                v29
             } else {
                 let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("kit proxy "); } LIT.with(|lit| lit.clone()) };
                 let v31: Rc<str> = std::rc::Rc::<str>::from(std::env::args().skip(2 + 0i32 as usize).take((6i32 - 0i32).max(0) as usize).map(|word| Some(word.clone()).filter(|plain| plain.is_empty() == false && plain.chars().enumerate().all(|(at, c)| c.is_ascii_alphanumeric() || "_-./:=+,".contains(c) || c == char::from(92u8) || (c == char::from(126u8) && at > 0))).unwrap_or_else(|| [String::from(char::from(39u8)), word.replace(char::from(39u8), &String::from_iter([char::from(39u8); 2])), String::from(char::from(39u8))].concat())).collect::<Vec<_>>().join(" ").as_str());
@@ -113,18 +113,18 @@ fn proxy_corrected_command_1(mut v0: Rc<str>) -> Rc<str> {
                 let v34: Rc<str> = std::rc::Rc::<str>::from(v24.to_string().as_str());
                 let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 let v36: Rc<str> = std::rc::Rc::<str>::from([&*v33, &*v34, &*v35].concat().as_str());
-                v36.clone()
+                v36
             }
         }
         US1::US1_NoRepair => {
             let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v38.clone()
+            v38
         }
     }
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        proxy_corrected_command_1(v0.clone())
+        proxy_corrected_command_1(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn kit_proxy_child_exit_code(v0: &str) -> i32 {

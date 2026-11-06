@@ -297,12 +297,12 @@ fn scan_plan_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> US0 {
                 } else {
                     US1::US1_QuotedError
                 };
-                let v144: US2 = match &v61 {
+                let v144: US2 = match v61 {
                     US1::US1_QuotedError => {
                         US2::US2_InvalidPatch
                     }
                     US1::US1_QuotedOk(v62) => {
-                        let v62: i32 = *v62;
+                        let v62: i32 = v62;
                         let v63: i32 = v52.wrapping_add(1i32);
                         let v64: i32 = v62.wrapping_sub(1i32);
                         let v65: i32 = v64.wrapping_sub(v63);
@@ -339,12 +339,12 @@ fn scan_plan_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> US0 {
                             } else {
                                 US3::US3_SeparatorError
                             };
-                            match &v84 {
+                            match v84 {
                                 US3::US3_SeparatorError => {
                                     US2::US2_InvalidPatch
                                 }
                                 US3::US3_SeparatorOk(v85) => {
-                                    let v85: i32 = *v85;
+                                    let v85: i32 = v85;
                                     let v86: bool = v85 < v2;
                                     let v94: US1 = if v86 {
                                         let v87: i32 = usize::try_from(v85).ok().and_then(|index| v0.as_bytes().get(index).copied()).map_or(-1, i32::from);
@@ -358,12 +358,12 @@ fn scan_plan_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> US0 {
                                     } else {
                                         US1::US1_QuotedError
                                     };
-                                    match &v94 {
+                                    match v94 {
                                         US1::US1_QuotedError => {
                                             US2::US2_InvalidPatch
                                         }
                                         US1::US1_QuotedOk(v95) => {
-                                            let v95: i32 = *v95;
+                                            let v95: i32 = v95;
                                             let v96: i32 = skip_spaces_1(v0.clone(), v95, v2);
                                             let v97: bool = v96 < v2;
                                             let v106: US3 = if v97 {
@@ -379,12 +379,12 @@ fn scan_plan_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> US0 {
                                             } else {
                                                 US3::US3_SeparatorError
                                             };
-                                            match &v106 {
+                                            match v106 {
                                                 US3::US3_SeparatorError => {
                                                     US2::US2_InvalidPatch
                                                 }
                                                 US3::US3_SeparatorOk(v107) => {
-                                                    let v107: i32 = *v107;
+                                                    let v107: i32 = v107;
                                                     let v108: bool = v107 < v2;
                                                     let v116: US1 = if v108 {
                                                         let v109: i32 = usize::try_from(v107).ok().and_then(|index| v0.as_bytes().get(index).copied()).map_or(-1, i32::from);
@@ -398,12 +398,12 @@ fn scan_plan_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> US0 {
                                                     } else {
                                                         US1::US1_QuotedError
                                                     };
-                                                    match &v116 {
+                                                    match v116 {
                                                         US1::US1_QuotedError => {
                                                             US2::US2_InvalidPatch
                                                         }
                                                         US1::US1_QuotedOk(v117) => {
-                                                            let v117: i32 = *v117;
+                                                            let v117: i32 = v117;
                                                             let v118: i32 = skip_spaces_1(v0.clone(), v117, v2);
                                                             let v119: bool = v118 < v2;
                                                             if v119 {
@@ -431,12 +431,12 @@ fn scan_plan_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32, mut v3: i32) -> US0 {
                         }
                     }
                 };
-                match &v144 {
+                match v144 {
                     US2::US2_InvalidPatch => {
                         return US0::US0_PatchPlanMalformed;
                     }
                     US2::US2_ParsedPatch(v145) => {
-                        let v145: i32 = *v145;
+                        let v145: i32 = v145;
                         let v146: i32 = v3.wrapping_add(1i32);
                         (v1, v3) = (v145, v146);
                         continue;
@@ -484,7 +484,7 @@ fn spiral_main() -> i32 {
             }
         }
     };
-    match &v17 {
+    match v17 {
         US0::US0_PatchPlanEmpty => {
             0i32
         }
@@ -498,7 +498,7 @@ fn spiral_main() -> i32 {
             -3i32
         }
         US0::US0_PatchPlanValid(v18) => {
-            let v18: i32 = *v18;
+            let v18: i32 = v18;
             v18
         }
     }
